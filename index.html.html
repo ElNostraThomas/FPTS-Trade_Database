@@ -1,0 +1,1186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fantasy Points — Dynasty Trade Database</title>
+<link href="https://fonts.googleapis.com/css2?family=Kanit:ital,wght@0,400;0,700;1,800&family=Mulish:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --black: #111111;
+    --white: #f0f0f0;
+    --red: #cc3333;
+    --surface: #1a1a1a;
+    --surface2: #222222;
+    --border: #2a2a2a;
+    --border2: #333333;
+    --muted: rgba(240,240,240,0.4);
+    --muted2: rgba(240,240,240,0.2);
+    --pos-wr-bg: #1a3a5c; --pos-wr: #85b7eb;
+    --pos-rb-bg: #0a2a1e; --pos-rb: #5dcaa5;
+    --pos-qb-bg: #2a1a0a; --pos-qb: #ef9f27;
+    --pos-te-bg: #2a0a0a; --pos-te: #f09595;
+    --pos-k-bg:  #1a0a2a; --pos-k:  #afa9ec;
+  }
+
+  html { background: var(--black); }
+  body { background: var(--black); color: var(--white); font-family: 'Mulish', sans-serif; min-height: 100vh; }
+
+  /* ── TOPNAV ── */
+  .topnav {
+    background: var(--black);
+    border-bottom: 2px solid var(--red);
+    height: 60px;
+    display: flex;
+    align-items: center;
+    padding: 0 40px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    gap: 40px;
+  }
+  .wordmark {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+  }
+  .wordmark svg { height: 28px; width: auto; }
+  .nav-links { display: flex; gap: 0; margin-left: 20px; }
+  .nav-link {
+    font-family: 'Mulish', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .07em;
+    color: var(--white);
+    opacity: 0.45;
+    padding: 0 16px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px;
+    transition: opacity .15s;
+  }
+  .nav-link:hover { opacity: 0.75; }
+  .nav-link.active { opacity: 1; border-bottom-color: var(--red); }
+  .nav-right { margin-left: auto; display: flex; align-items: center; gap: 16px; }
+  .nav-badge {
+    background: var(--red);
+    color: var(--white);
+    font-family: 'Kanit', sans-serif;
+    font-weight: 800;
+    font-style: italic;
+    font-size: 11px;
+    padding: 3px 10px;
+    letter-spacing: .04em;
+  }
+  .nav-stat { font-family: 'Mulish', sans-serif; font-size: 11px; color: var(--white); opacity: 0.5; }
+
+  /* ── TICKER ── */
+  .ticker {
+    background: var(--red);
+    overflow: hidden;
+    height: 28px;
+    display: flex;
+    align-items: center;
+  }
+  .ticker-track { display: flex; animation: ticker 30s linear infinite; white-space: nowrap; }
+  .ticker-item {
+    font-family: 'Kanit', sans-serif;
+    font-weight: 800;
+    font-style: italic;
+    font-size: 11px;
+    color: var(--white);
+    letter-spacing: .1em;
+    padding: 0 24px;
+    flex-shrink: 0;
+  }
+  .ticker-dot { color: rgba(255,255,255,0.4); }
+  @keyframes ticker { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+  /* ── PAGE LAYOUT ── */
+  .page { max-width: 1440px; margin: 0 auto; padding: 0 40px; }
+
+  .page-header {
+    padding: 32px 0 24px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 28px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+  }
+  .page-title {
+    font-family: 'Kanit', sans-serif;
+    font-weight: 800;
+    font-style: italic;
+    font-size: 36px;
+    color: var(--white);
+    text-transform: uppercase;
+    line-height: 1;
+  }
+  .page-title span { color: var(--red); }
+  .page-subtitle { font-family: 'Mulish', sans-serif; font-size: 13px; color: var(--white); opacity: 0.65; margin-top: 6px; }
+  .page-stats { display: flex; gap: 24px; }
+  .page-stat { text-align: right; }
+  .page-stat-val { font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 28px; color: var(--white); line-height: 1; }
+  .page-stat-val.red { color: var(--red); }
+  .page-stat-label { font-family: 'Mulish', sans-serif; font-size: 10px; color: var(--white); opacity: 0.65; text-transform: uppercase; letter-spacing: .07em; margin-top: 3px; }
+
+  /* ── METRICS ROW ── */
+  .metrics-row { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 12px; margin-bottom: 28px; }
+  .metric-card { background: var(--surface); border: 1px solid var(--border); padding: 18px 20px; }
+  .metric-card-label { font-size: 11px; color: var(--white); opacity: 0.7; text-transform: uppercase; letter-spacing: .08em; margin-bottom: 8px; }
+  .metric-card-value { font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 32px; color: var(--white); line-height: 1; }
+  .metric-card-value.red { color: var(--red); }
+
+  /* ── FILTER BAR ── */
+  .filter-bar {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 16px 20px;
+    margin-bottom: 28px;
+    display: flex;
+    gap: 16px;
+    align-items: flex-end;
+    flex-wrap: wrap;
+  }
+  .filter-bar-title {
+    font-family: 'Kanit', sans-serif;
+    font-weight: 800;
+    font-style: italic;
+    font-size: 12px;
+    color: var(--red);
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    align-self: center;
+    margin-right: 4px;
+    flex-shrink: 0;
+  }
+  .filter-group { display: flex; flex-direction: column; gap: 5px; }
+  .filter-label { font-family: 'Mulish', sans-serif; font-size: 10px; font-weight: 700; color: var(--white); opacity: 0.65; text-transform: uppercase; letter-spacing: .07em; }
+  .filter-select {
+    background: var(--black);
+    border: 1px solid var(--border2);
+    color: var(--white);
+    font-family: 'Kanit', sans-serif;
+    font-weight: 800;
+    font-style: italic;
+    font-size: 13px;
+    padding: 8px 32px 8px 12px;
+    appearance: none;
+    -webkit-appearance: none;
+    cursor: pointer;
+    min-width: 130px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23cc3333'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    transition: border-color .15s;
+  }
+  .filter-select:focus { outline: none; border-color: var(--red); }
+  .filter-select.active { border-color: var(--red); }
+  .filter-select option { background: #1a1a1a; font-style: normal; }
+  .filter-divider { width: 1px; background: var(--border); align-self: stretch; margin: 0 4px; }
+  .filter-actions { display: flex; gap: 8px; align-self: flex-end; }
+  .btn-reset {
+    background: none;
+    border: 1px solid var(--border2);
+    color: var(--white);
+    opacity: 0.65;
+    font-family: 'Mulish', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 8px 16px;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    transition: all .15s;
+  }
+  .btn-reset:hover { opacity: 1; border-color: var(--red); }
+
+  .active-filter-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 20px;
+    min-height: 28px;
+    flex-wrap: wrap;
+  }
+  .filter-chip {
+    background: var(--red);
+    color: var(--white);
+    font-family: 'Kanit', sans-serif;
+    font-weight: 800;
+    font-style: italic;
+    font-size: 11px;
+    padding: 4px 12px;
+    letter-spacing: .04em;
+  }
+  .filter-chip-muted { font-family: 'Mulish', sans-serif; font-size: 11px; color: var(--white); opacity: 0.5; }
+  .result-count { margin-left: auto; font-family: 'Mulish', sans-serif; font-size: 12px; color: var(--white); opacity: 0.5; }
+
+  /* ── MAIN CONTENT GRID ── */
+  .content-grid { display: grid; grid-template-columns: 1fr 340px; gap: 28px; align-items: start; }
+
+  /* ── TABS ── */
+  .tabs { display: flex; border-bottom: 1px solid var(--border); margin-bottom: 20px; }
+  .tab {
+    font-family: 'Mulish', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .07em;
+    color: var(--white);
+    opacity: 0.65;
+    padding: 12px 20px;
+    cursor: pointer;
+    border: none;
+    background: none;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    transition: opacity .15s;
+  }
+  .tab:hover { opacity: 0.7; }
+  .tab.active { opacity: 1; border-bottom-color: var(--red); }
+
+  /* ── SECTION HEADER ── */
+  .section-hdr { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+  .section-num { background: var(--red); color: var(--white); font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 11px; padding: 3px 9px; }
+  .section-title { font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 15px; color: var(--white); text-transform: uppercase; letter-spacing: .04em; }
+
+  /* ── TRADE CARDS ── */
+  .trade-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 12px; }
+  .trade-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--red);
+    padding: 14px 16px;
+    transition: border-color .15s;
+  }
+  .trade-card:hover { border-color: var(--red); background: var(--surface2); }
+  .trade-card-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+  .trade-meta { font-family: 'Mulish', sans-serif; font-size: 10px; color: var(--white); opacity: 0.65; text-transform: uppercase; letter-spacing: .07em; }
+  .format-chips { display: flex; gap: 4px; flex-wrap: wrap; }
+  .fmt-chip {
+    font-family: 'Kanit', sans-serif;
+    font-weight: 800;
+    font-style: italic;
+    font-size: 10px;
+    padding: 2px 7px;
+    border: 1px solid var(--border2);
+    color: var(--white);
+    opacity: 0.75;
+  }
+  .fmt-chip.sf { border-color: var(--red); color: var(--red); opacity: 1; }
+  .fmt-chip.twoqb { border-color: #ef9f27; color: #ef9f27; opacity: 1; }
+  .fmt-chip.tep { border-color: #5dcaa5; color: #5dcaa5; opacity: 1; }
+  .trade-teams { font-family: 'Mulish', sans-serif; font-weight: 900; font-size: 14px; color: var(--white); margin-bottom: 10px; }
+  .trade-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 5px; align-items: center; }
+  .row-label { font-size: 10px; color: var(--white); opacity: 0.8; text-transform: uppercase; letter-spacing: .07em; width: 50px; flex-shrink: 0; font-family: 'Mulish', sans-serif; }
+  .pos-badge { font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 10px; padding: 2px 6px; flex-shrink: 0; }
+  .pos-wr { background: var(--pos-wr-bg); color: var(--pos-wr); }
+  .pos-rb { background: var(--pos-rb-bg); color: var(--pos-rb); }
+  .pos-qb { background: var(--pos-qb-bg); color: var(--pos-qb); }
+  .pos-te { background: var(--pos-te-bg); color: var(--pos-te); }
+  .pos-k  { background: var(--pos-k-bg);  color: var(--pos-k);  }
+  .player-item { font-family: 'Mulish', sans-serif; font-weight: 900; font-size: 13px; color: var(--white); }
+  .arrow { color: var(--red); font-size: 10px; margin: 0 3px; }
+  .pick-badge { background: #2a2a2a; border: 1px solid #666666; color: #c8c8c8; font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 10px; padding: 2px 7px; }
+  .rd1-badge { background: #2a2a2a; border: 1px solid #cc3333; color: #e0e0e0; font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 10px; padding: 2px 7px; }
+  .faab-badge { background: #1a2a0a; border: 1px solid #5dcaa5; color: #5dcaa5; font-family: 'Mulish', sans-serif; font-size: 10px; font-weight: 700; padding: 2px 7px; }
+
+  /* ── RANK CARDS ── */
+  .rank-card { background: var(--surface); border: 1px solid var(--border); padding: 12px 16px; margin-bottom: 6px; display: flex; align-items: center; gap: 12px; transition: border-color .15s; }
+  .rank-card:hover { border-color: var(--border2); }
+  .rank-num { font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 22px; color: var(--red); width: 30px; text-align: center; flex-shrink: 0; }
+  .rank-num.muted { color: #3a3a3a; }
+  .rank-info { flex: 1; min-width: 0; }
+  .rank-name { font-family: 'Mulish', sans-serif; font-weight: 900; font-size: 14px; color: var(--white); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .rank-sub { font-family: 'Mulish', sans-serif; font-size: 11px; color: var(--white); opacity: 0.65; margin-top: 2px; }
+  .rank-bar { flex: 1; max-width: 140px; }
+  .rank-bar-track { background: var(--border); height: 4px; }
+  .rank-bar-fill { height: 4px; transition: width .3s; }
+  .rank-count { font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 20px; color: var(--white); flex-shrink: 0; min-width: 30px; text-align: right; }
+
+  /* ── SIDEBAR ── */
+  .sidebar { display: flex; flex-direction: column; gap: 20px; position: sticky; top: 88px; }
+  .sidebar-card { background: var(--surface); border: 1px solid var(--border); padding: 18px; }
+  .sidebar-title { font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 13px; color: var(--white); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 14px; padding-bottom: 10px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; }
+  .sidebar-title-num { background: var(--red); color: var(--white); font-size: 10px; padding: 2px 7px; }
+  .pick-stat-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border); }
+  .pick-stat-row:last-child { border-bottom: none; }
+  .pick-stat-label { font-family: 'Mulish', sans-serif; font-size: 12px; color: var(--white); opacity: 0.8; }
+  .pick-stat-val { font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 18px; color: var(--white); }
+  .pick-stat-val.red { color: var(--red); }
+  .pos-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .pos-bar-track { flex: 1; background: var(--border); height: 5px; }
+  .pos-bar-fill { height: 5px; }
+  .pos-count { font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 14px; color: var(--white); min-width: 24px; text-align: right; }
+  .year-block { margin-bottom: 14px; }
+  .year-label { font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 12px; color: var(--red); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 8px; }
+  .pick-round-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+  .pick-round-label { font-family: 'Mulish', sans-serif; font-size: 11px; color: var(--white); opacity: 0.75; width: 54px; flex-shrink: 0; }
+  .pick-round-bar { flex: 1; background: var(--border); height: 4px; }
+  .pick-round-fill-red { height: 4px; background: var(--red); }
+  .pick-round-fill-white { height: 4px; background: var(--white); opacity: 0.65; }
+  .pick-round-count { font-size: 11px; color: var(--white); opacity: 0.65; min-width: 18px; text-align: right; font-family: 'Mulish', sans-serif; }
+
+  /* ── TWO COL ── */
+  .two-col { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 16px; }
+  .sub-hdr { font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 12px; color: var(--white); opacity: 0.75; text-transform: uppercase; letter-spacing: .04em; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
+  .divider { height: 1px; background: var(--border); margin: 20px 0; }
+  .no-results { text-align: center; padding: 60px 20px; font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 18px; color: var(--white); opacity: 0.2; }
+
+  /* ── PLAYER PANEL ── */
+  .panel-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 200;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .25s;
+  }
+  .panel-overlay.open { opacity: 1; pointer-events: all; }
+
+  .player-panel {
+    position: fixed;
+    top: 0; right: 0; bottom: 0;
+    width: 560px;
+    background: #161616;
+    border-left: 2px solid var(--red);
+    z-index: 201;
+    transform: translateX(100%);
+    transition: transform .3s cubic-bezier(.4,0,.2,1);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .player-panel.open { transform: translateX(0); }
+
+  .panel-header {
+    background: var(--black);
+    border-bottom: 1px solid var(--border);
+    padding: 20px 24px;
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    flex-shrink: 0;
+  }
+  .panel-pos-badge {
+    font-family: 'Kanit', sans-serif;
+    font-weight: 800;
+    font-style: italic;
+    font-size: 13px;
+    padding: 4px 10px;
+    flex-shrink: 0;
+    margin-top: 4px;
+  }
+  .panel-player-name {
+    font-family: 'Kanit', sans-serif;
+    font-weight: 800;
+    font-style: italic;
+    font-size: 28px;
+    color: var(--white);
+    text-transform: uppercase;
+    line-height: 1;
+    flex: 1;
+  }
+  .panel-close {
+    background: none;
+    border: 1px solid var(--border2);
+    color: var(--white);
+    font-family: 'Kanit', sans-serif;
+    font-weight: 800;
+    font-style: italic;
+    font-size: 13px;
+    padding: 6px 14px;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: border-color .15s;
+  }
+  .panel-close:hover { border-color: var(--red); color: var(--red); }
+
+  .panel-stats-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .panel-stat {
+    padding: 14px 20px;
+    border-right: 1px solid var(--border);
+  }
+  .panel-stat:last-child { border-right: none; }
+  .panel-stat-label { font-size: 10px; color: var(--white); opacity: 0.65; text-transform: uppercase; letter-spacing: .07em; margin-bottom: 4px; font-family: 'Mulish', sans-serif; }
+  .panel-stat-val { font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 22px; color: var(--white); }
+  .panel-stat-val.red { color: var(--red); }
+
+  .panel-body { flex: 1; overflow-y: auto; padding: 20px 24px; }
+  .panel-section-title {
+    font-family: 'Kanit', sans-serif;
+    font-weight: 800;
+    font-style: italic;
+    font-size: 12px;
+    color: var(--red);
+    text-transform: uppercase;
+    letter-spacing: .07em;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .panel-trade-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--red);
+    padding: 12px 14px;
+    margin-bottom: 8px;
+  }
+  .panel-trade-meta { font-size: 10px; color: var(--white); opacity: 0.65; text-transform: uppercase; letter-spacing: .07em; margin-bottom: 5px; font-family: 'Mulish', sans-serif; }
+  .panel-trade-teams { font-family: 'Mulish', sans-serif; font-weight: 900; font-size: 14px; color: var(--white); margin-bottom: 8px; }
+  .panel-highlight {
+    background: rgba(204,51,51,0.1);
+    border: 1px solid rgba(204,51,51,0.3);
+    padding: 6px 10px;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .panel-highlight-label { font-size: 10px; color: var(--red); text-transform: uppercase; letter-spacing: .07em; font-family: 'Mulish', sans-serif; font-weight: 700; flex-shrink: 0; }
+  .panel-highlight-val { font-family: 'Mulish', sans-serif; font-weight: 900; font-size: 13px; color: var(--white); }
+  .panel-also { font-size: 11px; color: var(--white); opacity: 0.75; font-family: 'Mulish', sans-serif; margin-top: 4px; }
+
+  .clickable-player { cursor: pointer; text-decoration: underline; text-underline-offset: 2px; text-decoration-color: rgba(240,240,240,0.2); transition: text-decoration-color .15s; }
+  .clickable-player:hover { text-decoration-color: var(--red); color: var(--white); }
+
+  .clickable-pick { cursor: pointer; text-decoration: underline; text-underline-offset: 2px; text-decoration-color: rgba(240,240,240,0.2); transition: text-decoration-color .15s; }
+  .clickable-pick:hover { text-decoration-color: var(--red); }
+
+  /* ── PICK PAGE ── */
+  #pick-page { display: none; }
+  .pick-page-header {
+    padding: 32px 0 24px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 28px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 20px;
+  }
+  .back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: none;
+    border: 1px solid var(--border2);
+    color: var(--white);
+    font-family: 'Mulish', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 8px 16px;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    margin-bottom: 16px;
+    transition: border-color .15s;
+  }
+  .back-btn:hover { border-color: var(--red); color: var(--red); }
+  .pick-page-title {
+    font-family: 'Kanit', sans-serif;
+    font-weight: 800;
+    font-style: italic;
+    font-size: 48px;
+    color: var(--white);
+    text-transform: uppercase;
+    line-height: 1;
+  }
+  .pick-page-title span { color: var(--red); }
+  .pick-page-subtitle { font-family: 'Mulish', sans-serif; font-size: 13px; color: var(--white); opacity: 0.65; margin-top: 8px; }
+  .pick-page-stats { display: flex; gap: 24px; flex-shrink: 0; }
+  .pick-page-grid { display: grid; grid-template-columns: 1fr 320px; gap: 28px; align-items: start; }
+  .pick-trade-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--red);
+    padding: 16px 20px;
+    margin-bottom: 10px;
+  }
+  .pick-trade-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+  .pick-trade-date { font-family: 'Mulish', sans-serif; font-size: 11px; color: var(--white); opacity: 0.65; text-transform: uppercase; letter-spacing: .07em; }
+  .pick-trade-teams { font-family: 'Mulish', sans-serif; font-weight: 900; font-size: 15px; color: var(--white); margin-bottom: 12px; }
+  .pick-flow {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: rgba(204,51,51,0.08);
+    border: 1px solid rgba(204,51,51,0.25);
+    padding: 10px 14px;
+    margin-bottom: 8px;
+  }
+  .pick-flow-from { font-family: 'Mulish', sans-serif; font-size: 13px; color: var(--white); opacity: 0.8; }
+  .pick-flow-arrow { color: var(--red); font-size: 16px; font-weight: 900; }
+  .pick-flow-to { font-family: 'Mulish', sans-serif; font-weight: 900; font-size: 14px; color: var(--white); }
+  .pick-trade-also { font-size: 12px; color: var(--white); opacity: 0.75; font-family: 'Mulish', sans-serif; margin-top: 6px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+  .pick-sidebar-card { background: var(--surface); border: 1px solid var(--border); padding: 18px; margin-bottom: 16px; }
+  .pick-sb-title { font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 13px; color: var(--white); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 14px; padding-bottom: 10px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; }
+  .pick-sb-num { background: var(--red); color: var(--white); font-size: 10px; padding: 2px 7px; }
+  .owner-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border); }
+  .owner-row:last-child { border-bottom: none; }
+  .owner-num { font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 16px; color: var(--red); width: 24px; flex-shrink: 0; }
+  .owner-name { font-family: 'Mulish', sans-serif; font-weight: 700; font-size: 13px; color: var(--white); flex: 1; }
+  .owner-date { font-family: 'Mulish', sans-serif; font-size: 11px; color: var(--white); opacity: 0.65; }
+  .related-pick-btn {
+    display: block;
+    width: 100%;
+    background: var(--black);
+    border: 1px solid var(--border);
+    color: var(--white);
+    font-family: 'Kanit', sans-serif;
+    font-weight: 800;
+    font-style: italic;
+    font-size: 13px;
+    padding: 10px 14px;
+    cursor: pointer;
+    text-align: left;
+    margin-bottom: 6px;
+    transition: border-color .15s;
+    letter-spacing: .04em;
+  }
+  .related-pick-btn:hover { border-color: var(--red); color: var(--red); }
+
+  /* ── FOOTER ── */
+  footer {
+    margin-top: 60px;
+    border-top: 1px solid var(--border);
+    padding: 20px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    max-width: 1440px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .footer-copy { font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 11px; color: var(--white); opacity: 0.2; letter-spacing: .08em; }
+</style>
+</head>
+<body>
+
+<div id="main-page">
+<!-- TOPNAV -->
+<nav class="topnav">
+  <div class="wordmark">
+    <svg viewBox="0 0 878 90" xmlns="http://www.w3.org/2000/svg" style="fill-rule:evenodd;clip-rule:evenodd">
+      <path d="M508.084,47.801l-8.983,41.534c0,0 -75.276,-0.036 -85.237,-0.002l0.015,-0.067c0,0 2.533,-17.352 5.641,-25.475c3.708,-9.689 16.604,-32.658 16.604,-32.658c12.902,8.212 8.658,21.025 7.099,27.21c11.719,-8.962 11.012,-17.186 11.003,-28.608c-0.006,-7.356 4.797,-23.375 17.858,-28.257c-4.305,14.678 3.971,24.95 7.333,30.494c6.362,10.492 1.397,21.17 1.397,21.17c0,0 9.268,-3.36 8.863,-15.254c-0.117,-3.424 -1.714,-14.283 8.012,-18.422c-0.754,9.397 5.495,18.682 10.395,28.336Z" fill="#cc3333"/>
+      <path d="M19.856,0.761l47.225,0l-3.757,16.803l-22.539,0l-4.159,18.236l19.99,0l-3.757,16.933l-19.99,0l-8.184,36.602l-24.686,0l19.856,-88.573Z" fill="#f0f0f0" fill-rule="nonzero"/>
+      <path d="M82.991,0.761l28.577,0l-1.207,88.573l-24.954,0l0.939,-14.589l-16.234,0l-5.635,14.589l-19.99,0l38.505,-88.573Zm4.293,58.745l2.147,-34.648l-13.416,34.648l11.27,0Z" fill="#f0f0f0" fill-rule="nonzero"/>
+      <path d="M135.036,0.761l26.698,0l3.757,47.804l10.733,-47.804l17.709,0l-19.856,88.573l-26.564,0l-3.891,-47.413l-10.599,47.413l-17.844,0l19.856,-88.573Z" fill="#f0f0f0" fill-rule="nonzero"/>
+      <path d="M211.755,18.215l-15.831,0l3.891,-17.454l55.678,0l-3.891,17.454l-15.295,0l-15.965,71.119l-24.552,0l15.965,-71.119Z" fill="#f0f0f0" fill-rule="nonzero"/>
+      <path d="M270.166,0.884l28.537,0l-1.206,88.451l-24.92,0l0.938,-14.568l-16.211,0l-5.627,14.568l-19.963,0l38.451,-88.451Zm4.287,58.664l2.144,-34.6l-13.398,34.6l11.254,0Z" fill="#f0f0f0" fill-rule="nonzero"/>
+      <path d="M316.507,17.764c2.387,-11.843 10.165,-17.764 23.335,-17.764l16.971,0c6.718,0 11.623,1.888 14.717,5.664c3.094,3.776 3.933,8.753 2.519,14.932l-1.989,10.298l-23.865,0l2.387,-10.427c0.707,-3.433 -0.53,-5.149 -3.712,-5.149l-1.326,0c-1.591,0 -2.828,0.365 -3.712,1.094c-0.884,0.729 -1.547,2.038 -1.989,3.926l-1.326,6.05c-0.354,1.802 -0.243,3.24 0.331,4.312c0.575,1.073 1.746,1.995 3.514,2.768l11.933,4.377c5.038,1.974 8.508,4.72 10.408,8.238c1.9,3.518 2.232,7.981 0.994,13.387l-2.652,12.1c-2.387,11.843 -10.209,17.764 -23.468,17.764l-17.369,0c-6.718,0 -11.623,-1.909 -14.717,-5.728c-3.094,-3.819 -3.933,-8.903 -2.519,-15.254l2.254,-10.942l24.263,0l-2.519,11.456c-0.707,3.433 0.486,5.149 3.58,5.149l1.591,0c1.591,0 2.806,-0.386 3.646,-1.159c0.84,-0.772 1.436,-2.06 1.79,-3.862l1.856,-7.723c0.442,-1.888 0.354,-3.347 -0.265,-4.377c-0.619,-1.03 -1.812,-1.931 -3.58,-2.703l-12.198,-4.634c-9.9,-3.776 -13.656,-11.027 -11.27,-21.754l2.387,-10.04Z" fill="#f0f0f0" fill-rule="nonzero"/>
+      <path d="M411.302,62.129l-6.16,27.043l-25.31,0l6.294,-27.954l-5.223,-60.458l26.382,0l0.536,33.414l15.4,-33.414l20.623,0l-32.542,61.368Z" fill="#f0f0f0" fill-rule="nonzero"/>
+      <path d="M526.915,0.761l37.555,0c6.861,0 11.828,1.91 14.902,5.731c3.074,3.821 3.853,9.075 2.339,15.761l-3.475,16.933c-1.515,6.513 -4.232,11.311 -8.152,14.393c-3.92,3.083 -9.222,4.624 -15.904,4.624l-15.503,0l-6.95,31.131l-24.591,0l19.78,-88.575Zm21.651,41.291c1.604,0 2.851,-0.369 3.742,-1.107c0.891,-0.738 1.515,-2.062 1.871,-3.973l3.341,-14.849c0.713,-3.474 -0.445,-5.21 -3.475,-5.21l-6.148,0l-5.613,25.14l6.281,0Z" fill="#f0f0f0" fill-rule="nonzero"/>
+      <path d="M591.621,18.118c2.541,-11.572 10.254,-17.357 23.136,-17.357l17.747,0c6.573,0 11.437,1.893 14.592,5.679c3.155,3.786 3.988,8.87 2.498,15.251l-11.305,50.285c-2.541,11.572 -10.254,17.357 -23.136,17.357l-17.747,0c-6.66,0 -11.524,-1.893 -14.592,-5.679c-3.067,-3.786 -3.9,-8.87 -2.498,-15.251l11.305,-50.285Zm34.047,3.574c0.438,-1.617 0.329,-2.872 -0.329,-3.765c-0.657,-0.893 -1.731,-1.34 -3.221,-1.34l-1.84,0c-3.067,0 -4.952,1.659 -5.653,4.977l-10.517,46.839c-0.351,1.617 -0.175,2.872 0.526,3.765c0.701,0.893 1.753,1.34 3.155,1.34l1.84,0c2.98,0 4.82,-1.659 5.521,-4.977l10.517,-46.839Z" fill="#f0f0f0" fill-rule="nonzero"/>
+      <path d="M663.756,0.884l24.652,0l-19.829,88.452l-24.652,0l19.829,-88.452Z" fill="#f0f0f0" fill-rule="nonzero"/>
+      <path d="M697.921,0.884l26.662,0l3.751,47.738l10.718,-47.738l17.685,0l-19.829,88.452l-26.528,0l-3.885,-47.348l-10.584,47.348l-17.819,0l19.829,-88.452Z" fill="#f0f0f0" fill-rule="nonzero"/>
+      <path d="M774.557,18.314l-15.809,0l3.885,-17.43l55.601,0l-3.885,17.43l-15.274,0l-15.943,71.022l-24.518,0l15.943,-71.022Z" fill="#f0f0f0" fill-rule="nonzero"/>
+      <path d="M819.769,18.472c2.363,-11.725 10.064,-17.588 23.104,-17.588l16.803,0c6.651,0 11.508,1.869 14.571,5.608c3.063,3.739 3.894,8.667 2.494,14.784l-1.969,10.196l-23.629,0l2.363,-10.324c0.7,-3.399 -0.525,-5.098 -3.676,-5.098l-1.313,0c-1.575,0 -2.801,0.361 -3.676,1.083c-0.875,0.722 -1.532,2.018 -1.969,3.887l-1.313,5.99c-0.35,1.784 -0.241,3.208 0.328,4.27c0.569,1.062 1.728,1.975 3.479,2.74l11.815,4.333c4.988,1.954 8.423,4.673 10.305,8.157c1.882,3.484 2.21,7.902 0.985,13.255l-2.625,11.98c-2.363,11.725 -10.108,17.588 -23.236,17.588l-17.197,0c-6.651,0 -11.508,-1.891 -14.571,-5.672c-3.063,-3.781 -3.894,-8.815 -2.494,-15.103l2.232,-10.833l24.023,0l-2.494,11.343c-0.7,3.399 0.481,5.098 3.544,5.098l1.575,0c1.575,0 2.779,-0.382 3.61,-1.147c0.831,-0.765 1.422,-2.039 1.772,-3.824l1.838,-7.647c0.438,-1.869 0.35,-3.314 -0.263,-4.333c-0.613,-1.02 -1.794,-1.912 -3.544,-2.676l-12.077,-4.588c-9.802,-3.739 -13.521,-10.918 -11.158,-21.539l2.363,-9.941Z" fill="#f0f0f0" fill-rule="nonzero"/>
+    </svg>
+  </div>
+  <nav class="nav-links">
+    <a class="nav-link" href="#">Rankings</a>
+    <a class="nav-link" href="#">Trade Calculator</a>
+    <a class="nav-link active" href="#">Trade Database</a>
+    <a class="nav-link" href="#">Dynasty Tools</a>
+  </nav>
+  <div class="nav-right">
+    <span class="nav-stat">Last updated: <strong>April 2025</strong></span>
+    <span class="nav-badge">SEASON 2025</span>
+  </div>
+</nav>
+
+<!-- TICKER -->
+<div class="ticker">
+  <div class="ticker-track">
+    <span class="ticker-item">FANTASYPOINTS.COM</span><span class="ticker-item ticker-dot">·</span>
+    <span class="ticker-item">DYNASTY TRADE DATABASE</span><span class="ticker-item ticker-dot">·</span>
+    <span class="ticker-item">NFL PLAYERS</span><span class="ticker-item ticker-dot">·</span>
+    <span class="ticker-item">ROOKIE DRAFT PICKS</span><span class="ticker-item ticker-dot">·</span>
+    <span class="ticker-item">POWERED BY SLEEPER API</span><span class="ticker-item ticker-dot">·</span>
+    <span class="ticker-item">SEASON 2025</span><span class="ticker-item ticker-dot">·</span>
+    <span class="ticker-item">FPTS</span><span class="ticker-item ticker-dot">·</span>
+    <span class="ticker-item">FANTASYPOINTS.COM</span><span class="ticker-item ticker-dot">·</span>
+    <span class="ticker-item">DYNASTY TRADE DATABASE</span><span class="ticker-item ticker-dot">·</span>
+    <span class="ticker-item">NFL PLAYERS</span><span class="ticker-item ticker-dot">·</span>
+    <span class="ticker-item">ROOKIE DRAFT PICKS</span><span class="ticker-item ticker-dot">·</span>
+    <span class="ticker-item">POWERED BY SLEEPER API</span><span class="ticker-item ticker-dot">·</span>
+    <span class="ticker-item">SEASON 2025</span><span class="ticker-item ticker-dot">·</span>
+    <span class="ticker-item">FPTS</span><span class="ticker-item ticker-dot">·</span>
+  </div>
+</div>
+
+<!-- PAGE -->
+<div class="page">
+
+  <!-- PAGE HEADER -->
+  <div class="page-header">
+    <div>
+      <div class="page-title">Dynasty <span>Trade</span> Database</div>
+      <div class="page-subtitle">Real trades from real Sleeper leagues · Last 30 days · Season 2025</div>
+    </div>
+    <div class="page-stats">
+      <div class="page-stat">
+        <div class="page-stat-val red" id="h-trades">—</div>
+        <div class="page-stat-label">Trades</div>
+      </div>
+      <div class="page-stat">
+        <div class="page-stat-val" id="h-players">—</div>
+        <div class="page-stat-label">Players moved</div>
+      </div>
+      <div class="page-stat">
+        <div class="page-stat-val" id="h-picks">—</div>
+        <div class="page-stat-label">Rookie picks</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- METRICS -->
+  <div class="metrics-row">
+    <div class="metric-card"><div class="metric-card-label">Total trades</div><div class="metric-card-value red" id="m-trades">—</div></div>
+    <div class="metric-card"><div class="metric-card-label">Players moved</div><div class="metric-card-value" id="m-players">—</div></div>
+    <div class="metric-card"><div class="metric-card-label">Rookie picks</div><div class="metric-card-value" id="m-picks">—</div></div>
+    <div class="metric-card"><div class="metric-card-label">1st rounders</div><div class="metric-card-value red" id="m-first">—</div></div>
+  </div>
+
+  <!-- FILTER BAR -->
+  <div class="filter-bar">
+    <span class="filter-bar-title">Filters</span>
+    <div class="filter-divider"></div>
+    <div class="filter-group">
+      <span class="filter-label">QB Format</span>
+      <select class="filter-select" id="f-qb" onchange="applyFilters()">
+        <option value="all">All Formats</option>
+        <option value="1qb">1 QB</option>
+        <option value="2qb">2 QB</option>
+        <option value="sf">Superflex</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <span class="filter-label">Starters</span>
+      <select class="filter-select" id="f-starters" onchange="applyFilters()">
+        <option value="all">All Sizes</option>
+        <option value="8">8 Starters</option>
+        <option value="9">9 Starters</option>
+        <option value="10">10 Starters</option>
+        <option value="11">11 Starters</option>
+        <option value="12">12 Starters</option>
+        <option value="13">13 Starters</option>
+        <option value="14">14 Starters</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <span class="filter-label">League Size</span>
+      <select class="filter-select" id="f-teams" onchange="applyFilters()">
+        <option value="all">All Sizes</option>
+        <option value="8">8 Teams</option>
+        <option value="10">10 Teams</option>
+        <option value="12">12 Teams</option>
+        <option value="14">14 Teams</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <span class="filter-label">TEP Bonus</span>
+      <select class="filter-select" id="f-tep" onchange="applyFilters()">
+        <option value="all">All TEP</option>
+        <option value="none">No TEP</option>
+        <option value="0.5">TEP 0.5</option>
+        <option value="0.75">TEP 0.75</option>
+        <option value="1.0">TEP 1.0</option>
+      </select>
+    </div>
+    <div class="filter-divider"></div>
+    <div class="filter-group">
+      <span class="filter-label">Pick Round</span>
+      <select class="filter-select" id="f-pick-round" onchange="updatePickSlots(); applyFilters()">
+        <option value="all">All Rounds</option>
+        <option value="1">Round 1</option>
+        <option value="2">Round 2</option>
+        <option value="3">Round 3</option>
+        <option value="4">Round 4</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <span class="filter-label">Pick Slot</span>
+      <select class="filter-select" id="f-pick-slot" onchange="applyFilters()" disabled>
+        <option value="all">All Slots</option>
+      </select>
+    </div>
+    <div class="filter-divider"></div>
+    <div class="filter-group">
+      <span class="filter-label">PPR</span>
+      <select class="filter-select" id="f-ppr" onchange="applyFilters()">
+        <option value="all">All PPR</option>
+        <option value="1">Full PPR</option>
+        <option value="0.5">Half PPR</option>
+        <option value="0.25">0.25 PPR</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <span class="filter-label">FAAB</span>
+      <select class="filter-select" id="f-faab" onchange="applyFilters()">
+        <option value="all">All Trades</option>
+        <option value="yes">With FAAB</option>
+        <option value="no">No FAAB</option>
+      </select>
+    </div>
+    <div class="filter-divider"></div>
+    <div class="filter-actions">
+      <button class="btn-reset" onclick="resetFilters()">Reset Filters</button>
+    </div>
+  </div>
+
+  <div class="active-filter-row" id="active-filters">
+    <span class="filter-chip-muted">Showing all formats</span>
+  </div>
+
+  <!-- CONTENT GRID -->
+  <div class="content-grid">
+
+    <!-- MAIN -->
+    <div>
+      <div class="tabs">
+        <button class="tab active" onclick="showTab('recent')">Recent Trades</button>
+        <button class="tab" onclick="showTab('top-players')">Top Players</button>
+        <button class="tab" onclick="showTab('top-picks')">Top Picks</button>
+        <button class="tab" onclick="showTab('positions')">By Position</button>
+      </div>
+      <div id="tab-recent"></div>
+      <div id="tab-top-players" style="display:none"></div>
+      <div id="tab-top-picks" style="display:none"></div>
+      <div id="tab-positions" style="display:none"></div>
+    </div>
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sidebar-card">
+        <div class="sidebar-title"><span class="sidebar-title-num">01</span>Pick Summary</div>
+        <div id="sb-pick-stats"></div>
+      </div>
+      <div class="sidebar-card">
+        <div class="sidebar-title"><span class="sidebar-title-num">02</span>Position Breakdown</div>
+        <div id="sb-positions"></div>
+      </div>
+      <div class="sidebar-card">
+        <div class="sidebar-title"><span class="sidebar-title-num">03</span>Picks by Year</div>
+        <div id="sb-picks-year"></div>
+      </div>
+    </aside>
+
+  </div>
+</div>
+
+</div>
+
+<!-- PICK PAGE -->
+<div id="pick-page">
+  <div class="page">
+    <button class="back-btn" onclick="closPickPage()">← Back to Trade Database</button>
+    <div class="pick-page-header">
+      <div>
+        <div class="pick-page-title" id="pp-title">2026 <span>Rd1</span></div>
+        <div class="pick-page-subtitle" id="pp-subtitle">1st Round Pick · 2026 Rookie Draft Class</div>
+      </div>
+      <div class="pick-page-stats">
+        <div class="page-stat">
+          <div class="page-stat-val red" id="pp-count">—</div>
+          <div class="page-stat-label">Times traded</div>
+        </div>
+        <div class="page-stat">
+          <div class="page-stat-val" id="pp-last">—</div>
+          <div class="page-stat-label">Last traded</div>
+        </div>
+        <div class="page-stat">
+          <div class="page-stat-val" id="pp-owners">—</div>
+          <div class="page-stat-label">Unique owners</div>
+        </div>
+      </div>
+    </div>
+    <div class="pick-page-grid">
+      <div id="pp-trades"></div>
+      <aside id="pp-sidebar"></aside>
+    </div>
+  </div>
+</div>
+
+<!-- PLAYER PANEL OVERLAY -->
+<div class="panel-overlay" id="panel-overlay" onclick="closePanel()"></div>
+<div class="player-panel" id="player-panel">
+  <div class="panel-header">
+    <div id="panel-pos-badge"></div>
+    <div id="panel-player-name" class="panel-player-name"></div>
+    <button class="panel-close" onclick="closePanel()">✕ Close</button>
+  </div>
+  <div class="panel-stats-row">
+    <div class="panel-stat"><div class="panel-stat-label">Times traded</div><div class="panel-stat-val red" id="panel-count">—</div></div>
+    <div class="panel-stat"><div class="panel-stat-label">Last traded</div><div class="panel-stat-val" id="panel-last">—</div></div>
+    <div class="panel-stat"><div class="panel-stat-label">Position</div><div class="panel-stat-val" id="panel-pos">—</div></div>
+  </div>
+  <div class="panel-body" id="panel-body"></div>
+</div>
+
+<footer>
+  <span class="footer-copy">FANTASYPOINTS.COM · FPTS · DYNASTY TRADE DATABASE · SEASON 2025</span>
+  <span class="footer-copy">POWERED BY SLEEPER API</span>
+</footer>
+
+<script>
+const posColors = { WR:"#3266ad", RB:"#1d9e75", QB:"#ef9f27", TE:"#e24b4a", K:"#7f77dd" };
+const pc = p => "pos-"+(p||"wr").toLowerCase();
+const qbLabels = { "1qb":"1 QB", "2qb":"2 QB", "sf":"Superflex", "all":"All Formats" };
+const tepLabels = { "none":"No TEP", "0.5":"TEP 0.5", "0.75":"TEP 0.75", "1.0":"TEP 1.0", "all":"All TEP" };
+
+const TRADES = [
+  { id:"T001", date:"2025-03-08", week:1, teams:"ElNostraThomas vs TeamAlpha",  qb:"sf",  starters:10, teams_count:12, tep:"none", ppr:"1",    players:[{name:"CeeDee Lamb",pos:"WR",to:"ElNostraThomas"},{name:"Ja'Marr Chase",pos:"WR",to:"TeamAlpha"}], picks:[{year:"2026",round:1,slot:3,from:"TeamAlpha",to:"ElNostraThomas"}], faab:null },
+  { id:"T002", date:"2025-03-10", week:1, teams:"TeamGamma vs TeamDelta",       qb:"1qb", starters:9,  teams_count:10, tep:"0.5",  ppr:"0.5",  players:[{name:"Justin Jefferson",pos:"WR",to:"TeamGamma"}], picks:[{year:"2026",round:1,slot:1,from:"TeamDelta",to:"TeamGamma"},{year:"2027",round:2,slot:5,from:"TeamGamma",to:"TeamDelta"}], faab:"$45" },
+  { id:"T003", date:"2025-03-15", week:2, teams:"TeamEcho vs ElNostraThomas",   qb:"sf",  starters:11, teams_count:12, tep:"1.0",  ppr:"1",    players:[{name:"Tyreek Hill",pos:"WR",to:"TeamEcho"},{name:"Travis Kelce",pos:"TE",to:"ElNostraThomas"}], picks:[], faab:null },
+  { id:"T004", date:"2025-03-21", week:2, teams:"TeamBeta vs TeamFoxtrot",      qb:"2qb", starters:10, teams_count:14, tep:"none", ppr:"0.5",  players:[{name:"Christian McCaffrey",pos:"RB",to:"TeamBeta"}], picks:[{year:"2026",round:2,slot:7,from:"TeamFoxtrot",to:"TeamBeta"}], faab:"$30" },
+  { id:"T005", date:"2025-03-28", week:3, teams:"TeamDelta vs TeamEcho",        qb:"1qb", starters:8,  teams_count:8,  tep:"0.75", ppr:"0.25", players:[{name:"Lamar Jackson",pos:"QB",to:"TeamDelta"},{name:"Davante Adams",pos:"WR",to:"TeamEcho"}], picks:[{year:"2027",round:1,slot:2,from:"TeamEcho",to:"TeamDelta"}], faab:null },
+  { id:"T006", date:"2025-04-01", week:4, teams:"TeamGamma vs ElNostraThomas",  qb:"sf",  starters:12, teams_count:12, tep:"none", ppr:"1",    players:[{name:"Amon-Ra St. Brown",pos:"WR",to:"TeamGamma"},{name:"Saquon Barkley",pos:"RB",to:"ElNostraThomas"}], picks:[{year:"2026",round:3,slot:4,from:"ElNostraThomas",to:"TeamGamma"}], faab:null },
+  { id:"T007", date:"2025-04-03", week:4, teams:"TeamFoxtrot vs TeamDelta",     qb:"2qb", starters:10, teams_count:14, tep:"0.5",  ppr:"0.5",  players:[{name:"Garrett Wilson",pos:"WR",to:"TeamFoxtrot"}], picks:[{year:"2026",round:1,slot:6,from:"TeamDelta",to:"TeamFoxtrot"},{year:"2026",round:2,slot:2,from:"TeamDelta",to:"TeamFoxtrot"}], faab:"$60" },
+  { id:"T008", date:"2025-04-05", week:5, teams:"TeamBeta vs TeamGamma",        qb:"1qb", starters:9,  teams_count:10, tep:"none", ppr:"1",    players:[{name:"Tony Pollard",pos:"RB",to:"TeamBeta"},{name:"Tee Higgins",pos:"WR",to:"TeamGamma"}], picks:[{year:"2027",round:1,slot:8,from:"TeamGamma",to:"TeamBeta"}], faab:null },
+  { id:"T009", date:"2025-04-06", week:5, teams:"ElNostraThomas vs TeamFoxtrot",qb:"sf",  starters:11, teams_count:12, tep:"1.0",  ppr:"0.5",  players:[{name:"Sam LaPorta",pos:"TE",to:"ElNostraThomas"}], picks:[{year:"2026",round:2,slot:11,from:"ElNostraThomas",to:"TeamFoxtrot"}], faab:"$20" },
+  { id:"T010", date:"2025-04-07", week:5, teams:"TeamEcho vs TeamBeta",         qb:"1qb", starters:10, teams_count:8,  tep:"none", ppr:"0.25", players:[{name:"DeVonta Smith",pos:"WR",to:"TeamEcho"},{name:"Josh Allen",pos:"QB",to:"TeamBeta"}], picks:[], faab:null },
+];
+
+let filtered = [...TRADES];
+
+function updatePickSlots() {
+  const round = document.getElementById("f-pick-round").value;
+  const slotSel = document.getElementById("f-pick-slot");
+  slotSel.innerHTML = '<option value="all">All Slots</option>';
+  if(round === "all") { slotSel.disabled = true; return; }
+  slotSel.disabled = false;
+  for(let i=1; i<=14; i++) {
+    const opt = document.createElement("option");
+    opt.value = i;
+    opt.textContent = `${round}.${String(i).padStart(2,"0")}`;
+    slotSel.appendChild(opt);
+  }
+}
+
+function fmtChips(t) {
+  const qbCls = t.qb==="sf"?"sf":t.qb==="2qb"?"twoqb":"";
+  const pprLabel = t.ppr==="1"?"Full PPR":t.ppr==="0.5"?"Half PPR":t.ppr==="0.25"?"0.25 PPR":"";
+  return `<div class="format-chips">
+    <span class="fmt-chip ${qbCls}">${qbLabels[t.qb]}</span>
+    <span class="fmt-chip">${t.starters} starters</span>
+    <span class="fmt-chip">${t.teams_count} teams</span>
+    ${pprLabel?`<span class="fmt-chip">${pprLabel}</span>`:""}
+    ${t.tep!=="none"?`<span class="fmt-chip tep">TEP ${t.tep}</span>`:""}
+    ${t.faab?`<span class="fmt-chip tep">FAAB</span>`:""}
+  </div>`;
+}
+
+function pickLabel(pk) {
+  const slot = pk.slot ? `.${String(pk.slot).padStart(2,"0")}` : "";
+  return `${pk.year} ${pk.round}${slot}`;
+}
+
+function applyFilters() {
+  const fqb   = document.getElementById("f-qb").value;
+  const fst   = document.getElementById("f-starters").value;
+  const ftm   = document.getElementById("f-teams").value;
+  const ftp   = document.getElementById("f-tep").value;
+  const fpr   = document.getElementById("f-pick-round").value;
+  const fps   = document.getElementById("f-pick-slot").value;
+  const fppr  = document.getElementById("f-ppr").value;
+  const ffaab = document.getElementById("f-faab").value;
+
+  filtered = TRADES.filter(t => {
+    const baseMatch =
+      (fqb==="all"||t.qb===fqb) &&
+      (fst==="all"||t.starters===parseInt(fst)) &&
+      (ftm==="all"||t.teams_count===parseInt(ftm)) &&
+      (ftp==="all"||t.tep===ftp) &&
+      (fppr==="all"||t.ppr===fppr) &&
+      (ffaab==="all"||(ffaab==="yes"?!!t.faab:!t.faab));
+    if(!baseMatch) return false;
+    if(fpr==="all") return true;
+    const roundNum = parseInt(fpr);
+    const slotNum  = fps==="all" ? null : parseInt(fps);
+    return t.picks.some(p =>
+      p.round === roundNum &&
+      (slotNum === null || p.slot === slotNum)
+    );
+  });
+
+  const pprLabels = { "1":"Full PPR", "0.5":"Half PPR", "0.25":"0.25 PPR" };
+  const chips = [];
+  if(fqb!=="all")  chips.push(`<span class="filter-chip">${qbLabels[fqb]}</span>`);
+  if(fst!=="all")  chips.push(`<span class="filter-chip">${fst} Starters</span>`);
+  if(ftm!=="all")  chips.push(`<span class="filter-chip">${ftm} Teams</span>`);
+  if(ftp!=="all")  chips.push(`<span class="filter-chip">${tepLabels[ftp]}</span>`);
+  if(fppr!=="all") chips.push(`<span class="filter-chip">${pprLabels[fppr]}</span>`);
+  if(ffaab!=="all") chips.push(`<span class="filter-chip">${ffaab==="yes"?"With FAAB":"No FAAB"}</span>`);
+  if(fpr!=="all") {
+    const slotLabel = fps==="all" ? `Round ${fpr}` : `${fpr}.${String(fps).padStart(2,"0")}`;
+    chips.push(`<span class="filter-chip">${slotLabel}</span>`);
+  }
+
+  const af = document.getElementById("active-filters");
+  af.innerHTML = chips.length
+    ? chips.join("")+`<span class="result-count">${filtered.length} trade${filtered.length!==1?"s":""} matched</span>`
+    : `<span class="filter-chip-muted">Showing all formats</span><span class="result-count">${filtered.length} trades</span>`;
+
+  ["f-qb","f-starters","f-teams","f-tep","f-pick-round","f-pick-slot","f-ppr","f-faab"]
+    .forEach(id=>{ const el=document.getElementById(id); if(el) el.classList.toggle("active",el.value!=="all"); });
+
+  renderAll();
+}
+
+function resetFilters() {
+  document.getElementById("f-qb").value="all";
+  document.getElementById("f-starters").value="all";
+  document.getElementById("f-teams").value="all";
+  document.getElementById("f-tep").value="all";
+  document.getElementById("f-ppr").value="all";
+  document.getElementById("f-faab").value="all";
+  document.getElementById("f-pick-round").value="all";
+  document.getElementById("f-pick-slot").innerHTML='<option value="all">All Slots</option>';
+  document.getElementById("f-pick-slot").disabled=true;
+  applyFilters();
+}
+
+function renderMetrics() {
+  const ap = filtered.flatMap(t=>t.picks);
+  const v = filtered.length;
+  const pl = filtered.reduce((s,t)=>s+t.players.length,0);
+  const pk = ap.length;
+  const fr = ap.filter(p=>p.round===1).length;
+  document.getElementById("m-trades").textContent=v;
+  document.getElementById("m-players").textContent=pl;
+  document.getElementById("m-picks").textContent=pk;
+  document.getElementById("m-first").textContent=fr;
+  document.getElementById("h-trades").textContent=v;
+  document.getElementById("h-players").textContent=pl;
+  document.getElementById("h-picks").textContent=pk;
+}
+
+function renderRecent() {
+  if(!filtered.length){document.getElementById("tab-recent").innerHTML=`<div class="no-results">No trades match these filters</div>`;return;}
+  document.getElementById("tab-recent").innerHTML=
+    `<div class="section-hdr"><span class="section-num">01</span><span class="section-title">Recent Trades</span></div>
+     <div class="trade-grid">`+
+    [...filtered].reverse().map(t=>`
+      <div class="trade-card">
+        <div class="trade-card-top">
+          <div class="trade-meta">${t.date} · Wk ${t.week}</div>
+          ${fmtChips(t)}
+        </div>
+
+        ${t.players.length?`<div class="trade-row"><span class="row-label">Players</span>${t.players.map(p=>`<span class="pos-badge ${pc(p.pos)}">${p.pos}</span><span class="player-item clickable-player" onclick="openPanel('${p.name.replace(/'/g,"\\'")}')">${p.name}</span>`).join('<span style="color:#333;margin:0 4px">|</span>')}</div>`:""}
+        ${t.picks.length?`<div class="trade-row"><span class="row-label">Picks</span>${t.picks.map(pk=>`<span class="${pk.round===1?"rd1-badge":"pick-badge"} clickable-pick" onclick="openPickPage('${pk.year}',${pk.round})">${pk.year} ${pk.round}${pk.slot?"."+String(pk.slot).padStart(2,"0"):""}</span>`).join(" ")}</div>`:""}
+        ${t.faab?`<div class="trade-row"><span class="row-label">FAAB</span><span class="faab-badge">${t.faab}</span></div>`:""}
+      </div>`).join("")+
+    `</div>`;
+}
+
+function renderTopPlayers() {
+  const c={};
+  filtered.forEach(t=>t.players.forEach(p=>{if(!c[p.name])c[p.name]={name:p.name,pos:p.pos,count:0};c[p.name].count++;}));
+  const all=Object.values(c).sort((a,b)=>b.count-a.count);
+  const max=all[0]?.count||1;
+  if(!all.length){document.getElementById("tab-top-players").innerHTML=`<div class="no-results">No players match these filters</div>`;return;}
+  const byPos={};
+  all.forEach(p=>{if(!byPos[p.pos])byPos[p.pos]=[];byPos[p.pos].push(p);});
+  document.getElementById("tab-top-players").innerHTML=
+    `<div class="section-hdr"><span class="section-num">02</span><span class="section-title">Most Traded Players</span></div>`+
+    all.map((p,i)=>`<div class="rank-card"><span class="rank-num ${i>2?"muted":""}">${i+1}</span><span class="pos-badge ${pc(p.pos)}">${p.pos}</span><div class="rank-info"><div class="rank-name clickable-player" onclick="openPanel('${p.name.replace(/'/g,"\\'")}')">${p.name}</div><div class="rank-sub">${p.count} trade${p.count!==1?"s":""}</div></div><div class="rank-bar"><div class="rank-bar-track"><div class="rank-bar-fill" style="width:${Math.round(p.count/max*100)}%;background:${posColors[p.pos]||"#f0f0f0"}"></div></div></div><span class="rank-count">${p.count}</span></div>`).join("")+
+    `<div class="divider"></div><div class="section-hdr"><span class="section-num">02B</span><span class="section-title">By Position</span></div><div class="two-col">`+
+    ["WR","RB","QB","TE"].filter(pos=>byPos[pos]).map(pos=>`<div><div class="sub-hdr">${pos}</div>${byPos[pos].map((p,i)=>`<div class="rank-card"><span class="rank-num ${i>0?"muted":""}">${i+1}</span><div class="rank-info"><div class="rank-name clickable-player" onclick="openPanel('${p.name.replace(/'/g,"\\'")}')">${p.name}</div><div class="rank-sub">${p.count} trade${p.count!==1?"s":""}</div></div><div class="rank-bar"><div class="rank-bar-track"><div class="rank-bar-fill" style="width:${Math.round(p.count/max*100)}%;background:${posColors[pos]||"#f0f0f0"}"></div></div></div><span class="rank-count">${p.count}</span></div>`).join("")}</div>`).join("")+
+    `</div>`;
+}
+
+function renderTopPicks() {
+  const ap=filtered.flatMap(t=>t.picks);
+  if(!ap.length){document.getElementById("tab-top-picks").innerHTML=`<div class="no-results">No picks match these filters</div>`;return;}
+  const pm={};
+  ap.forEach(pk=>{const k=`${pk.year} Rd${pk.round}`;if(!pm[k])pm[k]={year:pk.year,round:pk.round,key:k,count:0};pm[k].count++;});
+  const sorted=Object.values(pm).sort((a,b)=>b.count-a.count||a.round-b.round||a.year-b.year);
+  const max=sorted[0]?.count||1;
+  const byRound={};
+  sorted.forEach(p=>{const r=`Round ${p.round}`;if(!byRound[r])byRound[r]=[];byRound[r].push(p);});
+  document.getElementById("tab-top-picks").innerHTML=
+    `<div class="section-hdr"><span class="section-num">03</span><span class="section-title">Most Traded Rookie Picks</span></div>`+
+    sorted.map((p,i)=>`<div class="rank-card"><span class="rank-num ${i>2?"muted":""}">${i+1}</span><span class="${p.round===1?"rd1-badge":"pick-badge"} clickable-pick" onclick="openPickPage('${p.year}',${p.round})">${p.key}</span><div class="rank-info"><div class="rank-name clickable-pick" onclick="openPickPage('${p.year}',${p.round})">${p.key}</div><div class="rank-sub">${p.round===1?"1st rounder":p.round===2?"2nd rounder":"3rd rounder"} · ${p.year} class</div></div><div class="rank-bar"><div class="rank-bar-track"><div class="rank-bar-fill" style="width:${Math.round(p.count/max*100)}%;background:${p.round===1?"#cc3333":"#f0f0f0"}"></div></div></div><span class="rank-count">${p.count}</span></div>`).join("")+
+    `<div class="divider"></div><div class="section-hdr"><span class="section-num">03B</span><span class="section-title">By Round</span></div><div class="two-col">`+
+    Object.entries(byRound).sort((a,b)=>a[0].localeCompare(b[0])).map(([r,picks])=>`<div><div class="sub-hdr">${r}</div>${picks.map((p,i)=>`<div class="rank-card"><span class="rank-num ${i>0?"muted":""}">${i+1}</span><span class="${p.round===1?"rd1-badge":"pick-badge"} clickable-pick" onclick="openPickPage('${p.year}',${p.round})">${p.year}</span><div class="rank-info"><div class="rank-name clickable-pick" onclick="openPickPage('${p.year}',${p.round})">${p.key}</div><div class="rank-sub">${p.year} draft class</div></div><div class="rank-bar"><div class="rank-bar-track"><div class="rank-bar-fill" style="width:${Math.round(p.count/max*100)}%;background:${p.round===1?"#cc3333":"#f0f0f0"}"></div></div></div><span class="rank-count">${p.count}</span></div>`).join("")}</div>`).join("")+
+    `</div>`;
+}
+
+function renderPositions() {
+  const c={};
+  filtered.forEach(t=>t.players.forEach(p=>{c[p.pos]=(c[p.pos]||0)+1;}));
+  const sorted=Object.entries(c).sort((a,b)=>b[1]-a[1]);
+  const max=sorted[0]?.[1]||1;
+  document.getElementById("tab-positions").innerHTML=
+    `<div class="section-hdr"><span class="section-num">04</span><span class="section-title">Players Traded by Position</span></div>`+
+    (sorted.length?sorted.map(([pos,count])=>`<div class="rank-card"><span class="pos-badge ${pc(pos)}">${pos}</span><div class="rank-info"><div class="rank-name">${pos}</div></div><div class="rank-bar" style="max-width:300px"><div class="rank-bar-track"><div class="rank-bar-fill" style="width:${Math.round(count/max*100)}%;background:${posColors[pos]||"#f0f0f0"}"></div></div></div><span class="rank-count">${count}</span></div>`).join(""):`<div class="no-results">No data for these filters</div>`);
+}
+
+function renderSidebar() {
+  const ap=filtered.flatMap(t=>t.picks);
+  const r1=ap.filter(p=>p.round===1).length;
+  const r2=ap.filter(p=>p.round===2).length;
+  const r3=ap.filter(p=>p.round===3).length;
+  const byYear={};
+  ap.forEach(pk=>{if(!byYear[pk.year])byYear[pk.year]={};const r=`Rd${pk.round}`;byYear[pk.year][r]=(byYear[pk.year][r]||0)+1;});
+  const maxP=Math.max(r1,r2,r3,1);
+
+  document.getElementById("sb-pick-stats").innerHTML=
+    `<div class="pick-stat-row"><span class="pick-stat-label">Total picks</span><span class="pick-stat-val">${ap.length}</span></div>`+
+    `<div class="pick-stat-row"><span class="pick-stat-label">1st rounders</span><span class="pick-stat-val red">${r1}</span></div>`+
+    `<div class="pick-stat-row"><span class="pick-stat-label">2nd rounders</span><span class="pick-stat-val">${r2}</span></div>`+
+    `<div class="pick-stat-row"><span class="pick-stat-label">3rd rounders</span><span class="pick-stat-val">${r3}</span></div>`+
+    `<div class="pick-stat-row"><span class="pick-stat-label">Draft years</span><span class="pick-stat-val">${Object.keys(byYear).length}</span></div>`;
+
+  const pc2={};
+  filtered.forEach(t=>t.players.forEach(p=>{pc2[p.pos]=(pc2[p.pos]||0)+1;}));
+  const ps=Object.entries(pc2).sort((a,b)=>b[1]-a[1]);
+  const pm=ps[0]?.[1]||1;
+  document.getElementById("sb-positions").innerHTML=ps.map(([pos,count])=>`
+    <div class="pos-row">
+      <span class="pos-badge ${pc(pos)}" style="width:32px;text-align:center">${pos}</span>
+      <div class="pos-bar-track"><div class="pos-bar-fill" style="width:${Math.round(count/pm*100)}%;background:${posColors[pos]||"#f0f0f0"}"></div></div>
+      <span class="pos-count">${count}</span>
+    </div>`).join("") || `<div style="font-size:12px;opacity:0.3;padding:8px 0">No data</div>`;
+
+  const maxR=Math.max(...ap.map(p=>p.count||1),1,r1,r2,r3);
+  document.getElementById("sb-picks-year").innerHTML=Object.entries(byYear).sort((a,b)=>a[0]-b[0]).map(([year,rounds])=>`
+    <div class="year-block">
+      <div class="year-label">${year} Draft Class</div>
+      ${["Rd1","Rd2","Rd3"].map(r=>`<div class="pick-round-row">
+        <span class="pick-round-label">${r}</span>
+        <div class="pick-round-bar"><div class="${r==="Rd1"?"pick-round-fill-red":"pick-round-fill-white"}" style="width:${Math.round((rounds[r]||0)/Math.max(r1,r2,r3,1)*100)}%"></div></div>
+        <span class="pick-round-count">${rounds[r]||0}</span>
+      </div>`).join("")}
+    </div>`).join("") || `<div style="font-size:12px;opacity:0.3;padding:8px 0">No picks</div>`;
+}
+
+function renderAll() {
+  renderMetrics();
+  renderRecent();
+  renderTopPlayers();
+  renderTopPicks();
+  renderPositions();
+  renderSidebar();
+}
+
+function showTab(name) {
+  ["recent","top-players","top-picks","positions"].forEach(n=>{
+    document.getElementById("tab-"+n).style.display=n===name?"block":"none";
+  });
+  document.querySelectorAll(".tab").forEach((el,i)=>{
+    el.classList.toggle("active",["recent","top-players","top-picks","positions"][i]===name);
+  });
+}
+
+function openPanel(playerName) {
+  const playerTrades = TRADES.filter(t => t.players.some(p => p.name === playerName));
+  if (!playerTrades.length) return;
+  const playerInfo = TRADES.flatMap(t=>t.players).find(p=>p.name===playerName);
+  const pos = playerInfo?.pos || "?";
+  const posCls = pc(pos);
+  const posColMap = { WR:"var(--pos-wr-bg)",RB:"var(--pos-rb-bg)",QB:"var(--pos-qb-bg)",TE:"var(--pos-te-bg)",K:"var(--pos-k-bg)" };
+  const posTxtMap = { WR:"var(--pos-wr)",RB:"var(--pos-rb)",QB:"var(--pos-qb)",TE:"var(--pos-te)",K:"var(--pos-k)" };
+  document.getElementById("panel-player-name").textContent = playerName;
+  document.getElementById("panel-pos-badge").innerHTML = `<span class="panel-pos-badge ${posCls}" style="background:${posColMap[pos]||"#2a2a2a"};color:${posTxtMap[pos]||"#f0f0f0"}">${pos}</span>`;
+  document.getElementById("panel-count").textContent = playerTrades.length;
+  document.getElementById("panel-last").textContent = [...playerTrades].sort((a,b)=>b.date.localeCompare(a.date))[0].date;
+  document.getElementById("panel-pos").textContent = pos;
+  const bodyHtml = `<div class="panel-section-title">All trades involving ${playerName}</div>` +
+    [...playerTrades].reverse().map(t => {
+      const thisPlayer = t.players.find(p=>p.name===playerName);
+      const otherPlayers = t.players.filter(p=>p.name!==playerName);
+      const alsoWith = otherPlayers.length ? otherPlayers.map(p=>`<span class="pos-badge ${pc(p.pos)}" style="font-size:10px;padding:1px 5px">${p.pos}</span> ${p.name}`).join(", ") : null;
+      const pickStr = t.picks.length ? t.picks.map(pk=>`<span class="${pk.round===1?"rd1-badge":"pick-badge"}">${pk.year} ${pk.round}${pk.slot?"."+String(pk.slot).padStart(2,"0"):""}</span>`).join(" ") : null;
+      return `<div class="panel-trade-card">
+        <div class="panel-trade-meta">${t.date} · Week ${t.week} · ${t.qb==="sf"?"Superflex":t.qb==="2qb"?"2 QB":"1 QB"} · ${t.starters} starters</div>
+
+        ${alsoWith?`<div class="panel-also">Traded alongside: ${alsoWith}</div>`:""}
+        ${pickStr?`<div class="panel-also" style="margin-top:5px">Picks in deal: ${pickStr}</div>`:""}
+        ${t.faab?`<div class="panel-also">FAAB: ${t.faab}</div>`:""}
+      </div>`;
+    }).join("");
+  document.getElementById("panel-body").innerHTML = bodyHtml;
+  document.getElementById("player-panel").classList.add("open");
+  document.getElementById("panel-overlay").classList.add("open");
+  document.body.style.overflow = "hidden";
+}
+
+function closePanel() {
+  document.getElementById("player-panel").classList.remove("open");
+  document.getElementById("panel-overlay").classList.remove("open");
+  document.body.style.overflow = "";
+}
+
+applyFilters();
+function openPickPage(year, round) {
+  const key = `${year} Rd${round}`;
+  const pickTrades = TRADES.filter(t => t.picks.some(p => p.year===year && p.round===round));
+  if (!pickTrades.length) return;
+  const roundLabel = round===1?"1st Round":round===2?"2nd Round":"3rd Round";
+  const sorted = [...pickTrades].sort((a,b)=>a.date.localeCompare(b.date));
+  document.getElementById("pp-title").innerHTML = `${year} <span>Rd${round}</span>`;
+  document.getElementById("pp-subtitle").textContent = `${roundLabel} Pick · ${year} Rookie Draft Class`;
+  document.getElementById("pp-count").textContent = pickTrades.length;
+  document.getElementById("pp-last").textContent = sorted[sorted.length-1].date;
+  const allOwners = [];
+  sorted.forEach(t => {
+    const thisPick = t.picks.find(p=>p.year===year&&p.round===round);
+    if(thisPick) { if(!allOwners.includes(thisPick.from)) allOwners.push(thisPick.from); if(!allOwners.includes(thisPick.to)) allOwners.push(thisPick.to); }
+  });
+  document.getElementById("pp-owners").textContent = allOwners.length;
+  document.getElementById("pp-trades").innerHTML =
+    `<div class="section-hdr"><span class="section-num">01</span><span class="section-title">All trades involving ${key}</span></div>` +
+    [...sorted].reverse().map(t => {
+      const thisPick = t.picks.find(p=>p.year===year&&p.round===round);
+      const otherPicks = t.picks.filter(p=>!(p.year===year&&p.round===round));
+      const playersHtml = t.players.length ? t.players.map(p=>`<span class="pos-badge ${pc(p.pos)}">${p.pos}</span> <span class="clickable-player" onclick="openPanel('${p.name.replace(/'/g,"\\'")}')" style="font-size:13px;font-weight:900;color:var(--white);cursor:pointer">${p.name}</span>`).join("  ·  ") : null;
+      const otherPicksHtml = otherPicks.length ? otherPicks.map(p=>`<span class="${p.round===1?"rd1-badge":"pick-badge"} clickable-pick" onclick="openPickPage('${p.year}',${p.round})">${p.year} ${p.round}${p.slot?"."+String(p.slot).padStart(2,"0"):""}</span>`).join(" ") : null;
+      return `<div class="pick-trade-card">
+        <div class="pick-trade-header">
+          <div class="pick-trade-date">${t.date} · Week ${t.week}</div>
+          <div class="format-chips"><span class="fmt-chip ${t.qb==="sf"?"sf":t.qb==="2qb"?"twoqb":""}">${t.qb==="sf"?"Superflex":t.qb==="2qb"?"2 QB":"1 QB"}</span><span class="fmt-chip">${t.starters} starters</span><span class="fmt-chip">${t.teams_count} teams</span>${t.tep!=="none"?`<span class="fmt-chip tep">TEP ${t.tep}</span>`:""}</div>
+        </div>
+
+        <div class="pick-flow"><span class="pick-flow-from">${thisPick?.from||"?"}</span><span class="pick-flow-arrow">→</span><span class="pick-flow-to">${thisPick?.to||"?"}</span></div>
+        ${playersHtml?`<div class="pick-trade-also"><span style="opacity:0.4;font-size:10px;text-transform:uppercase;letter-spacing:.07em;flex-shrink:0">With:</span> ${playersHtml}</div>`:""}
+        ${otherPicksHtml?`<div class="pick-trade-also" style="margin-top:4px"><span style="opacity:0.4;font-size:10px;text-transform:uppercase;letter-spacing:.07em;flex-shrink:0">+ Picks:</span> ${otherPicksHtml}</div>`:""}
+        ${t.faab?`<div class="pick-trade-also"><span style="opacity:0.4;font-size:10px;text-transform:uppercase;letter-spacing:.07em">FAAB:</span> ${t.faab}</div>`:""}
+      </div>`;
+    }).join("");
+  const ownerChain = [];
+  [...sorted].reverse().forEach(t => { const thisPick = t.picks.find(p=>p.year===year&&p.round===round); if(thisPick) ownerChain.push({from:thisPick.from,to:thisPick.to,date:t.date}); });
+  const otherYears = [...new Set(TRADES.flatMap(t=>t.picks).filter(p=>p.round===round&&p.year!==year).map(p=>`${p.year} Rd${p.round}`))];
+  document.getElementById("pp-sidebar").innerHTML =
+    `<div class="pick-sidebar-card"><div class="pick-sb-title"><span class="pick-sb-num">01</span>Ownership Chain</div>${ownerChain.map((o,i)=>`<div class="owner-row"><span class="owner-num">${i+1}</span><div><div class="owner-name">${o.to}</div><div class="owner-date">Acquired ${o.date} from ${o.from}</div></div></div>`).join("")}</div>
+     <div class="pick-sidebar-card"><div class="pick-sb-title"><span class="pick-sb-num">02</span>${year} Draft Class</div>${["Rd1","Rd2","Rd3"].map(r=>{const rn=parseInt(r.replace("Rd",""));const ct=TRADES.flatMap(t=>t.picks).filter(p=>p.year===year&&p.round===rn).length;return`<button class="related-pick-btn" onclick="openPickPage('${year}',${rn})" style="${rn===round?"border-color:var(--red);color:var(--red)":""}">${year} ${r} <span style="float:right;opacity:0.4;font-style:normal;font-family:'Mulish';font-size:11px">${ct} trade${ct!==1?"s":""}</span></button>`;}).join("")}</div>
+     ${otherYears.length?`<div class="pick-sidebar-card"><div class="pick-sb-title"><span class="pick-sb-num">03</span>Other Rd${round} Picks</div>${otherYears.map(k=>{const[yr,rd]=k.split(" ");const rn=parseInt(rd.replace("Rd",""));return`<button class="related-pick-btn" onclick="openPickPage('${yr}',${rn})">${k}</button>`;}).join("")}</div>`:""}`;
+  document.getElementById("main-page").style.display = "none";
+  document.getElementById("pick-page").style.display = "block";
+  window.scrollTo(0,0);
+}
+
+function closPickPage() {
+  document.getElementById("pick-page").style.display = "none";
+  document.getElementById("main-page").style.display = "block";
+  window.scrollTo(0,0);
+}
+
+</script>
+</body>
+</html>
