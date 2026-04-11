@@ -568,7 +568,7 @@
   .arrow { color: var(--red); font-size: 10px; margin: 0 3px; }
   .pick-badge { background: transparent; border: 1px solid var(--red); color: var(--white); font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 12px; padding: 3px 9px; }
   .rd1-badge  { background: transparent; border: 1px solid var(--red); color: var(--white); font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 12px; padding: 3px 9px; }
-  .faab-badge { background: transparent; border: 1px solid var(--border2); color: var(--white); font-family: 'Mulish', sans-serif; font-size: 12px; font-weight: 700; padding: 2px 7px; }
+  .faab-badge { background: rgba(76,175,110,0.15); border: 1px solid #4caf6e; color: #4caf6e; font-family: 'Mulish', sans-serif; font-size: 12px; font-weight: 700; padding: 2px 7px; display: inline-flex; align-items: center; justify-content: center; }
 
   .rank-card { background: var(--surface); border: 1px solid var(--border); padding: 12px 16px; margin-bottom: 6px; display: flex; align-items: center; gap: 12px; transition: border-color .15s; }
   .rank-card:hover { border-color: var(--border2); }
@@ -900,7 +900,7 @@
     white-space: nowrap;
   }
 
-  /* League importer styles removed */
+
 
   /* ── MOBILE RESPONSIVE ── */
   html, body {
@@ -1094,7 +1094,7 @@
     <a class="nav-link" href="#">Trade Calculator</a>
     <a class="nav-link active" href="#">Trade Database</a>
     <a class="nav-link" href="#">ADP</a>
-    <a class="nav-link" href="#">League Importer</a>
+
   </nav>
   <div class="nav-right">
     <span class="nav-stat">Last updated: <strong>April 2026</strong></span>
@@ -1488,7 +1488,7 @@
       <div class="pp-ts"><div class="pp-ts-label">Times Traded</div><div class="pp-ts-val red" id="pp-traded">—</div></div>
       <div class="pp-ts"><div class="pp-ts-label">Avg Pick Included</div><div class="pp-ts-val" id="pp-avg-pick">—</div></div>
       <div class="pp-ts"><div class="pp-ts-label">Avg Added Value Needed</div><div class="pp-ts-val" id="pp-avg-value">—</div></div>
-      <div class="pp-ts"><div class="pp-ts-label">Avg Assets Moved</div><div class="pp-ts-val" id="pp-avg-assets">—</div></div>
+      <div class="pp-ts"><div class="pp-ts-label">Avg Assets Moved For</div><div class="pp-ts-val" id="pp-avg-assets">—</div></div>
     </div>
     <div class="pp-tabs">
       <button class="pp-tab active" onclick="ppShowTab('trades')">Trades</button>
@@ -3246,7 +3246,7 @@ function openPanelContent(playerName) {
     ktc.posRank ? `<div class="pp-meta-item"><div class="pp-meta-label">Pos Rank</div><div class="pp-meta-val">${ktc.posRank}</div></div>` : "",
     ktc.ppg     ? `<div class="pp-meta-item"><div class="pp-meta-label">PPG</div><div class="pp-meta-val">${ktc.ppg}</div></div>` : "",
     ktc.adp     ? `<div class="pp-meta-item"><div class="pp-meta-label">ADP</div><div class="pp-meta-val">${ktc.adp}</div></div>` : "",
-    ktc.auction ? `<div class="pp-meta-item"><div class="pp-meta-label">Auction Avg</div><div class="pp-meta-val" style="color:var(--pos-rb)">$${ktc.auction}</div></div>` : "",
+    ktc.auction ? `<div class="pp-meta-item"><div class="pp-meta-label">Auction Avg</div><div class="pp-meta-val" style="color:#4caf6e">$${ktc.auction}</div></div>` : "",
   ].join("");
 
   const sorted = [...playerTrades].sort((a,b)=>b.date.localeCompare(a.date));
