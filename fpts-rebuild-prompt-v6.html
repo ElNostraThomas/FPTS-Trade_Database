@@ -1,0 +1,1235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FPTS Rebuild Prompt v6</title>
+<link href="https://fonts.googleapis.com/css2?family=Kanit:ital,wght@0,400;0,700;1,800&family=Mulish:wght@400;600;700;900&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --black: #111111;
+    --white: #f0f0f0;
+    --red: #cc3333;
+    --surface: #1a1a1a;
+    --surface2: #222222;
+    --border: #2a2a2a;
+    --border2: #333333;
+    --green: #4caf6e;
+    --blue: #5b9bd5;
+    --purple: #9b91d4;
+    --orange: #e09a30;
+  }
+
+  body {
+    background: var(--black);
+    color: var(--white);
+    font-family: 'Mulish', sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    background: var(--red);
+    padding: 28px 24px 24px;
+    position: relative;
+    overflow: hidden;
+  }
+  .header::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      45deg,
+      transparent,
+      transparent 8px,
+      rgba(0,0,0,0.06) 8px,
+      rgba(0,0,0,0.06) 9px
+    );
+  }
+  .header-inner { position: relative; max-width: 860px; margin: 0 auto; }
+  .header-eyebrow {
+    font-family: 'Mulish', sans-serif;
+    font-weight: 700;
+    font-size: 11px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: rgba(240,240,240,0.7);
+    margin-bottom: 6px;
+  }
+  .header-title {
+    font-family: 'Kanit', sans-serif;
+    font-weight: 800;
+    font-style: italic;
+    font-size: clamp(26px, 5vw, 42px);
+    color: #f0f0f0;
+    line-height: 1.05;
+    margin-bottom: 10px;
+  }
+  .header-title span { opacity: 0.55; }
+  .header-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+  }
+  .header-badge {
+    background: rgba(0,0,0,0.25);
+    border: 1px solid rgba(240,240,240,0.2);
+    color: #f0f0f0;
+    font-family: 'Mulish', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 10px;
+    letter-spacing: .04em;
+  }
+
+  /* ── MAIN ── */
+  .main {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 24px 16px 60px;
+  }
+
+  /* ── INTRO BANNER ── */
+  .intro-banner {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--red);
+    padding: 14px 18px;
+    margin-bottom: 24px;
+    font-size: 13px;
+    color: var(--white);
+    opacity: 1;
+  }
+  .intro-banner strong { color: var(--red); font-weight: 900; }
+
+  /* ── SECTION ── */
+  .section { margin-bottom: 6px; }
+
+  .section-toggle {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-bottom: none;
+    padding: 0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0;
+    transition: border-color .15s, background .15s;
+    text-align: left;
+  }
+  .section:last-child .section-toggle { border-bottom: 1px solid var(--border); }
+  .section.open .section-toggle { border-bottom: none; background: var(--surface2); }
+  .section-toggle:hover { border-color: var(--border2); background: var(--surface2); }
+
+  .section-accent {
+    width: 4px;
+    align-self: stretch;
+    flex-shrink: 0;
+    background: var(--border2);
+    transition: background .15s;
+  }
+  .section.open .section-accent { background: var(--red); }
+
+  .section-toggle-inner {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+    padding: 13px 16px;
+  }
+
+  .section-icon {
+    font-size: 15px;
+    width: 22px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+  .section-label {
+    font-family: 'Kanit', sans-serif;
+    font-weight: 800;
+    font-style: italic;
+    font-size: 13px;
+    color: var(--white);
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    flex: 1;
+  }
+  .section-tag {
+    font-family: 'Mulish', sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border: 1px solid var(--border2);
+    color: var(--white);
+    opacity: 0.45;
+    letter-spacing: .04em;
+    flex-shrink: 0;
+  }
+  .section.open .section-tag { opacity: 0; }
+  .section-arrow {
+    font-size: 10px;
+    color: var(--white);
+    opacity: 0.3;
+    transition: transform .2s, opacity .15s;
+    flex-shrink: 0;
+    margin-right: 2px;
+  }
+  .section.open .section-arrow { transform: rotate(180deg); opacity: 0.6; }
+
+  .section-body {
+    display: none;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-top: 1px solid var(--border2);
+    padding: 20px 20px 20px 24px;
+  }
+  .section.open .section-body { display: block; }
+
+  /* ── CONTENT STYLES ── */
+  .kv-grid {
+    display: grid;
+    grid-template-columns: 160px 1fr;
+    gap: 0;
+  }
+  .kv-row {
+    display: contents;
+  }
+  .kv-key {
+    font-family: 'Mulish', sans-serif;
+    font-weight: 900;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: .07em;
+    color: var(--red);
+    padding: 7px 14px 7px 0;
+    border-bottom: 1px solid var(--border);
+    align-self: start;
+  }
+  .kv-val {
+    font-size: 13px;
+    color: var(--white);
+    padding: 7px 0;
+    border-bottom: 1px solid var(--border);
+    font-family: 'Mulish', sans-serif;
+  }
+  .kv-row:last-child .kv-key,
+  .kv-row:last-child .kv-val { border-bottom: none; }
+
+  code, .mono {
+    font-family: 'Courier New', monospace;
+    font-size: 11.5px;
+    background: var(--black);
+    border: 1px solid var(--border2);
+    padding: 1px 5px;
+    color: var(--orange);
+  }
+
+  pre {
+    background: var(--black);
+    border: 1px solid var(--border2);
+    padding: 14px 16px;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    color: var(--white);
+    overflow-x: auto;
+    margin: 10px 0;
+    line-height: 1.7;
+  }
+  pre .c { color: rgba(240,240,240,0.35); }
+  pre .k { color: var(--blue); }
+  pre .s { color: var(--orange); }
+  pre .fn { color: var(--green); }
+
+  .sub-hdr {
+    font-family: 'Kanit', sans-serif;
+    font-weight: 800;
+    font-style: italic;
+    font-size: 11px;
+    color: var(--red);
+    text-transform: uppercase;
+    letter-spacing: .07em;
+    margin: 16px 0 8px;
+  }
+  .sub-hdr:first-child { margin-top: 0; }
+
+  ul.doc-list {
+    list-style: none;
+    padding: 0;
+  }
+  ul.doc-list li {
+    font-size: 13px;
+    color: var(--white);
+    padding: 5px 0 5px 16px;
+    border-bottom: 1px solid var(--border);
+    position: relative;
+  }
+  ul.doc-list li::before {
+    content: '—';
+    position: absolute;
+    left: 0;
+    color: var(--red);
+    font-weight: 900;
+  }
+  ul.doc-list li:last-child { border-bottom: none; }
+
+  .pos-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 8px 0;
+  }
+  .pos-chip {
+    font-family: 'Kanit', sans-serif;
+    font-weight: 800;
+    font-style: normal;
+    font-size: 12px;
+    padding: 4px 0;
+    width: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #111111;
+  }
+  .pos-chip.qb { background: #e05252; }
+  .pos-chip.rb { background: #4caf6e; }
+  .pos-chip.wr { background: #5b9bd5; }
+  .pos-chip.te { background: #e09a30; }
+  .pos-chip.k  { background: #9b91d4; }
+  .pos-chip-label {
+    font-size: 11px;
+    color: var(--white);
+    opacity: 0.55;
+    font-family: 'Mulish', sans-serif;
+    margin-left: 6px;
+  }
+
+  .color-swatch {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    vertical-align: middle;
+    margin-right: 5px;
+    border: 1px solid var(--border2);
+    position: relative;
+    top: -1px;
+  }
+
+  .fn-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12.5px;
+  }
+  .fn-table th {
+    font-family: 'Kanit', sans-serif;
+    font-weight: 800;
+    font-style: italic;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: .07em;
+    color: var(--red);
+    text-align: left;
+    padding: 6px 12px 6px 0;
+    border-bottom: 1px solid var(--border2);
+  }
+  .fn-table td {
+    padding: 7px 12px 7px 0;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+    color: var(--white);
+    font-family: 'Mulish', sans-serif;
+  }
+  .fn-table tr:last-child td { border-bottom: none; }
+  .fn-table td:first-child { font-family: 'Courier New', monospace; font-size: 11.5px; color: var(--green); white-space: nowrap; }
+
+  .change-log {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+  .change-item {
+    display: flex;
+    gap: 12px;
+    padding: 9px 0;
+    border-bottom: 1px solid var(--border);
+    align-items: flex-start;
+  }
+  .change-item:last-child { border-bottom: none; }
+  .change-badge {
+    font-family: 'Kanit', sans-serif;
+    font-weight: 800;
+    font-style: italic;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    padding: 2px 7px;
+    flex-shrink: 0;
+    color: #111111;
+  }
+  .change-badge.fix  { background: var(--blue); }
+  .change-badge.ui   { background: var(--green); }
+  .change-badge.ux   { background: var(--orange); }
+  .change-badge.remove { background: #888; }
+  .change-text { font-size: 13px; color: var(--white); font-family: 'Mulish', sans-serif; }
+  .change-text small { opacity: 0.5; font-size: 11px; display: block; margin-top: 2px; }
+
+  .todo-item {
+    display: flex;
+    gap: 12px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+    align-items: flex-start;
+  }
+  .todo-item:last-child { border-bottom: none; }
+  .todo-dot {
+    width: 8px;
+    height: 8px;
+    border: 2px solid var(--red);
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin-top: 5px;
+  }
+  .todo-text { font-size: 13px; color: var(--white); font-family: 'Mulish', sans-serif; }
+  .todo-text small { opacity: 0.45; font-size: 11px; display: block; margin-top: 2px; }
+
+  .audit-item {
+    display: flex;
+    gap: 10px;
+    padding: 7px 0;
+    border-bottom: 1px solid var(--border);
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+  }
+  .audit-item:last-child { border-bottom: none; }
+  .audit-check {
+    width: 16px;
+    height: 16px;
+    border: 2px solid var(--border2);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: border-color .15s, background .15s;
+  }
+  .audit-item.checked .audit-check {
+    background: var(--green);
+    border-color: var(--green);
+  }
+  .audit-check::after {
+    content: '';
+    display: none;
+    width: 4px;
+    height: 7px;
+    border: 2px solid #111;
+    border-top: none;
+    border-left: none;
+    transform: rotate(45deg) translate(-1px,-1px);
+  }
+  .audit-item.checked .audit-check::after { display: block; }
+  .audit-label { font-size: 13px; color: var(--white); font-family: 'Mulish', sans-serif; }
+  .audit-item.checked .audit-label { opacity: 0.4; text-decoration: line-through; }
+
+  .layout-tree {
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    color: var(--white);
+    background: var(--black);
+    border: 1px solid var(--border2);
+    padding: 14px 16px;
+    line-height: 1.9;
+  }
+  .layout-tree .node { color: var(--blue); }
+  .layout-tree .note { color: rgba(240,240,240,0.35); }
+  .layout-tree .red  { color: var(--red); }
+
+  .path-box {
+    background: var(--black);
+    border: 1px solid var(--border2);
+    padding: 4px 10px;
+    font-family: 'Courier New', monospace;
+    font-size: 11.5px;
+    color: var(--orange);
+    display: inline-block;
+    word-break: break-all;
+  }
+
+  /* ── FOOTER ── */
+  .footer {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 0 16px 32px;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .footer-line { flex: 1; height: 1px; background: var(--border); }
+  .footer-text {
+    font-family: 'Kanit', sans-serif;
+    font-weight: 800;
+    font-style: italic;
+    font-size: 11px;
+    color: var(--red);
+    text-transform: uppercase;
+    letter-spacing: .07em;
+    white-space: nowrap;
+  }
+
+  /* ── COPY BUTTON ── */
+  .copy-btn {
+    background: none;
+    border: 1px solid var(--border2);
+    color: var(--white);
+    opacity: 0.5;
+    font-family: 'Mulish', sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 3px 8px;
+    cursor: pointer;
+    float: right;
+    margin-bottom: 4px;
+    letter-spacing: .04em;
+    transition: opacity .15s;
+  }
+  .copy-btn:hover { opacity: 1; }
+
+  @media (max-width: 600px) {
+    .kv-grid { grid-template-columns: 1fr; }
+    .kv-key { border-bottom: none; padding-bottom: 0; }
+    .kv-val { padding-top: 2px; }
+    .fn-table td:first-child { white-space: normal; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-inner">
+    <div class="header-eyebrow">Fantasy Points — Dynasty</div>
+    <div class="header-title">Trade Database <span>Rebuild Prompt</span></div>
+    <div class="header-meta">
+      <span class="header-badge">v6</span>
+      <span class="header-badge">Season 2026</span>
+      <span class="header-badge">index.html — Single File</span>
+      <span class="header-badge">Updated April 2026</span>
+    </div>
+  </div>
+</div>
+
+<div class="main">
+
+  <div class="intro-banner">
+    <strong>HOW TO USE:</strong> Upload both this file and your current <code>index.html</code> as the first message in a new Claude session. Tell Claude what you want to change. Everything Claude needs to know about the project is in the dropdowns below.
+  </div>
+
+  <!-- 01 PROJECT IDENTITY -->
+  <div class="section open" id="s-identity">
+    <button class="section-toggle" onclick="toggle('s-identity')">
+      <div class="section-accent"></div>
+      <div class="section-toggle-inner">
+        <span class="section-icon">🏗</span>
+        <span class="section-label">Project Identity</span>
+        <span class="section-tag">Start here</span>
+        <span class="section-arrow">▼</span>
+      </div>
+    </button>
+    <div class="section-body">
+      <div class="kv-grid">
+        <div class="kv-row">
+          <div class="kv-key">Live URL</div>
+          <div class="kv-val"><code>elnostrathomas.github.io/FPTS-Trade-Database</code></div>
+        </div>
+        <div class="kv-row">
+          <div class="kv-key">Repo</div>
+          <div class="kv-val"><code>github.com/ElNostraThomas/FPTS-Trade_Database</code></div>
+        </div>
+        <div class="kv-row">
+          <div class="kv-key">Architecture</div>
+          <div class="kv-val">Single-file <code>index.html</code> — all data injected as JS constants, no external dependencies</div>
+        </div>
+        <div class="kv-row">
+          <div class="kv-key">Season</div>
+          <div class="kv-val">2026 · No 2QB · Dates formatted as <em>Month Day, Year</em></div>
+        </div>
+        <div class="kv-row">
+          <div class="kv-key">Value Label</div>
+          <div class="kv-val"><strong>Fantasy Calc</strong> — never write "KTC" anywhere in the UI</div>
+        </div>
+        <div class="kv-row">
+          <div class="kv-key">Privacy</div>
+          <div class="kv-val">No team names or user names displayed anywhere in the UI</div>
+        </div>
+      </div>
+      <div class="sub-hdr" style="margin-top:18px">File Paths</div>
+      <div class="kv-grid">
+        <div class="kv-row">
+          <div class="kv-key">Dashboard</div>
+          <div class="kv-val"><span class="path-box">C:\Users\deons\Downloads\index.html</span></div>
+        </div>
+        <div class="kv-row">
+          <div class="kv-key">Python Pipeline</div>
+          <div class="kv-val"><span class="path-box">C:\Users\deons\Downloads\master.py</span></div>
+        </div>
+        <div class="kv-row">
+          <div class="kv-key">One-click Update</div>
+          <div class="kv-val"><span class="path-box">C:\Users\deons\Downloads\update_dashboard.bat</span></div>
+        </div>
+        <div class="kv-row">
+          <div class="kv-key">Trade JSON</div>
+          <div class="kv-val"><span class="path-box">C:\Users\deons\Downloads\sleeper_dynasty_trade_json\data\output\trade_database_converted.json</span></div>
+        </div>
+        <div class="kv-row">
+          <div class="kv-key">Rebuild Prompt</div>
+          <div class="kv-val"><span class="path-box">C:\Users\deons\Downloads\fpts-rebuild-prompt-v6.html</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 02 BRAND & DESIGN -->
+  <div class="section" id="s-brand">
+    <button class="section-toggle" onclick="toggle('s-brand')">
+      <div class="section-accent"></div>
+      <div class="section-toggle-inner">
+        <span class="section-icon">🎨</span>
+        <span class="section-label">Brand &amp; Design Rules</span>
+        <span class="section-tag">Colors · Fonts · Badges · Icons</span>
+        <span class="section-arrow">▼</span>
+      </div>
+    </button>
+    <div class="section-body">
+      <div class="sub-hdr">Color Tokens</div>
+      <div class="kv-grid">
+        <div class="kv-row">
+          <div class="kv-key">Background</div>
+          <div class="kv-val"><span class="color-swatch" style="background:#111111"></span><code>#111111</code></div>
+        </div>
+        <div class="kv-row">
+          <div class="kv-key">Surface</div>
+          <div class="kv-val"><span class="color-swatch" style="background:#1a1a1a"></span><code>#1a1a1a</code></div>
+        </div>
+        <div class="kv-row">
+          <div class="kv-key">Surface2</div>
+          <div class="kv-val"><span class="color-swatch" style="background:#222222"></span><code>#222222</code></div>
+        </div>
+        <div class="kv-row">
+          <div class="kv-key">Border</div>
+          <div class="kv-val"><span class="color-swatch" style="background:#2a2a2a"></span><code>#2a2a2a</code></div>
+        </div>
+        <div class="kv-row">
+          <div class="kv-key">Border2</div>
+          <div class="kv-val"><span class="color-swatch" style="background:#333333"></span><code>#333333</code></div>
+        </div>
+        <div class="kv-row">
+          <div class="kv-key">Red (accent)</div>
+          <div class="kv-val"><span class="color-swatch" style="background:#cc3333"></span><code>#cc3333</code> — used sparingly (~10%). Red bg always uses <code>#f0f0f0</code> text</div>
+        </div>
+        <div class="kv-row">
+          <div class="kv-key">White</div>
+          <div class="kv-val"><span class="color-swatch" style="background:#f0f0f0;border-color:#555"></span><code>#f0f0f0</code></div>
+        </div>
+      </div>
+
+      <div class="sub-hdr">Position Badges — Dark Mode</div>
+      <div class="pos-row">
+        <div style="display:flex;align-items:center">
+          <span class="pos-chip qb">QB</span><span class="pos-chip-label">#e05252 · text #111</span>
+        </div>
+        <div style="display:flex;align-items:center">
+          <span class="pos-chip rb">RB</span><span class="pos-chip-label">#4caf6e · text #111</span>
+        </div>
+        <div style="display:flex;align-items:center">
+          <span class="pos-chip wr">WR</span><span class="pos-chip-label">#5b9bd5 · text #111</span>
+        </div>
+        <div style="display:flex;align-items:center">
+          <span class="pos-chip te">TE</span><span class="pos-chip-label">#e09a30 · text #111</span>
+        </div>
+        <div style="display:flex;align-items:center">
+          <span class="pos-chip k">K</span><span class="pos-chip-label">#9b91d4 · text #111</span>
+        </div>
+      </div>
+      <ul class="doc-list" style="margin-top:8px">
+        <li>Light mode: WR/RB/QB/K switch to darker bg + <code>#f0f0f0</code> text. TE keeps <code>#e09a30</code> bg + <code>#f0f0f0</code> text (v6 fix)</li>
+        <li><code>font-style: normal</code> on all badges (never italic)</li>
+        <li>All badges: <code>min-width: 36px; width: 36px</code> fixed size, centered with <code>inline-flex</code> (v6 fix)</li>
+      </ul>
+
+      <div class="sub-hdr">Typography</div>
+      <div class="kv-grid">
+        <div class="kv-row">
+          <div class="kv-key">Headlines</div>
+          <div class="kv-val">Kanit ExtraBold Italic (<code>font-weight:800; font-style:italic</code>)</div>
+        </div>
+        <div class="kv-row">
+          <div class="kv-key">Body / UI</div>
+          <div class="kv-val">Mulish (<code>font-weight:400/700/900</code>)</div>
+        </div>
+      </div>
+
+      <div class="sub-hdr">Dark / Light Mode</div>
+      <ul class="doc-list">
+        <li>Toggle button in top nav: ☀ LIGHT / 🌙 DARK</li>
+        <li><code>data-theme</code> attribute on <code>&lt;html&gt;</code> element</li>
+        <li><code>[data-theme="light"]</code> CSS block swaps all variables</li>
+        <li>Wordmark: Primary (white text on dark) ↔ Secondary (black text on light)</li>
+        <li>Textures: Primary-Hex (dark) ↔ Secondary-Grunge (light) — embedded as base64</li>
+        <li>Preference saved to <code>localStorage</code></li>
+        <li>Sun icon: use <code>☀️</code> (U+2600 U+FE0F emoji) — NOT bare <code>☀</code> (U+2600) which renders as an outline ← v6 fix</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- 03 DATA CONSTANTS -->
+  <div class="section" id="s-data">
+    <button class="section-toggle" onclick="toggle('s-data')">
+      <div class="section-accent"></div>
+      <div class="section-toggle-inner">
+        <span class="section-icon">📦</span>
+        <span class="section-label">Data Constants</span>
+        <span class="section-tag">TRADES · KTC_DATA · ADP_DATA</span>
+        <span class="section-arrow">▼</span>
+      </div>
+    </button>
+    <div class="section-body">
+      <div class="sub-hdr">TRADES</div>
+      <p style="font-size:12px;opacity:.55;margin-bottom:6px">Injected by <code>master.py step3</code>. Sorted newest first.</p>
+      <pre><span class="c">// Each trade object:</span>
+{
+  id,
+  date,          <span class="c">// "YYYY-MM-DD"</span>
+  week,
+  qb,            <span class="c">// "sf" | "1qb"</span>
+  starters,
+  teams_count,
+  tep,           <span class="c">// "none" | "0.5" | "0.75" | "1.0"</span>
+  ppr,           <span class="c">// "1" | "0.5"</span>
+  passtd,        <span class="c">// 4 | 5 | 6</span>
+  roster,
+  players: [{ name, pos, to }],
+  picks:   [{ year, round, slot, from, to }],
+  faab           <span class="c">// "$45" | null</span>
+}</pre>
+
+      <div class="sub-hdr">KTC_DATA</div>
+      <p style="font-size:12px;opacity:.55;margin-bottom:6px">Injected by <code>master.py step1</code>. Display label: <strong>"Fantasy Calc"</strong> (never "KTC").</p>
+      <pre>{
+  value, rank, posRank, team, age, exp,
+  trend, ppg, adp, auction, sleeper_id
+}
+
+<span class="c">// Photo URL:</span>
+<span class="s">`sleepercdn.com/content/nfl/players/thumb/${sleeper_id}.jpg`</span></pre>
+
+      <div class="sub-hdr">ADP_DATA</div>
+      <p style="font-size:12px;opacity:.55;margin-bottom:6px">Placeholder ~40 players. Real data via <code>master.py step4</code> (not yet wired).</p>
+      <pre>{
+  sf:    { overall, posRank },
+  oneqb: { overall, posRank }
+}
+<span class="c">// Used by Age Curve buy-low/sell-high signal</span></pre>
+    </div>
+  </div>
+
+  <!-- 04 PAGE LAYOUT -->
+  <div class="section" id="s-layout">
+    <button class="section-toggle" onclick="toggle('s-layout')">
+      <div class="section-accent"></div>
+      <div class="section-toggle-inner">
+        <span class="section-icon">📐</span>
+        <span class="section-label">Page Layout &amp; Nav</span>
+        <span class="section-tag">Structure · Breakpoints</span>
+        <span class="section-arrow">▼</span>
+      </div>
+    </button>
+    <div class="section-body">
+      <div class="sub-hdr">Nav Links (in order)</div>
+      <p style="font-size:13px;margin-bottom:14px">Rankings → Trade Calculator → <strong style="color:var(--red)">Trade Database (active)</strong> → ADP → League Importer</p>
+
+      <div class="sub-hdr">DOM Structure</div>
+      <div class="layout-tree">
+<span class="node">topnav-wrap</span> <span class="note">(full width, sticky, bg swaps with theme)</span>
+  └── <span class="node">topnav</span> <span class="note">(max-width:1440px, padding: 0 5px)</span>
+<span class="node">ticker</span> <span class="note">(full width red bar)</span>
+<span class="node">.page</span> <span class="note">(max-width:1440px, padding: 0 5px)</span>
+  ├── <span class="node">page-header</span>
+  ├── <span class="node">filter-area</span> <span class="note">(4 sections + reset + trade search)</span>
+  ├── <span class="node">active-filter-row</span>
+  └── <span class="node">content-grid</span> <span class="note">(280px sidebar + 1fr main)</span>
+        ├── <span class="node">value-sidebar</span> <span class="note">(sticky)</span>
+        └── <span class="node">main</span> <span class="note">(tabs: Recent · Top Players · Top Picks · Positions)</span>
+      </div>
+
+      <div class="sub-hdr">Responsive Breakpoints</div>
+      <div class="kv-grid">
+        <div class="kv-row">
+          <div class="kv-key">768px</div>
+          <div class="kv-val">content-grid → block · trade-grid → block · value-sidebar → 2-col · panels → 100vw · filters stack vertically · nav links hidden · filter area collapses behind toggle button on mobile</div>
+        </div>
+        <div class="kv-row">
+          <div class="kv-key">480px</div>
+          <div class="kv-val">value-sidebar → 1-col · further tightening</div>
+        </div>
+        <div class="kv-row">
+          <div class="kv-key">Override rule</div>
+          <div class="kv-val">All mobile overrides use <code>!important</code>. <code>html, body { overflow-x: hidden !important }</code></div>
+        </div>
+      </div>
+
+      <div class="sub-hdr">Filter Logic</div>
+      <ul class="doc-list">
+        <li>Assets in Trade: <code>&lt;=</code> comparison (tier — "4 or fewer")</li>
+        <li>Roster Size: <code>&lt;=</code> comparison (tier — "25 or fewer")</li>
+        <li>All other filters: exact match</li>
+        <li>Trade count display has been <strong>removed</strong> from the active filter row (v6)</li>
+        <li>"Showing all formats" chip styled same as active filter chips (red)</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- 05 TICKER -->
+  <div class="section" id="s-ticker">
+    <button class="section-toggle" onclick="toggle('s-ticker')">
+      <div class="section-accent"></div>
+      <div class="section-toggle-inner">
+        <span class="section-icon">📡</span>
+        <span class="section-label">Ticker</span>
+        <span class="section-tag">Red bar · Most traded</span>
+        <span class="section-arrow">▼</span>
+      </div>
+    </button>
+    <div class="section-body">
+      <ul class="doc-list">
+        <li>Full-width red bar (<code>background: var(--red)</code>) below the nav, above the page</li>
+        <li>Shows top 20 most-traded players, sorted by trade count descending</li>
+        <li>Each item: <code>[POS] Player Name <em>Nx</em></code> — the count shows as dimmed suffix (e.g. <code>5x</code>), opacity 0.55, non-italic, normal weight (v6)</li>
+        <li>Clicking a ticker item opens that player's panel</li>
+        <li>Track is duplicated for seamless infinite scroll loop</li>
+        <li>Hover pauses animation (<code>animation-play-state: paused</code>)</li>
+        <li>Scroll duration: 40s linear infinite</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- 06 VALUE SIDEBAR -->
+  <div class="section" id="s-sidebar">
+    <button class="section-toggle" onclick="toggle('s-sidebar')">
+      <div class="section-accent"></div>
+      <div class="section-toggle-inner">
+        <span class="section-icon">📊</span>
+        <span class="section-label">Value Sidebar</span>
+        <span class="section-tag">Risers · Fallers</span>
+        <span class="section-arrow">▼</span>
+      </div>
+    </button>
+    <div class="section-body">
+      <ul class="doc-list">
+        <li><strong>▲ Top Risers</strong> — <code>trend &gt; 0</code>, sorted desc, green</li>
+        <li><strong>▼ Top Fallers</strong> — <code>trend &lt; 0</code>, sorted asc, red</li>
+        <li>Row: pos badge + name + FC value + arrow + change amount</li>
+        <li>Click row → opens player panel</li>
+        <li><code>renderValueTracker()</code> called inside <code>renderAll()</code></li>
+        <li>Mobile: 2-col grid above trades · 1-col at 480px</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- 07 PLAYER PANEL -->
+  <div class="section" id="s-panel">
+    <button class="section-toggle" onclick="toggle('s-panel')">
+      <div class="section-accent"></div>
+      <div class="section-toggle-inner">
+        <span class="section-icon">👤</span>
+        <span class="section-label">Player Panel</span>
+        <span class="section-tag">Stats · Tabs · Age Curve · Trade Finder</span>
+        <span class="section-arrow">▼</span>
+      </div>
+    </button>
+    <div class="section-body">
+      <div class="kv-grid">
+        <div class="kv-row">
+          <div class="kv-key">Width</div>
+          <div class="kv-val"><code>min(1360px, 95vw)</code> · Mobile: <code>100vw</code></div>
+        </div>
+        <div class="kv-row">
+          <div class="kv-key">State</div>
+          <div class="kv-val"><code>ppPlayers[]</code>, <code>ppActivePlayer</code></div>
+        </div>
+      </div>
+
+      <div class="sub-hdr">Stats Bar (4 columns)</div>
+      <ul class="doc-list">
+        <li><strong>Times Traded</strong> — shown in red</li>
+        <li><strong>Avg Pick Included</strong> — <code>"Rd X.XX (Y%)"</code> · round.slot + % of trades with picks</li>
+        <li><strong>Avg Added Value Needed</strong> — avg FC value of other players in same trades</li>
+        <li><strong>Avg Assets Moved</strong> — avg total assets per trade excluding the player</li>
+      </ul>
+      <p style="font-size:11px;opacity:.45;margin:6px 0 0">Stat IDs: <code>pp-traded</code> · <code>pp-avg-pick</code> · <code>pp-avg-value</code> · <code>pp-avg-assets</code></p>
+
+      <div class="sub-hdr">Tabs</div>
+      <ul class="doc-list">
+        <li><strong>Trades</strong> — list of trades this player appeared in</li>
+        <li><strong>Age Curve</strong> — 3-line SVG chart (see Age Curve section)</li>
+        <li><strong>Trade Finder</strong> — seeded with player, state persists when switching tabs, resets on panel close</li>
+      </ul>
+
+      <div class="sub-hdr">Tab Strip</div>
+      <ul class="doc-list">
+        <li>Multiple players can be open — tab strip at top, click to switch, ✕ to remove</li>
+        <li>Key functions: <code>openPanel()</code> · <code>openPanelContent()</code> · <code>ppSwitchTo()</code> · <code>ppRemovePlayer()</code> · <code>ppRenderTabStrip()</code> · <code>ppSearchSelect()</code></li>
+      </ul>
+
+      <div class="sub-hdr">Age Curve Tab</div>
+      <table class="fn-table">
+        <tr><th>Line</th><th>Style</th><th>Color</th><th>Description</th></tr>
+        <tr><td>Player FC curve</td><td>Solid 2.5px</td><td>Position color</td><td>Scaled to current FC value</td></tr>
+        <tr><td>Position avg</td><td>Dashed 1.5px</td><td>White 30%</td><td>Historical positional aging</td></tr>
+        <tr><td>ADP-implied</td><td>Dashed horiz 1.5px</td><td><code>var(--red)</code></td><td>What it costs to acquire</td></tr>
+      </table>
+      <ul class="doc-list" style="margin-top:10px">
+        <li>Dots: FC value = colored glowing dot · ADP = red dot · vertical connector shows gap</li>
+        <li>Stat boxes: Age/Peak · FC Value · ADP SF · Proj +5yr</li>
+        <li>Signal: Buy-low (green, FC 500+ above ADP) · Sell-high (red, ADP 500+ above FC) · Fairly priced (yellow)</li>
+        <li>Peak ages (hardcoded): QB=28 · RB=24 · WR=26 · TE=27</li>
+        <li>Renders via: <code>renderAgeCurve(containerId, player)</code></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- 08 TRADE FINDER & PICK PANEL -->
+  <div class="section" id="s-finder">
+    <button class="section-toggle" onclick="toggle('s-finder')">
+      <div class="section-accent"></div>
+      <div class="section-toggle-inner">
+        <span class="section-icon">⚖️</span>
+        <span class="section-label">Trade Finder &amp; Pick Panel</span>
+        <span class="section-tag">tfState · Pick page</span>
+        <span class="section-arrow">▼</span>
+      </div>
+    </button>
+    <div class="section-body">
+      <div class="sub-hdr">Trade Finder</div>
+      <ul class="doc-list">
+        <li>State per container: <code>tfState[id] = &#123; sideA: [...], sideB: [...] &#125;</code></li>
+        <li>Each asset: <code>&#123; label, value, posKey, type: "player"|"pick" &#125;</code></li>
+        <li>Click "+ Add player or pick..." → type to search OR see closest-value suggestions</li>
+        <li>Balance bar: Side A total (left) · status (center) · Side B total (right)</li>
+        <li><strong>Critical:</strong> <code>tfQuerySlot()</code> only updates the results list — does NOT re-render the whole finder (preserves input focus)</li>
+      </ul>
+
+      <div class="sub-hdr">Pick Panel</div>
+      <div class="kv-grid">
+        <div class="kv-row">
+          <div class="kv-key">Width</div>
+          <div class="kv-val"><code>680px</code> · Mobile: <code>100vw</code></div>
+        </div>
+        <div class="kv-row">
+          <div class="kv-key">Stats</div>
+          <div class="kv-val">Times Traded · Last Traded · Players Moved · Draft Class</div>
+        </div>
+        <div class="kv-row">
+          <div class="kv-key">Open</div>
+          <div class="kv-val"><code>openPickPage(year, round)</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 09 KEY FUNCTIONS -->
+  <div class="section" id="s-functions">
+    <button class="section-toggle" onclick="toggle('s-functions')">
+      <div class="section-accent"></div>
+      <div class="section-toggle-inner">
+        <span class="section-icon">⚙️</span>
+        <span class="section-label">Key Functions</span>
+        <span class="section-tag">Render · Toggle · Panels</span>
+        <span class="section-arrow">▼</span>
+      </div>
+    </button>
+    <div class="section-body">
+      <div class="sub-hdr">Render Pipeline</div>
+      <pre><span class="fn">renderAll()</span>
+  → <span class="fn">renderTicker()</span>         <span class="c">// Red bar top 20 players</span>
+  → <span class="fn">renderValueTracker()</span>   <span class="c">// Risers/fallers sidebar</span>
+  → <span class="fn">renderRecent()</span>         <span class="c">// Recent trades tab</span>
+  → <span class="fn">renderTopPlayers()</span>     <span class="c">// Most traded players tab</span>
+  → <span class="fn">renderTopPicks()</span>       <span class="c">// Most traded picks tab</span>
+  → <span class="fn">renderPositions()</span>      <span class="c">// Assets by type tab</span></pre>
+
+      <div class="sub-hdr">All Key Functions</div>
+      <table class="fn-table">
+        <tr><th>Function</th><th>Description</th></tr>
+        <tr><td>renderAll()</td><td>Full re-render, called after every filter change</td></tr>
+        <tr><td>renderValueTracker()</td><td>Risers/fallers sidebar cards</td></tr>
+        <tr><td>renderAgeCurve(id, p)</td><td>3-line SVG age curve for a player</td></tr>
+        <tr><td>renderTradeFinder(id, s)</td><td>Trade finder with seed asset</td></tr>
+        <tr><td>_drawTradeFinder(id)</td><td>Re-render trade finder HTML only</td></tr>
+        <tr><td>tfQuerySlot(id, s, v)</td><td>Update results list only (no focus loss)</td></tr>
+        <tr><td>toggleTheme()</td><td>Dark/light mode swap</td></tr>
+        <tr><td>toggleMobileFilters()</td><td>Collapse/expand filter panel on mobile (v6)</td></tr>
+        <tr><td>openPanel(name)</td><td>Player panel with tab strip</td></tr>
+        <tr><td>openPanelContent(name)</td><td>Profile + stats + cost analysis</td></tr>
+        <tr><td>ppShowTab(name)</td><td>Switch between trades / curve / finder tabs</td></tr>
+        <tr><td>openPickPage(yr, rd)</td><td>Pick panel slide-in</td></tr>
+        <tr><td>applyFilters()</td><td>Filter logic → renderAll()</td></tr>
+        <tr><td>getAllAssets()</td><td>KTC players + PICK_KTC picks combined</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- 10 MASTER.PY PIPELINE -->
+  <div class="section" id="s-pipeline">
+    <button class="section-toggle" onclick="toggle('s-pipeline')">
+      <div class="section-accent"></div>
+      <div class="section-toggle-inner">
+        <span class="section-icon">🐍</span>
+        <span class="section-label">master.py Pipeline</span>
+        <span class="section-tag">4 steps · Data injection</span>
+        <span class="section-arrow">▼</span>
+      </div>
+    </button>
+    <div class="section-body">
+      <pre><span class="fn">step1_fetch_fantasycalc()</span>
+  <span class="c"># FC API → KTC_DATA (with sleeper_id)</span>
+
+<span class="fn">step2_sleeper_converter()</span>
+  <span class="c"># Sleeper API → trade JSON file</span>
+
+<span class="fn">step3_inject_trades()</span>
+  <span class="c"># JSON → TRADES constant in index.html</span>
+
+<span class="c"># step4 — ADP data, not yet wired</span>
+<span class="c"># ADP_DATA structure is ready in index.html</span></pre>
+      <ul class="doc-list" style="margin-top:10px">
+        <li>Run via <code>update_dashboard.bat</code> for one-click update</li>
+        <li>Player photos need a <code>master.py</code> run to populate <code>sleeper_id</code> values</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- 11 AUDIT CHECKLIST -->
+  <div class="section" id="s-audit">
+    <button class="section-toggle" onclick="toggle('s-audit')">
+      <div class="section-accent"></div>
+      <div class="section-toggle-inner">
+        <span class="section-icon">✅</span>
+        <span class="section-label">Audit Checklist</span>
+        <span class="section-tag">Run before every release</span>
+        <span class="section-arrow">▼</span>
+      </div>
+    </button>
+    <div class="section-body">
+      <p style="font-size:12px;opacity:.45;margin-bottom:12px">Click each item to check it off before pushing to GitHub.</p>
+      <div id="audit-list">
+        <div class="audit-item" onclick="checkAudit(this)">
+          <div class="audit-check"></div>
+          <span class="audit-label">All <code>getElementById</code> calls have matching HTML IDs</span>
+        </div>
+        <div class="audit-item" onclick="checkAudit(this)">
+          <div class="audit-check"></div>
+          <span class="audit-label">Backtick balance — no unclosed template literals</span>
+        </div>
+        <div class="audit-item" onclick="checkAudit(this)">
+          <div class="audit-check"></div>
+          <span class="audit-label">No empty ternary <code>?:</code> patterns</span>
+        </div>
+        <div class="audit-item" onclick="checkAudit(this)">
+          <div class="audit-check"></div>
+          <span class="audit-label">All tab divs exist in HTML</span>
+        </div>
+        <div class="audit-item" onclick="checkAudit(this)">
+          <div class="audit-check"></div>
+          <span class="audit-label">All key functions defined: <code>renderAll</code>, <code>applyFilters</code>, <code>toggleTheme</code>, <code>openPanel</code>, <code>openPickPage</code></span>
+        </div>
+        <div class="audit-item" onclick="checkAudit(this)">
+          <div class="audit-check"></div>
+          <span class="audit-label">All constants present: <code>TRADES</code>, <code>KTC_DATA</code>, <code>ADP_DATA</code>, <code>PICK_KTC</code></span>
+        </div>
+        <div class="audit-item" onclick="checkAudit(this)">
+          <div class="audit-check"></div>
+          <span class="audit-label">Stat element IDs present: <code>pp-avg-pick</code>, <code>pp-avg-value</code>, <code>pp-avg-assets</code>, <code>pp-traded</code></span>
+        </div>
+        <div class="audit-item" onclick="checkAudit(this)">
+          <div class="audit-check"></div>
+          <span class="audit-label">Light theme CSS block (<code>[data-theme="light"]</code>) present and complete</span>
+        </div>
+        <div class="audit-item" onclick="checkAudit(this)">
+          <div class="audit-check"></div>
+          <span class="audit-label">Mobile CSS present for 768px and 480px breakpoints</span>
+        </div>
+        <div class="audit-item" onclick="checkAudit(this)">
+          <div class="audit-check"></div>
+          <span class="audit-label">TE badge text color: dark mode <code>#111111</code>, light mode <code>#f0f0f0</code></span>
+        </div>
+        <div class="audit-item" onclick="checkAudit(this)">
+          <div class="audit-check"></div>
+          <span class="audit-label">All pos badges: <code>min-width: 36px; width: 36px</code>, <code>display: inline-flex</code></span>
+        </div>
+        <div class="audit-item" onclick="checkAudit(this)">
+          <div class="audit-check"></div>
+          <span class="audit-label">No "KTC" text anywhere in the UI — only "Fantasy Calc"</span>
+        </div>
+        <div class="audit-item" onclick="checkAudit(this)">
+          <div class="audit-check"></div>
+          <span class="audit-label">No team names or user names visible in any trade card or panel</span>
+        </div>
+        <div class="audit-item" onclick="checkAudit(this)">
+          <div class="audit-check"></div>
+          <span class="audit-label">Ticker shows trade count suffix (<code>5x</code>) for each player</span>
+        </div>
+        <div class="audit-item" onclick="checkAudit(this)">
+          <div class="audit-check"></div>
+          <span class="audit-label">Mobile filter toggle button hidden on desktop (<code>.filter-mobile-toggle { display: none; }</code> in root CSS)</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 12 CHANGELOG v6 -->
+  <div class="section" id="s-changes">
+    <button class="section-toggle" onclick="toggle('s-changes')">
+      <div class="section-accent"></div>
+      <div class="section-toggle-inner">
+        <span class="section-icon">📝</span>
+        <span class="section-label">What Changed in v6</span>
+        <span class="section-tag">vs v5 prompt</span>
+        <span class="section-arrow">▼</span>
+      </div>
+    </button>
+    <div class="section-body">
+      <div class="change-log">
+        <div class="change-item">
+          <span class="change-badge remove">Remove</span>
+          <div class="change-text">Trade count display removed from active filter row
+            <small>The "271 trades" / "X trades matched" span was removed from both filtered and unfiltered states in <code>applyFilters()</code></small>
+          </div>
+        </div>
+        <div class="change-item">
+          <span class="change-badge ui">UI</span>
+          <div class="change-text">Ticker now shows trade count per player
+            <small>Each ticker item shows a dimmed <code>Nx</code> suffix (e.g. "5x") — opacity 0.55, non-italic, normal weight</small>
+          </div>
+        </div>
+        <div class="change-item">
+          <span class="change-badge ux">UX</span>
+          <div class="change-text">Filters collapse on mobile by default
+            <small>A "⚙ Filters ▼" toggle bar appears at 768px and below. Filters start collapsed, tap to expand. Toggle is hidden on desktop.</small>
+          </div>
+        </div>
+        <div class="change-item">
+          <span class="change-badge fix">Fix</span>
+          <div class="change-text">TE badge text color fixed in light mode
+            <small>Light mode now uses <code>#f0f0f0</code> text for TE (was <code>#111111</code>, mismatching WR/RB/QB/K)</small>
+          </div>
+        </div>
+        <div class="change-item">
+          <span class="change-badge fix">Fix</span>
+          <div class="change-text">All position badges now fixed-width and centered
+            <small><code>min-width: 36px; width: 36px; padding: 2px 0</code> — consistent size for QB/RB/WR/TE/K/PK</small>
+          </div>
+        </div>
+        <div class="change-item">
+          <span class="change-badge fix">Fix</span>
+          <div class="change-text">Sun icon now renders as colored emoji
+            <small>Changed from bare <code>☀</code> (U+2600, renders as outline) to <code>☀️</code> (U+2600 U+FE0F, renders as filled color emoji)</small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 13 NOT YET BUILT -->
+  <div class="section" id="s-todo">
+    <button class="section-toggle" onclick="toggle('s-todo')">
+      <div class="section-accent"></div>
+      <div class="section-toggle-inner">
+        <span class="section-icon">🔜</span>
+        <span class="section-label">Not Yet Built</span>
+        <span class="section-tag">Roadmap</span>
+        <span class="section-arrow">▼</span>
+      </div>
+    </button>
+    <div class="section-body">
+      <div class="todo-item">
+        <div class="todo-dot"></div>
+        <div class="todo-text">Player photos
+          <small>Code is in place — needs <code>master.py</code> run to populate <code>sleeper_id</code> values in <code>KTC_DATA</code></small>
+        </div>
+      </div>
+      <div class="todo-item">
+        <div class="todo-dot"></div>
+        <div class="todo-text">Real ADP data
+          <small><code>ADP_DATA</code> structure is ready — needs <code>step4</code> wired in <code>master.py</code></small>
+        </div>
+      </div>
+      <div class="todo-item">
+        <div class="todo-dot"></div>
+        <div class="todo-text">PPG data
+          <small>Needs Sleeper stats endpoint or FantasyPros integration</small>
+        </div>
+      </div>
+      <div class="todo-item">
+        <div class="todo-dot"></div>
+        <div class="todo-text">Auction values
+          <small>Needs MFL or Fantrax data source</small>
+        </div>
+      </div>
+      <div class="todo-item">
+        <div class="todo-dot"></div>
+        <div class="todo-text">Real age curve peak ages
+          <small>Currently hardcoded (QB=28, RB=24, WR=26, TE=27) — compute from FC dataset when available</small>
+        </div>
+      </div>
+      <div class="todo-item">
+        <div class="todo-dot"></div>
+        <div class="todo-text">ADP tool page
+          <small>Nav link exists — page not yet built</small>
+        </div>
+      </div>
+      <div class="todo-item">
+        <div class="todo-dot"></div>
+        <div class="todo-text">League importer
+          <small>Nav link exists — page not yet built</small>
+        </div>
+      </div>
+      <div class="todo-item">
+        <div class="todo-dot"></div>
+        <div class="todo-text">Trade volume trends
+          <small>Planned feature — no spec yet</small>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /.main -->
+
+<div class="footer">
+  <div class="footer-line"></div>
+  <div class="footer-text">FPTS Dynasty · Rebuild Prompt v6 · Season 2026</div>
+  <div class="footer-line"></div>
+</div>
+
+<script>
+  function toggle(id) {
+    const s = document.getElementById(id);
+    s.classList.toggle('open');
+  }
+
+  function checkAudit(el) {
+    el.classList.toggle('checked');
+  }
+
+  // Expand all / collapse all shortcut (double-click header)
+  document.querySelector('.header').addEventListener('dblclick', () => {
+    const sections = document.querySelectorAll('.section');
+    const anyOpen = [...sections].some(s => s.classList.contains('open'));
+    sections.forEach(s => anyOpen ? s.classList.remove('open') : s.classList.add('open'));
+  });
+</script>
+
+</body>
+</html>
