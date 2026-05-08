@@ -1050,6 +1050,10 @@
   .ml-archetype.tweener   { color:#5b9bd5; border-color:#5b9bd5; background:rgba(91,155,213,0.10); }
   .ml-archetype.rebuilder { color:#e09a30; border-color:#e09a30; background:rgba(224,154,48,0.10); }
   .ml-archetype.emergency { color:var(--red); border-color:var(--red); background:rgba(204,51,51,0.10); }
+  .ml-leagues-sort { display:flex; align-items:center; gap:8px; padding:8px 4px 12px; }
+  .ml-leagues-sort-label { font-family:'Mulish',sans-serif; font-size:11px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.07em; }
+  .ml-leagues-sort-select { background:var(--surface); border:1px solid var(--border2); color:var(--white); font-family:'Mulish',sans-serif; font-size:12px; font-weight:700; padding:5px 10px; cursor:pointer; }
+  .ml-leagues-sort-select:focus { outline:none; border-color:var(--red); }
 
   /* Backwards-compat: old user-card / dashboard styles kept (unused, may remove later) */
   .ml-user-card, .ml-user-avatar, .ml-user-name, .ml-user-meta { } /* no-ops */
@@ -1137,6 +1141,61 @@
     font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:11px;
     color:var(--white); padding:5px 14px; cursor:pointer; opacity:.5; transition:all .15s; }
   .ml-history-tab.active { border-color:var(--red); color:var(--red); opacity:1; }
+  /* Top-level toggle (Trade History / Waivers) */
+  .ml-section-toggle { display:flex; gap:0; border-bottom:1px solid var(--border); margin-bottom:14px; }
+  .ml-section-toggle-btn { background:none; border:none; font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:13px; color:var(--white); opacity:.5; padding:8px 16px 10px; cursor:pointer; text-transform:uppercase; letter-spacing:.06em; border-bottom:2px solid transparent; margin-bottom:-1px; transition:all .15s; }
+  .ml-section-toggle-btn:hover { opacity:.85; }
+  .ml-section-toggle-btn.active { opacity:1; color:var(--red); border-bottom-color:var(--red); }
+  /* Waivers — leaderboard table */
+  .ml-wv-table { width:100%; border-collapse:collapse; font-family:'Mulish',sans-serif; font-size:12px; }
+  .ml-wv-table th { padding:10px 8px; text-align:left; font-family:'Mulish',sans-serif; font-weight:700; font-size:10px; text-transform:uppercase; letter-spacing:.07em; color:var(--muted); opacity:.5; border-bottom:1px solid var(--border2); white-space:nowrap; }
+  .ml-wv-table td { padding:10px 8px; border-bottom:1px solid var(--border); vertical-align:middle; }
+  .ml-wv-table tr.me { background:rgba(204,51,51,0.08); }
+  .ml-wv-table .num { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; }
+  .ml-wv-bar-cell { width:140px; }
+  .ml-wv-bar-track { width:100%; height:6px; background:var(--surface); position:relative; overflow:hidden; }
+  .ml-wv-bar-fill { height:100%; background:var(--yellow); transition:width .3s; }
+  .ml-wv-team-cell { display:flex; align-items:center; gap:8px; }
+  .ml-wv-team-avatar { width:24px; height:24px; border-radius:2px; flex-shrink:0; background:var(--surface); object-fit:cover; }
+  .ml-wv-team-name { font-family:'Mulish',sans-serif; font-weight:900; font-size:13px; color:var(--white); }
+  .ml-wv-team-handle { font-family:'Mulish',sans-serif; font-weight:700; font-size:10px; color:var(--muted); opacity:.5; }
+  /* Top Bids table */
+  .ml-wv-bid { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:14px; color:var(--yellow); }
+  .ml-wv-bid-week { font-family:'Mulish',sans-serif; font-size:10px; color:var(--muted); opacity:.5; margin-top:1px; }
+  .ml-wv-player-cell { display:flex; align-items:center; gap:8px; }
+  .ml-wv-player-img { width:32px; height:32px; border-radius:50%; flex-shrink:0; background:var(--surface); object-fit:cover; }
+  .ml-wv-player-name { font-family:'Mulish',sans-serif; font-weight:900; font-size:13px; color:var(--white); }
+  .ml-wv-player-drop { font-family:'Mulish',sans-serif; font-size:10px; color:var(--muted); opacity:.5; margin-top:1px; }
+  /* Recent Activity */
+  .ml-wv-week-head { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:13px; color:#5b9bd5; text-transform:uppercase; letter-spacing:.06em; padding:14px 0 6px; border-bottom:1px solid var(--border); margin-bottom:6px; }
+  .ml-wv-week-meta { font-family:'Mulish',sans-serif; font-size:11px; color:var(--muted); opacity:.5; font-style:normal; font-weight:700; margin-left:8px; text-transform:none; letter-spacing:0; }
+  .ml-wv-tx-row { display:flex; align-items:center; gap:8px; padding:8px 4px; border-bottom:1px solid var(--border); }
+  .ml-wv-tx-team-img { width:28px; height:28px; border-radius:2px; flex-shrink:0; background:var(--surface); object-fit:cover; }
+  .ml-wv-tx-team-name { font-family:'Mulish',sans-serif; font-weight:900; font-size:13px; color:var(--white); flex-shrink:0; }
+  .ml-wv-tx-tag { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:10px; padding:1px 6px; border-radius:2px; letter-spacing:.04em; flex-shrink:0; }
+  .ml-wv-tx-tag.won { background:rgba(76,175,110,0.15); color:var(--green); }
+  .ml-wv-tx-tag.failed { background:rgba(204,51,51,0.15); color:var(--red); }
+  .ml-wv-tx-tag.fa { background:rgba(91,155,213,0.15); color:#5b9bd5; }
+  .ml-wv-tx-detail { font-family:'Mulish',sans-serif; font-size:12px; color:var(--white); flex:1; min-width:0; }
+  .ml-wv-tx-add { color:var(--green); font-weight:700; }
+  .ml-wv-tx-drop { color:var(--muted); opacity:.7; }
+  .ml-wv-tx-bid { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:12px; color:var(--yellow); flex-shrink:0; }
+  /* By Team */
+  .ml-wv-bt-team { border-bottom:1px solid var(--border); }
+  .ml-wv-bt-team.me .ml-wv-bt-team-head { background:rgba(204,51,51,0.08); }
+  .ml-wv-bt-team-head { display:flex; align-items:center; gap:10px; padding:12px 8px; cursor:pointer; transition:background .12s; }
+  .ml-wv-bt-team-head:hover { background:var(--surface); }
+  .ml-wv-bt-team-name { font-family:'Mulish',sans-serif; font-weight:900; font-size:14px; color:var(--white); flex:1; min-width:0; }
+  .ml-wv-bt-team-meta { font-family:'Mulish',sans-serif; font-size:10px; color:var(--muted); opacity:.7; flex:1; min-width:0; }
+  .ml-wv-bt-caret { font-size:10px; color:var(--muted); transition:transform .15s; flex-shrink:0; }
+  .ml-wv-bt-team.open .ml-wv-bt-caret { transform:rotate(180deg); }
+  .ml-wv-bt-body { display:none; padding:0 8px 8px 46px; }
+  .ml-wv-bt-team.open .ml-wv-bt-body { display:block; }
+  .ml-wv-bt-pickup { display:flex; align-items:center; gap:8px; padding:6px 0; border-top:1px solid var(--border); }
+  .ml-wv-bt-pickup-name { font-family:'Mulish',sans-serif; font-weight:700; font-size:12px; color:var(--white); flex:1; }
+  .ml-wv-bt-pickup-drop { font-family:'Mulish',sans-serif; font-size:10px; color:var(--muted); opacity:.6; }
+  .ml-wv-bt-pickup-bid { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:11px; color:var(--yellow); flex-shrink:0; }
+  .ml-wv-bt-pickup-week { font-family:'Mulish',sans-serif; font-size:10px; color:var(--muted); opacity:.5; flex-shrink:0; min-width:32px; text-align:right; }
   /* Empty state */
   .ml-empty { text-align:center; padding:40px 20px; font-family:'Mulish',sans-serif;
     font-size:13px; color:var(--muted); opacity:.4; }
@@ -1728,6 +1787,13 @@
           <div class="ml-spinner-dot"></div>
           <div class="ml-spinner-dot"></div>
           <span class="ml-spinner-text">Loading leagues...</span>
+        </div>
+        <div class="ml-leagues-sort">
+          <label class="ml-leagues-sort-label">Sort:</label>
+          <select class="ml-leagues-sort-select" id="ml-leagues-sort" onchange="mlSetLeagueSort(this.value)">
+            <option value="name">Name (A→Z)</option>
+            <option value="archetype">Archetype</option>
+          </select>
         </div>
         <div id="ml-league-rows"></div>
       </div>
@@ -4309,6 +4375,63 @@ function closeTradeSuggestModal() {
   document.getElementById('ml-ts-backdrop').classList.remove('open');
 }
 
+// Variant of openTradeSuggestModal for draft picks.
+// season, round identify the pick. leagueId, ownerRosterId give the league + current owner.
+function openTradeSuggestModalForPick(season, round, leagueId, ownerRosterId) {
+  const data = (window.ML_ALL_LEAGUE_DATA || {})[leagueId];
+  if (!data) return;
+  const { rosters, users, myRosterId } = data;
+
+  const targetValue = mlPickValue(String(season), Number(round)) || 0;
+  const targetName = `${season} Round ${round}`;
+
+  // League name + owner info
+  let leagueName = '';
+  try {
+    const allLeagues = Object.values(ML.leagues || {}).flat();
+    const league = allLeagues.find(l => l.league_id === leagueId);
+    leagueName = league ? (league.name || `League ${leagueId}`) : `League ${leagueId}`;
+  } catch(e) { leagueName = `League ${leagueId}`; }
+
+  const owningRoster = rosters.find(r => r.roster_id === ownerRosterId);
+
+  let ownerName = '';
+  let archetype = null;
+  if (owningRoster && String(owningRoster.roster_id) !== String(myRosterId)) {
+    const u = users.find(x => x.user_id === owningRoster.owner_id);
+    ownerName = (u && u.metadata && u.metadata.team_name) || (u && u.display_name) || `Team ${owningRoster.roster_id}`;
+    const ld = mlComputeLeagueValueData(leagueId);
+    if (ld) {
+      const ownerTeam = ld.teams.find(t => t.rosterId === owningRoster.roster_id);
+      if (ownerTeam) archetype = ownerTeam.archetype;
+    }
+  }
+
+  // Reset state, populate fresh
+  MLTB.targetSid = null;
+  MLTB.targetPlayer = targetValue ? {
+    name: targetName, value: targetValue, pos: 'PICK', sleeperId: null,
+    type: 'pick', season: String(season), round: Number(round), age: null
+  } : null;
+  MLTB.leagueId = leagueId;
+  MLTB.myRosterId = myRosterId;
+  MLTB.ownerRosterId = owningRoster ? owningRoster.roster_id : null;
+  MLTB.ownerName = ownerName;
+  MLTB.archetype = archetype;
+  MLTB.leagueName = leagueName;
+  MLTB.myAssetPool = mlBuildAssetPool(leagueId, myRosterId);
+  MLTB.ownerAssetPool = owningRoster ? mlBuildAssetPool(leagueId, owningRoster.roster_id) : [];
+  MLTB.templates = (targetValue && owningRoster && String(owningRoster.roster_id) !== String(myRosterId))
+    ? mlGenerateTradeSuggestions(MLTB.myAssetPool, targetValue, archetype, 5)
+    : [];
+  MLTB.currentIdx = 0;
+  MLTB.reviewedAll = false;
+
+  document.getElementById('ml-ts-title').textContent = `Trade Builder — ${targetName}`;
+  mltbRender();
+  document.getElementById('ml-ts-backdrop').classList.add('open');
+}
+
 // Render the current state of the suggestion pre-screener
 function mltbRender() {
   const body = document.getElementById('ml-ts-body');
@@ -4496,12 +4619,18 @@ function mltbAccept(payload) {
   // Close the suggestion modal first
   closeTradeSuggestModal();
 
+  // For picks, pass the full asset; for players, the existing name-lookup path works
+  const targetAsset = (MLTB.targetPlayer && MLTB.targetPlayer.type === 'pick') ? {
+    name: MLTB.targetPlayer.name, value: MLTB.targetPlayer.value, pos: 'PICK',
+    type: 'pick', season: MLTB.targetPlayer.season, round: MLTB.targetPlayer.round,
+    sleeperId: null,
+  } : null;
   // Open the trade calculator with the package pre-loaded + scoped to both rosters
   openCalcModal(MLTB.targetPlayer.name, MLTB.targetSid, {
     leagueId: MLTB.leagueId,
     ownerRosterId: MLTB.ownerRosterId,
-    presetSendingAssets: t.sending.map(a => ({ name: a.name, value: a.value, pos: a.pos, type: a.type })),
-    // Side B already gets the target prefilled by openCalcModal's existing logic
+    presetSendingAssets: t.sending.map(a => ({ name: a.name, value: a.value, pos: a.pos, type: a.type, season: a.season, round: a.round })),
+    targetAsset,
   });
 }
 
@@ -4510,9 +4639,15 @@ function mltbOpenCalculatorBlank() {
   closeTradeSuggestModal();
   // Pass leagueId + ownerRosterId so calculator knows to scope its searches
   if (MLTB.targetPlayer) {
+    const targetAsset = MLTB.targetPlayer.type === 'pick' ? {
+      name: MLTB.targetPlayer.name, value: MLTB.targetPlayer.value, pos: 'PICK',
+      type: 'pick', season: MLTB.targetPlayer.season, round: MLTB.targetPlayer.round,
+      sleeperId: null,
+    } : null;
     openCalcModal(MLTB.targetPlayer.name, MLTB.targetSid, {
       leagueId: MLTB.leagueId,
       ownerRosterId: MLTB.ownerRosterId,
+      targetAsset,
     });
   } else {
     openCalcModal(null, null, {
@@ -4722,13 +4857,19 @@ function openCalcModal(targetName, targetSleeperId, opts) {
     MLCALC.sides.A = [];
   }
 
-  // Side B: target player (existing behavior preserved)
-  const ktc = mlGetKtcByName(targetName);
-  if (ktc) {
-    const pos = ktc.posRank ? ktc.posRank.replace(/\d+/g, '') : 'WR';
-    MLCALC.sides.B = [{ name: targetName, value: ktc.value, pos, type: 'player', sleeperId: targetSleeperId || null }];
+  // Side B: target asset (pick or player)
+  if (opts.targetAsset) {
+    // Pre-built target — use directly (covers picks)
+    MLCALC.sides.B = [opts.targetAsset];
   } else {
-    MLCALC.sides.B = targetName ? [{ name: targetName, value: 0, pos: 'WR', type: 'player', sleeperId: targetSleeperId || null }] : [];
+    // Resolve via player name (existing behavior)
+    const ktc = mlGetKtcByName(targetName);
+    if (ktc) {
+      const pos = ktc.posRank ? ktc.posRank.replace(/\d+/g, '') : 'WR';
+      MLCALC.sides.B = [{ name: targetName, value: ktc.value, pos, type: 'player', sleeperId: targetSleeperId || null }];
+    } else {
+      MLCALC.sides.B = targetName ? [{ name: targetName, value: 0, pos: 'WR', type: 'player', sleeperId: targetSleeperId || null }] : [];
+    }
   }
 
   // Close player-detail modal if open
@@ -5153,8 +5294,22 @@ async function fetchAllLeaguesData() {
 
 // Renders the expandable league rows (left column).
 // If all-leagues data is ready, includes the user's team value bar per row.
+// Sort state for the leagues list
+window.ML_LEAGUES_SORT = 'name';
+
+function mlSetLeagueSort(key) {
+  window.ML_LEAGUES_SORT = key;
+  renderLeagueRows();
+}
+
+// Fixed priority order for archetype sort
+const ML_ARCHETYPE_ORDER = { contender: 0, tweener: 1, rebuilder: 2, dynasty: 3, emergency: 4 };
+
 function renderLeagueRows() {
   const container = document.getElementById('ml-league-rows');
+  // Persist sort dropdown selection
+  const sortEl = document.getElementById('ml-leagues-sort');
+  if (sortEl && window.ML_LEAGUES_SORT) sortEl.value = window.ML_LEAGUES_SORT;
   const leagues = ML.leagues[ML.selectedSeason] || [];
 
   if (!leagues.length) {
@@ -5162,8 +5317,27 @@ function renderLeagueRows() {
     return;
   }
 
-  // Alphabetical
-  const sorted = [...leagues].sort((a, b) => (a.name||'').toLowerCase().localeCompare((b.name||'').toLowerCase()));
+  // Sort: name (default) or archetype-grouped (with name as tiebreaker)
+  const sortKey = window.ML_LEAGUES_SORT || 'name';
+  const sorted = [...leagues].sort((a, b) => {
+    if (sortKey === 'archetype') {
+      const getArch = (lg) => {
+        const data = (window.ML_ALL_LEAGUE_DATA || {})[lg.league_id];
+        if (data && data.myRosterId != null) {
+          const ld = mlComputeLeagueValueData(lg.league_id);
+          if (ld && ld.myTeam) return ld.myTeam.archetype || 'tweener';
+        }
+        return null;
+      };
+      const archA = getArch(a);
+      const archB = getArch(b);
+      const orderA = (archA && ML_ARCHETYPE_ORDER[archA] !== undefined) ? ML_ARCHETYPE_ORDER[archA] : 99;
+      const orderB = (archB && ML_ARCHETYPE_ORDER[archB] !== undefined) ? ML_ARCHETYPE_ORDER[archB] : 99;
+      if (orderA !== orderB) return orderA - orderB;
+      // Same archetype (or both unknown) — fall through to alphabetical
+    }
+    return (a.name||'').toLowerCase().localeCompare((b.name||'').toLowerCase());
+  });
   const statusLabel = { in_season:'Active', pre_draft:'Pre-Draft', drafting:'Drafting' };
   const allData = window.ML_ALL_LEAGUE_DATA || {};
 
@@ -5402,7 +5576,10 @@ function renderExpandedLeagueContent(leagueId, bodyEl) {
     </div>
 
     <div class="ml-section">
-      <div class="ml-section-header"><span class="ml-section-title">Trade History</span></div>
+      <div class="ml-section-toggle" id="ml-history-toggle-${leagueId}">
+        <button class="ml-section-toggle-btn active" data-mode="trades" onclick="mlHistorySetMode('${leagueId}','trades')">Trade History</button>
+        <button class="ml-section-toggle-btn" data-mode="waivers" onclick="mlHistorySetMode('${leagueId}','waivers')">Waivers</button>
+      </div>
       <div class="ml-history-tabs" id="${tradeYearTabsId}"></div>
       <div class="ml-spinner" id="trades-loading-${leagueId}" style="display:none">
         <div class="ml-spinner-dot"></div><div class="ml-spinner-dot"></div><div class="ml-spinner-dot"></div>
@@ -5623,7 +5800,9 @@ function mlBuildTeamRosterHtml(leagueId, rosterId) {
     const val = mlPickValue(pk.season, pk.round) || 0;
     const label = `${pk.season} Round ${pk.round}${pk.isNatural ? '' : ' (acquired)'}`;
     return `
-      <div class="ml-team-roster-row" style="display:grid;grid-template-columns:32px 1fr 50px 60px 70px;gap:8px;align-items:center;padding:6px 4px;border-bottom:1px solid var(--border)">
+      <div onclick="openTradeSuggestModalForPick('${pk.season}',${pk.round},'${leagueId}',${rosterId})" class="ml-team-roster-row"
+        style="display:grid;grid-template-columns:32px 1fr 50px 60px 70px;gap:8px;align-items:center;padding:6px 4px;cursor:pointer;border-bottom:1px solid var(--border)"
+        onmouseover="this.style.background='var(--surface)'" onmouseout="this.style.background='transparent'">
         ${pickThumb()}
         <div style="min-width:0">
           <div class="ml-team-roster-name" style="display:flex;align-items:center;gap:6px;font-family:'Mulish',sans-serif;font-size:12px;color:var(--white);font-weight:700">
@@ -5960,6 +6139,23 @@ async function loadRoster(leagueId, season) {
       }
     } catch(e) { /* projections not available this week */ }
 
+    // Fetch 2025 season totals for PPG calculation (one batch call, all players)
+    try {
+      const ssData = await apiFetch(`https://api.sleeper.com/stats/nfl/regular/2025?season_type=regular`);
+      const seasonStats = {};
+      if (Array.isArray(ssData)) {
+        ssData.forEach(entry => {
+          const stats = entry.stats || {};
+          const gp = stats.gp || 0;
+          const pts = stats[`pts_${scoringType}`] || stats.pts_ppr || stats.pts_half_ppr || stats.pts_std || 0;
+          if (gp > 0 && pts > 0) {
+            seasonStats[String(entry.player_id)] = +(pts / gp).toFixed(1);
+          }
+        });
+      }
+      window.ML_SEASON_STATS = seasonStats;
+    } catch(e) { /* season stats not available */ }
+
     // Find my roster
     const myUser   = users.find(u => u.user_id === ML.userId);
     if (!myUser) { hideSpinner('roster-loading'); renderRoster([], players, [], [], {}, {}, displayWeek, league.status || ''); return; }
@@ -6090,7 +6286,7 @@ function renderRoster(playerIds, players, starters, myPicks, rosterToTeam, proje
       rank:    ktc.rank || null,
       adp:     ktc.adp || null,
       auction: ktc.auction || null,
-      ppg:     ktc.ppg || null,
+      ppg:     (window.ML_SEASON_STATS && window.ML_SEASON_STATS[sid]) || null,
       trend:   ktc.trend || '0',
       proj,
     });
@@ -6134,7 +6330,7 @@ function renderRoster(playerIds, players, starters, myPicks, rosterToTeam, proje
         ${r.proj ? r.proj.toFixed(1) + (r.isStart ? '<span style=\"font-size:9px;color:var(--green);margin-left:3px\">▲</span>' : '') : '—'}
       </td>` : ''}
       <td style="${numS}font-size:13px">${r.adp ? r.adp : '—'}</td>
-      <td style="${numS}color:var(--green)">${r.auction ? '$'+r.auction : '—'}</td>
+      <td style="${numS}color:var(--white)">${r.ppg !== null ? r.ppg.toFixed(1) : '—'}</td>
     </tr>`;
   }
 
@@ -6165,7 +6361,7 @@ function renderRoster(playerIds, players, starters, myPicks, rosterToTeam, proje
               <th style="${thS}">Rank</th>
               ${showProj ? `<th style="${thS}">Proj${currentWeek ? ` Wk${currentWeek}` : ''}</th>` : ''}
               <th style="${thS}">ADP</th>
-              <th style="${thS}">Auction</th>
+              <th style="${thS}" title="2025 season PPG (Sleeper)">PPG</th>
             </tr></thead>
             <tbody>${rows.map(playerRow).join('')}</tbody>
           </table>
@@ -6358,6 +6554,408 @@ async function loadAllTrades(leagueId, season) {
     const el = document.getElementById('trades-content');
     if (el) el.innerHTML = `<div class="ml-empty">Error loading trades</div>`;
   }
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// WAIVERS UI — top-level toggle, sub-tab management, 4 sub-views
+// ════════════════════════════════════════════════════════════════════════════
+
+// Per-league state: which top-level mode is active (trades or waivers) + which waivers sub-tab
+window.ML_HISTORY_MODE = window.ML_HISTORY_MODE || {};       // leagueId -> 'trades' | 'waivers'
+window.ML_WAIVERS_SUBTAB = window.ML_WAIVERS_SUBTAB || {};   // leagueId -> 'leaderboard'|'topbids'|'recent'|'byteam'
+window.ML_WAIVERS_RAW = window.ML_WAIVERS_RAW || {};         // leagueId -> { transactions, league, rosterToTeam, users, players }
+
+// Top-level toggle — switch between Trade History and Waivers views
+async function mlHistorySetMode(leagueId, mode) {
+  window.ML_HISTORY_MODE[leagueId] = mode;
+  // Update the toggle buttons' active state
+  const toggleEl = document.getElementById(`ml-history-toggle-${leagueId}`);
+  if (toggleEl) {
+    toggleEl.querySelectorAll('.ml-section-toggle-btn').forEach(b => {
+      b.classList.toggle('active', b.dataset.mode === mode);
+    });
+  }
+  if (mode === 'trades') {
+    // Always reset to first (current) year
+    const cache = window.ML_TRADES_BY_LEAGUE?.[leagueId];
+    if (cache) {
+      const tabsEl = document.getElementById(`ml-trade-year-tabs-${leagueId}`);
+      if (tabsEl) {
+        tabsEl.innerHTML = cache.leagueChain.map((lc, i) =>
+          `<div class="ml-history-tab${i===0?' active':''}" onclick="showTradeYear('${leagueId}',${i},this)" data-idx="${i}">${lc.season}</div>`
+        ).join('');
+      }
+      const contentEl = document.getElementById(`trades-content-${leagueId}`);
+      if (contentEl) contentEl.innerHTML = '';
+      renderTradeYear(leagueId, 0, cache.trades, cache.players, cache.leagueChain);
+    }
+  } else if (mode === 'waivers') {
+    // Always reset to leaderboard
+    window.ML_WAIVERS_SUBTAB[leagueId] = 'leaderboard';
+    const tabsEl = document.getElementById(`ml-trade-year-tabs-${leagueId}`);
+    if (tabsEl) {
+      tabsEl.innerHTML = `
+        <div class="ml-history-tab active" onclick="mlWaiversSetSubtab('${leagueId}','leaderboard',this)" data-subtab="leaderboard">Leaderboard</div>
+        <div class="ml-history-tab" onclick="mlWaiversSetSubtab('${leagueId}','topbids',this)" data-subtab="topbids">Top Bids</div>
+        <div class="ml-history-tab" onclick="mlWaiversSetSubtab('${leagueId}','recent',this)" data-subtab="recent">Recent Activity</div>
+        <div class="ml-history-tab" onclick="mlWaiversSetSubtab('${leagueId}','byteam',this)" data-subtab="byteam">By Team</div>`;
+    }
+    const contentEl = document.getElementById(`trades-content-${leagueId}`);
+    if (contentEl) {
+      contentEl.innerHTML = `<div class="ml-spinner"><div class="ml-spinner-dot"></div><div class="ml-spinner-dot"></div><div class="ml-spinner-dot"></div><span class="ml-spinner-text">Loading waivers...</span></div>`;
+    }
+    await mlEnsureWaiversRaw(leagueId);
+    renderWaiversSubtab(leagueId, 'leaderboard');
+  }
+}
+
+// Click handler for waivers sub-tabs
+function mlWaiversSetSubtab(leagueId, subtab, tabEl) {
+  window.ML_WAIVERS_SUBTAB[leagueId] = subtab;
+  const parent = tabEl.parentNode;
+  if (parent) parent.querySelectorAll('.ml-history-tab').forEach(t => t.classList.remove('active'));
+  tabEl.classList.add('active');
+  renderWaiversSubtab(leagueId, subtab);
+}
+
+// Fetch + cache raw transactions for waiver views (called once per league)
+async function mlEnsureWaiversRaw(leagueId) {
+  if (window.ML_WAIVERS_RAW[leagueId]) return;
+  try {
+    const players = await getPlayers();
+    // Reuse the league object we already have (avoids extra API hit)
+    let league = ML.selectedLeague;
+    if (!league || league.league_id !== leagueId) {
+      try { league = await apiFetch(`${API}/league/${leagueId}`); } catch(e) { league = {}; }
+    }
+    const rosters = ML.leagueRosters[leagueId] || (await apiFetch(`${API}/league/${leagueId}/rosters`));
+    const users   = ML.leagueUsers[leagueId]   || (await apiFetch(`${API}/league/${leagueId}/users`));
+    const lastWeek = Math.min(league?.settings?.last_scored_leg || 18, 18);
+    const maxWeek = Math.max(1, lastWeek);
+    const fetches = Array.from({length: maxWeek}, (_, i) =>
+      apiFetch(`${API}/league/${leagueId}/transactions/${i+1}`).catch(() => [])
+    );
+    const weeks = await Promise.all(fetches);
+    // Flatten with week annotation
+    const transactions = [];
+    weeks.forEach((wk, idx) => {
+      (wk || []).forEach(t => {
+        if (t.type !== 'waiver' && t.type !== 'free_agent') return;
+        if (!t.adds && !t.drops) return;
+        transactions.push({ ...t, week: idx + 1 });
+      });
+    });
+    // roster_id -> team display
+    const userById = {};
+    (users || []).forEach(u => { userById[u.user_id] = u; });
+    const rosterToTeam = {};
+    (rosters || []).forEach(r => {
+      const u = userById[r.owner_id];
+      const teamName = (u && u.metadata && u.metadata.team_name) || (u && u.display_name) || `Team ${r.roster_id}`;
+      const handle = u ? u.display_name : '';
+      const avatar = u && u.avatar ? `${CDN}/avatars/thumbs/${u.avatar}` : '';
+      rosterToTeam[r.roster_id] = { teamName, handle, avatar, ownerId: r.owner_id, rosterId: r.roster_id };
+    });
+    window.ML_WAIVERS_RAW[leagueId] = { transactions, league: league || {}, rosterToTeam, users: users || [], players };
+  } catch(e) {
+    window.ML_WAIVERS_RAW[leagueId] = { transactions: [], league: {}, rosterToTeam: {}, users: [], players: {} };
+  }
+}
+
+// Dispatcher
+function renderWaiversSubtab(leagueId, subtab) {
+  const el = document.getElementById(`trades-content-${leagueId}`);
+  if (!el) return;
+  const data = window.ML_WAIVERS_RAW[leagueId];
+  if (!data) { el.innerHTML = `<div class="ml-empty">Waivers data not available</div>`; return; }
+  if (subtab === 'leaderboard')  return renderWaiversLeaderboard(el, leagueId, data);
+  if (subtab === 'topbids')      return renderWaiversTopBids(el, leagueId, data);
+  if (subtab === 'recent')       return renderWaiversRecent(el, leagueId, data);
+  if (subtab === 'byteam')       return renderWaiversByTeam(el, leagueId, data);
+  el.innerHTML = `<div class="ml-empty">Unknown waivers tab</div>`;
+}
+
+// Helper: fmt player display name + team
+function _mlWvPlayerLabel(players, pid) {
+  const p = players[pid];
+  if (!p) return { name: `(unknown #${pid})`, team: '', img: '' };
+  const name = p.full_name || `${p.first_name || ''} ${p.last_name || ''}`.trim() || `(unknown #${pid})`;
+  return { name, team: p.team || 'FA', img: `${CDN}/content/nfl/players/thumb/${pid}.jpg` };
+}
+
+// SUB-VIEW 1: LEADERBOARD — table of teams ranked by FAAB spent
+function renderWaiversLeaderboard(el, leagueId, data) {
+  const { transactions, league, rosterToTeam } = data;
+  const myRosterId = (window.ML_ALL_LEAGUE_DATA?.[leagueId]?.myRosterId) ?? null;
+  const budget = league?.settings?.waiver_budget || 100;
+  // Aggregate per-roster
+  const stats = {};
+  transactions.forEach(t => {
+    if (t.type !== 'waiver' || !t.settings) return;
+    const bid = typeof t.settings.waiver_bid === 'number' ? t.settings.waiver_bid : 0;
+    // creator is the roster who made the claim
+    const rid = t.creator ? findRosterIdByUser(rosterToTeam, t.creator) : (t.roster_ids && t.roster_ids[0]);
+    if (rid === null || rid === undefined) return;
+    if (!stats[rid]) stats[rid] = { spent: 0, won: 0, tried: 0, max: 0 };
+    stats[rid].tried++;
+    if (t.status === 'complete') {
+      stats[rid].won++;
+      stats[rid].spent += bid;
+      if (bid > stats[rid].max) stats[rid].max = bid;
+    }
+  });
+  // Build rows for every roster (so even non-active teams show)
+  const rows = Object.values(rosterToTeam).map(rt => {
+    const st = stats[rt.rosterId] || { spent: 0, won: 0, tried: 0, max: 0 };
+    return {
+      rosterId: rt.rosterId,
+      teamName: rt.teamName,
+      handle: rt.handle,
+      avatar: rt.avatar,
+      spent: st.spent,
+      left: Math.max(0, budget - st.spent),
+      won: st.won,
+      tried: st.tried,
+      winPct: st.tried > 0 ? Math.round((st.won / st.tried) * 100) : 0,
+      max: st.max,
+      isMe: String(rt.rosterId) === String(myRosterId),
+    };
+  });
+  rows.sort((a, b) => b.spent - a.spent);
+  const maxSpent = Math.max(1, ...rows.map(r => r.spent));
+  const html = `
+    <table class="ml-wv-table">
+      <thead>
+        <tr>
+          <th style="width:30px">#</th>
+          <th>Team</th>
+          <th class="num">Spent</th>
+          <th class="ml-wv-bar-cell">&nbsp;</th>
+          <th class="num">Left</th>
+          <th class="ml-wv-bar-cell">&nbsp;</th>
+          <th class="num" style="text-align:right">Won</th>
+          <th class="num" style="text-align:right">Tried</th>
+          <th class="num" style="text-align:right">Win%</th>
+          <th class="num" style="text-align:right">Max</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${rows.map((r, i) => `
+          <tr class="${r.isMe ? 'me' : ''}">
+            <td class="num" style="color:var(--muted);opacity:.5">${i+1}</td>
+            <td>
+              <div class="ml-wv-team-cell">
+                ${r.avatar ? `<img class="ml-wv-team-avatar" src="${r.avatar}" onerror="this.style.visibility='hidden'">` : `<div class="ml-wv-team-avatar"></div>`}
+                <div>
+                  <div class="ml-wv-team-name">${r.teamName}${r.isMe ? ' <span style="color:var(--red);font-size:10px;font-style:italic">★ YOU</span>' : ''}</div>
+                  ${r.handle ? `<div class="ml-wv-team-handle">@${r.handle}</div>` : ''}
+                </div>
+              </div>
+            </td>
+            <td class="num" style="color:var(--yellow)">$${r.spent}</td>
+            <td class="ml-wv-bar-cell"><div class="ml-wv-bar-track"><div class="ml-wv-bar-fill" style="width:${maxSpent ? (r.spent/maxSpent*100).toFixed(0) : 0}%"></div></div></td>
+            <td class="num" style="color:var(--green)">$${r.left}</td>
+            <td class="ml-wv-bar-cell"><div class="ml-wv-bar-track"><div class="ml-wv-bar-fill" style="width:${budget ? (r.left/budget*100).toFixed(0) : 0}%"></div></div></td>
+            <td class="num" style="text-align:right">${r.won}</td>
+            <td class="num" style="text-align:right;color:var(--muted)">${r.tried}</td>
+            <td class="num" style="text-align:right">${r.winPct}%</td>
+            <td class="num" style="text-align:right;color:var(--yellow)">$${r.max}</td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>`;
+  el.innerHTML = html;
+}
+
+// Helper: find roster_id by Sleeper user_id
+function findRosterIdByUser(rosterToTeam, userId) {
+  for (const rid in rosterToTeam) {
+    if (String(rosterToTeam[rid].ownerId) === String(userId)) return Number(rid);
+  }
+  return null;
+}
+
+// SUB-VIEW 2: TOP BIDS — biggest winning waiver bids
+function renderWaiversTopBids(el, leagueId, data) {
+  const { transactions, rosterToTeam, players } = data;
+  const myRosterId = (window.ML_ALL_LEAGUE_DATA?.[leagueId]?.myRosterId) ?? null;
+  // Each completed waiver counts; if multiple adds in a single tx, expand
+  const bids = [];
+  transactions.forEach(t => {
+    if (t.type !== 'waiver' || t.status !== 'complete' || !t.settings) return;
+    const bid = typeof t.settings.waiver_bid === 'number' ? t.settings.waiver_bid : 0;
+    if (!t.adds) return;
+    Object.entries(t.adds).forEach(([pid, rid]) => {
+      const dropped = t.drops ? Object.entries(t.drops).filter(([_, drid]) => drid === rid).map(([dpid]) => dpid) : [];
+      bids.push({ bid, pid, rid: Number(rid), week: t.week, dropped });
+    });
+  });
+  bids.sort((a, b) => b.bid - a.bid);
+  const top = bids.slice(0, 25);
+  if (!top.length) { el.innerHTML = `<div class="ml-empty">No completed waiver bids</div>`; return; }
+  const html = `
+    <table class="ml-wv-table">
+      <thead>
+        <tr>
+          <th style="width:30px">#</th>
+          <th class="num">Bid</th>
+          <th>Player</th>
+          <th>Team</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${top.map((b, i) => {
+          const rt = rosterToTeam[b.rid] || { teamName: `Team ${b.rid}`, handle: '', avatar: '' };
+          const isMe = String(b.rid) === String(myRosterId);
+          const player = _mlWvPlayerLabel(players, b.pid);
+          const dropLabel = b.dropped.length ? b.dropped.map(d => {
+            const dp = _mlWvPlayerLabel(players, d);
+            return `Dropped: ${dp.name} (${dp.team})`;
+          }).join(', ') : '';
+          return `
+            <tr class="${isMe ? 'me' : ''}">
+              <td class="num" style="color:var(--muted);opacity:.5">${i+1}</td>
+              <td>
+                <div class="ml-wv-bid">$${b.bid}</div>
+                <div class="ml-wv-bid-week">Wk ${b.week}</div>
+              </td>
+              <td>
+                <div class="ml-wv-player-cell">
+                  <img class="ml-wv-player-img" src="${player.img}" onerror="this.style.visibility='hidden'">
+                  <div>
+                    <div class="ml-wv-player-name">${player.name} <span style="color:var(--muted);opacity:.5;font-size:10px">(${player.team})</span></div>
+                    ${dropLabel ? `<div class="ml-wv-player-drop">${dropLabel}</div>` : ''}
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div class="ml-wv-team-cell">
+                  ${rt.avatar ? `<img class="ml-wv-team-avatar" src="${rt.avatar}" onerror="this.style.visibility='hidden'">` : `<div class="ml-wv-team-avatar"></div>`}
+                  <div>
+                    <div class="ml-wv-team-name" style="font-size:12px">${rt.teamName}${isMe ? ' <span style="color:var(--red);font-style:italic">★</span>' : ''}</div>
+                    ${rt.handle ? `<div class="ml-wv-team-handle">@${rt.handle}</div>` : ''}
+                  </div>
+                </div>
+              </td>
+            </tr>
+          `;
+        }).join('')}
+      </tbody>
+    </table>`;
+  el.innerHTML = html;
+}
+
+// SUB-VIEW 3: RECENT ACTIVITY — chronological by week
+function renderWaiversRecent(el, leagueId, data) {
+  const { transactions, rosterToTeam, players } = data;
+  const myRosterId = (window.ML_ALL_LEAGUE_DATA?.[leagueId]?.myRosterId) ?? null;
+  if (!transactions.length) { el.innerHTML = `<div class="ml-empty">No waiver activity</div>`; return; }
+  // Group by week (descending)
+  const byWeek = {};
+  transactions.forEach(t => {
+    if (!byWeek[t.week]) byWeek[t.week] = [];
+    byWeek[t.week].push(t);
+  });
+  const weeks = Object.keys(byWeek).map(Number).sort((a,b) => b - a);
+  const html = weeks.map(wk => {
+    const txns = byWeek[wk].sort((a, b) => (b.created || 0) - (a.created || 0));
+    const rows = txns.map(t => {
+      const bid = (t.type === 'waiver' && t.settings && typeof t.settings.waiver_bid === 'number') ? t.settings.waiver_bid : null;
+      // Determine roster — for waivers, t.creator user_id; for free_agents, t.roster_ids[0]
+      const rid = (t.creator ? findRosterIdByUser(rosterToTeam, t.creator) : (t.roster_ids && t.roster_ids[0]));
+      const rt = (rid !== null && rosterToTeam[rid]) ? rosterToTeam[rid] : { teamName: 'Unknown', avatar: '' };
+      const isMe = String(rid) === String(myRosterId);
+      // Tag: WON / FAILED / FREE AGENT
+      let tagClass = 'fa', tagLabel = 'FREE AGENT';
+      if (t.type === 'waiver') {
+        if (t.status === 'complete') { tagClass = 'won'; tagLabel = 'WON'; }
+        else { tagClass = 'failed'; tagLabel = 'FAILED'; }
+      }
+      // Build add/drop summary
+      const addPids = t.adds ? Object.keys(t.adds) : [];
+      const dropPids = t.drops ? Object.keys(t.drops) : [];
+      const addStrs = addPids.map(pid => {
+        const pl = _mlWvPlayerLabel(players, pid);
+        return `<span class="ml-wv-tx-add">+ ${pl.name}</span> <span style="color:var(--muted);opacity:.5;font-size:10px">(${pl.team})</span>`;
+      });
+      const dropStrs = dropPids.map(pid => {
+        const pl = _mlWvPlayerLabel(players, pid);
+        return `<span class="ml-wv-tx-drop">— ${pl.name}</span> <span style="color:var(--muted);opacity:.4;font-size:10px">(${pl.team})</span>`;
+      });
+      const detail = [...addStrs, ...dropStrs].join('  ·  ');
+      return `<div class="ml-wv-tx-row" ${isMe ? 'style="background:rgba(204,51,51,0.05)"' : ''}>
+        ${rt.avatar ? `<img class="ml-wv-tx-team-img" src="${rt.avatar}" onerror="this.style.visibility='hidden'">` : `<div class="ml-wv-tx-team-img"></div>`}
+        <span class="ml-wv-tx-team-name">${rt.teamName}</span>
+        <span class="ml-wv-tx-tag ${tagClass}">${tagLabel}</span>
+        <span class="ml-wv-tx-detail">${detail || '<span style="opacity:.4">(no players)</span>'}</span>
+        ${bid !== null ? `<span class="ml-wv-tx-bid">$${bid}</span>` : ''}
+      </div>`;
+    }).join('');
+    return `<div class="ml-wv-week-head">Week ${wk} <span class="ml-wv-week-meta">${txns.length} transaction${txns.length !== 1 ? 's' : ''}</span></div>${rows}`;
+  }).join('');
+  el.innerHTML = html;
+}
+
+// SUB-VIEW 4: BY TEAM — expandable per-team list of pickups
+function renderWaiversByTeam(el, leagueId, data) {
+  const { transactions, rosterToTeam, players, league } = data;
+  const myRosterId = (window.ML_ALL_LEAGUE_DATA?.[leagueId]?.myRosterId) ?? null;
+  const budget = league?.settings?.waiver_budget || 100;
+  // Group transactions by roster
+  const byRoster = {};
+  transactions.forEach(t => {
+    const rid = (t.creator ? findRosterIdByUser(rosterToTeam, t.creator) : (t.roster_ids && t.roster_ids[0]));
+    if (rid === null || rid === undefined) return;
+    if (!byRoster[rid]) byRoster[rid] = [];
+    if (t.status === 'complete' && t.adds) byRoster[rid].push(t);
+  });
+  // Build summary rows per roster, sort by spent desc
+  const rows = Object.values(rosterToTeam).map(rt => {
+    const txns = byRoster[rt.rosterId] || [];
+    const spent = txns.reduce((sum, t) => {
+      if (t.type !== 'waiver' || !t.settings) return sum;
+      return sum + (typeof t.settings.waiver_bid === 'number' ? t.settings.waiver_bid : 0);
+    }, 0);
+    const pickups = txns.reduce((c, t) => c + (t.adds ? Object.keys(t.adds).length : 0), 0);
+    return {
+      ...rt,
+      txns,
+      spent,
+      pickups,
+      left: Math.max(0, budget - spent),
+      isMe: String(rt.rosterId) === String(myRosterId),
+    };
+  }).filter(r => r.pickups > 0).sort((a, b) => b.spent - a.spent);
+  if (!rows.length) { el.innerHTML = `<div class="ml-empty">No pickups recorded</div>`; return; }
+  const html = rows.map(r => {
+    const pickupHtml = r.txns.flatMap(t => {
+      const bid = (t.type === 'waiver' && t.settings && typeof t.settings.waiver_bid === 'number') ? t.settings.waiver_bid : null;
+      return Object.entries(t.adds || {}).map(([pid, rid]) => {
+        const pl = _mlWvPlayerLabel(players, pid);
+        const dropPids = t.drops ? Object.entries(t.drops).filter(([_, drid]) => drid === rid).map(([dpid]) => dpid) : [];
+        const dropLabel = dropPids.length ? dropPids.map(d => {
+          const dp = _mlWvPlayerLabel(players, d);
+          return `Dropped: ${dp.name} (${dp.team})`;
+        }).join(', ') : '';
+        return `<div class="ml-wv-bt-pickup">
+          <div class="ml-wv-bt-pickup-name">${pl.name} <span style="color:var(--muted);opacity:.5;font-size:10px">(${pl.team})</span></div>
+          ${dropLabel ? `<div class="ml-wv-bt-pickup-drop">${dropLabel}</div>` : ''}
+          ${bid !== null ? `<span class="ml-wv-bt-pickup-bid">$${bid}</span>` : ''}
+          <span class="ml-wv-bt-pickup-week">Wk ${t.week}</span>
+        </div>`;
+      });
+    }).join('');
+    return `<div class="ml-wv-bt-team ${r.isMe ? 'me open' : ''}" data-rid="${r.rosterId}">
+      <div class="ml-wv-bt-team-head" onclick="this.parentNode.classList.toggle('open')">
+        ${r.avatar ? `<img class="ml-wv-team-avatar" src="${r.avatar}" onerror="this.style.visibility='hidden'">` : `<div class="ml-wv-team-avatar"></div>`}
+        <span class="ml-wv-bt-team-name">${r.teamName}${r.isMe ? ' <span style="color:var(--red);font-size:10px;font-style:italic">★ YOU</span>' : ''}</span>
+        <span class="ml-wv-bt-team-meta">${r.pickups} pickup${r.pickups !== 1 ? 's' : ''} · <span style="color:var(--yellow)">$${r.spent} spent</span> · <span style="color:var(--green)">$${r.left} left</span></span>
+        <span class="ml-wv-bt-caret">▼</span>
+      </div>
+      <div class="ml-wv-bt-body">${pickupHtml}</div>
+    </div>`;
+  }).join('');
+  el.innerHTML = html;
 }
 
 // Click handler for year tabs. Scope is passed via leagueId so we know which
