@@ -1,2 +1,27 @@
+# Local-only workflow scripts
 start.bat
 push.bat
+
+# Secrets / credentials
+.env
+.env.*
+*.key
+*.pem
+credentials*
+secret*
+*.token
+
+# Project-local data — never push to live site
+tiers.csv
+
+# OS / IDE noise
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+
+# Python (master_update.py cache / compiled)
+__pycache__/
+*.pyc
+*.pyo

@@ -3530,6 +3530,23 @@ async function apiFetch(url) {
 }
 
 
+// ── Security helpers (XSS defense for Sleeper-API-derived strings) ──────
+function mlEscapeHTML(s) {
+  if (s == null) return '';
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+function mlImgInitialsFallback(img) {
+  img.style.display = 'none';
+  const parent = img.parentNode;
+  if (!parent) return;
+  const div = document.createElement('div');
+  div.className = 'ml-pd-avatar-initials';
+  div.textContent = img.dataset.initials || '';
+  parent.appendChild(div);
+}
+
+
 function posColor(pos) {
   const map = {WR:'#5b9bd5',RB:'var(--green)',QB:'#e05252',TE:'#e09a30',K:'#9b91d4',DEF:'#888',DL:'#888',LB:'#888',DB:'#888'};
   return map[pos] || '#555';
@@ -4895,7 +4912,7 @@ function openPlayerDetail(sleeperId) {
       : '';
     statusBlock = `
       <div class="ml-pd-status taken">
-        <span class="ml-pd-status-label">On ${status.team}</span>
+        <span class="ml-pd-status-label">On ${mlEscapeHTML(status.team)}</span>
         ${faabBit ? `<span class="ml-pd-status-meta">${faabBit}</span>` : ''}
       </div>
       <div class="ml-pd-actions">
@@ -4919,11 +4936,11 @@ function openPlayerDetail(sleeperId) {
   document.getElementById('ml-pd-body').innerHTML = `
     <div class="ml-pd-hero">
       <div class="ml-pd-avatar" id="ml-pd-avatar-wrap">
-        <img src="${photo}" alt="${name}" onerror="this.style.display='none';this.parentNode.innerHTML='<div class=&quot;ml-pd-avatar-initials&quot;>${initials}</div>'">
+        <img src="${photo}" alt="${mlEscapeHTML(name)}" data-initials="${mlEscapeHTML(initials)}" onerror="mlImgInitialsFallback(this)">
       </div>
       <div class="ml-pd-info">
-        <div class="ml-pd-pos-team">${pos ? posBadge(pos) : ''} <span class="ml-pd-team">${team || ''}</span></div>
-        <div class="ml-pd-name">${name}</div>
+        <div class="ml-pd-pos-team">${pos ? posBadge(pos) : ''} <span class="ml-pd-team">${mlEscapeHTML(team || '')}</span></div>
+        <div class="ml-pd-name">${mlEscapeHTML(name)}</div>
       </div>
     </div>
     ${stats}
