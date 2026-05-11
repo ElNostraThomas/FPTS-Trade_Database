@@ -3,19 +3,19 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Fantasy Points — Trade Calculator</title>
+<title>Fantasy Points Front Office — Trade Calculator</title>
 <link href="https://fonts.googleapis.com/css2?family=Kanit:ital,wght@0,400;0,700;1,800&family=Mulish:wght@400;700;900&display=swap" rel="stylesheet">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   :root {
-    --black: #111111; --white: #ffffff; --red: #cc3333;
+    --black: #111111; --white: #ffffff; --red: #ED810C;
     --surface: #1a1a1a; --surface2: #222222;
     --border: #2a2a2a; --border2: #333333;
     --green: #4caf6e;
     --yellow: #f0c040;
-    --red-bg: rgba(204,51,51,.10);
-    --red-bg-soft: rgba(204,51,51,.06);
+    --red-bg: rgba(237,129,12,.10);
+    --red-bg-soft: rgba(237,129,12,.06);
     --green-bg: rgba(76,175,110,.10);
     --pos-wr-bg:#5b9bd5; --pos-wr:#111111;
     --pos-rb-bg:#4caf6e; --pos-rb:#111111;
@@ -56,6 +56,9 @@
   .topnav { max-width:1440px; margin:0 auto; padding:0 5px; display:flex; align-items:center; gap:40px; height:60px; }
   .wordmark { display:flex; align-items:center; flex-shrink:0; }
   .wordmark svg { height:28px; width:auto; }
+  .wordmark-group { display:flex; align-items:center; gap:14px; flex-shrink:0; }
+  .wordmark-tag { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:13px; letter-spacing:.12em; text-transform:uppercase; color:var(--white); white-space:nowrap; padding-left:14px; border-left:1px solid var(--border2); }
+  @media (max-width: 768px) { .wordmark-tag { display:none; } }
   .nav-links { display:flex; gap:0; margin-left:20px; }
   .nav-link { font-family:'Mulish',sans-serif; font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.07em; color:var(--white); opacity:1; padding:0 16px; height:60px; display:flex; align-items:center; text-decoration:none; border-bottom:2px solid transparent; margin-bottom:-2px; transition:opacity .15s; }
   .nav-link:hover { opacity:1; }
@@ -139,7 +142,7 @@
   .balance-verdict.idle { background:transparent; border:1px solid var(--border2); color:var(--white); opacity:0.4; }
   .balance-verdict.fair { background:rgba(255,200,0,0.12); border:1px solid rgba(255,200,0,0.4); color:#ffc800; }
   .balance-verdict.win  { background:rgba(76,175,110,0.12); border:1px solid var(--green); color:var(--green); }
-  .balance-verdict.lose { background:rgba(204,51,51,0.12); border:1px solid var(--red); color:var(--red); }
+  .balance-verdict.lose { background:rgba(237,129,12,0.12); border:1px solid var(--red); color:var(--red); }
   .balance-bars { display:flex; flex-direction:column; gap:10px; margin-bottom:18px; }
   .balance-row { display:flex; align-items:center; gap:12px; }
   .balance-row-label { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:12px; color:var(--white); opacity:0.5; width:60px; flex-shrink:0; text-transform:uppercase; letter-spacing:.04em; }
@@ -370,7 +373,7 @@
 
   .btn-preset:hover { opacity: 1; border-color: var(--red); color: var(--red); }
 
-  .btn-preset.active { border-color: var(--red); color: var(--red); opacity: 1; background: rgba(204,51,51,0.08); }
+  .btn-preset.active { border-color: var(--red); color: var(--red); opacity: 1; background: rgba(237,129,12,0.08); }
 
   .btn-add-pick {
     background: var(--red);
@@ -1033,6 +1036,7 @@
 <body>
 
 <div style="background:var(--nav-bg);border-bottom:2px solid var(--red);position:sticky;top:0;z-index:100"><nav class="topnav" style="border:none;position:static">
+  <div class="wordmark-group">
   <div class="wordmark" id="wordmark-svg">
     <svg viewBox="0 0 878 90" xmlns="http://www.w3.org/2000/svg" style="fill-rule:evenodd;clip-rule:evenodd">
       <path d="M508.084,47.801l-8.983,41.534c0,0 -75.276,-0.036 -85.237,-0.002l0.015,-0.067c0,0 2.533,-17.352 5.641,-25.475c3.708,-9.689 16.604,-32.658 16.604,-32.658c12.902,8.212 8.658,21.025 7.099,27.21c11.719,-8.962 11.012,-17.186 11.003,-28.608c-0.006,-7.356 4.797,-23.375 17.858,-28.257c-4.305,14.678 3.971,24.95 7.333,30.494c6.362,10.492 1.397,21.17 1.397,21.17c0,0 9.268,-3.36 8.863,-15.254c-0.117,-3.424 -1.714,-14.283 8.012,-18.422c-0.754,9.397 5.495,18.682 10.395,28.336Z" fill="var(--red)"/>
@@ -1050,6 +1054,8 @@
       <path d="M774.557,18.314l-15.809,0l3.885,-17.43l55.601,0l-3.885,17.43l-15.274,0l-15.943,71.022l-24.518,0l15.943,-71.022Z" fill="var(--white)" fill-rule="nonzero"/>
       <path d="M819.769,18.472c2.363,-11.725 10.064,-17.588 23.104,-17.588l16.803,0c6.651,0 11.508,1.869 14.571,5.608c3.063,3.739 3.894,8.667 2.494,14.784l-1.969,10.196l-23.629,0l2.363,-10.324c0.7,-3.399 -0.525,-5.098 -3.676,-5.098l-1.313,0c-1.575,0 -2.801,0.361 -3.676,1.083c-0.875,0.722 -1.532,2.018 -1.969,3.887l-1.313,5.99c-0.35,1.784 -0.241,3.208 0.328,4.27c0.569,1.062 1.728,1.975 3.479,2.74l11.815,4.333c4.988,1.954 8.423,4.673 10.305,8.157c1.882,3.484 2.21,7.902 0.985,13.255l-2.625,11.98c-2.363,11.725 -10.108,17.588 -23.236,17.588l-17.197,0c-6.651,0 -11.508,-1.891 -14.571,-5.672c-3.063,-3.781 -3.894,-8.815 -2.494,-15.103l2.232,-10.833l24.023,0l-2.494,11.343c-0.7,3.399 0.481,5.098 3.544,5.098l1.575,0c1.575,0 2.779,-0.382 3.61,-1.147c0.831,-0.765 1.422,-2.039 1.772,-3.824l1.838,-7.647c0.438,-1.869 0.35,-3.314 -0.263,-4.333c-0.613,-1.02 -1.794,-1.912 -3.544,-2.676l-12.077,-4.588c-9.802,-3.739 -13.521,-10.918 -11.158,-21.539l2.363,-9.941Z" fill="var(--white)" fill-rule="nonzero"/>
     </svg>
+  </div>
+  <span class="wordmark-tag">Front Office</span>
   </div>
   <nav class="nav-links">
       <a class="nav-link" href="index.html">Database</a>

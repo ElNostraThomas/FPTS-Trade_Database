@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>User Importer — Fantasy Points Dynasty</title>
+<title>Fantasy Points Front Office — User Importer</title>
 <link href="https://fonts.googleapis.com/css2?family=Kanit:ital,wght@0,400;0,700;1,800&family=Mulish:wght@400;600;700;900&display=swap" rel="stylesheet">
 <style>
 
@@ -12,15 +12,15 @@
   :root {
     --black: #111111;
     --white: #ffffff;
-    --red: #cc3333;
+    --red: #ED810C;
     --surface: #1a1a1a;
     --surface2: #222222;
     --border: #2a2a2a;
     --border2: #333333;
     --green: #4caf6e;
     --yellow: #f0c040;
-    --red-bg: rgba(204,51,51,.10);
-    --red-bg-soft: rgba(204,51,51,.06);
+    --red-bg: rgba(237,129,12,.10);
+    --red-bg-soft: rgba(237,129,12,.06);
     --green-bg: rgba(76,175,110,.10);
     --muted: var(--white);
     --muted2: var(--white);
@@ -110,6 +110,9 @@
     flex-shrink: 0;
   }
   .wordmark svg { height: 28px; width: auto; }
+  .wordmark-group { display: flex; align-items: center; gap: 14px; flex-shrink: 0; }
+  .wordmark-tag { font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 13px; letter-spacing: .12em; text-transform: uppercase; color: var(--white); white-space: nowrap; padding-left: 14px; border-left: 1px solid var(--border2); }
+  @media (max-width: 768px) { .wordmark-tag { display: none; } }
   .nav-links { display: flex; gap: 0; margin-left: 20px; }
   .nav-link {
     font-family: 'Mulish', sans-serif;
@@ -291,7 +294,7 @@
     white-space: nowrap;
   }
   .btn-preset:hover { opacity: 1; border-color: var(--red); color: var(--red); }
-  .btn-preset.active { border-color: var(--red); color: var(--red); opacity: 1; background: rgba(204,51,51,0.08); }
+  .btn-preset.active { border-color: var(--red); color: var(--red); opacity: 1; background: rgba(237,129,12,0.08); }
   .filter-group { display: flex; flex-direction: column; gap: 5px; }
   .filter-label { font-family: 'Mulish', sans-serif; font-size: 11px; font-weight: 700; color: var(--white); opacity: 1; text-transform: uppercase; letter-spacing: .07em; }
   .filter-select {
@@ -1042,7 +1045,7 @@
   .ml-archetype.contender { color:var(--green); border-color:var(--green); background:rgba(76,175,110,0.10); }
   .ml-archetype.tweener   { color:#5b9bd5; border-color:#5b9bd5; background:rgba(91,155,213,0.10); }
   .ml-archetype.rebuilder { color:#e09a30; border-color:#e09a30; background:rgba(224,154,48,0.10); }
-  .ml-archetype.emergency { color:var(--red); border-color:var(--red); background:rgba(204,51,51,0.10); }
+  .ml-archetype.emergency { color:var(--red); border-color:var(--red); background:rgba(237,129,12,0.10); }
   .ml-leagues-sort { display:flex; align-items:center; gap:8px; padding:8px 4px 12px; }
   .ml-leagues-sort-label { font-family:'Mulish',sans-serif; font-size:11px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.07em; }
   .ml-leagues-sort-select { background:var(--surface); border:1px solid var(--border2); color:var(--white); font-family:'Mulish',sans-serif; font-size:12px; font-weight:700; padding:5px 10px; cursor:pointer; }
@@ -1143,7 +1146,7 @@
   .ml-wv-table { width:100%; border-collapse:collapse; font-family:'Mulish',sans-serif; font-size:12px; }
   .ml-wv-table th { padding:10px 8px; text-align:left; font-family:'Mulish',sans-serif; font-weight:700; font-size:10px; text-transform:uppercase; letter-spacing:.07em; color:var(--muted); opacity:.5; border-bottom:1px solid var(--border2); white-space:nowrap; }
   .ml-wv-table td { padding:10px 8px; border-bottom:1px solid var(--border); vertical-align:middle; }
-  .ml-wv-table tr.me { background:rgba(204,51,51,0.08); }
+  .ml-wv-table tr.me { background:rgba(237,129,12,0.08); }
   .ml-wv-table .num { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; }
   .ml-wv-bar-cell { width:140px; }
   .ml-wv-bar-track { width:100%; height:6px; background:var(--surface); position:relative; overflow:hidden; }
@@ -1167,7 +1170,7 @@
   .ml-wv-tx-team-name { font-family:'Mulish',sans-serif; font-weight:900; font-size:13px; color:var(--white); flex-shrink:0; }
   .ml-wv-tx-tag { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:10px; padding:1px 6px; border-radius:2px; letter-spacing:.04em; flex-shrink:0; }
   .ml-wv-tx-tag.won { background:rgba(76,175,110,0.15); color:var(--green); }
-  .ml-wv-tx-tag.failed { background:rgba(204,51,51,0.15); color:var(--red); }
+  .ml-wv-tx-tag.failed { background:rgba(237,129,12,0.15); color:var(--red); }
   .ml-wv-tx-tag.fa { background:rgba(91,155,213,0.15); color:#5b9bd5; }
   .ml-wv-tx-detail { font-family:'Mulish',sans-serif; font-size:12px; color:var(--white); flex:1; min-width:0; }
   .ml-wv-tx-add { color:var(--green); font-weight:700; }
@@ -1175,7 +1178,7 @@
   .ml-wv-tx-bid { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:12px; color:var(--yellow); flex-shrink:0; }
   /* By Team */
   .ml-wv-bt-team { border-bottom:1px solid var(--border); }
-  .ml-wv-bt-team.me .ml-wv-bt-team-head { background:rgba(204,51,51,0.08); }
+  .ml-wv-bt-team.me .ml-wv-bt-team-head { background:rgba(237,129,12,0.08); }
   .ml-wv-bt-team-head { display:flex; align-items:center; gap:10px; padding:12px 8px; cursor:pointer; transition:background .12s; }
   .ml-wv-bt-team-head:hover { background:var(--surface); }
   .ml-wv-bt-team-name { font-family:'Mulish',sans-serif; font-weight:900; font-size:14px; color:var(--white); flex:1; min-width:0; }
@@ -1543,7 +1546,7 @@
     padding: 14px; border: 1px solid var(--border); margin-bottom: 14px;
   }
   .ml-pd-status.mine { background: rgba(76, 175, 110, 0.08); border-color: var(--green); }
-  .ml-pd-status.taken { background: rgba(204, 51, 51, 0.06); border-color: var(--red); }
+  .ml-pd-status.taken { background: rgba(237, 129, 12, 0.06); border-color: var(--red); }
   .ml-pd-status.free { background: rgba(91, 155, 213, 0.08); border-color: #5b9bd5; }
   .ml-pd-status-label {
     font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
@@ -1636,7 +1639,7 @@
   }
   .ml-calc-verdict.fair { background: rgba(76,175,110,.12); color: var(--green); border: 1px solid var(--green); }
   .ml-calc-verdict.unbalanced { background: rgba(224,154,48,.12); color: #e09a30; border: 1px solid #e09a30; }
-  .ml-calc-verdict.heavy { background: rgba(204,51,51,.12); color: var(--red); border: 1px solid var(--red); }
+  .ml-calc-verdict.heavy { background: rgba(237,129,12,.12); color: var(--red); border: 1px solid var(--red); }
 
   @media (max-width: 768px) {
     .ml-modal { max-width: 100% !important; }
@@ -1871,6 +1874,7 @@
 </head>
 <body>
 <div style="background:var(--nav-bg);border-bottom:2px solid var(--red);position:sticky;top:0;z-index:100"><nav class="topnav" style="border:none;position:static">
+  <div class="wordmark-group">
   <div class="wordmark" id="wordmark-svg">
     <svg viewBox="0 0 878 90" xmlns="http://www.w3.org/2000/svg" style="fill-rule:evenodd;clip-rule:evenodd">
       <path d="M508.084,47.801l-8.983,41.534c0,0 -75.276,-0.036 -85.237,-0.002l0.015,-0.067c0,0 2.533,-17.352 5.641,-25.475c3.708,-9.689 16.604,-32.658 16.604,-32.658c12.902,8.212 8.658,21.025 7.099,27.21c11.719,-8.962 11.012,-17.186 11.003,-28.608c-0.006,-7.356 4.797,-23.375 17.858,-28.257c-4.305,14.678 3.971,24.95 7.333,30.494c6.362,10.492 1.397,21.17 1.397,21.17c0,0 9.268,-3.36 8.863,-15.254c-0.117,-3.424 -1.714,-14.283 8.012,-18.422c-0.754,9.397 5.495,18.682 10.395,28.336Z" fill="var(--red)"/>
@@ -1888,6 +1892,8 @@
       <path d="M774.557,18.314l-15.809,0l3.885,-17.43l55.601,0l-3.885,17.43l-15.274,0l-15.943,71.022l-24.518,0l15.943,-71.022Z" fill="var(--white)" fill-rule="nonzero"/>
       <path d="M819.769,18.472c2.363,-11.725 10.064,-17.588 23.104,-17.588l16.803,0c6.651,0 11.508,1.869 14.571,5.608c3.063,3.739 3.894,8.667 2.494,14.784l-1.969,10.196l-23.629,0l2.363,-10.324c0.7,-3.399 -0.525,-5.098 -3.676,-5.098l-1.313,0c-1.575,0 -2.801,0.361 -3.676,1.083c-0.875,0.722 -1.532,2.018 -1.969,3.887l-1.313,5.99c-0.35,1.784 -0.241,3.208 0.328,4.27c0.569,1.062 1.728,1.975 3.479,2.74l11.815,4.333c4.988,1.954 8.423,4.673 10.305,8.157c1.882,3.484 2.21,7.902 0.985,13.255l-2.625,11.98c-2.363,11.725 -10.108,17.588 -23.236,17.588l-17.197,0c-6.651,0 -11.508,-1.891 -14.571,-5.672c-3.063,-3.781 -3.894,-8.815 -2.494,-15.103l2.232,-10.833l24.023,0l-2.494,11.343c-0.7,3.399 0.481,5.098 3.544,5.098l1.575,0c1.575,0 2.779,-0.382 3.61,-1.147c0.831,-0.765 1.422,-2.039 1.772,-3.824l1.838,-7.647c0.438,-1.869 0.35,-3.314 -0.263,-4.333c-0.613,-1.02 -1.794,-1.912 -3.544,-2.676l-12.077,-4.588c-9.802,-3.739 -13.521,-10.918 -11.158,-21.539l2.363,-9.941Z" fill="var(--white)" fill-rule="nonzero"/>
     </svg>
+  </div>
+  <span class="wordmark-tag">Front Office</span>
   </div>
   <nav class="nav-links">
       <a class="nav-link" href="index.html">Database</a>
@@ -3754,7 +3760,7 @@ function mountPlayerArticles(parentEl, playerName, opts) {
     row.style.display = '';
     // Visually distinct fallback box so users see something is here, not nothing
     row.querySelector('.pp-article-inline').innerHTML = `
-      <div style="display:flex;align-items:center;gap:10px;width:100%;padding:8px 12px;background:rgba(204,51,51,0.06);border:1px dashed var(--border2);border-radius:3px">
+      <div style="display:flex;align-items:center;gap:10px;width:100%;padding:8px 12px;background:rgba(237,129,12,0.06);border:1px dashed var(--border2);border-radius:3px">
         <span style="font-family:'Mulish',sans-serif;font-size:12px;color:var(--muted);font-style:italic;flex:1;min-width:0">No curated articles yet — browse FantasyPoints for ${playerName} coverage</span>
         <a href="https://www.fantasypoints.com/articles#/" target="_blank" rel="noopener"
            style="font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:10px;color:var(--red);text-decoration:none;text-transform:uppercase;letter-spacing:.06em;flex-shrink:0;padding:5px 10px;border:1px solid var(--red);border-radius:3px"
@@ -4213,7 +4219,7 @@ function mlArchetypeBg(key) {
     contender: 'rgba(91,155,213,.15)',
     tweener: 'rgba(155,145,212,.15)',
     rebuilder: 'rgba(224,154,48,.15)',
-    emergency: 'rgba(204,51,51,.15)',
+    emergency: 'rgba(237,129,12,.15)',
   };
   return map[key] || 'rgba(255,255,255,.08)';
 }
@@ -4711,7 +4717,7 @@ function mltbRender() {
       <div class="ml-tb-cta-row" style="display:flex;gap:10px;margin-bottom:10px">
         <button type="button" onclick="mltbReject()"
           style="flex:1;background:transparent;border:2px solid var(--red);color:var(--red);font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:14px;text-transform:uppercase;letter-spacing:.06em;padding:14px;cursor:pointer;border-radius:3px"
-          onmouseover="this.style.background='rgba(204,51,51,.12)'" onmouseout="this.style.background='transparent'"
+          onmouseover="this.style.background='rgba(237,129,12,.12)'" onmouseout="this.style.background='transparent'"
           title="Skip — show next suggestion">✗ Skip Next Suggestion</button>
         <button type="button" onclick="mltbAccept('${acceptPayload}')"
           style="flex:1;background:var(--green);border:2px solid var(--green);color:var(--black);font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:14px;text-transform:uppercase;letter-spacing:.06em;padding:14px;cursor:pointer;border-radius:3px"
@@ -5230,7 +5236,7 @@ function rankBadge(rank) {
   if (!rank) return '';
   const r = parseInt(rank);
   const color = r<=12?'var(--green)':r<=24?'var(--yellow)':r<=36?'var(--red)':'rgba(128,128,128,0.6)';
-  const bg    = r<=12?'rgba(76,175,110,.12)':r<=24?'rgba(240,192,64,.10)':r<=36?'rgba(204,51,51,.12)':'rgba(128,128,128,.12)';
+  const bg    = r<=12?'rgba(76,175,110,.12)':r<=24?'rgba(240,192,64,.10)':r<=36?'rgba(237,129,12,.12)':'rgba(128,128,128,.12)';
   return `<span class="ml-rank-badge" style="color:${color};border-color:${color};background:${bg}">${r}</span>`;
 }
 
@@ -7330,7 +7336,7 @@ function renderWaiversRecent(el, leagueId, data) {
         return `<span class="ml-wv-tx-drop">— ${pl.name}</span> <span style="color:var(--muted);opacity:.4;font-size:10px">(${pl.team})</span>`;
       });
       const detail = [...addStrs, ...dropStrs].join('  ·  ');
-      return `<div class="ml-wv-tx-row" ${isMe ? 'style="background:rgba(204,51,51,0.05)"' : ''}>
+      return `<div class="ml-wv-tx-row" ${isMe ? 'style="background:rgba(237,129,12,0.05)"' : ''}>
         ${rt.avatar ? `<img class="ml-wv-tx-team-img" src="${rt.avatar}" onerror="this.style.visibility='hidden'">` : `<div class="ml-wv-tx-team-img"></div>`}
         <span class="ml-wv-tx-team-name">${rt.teamName}</span>
         <span class="ml-wv-tx-tag ${tagClass}">${tagLabel}</span>
@@ -7772,7 +7778,7 @@ function renderStandingsTable() {
 
   // Build rows
   const valueRows = sorted.map((r, i) => {
-    const rowBg  = r.isMe ? 'background:rgba(204,51,51,.06)' : '';
+    const rowBg  = r.isMe ? 'background:rgba(237,129,12,.06)' : '';
     const avHtml = r.avatar
       ? `<img src="${r.avatar}" style="width:26px;height:26px;border-radius:50%;object-fit:cover;margin-right:8px;flex-shrink:0;" onerror="this.style.display='none'">`
       : `<div style="width:26px;height:26px;border-radius:50%;background:var(--border2);margin-right:8px;flex-shrink:0;"></div>`;
