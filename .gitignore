@@ -24,6 +24,7 @@ Thumbs.db
 desktop.ini
 .vscode/
 .idea/
+*.url
 
 # Python (master_update.py cache / compiled)
 __pycache__/
