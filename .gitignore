@@ -3,6 +3,7 @@ start.bat
 push.bat
 make-pdf.ps1
 sync-tiers.py
+import-tat.py
 
 # Secrets / credentials
 .env
