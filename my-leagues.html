@@ -719,9 +719,9 @@
   .pp-ktc-label { font-size: 9px; color: var(--white); opacity: 1; text-transform: uppercase; letter-spacing: .08em; font-family: 'Mulish', sans-serif; margin-bottom: 4px; }
   .pp-ktc-val { font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 36px; color: var(--white); line-height: 1; }
   .pp-ktc-rank { font-family: 'Mulish', sans-serif; font-size: 12px; color: var(--white); opacity: 1; margin-top: 4px; }
-  .pp-ktc-trend { font-size: 12px; font-weight: 700; font-family: 'Mulish', sans-serif; margin-top: 2px; }
-  .pp-ktc-trend.up { color: #5dcaa5; }
-  .pp-ktc-trend.down { color: var(--red); }
+  .pp-ktc-trend { font-size: 12px; font-weight: 700; font-family: 'Mulish', sans-serif; margin-top: 2px; color: var(--white); opacity: .55; }
+  .pp-ktc-trend.up { color: #5dcaa5; opacity: 1; }
+  .pp-ktc-trend.down { color: var(--red); opacity: 1; }
 
   .pp-trade-stats {
     display: grid;
@@ -4046,7 +4046,7 @@ function renderPlayerAvailability(sleeperId) {
 
     if (r.status === 'mine') {
       // Informational only — you own this player here, nothing to do
-      statusBlock = `<span style="font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:11px;color:var(--grn);text-transform:uppercase;letter-spacing:.05em">★ You Own</span>`;
+      statusBlock = `<span style="font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:11px;color:var(--green);text-transform:uppercase;letter-spacing:.05em">★ You Own</span>`;
       actionBlock = '';
     } else if (r.status === 'taken') {
       // Whole row is clickable → trade builder. Single visible action button reinforces affordance.

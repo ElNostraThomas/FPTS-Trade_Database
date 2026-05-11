@@ -733,9 +733,9 @@
   .pp-ktc-label { font-size: 9px; color: var(--white); opacity: 1; text-transform: uppercase; letter-spacing: .08em; font-family: 'Mulish', sans-serif; margin-bottom: 4px; }
   .pp-ktc-val { font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 36px; color: var(--white); line-height: 1; }
   .pp-ktc-rank { font-family: 'Mulish', sans-serif; font-size: 12px; color: var(--white); opacity: 1; margin-top: 4px; }
-  .pp-ktc-trend { font-size: 12px; font-weight: 700; font-family: 'Mulish', sans-serif; margin-top: 2px; }
-  .pp-ktc-trend.up { color: #5dcaa5; }
-  .pp-ktc-trend.down { color: var(--red); }
+  .pp-ktc-trend { font-size: 12px; font-weight: 700; font-family: 'Mulish', sans-serif; margin-top: 2px; color: var(--white); opacity: .55; }
+  .pp-ktc-trend.up { color: #5dcaa5; opacity: 1; }
+  .pp-ktc-trend.down { color: var(--red); opacity: 1; }
 
   .pp-trade-stats {
     display: grid;
@@ -3108,7 +3108,7 @@ function renderValueTracker() {
       name,
       value: d.value,
       trend: parseInt(d.trend) || 0,
-      pos: Object.values(TRADES).flatMap(t=>t.players).find(p=>p.name===name)?.pos || "?"
+      pos: (d.posRank || "").replace(/\d+$/,"") || Object.values(TRADES).flatMap(t=>t.players).find(p=>p.name===name)?.pos || "?"
     }))
     .filter(p => p.trend !== 0);
 
@@ -7283,8 +7283,9 @@ function ppRenderTabStrip() {
   strip.innerHTML = ppPlayers.map(name => {
     const isActive = name === ppActivePlayer;
     const info = TRADES.flatMap(t=>t.players).find(p=>p.name===name);
-    const pos = info?.pos || KTC_DATA[name] ? Object.keys(KTC_DATA).includes(name) ? "?" : "?" : "?";
-    const ktcPos = TRADES.flatMap(t=>t.players).find(p=>p.name===name)?.pos || "?";
+    const ktcRank = KTC_DATA[name]?.posRank || "";
+    const pos = (ktcRank.replace(/\d+$/,"")) || info?.pos || "?";
+    const ktcPos = pos;
     return `<div onclick="ppSwitchTo('${name.replace(/'/g,"\'")}')"
       style="display:flex;align-items:center;gap:8px;padding:0 16px;height:44px;cursor:pointer;border-bottom:2px solid ${isActive?"var(--red)":"transparent"};background:${isActive?"var(--surface)":"transparent"};flex-shrink:0;transition:all .15s;white-space:nowrap">
       ${_imgThumb(name,24)}
@@ -7449,8 +7450,8 @@ function tfGetState(id) {
 function getAllAssets() {
   const assets = [];
   Object.entries(KTC_DATA).forEach(([name, d]) => {
-    assets.push({ label: name, value: d.value, pos: null, type: "player",
-      posKey: Object.values(TRADES).flatMap(t=>t.players).find(p=>p.name===name)?.pos || "?" });
+    const posKey = (d.posRank || "").replace(/\d+$/,"") || Object.values(TRADES).flatMap(t=>t.players).find(p=>p.name===name)?.pos || "?";
+    assets.push({ label: name, value: d.value, pos: null, type: "player", posKey });
   });
 
   // Slot-specific KTC pick values — approximated from KTC dynasty rankings

@@ -3137,7 +3137,7 @@ function tradeSearchInput(side, val) {
   if(players.length<6){
     const tr=new Set(Object.keys(pCounts));
     // First try KTC_DATA
-    Object.entries(KTC_DATA).filter(([n])=>!tr.has(n)&&n.toLowerCase().includes(q)).slice(0,6-players.length).forEach(([n])=>players.push({name:n,pos:"?",count:0}));
+    Object.entries(KTC_DATA).filter(([n])=>!tr.has(n)&&n.toLowerCase().includes(q)).slice(0,6-players.length).forEach(([n,d])=>{const pos=(d.posRank||"").replace(/\d+$/,"")||"?";players.push({name:n,pos,count:0});});
     // Then KNOWN_PLAYERS
     if(players.length<6){
       const already=new Set([...Object.keys(pCounts),...Object.keys(KTC_DATA),...players.map(p=>p.name)]);
