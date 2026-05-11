@@ -2,6 +2,7 @@
 start.bat
 push.bat
 make-pdf.ps1
+sync-tiers.py
 
 # Secrets / credentials
 .env
@@ -11,6 +12,8 @@ make-pdf.ps1
 credentials*
 secret*
 *.token
+service-account.json
+sync-tiers.config.json
 
 # Project-local data — never push to live site
 tiers.csv

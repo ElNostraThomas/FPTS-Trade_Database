@@ -1,0 +1,6 @@
+{
+  "_comment": "Copy this file to sync-tiers.config.json (local-only, gitignored) and fill in your details. The spreadsheet_id is the long string in the sheet URL between /d/ and /edit. tab_name is the name of the worksheet tab. range is optional (e.g. 'A1:Q500') -- omit to read the whole tab.",
+  "spreadsheet_id": "PASTE_YOUR_SHEET_ID_HERE",
+  "tab_name": "Tiers",
+  "range": ""
+}
