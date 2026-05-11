@@ -1,6 +1,7 @@
 # Local-only workflow scripts
 start.bat
 push.bat
+make-pdf.ps1
 
 # Secrets / credentials
 .env

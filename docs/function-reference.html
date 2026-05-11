@@ -1,0 +1,1578 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>FPTS Dynasty Trade Database — Function &amp; Process Reference</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Kanit:ital,wght@1,800&family=Mulish:ital,wght@0,400;0,600;0,700;0,800;1,400;1,700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --red:#CC3333;
+    --black:#111111;
+    --offwhite:#F0F0F0;
+    --ink:#1a1a1a;
+    --muted:#555;
+    --hairline:rgba(17,17,17,.18);
+    --hairline-strong:rgba(17,17,17,.32);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:#d8d8d8;
+    color:var(--ink);
+    font-family:'Mulish',system-ui,sans-serif;
+    font-size:11pt;
+    line-height:1.45;
+    -webkit-print-color-adjust:exact;
+    print-color-adjust:exact;
+  }
+
+  /* ───── PAGE FRAME ───── */
+  .page{
+    width:8.5in;
+    height:11in;
+    padding:0.55in 0.72in 0;
+    margin:18px auto;
+    background:var(--offwhite);
+    color:var(--ink);
+    box-shadow:0 6px 22px rgba(0,0,0,.12);
+    page-break-after:always;
+    page-break-inside:avoid;
+    position:relative;
+    overflow:hidden;
+    box-sizing:border-box;
+  }
+  .page:last-of-type{page-break-after:auto}
+
+  /* Dark-layout variant — used sparingly for emphasis pages */
+  .page.dark{background:var(--black);color:var(--offwhite)}
+  .page.dark .page-num,.page.dark .page-tagline{color:var(--offwhite)}
+  .page.dark .feature-block{border-color:rgba(240,240,240,.16)}
+  .page.dark .fn-card{border-color:rgba(240,240,240,.16);background:rgba(240,240,240,.04)}
+  .page.dark .meta-row{border-color:rgba(240,240,240,.16)}
+  .page.dark .helper-grid{border-color:rgba(240,240,240,.16)}
+  .page.dark .helper-col + .helper-col{border-left-color:rgba(240,240,240,.16)}
+  .page.dark .fn-sig{background:rgba(240,240,240,.06);color:#e9e9e9}
+  .page.dark .kbd{background:rgba(240,240,240,.1);color:var(--offwhite)}
+
+  /* ───── PAGE HEADER (number + title + tagline) ───── */
+  .page-num{
+    font-family:'Kanit',sans-serif;
+    font-weight:800;
+    font-style:italic;
+    font-size:15pt;
+    letter-spacing:.04em;
+    color:var(--ink);
+    margin-bottom:4pt;
+  }
+  .page-title{
+    font-family:'Kanit',sans-serif;
+    font-weight:800;
+    font-style:italic;
+    text-transform:uppercase;
+    font-size:30pt;
+    line-height:.98;
+    letter-spacing:.01em;
+    margin:0 0 6pt;
+  }
+  .page-title.small{font-size:22pt}
+  .page-title .accent{color:var(--red)}
+  .page-tagline{
+    font-style:italic;
+    font-size:9.5pt;
+    color:var(--muted);
+    margin:0 0 8pt;
+    max-width:6.2in;
+  }
+  .red-bar{
+    height:2px;
+    background:var(--red);
+    width:48pt;
+    margin:0 0 9pt;
+  }
+
+  /* ───── COVER PAGE ───── */
+  .cover{
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
+    height:9.5in;
+  }
+  .cover-top{display:flex;justify-content:space-between;align-items:flex-start}
+  .cover-flame{
+    width:48px;height:48px;
+    background:var(--red);
+    clip-path:polygon(50% 0,72% 28%,100% 50%,72% 72%,50% 100%,28% 72%,0 50%,28% 28%);
+  }
+  .cover-eyebrow{
+    font-family:'Mulish',sans-serif;
+    font-size:9pt;
+    text-transform:uppercase;
+    letter-spacing:.22em;
+    font-weight:700;
+    color:var(--ink);
+  }
+  .cover-title{
+    font-family:'Kanit',sans-serif;
+    font-weight:800;
+    font-style:italic;
+    text-transform:uppercase;
+    font-size:78pt;
+    line-height:.9;
+    margin:0;
+  }
+  .cover-title .accent{color:var(--red)}
+  .cover-sub{
+    font-family:'Mulish',sans-serif;
+    font-weight:700;
+    font-size:13pt;
+    margin-top:14pt;
+    max-width:6.5in;
+  }
+  .cover-meta{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-end;
+    border-top:2px solid var(--red);
+    padding-top:14pt;
+    font-size:9pt;
+    text-transform:uppercase;
+    letter-spacing:.16em;
+    font-weight:700;
+  }
+  .cover-meta div + div{text-align:right}
+
+  /* ───── FEATURE BLOCKS ───── */
+  .feature-block{
+    border-top:1px solid var(--hairline-strong);
+    padding:12pt 0 14pt;
+  }
+  .feature-block:last-child{border-bottom:1px solid var(--hairline-strong)}
+  .feature-title{
+    font-family:'Kanit',sans-serif;
+    font-weight:800;
+    font-style:italic;
+    text-transform:uppercase;
+    font-size:13pt;
+    letter-spacing:.04em;
+    margin:0 0 6pt;
+  }
+  .feature-title .num{color:var(--red);margin-right:8pt}
+  .feature-body{margin:0;font-size:10.5pt;line-height:1.5}
+  .feature-body + .feature-body{margin-top:6pt}
+  .feature-row{display:flex;gap:18pt;align-items:flex-start;flex-wrap:wrap}
+  .feature-row > div{flex:1;min-width:2.6in}
+
+  /* ───── ROLE / SPECIMEN TABLE (like brand guide page 3) ───── */
+  .meta-row{
+    display:grid;
+    grid-template-columns:1.4in 1fr;
+    gap:14pt;
+    padding:10pt 0;
+    border-top:1px solid var(--hairline);
+    align-items:start;
+  }
+  .meta-row:first-of-type{border-top:1px solid var(--hairline-strong)}
+  .meta-row:last-of-type{border-bottom:1px solid var(--hairline-strong)}
+  .meta-role{
+    font-family:'Mulish',sans-serif;
+    font-weight:700;
+    font-size:9.5pt;
+    text-transform:uppercase;
+    letter-spacing:.12em;
+    color:var(--muted);
+  }
+  .meta-spec{font-size:10.5pt;line-height:1.5}
+  .meta-spec b{font-weight:700}
+
+  /* ───── FUNCTION CARDS ───── */
+  .fn-section-head{
+    font-family:'Kanit',sans-serif;
+    font-weight:800;
+    font-style:italic;
+    text-transform:uppercase;
+    font-size:9.5pt;
+    letter-spacing:.08em;
+    color:var(--red);
+    margin:7pt 0 4pt;
+    page-break-after:avoid;
+  }
+  .fn-card{
+    border:1px solid var(--hairline);
+    padding:5pt 9pt 6pt;
+    margin:0 0 4pt;
+    page-break-inside:avoid;
+    background:rgba(255,255,255,.4);
+  }
+  .fn-head{
+    display:flex;
+    align-items:baseline;
+    gap:8pt;
+    flex-wrap:wrap;
+    margin-bottom:2pt;
+  }
+  .fn-name{
+    font-family:'Mulish',sans-serif;
+    font-weight:800;
+    font-size:10.5pt;
+    color:var(--ink);
+  }
+  .fn-tag{
+    display:inline-block;
+    font-family:'Mulish',sans-serif;
+    font-weight:700;
+    font-size:7pt;
+    text-transform:uppercase;
+    letter-spacing:.1em;
+    color:var(--red);
+    border:1px solid var(--red);
+    padding:0pt 4pt;
+    line-height:1.3;
+  }
+  .fn-tag.gray{color:var(--muted);border-color:var(--hairline-strong)}
+  .fn-sig{
+    font-family:'Mulish',sans-serif;
+    font-weight:600;
+    font-size:8.5pt;
+    color:#222;
+    background:rgba(17,17,17,.06);
+    padding:2pt 5pt;
+    display:block;
+    margin:1pt 0 4pt;
+    word-break:break-word;
+    white-space:pre-wrap;
+  }
+  .fn-desc{margin:0;font-size:9pt;line-height:1.4}
+  .fn-desc + .fn-desc{margin-top:3pt}
+  .fn-meta{
+    font-size:7.5pt;
+    color:var(--muted);
+    margin-top:3pt;
+    font-weight:600;
+    text-transform:uppercase;
+    letter-spacing:.06em;
+  }
+  .fn-meta b{color:var(--red);font-weight:700}
+
+  /* ───── HELPER GRID ───── */
+  .helper-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    border:1px solid var(--hairline-strong);
+    margin-top:4pt;
+  }
+  .helper-col{padding:6pt 9pt}
+  .helper-col + .helper-col{border-left:1px solid var(--hairline)}
+  .helper-grid.three{grid-template-columns:1fr 1fr 1fr}
+  .helper-head{
+    font-family:'Kanit',sans-serif;
+    font-weight:800;
+    font-style:italic;
+    text-transform:uppercase;
+    font-size:8.5pt;
+    letter-spacing:.1em;
+    color:var(--red);
+    margin:0 0 3pt;
+  }
+  .helper-row{font-size:8.5pt;line-height:1.35;padding:0}
+  .helper-row code{
+    font-family:'Mulish',sans-serif;
+    font-weight:700;
+    color:var(--ink);
+    background:transparent;
+    padding:0;
+  }
+  .helper-row .h-desc{color:var(--muted)}
+
+  /* ───── DOS & DONTS ───── */
+  .dod-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    border-top:1px solid var(--hairline-strong);
+    border-bottom:1px solid var(--hairline-strong);
+  }
+  .dod-cell{
+    padding:8pt 10pt;
+    border-top:1px solid var(--hairline);
+    font-size:10pt;
+    line-height:1.4;
+  }
+  .dod-cell:nth-child(-n+2){border-top:none}
+  .dod-cell.do{border-right:1px solid var(--hairline)}
+  .dod-cell .mark{font-weight:800;margin-right:6pt}
+  .dod-cell.do .mark{color:#1b8c4a}
+  .dod-cell.dont .mark{color:var(--red)}
+
+  /* ───── FLOW BOXES ───── */
+  .flow-block{
+    border:1px solid var(--hairline-strong);
+    padding:12pt 14pt;
+    margin:0 0 10pt;
+    page-break-inside:avoid;
+  }
+  .flow-title{
+    font-family:'Kanit',sans-serif;
+    font-weight:800;
+    font-style:italic;
+    text-transform:uppercase;
+    font-size:12pt;
+    letter-spacing:.06em;
+    margin:0 0 4pt;
+  }
+  .flow-sub{font-style:italic;font-size:10pt;color:var(--muted);margin:0 0 8pt}
+  .flow-steps{margin:0;padding-left:18pt;font-size:10pt;line-height:1.5}
+  .flow-steps li{margin-bottom:2pt}
+  .flow-steps code{
+    font-family:'Mulish',sans-serif;font-weight:700;color:var(--red);
+  }
+
+  /* ───── SITE-MAP DIAGRAM ───── */
+  .sitemap{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:10pt;
+    margin:6pt 0 14pt;
+  }
+  .sm-card{
+    border:1.5px solid var(--ink);
+    padding:10pt;
+    background:#fff;
+    page-break-inside:avoid;
+  }
+  .sm-card.primary{background:var(--ink);color:var(--offwhite);border-color:var(--ink)}
+  .sm-name{
+    font-family:'Kanit',sans-serif;
+    font-weight:800;
+    font-style:italic;
+    text-transform:uppercase;
+    font-size:13pt;
+    line-height:1;
+    margin:0 0 6pt;
+  }
+  .sm-name .accent{color:var(--red)}
+  .sm-tag{
+    font-family:'Mulish',sans-serif;
+    font-weight:700;
+    font-size:8pt;
+    text-transform:uppercase;
+    letter-spacing:.12em;
+    color:var(--red);
+    margin:0 0 4pt;
+  }
+  .sm-card.primary .sm-tag{color:var(--red)}
+  .sm-desc{font-size:9pt;line-height:1.45;margin:0}
+
+  .legend-row{
+    display:flex;gap:14pt;flex-wrap:wrap;
+    font-size:9pt;margin-top:8pt;
+  }
+  .legend-row .sw{
+    display:inline-block;width:10pt;height:10pt;
+    vertical-align:-1pt;margin-right:5pt;
+  }
+  .sw-red{background:var(--red)}
+  .sw-black{background:var(--ink)}
+  .sw-white{background:#fff;border:1px solid var(--hairline-strong)}
+
+  .footer-strip{
+    position:absolute;
+    left:0;
+    right:0;
+    bottom:0;
+    height:0.7in;
+    padding:0 0.72in;
+    background:var(--offwhite);
+    z-index:10;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    font-size:8pt;
+    text-transform:uppercase;
+    letter-spacing:.18em;
+    font-weight:700;
+    color:var(--muted);
+    border-top:1px solid var(--hairline);
+  }
+  .footer-strip .accent{color:var(--red)}
+  /* dark-variant footer keeps the band consistent on the reference-intro page */
+  .page.dark .footer-strip{background:var(--black);color:#bbb;border-color:rgba(240,240,240,.18)}
+
+  .kbd{
+    font-family:'Mulish',sans-serif;
+    font-weight:700;
+    font-size:9pt;
+    background:rgba(17,17,17,.08);
+    padding:1pt 5pt;
+    letter-spacing:.04em;
+  }
+
+  /* ───── PRINT ───── */
+  @page{ size:letter; margin:0; }
+  @media print{
+    body{background:var(--offwhite)}
+    .page{margin:0;box-shadow:none;width:8.5in;height:11in}
+    .no-print{display:none}
+  }
+
+  /* ───── ON-SCREEN HELP BAR ───── */
+  .helpbar{
+    position:fixed;top:10px;right:10px;z-index:50;
+    background:var(--ink);color:var(--offwhite);
+    padding:8px 14px;font-size:11px;font-weight:700;
+    letter-spacing:.08em;text-transform:uppercase;
+    box-shadow:0 4px 14px rgba(0,0,0,.25);
+  }
+  .helpbar b{color:var(--red);margin-right:6px}
+  @media print{ .helpbar{display:none} }
+</style>
+</head>
+<body>
+
+<div class="helpbar no-print"><b>Print →</b> Ctrl/Cmd + P · Destination: <u>Save as PDF</u> · Layout: Portrait · Margins: None · Background graphics: ON</div>
+
+<!-- ════════════════════════════════════════════════════════════════════
+     COVER
+══════════════════════════════════════════════════════════════════════ -->
+<section class="page">
+  <div class="cover">
+    <div class="cover-top">
+      <div>
+        <div class="cover-eyebrow">FantasyPoints · 2026</div>
+        <div class="cover-eyebrow" style="margin-top:4pt;color:var(--red)">Internal Reference Document</div>
+      </div>
+      <div class="cover-flame" title="FPTS submark"></div>
+    </div>
+
+    <div>
+      <h1 class="cover-title">DYNASTY<br>TRADE<br><span class="accent">DATABASE.</span></h1>
+      <p class="cover-sub">Function &amp; Process Reference — a page-by-page walkthrough of every major capability across the four-page site, paired with a grouped index of every function in the codebase.</p>
+    </div>
+
+    <div class="cover-meta">
+      <div>
+        <div>Document v1</div>
+        <div style="color:var(--red)">FPTS · Internal</div>
+      </div>
+      <div>
+        <div>Print to PDF</div>
+        <div style="color:var(--muted)">Chrome → Save as PDF</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════════════════
+     01 — PROJECT OVERVIEW
+══════════════════════════════════════════════════════════════════════ -->
+<section class="page">
+  <div class="page-num">01</div>
+  <h2 class="page-title">PROJECT<br>OVERVIEW</h2>
+  <p class="page-tagline">Four HTML pages. One brand system. Zero build step. A complete dynasty fantasy-football trade toolkit served straight from GitHub Pages.</p>
+  <div class="red-bar"></div>
+
+  <div class="feature-block">
+    <h3 class="feature-title"><span class="num">A</span>What this is</h3>
+    <p class="feature-body">The <b>FantasyPoints Dynasty Trade Database</b> is a static, dependency-free web application that ingests live dynasty trade data, Sleeper league rosters, and KeepTradeCut player values to surface trade-market trends, calculate fair-value packages, and audit a user's entire league portfolio in one place.</p>
+  </div>
+
+  <div class="feature-block">
+    <h3 class="feature-title"><span class="num">B</span>Architecture</h3>
+    <p class="feature-body">Four standalone HTML files — each a fully self-contained page with inline CSS, inline JavaScript, and inline data. No build pipeline, no bundler, no server-side code. Cross-page state is passed through a small <b>session-storage handoff</b> envelope so a trade started on one page can be opened on another.</p>
+  </div>
+
+  <div class="feature-block">
+    <h3 class="feature-title"><span class="num">C</span>Deployment</h3>
+    <p class="feature-body">The repository is served directly by <b>GitHub Pages</b> from the <span class="kbd">main</span> branch. Two local-only batch scripts handle the workflow: <span class="kbd">start.bat</span> opens a Python preview server, and <span class="kbd">push.bat</span> stages, commits, and pushes. A push triggers a live redeploy in roughly two minutes.</p>
+  </div>
+
+  <div class="feature-block">
+    <h3 class="feature-title"><span class="num">D</span>Brand alignment</h3>
+    <p class="feature-body">Every page follows the <b>FantasyPoints Brand Style Guide v6</b> — the 60 / 30 / 10 palette (<span style="color:var(--red);font-weight:700">#CC3333</span> red, <b>#111111</b> black, <b>#F0F0F0</b> off-white), Kanit Extrabold Italic for display type, and Mulish for body and UI copy. Both dark and light themes ship; the theme toggle is mirrored across all four pages.</p>
+  </div>
+
+  <div class="footer-strip"><span>FPTS · FUNCTION REFERENCE</span><span class="accent">01 · OVERVIEW</span></div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════════════════
+     02 — SITE MAP
+══════════════════════════════════════════════════════════════════════ -->
+<section class="page">
+  <div class="page-num">02</div>
+  <h2 class="page-title">SITE<br>MAP</h2>
+  <p class="page-tagline">Four pages, two directions of traffic. Every page can hand off a player, a pick, or an in-progress trade to any other page through a session-storage envelope read on load.</p>
+  <div class="red-bar"></div>
+
+  <div class="sitemap">
+    <div class="sm-card primary">
+      <div class="sm-tag">Primary</div>
+      <h3 class="sm-name">INDEX<span class="accent">.HTML</span></h3>
+      <p class="sm-desc">Dynasty Trade Database. The hub — recent trades, top players, top picks, position trends, value tracker, player detail panel.</p>
+    </div>
+    <div class="sm-card">
+      <div class="sm-tag">Tool</div>
+      <h3 class="sm-name">TRADE<br>CALC<span class="accent">.HTML</span></h3>
+      <p class="sm-desc">Trade Calculator. Build 2–3-side trades, apply league-format multipliers, see balance verdict and FAAB inclusion.</p>
+    </div>
+    <div class="sm-card">
+      <div class="sm-tag">Importer</div>
+      <h3 class="sm-name">MY-LEAGUES<span class="accent">.HTML</span></h3>
+      <p class="sm-desc">Sleeper league importer. Auth, roster ingest, waiver analytics, archetype detection, trade suggestions, exposure rollups.</p>
+    </div>
+    <div class="sm-card">
+      <div class="sm-tag">Rankings</div>
+      <h3 class="sm-name">TIERS<span class="accent">.HTML</span></h3>
+      <p class="sm-desc">Dynasty Trade Tiers. Grouped or flat sortable view of every player and rookie pick, with Buy / Sell / Hold chips.</p>
+    </div>
+  </div>
+
+  <div class="feature-block">
+    <h3 class="feature-title"><span class="num">A</span>Cross-page handoff</h3>
+    <p class="feature-body">A pair of helpers — <span class="kbd">_fptsWriteHandoff(obj, targetPage)</span> on the sending side and <span class="kbd">_fptsReadHandoff()</span> on the receiving side — serialize an envelope into <span class="kbd">sessionStorage</span>, open the target page in a new tab, and let the receiver hydrate its UI from the same data. Every page exposes named entry points (the <span class="kbd">_fptsXpage*</span> family) so the hand-off origin is auditable.</p>
+  </div>
+
+  <div class="feature-block">
+    <h3 class="feature-title"><span class="num">B</span>Data sources</h3>
+    <div class="feature-row">
+      <div>
+        <p class="feature-body"><b>Embedded</b> — <span class="kbd">KTC_DATA</span> (KeepTradeCut values, position rank, age, ADP), <span class="kbd">ADP_DATA</span>, <span class="kbd">SLEEPER_IDS</span> (name → Sleeper player ID), <span class="kbd">TRADES</span> (recent trade corpus), <span class="kbd">TIER_PLAYERS</span> (ranked tier list).</p>
+      </div>
+      <div>
+        <p class="feature-body"><b>Live</b> — Sleeper public API for users, leagues, rosters, projections, transactions, drafts, traded picks, and league-history chain.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer-strip"><span>FPTS · FUNCTION REFERENCE</span><span class="accent">02 · SITE MAP</span></div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════════════════
+     03 — INDEX.HTML FEATURES
+══════════════════════════════════════════════════════════════════════ -->
+<section class="page">
+  <div class="page-num">03</div>
+  <h2 class="page-title">TRADE<br>DATABASE</h2>
+  <p class="page-tagline">index.html — the hub of the application. Every other page connects back here. Five primary tabs, a live player detail panel, and an embedded trade finder.</p>
+  <div class="red-bar"></div>
+
+  <div class="meta-row">
+    <div class="meta-role">Recent Trades</div>
+    <div class="meta-spec">Default landing tab. Filtered, sortable card view of the entire trade corpus. Expand any card to see assets side-by-side with values, league format chips, and the trade's snapshot date.</div>
+  </div>
+  <div class="meta-row">
+    <div class="meta-role">Top Players</div>
+    <div class="meta-spec">Most-traded players ranked by appearance count. Click a row to see every trade that included that player. Position chips inline on each row.</div>
+  </div>
+  <div class="meta-row">
+    <div class="meta-role">Top Picks</div>
+    <div class="meta-spec">Same surface as Top Players, but for draft capital — every <b>Year + Round</b> combination ranked by trade frequency, expanded inline.</div>
+  </div>
+  <div class="meta-row">
+    <div class="meta-role">Positions</div>
+    <div class="meta-spec">Position-level breakdown of trade volume — QB / RB / WR / TE / PICKS with expansion behavior matching the other lists.</div>
+  </div>
+  <div class="meta-row">
+    <div class="meta-role">Value Tracker</div>
+    <div class="meta-spec">Watch-list-style view of league-rank badges for the user's roster — total rank, player-only rank, position ranks, pick-capital rank.</div>
+  </div>
+
+  <h3 class="fn-section-head">Secondary surfaces</h3>
+
+  <div class="feature-row">
+    <div>
+      <p class="feature-body"><b>Player detail panel</b> — opens on player click. Articles, photo, Sleeper-driven bio (years of experience, height, team, status), stats tab, age-curve chart, and an embedded Trade Finder seeded with the player.</p>
+    </div>
+    <div>
+      <p class="feature-body"><b>Pick detail panel</b> — opens on pick click. Mirrors the player panel surface for a specific year/round, with its own Trade Finder.</p>
+    </div>
+  </div>
+  <div class="feature-row" style="margin-top:8pt">
+    <div>
+      <p class="feature-body"><b>Two-sided trade search</b> — top-bar tool. Add players or picks to Side A, Side B, and the corpus is filtered to trades where both sides match together. Drives the entire results set, not just one tab.</p>
+    </div>
+    <div>
+      <p class="feature-body"><b>Format filters</b> — QB count (1QB/SF), starter count, team size, TEP, PPR, PPC, FAAB on/off, passing TD, asset cap, roster size, and date range with presets (7/30/90 days, year, all-time).</p>
+    </div>
+  </div>
+
+  <div class="footer-strip"><span>FPTS · FUNCTION REFERENCE</span><span class="accent">03 · INDEX.HTML</span></div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════════════════
+     04 — MY-LEAGUES.HTML FEATURES
+══════════════════════════════════════════════════════════════════════ -->
+<section class="page">
+  <div class="page-num">04</div>
+  <h2 class="page-title">LEAGUE<br>IMPORTER</h2>
+  <p class="page-tagline">my-leagues.html — type in a Sleeper username and the page does the rest. Multi-league ingest, per-league archetype detection, league-wide trade suggestions, and cross-league exposure rollups.</p>
+  <div class="red-bar"></div>
+
+  <div class="meta-row">
+    <div class="meta-role">Auth &amp; Ingest</div>
+    <div class="meta-spec">Search by Sleeper username → load every league for the selected season → fetch rosters, users, traded picks, drafts, transactions, and league-history chain in parallel.</div>
+  </div>
+  <div class="meta-row">
+    <div class="meta-role">League Rows</div>
+    <div class="meta-spec">One row per league. Sortable by league name, season, format, total value, archetype. Expand a row to see the full league dashboard.</div>
+  </div>
+  <div class="meta-row">
+    <div class="meta-role">League Dashboard</div>
+    <div class="meta-spec">Per-league: position-rank pills, full roster with KTC values + Sleeper projections, optimal-lineup highlighter, owned-picks list with computed pick values, standings, waivers, trade history (multi-year chain), and a team-by-team comparison view.</div>
+  </div>
+  <div class="meta-row">
+    <div class="meta-role">Archetypes</div>
+    <div class="meta-spec">Each team is classified as <b>Dynasty</b>, <b>Contender</b>, <b>Tweener</b>, <b>Rebuilder</b>, or <b>Emergency</b> from a 9-cell mapping over (value vs. league median) × (age vs. league median).</div>
+  </div>
+  <div class="meta-row">
+    <div class="meta-role">Trade Suggestions</div>
+    <div class="meta-spec">For any opposing player or pick: generate 1/2/3-asset packages from the user's roster that hit the target's KTC value within a tolerance band, score them by value-fit + archetype-fit + asset-count preference, and surface diverse picks (fair value, slight overpay, archetype-tilted).</div>
+  </div>
+  <div class="meta-row">
+    <div class="meta-role">Calc Modal</div>
+    <div class="meta-spec">In-page trade calculator scoped to a specific league — search assets within that league only, computed totals and balance, "open in standalone calculator" handoff.</div>
+  </div>
+  <div class="meta-row">
+    <div class="meta-role">Waivers</div>
+    <div class="meta-spec">Four sub-tabs: leaderboard (most successful bidders), top bids (largest FAAB outlays), recent activity, by-team rollup. All driven by transaction history across every regular-season week.</div>
+  </div>
+  <div class="meta-row">
+    <div class="meta-role">Exposure</div>
+    <div class="meta-spec">Aggregates the user's holdings across every loaded league. One row per player and pick, sortable by share count, exposure %, position rank, or KTC value. Click into any row to see the contributing leagues.</div>
+  </div>
+
+  <div class="footer-strip"><span>FPTS · FUNCTION REFERENCE</span><span class="accent">04 · MY-LEAGUES.HTML</span></div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════════════════
+     05 — TIERS.HTML FEATURES
+══════════════════════════════════════════════════════════════════════ -->
+<section class="page">
+  <div class="page-num">05</div>
+  <h2 class="page-title">DYNASTY<br>TIERS</h2>
+  <p class="page-tagline">tiers.html — the hand-tuned ranking layer that sits above raw KTC. Every player and every rookie pick is bucketed S++ through F-, with editorial signals (Buy/Sell/Hold, Priority, Contender) on every row.</p>
+  <div class="red-bar"></div>
+
+  <div class="meta-row">
+    <div class="meta-role">Grouped View</div>
+    <div class="meta-spec">Default. Players collapsed under tier headers in canonical tier order (S++, S+, S, A+ … F-). Each tier header shows the editorial description for that tier.</div>
+  </div>
+  <div class="meta-row">
+    <div class="meta-role">Flat View</div>
+    <div class="meta-spec">Single sortable table. Click any column header to sort: Tier, Player, Age, Pos, Pos Rank, Team, 2026 ADP, 2025 ADP, Auction, 2025 PPG, Trending.</div>
+  </div>
+  <div class="meta-row">
+    <div class="meta-role">Filters</div>
+    <div class="meta-spec">Position filter (All / QB / RB / WR / TE / PICK) and tier filter (any single tier). Filters apply identically across both views.</div>
+  </div>
+  <div class="meta-row">
+    <div class="meta-role">Editorial Chips</div>
+    <div class="meta-spec"><b>Buy/Sell/Hold</b> — Buying, Checking In, Selling, Shopping, Temp Hold. <b>Priority</b> tier for must-target players. <b>Contender</b> flag for win-now value.</div>
+  </div>
+  <div class="meta-row">
+    <div class="meta-role">Cross-page</div>
+    <div class="meta-spec">Click a player name to open it inside the main Trade Database (<span class="kbd">index.html</span>) with the player detail panel pre-loaded. Toolbar buttons hand off the page to the Database or Calculator.</div>
+  </div>
+
+  <div class="footer-strip"><span>FPTS · FUNCTION REFERENCE</span><span class="accent">05 · TIERS.HTML</span></div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════════════════
+     06 — TRADE-CALCULATOR.HTML FEATURES
+══════════════════════════════════════════════════════════════════════ -->
+<section class="page">
+  <div class="page-num">06</div>
+  <h2 class="page-title">TRADE<br>CALCULATOR</h2>
+  <p class="page-tagline">trade-calculator.html — pure builder. Two sides by default, expandable to three. Format-aware multipliers, FAAB inclusion, and a balance verdict that updates on every keystroke.</p>
+  <div class="red-bar"></div>
+
+  <div class="meta-row">
+    <div class="meta-role">Sides</div>
+    <div class="meta-spec">Side A and Side B at minimum. Add a third side for three-team trade modeling. Each side has its own search input, asset list, FAAB field, and total readout.</div>
+  </div>
+  <div class="meta-row">
+    <div class="meta-role">Format Aware</div>
+    <div class="meta-spec">Header controls — QB count, PPR, TEP, passing TD value — apply a per-position multiplier to every player on the board. QB gains in SF, TE gains in TEP, RB/WR shift with PPR. Pick values pass through untouched.</div>
+  </div>
+  <div class="meta-row">
+    <div class="meta-role">FAAB</div>
+    <div class="meta-spec">Dollars are folded into the side total at a 10× weighting — comparable scale to KTC values for a quick "is the FAAB enough?" read.</div>
+  </div>
+  <div class="meta-row">
+    <div class="meta-role">Balance Bar</div>
+    <div class="meta-spec">Live verdict: <span class="kbd">Fair Trade</span> if within 5%, otherwise the larger side wins by a percentage. Color-coded green / yellow / red. Difference value shown beneath.</div>
+  </div>
+  <div class="meta-row">
+    <div class="meta-role">Trade-Search Panel</div>
+    <div class="meta-spec">Same two-sided trade search that lives on the Database — drop assets into Side A and Side B to see real trades where both sides appeared together.</div>
+  </div>
+  <div class="meta-row">
+    <div class="meta-role">Handoffs</div>
+    <div class="meta-spec">Open the current trade in the Database (filtered to matching real trades), or open it in My Leagues (to compare against the user's actual rosters).</div>
+  </div>
+
+  <div class="footer-strip"><span>FPTS · FUNCTION REFERENCE</span><span class="accent">06 · TRADE CALCULATOR</span></div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════════════════
+     07 — KEY USER FLOWS
+══════════════════════════════════════════════════════════════════════ -->
+<section class="page">
+  <div class="page-num">07</div>
+  <h2 class="page-title">KEY<br>USER FLOWS</h2>
+  <p class="page-tagline">Three end-to-end journeys that demonstrate how the four pages compose into a single decision-making workflow.</p>
+  <div class="red-bar"></div>
+
+  <div class="flow-block">
+    <h3 class="flow-title">Flow 1 — Comp a real trade</h3>
+    <p class="flow-sub">"Is this trade fair?"</p>
+    <ol class="flow-steps">
+      <li>Open <code>index.html</code> → Recent Trades.</li>
+      <li>Click "+ Add" on the trade-search bar. Drop the proposed Side A and Side B assets in.</li>
+      <li>Inspect the filtered cards — every real trade in the corpus where both sides appeared together.</li>
+      <li>Click <code>Open in Calculator ↗</code> to model the same trade in the standalone calculator with format multipliers applied.</li>
+    </ol>
+  </div>
+
+  <div class="flow-block">
+    <h3 class="flow-title">Flow 2 — Roster audit</h3>
+    <p class="flow-sub">"Where do I stand across all my leagues?"</p>
+    <ol class="flow-steps">
+      <li>Open <code>my-leagues.html</code>, enter Sleeper username, choose season.</li>
+      <li>Each league row shows total value, archetype, and a position-rank pill bar. Sort by archetype to see all Contender leagues together.</li>
+      <li>Expand a league → review roster, optimal lineup highlight, owned picks with computed value, standings, waivers.</li>
+      <li>Scroll to the Exposure section to see which players the user has the highest league-share in — natural sell/hold candidates.</li>
+    </ol>
+  </div>
+
+  <div class="flow-block">
+    <h3 class="flow-title">Flow 3 — Build a counter-offer</h3>
+    <p class="flow-sub">"What can I send for their guy?"</p>
+    <ol class="flow-steps">
+      <li>In a league dashboard, click any opposing player or pick → <code>Suggest Trade</code>.</li>
+      <li>Page generates 1-, 2-, and 3-asset packages from the user's roster scored on value-fit + archetype-fit.</li>
+      <li>Walk through templates with ✓ (accept) / ✗ (next). ✓ opens the league-scoped calc modal with the package pre-loaded.</li>
+      <li>Tune the package and hand it off to the standalone calculator for a clean read.</li>
+    </ol>
+  </div>
+
+  <div class="footer-strip"><span>FPTS · FUNCTION REFERENCE</span><span class="accent">07 · USER FLOWS</span></div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════════════════
+     08 — FUNCTION REFERENCE INTRO
+══════════════════════════════════════════════════════════════════════ -->
+<section class="page dark">
+  <div class="page-num">08</div>
+  <h2 class="page-title">FUNCTION<br><span class="accent">REFERENCE.</span></h2>
+  <p class="page-tagline" style="color:#bbb">Every major function across the four files, documented one card at a time. Helpers and one-line utilities are grouped at the end of each section so the headline functions stay scannable.</p>
+  <div class="red-bar"></div>
+
+  <div class="feature-block" style="border-color:rgba(240,240,240,.2)">
+    <h3 class="feature-title" style="color:var(--offwhite)"><span class="num">A</span>How to read this section</h3>
+    <p class="feature-body" style="color:#ddd">Each major function gets its own card with name, signature, a plain-language description of what it does, and (where relevant) the key collaborators it calls. Helpers — pure formatters, predicates, theme glue — are listed in compact grids at the close of each file's section.</p>
+  </div>
+
+  <div class="feature-block" style="border-color:rgba(240,240,240,.2)">
+    <h3 class="feature-title" style="color:var(--offwhite)"><span class="num">B</span>Section order</h3>
+    <p class="feature-body" style="color:#ddd">09 — index.html (Trade Database) · 10–12 — my-leagues.html (League Importer) · 13 — tiers.html · 14 — trade-calculator.html.</p>
+  </div>
+
+  <div class="feature-block" style="border-color:rgba(240,240,240,.2)">
+    <h3 class="feature-title" style="color:var(--offwhite)"><span class="num">C</span>Convention</h3>
+    <p class="feature-body" style="color:#ddd">Names prefixed with an underscore (<span class="kbd">_drawTradeFinder</span>) are internal collaborators, not entry points. Names prefixed with <span class="kbd">_fptsXpage</span> are cross-page handoff entry points. <span class="kbd">ml*</span> functions live in <span class="kbd">my-leagues.html</span>; <span class="kbd">pp*</span> functions are player-panel utilities; <span class="kbd">tf*</span> functions belong to the Trade Finder.</p>
+  </div>
+
+  <div class="footer-strip" style="color:#bbb;border-color:rgba(240,240,240,.18)"><span>FPTS · FUNCTION REFERENCE</span><span class="accent">08 · REFERENCE INTRO</span></div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════════════════
+     09 — INDEX.HTML — FILTERS & TRADE SEARCH
+══════════════════════════════════════════════════════════════════════ -->
+<section class="page">
+  <div class="page-num">09</div>
+  <h2 class="page-title small">INDEX · FILTERS &amp;<br>TRADE SEARCH</h2>
+  <p class="page-tagline">The filter pipeline and two-sided trade search are the central nervous system of the Database. Every tab renders off the same <span class="kbd">filtered</span> array.</p>
+  <div class="red-bar"></div>
+
+  <h3 class="fn-section-head">Filter pipeline</h3>
+
+  <div class="fn-card">
+    <div class="fn-head"><span class="fn-name">applyFilters</span><span class="fn-tag">Core</span></div>
+    <code class="fn-sig">applyFilters()</code>
+    <p class="fn-desc">Reads every filter control's current value (QB count, starters, teams, TEP, PPR, PPC, FAAB, passing TD, asset cap, roster cap, date range) and narrows the master <span class="kbd">TRADES</span> array into <span class="kbd">filtered</span>. Two-sided trade search runs in the same pass — each side's assets must all appear together in the same trade. Updates the filter-chip bar, the result count, and calls <span class="kbd">renderAll()</span>.</p>
+    <p class="fn-meta">Calls <b>getSelectedPicks · renderAll</b></p>
+  </div>
+
+  <div class="fn-card">
+    <div class="fn-head"><span class="fn-name">applyPreset</span><span class="fn-tag">UI</span></div>
+    <code class="fn-sig">applyPreset(type)</code>
+    <p class="fn-desc">One-click format presets — SF, 12-team, half-PPR, etc. Sets the underlying filter selects to the preset's values and runs <span class="kbd">applyFilters()</span>.</p>
+  </div>
+
+  <div class="fn-card">
+    <div class="fn-head"><span class="fn-name">setDatePreset · clearDates</span><span class="fn-tag">UI</span></div>
+    <code class="fn-sig">setDatePreset(days) · clearDates()</code>
+    <p class="fn-desc">Date-range shortcuts. <span class="kbd">setDatePreset(7)</span> fills from/to inputs with today minus 7 days through today, then refilters. <span class="kbd">clearDates()</span> blanks both inputs.</p>
+  </div>
+
+  <div class="fn-card">
+    <div class="fn-head"><span class="fn-name">resetFilters</span><span class="fn-tag">UI</span></div>
+    <code class="fn-sig">resetFilters()</code>
+    <p class="fn-desc">Returns every filter control to "all", clears pick selections and trade-search lists, then refilters.</p>
+  </div>
+
+  <h3 class="fn-section-head">Two-sided trade search</h3>
+
+  <div class="fn-card">
+    <div class="fn-head"><span class="fn-name">tradeSearchInput</span><span class="fn-tag">Search</span></div>
+    <code class="fn-sig">tradeSearchInput(side, val)</code>
+    <p class="fn-desc">Live search-as-you-type on Side A or Side B of the trade search. Matches against players first (capped at six), then rookie picks. Renders the dropdown with focused-row keyboard hints.</p>
+  </div>
+
+  <div class="fn-card">
+    <div class="fn-head"><span class="fn-name">tradeSearchKey · tradeSearchAdd · removeTradeSearchAsset</span><span class="fn-tag">Search</span></div>
+    <code class="fn-sig">tradeSearchKey(e, side) · tradeSearchAdd(side, label, type, key, pos) · removeTradeSearchAsset(side, key)</code>
+    <p class="fn-desc">Keyboard navigation (Arrow keys / Enter), commit a selection into the side's asset list, and remove an asset. Each commit triggers <span class="kbd">applyFilters()</span>.</p>
+  </div>
+
+  <div class="fn-card">
+    <div class="fn-head"><span class="fn-name">renderTradeSideTags · renderAssetFilterTags</span><span class="fn-tag">Render</span></div>
+    <code class="fn-sig">renderTradeSideTags(side) · renderAssetFilterTags()</code>
+    <p class="fn-desc">Render the chip bar showing the assets currently in each side of the trade search. Auto-hides when both sides are empty.</p>
+  </div>
+
+  <div class="fn-card">
+    <div class="fn-head"><span class="fn-name">buildPickSlots · addPick · removePick · renderPickTags · getSelectedPicks</span><span class="fn-tag">Picks</span></div>
+    <code class="fn-sig">buildPickSlots() · addPick() · removePick(key) · renderPickTags() · getSelectedPicks()</code>
+    <p class="fn-desc">The rookie-pick builder used inside the filter row. Builds the year/round selects, adds a pick to the selected list, removes one, renders the chip tags, and exposes the selected picks back to <span class="kbd">applyFilters()</span>.</p>
+  </div>
+
+  <div class="footer-strip"><span>FPTS · FUNCTION REFERENCE</span><span class="accent">09 · INDEX · FILTERS</span></div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════════════════
+     10 — INDEX.HTML — TABS, RENDERING, EXPANSION
+══════════════════════════════════════════════════════════════════════ -->
+<section class="page">
+  <div class="page-num">10</div>
+  <h2 class="page-title small">INDEX · TABS<br>&amp; RENDERING</h2>
+  <p class="page-tagline">Every tab renders off the same filtered corpus. The expand/collapse pattern is shared across players, picks, and asset types.</p>
+  <div class="red-bar"></div>
+
+  <div class="fn-card">
+    <div class="fn-head"><span class="fn-name">renderAll · showTab</span><span class="fn-tag">Render</span></div>
+    <code class="fn-sig">renderAll() · showTab(name)</code>
+    <p class="fn-desc">Master render — re-runs the active tab's render function. <span class="kbd">showTab()</span> swaps the active tab, mirrors the tab strip state, and calls <span class="kbd">renderAll()</span>.</p>
+  </div>
+
+  <div class="fn-card">
+    <div class="fn-head"><span class="fn-name">renderRecent</span><span class="fn-tag">Tab</span></div>
+    <code class="fn-sig">renderRecent()</code>
+    <p class="fn-desc">Recent Trades tab. Renders the filtered trades as cards in reverse-chronological order using <span class="kbd">tradeCardHtml()</span>. Falls back to a "no results" notice when filters exclude everything.</p>
+  </div>
+
+  <div class="fn-card">
+    <div class="fn-head"><span class="fn-name">renderTopPlayers · renderTopPicks · renderPositions</span><span class="fn-tag">Tab</span></div>
+    <code class="fn-sig">renderTopPlayers() · renderTopPicks() · renderPositions()</code>
+    <p class="fn-desc">The three "most-traded" rollups. Each aggregates the filtered trade list into the appropriate buckets (player name, year+round, position), sorts by count, and renders an expandable list.</p>
+  </div>
+
+  <div class="fn-card">
+    <div class="fn-head"><span class="fn-name">renderValueTracker</span><span class="fn-tag">Tab</span></div>
+    <code class="fn-sig">renderValueTracker()</code>
+    <p class="fn-desc">Value Tracker tab. Renders the user's tracked roster with league-rank badges (total, players-only, per position, picks-only). Each row uses the same player row template via the local <span class="kbd">renderRow()</span> closure.</p>
+  </div>
+
+  <div class="fn-card">
+    <div class="fn-head"><span class="fn-name">toggleExpandPlayer · toggleExpandPick · toggleExpandAssetType · _mtpCollapseAll</span><span class="fn-tag">Expand</span></div>
+    <code class="fn-sig">toggleExpandPlayer(name, ev) · toggleExpandPick(year, round, ev) · toggleExpandAssetType(type, ev) · _mtpCollapseAll()</code>
+    <p class="fn-desc">The shared expand/collapse mechanism for "most-traded" lists. Stores the currently-expanded key on <span class="kbd">window.MTP_EXPANDED</span> so the same row toggles cleanly on a second click. Inline-renders the matching trades below the clicked row.</p>
+  </div>
+
+  <div class="fn-card">
+    <div class="fn-head"><span class="fn-name">tradeCardHtml</span><span class="fn-tag">Render</span></div>
+    <code class="fn-sig">tradeCardHtml(t)</code>
+    <p class="fn-desc">The canonical trade-card template. Builds the side-by-side layout, asset rows with thumbs and value, league format chips, and the snapshot date. The inner <span class="kbd">renderAssets(side)</span> closure handles each side.</p>
+  </div>
+
+  <div class="fn-card">
+    <div class="fn-head"><span class="fn-name">getAllAssets</span><span class="fn-tag">Data</span></div>
+    <code class="fn-sig">getAllAssets()</code>
+    <p class="fn-desc">Returns the union of every player in <span class="kbd">KTC_DATA</span> plus every active rookie pick, normalized into a single shape: <span class="kbd">{ label, type, value, posKey }</span>. Powers search, the Trade Finder, and the player-panel finder.</p>
+  </div>
+
+  <div class="footer-strip"><span>FPTS · FUNCTION REFERENCE</span><span class="accent">10 · INDEX · RENDERING</span></div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════════════════
+     11 — INDEX.HTML — PLAYER PANEL & AGE CURVE
+══════════════════════════════════════════════════════════════════════ -->
+<section class="page">
+  <div class="page-num">11</div>
+  <h2 class="page-title small">INDEX · PLAYER<br>PANEL</h2>
+  <p class="page-tagline">The right-hand panel that opens on player or pick click. Five tabs: Trades, Articles, Stats, Age Curve, Finder.</p>
+  <div class="red-bar"></div>
+
+  <div class="fn-card">
+    <div class="fn-head"><span class="fn-name">openPanel · openPanelContent · closePanel</span><span class="fn-tag">Panel</span></div>
+    <code class="fn-sig">openPanel(playerName) · openPanelContent(playerName) · closePanel()</code>
+    <p class="fn-desc"><span class="kbd">openPanel()</span> drives the open transition and delegates the content render to <span class="kbd">openPanelContent()</span>, which resolves the player's KTC entry, Sleeper ID, photo, articles, and bio (height, team, years of experience, status), then mounts the active tab.</p>
+  </div>
+
+  <div class="fn-card">
+    <div class="fn-head"><span class="fn-name">ppShowTab</span><span class="fn-tag">Panel</span></div>
+    <code class="fn-sig">ppShowTab(tabName)</code>
+    <p class="fn-desc">Switch the active panel tab. Lazy-renders Stats, Age Curve, and Finder content the first time their tab is shown, so the initial open is fast.</p>
+  </div>
+
+  <div class="fn-card">
+    <div class="fn-head"><span class="fn-name">ppSearchInput · ppSearchKey · ppSearchSelect · ppSwitchTo · ppRemovePlayer · ppRenderTabStrip · ppFocusResult</span><span class="fn-tag">Panel Search</span></div>
+    <code class="fn-sig">ppSearchInput(val) · ppSearchKey(e) · ppSearchSelect(name) · ppSwitchTo(name) · ppRemovePlayer(name)</code>
+    <p class="fn-desc">The panel-local search box and tab strip. Lets the user open multiple players in adjacent panel tabs, navigate between them, and remove tabs without closing the whole panel.</p>
+  </div>
+
+  <div class="fn-card">
+    <div class="fn-head"><span class="fn-name">renderPlayerStats</span><span class="fn-tag">Stats</span></div>
+    <code class="fn-sig">renderPlayerStats(containerId, player)</code>
+    <p class="fn-desc">Fetches season stats from Sleeper for the player's Sleeper ID and renders a compact stats panel. Falls back gracefully when no Sleeper ID is mapped.</p>
+  </div>
+
+  <div class="fn-card">
+    <div class="fn-head"><span class="fn-name">renderAgeCurve</span><span class="fn-tag">Chart</span></div>
+    <code class="fn-sig">renderAgeCurve(containerId, player)</code>
+    <p class="fn-desc">Renders the player's projected value-vs-age curve as inline SVG. Uses per-position curve presets (peak age, peak value, ramp-up exponent, decay rate) and scales them to the player's current KTC value. Overlays the player's current position and an ADP-implied value point, then emits a buy-low / sell-high signal when the gap exceeds 500 KTC points.</p>
+    <p class="fn-meta">Internal helpers <b>adpToValue · posValue · playerValue · xPos · yPos · makePath · makeArea</b></p>
+  </div>
+
+  <div class="fn-card">
+    <div class="fn-head"><span class="fn-name">loadPlayerArticles · mountPlayerArticles · renderPlayerArticles · ppFmtArticleDate · normalizePlayerName</span><span class="fn-tag">Articles</span></div>
+    <code class="fn-sig">async loadPlayerArticles() · mountPlayerArticles(parentEl, playerName, opts) · renderPlayerArticles(playerName)</code>
+    <p class="fn-desc">Lazy-loads the article corpus once, then mounts a per-player feed inside the panel. <span class="kbd">normalizePlayerName()</span> reconciles name variants (Jr/Sr, punctuation, accents) between sources.</p>
+  </div>
+
+  <div class="footer-strip"><span>FPTS · FUNCTION REFERENCE</span><span class="accent">11 · INDEX · PLAYER PANEL</span></div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════════════════
+     12 — INDEX.HTML — TRADE FINDER & PICK PANEL & HELPERS
+══════════════════════════════════════════════════════════════════════ -->
+<section class="page">
+  <div class="page-num">12</div>
+  <h2 class="page-title small">INDEX · FINDER<br>&amp; HELPERS</h2>
+  <p class="page-tagline">The Trade Finder is an embedded calculator that lives inside the player and pick panels. Closes out with the pick panel and helper grids.</p>
+  <div class="red-bar"></div>
+
+  <h3 class="fn-section-head">Trade Finder</h3>
+
+  <div class="fn-card">
+    <div class="fn-head"><span class="fn-name">renderTradeFinder · _drawTradeFinder</span><span class="fn-tag">Finder</span></div>
+    <code class="fn-sig">renderTradeFinder(containerId, seedAsset) · _drawTradeFinder(containerId)</code>
+    <p class="fn-desc">Mount the Finder inside any container and seed Side A with the panel's active asset. <span class="kbd">_drawTradeFinder()</span> is the redraw loop — every state change re-runs it to redraw both sides, the balance bar, and the active add-slot dropdown.</p>
+  </div>
+
+  <div class="fn-card">
+    <div class="fn-head"><span class="fn-name">tfGetState · tfActivateSlot · tfDeactivateSlot · tfQuerySlot · tfShowSuggestions · tfAddFromSearch · tfRemove</span><span class="fn-tag">Finder</span></div>
+    <code class="fn-sig">tfQuerySlot(containerId, side, val) · tfAddFromSearch(containerId, side, label, value, posKey, type) · tfRemove(containerId, side, idx)</code>
+    <p class="fn-desc">Per-container Finder state (Side A list, Side B list, active query). Activate/deactivate the search slot, type into it, commit a search result, or pop an asset off a side.</p>
+  </div>
+
+  <div class="fn-card">
+    <div class="fn-head"><span class="fn-name">getSuggestions</span><span class="fn-tag">Logic</span></div>
+    <code class="fn-sig">getSuggestions(targetGap, existingSide, containerId)</code>
+    <p class="fn-desc">Suggests assets to balance an unbalanced Finder. Filters out assets already on the board, then returns the eight whose value is closest to the gap.</p>
+  </div>
+
+  <h3 class="fn-section-head">Pick panel</h3>
+
+  <div class="fn-card">
+    <div class="fn-head"><span class="fn-name">openPickPage · closePickPanel · closPickPage</span><span class="fn-tag">Panel</span></div>
+    <code class="fn-sig">openPickPage(year, round) · closePickPanel()</code>
+    <p class="fn-desc">Opens a panel scoped to a specific year + round draft pick. Mirrors the player panel surface: trades the pick appeared in, embedded Trade Finder seeded with the pick. <span class="kbd">closPickPage</span> is a legacy alias.</p>
+  </div>
+
+  <div class="fn-card">
+    <div class="fn-head"><span class="fn-name">pkpShowTab</span><span class="fn-tag">Panel</span></div>
+    <code class="fn-sig">pkpShowTab(name)</code>
+    <p class="fn-desc">Tab switcher inside the pick panel — same role as <span class="kbd">ppShowTab()</span> on the player side.</p>
+  </div>
+
+  <h3 class="fn-section-head">Helpers · index.html</h3>
+
+  <div class="helper-grid three">
+    <div class="helper-col">
+      <p class="helper-head">Formatting</p>
+      <div class="helper-row"><code>fmtDate(d)</code> · <span class="h-desc">human-readable trade date</span></div>
+      <div class="helper-row"><code>highlightMatch(name, query)</code> · <span class="h-desc">wrap search hits in &lt;mark&gt;</span></div>
+      <div class="helper-row"><code>_imgThumb(name, size)</code> · <span class="h-desc">player avatar w/ initials fallback</span></div>
+      <div class="helper-row"><code>pickThumb(size)</code> · <span class="h-desc">generic pick avatar</span></div>
+    </div>
+    <div class="helper-col">
+      <p class="helper-head">UI glue</p>
+      <div class="helper-row"><code>toggleMobileFilters()</code> · <span class="h-desc">show/hide filter drawer</span></div>
+      <div class="helper-row"><code>clearMainSearch()</code> · <span class="h-desc">empty the top-bar search</span></div>
+      <div class="helper-row"><code>toggleTheme()</code> · <span class="h-desc">dark ↔ light, persisted</span></div>
+      <div class="helper-row"><code>addAssetFilter()</code> · <span class="h-desc">no-op shim</span></div>
+    </div>
+    <div class="helper-col">
+      <p class="helper-head">Cross-page handoffs</p>
+      <div class="helper-row"><code>_fptsXpageOpenCalcFromPanel()</code> · <span class="h-desc">→ trade-calculator.html</span></div>
+      <div class="helper-row"><code>_fptsXpageOpenLeaguesFromPanel()</code> · <span class="h-desc">→ my-leagues.html</span></div>
+      <div class="helper-row"><code>_fptsXpageOpenCalcFromFinder()</code> · <span class="h-desc">finder → calculator</span></div>
+    </div>
+  </div>
+
+  <div class="footer-strip"><span>FPTS · FUNCTION REFERENCE</span><span class="accent">12 · INDEX · FINDER</span></div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════════════════
+     13 — MY-LEAGUES.HTML — AUTH, INGEST, LEAGUE LIST
+══════════════════════════════════════════════════════════════════════ -->
+<section class="page">
+  <div class="page-num">13</div>
+  <h2 class="page-title small">MY-LEAGUES · AUTH<br>&amp; INGEST</h2>
+  <p class="page-tagline">Sleeper username in → every league, every roster, every traded pick, every transaction out. The ingest pipeline is fan-out parallel against the public Sleeper API.</p>
+  <div class="red-bar"></div>
+
+  <div class="fn-card">
+    <div class="fn-head"><span class="fn-name">apiFetch</span><span class="fn-tag">Network</span></div>
+    <code class="fn-sig">async apiFetch(url)</code>
+    <p class="fn-desc">Single fetch wrapper. JSON-parses on 2xx, returns <span class="kbd">null</span> on any error. Used by every Sleeper-facing call so failures don't break the parent <span class="kbd">Promise.all()</span> fan-outs.</p>
+  </div>
+
+  <div class="fn-card">
+    <div class="fn-head"><span class="fn-name">mlSearch · getPlayers · loadAndRenderLeagues · loadLeaguesForSeason</span><span class="fn-tag">Auth/Ingest</span></div>
+    <code class="fn-sig">async mlSearch() · async getPlayers() · async loadAndRenderLeagues() · async loadLeaguesForSeason(year)</code>
+    <p class="fn-desc">Top-level auth and league discovery. Resolves the username → <span class="kbd">user_id</span>, primes the Sleeper player dictionary, pulls every league for the chosen season, and renders the league list. Excludes leagues with <span class="kbd">status === 'complete'</span> by default.</p>
+  </div>
+
+  <div class="fn-card">
+    <div class="fn-head"><span class="fn-name">fetchAllLeaguesData</span><span class="fn-tag">Ingest</span></div>
+    <code class="fn-sig">async fetchAllLeaguesData()</code>
+    <p class="fn-desc">Fan-out fetch for every league in the active season — pulls rosters, users, traded picks, and draft chain in parallel and stashes the result under <span class="kbd">window.ML_ALL_LEAGUE_DATA[leagueId]</span>. Surfaces the count of leagues where the user is a co-commish but not an owner (those skip roster-scoped pulls).</p>
+  </div>
+
+  <div class="fn-card">
+    <div class="fn-head"><span class="fn-name">getLeagueFormat</span><span class="fn-tag">Helper</span></div>
+    <code class="fn-sig">getLeagueFormat(l)</code>
+    <p class="fn-desc">Derives a one-line format label ("12-Team Dynasty SF PPR TEP") from the league's <span class="kbd">roster_positions</span>, <span class="kbd">total_rosters</span>, and <span class="kbd">scoring_settings</span>.</p>
+  </div>
+
+  <div class="fn-card">
+    <div class="fn-head"><span class="fn-name">mlSignOut</span><span class="fn-tag">Auth</span></div>
+    <code class="fn-sig">mlSignOut()</code>
+    <p class="fn-desc">Clear cached username + all loaded league data and return to the search-by-username screen.</p>
+  </div>
+
+  <div class="footer-strip"><span>FPTS · FUNCTION REFERENCE</span><span class="accent">13 · MY-LEAGUES · AUTH</span></div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════════════════
+     14 — MY-LEAGUES — LEAGUE LIST RENDERING
+══════════════════════════════════════════════════════════════════════ -->
+<section class="page">
+  <div class="page-num">14</div>
+  <h2 class="page-title small">MY-LEAGUES · LEAGUE<br>LIST RENDERING</h2>
+  <p class="page-tagline">One row per league with archetype, value totals, and position-rank pills. Click to expand into the full per-league dashboard.</p>
+  <div class="red-bar"></div>
+
+  <div class="fn-card">
+    <div class="fn-head"><span class="fn-name">renderLeagueRows · mlSetLeagueSort</span><span class="fn-tag">Render</span></div>
+    <code class="fn-sig">renderLeagueRows() · mlSetLeagueSort(key)</code>
+    <p class="fn-desc">Renders one row per league with the format chip, total value, archetype, and a position-rank pill bar. Sort by league name, total value, or archetype (a custom canonical order, not alphabetical).</p>
+  </div>
+
+  <div class="fn-card">
+    <div class="fn-head"><span class="fn-name">toggleLeagueExpand · ensureLeagueDataLoaded</span><span class="fn-tag">Expand</span></div>
+    <code class="fn-sig">async toggleLeagueExpand(leagueId) · async ensureLeagueDataLoaded(leagueId)</code>
+    <p class="fn-desc">Expand/collapse a league row. <span class="kbd">ensureLeagueDataLoaded()</span> is the lazy gate — it pulls the per-league data the first time only, then renders the dashboard on every subsequent expansion.</p>
+  </div>
+
+  <div class="fn-card">
+    <div class="fn-head"><span class="fn-name">renderExpandedLeagueContent</span><span class="fn-tag">Render</span></div>
+    <code class="fn-sig">renderExpandedLeagueContent(leagueId, bodyEl)</code>
+    <p class="fn-desc">Renders the full per-league dashboard: position-rank pills, roster section, owned picks, league-team comparison, standings, waivers, trade history.</p>
+  </div>
+
+  <div class="footer-strip"><span>FPTS · FUNCTION REFERENCE</span><span class="accent">14 · MY-LEAGUES · LEAGUES</span></div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════════════════
+     15 — MY-LEAGUES — VALUE MATH
+══════════════════════════════════════════════════════════════════════ -->
+<section class="page">
+  <div class="page-num">15</div>
+  <h2 class="page-title small">MY-LEAGUES · VALUE<br>MATH</h2>
+  <p class="page-tagline">Per-league value math, position ranks, and archetype detection — the data layer behind every league dashboard.</p>
+  <div class="red-bar"></div>
+
+  <div class="fn-card">
+    <div class="fn-head"><span class="fn-name">mlComputeLeagueValueData</span><span class="fn-tag">Core</span></div>
+    <code class="fn-sig">mlComputeLeagueValueData(leagueId)</code>
+    <p class="fn-desc">The heart of the league dashboard. Per team: sum KTC value by position, compute pick value from owned picks, derive average age, then rank every team across the league. Returns the user's own ranks (TOTAL, PLAYER, PICK, QB/RB/WR/TE) plus the league archetype medians used downstream.</p>
+    <p class="fn-meta">Calls <b>mlGetOwnedPicks · mlPickValue · mlGetArchetype</b></p>
+  </div>
+
+  <div class="fn-card">
+    <div class="fn-head"><span class="fn-name">mlGetArchetype · mlArchetypeLabel · mlArchetypeChip · mlArchetypeBg · mlArchetypeFg</span><span class="fn-tag">Archetype</span></div>
+    <code class="fn-sig">mlGetArchetype(avgAge, totalValue, leagueAvg)</code>
+    <p class="fn-desc">9-cell classifier: high/low/mid value × young/old/mid age → Dynasty, Contender, Tweener, Rebuilder, or Emergency. The label/chip/bg/fg helpers are pure presentation glue.</p>
+  </div>
+
+  <div class="fn-card">
+    <div class="fn-head"><span class="fn-name">mlPickValue · mlGetOwnedPicks</span><span class="fn-tag">Picks</span></div>
+    <code class="fn-sig">mlPickValue(season, round) · mlGetOwnedPicks(rosterId, tradedPicks, leagueRounds, currentSeason)</code>
+    <p class="fn-desc">Pick value lookup (KTC table by season and round) and the resolver that walks <span class="kbd">tradedPicks</span> to determine which roster currently owns each of the next ~3 seasons' picks.</p>
+  </div>
+
+  <div class="footer-strip"><span>FPTS · FUNCTION REFERENCE</span><span class="accent">15 · MY-LEAGUES · VALUE</span></div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════════════════
+     16 — MY-LEAGUES — ROSTER & OPTIMAL LINEUP
+══════════════════════════════════════════════════════════════════════ -->
+<section class="page">
+  <div class="page-num">16</div>
+  <h2 class="page-title small">MY-LEAGUES · ROSTER<br>&amp; OPTIMAL LINEUP</h2>
+  <p class="page-tagline">Roster ingest, the big render, the optimal-lineup solver, and the team-by-team comparison view.</p>
+  <div class="red-bar"></div>
+
+  <div class="fn-card">
+    <div class="fn-head"><span class="fn-name">loadRoster · loadRosterScoped</span><span class="fn-tag">Roster</span></div>
+    <code class="fn-sig">async loadRoster(leagueId, season) · async loadRosterScoped(leagueId, season, scopeKey)</code>
+    <p class="fn-desc">Loads the active roster for the user in a specific league. Pulls weekly projections (or season projections in pre-season), the current matchup week, and traded picks. The <em>scoped</em> variant caches under a custom key so multiple league expansions don't trip over each other.</p>
+  </div>
+
+  <div class="fn-card">
+    <div class="fn-head"><span class="fn-name">renderRoster</span><span class="fn-tag">Render</span></div>
+    <code class="fn-sig">renderRoster(playerIds, players, starters, myPicks, rosterToTeam, projections, currentWeek, leagueStatus)</code>
+    <p class="fn-desc">The big render — roster grouped by position, value & trend per player, projected points, optimal-lineup highlights, and a picks section showing owned picks with computed value. Heavy use of inner closures (<span class="kbd">playerRow</span>, <span class="kbd">posSection</span>, <span class="kbd">picksSection</span>, <span class="kbd">pickValue</span>) to keep the per-row HTML tight.</p>
+  </div>
+
+  <div class="fn-card">
+    <div class="fn-head"><span class="fn-name">_mlComputeOptimalLineup</span><span class="fn-tag">Logic</span></div>
+    <code class="fn-sig">_mlComputeOptimalLineup(playerIds, players, projections, rosterPositions)</code>
+    <p class="fn-desc">Solves the optimal lineup. Ranks every player by projection (or KTC value pre-season), then walks roster slots in precedence order (locked positions before flexes before SUPER_FLEX), assigning the highest-scoring eligible player to each slot. Returns the set of optimal-starter IDs so the renderer can highlight mismatches against the user's set lineup.</p>
+  </div>
+
+  <div class="fn-card">
+    <div class="fn-head"><span class="fn-name">mlSortLeagueTeams · renderLeagueTeamsSection · mlToggleTeamRoster · mlBuildTeamRosterHtml</span><span class="fn-tag">Compare</span></div>
+    <code class="fn-sig">renderLeagueTeamsSection(leagueId, ld, sortKey) · mlToggleTeamRoster(leagueId, rosterId) · mlBuildTeamRosterHtml(leagueId, rosterId)</code>
+    <p class="fn-desc">The team-by-team comparison view. Renders one row per opponent with their archetype, total value, position-rank colored badges, and a click-to-expand roster that lazy-builds the first time it's opened.</p>
+  </div>
+
+  <div class="footer-strip"><span>FPTS · FUNCTION REFERENCE</span><span class="accent">16 · MY-LEAGUES · ROSTER</span></div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════════════════
+     17 — MY-LEAGUES — TRADE SUGGESTIONS
+══════════════════════════════════════════════════════════════════════ -->
+<section class="page">
+  <div class="page-num">17</div>
+  <h2 class="page-title small">MY-LEAGUES · TRADE<br>SUGGESTIONS</h2>
+  <p class="page-tagline">Generate counter-offer packages from the user's roster, score by value-fit and archetype-fit, and walk them one card at a time.</p>
+  <div class="red-bar"></div>
+
+  <div class="fn-card">
+    <div class="fn-head"><span class="fn-name">mlGenerateTradeSuggestions</span><span class="fn-tag">Logic</span></div>
+    <code class="fn-sig">mlGenerateTradeSuggestions(myAssets, targetValue, archetype, maxCount)</code>
+    <p class="fn-desc">The package generator. Filters out tiny assets, then enumerates 1-, 2-, and 3-asset combinations whose total lands inside a [0.85, 1.30] × target band. Each candidate is scored on value-fit (55%) + archetype-fit (35%) + fewer-assets preference (10%). The output is bucketed for variety — fair value 1-asset, fair value 2-asset, slight overpay, value package, archetype-tilted — and the rest filled by top score.</p>
+    <p class="fn-meta">Calls <b>mlPackageFit · mlFitNote</b></p>
+  </div>
+
+  <div class="fn-card">
+    <div class="fn-head"><span class="fn-name">mlBuildAssetPool · mlPackageFit · mlFitNote</span><span class="fn-tag">Logic</span></div>
+    <code class="fn-sig">mlBuildAssetPool(leagueId, rosterId) · mlPackageFit(pkg, archetype) · mlFitNote(pkg, archetype, fitScore)</code>
+    <p class="fn-desc">Build the user's tradeable asset pool for a specific league (players + picks normalized to a common shape). The fit functions score and describe how well a candidate package matches the opposing team's archetype (Contender wants veterans, Rebuilder wants picks and youth, etc.).</p>
+  </div>
+
+  <div class="fn-card">
+    <div class="fn-head"><span class="fn-name">openTradeSuggestModal · openTradeSuggestModalForPick · closeTradeSuggestModal</span><span class="fn-tag">Modal</span></div>
+    <code class="fn-sig">openTradeSuggestModal(sleeperId, leagueId) · openTradeSuggestModalForPick(season, round, leagueId, ownerRosterId)</code>
+    <p class="fn-desc">Open the one-card-at-a-time pre-screener seeded with either a player or a pick. Builds asset pools for both sides, runs the generator, and stashes the templates inside the module-scoped <span class="kbd">MLTB</span> state.</p>
+  </div>
+
+  <div class="fn-card">
+    <div class="fn-head"><span class="fn-name">mltbRender · mltbReject · mltbAccept · mltbOpenCalculatorBlank · mltbCalcCtaBlock</span><span class="fn-tag">Modal</span></div>
+    <code class="fn-sig">mltbRender() · mltbReject() · mltbAccept(payload) · mltbOpenCalculatorBlank()</code>
+    <p class="fn-desc">The walkthrough UI. Show the current template, ✗ advances, ✓ opens the league-scoped calc modal with the package pre-loaded. After all templates are reviewed the user can open the calculator blank to design their own.</p>
+  </div>
+
+  <div class="footer-strip"><span>FPTS · FUNCTION REFERENCE</span><span class="accent">17 · MY-LEAGUES · SUGGEST</span></div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════════════════
+     18 — MY-LEAGUES — CALC MODAL & WAIVERS
+══════════════════════════════════════════════════════════════════════ -->
+<section class="page">
+  <div class="page-num">18</div>
+  <h2 class="page-title small">MY-LEAGUES · CALC<br>MODAL &amp; WAIVERS</h2>
+  <p class="page-tagline">League-scoped in-page calculator and the four waiver sub-tabs, both driven by the same per-week transaction ingest.</p>
+  <div class="red-bar"></div>
+
+  <h3 class="fn-section-head">Calc modal</h3>
+
+  <div class="fn-card">
+    <div class="fn-head"><span class="fn-name">openCalcModal · closeCalcModal · renderCalcModal · mlCalcSideTotal · mlCalcSearch · mlCalcAdd · mlCalcRemove · mlCalcHideResults</span><span class="fn-tag">Modal</span></div>
+    <code class="fn-sig">openCalcModal(targetName, targetSleeperId, opts) · renderCalcModal()</code>
+    <p class="fn-desc">In-page calculator scoped to a league — the search index includes only that league's players plus the user's owned picks. Two sides, totals on every change, balance verdict. Doubles as the "open with pre-loaded package" target for the trade suggest flow.</p>
+  </div>
+
+  <h3 class="fn-section-head">Waivers</h3>
+
+  <div class="fn-card">
+    <div class="fn-head"><span class="fn-name">fetchAndCacheWaivers · mlEnsureWaiversRaw</span><span class="fn-tag">Ingest</span></div>
+    <code class="fn-sig">async fetchAndCacheWaivers(leagueId, players, displayWeek) · async mlEnsureWaiversRaw(leagueId)</code>
+    <p class="fn-desc">Pulls every week's transactions in parallel and aggregates them per player ID — count of adds and average winning bid. The raw waiver list is also retained for the sub-tabs that need transaction-level detail.</p>
+  </div>
+
+  <div class="fn-card">
+    <div class="fn-head"><span class="fn-name">mlWaiversSetSubtab · renderWaiversSubtab · renderWaiversLeaderboard · renderWaiversTopBids · renderWaiversRecent · renderWaiversByTeam</span><span class="fn-tag">Render</span></div>
+    <code class="fn-sig">mlWaiversSetSubtab(leagueId, subtab, tabEl) · renderWaiversSubtab(leagueId, subtab)</code>
+    <p class="fn-desc">Four waiver sub-tabs — Leaderboard (most successful bidders), Top Bids (largest FAAB outlays), Recent (full activity feed), By Team (per-team pickup rollup). Each receives the shared raw data and renders independently.</p>
+  </div>
+
+  <div class="footer-strip"><span>FPTS · FUNCTION REFERENCE</span><span class="accent">18 · MY-LEAGUES · WAIVERS</span></div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════════════════
+     19 — MY-LEAGUES — STANDINGS, HISTORY, EXPOSURE, AVAILABILITY
+══════════════════════════════════════════════════════════════════════ -->
+<section class="page">
+  <div class="page-num">19</div>
+  <h2 class="page-title small">MY-LEAGUES · HISTORY,<br>EXPOSURE, AVAILABILITY</h2>
+  <p class="page-tagline">Standings with positional scoring breakdowns, multi-year trade history walking the league-chain, exposure across every loaded league, and cross-league availability for any single player.</p>
+  <div class="red-bar"></div>
+
+  <h3 class="fn-section-head">Standings &amp; picks</h3>
+
+  <div class="fn-card">
+    <div class="fn-head"><span class="fn-name">loadStandings · renderStandingsTable · mlSetStandingsSort</span><span class="fn-tag">Standings</span></div>
+    <code class="fn-sig">async loadStandings(leagueId) · renderStandingsTable() · mlSetStandingsSort(key)</code>
+    <p class="fn-desc">Pulls all rosters and matchups, derives wins/losses/PF/PA, max points, max-points percentage, and points-by-position breakdown. Renders a sortable table with the user's row highlighted.</p>
+  </div>
+
+  <div class="fn-card">
+    <div class="fn-head"><span class="fn-name">loadPicks</span><span class="fn-tag">Picks</span></div>
+    <code class="fn-sig">async loadPicks(leagueId)</code>
+    <p class="fn-desc">Loads the user's owned-picks list for the picks-panel surface — every pick the user owns in this league, sorted, with computed KTC value.</p>
+  </div>
+
+  <h3 class="fn-section-head">Trade history (multi-year)</h3>
+
+  <div class="fn-card">
+    <div class="fn-head"><span class="fn-name">loadAllTrades · loadAllTradesScoped · showTradeYear · renderTradeYear · mlHistorySetMode</span><span class="fn-tag">History</span></div>
+    <code class="fn-sig">async loadAllTrades(leagueId, season) · showTradeYear(leagueId, idx, tabEl) · async renderTradeYear(leagueId, idx, allTradesByYear, players, leagueChain)</code>
+    <p class="fn-desc">Walks the Sleeper league-chain (<span class="kbd">previous_league_id</span>) back as far as 2017, fetching trades for every season. <span class="kbd">renderTradeYear()</span> renders the active year's trades; <span class="kbd">mlHistorySetMode()</span> swaps between Trades and Waivers in the history surface.</p>
+  </div>
+
+  <h3 class="fn-section-head">Cross-league availability</h3>
+
+  <div class="fn-card">
+    <div class="fn-head"><span class="fn-name">mlGetPlayerAvailability · renderPlayerAvailability</span><span class="fn-tag">Availability</span></div>
+    <code class="fn-sig">mlGetPlayerAvailability(sleeperId) · renderPlayerAvailability(sleeperId)</code>
+    <p class="fn-desc">For a given player, scans every loaded league to determine: <em>mine</em>, <em>owned by X</em>, <em>free agent</em>, or <em>no roster</em>. Used inside the player-detail modal to surface "owned by you in League A, free in League B, owned by Smith in League C" rollups.</p>
+  </div>
+
+  <h3 class="fn-section-head">Exposure</h3>
+
+  <div class="fn-card">
+    <div class="fn-head"><span class="fn-name">computePlayerExposure · computePickExposure</span><span class="fn-tag">Aggregate</span></div>
+    <code class="fn-sig">computePlayerExposure() · computePickExposure()</code>
+    <p class="fn-desc">Walks every loaded league, counts how many leagues own each player and each pick, and computes exposure % (shares / total leagues). Output cached on <span class="kbd">window.ML_EXPOSURE_DATA</span> and <span class="kbd">window.ML_EXPOSURE_PICKS</span>.</p>
+  </div>
+
+  <div class="fn-card">
+    <div class="fn-head"><span class="fn-name">renderExposureList · mlSortExposure · mlSetExposureFilter</span><span class="fn-tag">Render</span></div>
+    <code class="fn-sig">renderExposureList() · mlSortExposure(col) · mlSetExposureFilter(pos)</code>
+    <p class="fn-desc">Render the exposure table with position filter, search, and per-column sort. Click any row → opens the player detail modal listing the contributing leagues.</p>
+  </div>
+
+  <div class="fn-card">
+    <div class="fn-head"><span class="fn-name">openPickExposurePicker · closePickExposurePicker</span><span class="fn-tag">Pick</span></div>
+    <code class="fn-sig">openPickExposurePicker(season, round) · closePickExposurePicker()</code>
+    <p class="fn-desc">Picker that surfaces every league where the user owns a particular season+round pick, with one-click handoff into the league-scoped calculator.</p>
+  </div>
+
+  <div class="footer-strip"><span>FPTS · FUNCTION REFERENCE</span><span class="accent">19 · MY-LEAGUES · HISTORY</span></div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════════════════
+     20 — MY-LEAGUES — PLAYER DETAIL & HELPERS
+══════════════════════════════════════════════════════════════════════ -->
+<section class="page">
+  <div class="page-num">20</div>
+  <h2 class="page-title small">MY-LEAGUES · DETAIL<br>&amp; HELPERS</h2>
+  <p class="page-tagline">The cross-league player detail modal pulls it all together — your status in every league, owner, archetype, KTC value, articles. Closes out the file with helper grids.</p>
+  <div class="red-bar"></div>
+
+  <div class="fn-card">
+    <div class="fn-head"><span class="fn-name">openPlayerDetail · closePlayerDetail</span><span class="fn-tag">Modal</span></div>
+    <code class="fn-sig">openPlayerDetail(sleeperId) · closePlayerDetail()</code>
+    <p class="fn-desc">Opens the player detail modal. Aggregates the per-league status rows (<span class="kbd">mlGetPlayerAvailability</span>), the player's KTC value, photo, years of experience, status, and the cross-league exposure summary. Mounts the article feed via the shared <span class="kbd">mountPlayerArticles()</span>.</p>
+  </div>
+
+  <div class="fn-card">
+    <div class="fn-head"><span class="fn-name">mlGetPlayerStatus · mlGetKtcByName · mlPlayerName</span><span class="fn-tag">Resolve</span></div>
+    <code class="fn-sig">mlGetPlayerStatus(sleeperId) · mlGetKtcByName(name) · mlPlayerName(sleeperId)</code>
+    <p class="fn-desc">Quick resolvers used by every row: status (<em>mine</em>, <em>owned by X</em>, <em>free</em>) with FAAB summary, KTC entry by canonicalized name, and full display name from Sleeper player ID.</p>
+  </div>
+
+  <h3 class="fn-section-head">UI toggles &amp; persistence</h3>
+
+  <div class="helper-grid">
+    <div class="helper-col">
+      <p class="helper-head">Availability section</p>
+      <div class="helper-row"><code>mlGetAvailabilityCollapsed()</code> · <span class="h-desc">read collapsed state</span></div>
+      <div class="helper-row"><code>mlSetAvailabilityCollapsed(on)</code> · <span class="h-desc">write collapsed state</span></div>
+      <div class="helper-row"><code>mlToggleAvailability()</code> · <span class="h-desc">toggle &amp; persist</span></div>
+      <div class="helper-row"><code>mlGetHideUsernames()</code> · <span class="h-desc">privacy toggle</span></div>
+      <div class="helper-row"><code>mlSetHideUsernames(on)</code> · <span class="h-desc">privacy toggle</span></div>
+    </div>
+    <div class="helper-col">
+      <p class="helper-head">Exposure section</p>
+      <div class="helper-row"><code>mlGetExposureCollapsed()</code> · <span class="h-desc">read collapsed state</span></div>
+      <div class="helper-row"><code>mlSetExposureCollapsed(on)</code> · <span class="h-desc">write collapsed state</span></div>
+      <div class="helper-row"><code>mlApplyExposureCollapsed()</code> · <span class="h-desc">enforce state on render</span></div>
+      <div class="helper-row"><code>mlToggleExposure()</code> · <span class="h-desc">toggle &amp; persist</span></div>
+    </div>
+  </div>
+
+  <h3 class="fn-section-head">Helpers · my-leagues.html</h3>
+
+  <div class="helper-grid three">
+    <div class="helper-col">
+      <p class="helper-head">Formatting &amp; chips</p>
+      <div class="helper-row"><code>mlEscapeHTML(s)</code> · <span class="h-desc">XSS-safe text</span></div>
+      <div class="helper-row"><code>posColor(pos)</code> · <span class="h-desc">position → hex</span></div>
+      <div class="helper-row"><code>posBadge(pos)</code> · <span class="h-desc">position pill HTML</span></div>
+      <div class="helper-row"><code>rankBadge(rank)</code> · <span class="h-desc">numeric rank chip</span></div>
+      <div class="helper-row"><code>fmtDate(ts)</code> · <span class="h-desc">unix → readable</span></div>
+      <div class="helper-row"><code>_mlPosrNum(posR, fallback)</code> · <span class="h-desc">parse position rank</span></div>
+    </div>
+    <div class="helper-col">
+      <p class="helper-head">Avatars &amp; UI</p>
+      <div class="helper-row"><code>playerThumb(sleeperId)</code> · <span class="h-desc">Sleeper avatar img</span></div>
+      <div class="helper-row"><code>pickThumb()</code> · <span class="h-desc">pick placeholder</span></div>
+      <div class="helper-row"><code>mlImgInitialsFallback(img)</code> · <span class="h-desc">broken-img fallback</span></div>
+      <div class="helper-row"><code>showError · hideError</code> · <span class="h-desc">global error banner</span></div>
+      <div class="helper-row"><code>showSpinner · hideSpinner</code> · <span class="h-desc">loader toggle</span></div>
+      <div class="helper-row"><code>findRosterIdByUser(map, userId)</code> · <span class="h-desc">reverse lookup</span></div>
+    </div>
+    <div class="helper-col">
+      <p class="helper-head">Cross-page handoffs</p>
+      <div class="helper-row"><code>_fptsXpageMlPdToDb()</code> · <span class="h-desc">player → database</span></div>
+      <div class="helper-row"><code>_fptsXpageMlPdToCalc()</code> · <span class="h-desc">player → calculator</span></div>
+      <div class="helper-row"><code>_fptsXpageMlTsToDb()</code> · <span class="h-desc">suggest target → db</span></div>
+      <div class="helper-row"><code>_fptsXpageMlPepToDb()</code> · <span class="h-desc">pick exposure → db</span></div>
+      <div class="helper-row"><code>_mlPepGoToCalc(...)</code> · <span class="h-desc">pick exp → calc</span></div>
+      <div class="helper-row"><code>toggleTheme()</code> · <span class="h-desc">dark ↔ light</span></div>
+    </div>
+  </div>
+
+  <div class="footer-strip"><span>FPTS · FUNCTION REFERENCE</span><span class="accent">20 · MY-LEAGUES · DETAIL</span></div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════════════════
+     21 — TIERS.HTML
+══════════════════════════════════════════════════════════════════════ -->
+<section class="page">
+  <div class="page-num">21</div>
+  <h2 class="page-title small">TIERS · GROUPED<br>&amp; FLAT VIEWS</h2>
+  <p class="page-tagline">A small, tight file. Two views, three editorial chip columns, and a hand-curated tier order driving both group rendering and sort.</p>
+  <div class="red-bar"></div>
+
+  <h3 class="fn-section-head">Render &amp; sort</h3>
+
+  <div class="fn-card">
+    <div class="fn-head"><span class="fn-name">renderTiers · setView</span><span class="fn-tag">Render</span></div>
+    <code class="fn-sig">renderTiers() · setView(v)</code>
+    <p class="fn-desc">Main renderer. In <em>grouped</em> mode, walks <span class="kbd">TIER_ORDER</span> and emits one section per tier with its description header. In <em>flat</em> mode, applies the active sort and renders a single sortable table. <span class="kbd">setView()</span> swaps modes and updates the toggle button state.</p>
+  </div>
+
+  <div class="fn-card">
+    <div class="fn-head"><span class="fn-name">applyFilters</span><span class="fn-tag">Filter</span></div>
+    <code class="fn-sig">applyFilters(players)</code>
+    <p class="fn-desc">Applies the position filter (All / QB / RB / WR / TE / PICK) and tier filter (any single tier) to the source list. <span class="kbd">PICK</span> uses <span class="kbd">isPick()</span> rather than a position match.</p>
+  </div>
+
+  <div class="fn-card">
+    <div class="fn-head"><span class="fn-name">setSortCol · sortPlayers</span><span class="fn-tag">Sort</span></div>
+    <code class="fn-sig">setSortCol(col) · sortPlayers(players)</code>
+    <p class="fn-desc">Sort only applies in flat view. <span class="kbd">setSortCol()</span> toggles direction on the same column or resets to ascending on a new column. <span class="kbd">sortPlayers()</span> handles tier ordering through <span class="kbd">TIER_ORDER.indexOf()</span>, numeric columns via <span class="kbd">parseFloat</span>, and auction by stripping non-digits before parsing.</p>
+  </div>
+
+  <div class="fn-card">
+    <div class="fn-head"><span class="fn-name">renderRowHtml · renderHeaderRow</span><span class="fn-tag">Render</span></div>
+    <code class="fn-sig">renderRowHtml(p) · renderHeaderRow()</code>
+    <p class="fn-desc">The row and header templates. Header columns: Tier · Player · Age · Pos · Pos Rank · Team · 2026 ADP · 2025 ADP · Auction · 2025 PPG · Trending · Buy/Sell · Priority · Contender.</p>
+  </div>
+
+  <h3 class="fn-section-head">Chips &amp; helpers</h3>
+
+  <div class="helper-grid">
+    <div class="helper-col">
+      <p class="helper-head">Editorial chips</p>
+      <div class="helper-row"><code>bshChipHtml(val)</code> · <span class="h-desc">Buy / Sell / Hold</span></div>
+      <div class="helper-row"><code>priorityChipHtml(val)</code> · <span class="h-desc">must-target tier</span></div>
+      <div class="helper-row"><code>contenderChipHtml(val)</code> · <span class="h-desc">win-now flag</span></div>
+      <div class="helper-row"><code>tierBadgeClass(tier)</code> · <span class="h-desc">S++…F- → CSS class</span></div>
+    </div>
+    <div class="helper-col">
+      <p class="helper-head">Predicates &amp; format</p>
+      <div class="helper-row"><code>pc(p)</code> · <span class="h-desc">position → CSS class</span></div>
+      <div class="helper-row"><code>isPick(p)</code> · <span class="h-desc">rookie-pick detector</span></div>
+      <div class="helper-row"><code>fmtCell(v)</code> · <span class="h-desc">empty-safe text cell</span></div>
+      <div class="helper-row"><code>fmtNumeric(v)</code> · <span class="h-desc">empty-safe number cell</span></div>
+      <div class="helper-row"><code>toggleTheme()</code> · <span class="h-desc">dark ↔ light</span></div>
+    </div>
+  </div>
+
+  <h3 class="fn-section-head">Cross-page handoffs</h3>
+
+  <div class="helper-grid">
+    <div class="helper-col">
+      <p class="helper-head">From toolbar</p>
+      <div class="helper-row"><code>_fptsXpageTiersToDb()</code> · <span class="h-desc">→ index.html</span></div>
+      <div class="helper-row"><code>_fptsXpageTiersToCalc()</code> · <span class="h-desc">→ trade-calculator.html</span></div>
+    </div>
+    <div class="helper-col">
+      <p class="helper-head">From row</p>
+      <div class="helper-row"><code>_fptsTiersOpenPlayer(name)</code> · <span class="h-desc">player click → db w/ panel open</span></div>
+    </div>
+  </div>
+
+  <div class="footer-strip"><span>FPTS · FUNCTION REFERENCE</span><span class="accent">21 · TIERS</span></div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════════════════
+     22 — TRADE-CALCULATOR.HTML — BUILD & SIDES
+══════════════════════════════════════════════════════════════════════ -->
+<section class="page">
+  <div class="page-num">22</div>
+  <h2 class="page-title small">TRADE CALCULATOR ·<br>BUILDER &amp; BALANCE</h2>
+  <p class="page-tagline">Pure builder. Format-aware multipliers, FAAB inclusion at 10× weight, and a balance verdict that updates on every input event.</p>
+  <div class="red-bar"></div>
+
+  <h3 class="fn-section-head">Build &amp; render</h3>
+
+  <div class="fn-card">
+    <div class="fn-head"><span class="fn-name">renderAll · renderBuilder</span><span class="fn-tag">Render</span></div>
+    <code class="fn-sig">renderAll() · renderBuilder()</code>
+    <p class="fn-desc">Top-level render — composes the builder columns and then recalculates. <span class="kbd">renderBuilder()</span> emits one side card per entry in <span class="kbd">sides</span>: side header with total, asset list, FAAB row, and the side's own search input + results dropdown.</p>
+  </div>
+
+  <div class="fn-card">
+    <div class="fn-head"><span class="fn-name">recalc · renderBalance</span><span class="fn-tag">Calc</span></div>
+    <code class="fn-sig">recalc() · renderBalance()</code>
+    <p class="fn-desc">Recalc total readouts on each side, then redraw the balance bar. For two-side trades the verdict is <span class="kbd">⚖ Fair Trade</span> under 5% difference, otherwise <span class="kbd">▲ Side X wins (+N%)</span> with a color-coded fill.</p>
+  </div>
+
+  <div class="fn-card">
+    <div class="fn-head"><span class="fn-name">sideTotal · adjVal · getMultiplier</span><span class="fn-tag">Logic</span></div>
+    <code class="fn-sig">sideTotal(side) · adjVal(asset) · getMultiplier(pos)</code>
+    <p class="fn-desc"><span class="kbd">sideTotal</span> sums adjusted asset values plus FAAB×10. <span class="kbd">adjVal</span> applies the position multiplier (picks pass through untouched). <span class="kbd">getMultiplier</span> reads the format selects and returns the per-position factor — QB up 15% in SF, RB shifts 0.93–1.04 by PPR, TE adds 12% per TEP point, etc.</p>
+  </div>
+
+  <h3 class="fn-section-head">Sides &amp; assets</h3>
+
+  <div class="fn-card">
+    <div class="fn-head"><span class="fn-name">addSide · removeSide · updateFaab · resetAll</span><span class="fn-tag">State</span></div>
+    <code class="fn-sig">addSide() · removeSide(id) · updateFaab(sideId, val) · resetAll()</code>
+    <p class="fn-desc">Add a third side (max three), remove a side, update a side's FAAB allotment, or reset the entire builder. Every state change re-runs <span class="kbd">renderAll()</span>.</p>
+  </div>
+
+  <div class="fn-card">
+    <div class="fn-head"><span class="fn-name">searchAssets · _doSearch · showResults · hideResults · searchKeydown · addAssetToSide · removeAsset</span><span class="fn-tag">Search</span></div>
+    <code class="fn-sig">searchAssets(sideId, query) · addAssetToSide(sideId, asset) · removeAsset(sideId, idx)</code>
+    <p class="fn-desc">Per-side asset search. Splits matches into players + rookie picks, renders a dropdown of up to ~10 results, supports keyboard escape to close, and pushes/pops the side's asset list with re-renders triggered after each mutation.</p>
+  </div>
+
+  <h3 class="fn-section-head">Filters &amp; trade-search (shared with Database)</h3>
+
+  <div class="fn-card">
+    <div class="fn-head"><span class="fn-name">applyFilters · applyPreset · resetFilters · setDatePreset · clearDates · tradeSearchInput · tradeSearchKey · tradeSearchAdd · removeTradeSearchAsset</span><span class="fn-tag">Filters</span></div>
+    <p class="fn-desc">The same filter and two-sided trade-search engine as <span class="kbd">index.html</span>. The Calculator embeds it so the user can comp their built trade against real trades without leaving the page.</p>
+  </div>
+
+  <div class="footer-strip"><span>FPTS · FUNCTION REFERENCE</span><span class="accent">22 · TRADE CALCULATOR</span></div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════════════════
+     23 — TRADE-CALCULATOR.HTML — HELPERS & HANDOFFS
+══════════════════════════════════════════════════════════════════════ -->
+<section class="page">
+  <div class="page-num">23</div>
+  <h2 class="page-title small">TRADE CALCULATOR ·<br>HELPERS &amp; HANDOFFS</h2>
+  <p class="page-tagline">Shared utilities, UI glue, and the cross-page handoff entry points that move a built trade into the Database or My Leagues.</p>
+  <div class="red-bar"></div>
+
+  <div class="helper-grid three">
+    <div class="helper-col">
+      <p class="helper-head">Avatars &amp; predicates</p>
+      <div class="helper-row"><code>_imgThumb(name, size)</code></div>
+      <div class="helper-row"><code>pickThumb(size)</code></div>
+      <div class="helper-row"><code>normalizePlayerName(name)</code></div>
+      <div class="helper-row"><code>getAllAssets()</code></div>
+      <div class="helper-row"><code>highlightMatch(name, query)</code></div>
+    </div>
+    <div class="helper-col">
+      <p class="helper-head">UI glue</p>
+      <div class="helper-row"><code>renderPickTags()</code></div>
+      <div class="helper-row"><code>renderTradeSideTags(side)</code></div>
+      <div class="helper-row"><code>renderAssetFilterTags()</code></div>
+      <div class="helper-row"><code>clearMainSearch()</code></div>
+      <div class="helper-row"><code>toggleMobileFilters()</code></div>
+      <div class="helper-row"><code>toggleTheme()</code></div>
+    </div>
+    <div class="helper-col">
+      <p class="helper-head">Handoffs</p>
+      <div class="helper-row"><code>_fptsXpageCalcToDb()</code> · <span class="h-desc">→ index.html</span></div>
+      <div class="helper-row"><code>_fptsXpageCalcToLeagues()</code> · <span class="h-desc">→ my-leagues.html</span></div>
+      <div class="helper-row"><code>_fptsCalcCurrentTrade()</code> · <span class="h-desc">serialize builder state</span></div>
+    </div>
+  </div>
+
+  <div class="footer-strip"><span>FPTS · FUNCTION REFERENCE</span><span class="accent">23 · CALC · HELPERS</span></div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════════════════
+     24 — DOS & DONTS / WORKING WITH THIS DOC
+══════════════════════════════════════════════════════════════════════ -->
+<section class="page">
+  <div class="page-num">24</div>
+  <h2 class="page-title">CLOSING<br>NOTES</h2>
+  <p class="page-tagline">A presentation reminder, plus the working conventions that will keep this codebase coherent as it grows.</p>
+  <div class="red-bar"></div>
+
+  <h3 class="fn-section-head">Do's &amp; Don'ts</h3>
+
+  <div class="dod-grid">
+    <div class="dod-cell do"><span class="mark">✓</span>Add new feature work as one self-contained block per HTML file — inline CSS, inline JS, inline data.</div>
+    <div class="dod-cell dont"><span class="mark">✗</span>Introduce a build step, bundler, or external JS dependency.</div>
+
+    <div class="dod-cell do"><span class="mark">✓</span>Pass cross-page state through the <span class="kbd">_fptsWriteHandoff</span> / <span class="kbd">_fptsReadHandoff</span> envelope.</div>
+    <div class="dod-cell dont"><span class="mark">✗</span>Drop state into URL hashes or query strings without an envelope schema.</div>
+
+    <div class="dod-cell do"><span class="mark">✓</span>Reuse <span class="kbd">getAllAssets()</span> for any new "search players or picks" feature.</div>
+    <div class="dod-cell dont"><span class="mark">✗</span>Re-derive the asset list from <span class="kbd">KTC_DATA</span> in a new helper — keep one source of truth.</div>
+
+    <div class="dod-cell do"><span class="mark">✓</span>Escape user input through <span class="kbd">mlEscapeHTML()</span> before insertion into innerHTML.</div>
+    <div class="dod-cell dont"><span class="mark">✗</span>String-concatenate Sleeper-returned text directly into innerHTML.</div>
+
+    <div class="dod-cell do"><span class="mark">✓</span>Keep headlines in Kanit Extrabold Italic, body in Mulish — matches Brand Style Guide v6.</div>
+    <div class="dod-cell dont"><span class="mark">✗</span>Set body copy in Kanit or headlines in Mulish.</div>
+
+    <div class="dod-cell do"><span class="mark">✓</span>Use the brand palette — <span class="kbd">#CC3333</span>, <span class="kbd">#111111</span>, <span class="kbd">#F0F0F0</span> — through CSS variables.</div>
+    <div class="dod-cell dont"><span class="mark">✗</span>Inline arbitrary hex values into per-component styles.</div>
+  </div>
+
+  <h3 class="fn-section-head">How to update this document</h3>
+
+  <p class="feature-body">This file lives at <span class="kbd">docs/function-reference.html</span> and ships alongside the four main pages. When a new function lands or an existing one changes scope, edit this file the same way you edit the others, then run <span class="kbd">push.bat</span> to commit and deploy. The file is print-styled for Letter portrait — open in Chrome, <span class="kbd">Ctrl/Cmd + P</span>, set destination to <em>Save as PDF</em>, layout Portrait, margins None, and turn on background graphics.</p>
+
+  <div class="footer-strip"><span>FPTS · FUNCTION REFERENCE</span><span class="accent">24 · CLOSING · END</span></div>
+</section>
+
+</body>
+</html>
