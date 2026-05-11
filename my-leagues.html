@@ -5650,6 +5650,12 @@ function mlComputeLeagueValueData(leagueId) {
   // Pick rank — based on total pick value, available for all teams now
   const sortedByPicks = [...teams].sort((a,b) => (b.pickValue||0) - (a.pickValue||0));
   myRanks.PICK = myTeam ? sortedByPicks.findIndex(t => t.isMe) + 1 : '—';
+  // Total roster rank (players + picks combined)
+  const sortedByGrand = [...teams].sort((a,b) => ((b.total||0) + (b.pickValue||0)) - ((a.total||0) + (a.pickValue||0)));
+  myRanks.TOTAL = myTeam ? sortedByGrand.findIndex(t => t.isMe) + 1 : '—';
+  // Player-only value rank (QB+RB+WR+TE total, no picks)
+  const sortedByPlayers = [...teams].sort((a,b) => (b.total||0) - (a.total||0));
+  myRanks.PLAYER = myTeam ? sortedByPlayers.findIndex(t => t.isMe) + 1 : '—';
 
   // Compute archetype (uses league medians)
   const median = arr => {
@@ -6893,14 +6899,23 @@ function renderRoster(playerIds, players, starters, myPicks, rosterToTeam, proje
   const starterList = allPlayers.filter(r => r.isStart);
   const projTotal   = starterList.reduce((s,r) => s + (r.proj||0), 0);
 
+  // Fetch league-wide ranks (vs other teams in this league) for the summary cards
+  const _summaryLd  = (window.ML_LEAGUE && window.ML_LEAGUE.league_id) ? mlComputeLeagueValueData(window.ML_LEAGUE.league_id) : null;
+  const _teamCount  = (_summaryLd && _summaryLd.teams) ? _summaryLd.teams.length : 0;
+  const _rankColor  = (rank) => (typeof rank === 'number' && rank <= 3) ? 'var(--green)'
+                              : (typeof rank === 'number' && rank <= Math.ceil(_teamCount/2)) ? 'var(--white)'
+                              : (typeof rank === 'number') ? 'var(--red)' : 'var(--muted)';
+  const _rankBadge  = (rank) => {
+    const rankText = typeof rank === 'number' ? '#'+rank : '—';
+    return `<span title="Rank ${rankText} of ${_teamCount}" style="font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:13px;color:${_rankColor(rank)};padding:1px 6px;background:var(--surface);border:1px solid var(--border);border-radius:3px">${rankText}</span>`;
+  };
+
   const summary = `
     <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:24px;padding:16px;background:var(--surface2);border:1px solid var(--border)">
-      <div><div style="font-family:'Mulish',sans-serif;font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);opacity:.45">Total Roster Value</div>
+      <div><div style="display:flex;align-items:center;gap:8px;margin-bottom:2px"><span style="font-family:'Mulish',sans-serif;font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);opacity:.45">Total Roster Value</span>${_rankBadge(_summaryLd && _summaryLd.myRanks && _summaryLd.myRanks.TOTAL)}</div>
            <div style="font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:22px;color:var(--white)">${grandTotal.toLocaleString()}</div></div>
-      <div><div style="font-family:'Mulish',sans-serif;font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);opacity:.45">Player Value</div>
+      <div><div style="display:flex;align-items:center;gap:8px;margin-bottom:2px"><span style="font-family:'Mulish',sans-serif;font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);opacity:.45">Player Value</span>${_rankBadge(_summaryLd && _summaryLd.myRanks && _summaryLd.myRanks.PLAYER)}</div>
            <div style="font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:22px;color:var(--white)">${totalPlayerVal.toLocaleString()}</div></div>
-      <div><div style="font-family:'Mulish',sans-serif;font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);opacity:.45">Draft Pick Value</div>
-           <div style="font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:22px;color:var(--pos-pick-bg)">${totalPickVal ? totalPickVal.toLocaleString() : '—'}</div></div>
       ${projTotal > 0 ? `<div><div style="font-family:'Mulish',sans-serif;font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);opacity:.45">Proj Starter Pts Wk${currentWeek||''}</div>
            <div style="font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:22px;color:var(--green)">${projTotal.toFixed(1)}</div></div>` : ''}
     </div>`;
