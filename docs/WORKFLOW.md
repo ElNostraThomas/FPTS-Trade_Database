@@ -160,6 +160,7 @@ If FP adds new endpoints you want to use, or you want to add a new data input:
 | `data/picks.json` | Rookie pick values (auto-generated) |
 | `data/projections.json` | Weekly + season projections (auto-generated) |
 | `data/articles.json` | Player → recent articles map (auto-generated) |
+| `data/rank-history.json` | Rolling rank snapshots (per-date), used to compute 30-day trend for risers/fallers. Auto-managed by `sync-fp.py`. Snapshots > 90 days old are auto-pruned. |
 | `docs/function-reference.html` | Source of the function reference (hand-edited) |
 | `docs/function-reference.pdf` | Generated from the HTML by `make-pdf.ps1` |
 | `docs/WORKFLOW.md` | This file |
