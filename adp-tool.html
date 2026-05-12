@@ -115,14 +115,6 @@
   .search-box .clear { cursor:pointer; opacity:.5; transition:opacity .12s; font-size:13px; }
   .search-box .clear:hover { opacity:1; color:var(--red); }
   .search-box .clear.hidden { display:none; }
-  .filter-chips { display:flex; flex-wrap:wrap; gap:6px; padding:0 0 10px; align-items:center; }
-  .filter-chips:empty { display:none; }
-  .filter-chip { display:inline-flex; align-items:center; gap:4px; padding:4px 4px 4px 10px; background:var(--red-bg); border:1px solid var(--red); color:var(--white); font-family:'Mulish',sans-serif; font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:.06em; }
-  .filter-chip .lbl { color:var(--red); }
-  .filter-chip .x { cursor:pointer; padding:0 6px; font-weight:800; opacity:.7; user-select:none; }
-  .filter-chip .x:hover { opacity:1; color:var(--red); }
-  .filter-chips-clear { font-family:'Mulish',sans-serif; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--white); opacity:.55; background:none; border:none; cursor:pointer; padding:4px 8px; }
-  .filter-chips-clear:hover { color:var(--red); opacity:1; }
   .pos-breakdown { display:flex; gap:6px; flex-wrap:wrap; padding:0 0 14px; align-items:center; }
   .pos-breakdown .pb-label { font-family:'Mulish',sans-serif; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.07em; color:var(--white); opacity:.55; margin-right:4px; }
   .pos-breakdown .pb-item { display:inline-flex; align-items:center; gap:4px; font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:11px; padding:3px 9px; letter-spacing:.04em; cursor:pointer; transition:transform .12s, box-shadow .12s; user-select:none; }
@@ -133,6 +125,8 @@
   .pos-breakdown .pb-item.WR { background:var(--pos-wr-bg); color:var(--pos-wr); }
   .pos-breakdown .pb-item.TE { background:var(--pos-te-bg); color:var(--pos-te); }
   .pos-breakdown .pb-item.K  { background:var(--pos-k-bg);  color:var(--pos-k); }
+  .pos-breakdown .pb-clear { font-family:'Mulish',sans-serif; font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:.06em; padding:3px 10px; background:transparent; border:1px solid var(--border2); color:var(--white); opacity:.7; cursor:pointer; margin-left:6px; transition:all .12s; }
+  .pos-breakdown .pb-clear:hover { color:var(--red); border-color:var(--red); opacity:1; }
   /* Trend badge — uses a dark overlay so the bright arrow colour stays legible on
      every position-coloured card (QB red / RB green / WR blue / TE orange / K purple) */
   .trend { display:inline-flex; align-items:center; gap:2px; font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:10px; padding:1px 6px; letter-spacing:.04em; margin-left:4px; background:rgba(0,0,0,.55); border:1px solid rgba(0,0,0,.15); }
@@ -203,11 +197,12 @@
   .box-card .card-adp { font-weight:700; opacity:.78; font-size:9px; }
   .box-card .card-name { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; line-height:1; overflow:hidden; margin-top:1px; padding-right:26px; }
   .box-card .card-fname { font-size:9px; line-height:1; opacity:.8; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-  .box-card .card-lname { font-size:13px; line-height:1.05; margin-top:1px; word-break:break-word; overflow:hidden; max-height:30px; }
+  /* Last name forced to a single line so card heights stay uniform across the board */
+  .box-card .card-lname { font-size:12px; line-height:1.1; margin-top:1px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .box-card .card-meta { display:flex; align-items:center; gap:4px; font-family:'Mulish',sans-serif; font-size:9px; font-weight:800; letter-spacing:.04em; margin-top:auto; opacity:.85; padding-top:2px; padding-right:26px; }
-  /* Small circular headshot pinned to the bottom-right corner — out of the way of the top stats row */
-  .box-card .card-hs { position:absolute; bottom:4px; right:4px; width:22px; height:22px; border-radius:50%; object-fit:cover; object-position:top; border:1px solid rgba(0,0,0,.18); background:rgba(0,0,0,.1); }
-  .box-card .card-hs-fallback { position:absolute; bottom:4px; right:4px; width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:11px; color:inherit; opacity:.55; background:rgba(0,0,0,.12); border:1px solid rgba(0,0,0,.18); }
+  /* Small circular headshot pinned to the bottom-right corner — matches the reference layout */
+  .box-card .card-hs { position:absolute; bottom:4px; right:4px; width:24px; height:24px; border-radius:50%; object-fit:cover; object-position:top; border:1px solid rgba(0,0,0,.18); background:rgba(0,0,0,.1); }
+  .box-card .card-hs-fallback { position:absolute; bottom:4px; right:4px; width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:12px; color:inherit; opacity:.55; background:rgba(0,0,0,.12); border:1px solid rgba(0,0,0,.18); }
   .box-card.QB { background:var(--pos-qb-bg); color:var(--pos-qb); }
   .box-card.RB { background:var(--pos-rb-bg); color:var(--pos-rb); }
   .box-card.WR { background:var(--pos-wr-bg); color:var(--pos-wr); }
@@ -478,7 +473,6 @@
     <button class="icon-btn" id="settings-btn" type="button" title="Team count and rounds">⚙ Settings</button>
   </div>
 
-  <div class="filter-chips" id="filter-chips"></div>
   <div class="pos-breakdown" id="pos-breakdown"></div>
 
   <div id="view-box" class="view box-wrap"></div>
@@ -861,37 +855,6 @@ function maxDrafts(list) {
 
 // Render removable chips for every active filter so the user can see and
 // dismiss filters without re-opening the drawer.
-function renderFilterChips() {
-  const target = document.getElementById('filter-chips');
-  if (!target) return;
-  const f = STATE.filters;
-  const chips = [];
-  for (const pos of f.positions) {
-    chips.push(`<span class="filter-chip" data-clear="pos:${escapeHtml(pos)}"><span class="lbl">${escapeHtml(pos)}</span><span class="x" aria-label="Remove">✕</span></span>`);
-  }
-  if (STATE.search) {
-    chips.push(`<span class="filter-chip" data-clear="search"><span class="lbl">Search: ${escapeHtml(STATE.search)}</span><span class="x" aria-label="Remove">✕</span></span>`);
-  }
-  if (chips.length) chips.push(`<button class="filter-chips-clear" data-clear="all" type="button">Clear all</button>`);
-  target.innerHTML = chips.join('');
-}
-
-function dismissFilterChip(action) {
-  if (!action) return;
-  if (action === 'all') {
-    clearFilters();
-    return;  // clearFilters already calls renderAll
-  } else if (action === 'search') {
-    STATE.search = '';
-    const s = document.getElementById('search-input'); if (s) s.value = '';
-    const c = document.getElementById('search-clear'); if (c) c.classList.add('hidden');
-  } else if (action.startsWith('pos:')) {
-    const pos = action.slice(4);
-    STATE.filters.positions.delete(pos);
-  }
-  renderAll();
-}
-
 function renderPosBreakdown(players) {
   const target = document.getElementById('pos-breakdown');
   if (!target) return;
@@ -911,6 +874,12 @@ function renderPosBreakdown(players) {
       parts.push(`<span class="pb-item ${pos}${activeCls}" data-pos-toggle="${escapeHtml(pos)}" role="button" tabindex="0" aria-pressed="${activeSet.has(pos)}">${pos} ${counts[pos]}</span>`);
     }
   }
+  // Inline "Clear filters" button shown only when a soft filter is active, so
+  // toggling it doesn't push the draft board down.
+  const hasSoft = STATE.filters.positions.size > 0 || !!STATE.search || STATE.filters.rounds.size > 0 || STATE.filters.teams.size > 0;
+  if (hasSoft) {
+    parts.push(`<button class="pb-clear" data-clear-all type="button">✕ Clear filters</button>`);
+  }
   // Total moves to a hover-tooltip so the row width stays fixed when the value changes.
   target.title = `${players.length.toLocaleString()} players total`;
   target.innerHTML = parts.join('');
@@ -927,7 +896,6 @@ function renderAll() {
   const softList = hardList.filter(isSoftMatch);
   // Sample size = visible (soft-filtered) set
   document.getElementById('sample-size').textContent = maxDrafts(softList).toLocaleString();
-  renderFilterChips();
   // Breakdown counts the hard-filtered universe so toggling a position doesn't
   // collapse the chips you'd use to toggle others.
   renderPosBreakdown(hardList);
@@ -1807,21 +1775,15 @@ function _bindEvents() {
     if (e.key === 'Escape' && STATE.search) { e.stopPropagation(); searchIn.value = ''; onSearchChange(); }
   });
   searchClr.addEventListener('click', () => { searchIn.value = ''; onSearchChange(); searchIn.focus(); });
-  // Active filter chips — delegated click handler
-  document.getElementById('filter-chips').addEventListener('click', e => {
-    const target = e.target.closest('[data-clear]');
-    if (target) dismissFilterChip(target.dataset.clear);
-  });
-  // Position breakdown — click to toggle into the position filter set,
-  // syncing the corresponding chip in the filter drawer.
+  // Position breakdown — click chip to toggle highlight; click "Clear filters"
+  // to wipe all soft filters in one shot.
   document.getElementById('pos-breakdown').addEventListener('click', e => {
+    if (e.target.closest('[data-clear-all]')) { clearFilters(); return; }
     const btn = e.target.closest('[data-pos-toggle]');
     if (!btn) return;
     const pos = btn.dataset.posToggle;
     if (STATE.filters.positions.has(pos)) STATE.filters.positions.delete(pos);
     else STATE.filters.positions.add(pos);
-    const drawerBtn = document.querySelector(`[data-pos="${pos}"]`);
-    if (drawerBtn) drawerBtn.classList.toggle('active', STATE.filters.positions.has(pos));
     renderAll();
   });
   // Enter/space on a position chip = click (for keyboard a11y)
