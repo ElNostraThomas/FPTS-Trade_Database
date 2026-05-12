@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Fantasy Points Front Office — ADP Tool</title>
+<link href="https://fonts.googleapis.com/css2?family=Kanit:ital,wght@0,400;0,700;1,800&family=Mulish:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+  /* Brand fonts (local TTFs from Fantasy-Design-Prompt kit) override Google Fonts
+     for the canonical brand weights so on-page text matches the wordmark exactly. */
+  @font-face {
+    font-family: 'Kanit';
+    src: url('assets/fonts/Kanit-ExtraBoldItalic.ttf') format('truetype');
+    font-weight: 800;
+    font-style: italic;
+    font-display: swap;
+  }
+  @font-face {
+    font-family: 'Mulish';
+    src: url('assets/fonts/Mulish-VariableFont_wght.ttf') format('truetype');
+    font-weight: 100 1000;
+    font-style: normal;
+    font-display: swap;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --black: #111111; --white: #ffffff; --red: #ED810C;
+    --surface: #1a1a1a; --surface2: #222222;
+    --border: #2a2a2a; --border2: #333333;
+    --green: #4caf6e;
+    --yellow: #f0c040;
+    --red-bg: rgba(237,129,12,.10);
+    --red-bg-soft: rgba(237,129,12,.06);
+    --green-bg: rgba(76,175,110,.10);
+    --pos-wr-bg:#5b9bd5; --pos-wr:#111111;
+    --pos-rb-bg:#4caf6e; --pos-rb:#111111;
+    --pos-qb-bg:#e05252; --pos-qb:#111111;
+    --pos-te-bg:#e09a30; --pos-te:#111111;
+    --pos-k-bg:#9b91d4;  --pos-k:#111111;
+    --pos-pick-bg:#9b91d4; --pos-pick:#111111;
+    --nav-bg: #111111; --page-bg: #111111;
+    --muted: var(--white);
+    --color-scheme: dark;
+  }
+  [data-theme="light"] {
+    --black: #f0f0f0; --white: #111111;
+    --surface: #e8e8e8; --surface2: #dedede;
+    --border: #cccccc; --border2: #bbbbbb;
+    --pos-wr-bg:#2a6fa8; --pos-wr:#f0f0f0;
+    --pos-rb-bg:#1a7a3a; --pos-rb:#f0f0f0;
+    --pos-qb-bg:#b02020; --pos-qb:#f0f0f0;
+    --pos-te-bg:#c97a1a; --pos-te:#f0f0f0;
+    --pos-k-bg:#5a4eaa;  --pos-k:#f0f0f0;
+    --pos-pick-bg:#5a4eaa; --pos-pick:#f0f0f0;
+    --nav-bg: #f0f0f0; --page-bg: #f0f0f0;
+    --color-scheme: light;
+  }
+
+  html { background: var(--page-bg); transition: background .3s; overflow-y: scroll; }
+  body { color-scheme: var(--color-scheme); color: var(--white); font-family: 'Mulish', sans-serif; min-height: 100vh; background: var(--page-bg); }
+  html, body { overflow-x: hidden !important; }
+
+  /* NAV */
+  .topnav { max-width:1440px; margin:0 auto; padding:0 16px; display:flex; align-items:center; gap:20px; height:60px; }
+  .wordmark { display:flex; align-items:center; flex-shrink:0; }
+  .wordmark svg { height:28px; width:auto; }
+  .wordmark-group { display:flex; align-items:center; gap:16px; flex-shrink:0; min-width:0; }
+  .wordmark-tag { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:50px; line-height:1; letter-spacing:-.01em; text-transform:uppercase; color:var(--white); white-space:nowrap; }
+  @media (max-width: 1280px) { .wordmark-tag { font-size: 40px; } }
+  @media (max-width: 1100px) { .wordmark-tag { font-size: 30px; } }
+  @media (max-width: 940px)  { .wordmark-tag { display: none; } }
+  .nav-links { display:flex; gap:0; margin-left:4px; }
+  .nav-link { font-family:'Mulish',sans-serif; font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.07em; color:var(--white); opacity:1; padding:0 12px; height:60px; display:flex; align-items:center; text-decoration:none; border-bottom:2px solid transparent; margin-bottom:-2px; transition:opacity .15s; white-space:nowrap; }
+  .nav-link:hover { opacity:1; }
+  .nav-link.active { opacity: 1; border-bottom-color: transparent; }
+  .nav-right { margin-left:auto; display:flex; align-items:center; gap:16px; }
+  .nav-stat { font-family:'Mulish',sans-serif; font-size:11px; color:var(--white); opacity:1; white-space:nowrap; }
+  .nav-badge { background:var(--red); color:var(--white); font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:11px; padding:3px 10px; letter-spacing:.04em; }
+  .mobile-nav-select { display:none; background:var(--surface); color:var(--white); border:1px solid var(--border2); padding:6px 10px; font-family:'Mulish',sans-serif; font-size:12px; font-weight:700; text-transform:uppercase; }
+
+  /* PAGE */
+  .page { max-width:1440px; margin:0 auto; padding:0 16px 60px; }
+  .page-header { padding:32px 0 18px; display:flex; align-items:flex-end; justify-content:space-between; gap:16px; flex-wrap:wrap; }
+  .page-title { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:36px; color:var(--white); text-transform:uppercase; line-height:1; }
+  .page-title span { color:var(--red); }
+  .page-subtitle { font-family:'Mulish',sans-serif; font-size:13px; color:var(--white); opacity:.7; margin-top:6px; }
+
+  /* CONTROLS BAR */
+  .controls-bar { display:flex; align-items:center; gap:10px; flex-wrap:wrap; padding:14px 0 18px; border-bottom:1px solid var(--border); margin-bottom:18px; }
+  .controls-group { display:inline-flex; border:1px solid var(--border2); }
+  .controls-btn { font-family:'Mulish',sans-serif; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--white); background:var(--surface); border:none; padding:8px 14px; cursor:pointer; transition:all .15s; }
+  .controls-btn + .controls-btn { border-left:1px solid var(--border2); }
+  .controls-btn:hover { background:var(--surface2); }
+  .controls-btn.active { background:var(--red); color:#111; }
+  .month-select { background:var(--surface); color:var(--white); border:1px solid var(--border2); padding:8px 14px; font-family:'Mulish',sans-serif; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; cursor:pointer; }
+  .sample-badge { display:inline-flex; align-items:center; gap:8px; padding:7px 12px; border:1px solid var(--border2); background:var(--surface); }
+  .sample-badge .dot { width:8px; height:8px; border-radius:50%; background:var(--green); }
+  .sample-badge .label { font-family:'Mulish',sans-serif; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--white); opacity:.65; }
+  .sample-badge .value { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:13px; color:var(--white); }
+  .spacer { margin-left:auto; }
+  .icon-btn { display:inline-flex; align-items:center; gap:6px; padding:8px 14px; border:1px solid var(--border2); background:var(--surface); color:var(--white); font-family:'Mulish',sans-serif; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; cursor:pointer; transition:all .12s; }
+  .icon-btn:hover { border-color:var(--red); color:var(--red); }
+
+  /* SHARED PILLS */
+  .pos-pill { display:inline-block; padding:3px 9px; font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:11px; letter-spacing:.04em; }
+  .pos-pill.QB { background:var(--pos-qb-bg); color:var(--pos-qb); }
+  .pos-pill.RB { background:var(--pos-rb-bg); color:var(--pos-rb); }
+  .pos-pill.WR { background:var(--pos-wr-bg); color:var(--pos-wr); }
+  .pos-pill.TE { background:var(--pos-te-bg); color:var(--pos-te); }
+  .pos-pill.K  { background:var(--pos-k-bg);  color:var(--pos-k); }
+  .pos-pill.DEF, .pos-pill.PICK { background:var(--pos-pick-bg); color:var(--pos-pick); }
+  .team-pill { display:inline-block; padding:3px 8px; background:var(--surface2); border:1px solid var(--border2); font-family:'Mulish',sans-serif; font-weight:700; font-size:10px; letter-spacing:.05em; color:var(--white); }
+  .stat-pill { display:inline-block; background:var(--surface2); border:1px solid var(--border2); padding:3px 10px; font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:12px; color:var(--white); min-width:36px; text-align:center; }
+
+  .name-color.QB { color:var(--pos-qb-bg); }
+  .name-color.RB { color:var(--pos-rb-bg); }
+  .name-color.WR { color:var(--pos-wr-bg); }
+  .name-color.TE { color:var(--pos-te-bg); }
+  .name-color.K  { color:var(--pos-k-bg); }
+  .name-color.DEF, .name-color.PICK { color:var(--pos-pick-bg); }
+
+  /* LIST VIEW */
+  .list-wrap { background:var(--surface); border:1px solid var(--border); overflow:auto; }
+  .list-table { width:100%; border-collapse:collapse; }
+  .list-table th { font-family:'Mulish',sans-serif; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.07em; color:var(--white); opacity:.55; padding:12px 14px; text-align:left; border-bottom:1px solid var(--border); cursor:pointer; user-select:none; white-space:nowrap; background:var(--surface); position:sticky; top:0; z-index:1; }
+  .list-table th:hover { color:var(--red); opacity:1; }
+  .list-table th.sorted { color:var(--red); opacity:1; }
+  .list-table td { padding:8px 14px; border-bottom:1px solid var(--border); vertical-align:middle; }
+  .list-table tbody tr { cursor:pointer; transition:background .12s; }
+  .list-table tbody tr:hover td { background:var(--red-bg-soft); }
+  .list-table .player-name { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:15px; letter-spacing:.01em; }
+  .hs { width:34px; height:34px; border-radius:50%; background:var(--surface2); border:2px solid var(--border2); object-fit:cover; display:inline-block; vertical-align:middle; }
+  .hs-fallback { display:inline-flex; align-items:center; justify-content:center; font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:13px; color:var(--white); }
+
+  /* BOX VIEW (snake draft board) */
+  .box-wrap { overflow-x:auto; }
+  .box-grid { display:grid; grid-template-columns:repeat(12, minmax(96px, 1fr)); gap:6px; min-width:1200px; }
+  .box-col-header { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:12px; color:var(--red); text-transform:uppercase; padding:8px 6px 6px; text-align:center; border-bottom:2px solid var(--red); margin-bottom:4px; letter-spacing:.04em; background:var(--surface); position:sticky; top:0; z-index:2; }
+  .box-card { background:var(--surface); border:1px solid var(--border); padding:6px 8px; cursor:pointer; transition:all .12s; border-left:4px solid var(--border2); display:flex; flex-direction:column; gap:3px; min-height:62px; }
+  .box-card:hover { border-color:var(--red); background:var(--red-bg-soft); }
+  .box-card .pick-row { display:flex; align-items:center; justify-content:space-between; gap:4px; }
+  .box-card .pick { font-family:'Mulish',sans-serif; font-size:9px; font-weight:800; color:var(--white); opacity:.55; letter-spacing:.06em; }
+  .box-card .name { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:11px; line-height:1.1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .box-card .meta { display:flex; gap:6px; align-items:center; margin-top:auto; font-family:'Mulish',sans-serif; font-size:9px; font-weight:700; opacity:.7; }
+  .box-card.QB { border-left-color:var(--pos-qb-bg); }
+  .box-card.RB { border-left-color:var(--pos-rb-bg); }
+  .box-card.WR { border-left-color:var(--pos-wr-bg); }
+  .box-card.TE { border-left-color:var(--pos-te-bg); }
+  .box-card.K  { border-left-color:var(--pos-k-bg); }
+  .box-card.empty { opacity:.25; cursor:default; background:transparent; border-style:dashed; }
+  .box-card.empty:hover { border-color:var(--border2); background:transparent; }
+
+  /* FILTER DRAWER */
+  .drawer-backdrop { position:fixed; inset:0; background:rgba(0,0,0,.65); z-index:200; display:none; }
+  .drawer-backdrop.open { display:block; }
+  .drawer { position:fixed; top:0; right:0; bottom:0; width:380px; max-width:100vw; background:var(--surface); border-left:2px solid var(--red); padding:24px; overflow-y:auto; z-index:201; transform:translateX(100%); transition:transform .22s ease-out; }
+  .drawer.open { transform:translateX(0); }
+  .drawer-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; padding-bottom:14px; border-bottom:1px solid var(--border); }
+  .drawer-title { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:22px; text-transform:uppercase; color:var(--red); }
+  .drawer-close { background:none; border:none; color:var(--white); font-size:24px; cursor:pointer; line-height:1; padding:0 4px; }
+  .drawer-section { margin-bottom:20px; }
+  .drawer-section-label { font-family:'Mulish',sans-serif; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.07em; color:var(--white); opacity:.55; margin-bottom:8px; }
+  .chip-row { display:flex; gap:6px; flex-wrap:wrap; }
+  .chip { font-family:'Mulish',sans-serif; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; padding:5px 12px; background:var(--surface2); border:1px solid var(--border2); color:var(--white); cursor:pointer; transition:all .12s; }
+  .chip:hover { border-color:var(--red); }
+  .chip.active { background:var(--red); color:#111; border-color:var(--red); }
+  .range-row { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .range-input { background:var(--surface2); border:1px solid var(--border2); color:var(--white); padding:7px 10px; font-family:'Mulish',sans-serif; font-size:12px; width:100%; }
+  .drawer-actions { display:flex; gap:8px; margin-top:24px; padding-top:14px; border-top:1px solid var(--border); }
+  .drawer-btn { flex:1; padding:10px; font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:13px; text-transform:uppercase; cursor:pointer; border:1px solid var(--border2); background:var(--surface2); color:var(--white); letter-spacing:.04em; }
+  .drawer-btn:hover { border-color:var(--red); color:var(--red); }
+  .drawer-btn.primary { background:var(--red); color:#111; border-color:var(--red); }
+  .drawer-btn.primary:hover { color:#111; opacity:.9; }
+
+  /* MODAL */
+  .modal-backdrop { position:fixed; inset:0; background:rgba(0,0,0,.75); z-index:300; display:none; align-items:center; justify-content:center; padding:20px; }
+  .modal-backdrop.open { display:flex; }
+  .modal { background:var(--surface); border:1px solid var(--border); border-top:3px solid var(--red); max-width:580px; width:100%; max-height:90vh; overflow-y:auto; padding:28px; }
+  .modal-header { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; margin-bottom:20px; padding-bottom:16px; border-bottom:1px solid var(--border); }
+  .modal-name { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:28px; text-transform:uppercase; line-height:1; }
+  .modal-meta { display:flex; gap:6px; margin-top:10px; flex-wrap:wrap; }
+  .modal-close { background:none; border:none; color:var(--white); font-size:28px; cursor:pointer; line-height:1; padding:0 4px; }
+  .modal-stats { display:grid; grid-template-columns:repeat(auto-fit, minmax(120px, 1fr)); gap:16px; }
+  .modal-stat .k { font-family:'Mulish',sans-serif; font-size:10px; text-transform:uppercase; letter-spacing:.07em; color:var(--white); opacity:.55; }
+  .modal-stat .v { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:22px; color:var(--white); margin-top:3px; }
+  .modal-note { margin-top:18px; padding-top:14px; border-top:1px solid var(--border); font-family:'Mulish',sans-serif; font-size:11px; color:var(--white); opacity:.55; line-height:1.5; }
+
+  @media (max-width: 768px) {
+    .topnav { padding: 0 10px; gap: 8px; height: 48px; }
+    .wordmark svg { height: 20px; }
+    .nav-links { display: none !important; }
+    .mobile-nav-select { display: inline-block; }
+    .nav-right { gap: 8px; }
+    .nav-stat { display: none; }
+    .page { padding: 0 10px 40px; }
+    .page-header { flex-direction: column; align-items: flex-start; padding: 14px 0 12px; }
+    .page-title { font-size: 22px !important; }
+    .controls-bar { gap: 6px; padding: 8px 0 12px; }
+    .controls-btn { padding: 6px 10px; font-size: 10px; }
+    .month-select, .icon-btn, .sample-badge { padding: 6px 10px; font-size: 10px; }
+    .sample-badge .value { font-size: 11px; }
+    .drawer { width: 100%; }
+    .modal-name { font-size: 22px; }
+  }
+</style>
+</head>
+<body>
+
+<div id="_fp-loading" style="position:fixed;inset:0;background:var(--black);color:var(--white);display:flex;align-items:center;justify-content:center;font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:28px;text-transform:uppercase;letter-spacing:.06em;z-index:9999;">Loading…</div>
+
+<div style="background:var(--nav-bg);border-bottom:2px solid var(--red);position:sticky;top:0;z-index:100"><nav class="topnav" style="border:none;position:static">
+  <div class="wordmark-group">
+  <div class="wordmark" id="wordmark-svg">
+    <svg viewBox="0 0 878 90" xmlns="http://www.w3.org/2000/svg" style="fill-rule:evenodd;clip-rule:evenodd">
+      <path d="M508.084,47.801l-8.983,41.534c0,0 -75.276,-0.036 -85.237,-0.002l0.015,-0.067c0,0 2.533,-17.352 5.641,-25.475c3.708,-9.689 16.604,-32.658 16.604,-32.658c12.902,8.212 8.658,21.025 7.099,27.21c11.719,-8.962 11.012,-17.186 11.003,-28.608c-0.006,-7.356 4.797,-23.375 17.858,-28.257c-4.305,14.678 3.971,24.95 7.333,30.494c6.362,10.492 1.397,21.17 1.397,21.17c0,0 9.268,-3.36 8.863,-15.254c-0.117,-3.424 -1.714,-14.283 8.012,-18.422c-0.754,9.397 5.495,18.682 10.395,28.336Z" fill="var(--red)"/>
+      <path d="M19.856,0.761l47.225,0l-3.757,16.803l-22.539,0l-4.159,18.236l19.99,0l-3.757,16.933l-19.99,0l-8.184,36.602l-24.686,0l19.856,-88.573Z" fill="var(--white)" fill-rule="nonzero"/>
+      <path d="M82.991,0.761l28.577,0l-1.207,88.573l-24.954,0l0.939,-14.589l-16.234,0l-5.635,14.589l-19.99,0l38.505,-88.573Zm4.293,58.745l2.147,-34.648l-13.416,34.648l11.27,0Z" fill="var(--white)" fill-rule="nonzero"/>
+      <path d="M135.036,0.761l26.698,0l3.757,47.804l10.733,-47.804l17.709,0l-19.856,88.573l-26.564,0l-3.891,-47.413l-10.599,47.413l-17.844,0l19.856,-88.573Z" fill="var(--white)" fill-rule="nonzero"/>
+      <path d="M211.755,18.215l-15.831,0l3.891,-17.454l55.678,0l-3.891,17.454l-15.295,0l-15.965,71.119l-24.552,0l15.965,-71.119Z" fill="var(--white)" fill-rule="nonzero"/>
+      <path d="M270.166,0.884l28.537,0l-1.206,88.451l-24.92,0l0.938,-14.568l-16.211,0l-5.627,14.568l-19.963,0l38.451,-88.451Zm4.287,58.664l2.144,-34.6l-13.398,34.6l11.254,0Z" fill="var(--white)" fill-rule="nonzero"/>
+      <path d="M316.507,17.764c2.387,-11.843 10.165,-17.764 23.335,-17.764l16.971,0c6.718,0 11.623,1.888 14.717,5.664c3.094,3.776 3.933,8.753 2.519,14.932l-1.989,10.298l-23.865,0l2.387,-10.427c0.707,-3.433 -0.53,-5.149 -3.712,-5.149l-1.326,0c-1.591,0 -2.828,0.365 -3.712,1.094c-0.884,0.729 -1.547,2.038 -1.989,3.926l-1.326,6.05c-0.354,1.802 -0.243,3.24 0.331,4.312c0.575,1.073 1.746,1.995 3.514,2.768l11.933,4.377c5.038,1.974 8.508,4.72 10.408,8.238c1.9,3.518 2.232,7.981 0.994,13.387l-2.652,12.1c-2.387,11.843 -10.209,17.764 -23.468,17.764l-17.369,0c-6.718,0 -11.623,-1.909 -14.717,-5.728c-3.094,-3.819 -3.933,-8.903 -2.519,-15.254l2.254,-10.942l24.263,0l-2.519,11.456c-0.707,3.433 0.486,5.149 3.58,5.149l1.591,0c1.591,0 2.806,-0.386 3.646,-1.159c0.84,-0.772 1.436,-2.06 1.79,-3.862l1.856,-7.723c0.442,-1.888 0.354,-3.347 -0.265,-4.377c-0.619,-1.03 -1.812,-1.931 -3.58,-2.703l-12.198,-4.634c-9.9,-3.776 -13.656,-11.027 -11.27,-21.754l2.387,-10.04Z" fill="var(--white)" fill-rule="nonzero"/>
+      <path d="M411.302,62.129l-6.16,27.043l-25.31,0l6.294,-27.954l-5.223,-60.458l26.382,0l0.536,33.414l15.4,-33.414l20.623,0l-32.542,61.368Z" fill="var(--white)" fill-rule="nonzero"/>
+      <path d="M526.915,0.761l37.555,0c6.861,0 11.828,1.91 14.902,5.731c3.074,3.821 3.853,9.075 2.339,15.761l-3.475,16.933c-1.515,6.513 -4.232,11.311 -8.152,14.393c-3.92,3.083 -9.222,4.624 -15.904,4.624l-15.503,0l-6.95,31.131l-24.591,0l19.78,-88.575Zm21.651,41.291c1.604,0 2.851,-0.369 3.742,-1.107c0.891,-0.738 1.515,-2.062 1.871,-3.973l3.341,-14.849c0.713,-3.474 -0.445,-5.21 -3.475,-5.21l-6.148,0l-5.613,25.14l6.281,0Z" fill="var(--white)" fill-rule="nonzero"/>
+      <path d="M591.621,18.118c2.541,-11.572 10.254,-17.357 23.136,-17.357l17.747,0c6.573,0 11.437,1.893 14.592,5.679c3.155,3.786 3.988,8.87 2.498,15.251l-11.305,50.285c-2.541,11.572 -10.254,17.357 -23.136,17.357l-17.747,0c-6.66,0 -11.524,-1.893 -14.592,-5.679c-3.067,-3.786 -3.9,-8.87 -2.498,-15.251l11.305,-50.285Zm34.047,3.574c0.438,-1.617 0.329,-2.872 -0.329,-3.765c-0.657,-0.893 -1.731,-1.34 -3.221,-1.34l-1.84,0c-3.067,0 -4.952,1.659 -5.653,4.977l-10.517,46.839c-0.351,1.617 -0.175,2.872 0.526,3.765c0.701,0.893 1.753,1.34 3.155,1.34l1.84,0c2.98,0 4.82,-1.659 5.521,-4.977l10.517,-46.839Z" fill="var(--white)" fill-rule="nonzero"/>
+      <path d="M663.756,0.884l24.652,0l-19.829,88.452l-24.652,0l19.829,-88.452Z" fill="var(--white)" fill-rule="nonzero"/>
+      <path d="M697.921,0.884l26.662,0l3.751,47.738l10.718,-47.738l17.685,0l-19.829,88.452l-26.528,0l-3.885,-47.348l-10.584,47.348l-17.819,0l19.829,-88.452Z" fill="var(--white)" fill-rule="nonzero"/>
+      <path d="M774.557,18.314l-15.809,0l3.885,-17.43l55.601,0l-3.885,17.43l-15.274,0l-15.943,71.022l-24.518,0l15.943,-71.022Z" fill="var(--white)" fill-rule="nonzero"/>
+      <path d="M819.769,18.472c2.363,-11.725 10.064,-17.588 23.104,-17.588l16.803,0c6.651,0 11.508,1.869 14.571,5.608c3.063,3.739 3.894,8.667 2.494,14.784l-1.969,10.196l-23.629,0l2.363,-10.324c0.7,-3.399 -0.525,-5.098 -3.676,-5.098l-1.313,0c-1.575,0 -2.801,0.361 -3.676,1.083c-0.875,0.722 -1.532,2.018 -1.969,3.887l-1.313,5.99c-0.35,1.784 -0.241,3.208 0.328,4.27c0.569,1.062 1.728,1.975 3.479,2.74l11.815,4.333c4.988,1.954 8.423,4.673 10.305,8.157c1.882,3.484 2.21,7.902 0.985,13.255l-2.625,11.98c-2.363,11.725 -10.108,17.588 -23.236,17.588l-17.197,0c-6.651,0 -11.508,-1.891 -14.571,-5.672c-3.063,-3.781 -3.894,-8.815 -2.494,-15.103l2.232,-10.833l24.023,0l-2.494,11.343c-0.7,3.399 0.481,5.098 3.544,5.098l1.575,0c1.575,0 2.779,-0.382 3.61,-1.147c0.831,-0.765 1.422,-2.039 1.772,-3.824l1.838,-7.647c0.438,-1.869 0.35,-3.314 -0.263,-4.333c-0.613,-1.02 -1.794,-1.912 -3.544,-2.676l-12.077,-4.588c-9.802,-3.739 -13.521,-10.918 -11.158,-21.539l2.363,-9.941Z" fill="var(--white)" fill-rule="nonzero"/>
+    </svg>
+  </div>
+  <span class="wordmark-tag">Front Office</span>
+  </div>
+  <nav class="nav-links">
+    <a class="nav-link" href="index.html">Database</a>
+    <a class="nav-link" href="trade-calculator.html">Calculator</a>
+    <a class="nav-link" href="my-leagues.html">User Importer</a>
+    <a class="nav-link" href="tiers.html">Tiers</a>
+    <a class="nav-link active" href="#">ADP</a>
+    <a class="nav-link" href="https://www.fantasypoints.com/nfl/rankings/dynasty#/" target="_blank">Rankings</a>
+  </nav>
+  <div class="nav-right">
+    <select class="mobile-nav-select" onchange="if(this.value)window.location.href=this.value">
+      <option value="index.html">Database</option>
+      <option value="trade-calculator.html">Calculator</option>
+      <option value="my-leagues.html">User Importer</option>
+      <option value="tiers.html">Tiers</option>
+      <option value="adp-tool.html" selected>ADP</option>
+      <option value="https://www.fantasypoints.com/nfl/rankings/dynasty#/">Rankings</option>
+    </select>
+    <span class="nav-stat">Dynasty drafts · <strong id="adp-drafts-stat">—</strong></span>
+    <span class="nav-badge">SEASON 2026</span>
+    <button id="theme-toggle" onclick="toggleTheme()"
+      style="background:none;border:1px solid var(--border2);color:var(--white);font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:11px;padding:5px 12px;cursor:pointer;transition:all .2s;letter-spacing:.04em;display:flex;align-items:center;gap:6px"
+      onmouseover="this.style.borderColor='var(--red)';this.style.color='var(--red)'"
+      onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--white)'">
+      <span id="theme-icon">☀️</span>
+      <span id="theme-label">LIGHT</span>
+    </button>
+  </div>
+</nav></div>
+
+<div class="page">
+
+  <div class="page-header">
+    <div>
+      <div class="page-title" id="page-title">ADP <span>Startup</span></div>
+      <div class="page-subtitle" id="page-subtitle">Real Sleeper dynasty draft positions — 12-team Superflex startups with picks-as-assets.</div>
+    </div>
+  </div>
+
+  <div class="controls-bar">
+    <div class="controls-group" role="tablist" aria-label="ADP mode">
+      <button class="controls-btn active" data-mode="picks">Picks</button>
+      <button class="controls-btn"        data-mode="simple">Simple</button>
+      <button class="controls-btn"        data-mode="rookies">Rookies</button>
+    </div>
+    <select class="month-select" id="month-select" aria-label="Date range"></select>
+    <div class="sample-badge">
+      <span class="dot"></span>
+      <span class="label">Sample</span>
+      <span class="value" id="sample-size">—</span>
+      <span class="label">drafts</span>
+    </div>
+    <div class="spacer"></div>
+    <div class="controls-group" role="tablist" aria-label="View">
+      <button class="controls-btn active" data-view="box">▦ Box</button>
+      <button class="controls-btn"        data-view="list">≣ List</button>
+    </div>
+    <button class="icon-btn" id="filters-btn" type="button">⚙ Filters</button>
+    <button class="icon-btn" id="csv-btn"     type="button" style="display:none">⤓ CSV</button>
+    <button class="icon-btn" id="settings-btn" type="button" disabled title="Coming soon">⚙ Settings</button>
+  </div>
+
+  <div id="view-box" class="view box-wrap"></div>
+  <div id="view-list" class="view list-wrap" style="display:none">
+    <table class="list-table" id="list-table">
+      <thead><tr id="list-head"></tr></thead>
+      <tbody id="list-body"></tbody>
+    </table>
+  </div>
+
+</div>
+
+<!-- FILTER DRAWER -->
+<div class="drawer-backdrop" id="drawer-backdrop"></div>
+<aside class="drawer" id="drawer" aria-hidden="true" aria-labelledby="drawer-title">
+  <div class="drawer-header">
+    <div class="drawer-title" id="drawer-title">Filters</div>
+    <button class="drawer-close" id="drawer-close" type="button" aria-label="Close filters">×</button>
+  </div>
+  <div class="drawer-section">
+    <div class="drawer-section-label">Position</div>
+    <div class="chip-row" id="chip-pos">
+      <button class="chip" type="button" data-pos="QB">QB</button>
+      <button class="chip" type="button" data-pos="RB">RB</button>
+      <button class="chip" type="button" data-pos="WR">WR</button>
+      <button class="chip" type="button" data-pos="TE">TE</button>
+      <button class="chip" type="button" data-pos="K">K</button>
+    </div>
+  </div>
+  <div class="drawer-section">
+    <div class="drawer-section-label">Age range</div>
+    <div class="range-row">
+      <input class="range-input" type="number" min="18" max="50" step="0.1" placeholder="Min" id="age-min">
+      <input class="range-input" type="number" min="18" max="50" step="0.1" placeholder="Max" id="age-max">
+    </div>
+  </div>
+  <div class="drawer-section">
+    <div class="drawer-section-label">Status</div>
+    <div class="chip-row" id="chip-status">
+      <button class="chip active" type="button" data-status="any">Any</button>
+      <button class="chip"        type="button" data-status="Active">Active</button>
+      <button class="chip"        type="button" data-status="Injured Reserve">IR</button>
+    </div>
+  </div>
+  <div class="drawer-section">
+    <div class="drawer-section-label">Years of experience</div>
+    <div class="range-row">
+      <input class="range-input" type="number" min="0" max="25" step="1" placeholder="Min" id="exp-min">
+      <input class="range-input" type="number" min="0" max="25" step="1" placeholder="Max" id="exp-max">
+    </div>
+  </div>
+  <div class="drawer-actions">
+    <button class="drawer-btn" id="drawer-clear" type="button">Clear</button>
+    <button class="drawer-btn primary" id="drawer-apply" type="button">Apply</button>
+  </div>
+</aside>
+
+<!-- MODAL -->
+<div class="modal-backdrop" id="modal-backdrop">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-name">
+    <div class="modal-header">
+      <div>
+        <div class="modal-name name-color" id="modal-name">—</div>
+        <div class="modal-meta" id="modal-meta"></div>
+      </div>
+      <button class="modal-close" id="modal-close" type="button" aria-label="Close">×</button>
+    </div>
+    <div class="modal-stats" id="modal-stats"></div>
+    <div class="modal-note">Full player card (history, articles, heatmap) lifts from <code>index.html</code> in a follow-up.</div>
+  </div>
+</div>
+
+<script>
+// ── DATA STORES ───────────────────────────────────────────────────────────────
+let FP_VALUES = {};
+let ADP_DATA = {};
+let PICK_AVAILABILITY = {};
+window.ADP_PAYLOAD = null;
+window.AUCTION_PAYLOAD = null;
+
+// ── HELPERS ───────────────────────────────────────────────────────────────────
+function normalizePlayerName(name) {
+  if (!name) return '';
+  return String(name)
+    .trim()
+    .toLowerCase()
+    .replace(/\./g, '')
+    .replace(/\s+/g, ' ');
+}
+
+function escapeHtml(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  }[c]));
+}
+
+function posOf(p) { return String(p && p.position || '').toUpperCase(); }
+function thumbUrl(p) { return p && p.sleeperId ? `https://sleepercdn.com/content/nfl/players/thumb/${p.sleeperId}.jpg` : ''; }
+
+// ── BOOTSTRAP ─────────────────────────────────────────────────────────────────
+(function fpBootstrap() {
+  const v = '?v=' + Date.now();
+  function hideLoader(){ const el = document.getElementById('_fp-loading'); if (el) el.style.display = 'none'; }
+  function fail(msg){
+    const el = document.getElementById('_fp-loading');
+    if (el) { el.style.background = '#7a1a1a'; el.textContent = 'Data load failed — ' + msg; }
+    console.error('[fp-bootstrap]', msg);
+  }
+  function _indexByNorm(list) {
+    const out = {};
+    (list || []).forEach(p => {
+      if (!p || !p.name) return;
+      const key = normalizePlayerName(p.name);
+      if (key) out[key] = p;
+    });
+    return out;
+  }
+  function _applyAdpPayload(j) {
+    if (!j || !j.byMonth) return;
+    window.ADP_PAYLOAD = j;
+    const all = j.byMonth.ALL || {};
+    const sfByKey  = _indexByNorm(all.startup_sf);
+    const oneByKey = _indexByNorm(all.startup_1qb);
+    Object.values(sfByKey).forEach(p => {
+      ADP_DATA[p.name] = ADP_DATA[p.name] || {};
+      ADP_DATA[p.name].sf    = { overall: p.adp, posRank: p.posRank };
+    });
+    Object.values(oneByKey).forEach(p => {
+      ADP_DATA[p.name] = ADP_DATA[p.name] || {};
+      ADP_DATA[p.name].oneqb = { overall: p.adp, posRank: p.posRank };
+    });
+    Object.entries(FP_VALUES).forEach(([fpName, rec]) => {
+      const key = normalizePlayerName(fpName);
+      const p = oneByKey[key] || sfByKey[key];
+      if (p) rec.adp = p.adp;
+    });
+  }
+  function _applyAuctionPayload(j) {
+    if (!j || !j.byMonth) return;
+    window.AUCTION_PAYLOAD = j;
+    const all = j.byMonth.ALL || {};
+    const sfByKey  = _indexByNorm(all.startup_sf);
+    const oneByKey = _indexByNorm(all.startup_1qb);
+    const fmt = (p) => (p && p.med != null) ? ('$' + Math.round(p.med)) : null;
+    Object.entries(FP_VALUES).forEach(([fpName, rec]) => {
+      const key = normalizePlayerName(fpName);
+      const one = oneByKey[key];
+      const sf  = sfByKey[key];
+      rec.auction   = fmt(one) || fmt(sf) || rec.auction || null;
+      rec.auctionSf = fmt(sf)              || rec.auctionSf || null;
+    });
+  }
+
+  Promise.all([
+    fetch('data/values.json' + v).then(r => r.ok ? r.json() : Promise.reject('values ' + r.status)).then(j => { if (j && j.players) Object.assign(FP_VALUES, j.players); }),
+    fetch('data/adp.json' + v).then(r => r.ok ? r.json() : Promise.reject('adp ' + r.status)).then(j => _applyAdpPayload(j)),
+    fetch('data/auction.json' + v).then(r => r.ok ? r.json() : Promise.reject('auction ' + r.status)).then(j => _applyAuctionPayload(j)).catch(() => { /* auction optional */ }),
+    fetch('data/pick-availability.json' + v).then(r => r.ok ? r.json() : Promise.reject('pick-availability ' + r.status)).then(j => { if (j && j.players) PICK_AVAILABILITY = j.players; window.PICK_AVAILABILITY_META = j && j.meta || null; }).catch(() => { /* optional during scaffold */ }),
+  ]).then(() => {
+    try { _adpInit(); } catch(e) { console.warn('[fp-bootstrap] _adpInit failed:', e.message); }
+    hideLoader();
+  }).catch(fail);
+})();
+
+// ── STATE ─────────────────────────────────────────────────────────────────────
+const STATE = {
+  mode: 'picks',
+  view: 'box',
+  month: 'ALL',
+  teamCount: 12,
+  rounds: 20,
+  filters: {
+    positions: new Set(),
+    ageMin: null, ageMax: null,
+    expMin: null, expMax: null,
+    status: 'any',
+  },
+  sort: { col: 'rank', dir: 'asc' },
+};
+
+const MODE_TO_SOURCE = { picks: 'startup_sf', simple: 'startup_1qb', rookies: 'rookie' };
+const MODE_TO_LABEL  = {
+  picks:   { title: 'ADP <span>Startup</span>',  sub: 'Real Sleeper dynasty draft positions — 12-team Superflex startups with picks-as-assets.' },
+  simple:  { title: 'ADP <span>1QB</span>',      sub: 'Real Sleeper dynasty draft positions — 12-team 1QB startups.' },
+  rookies: { title: 'ADP <span>Rookie</span>',   sub: 'Real Sleeper dynasty rookie draft positions — fresh data, refreshed nightly.' },
+};
+
+// ── DATA ACCESS ───────────────────────────────────────────────────────────────
+function getActiveBucket() {
+  const payload = window.ADP_PAYLOAD;
+  if (!payload || !payload.byMonth) return null;
+  const bucket = payload.byMonth[STATE.month] || payload.byMonth.ALL;
+  if (!bucket) return null;
+  const src = MODE_TO_SOURCE[STATE.mode] || 'startup_sf';
+  return bucket[src] || [];
+}
+
+function getFilteredPlayers() {
+  const list = getActiveBucket() || [];
+  const f = STATE.filters;
+  return list.filter(p => {
+    if (f.positions.size && !f.positions.has(posOf(p))) return false;
+    if (f.ageMin != null && (p.age == null || p.age < f.ageMin)) return false;
+    if (f.ageMax != null && (p.age == null || p.age > f.ageMax)) return false;
+    if (f.expMin != null && (p.yearsExp == null || p.yearsExp < f.expMin)) return false;
+    if (f.expMax != null && (p.yearsExp == null || p.yearsExp > f.expMax)) return false;
+    if (f.status !== 'any' && p.status !== f.status) return false;
+    return true;
+  });
+}
+
+function maxDrafts(list) {
+  let m = 0;
+  for (const p of (list || [])) if (p && p.drafts > m) m = p.drafts;
+  return m;
+}
+
+// ── RENDER ────────────────────────────────────────────────────────────────────
+function renderAll() {
+  // Title/subtitle reflect mode
+  const lbl = MODE_TO_LABEL[STATE.mode] || MODE_TO_LABEL.picks;
+  document.getElementById('page-title').innerHTML = lbl.title;
+  document.getElementById('page-subtitle').textContent = lbl.sub;
+  // Sample size from filtered list (max drafts among visible players)
+  const players = getFilteredPlayers();
+  document.getElementById('sample-size').textContent = maxDrafts(players).toLocaleString();
+  const navStat = document.getElementById('adp-drafts-stat');
+  if (navStat) navStat.textContent = maxDrafts(getActiveBucket()).toLocaleString();
+  // View
+  if (STATE.view === 'box') {
+    renderBoxView(players);
+    document.getElementById('view-box').style.display = '';
+    document.getElementById('view-list').style.display = 'none';
+    document.getElementById('csv-btn').style.display = 'none';
+  } else {
+    renderListView(players);
+    document.getElementById('view-box').style.display = 'none';
+    document.getElementById('view-list').style.display = '';
+    document.getElementById('csv-btn').style.display = '';
+  }
+}
+
+// LIST -----------------------------------------------------------------------
+const LIST_COLS = [
+  { key: 'hs',       label: 'HS',       sortable: false },
+  { key: 'player',   label: 'Player',   sortable: true  },
+  { key: 'adp',      label: 'ADP',      sortable: true  },
+  { key: 'rank',     label: 'Rank',     sortable: true  },
+  { key: 'posRank',  label: 'PosRank',  sortable: true  },
+  { key: 'position', label: 'Position', sortable: true  },
+  { key: 'team',     label: 'Team',     sortable: true  },
+  { key: 'drafts',   label: 'Drafts',   sortable: true  },
+  { key: 'age',      label: 'Age',      sortable: true  },
+];
+
+function renderListView(players) {
+  const head = document.getElementById('list-head');
+  head.innerHTML = LIST_COLS.map(c => {
+    if (!c.sortable) return `<th data-noop>${escapeHtml(c.label)}</th>`;
+    const cls = STATE.sort.col === c.key ? 'sorted' : '';
+    const arrow = STATE.sort.col === c.key ? (STATE.sort.dir === 'asc' ? ' ↑' : ' ↓') : '';
+    return `<th class="${cls}" data-sort="${c.key}">${escapeHtml(c.label)}${arrow}</th>`;
+  }).join('');
+  const sorted = sortPlayers(players);
+  const body = document.getElementById('list-body');
+  body.innerHTML = sorted.map(p => {
+    const pos = posOf(p);
+    const hs = thumbUrl(p);
+    return `<tr data-id="${escapeHtml(p.sleeperId)}">
+      <td>${hs ? `<img class="hs" src="${hs}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'hs hs-fallback',textContent:'${escapeHtml((p.name||'?').slice(0,1).toUpperCase())}'}))">` : `<span class="hs hs-fallback">${escapeHtml((p.name||'?').slice(0,1).toUpperCase())}</span>`}</td>
+      <td><span class="player-name name-color ${pos}">${escapeHtml(p.name)}</span></td>
+      <td><span class="stat-pill">${p.adp != null ? p.adp.toFixed(1) : '—'}</span></td>
+      <td><span class="stat-pill">${p.rank ?? '—'}</span></td>
+      <td><span class="stat-pill">${escapeHtml(p.posRank) || '—'}</span></td>
+      <td>${pos ? `<span class="pos-pill ${pos}">${pos}</span>` : '—'}</td>
+      <td>${p.team ? `<span class="team-pill">${escapeHtml(p.team)}</span>` : '—'}</td>
+      <td><span class="stat-pill">${p.drafts ?? '—'}</span></td>
+      <td><span class="stat-pill">${p.age != null ? p.age.toFixed(1) : '—'}</span></td>
+    </tr>`;
+  }).join('');
+}
+
+function sortPlayers(list) {
+  const { col, dir } = STATE.sort;
+  const sign = dir === 'asc' ? 1 : -1;
+  const copy = list.slice();
+  copy.sort((a, b) => {
+    let av, bv;
+    if (col === 'player') { av = a.name; bv = b.name; }
+    else if (col === 'posRank') {
+      // Sort by numeric part of "WR4" → 4 within position, but mixing positions just falls back to alpha.
+      const ax = String(a.posRank || ''); const bx = String(b.posRank || '');
+      const an = parseInt(ax.replace(/\D+/g,''), 10);
+      const bn = parseInt(bx.replace(/\D+/g,''), 10);
+      if (!isNaN(an) && !isNaN(bn) && ax.replace(/\d+/,'') === bx.replace(/\d+/,'')) return sign * (an - bn);
+      return sign * ax.localeCompare(bx);
+    }
+    else { av = a[col]; bv = b[col]; }
+    if (av == null && bv == null) return 0;
+    if (av == null) return 1;
+    if (bv == null) return -1;
+    if (typeof av === 'string') return sign * av.localeCompare(bv);
+    return sign * (av - bv);
+  });
+  return copy;
+}
+
+function setSort(col) {
+  if (STATE.sort.col === col) {
+    STATE.sort.dir = STATE.sort.dir === 'asc' ? 'desc' : 'asc';
+  } else {
+    STATE.sort.col = col;
+    // Default direction: ascending for numbers ADP/rank/age/drafts, alpha for name
+    STATE.sort.dir = (col === 'drafts') ? 'desc' : 'asc';
+  }
+  renderAll();
+}
+
+// BOX -----------------------------------------------------------------------
+function renderBoxView(players) {
+  const target = document.getElementById('view-box');
+  if (!players.length) {
+    target.innerHTML = `<div style="padding:40px;text-align:center;font-family:'Mulish',sans-serif;opacity:.6">No players match the current filters.</div>`;
+    return;
+  }
+  const sorted = players.slice().sort((a, b) => (a.adp ?? 9999) - (b.adp ?? 9999));
+  const TC = STATE.teamCount;
+  const rounds = Math.min(STATE.rounds, Math.max(1, Math.ceil(sorted.length / TC)));
+  // Build 2D grid [round][team]
+  const grid = Array.from({ length: rounds }, () => new Array(TC).fill(null));
+  for (let i = 0; i < sorted.length && i < rounds * TC; i++) {
+    const round = Math.floor(i / TC);
+    const isRev = round % 2 === 1;
+    const inRound = i % TC;
+    const team = isRev ? (TC - 1 - inRound) : inRound;
+    grid[round][team] = sorted[i];
+  }
+  const parts = ['<div class="box-grid">'];
+  for (let t = 0; t < TC; t++) parts.push(`<div class="box-col-header">Team ${t+1}</div>`);
+  for (let r = 0; r < rounds; r++) {
+    for (let t = 0; t < TC; t++) {
+      const p = grid[r][t];
+      if (!p) { parts.push(`<div class="box-card empty"></div>`); continue; }
+      const pos = posOf(p);
+      const pickLabel = `${r+1}.${String(t+1).padStart(2,'0')}`;
+      parts.push(`<div class="box-card ${pos}" data-id="${escapeHtml(p.sleeperId)}">
+        <div class="pick-row">
+          <span class="pick">${pickLabel}</span>
+          ${pos ? `<span class="pos-pill ${pos}" style="font-size:9px;padding:1px 5px">${pos}</span>` : ''}
+        </div>
+        <div class="name name-color ${pos}">${escapeHtml(p.name)}</div>
+        <div class="meta">${escapeHtml(p.team || '')} · ${p.adp != null ? p.adp.toFixed(1) : '—'}</div>
+      </div>`);
+    }
+  }
+  parts.push('</div>');
+  target.innerHTML = parts.join('');
+}
+
+// ── HANDLERS ──────────────────────────────────────────────────────────────────
+function setMode(mode) {
+  if (!MODE_TO_SOURCE[mode]) return;
+  STATE.mode = mode;
+  document.querySelectorAll('[data-mode]').forEach(b => b.classList.toggle('active', b.dataset.mode === mode));
+  renderAll();
+}
+function setView(view) {
+  if (view !== 'box' && view !== 'list') return;
+  STATE.view = view;
+  document.querySelectorAll('[data-view]').forEach(b => b.classList.toggle('active', b.dataset.view === view));
+  renderAll();
+}
+function setMonth(month) { STATE.month = month; renderAll(); }
+
+function openDrawer() {
+  document.getElementById('drawer').classList.add('open');
+  document.getElementById('drawer').setAttribute('aria-hidden', 'false');
+  document.getElementById('drawer-backdrop').classList.add('open');
+  // Reflect current filter state in inputs
+  document.getElementById('age-min').value = STATE.filters.ageMin ?? '';
+  document.getElementById('age-max').value = STATE.filters.ageMax ?? '';
+  document.getElementById('exp-min').value = STATE.filters.expMin ?? '';
+  document.getElementById('exp-max').value = STATE.filters.expMax ?? '';
+}
+function closeDrawer() {
+  document.getElementById('drawer').classList.remove('open');
+  document.getElementById('drawer').setAttribute('aria-hidden', 'true');
+  document.getElementById('drawer-backdrop').classList.remove('open');
+}
+function applyDrawer() {
+  const num = (id) => {
+    const raw = document.getElementById(id).value;
+    if (raw === '' || raw == null) return null;
+    const n = Number(raw);
+    return isNaN(n) ? null : n;
+  };
+  STATE.filters.ageMin = num('age-min');
+  STATE.filters.ageMax = num('age-max');
+  STATE.filters.expMin = num('exp-min');
+  STATE.filters.expMax = num('exp-max');
+  renderAll();
+  closeDrawer();
+}
+function clearFilters() {
+  STATE.filters.positions.clear();
+  STATE.filters.ageMin = null; STATE.filters.ageMax = null;
+  STATE.filters.expMin = null; STATE.filters.expMax = null;
+  STATE.filters.status = 'any';
+  document.querySelectorAll('[data-pos]').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('[data-status]').forEach(b => b.classList.toggle('active', b.dataset.status === 'any'));
+  document.getElementById('age-min').value = '';
+  document.getElementById('age-max').value = '';
+  document.getElementById('exp-min').value = '';
+  document.getElementById('exp-max').value = '';
+  renderAll();
+}
+function togglePos(pos, btn) {
+  const set = STATE.filters.positions;
+  if (set.has(pos)) set.delete(pos); else set.add(pos);
+  if (btn) btn.classList.toggle('active');
+}
+function setStatus(s, btn) {
+  STATE.filters.status = s;
+  document.querySelectorAll('[data-status]').forEach(b => b.classList.toggle('active', b.dataset.status === s));
+}
+
+// MODAL ---------------------------------------------------------------------
+function openModal(sleeperId) {
+  const list = getActiveBucket() || [];
+  const p = list.find(x => String(x.sleeperId) === String(sleeperId));
+  if (!p) return;
+  const pos = posOf(p);
+  const nameEl = document.getElementById('modal-name');
+  nameEl.textContent = p.name;
+  nameEl.className = 'modal-name name-color ' + pos;
+  document.getElementById('modal-meta').innerHTML = `
+    ${pos ? `<span class="pos-pill ${pos}">${pos}</span>` : ''}
+    ${p.team ? `<span class="team-pill">${escapeHtml(p.team)}</span>` : ''}
+    ${p.status ? `<span class="team-pill">${escapeHtml(p.status)}</span>` : ''}
+    ${p.injury ? `<span class="pos-pill" style="background:var(--yellow);color:#111">${escapeHtml(p.injury)}</span>` : ''}
+  `;
+  const stats = [
+    ['ADP', p.adp != null ? p.adp.toFixed(1) : '—'],
+    ['Rank', p.rank ?? '—'],
+    ['PosRank', p.posRank || '—'],
+    ['Age', p.age != null ? p.age.toFixed(1) : '—'],
+    ['Yrs Exp', p.yearsExp ?? '—'],
+    ['Drafts sampled', (p.drafts ?? 0).toLocaleString()],
+    ['Picks', (p.picks ?? 0).toLocaleString()],
+    ['Pick range', `${p.minPick ?? '—'} – ${p.maxPick ?? '—'}`],
+  ];
+  document.getElementById('modal-stats').innerHTML = stats.map(([k, v]) =>
+    `<div class="modal-stat"><div class="k">${escapeHtml(k)}</div><div class="v">${escapeHtml(v)}</div></div>`
+  ).join('');
+  document.getElementById('modal-backdrop').classList.add('open');
+}
+function closeModal() {
+  document.getElementById('modal-backdrop').classList.remove('open');
+}
+
+// ── CSV ───────────────────────────────────────────────────────────────────────
+function downloadCsv() {
+  const cols = ['name','position','team','adp','rank','posRank','age','yearsExp','drafts','picks','minPick','maxPick','status','injury','sleeperId'];
+  const rows = [cols.join(',')];
+  const players = sortPlayers(getFilteredPlayers());
+  for (const p of players) {
+    rows.push(cols.map(c => {
+      const v = p[c];
+      if (v == null) return '';
+      const s = String(v).replace(/"/g, '""');
+      return /[",\n]/.test(s) ? `"${s}"` : s;
+    }).join(','));
+  }
+  const csv = rows.join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `adp-${STATE.mode}-${STATE.month}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 500);
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+function populateMonthSelect() {
+  const payload = window.ADP_PAYLOAD;
+  if (!payload || !payload.byMonth) return;
+  const sel = document.getElementById('month-select');
+  const months = Object.keys(payload.byMonth);
+  months.sort((a, b) => a === 'ALL' ? -1 : b === 'ALL' ? 1 : b.localeCompare(a));
+  sel.innerHTML = months.map(m => {
+    const label = m === 'ALL' ? 'ALL drafts' : m;
+    return `<option value="${escapeHtml(m)}" ${m === STATE.month ? 'selected' : ''}>${escapeHtml(label)}</option>`;
+  }).join('');
+}
+
+function _bindEvents() {
+  // Mode buttons
+  document.querySelectorAll('[data-mode]').forEach(b => {
+    b.addEventListener('click', () => setMode(b.dataset.mode));
+  });
+  // View buttons
+  document.querySelectorAll('[data-view]').forEach(b => {
+    b.addEventListener('click', () => setView(b.dataset.view));
+  });
+  // Month select
+  document.getElementById('month-select').addEventListener('change', e => setMonth(e.target.value));
+  // Drawer
+  document.getElementById('filters-btn').addEventListener('click', openDrawer);
+  document.getElementById('drawer-close').addEventListener('click', closeDrawer);
+  document.getElementById('drawer-backdrop').addEventListener('click', closeDrawer);
+  document.getElementById('drawer-apply').addEventListener('click', applyDrawer);
+  document.getElementById('drawer-clear').addEventListener('click', clearFilters);
+  document.querySelectorAll('[data-pos]').forEach(b => {
+    b.addEventListener('click', () => togglePos(b.dataset.pos, b));
+  });
+  document.querySelectorAll('[data-status]').forEach(b => {
+    b.addEventListener('click', () => setStatus(b.dataset.status, b));
+  });
+  // CSV
+  document.getElementById('csv-btn').addEventListener('click', downloadCsv);
+  // List sort: delegated on the thead so we don't have to rebind after re-render
+  document.getElementById('list-table').addEventListener('click', e => {
+    const th = e.target.closest('th[data-sort]');
+    if (th) setSort(th.dataset.sort);
+  });
+  // Card/row click → modal (event delegation, dodges the apostrophe-in-name escape pitfall)
+  document.getElementById('view-box').addEventListener('click', e => {
+    const card = e.target.closest('[data-id]');
+    if (card && !card.classList.contains('empty')) openModal(card.dataset.id);
+  });
+  document.getElementById('view-list').addEventListener('click', e => {
+    const row = e.target.closest('[data-id]');
+    if (row) openModal(row.dataset.id);
+  });
+  // Modal close
+  document.getElementById('modal-close').addEventListener('click', closeModal);
+  document.getElementById('modal-backdrop').addEventListener('click', e => {
+    if (e.target.id === 'modal-backdrop') closeModal();
+  });
+  // Escape key closes overlays (modal first, then drawer)
+  document.addEventListener('keydown', e => {
+    if (e.key !== 'Escape') return;
+    if (document.getElementById('modal-backdrop').classList.contains('open')) { closeModal(); return; }
+    if (document.getElementById('drawer').classList.contains('open')) closeDrawer();
+  });
+}
+
+function _adpInit() {
+  populateMonthSelect();
+  _bindEvents();
+  renderAll();
+}
+
+// ── THEME ─────────────────────────────────────────────────────────────────────
+function toggleTheme() {
+  const isDark = document.documentElement.getAttribute('data-theme') !== 'light';
+  document.documentElement.setAttribute('data-theme', isDark ? 'light' : 'dark');
+  document.getElementById('theme-icon').textContent  = isDark ? '🌙' : '☀️';
+  document.getElementById('theme-label').textContent = isDark ? 'DARK' : 'LIGHT';
+  localStorage.setItem('fpts-theme', isDark ? 'light' : 'dark');
+}
+(function () {
+  const saved = localStorage.getItem('fpts-theme');
+  if (saved === 'light') {
+    document.documentElement.setAttribute('data-theme', 'light');
+    document.getElementById('theme-icon').textContent = '🌙';
+    document.getElementById('theme-label').textContent = 'DARK';
+  }
+})();
+</script>
+</body>
+</html>
