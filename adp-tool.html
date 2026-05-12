@@ -245,35 +245,74 @@
   .drawer-btn.primary { background:var(--red); color:#111; border-color:var(--red); }
   .drawer-btn.primary:hover { color:#111; opacity:.9; }
 
-  /* MODAL */
+  /* MODAL — layout mirrors index.html's player panel for site-wide consistency */
   .modal-backdrop { position:fixed; inset:0; background:rgba(0,0,0,.75); z-index:300; display:none; align-items:center; justify-content:center; padding:20px; }
   .modal-backdrop.open { display:flex; }
-  .modal { background:var(--surface); border:1px solid var(--border); border-top:3px solid var(--red); max-width:680px; width:100%; max-height:90vh; overflow-y:auto; padding:0; position:relative; }
-  .modal-close { position:absolute; top:14px; right:14px; background:none; border:1px solid var(--border2); color:var(--white); font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:11px; padding:4px 10px; cursor:pointer; letter-spacing:.05em; text-transform:uppercase; z-index:1; }
-  .modal-close:hover { border-color:var(--red); color:var(--red); }
+  .modal { background:var(--surface); border:1px solid var(--border); border-top:3px solid var(--red); max-width:1100px; width:100%; max-height:92vh; overflow-y:auto; padding:0; position:relative; }
 
-  /* Player modal header — HS image + name/meta column */
-  .modal-header-player { display:flex; gap:18px; align-items:flex-start; padding:24px 28px 18px; border-bottom:1px solid var(--border); }
-  .modal-hs { width:96px; height:96px; border-radius:50%; background:var(--surface2); border:2px solid var(--border2); overflow:hidden; flex-shrink:0; display:flex; align-items:center; justify-content:center; }
-  .modal-hs img { width:100%; height:100%; object-fit:cover; object-position:top; }
-  .modal-hs-fallback { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:34px; color:var(--white); opacity:.5; }
-  .modal-header-text { flex:1; min-width:0; padding-right:80px; }
-  .modal-name { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:30px; text-transform:uppercase; line-height:1; color:var(--white); overflow-wrap:break-word; }
-  .modal-meta { display:flex; gap:6px; margin-top:10px; flex-wrap:wrap; align-items:center; }
-  .modal-sub { font-family:'Mulish',sans-serif; font-size:12px; color:var(--white); opacity:.7; margin-top:8px; }
-  .modal-sub strong { color:var(--white); opacity:1; }
+  /* Top bar — Player Profile label + Add-to-compare input + cross-page actions + close */
+  .pp-top-bar { display:flex; align-items:center; justify-content:space-between; gap:14px; padding:14px 24px; border-bottom:1px solid var(--border); background:var(--surface); flex-wrap:wrap; }
+  .pp-top-title { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:13px; color:var(--red); text-transform:uppercase; letter-spacing:.06em; flex-shrink:0; }
+  .pp-top-actions { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+  .pp-compare-wrap { position:relative; min-width:220px; }
+  .pp-compare-input { background:var(--surface2); color:var(--white); border:1px solid var(--border2); padding:6px 12px; font-family:'Mulish',sans-serif; font-size:12px; font-weight:700; width:100%; outline:none; transition:border-color .12s; }
+  .pp-compare-input::placeholder { opacity:.5; }
+  .pp-compare-input:focus { border-color:var(--red); }
+  .pp-compare-results { position:absolute; top:calc(100% + 2px); left:0; right:0; max-height:260px; overflow-y:auto; background:var(--surface); border:1px solid var(--red); z-index:5; display:none; }
+  .pp-compare-results.open { display:block; }
+  .pp-compare-result { padding:8px 12px; cursor:pointer; font-family:'Mulish',sans-serif; font-size:12px; color:var(--white); display:flex; align-items:center; gap:8px; }
+  .pp-compare-result:hover { background:var(--surface2); }
+  .pp-compare-result .pos-pill { font-size:9px; padding:1px 5px; }
+  .pp-action-btn { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:11px; color:var(--white); background:transparent; border:1px solid var(--border2); padding:6px 12px; cursor:pointer; text-transform:uppercase; letter-spacing:.05em; text-decoration:none; white-space:nowrap; transition:all .12s; }
+  .pp-action-btn:hover { border-color:var(--red); color:var(--red); }
 
-  .modal-xpage { display:flex; gap:6px; flex-wrap:wrap; padding:12px 28px; background:var(--surface2); border-bottom:1px solid var(--border); }
-  .modal-xpage-btn { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:11px; color:var(--white); background:transparent; border:1px solid var(--border2); padding:6px 12px; cursor:pointer; text-transform:uppercase; letter-spacing:.06em; text-decoration:none; display:inline-flex; align-items:center; gap:4px; transition:all .15s; }
-  .modal-xpage-btn:hover { border-color:var(--red); color:var(--red); }
+  /* Compare-mode tab strip (shown when comparing) */
+  .pp-tabs { display:none; align-items:center; gap:0; background:var(--surface2); border-bottom:1px solid var(--border); padding:0 16px; min-height:42px; overflow-x:auto; }
+  .pp-tabs.show { display:flex; }
+  .pp-tab { display:inline-flex; align-items:center; gap:8px; padding:8px 14px; cursor:pointer; border-bottom:2px solid transparent; transition:border-color .12s; font-family:'Mulish',sans-serif; font-size:12px; font-weight:700; color:var(--white); opacity:.7; }
+  .pp-tab.active { border-bottom-color:var(--red); opacity:1; }
+  .pp-tab .pp-tab-hs { width:22px; height:22px; border-radius:50%; background:var(--surface); border:1px solid var(--border2); overflow:hidden; flex-shrink:0; }
+  .pp-tab .pp-tab-hs img { width:100%; height:100%; object-fit:cover; object-position:top; }
+  .pp-tab .pos-pill { font-size:9px; padding:1px 5px; }
+  .pp-tab .pp-tab-x { color:var(--white); opacity:.5; padding:0 4px; }
+  .pp-tab .pp-tab-x:hover { opacity:1; color:var(--red); }
 
-  .modal-section { padding:18px 28px; border-bottom:1px solid var(--border); }
-  .modal-section:last-child { border-bottom:none; }
-  .modal-section-label { font-family:'Mulish',sans-serif; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--white); opacity:.55; margin-bottom:14px; }
-  .modal-stats { display:grid; grid-template-columns:repeat(auto-fit, minmax(110px, 1fr)); gap:14px; }
-  .modal-stat .k { font-family:'Mulish',sans-serif; font-size:9px; text-transform:uppercase; letter-spacing:.07em; color:var(--white); opacity:.55; }
-  .modal-stat .v { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:22px; color:var(--white); margin-top:3px; }
-  .modal-stat .v.sub { font-size:14px; opacity:.8; }
+  /* PROFILE — HS + name/meta + inline stats + right-floating FP value */
+  .pp-profile { display:flex; gap:24px; align-items:flex-start; padding:24px 28px 18px; border-bottom:1px solid var(--border); }
+  .pp-hs { width:96px; height:96px; border-radius:50%; background:var(--surface2); border:2px solid var(--border2); overflow:hidden; flex-shrink:0; display:flex; align-items:center; justify-content:center; }
+  .pp-hs img { width:100%; height:100%; object-fit:cover; object-position:top; }
+  .pp-hs-fallback { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:34px; color:var(--white); opacity:.5; }
+  .pp-info { flex:1; min-width:0; }
+  .pp-id { display:flex; align-items:center; gap:10px; margin-bottom:4px; }
+  .pp-id .pos-pill { font-size:11px; padding:3px 10px; }
+  .pp-team-label { font-family:'Mulish',sans-serif; font-size:13px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; color:var(--white); opacity:.85; }
+  .pp-name { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:32px; text-transform:uppercase; line-height:1; color:var(--white); margin-bottom:14px; word-break:break-word; }
+  .pp-stats { display:flex; flex-wrap:wrap; gap:6px 30px; }
+  .pp-stat { display:flex; flex-direction:column; gap:2px; min-width:60px; }
+  .pp-stat .k { font-family:'Mulish',sans-serif; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.07em; color:var(--white); opacity:.55; }
+  .pp-stat .v { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:18px; color:var(--white); line-height:1.1; }
+  .pp-stat .v.green { color:var(--green); }
+  .pp-stat .v.red   { color:var(--red); }
+  .pp-fp { text-align:right; flex-shrink:0; min-width:130px; padding-top:6px; }
+  .pp-fp .k { font-family:'Mulish',sans-serif; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.07em; color:var(--white); opacity:.55; margin-bottom:6px; }
+  .pp-fp .v { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:42px; line-height:1; color:var(--white); }
+  .pp-fp .trend { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:13px; margin-top:6px; display:inline-block; padding:2px 8px; }
+  .pp-fp .trend.up   { background:var(--green-bg); color:var(--green); }
+  .pp-fp .trend.down { background:var(--red-bg);   color:var(--red); }
+
+  /* Sections — articles, heatmap */
+  .pp-section { padding:18px 28px; border-bottom:1px solid var(--border); }
+  .pp-section:last-child { border-bottom:none; }
+  .pp-section-label { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:14px; color:var(--red); text-transform:uppercase; letter-spacing:.06em; margin-bottom:14px; }
+  .pp-section-label .src { font-family:'Mulish',sans-serif; font-style:normal; font-size:11px; color:var(--white); opacity:.55; font-weight:700; margin-left:10px; letter-spacing:.04em; }
+
+  .pp-articles-empty { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:14px 18px; background:var(--red-bg-soft); border:1px solid var(--border); }
+  .pp-articles-empty-msg { font-family:'Mulish',sans-serif; font-size:13px; color:var(--white); opacity:.75; }
+  .pp-articles-list { display:flex; flex-direction:column; gap:8px; }
+  .pp-article { display:block; padding:10px 12px; background:var(--surface2); border:1px solid var(--border); text-decoration:none; transition:border-color .12s; }
+  .pp-article:hover { border-color:var(--red); }
+  .pp-article-title { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:13px; color:var(--white); line-height:1.25; }
+  .pp-article-meta { font-family:'Mulish',sans-serif; font-size:10px; color:var(--white); opacity:.55; margin-top:4px; letter-spacing:.04em; text-transform:uppercase; }
 
   /* HEATMAP */
   .hm-callout { display:flex; gap:18px; align-items:center; margin-bottom:14px; padding:10px 14px; background:var(--surface2); border-left:3px solid var(--red); }
@@ -293,20 +332,10 @@
   .hm-flash-label { display:inline-block; margin-left:auto; padding:2px 8px; background:var(--red); color:#111; font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:10px; min-width:90px; text-align:center; visibility:hidden; }
   .hm-flash-label.show { visibility:visible; }
 
-  .modal-articles { display:flex; flex-direction:column; gap:8px; }
-  .modal-article { display:block; padding:10px 12px; background:var(--surface2); border:1px solid var(--border); text-decoration:none; transition:border-color .12s; }
-  .modal-article:hover { border-color:var(--red); }
-  .modal-article-title { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:13px; color:var(--white); line-height:1.25; }
-  .modal-article-meta { font-family:'Mulish',sans-serif; font-size:10px; color:var(--white); opacity:.55; margin-top:4px; letter-spacing:.04em; text-transform:uppercase; }
-  .modal-articles-empty { font-family:'Mulish',sans-serif; font-size:12px; color:var(--white); opacity:.45; font-style:italic; }
-
-  /* COMPARE MODE */
-  .modal.compare-mode .modal-header-player,
-  .modal.compare-mode .modal-xpage,
-  .modal.compare-mode #modal-fp-section,
-  .modal.compare-mode #modal-heatmap-section,
-  .modal.compare-mode #modal-articles-section { display:none !important; }
-  .modal.compare-mode #modal-adp-stats-section { display:none !important; }
+  /* COMPARE MODE — overlay a multi-player grid in place of the single-player profile */
+  .modal.compare-mode .pp-profile,
+  .modal.compare-mode #pp-articles-section,
+  .modal.compare-mode #pp-heatmap-section { display:none !important; }
   .compare-section { padding:24px 28px; }
   .compare-header { display:flex; align-items:center; justify-content:space-between; padding-bottom:14px; border-bottom:1px solid var(--border); margin-bottom:18px; }
   .compare-title { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:20px; text-transform:uppercase; color:var(--red); }
@@ -326,17 +355,6 @@
   .compare-col .cc-stat:last-child { border-bottom:none; }
   .compare-col .cc-stat .k { opacity:.55; text-transform:uppercase; letter-spacing:.05em; font-size:9px; font-weight:700; font-family:'Mulish',sans-serif; }
   .compare-col .cc-stat .v { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:13px; }
-  .compare-add { background:transparent; border:2px dashed var(--border2); display:flex; flex-direction:column; align-items:center; justify-content:center; cursor:pointer; min-height:240px; gap:6px; font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; color:var(--white); opacity:.6; text-transform:uppercase; letter-spacing:.04em; transition:all .12s; padding:14px; text-align:center; line-height:1.4; }
-  .compare-add:hover { opacity:1; border-color:var(--red); color:var(--red); }
-  .compare-add .plus { font-size:30px; line-height:1; }
-  .compare-search { position:relative; max-width:340px; }
-  .compare-search-input { width:100%; background:var(--surface2); color:var(--white); border:1px solid var(--border2); padding:8px 12px; font-family:'Mulish',sans-serif; font-size:13px; outline:none; transition:border-color .12s; }
-  .compare-search-input:focus { border-color:var(--red); }
-  .compare-search-results { position:absolute; top:100%; left:0; right:0; max-height:240px; overflow-y:auto; background:var(--surface); border:1px solid var(--red); z-index:5; display:none; }
-  .compare-search-results.open { display:block; }
-  .compare-search-result { padding:8px 12px; cursor:pointer; font-family:'Mulish',sans-serif; font-size:12px; color:var(--white); display:flex; align-items:center; gap:8px; }
-  .compare-search-result:hover { background:var(--surface2); }
-  .compare-search-result .pos-pill { font-size:9px; padding:1px 5px; }
 
   @media (max-width: 768px) {
     .topnav { padding: 0 10px; gap: 8px; height: 48px; }
@@ -354,7 +372,10 @@
     .date-range input[type="date"] { font-size: 10px; }
     .sample-badge .value { font-size: 11px; }
     .drawer { width: 100%; }
-    .modal-name { font-size: 22px; }
+    .pp-name { font-size: 22px; }
+    .pp-fp .v { font-size: 28px; }
+    .pp-profile { flex-direction: column; gap: 14px; }
+    .pp-fp { text-align: left; min-width: 0; }
   }
 </style>
 </head>
@@ -505,51 +526,60 @@
   </div>
 </aside>
 
-<!-- MODAL -->
+<!-- MODAL — player panel matching index.html layout for site-wide consistency -->
 <div class="modal-backdrop" id="modal-backdrop">
-  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-name">
-    <button class="modal-close" id="modal-close" type="button" aria-label="Close">✕ Close</button>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="pp-name">
 
-    <div class="modal-header-player">
-      <div class="modal-hs" id="modal-hs"></div>
-      <div class="modal-header-text">
-        <div class="modal-name name-color" id="modal-name">—</div>
-        <div class="modal-meta" id="modal-meta"></div>
-        <div class="modal-sub" id="modal-sub"></div>
+    <!-- TOP BAR -->
+    <div class="pp-top-bar">
+      <div class="pp-top-title">Player Profile</div>
+      <div class="pp-top-actions">
+        <div class="pp-compare-wrap">
+          <input type="text" class="pp-compare-input" id="pp-compare-input" placeholder="+ Add player to compare…" autocomplete="off" aria-label="Add player to compare">
+          <div class="pp-compare-results" id="pp-compare-results"></div>
+        </div>
+        <button class="pp-action-btn" id="xpage-db"      type="button">Open in Database ↗</button>
+        <button class="pp-action-btn" id="xpage-calc"    type="button">Open in Calculator ↗</button>
+        <button class="pp-action-btn" id="xpage-leagues" type="button">Open in My Leagues ↗</button>
+        <button class="pp-action-btn" id="modal-close"   type="button">✕ Close</button>
       </div>
     </div>
 
-    <div class="modal-xpage" id="modal-xpage">
-      <button class="modal-xpage-btn" id="xpage-compare" type="button" title="Pin players side-by-side">⊕ Compare</button>
-      <button class="modal-xpage-btn" id="xpage-db"   type="button">Open in Database ↗</button>
-      <button class="modal-xpage-btn" id="xpage-calc" type="button">Open in Calculator ↗</button>
-      <button class="modal-xpage-btn" id="xpage-leagues" type="button">Open in My Leagues ↗</button>
+    <!-- Compare-mode tab strip (shown when 2+ players pinned) -->
+    <div class="pp-tabs" id="pp-tabs"></div>
+
+    <!-- PROFILE -->
+    <div class="pp-profile">
+      <div class="pp-hs" id="pp-hs"></div>
+      <div class="pp-info">
+        <div class="pp-id">
+          <span class="pos-pill" id="pp-pos-pill"></span>
+          <span class="pp-team-label" id="pp-team-label"></span>
+        </div>
+        <div class="pp-name name-color" id="pp-name">—</div>
+        <div class="pp-stats" id="pp-stats"></div>
+      </div>
+      <div class="pp-fp">
+        <div class="k">FP Value</div>
+        <div class="v" id="pp-fp-v">—</div>
+        <div id="pp-fp-trend"></div>
+      </div>
     </div>
 
-    <div class="modal-section compare-section" id="modal-compare-section" style="display:none">
-      <div class="compare-header">
-        <div class="compare-title">Compare players</div>
-        <button class="compare-exit" id="compare-exit" type="button">✕ Exit compare</button>
-      </div>
+    <!-- COMPARE GRID (shown in compare mode) -->
+    <div class="compare-section" id="modal-compare-section" style="display:none">
       <div class="compare-grid" id="compare-grid"></div>
-      <div class="compare-search">
-        <input type="text" class="compare-search-input" id="compare-search-input" placeholder="Type to find a player to add…" autocomplete="off">
-        <div class="compare-search-results" id="compare-search-results"></div>
-      </div>
     </div>
 
-    <div class="modal-section" id="modal-adp-stats-section">
-      <div class="modal-section-label">ADP &amp; Sample</div>
-      <div class="modal-stats" id="modal-adp-stats"></div>
+    <!-- ARTICLES -->
+    <div class="pp-section" id="pp-articles-section">
+      <div class="pp-section-label">Articles <span class="src">FantasyPoints.com</span></div>
+      <div id="pp-articles-body"></div>
     </div>
 
-    <div class="modal-section" id="modal-fp-section">
-      <div class="modal-section-label">Trade Value · Fantasy Points</div>
-      <div class="modal-stats" id="modal-fp-stats"></div>
-    </div>
-
-    <div class="modal-section" id="modal-heatmap-section">
-      <div class="modal-section-label">Pick Availability Heatmap</div>
+    <!-- PICK AVAILABILITY HEATMAP -->
+    <div class="pp-section" id="pp-heatmap-section">
+      <div class="pp-section-label">Pick Availability Heatmap</div>
       <div class="hm-callout">
         <div class="hm-co-stat"><span class="hm-co-k">Expected pick</span><span class="hm-co-v" id="hm-expected">—</span></div>
         <div class="hm-co-stat"><span class="hm-co-k">Drafts sampled</span><span class="hm-co-v" id="hm-sampled">—</span></div>
@@ -563,11 +593,6 @@
         <span class="hm-flash-label" id="hm-flash-label">—</span>
       </div>
       <div class="hm-grid" id="hm-grid"></div>
-    </div>
-
-    <div class="modal-section" id="modal-articles-section">
-      <div class="modal-section-label">Recent articles</div>
-      <div class="modal-articles" id="modal-articles"></div>
     </div>
   </div>
 </div>
@@ -1373,88 +1398,94 @@ function openModal(sleeperId) {
   if (!p) return;
   CURRENT_MODAL_PLAYER = p;
   const pos = posOf(p);
+  const fpRec = lookupFpValue(p.name) || {};
 
-  // Header — HS + name + position/team pills
+  // Headshot
   const hs = thumbUrl(p);
   const initial = escapeHtml((p.name || '?').slice(0, 1).toUpperCase());
-  document.getElementById('modal-hs').innerHTML = hs
-    ? `<img src="${hs}" alt="" referrerpolicy="no-referrer" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'modal-hs-fallback',textContent:'${initial}'}))">`
-    : `<span class="modal-hs-fallback">${initial}</span>`;
-  const nameEl = document.getElementById('modal-name');
-  nameEl.textContent = p.name;
-  nameEl.className = 'modal-name name-color ' + pos;
-  document.getElementById('modal-meta').innerHTML = `
-    ${pos ? `<span class="pos-pill ${pos}">${escapeHtml(p.posRank || pos)}</span>` : ''}
-    ${p.team ? `<span class="team-pill">${escapeHtml(p.team)}</span>` : ''}
-  `;
-  const subParts = [];
-  if (p.age != null)      subParts.push(`Age <strong>${p.age.toFixed(1)}</strong>`);
-  if (p.yearsExp != null) subParts.push(`Exp <strong>${p.yearsExp}</strong> yrs`);
-  document.getElementById('modal-sub').innerHTML = subParts.join(' · ');
+  document.getElementById('pp-hs').innerHTML = hs
+    ? `<img src="${hs}" alt="" referrerpolicy="no-referrer" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'pp-hs-fallback',textContent:'${initial}'}))">`
+    : `<span class="pp-hs-fallback">${initial}</span>`;
 
-  // ADP & sample stats
-  const adpStats = [
-    ['ADP',            p.adp != null ? p.adp.toFixed(1) : '—'],
-    ['Overall rank',   p.rank ?? '—'],
-    ['Position rank',  p.posRank || '—'],
-    ['Drafts sampled', (p.drafts ?? 0).toLocaleString()],
-    ['Picks',          (p.picks  ?? 0).toLocaleString()],
-    ['Pick range',     `${p.minPick ?? '—'} – ${p.maxPick ?? '—'}`],
-    ['NFL Draft',      (p.draftYear || p.draftRound) ? `${p.draftYear ?? '—'} · R${p.draftRound ?? '—'}` : '—'],
-  ];
-  // Trend (month-over-month) — render as its own stat if data exists
+  // Identity row + name
+  document.getElementById('pp-pos-pill').className   = 'pos-pill ' + pos;
+  document.getElementById('pp-pos-pill').textContent = pos || '—';
+  document.getElementById('pp-team-label').textContent = p.team || '';
+  const nameEl = document.getElementById('pp-name');
+  nameEl.textContent = p.name;
+  nameEl.className = 'pp-name name-color ' + pos;
+
+  // Inline stats — match the index panel's set: AGE / EXP / POS RANK / OVERALL RANK / PPG / DYNASTY ADP / AUCTION / NFL DRAFT
   const trendRec = TREND_INDEX[normalizePlayerName(p.name)];
-  if (trendRec) {
-    const sign = trendRec.delta < 0 ? '▲' : (trendRec.delta > 0 ? '▼' : '●');
-    adpStats.push(['MoM trend', `${sign} ${Math.abs(trendRec.delta).toFixed(1)} (${trendRec.prevMonth} → ${trendRec.recentMonth})`]);
-  }
-  document.getElementById('modal-adp-stats').innerHTML = adpStats.map(([k, v]) =>
-    `<div class="modal-stat"><div class="k">${escapeHtml(k)}</div><div class="v">${escapeHtml(v)}</div></div>`
+  const fmtTrend = (t) => {
+    if (!t) return null;
+    const arrow = t.delta < 0 ? '▲' : (t.delta > 0 ? '▼' : '●');
+    return `${arrow} ${Math.abs(t.delta).toFixed(1)}`;
+  };
+  const ageDisplay = (p.age != null) ? p.age.toFixed(1) : '—';
+  const expDisplay = (p.yearsExp != null) ? (p.yearsExp + ' yrs') : '—';
+  const posRank    = p.posRank || fpRec.posRank || '—';
+  const overall    = fpRec.rank ?? p.rank ?? '—';
+  const ppg        = fpRec.ppg != null ? fpRec.ppg.toFixed(1) : '—';
+  const adpStr     = p.adp != null ? p.adp.toFixed(1) : '—';
+  const auctionStr = fpRec.auction || fpRec.auctionSf || '—';
+  const nflDraft   = (p.draftYear || p.draftRound)
+                       ? `${p.draftYear ?? '—'} · R${p.draftRound ?? '—'}`
+                       : '—';
+  const drafts     = (p.drafts ?? 0).toLocaleString();
+  const pickRange  = (p.minPick != null || p.maxPick != null) ? `${p.minPick ?? '—'}–${p.maxPick ?? '—'}` : '—';
+  const trendStr   = fmtTrend(trendRec) || '—';
+  const trendCls   = trendRec ? (trendRec.delta < 0 ? 'green' : (trendRec.delta > 0 ? 'red' : '')) : '';
+
+  const stats = [
+    ['Age',          ageDisplay],
+    ['Exp',          expDisplay],
+    ['Pos Rank',     posRank],
+    ['Overall Rank', overall === '—' ? '—' : '#' + overall],
+    ['PPG',          ppg],
+    ['Dynasty ADP',  adpStr],
+    ['Auction',      auctionStr],
+    ['NFL Draft',    nflDraft],
+    ['Drafts',       drafts],
+    ['Pick Range',   pickRange],
+    ['MoM Trend',    trendStr, trendCls],
+  ];
+  document.getElementById('pp-stats').innerHTML = stats.map(([k, v, cls]) =>
+    `<div class="pp-stat"><div class="k">${escapeHtml(k)}</div><div class="v ${cls || ''}">${escapeHtml(v)}</div></div>`
   ).join('');
 
-  // FP trade value — look up FP_VALUES by name (case-insensitive normalized)
-  const fpRec = lookupFpValue(p.name);
-  const fpSec = document.getElementById('modal-fp-section');
-  if (fpRec) {
-    fpSec.style.display = '';
-    const trend = fpRec.trend;
-    const trendStr = (trend == null || trend === 0) ? '—' : (trend > 0 ? `▲ ${trend}` : `▼ ${Math.abs(trend)}`);
-    const fpStats = [
-      ['FP Value',     fpRec.value     != null ? fpRec.value.toLocaleString()     : '—'],
-      ['SF Value',     fpRec.valueSf   != null ? fpRec.valueSf.toLocaleString()   : '—'],
-      ['TEP Value',    fpRec.valueTep  != null ? fpRec.valueTep.toLocaleString()  : '—'],
-      ['Rank',         fpRec.rank      ?? '—'],
-      ['PPG',          fpRec.ppg       != null ? fpRec.ppg.toFixed(1) : '—'],
-      ['Auction (1Q)', fpRec.auction   ?? '—'],
-      ['Auction (SF)', fpRec.auctionSf ?? '—'],
-      ['Trend',        trendStr],
-    ];
-    document.getElementById('modal-fp-stats').innerHTML = fpStats.map(([k, v]) =>
-      `<div class="modal-stat"><div class="k">${escapeHtml(k)}</div><div class="v">${escapeHtml(v)}</div></div>`
-    ).join('');
+  // Right-floating FP Value
+  document.getElementById('pp-fp-v').textContent = (fpRec.value != null) ? fpRec.value.toLocaleString() : '—';
+  const fpTrend = document.getElementById('pp-fp-trend');
+  if (fpRec.trend != null && fpRec.trend !== 0) {
+    const up = fpRec.trend > 0;
+    fpTrend.className = 'trend ' + (up ? 'up' : 'down');
+    fpTrend.textContent = (up ? '▲ ' : '▼ ') + Math.abs(fpRec.trend);
   } else {
-    fpSec.style.display = 'none';
+    fpTrend.className = '';
+    fpTrend.textContent = '';
   }
 
   // Pick Availability heatmap
   renderHeatmap(p);
 
-  // Articles
-  const articlesSec = document.getElementById('modal-articles-section');
-  const articlesEl = document.getElementById('modal-articles');
+  // Articles — empty state matches the FantasyPoints panel pattern (with browse CTA)
+  const articlesBody = document.getElementById('pp-articles-body');
   const arts = (window.PLAYER_ARTICLES && window.PLAYER_ARTICLES[p.name]) || [];
   if (arts && arts.length) {
-    articlesSec.style.display = '';
-    articlesEl.innerHTML = arts.slice(0, 5).map(a => {
+    articlesBody.innerHTML = `<div class="pp-articles-list">${arts.slice(0, 5).map(a => {
       const dateStr = a.date ? new Date(a.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
-      return `<a class="modal-article" href="${escapeHtml(a.url)}" target="_blank" rel="noopener">
-        <div class="modal-article-title">${escapeHtml(a.title)}</div>
-        <div class="modal-article-meta">${escapeHtml(a.author || '')} ${a.author && dateStr ? '·' : ''} ${escapeHtml(dateStr)}</div>
+      return `<a class="pp-article" href="${escapeHtml(a.url)}" target="_blank" rel="noopener">
+        <div class="pp-article-title">${escapeHtml(a.title)}</div>
+        <div class="pp-article-meta">${escapeHtml(a.author || '')} ${a.author && dateStr ? '·' : ''} ${escapeHtml(dateStr)}</div>
       </a>`;
-    }).join('');
+    }).join('')}</div>`;
   } else {
-    articlesSec.style.display = '';
-    articlesEl.innerHTML = `<div class="modal-articles-empty">No recent articles for ${escapeHtml(p.name)}.</div>`;
+    const browseUrl = `https://www.fantasypoints.com/search?q=${encodeURIComponent(p.name)}`;
+    articlesBody.innerHTML = `<div class="pp-articles-empty">
+      <div class="pp-articles-empty-msg">No curated articles yet — browse FantasyPoints for ${escapeHtml(p.name)} coverage</div>
+      <a class="pp-action-btn" href="${browseUrl}" target="_blank" rel="noopener">Browse FantasyPoints ↗</a>
+    </div>`;
   }
 
   document.getElementById('modal-backdrop').classList.add('open');
@@ -1536,18 +1567,18 @@ const COMPARE_MAX = 3;
 
 function enterCompareMode() {
   if (!CURRENT_MODAL_PLAYER) return;
-  COMPARE_LIST = [CURRENT_MODAL_PLAYER];
+  if (!COMPARE_LIST.length) COMPARE_LIST = [CURRENT_MODAL_PLAYER];
   document.getElementById('modal').classList.add('compare-mode');
   document.getElementById('modal-compare-section').style.display = '';
   renderCompareGrid();
-  setTimeout(() => { const i = document.getElementById('compare-search-input'); if (i) i.focus(); }, 50);
+  renderCompareTabs();
 }
 
 function exitCompareMode() {
   COMPARE_LIST = [];
   document.getElementById('modal').classList.remove('compare-mode');
   document.getElementById('modal-compare-section').style.display = 'none';
-  // Restore the single-player view for whichever player was active
+  renderCompareTabs();
   if (CURRENT_MODAL_PLAYER) openModal(CURRENT_MODAL_PLAYER.sleeperId);
 }
 
@@ -1557,14 +1588,35 @@ function addToCompare(sleeperId) {
   const p = list.find(x => String(x.sleeperId) === String(sleeperId));
   if (!p) return;
   if (COMPARE_LIST.some(x => String(x.sleeperId) === String(p.sleeperId))) return;
+  // First add — also include the currently-open player if it isn't already.
+  if (!COMPARE_LIST.length && CURRENT_MODAL_PLAYER) COMPARE_LIST.push(CURRENT_MODAL_PLAYER);
   COMPARE_LIST.push(p);
-  renderCompareGrid();
+  enterCompareMode();
 }
 
 function removeFromCompare(sleeperId) {
   COMPARE_LIST = COMPARE_LIST.filter(x => String(x.sleeperId) !== String(sleeperId));
-  if (!COMPARE_LIST.length) { exitCompareMode(); return; }
+  if (COMPARE_LIST.length < 2) { exitCompareMode(); return; }
   renderCompareGrid();
+  renderCompareTabs();
+}
+
+function renderCompareTabs() {
+  const tabs = document.getElementById('pp-tabs');
+  if (!tabs) return;
+  if (COMPARE_LIST.length < 2) { tabs.classList.remove('show'); tabs.innerHTML = ''; return; }
+  tabs.classList.add('show');
+  tabs.innerHTML = COMPARE_LIST.map((p, i) => {
+    const hs = thumbUrl(p);
+    const initial = escapeHtml((p.name || '?').slice(0, 1).toUpperCase());
+    const pos = posOf(p);
+    return `<div class="pp-tab${i === 0 ? ' active' : ''}">
+      <div class="pp-tab-hs">${hs ? `<img src="${hs}" alt="" referrerpolicy="no-referrer">` : escapeHtml(initial)}</div>
+      ${pos ? `<span class="pos-pill ${pos}">${pos}</span>` : ''}
+      <span>${escapeHtml(p.name)}</span>
+      <span class="pp-tab-x" data-tab-remove="${escapeHtml(p.sleeperId)}" role="button" aria-label="Remove">✕</span>
+    </div>`;
+  }).join('');
 }
 
 function buildCompareCard(p) {
@@ -1601,31 +1653,30 @@ function buildCompareCard(p) {
 
 function renderCompareGrid() {
   const grid = document.getElementById('compare-grid');
-  const cards = COMPARE_LIST.map(buildCompareCard);
-  if (COMPARE_LIST.length < COMPARE_MAX) {
-    cards.push(`<div class="compare-add" id="compare-add-slot" role="button" tabindex="0"><span class="plus">＋</span><span>Add player</span></div>`);
-  }
-  grid.innerHTML = cards.join('');
+  grid.innerHTML = COMPARE_LIST.map(buildCompareCard).join('');
 }
 
+// Live search bound to the top-bar "+ Add player to compare" input.
 function onCompareSearch() {
-  const input = document.getElementById('compare-search-input');
-  const results = document.getElementById('compare-search-results');
+  const input = document.getElementById('pp-compare-input');
+  const results = document.getElementById('pp-compare-results');
+  if (!input || !results) return;
   const q = (input.value || '').toLowerCase().trim();
   if (!q) { results.classList.remove('open'); results.innerHTML = ''; return; }
   const list = getActiveBucket() || [];
   const taken = new Set(COMPARE_LIST.map(p => String(p.sleeperId)));
+  if (CURRENT_MODAL_PLAYER) taken.add(String(CURRENT_MODAL_PLAYER.sleeperId));
   const matches = list
     .filter(p => p.name && p.name.toLowerCase().includes(q) && !taken.has(String(p.sleeperId)))
     .slice(0, 10);
   if (!matches.length) {
-    results.innerHTML = `<div class="compare-search-result" style="opacity:.5;cursor:default">No matches in current mode</div>`;
+    results.innerHTML = `<div class="pp-compare-result" style="opacity:.5;cursor:default">No matches in current mode</div>`;
     results.classList.add('open');
     return;
   }
   results.innerHTML = matches.map(p => {
     const pos = posOf(p);
-    return `<div class="compare-search-result" data-pick="${escapeHtml(p.sleeperId)}">
+    return `<div class="pp-compare-result" data-pick="${escapeHtml(p.sleeperId)}">
       ${pos ? `<span class="pos-pill ${pos}">${pos}</span>` : ''}
       <span>${escapeHtml(p.name)}</span>
       <span style="margin-left:auto;opacity:.55;font-family:'Kanit',sans-serif;font-style:italic">${p.adp != null ? p.adp.toFixed(1) : ''}</span>
@@ -1894,27 +1945,34 @@ function _bindEvents() {
   document.getElementById('xpage-db').addEventListener('click',      e => { e.stopPropagation(); _fptsXpageAdpToDb(); });
   document.getElementById('xpage-calc').addEventListener('click',    e => { e.stopPropagation(); _fptsXpageAdpToCalc(); });
   document.getElementById('xpage-leagues').addEventListener('click', e => { e.stopPropagation(); _fptsXpageAdpToLeagues(); });
-  // Compare mode
-  document.getElementById('xpage-compare').addEventListener('click', e => { e.stopPropagation(); enterCompareMode(); });
-  document.getElementById('compare-exit').addEventListener('click',  e => { e.stopPropagation(); exitCompareMode(); });
-  document.getElementById('compare-grid').addEventListener('click',  e => {
-    const removeBtn = e.target.closest('[data-remove]');
-    if (removeBtn) { removeFromCompare(removeBtn.dataset.remove); return; }
-    const addSlot = e.target.closest('#compare-add-slot');
-    if (addSlot) { document.getElementById('compare-search-input').focus(); }
-  });
-  document.getElementById('compare-search-input').addEventListener('input', onCompareSearch);
-  document.getElementById('compare-search-input').addEventListener('keydown', e => {
+  // Compare — the top-bar "+ Add player to compare" input
+  const ppCmp = document.getElementById('pp-compare-input');
+  const ppCmpRes = document.getElementById('pp-compare-results');
+  ppCmp.addEventListener('input',   onCompareSearch);
+  ppCmp.addEventListener('focus',   onCompareSearch);
+  ppCmp.addEventListener('keydown', e => {
     if (e.key === 'Escape') { e.target.value = ''; onCompareSearch(); e.stopPropagation(); }
   });
-  document.getElementById('compare-search-results').addEventListener('click', e => {
+  ppCmpRes.addEventListener('click', e => {
     const r = e.target.closest('[data-pick]');
     if (!r) return;
     addToCompare(r.dataset.pick);
-    const input = document.getElementById('compare-search-input');
-    input.value = '';
+    ppCmp.value = '';
     onCompareSearch();
-    input.focus();
+    ppCmp.focus();
+  });
+  // Compare grid (remove buttons) + tab strip (remove buttons)
+  document.getElementById('compare-grid').addEventListener('click',  e => {
+    const removeBtn = e.target.closest('[data-remove]');
+    if (removeBtn) removeFromCompare(removeBtn.dataset.remove);
+  });
+  document.getElementById('pp-tabs').addEventListener('click', e => {
+    const x = e.target.closest('[data-tab-remove]');
+    if (x) { e.stopPropagation(); removeFromCompare(x.dataset.tabRemove); }
+  });
+  // Close compare results when clicking elsewhere
+  document.addEventListener('click', e => {
+    if (!e.target.closest('.pp-compare-wrap')) { ppCmpRes.classList.remove('open'); }
   });
   document.getElementById('modal-backdrop').addEventListener('click', e => {
     if (e.target.id === 'modal-backdrop') closeModal();
