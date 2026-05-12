@@ -134,10 +134,12 @@
   .pos-breakdown .pb-item.WR { background:var(--pos-wr-bg); color:var(--pos-wr); }
   .pos-breakdown .pb-item.TE { background:var(--pos-te-bg); color:var(--pos-te); }
   .pos-breakdown .pb-item.K  { background:var(--pos-k-bg);  color:var(--pos-k); }
-  .trend { display:inline-flex; align-items:center; gap:2px; font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:10px; padding:1px 5px; letter-spacing:.04em; margin-left:4px; }
-  .trend.up   { background:var(--green-bg); color:var(--green); }
-  .trend.down { background:var(--red-bg);   color:var(--red); }
-  .trend.flat { background:var(--surface2); color:var(--white); opacity:.45; }
+  /* Trend badge — uses a dark overlay so the bright arrow colour stays legible on
+     every position-coloured card (QB red / RB green / WR blue / TE orange / K purple) */
+  .trend { display:inline-flex; align-items:center; gap:2px; font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:10px; padding:1px 6px; letter-spacing:.04em; margin-left:4px; background:rgba(0,0,0,.55); border:1px solid rgba(0,0,0,.15); }
+  .trend.up   { color:#66dd84; }   /* bright green, contrasts on every card */
+  .trend.down { color:#ffa84d; }   /* bright orange, brand-aligned */
+  .trend.flat { color:rgba(255,255,255,.55); }
   .sample-badge .dot { width:8px; height:8px; border-radius:50%; background:var(--green); }
   .sample-badge .label { font-family:'Mulish',sans-serif; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--white); opacity:.65; }
   .sample-badge .value { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:13px; color:var(--white); }
@@ -199,7 +201,7 @@
   .box-row-head { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:11px; color:var(--red); text-align:center; padding:2px 0; letter-spacing:.04em; display:flex; align-items:center; justify-content:center; background:var(--surface); border-right:1px solid var(--border); position:sticky; left:0; z-index:1; }
   .box-card { position:relative; display:flex; flex-direction:column; min-height:60px; cursor:pointer; overflow:hidden; padding:5px 7px; transition:transform .12s, box-shadow .12s; }
   .box-card:hover { transform:translateY(-1px); box-shadow:0 3px 8px rgba(0,0,0,.35); }
-  .box-card .card-content { display:flex; flex-direction:column; gap:2px; position:relative; z-index:1; padding-right:32px; min-width:0; }
+  .box-card .card-content { display:flex; flex-direction:column; gap:2px; position:relative; z-index:1; padding-right:26px; min-width:0; }
   .box-card .card-top { display:flex; align-items:center; gap:5px; font-family:'Mulish',sans-serif; font-size:9px; font-weight:800; letter-spacing:.03em; }
   .box-card .card-pick { font-weight:800; }
   .box-card .card-posrank { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:9px; padding:1px 5px; letter-spacing:.04em; background:rgba(0,0,0,.22); color:inherit; }
@@ -209,8 +211,8 @@
   .box-card .card-lname { font-size:13px; line-height:1.05; margin-top:1px; word-break:break-word; overflow:hidden; max-height:30px; }
   .box-card .card-meta { display:flex; align-items:center; gap:4px; font-family:'Mulish',sans-serif; font-size:9px; font-weight:800; letter-spacing:.04em; margin-top:auto; opacity:.85; padding-top:2px; }
   /* Small circular headshot pinned to the top-right corner — doesn't steal vertical space */
-  .box-card .card-hs { position:absolute; top:5px; right:5px; width:26px; height:26px; border-radius:50%; object-fit:cover; object-position:top; border:1px solid rgba(0,0,0,.18); background:rgba(0,0,0,.1); }
-  .box-card .card-hs-fallback { position:absolute; top:5px; right:5px; width:26px; height:26px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:14px; color:inherit; opacity:.55; background:rgba(0,0,0,.12); border:1px solid rgba(0,0,0,.18); }
+  .box-card .card-hs { position:absolute; top:4px; right:4px; width:22px; height:22px; border-radius:50%; object-fit:cover; object-position:top; border:1px solid rgba(0,0,0,.18); background:rgba(0,0,0,.1); }
+  .box-card .card-hs-fallback { position:absolute; top:4px; right:4px; width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:11px; color:inherit; opacity:.55; background:rgba(0,0,0,.12); border:1px solid rgba(0,0,0,.18); }
   .box-card.QB { background:var(--pos-qb-bg); color:var(--pos-qb); }
   .box-card.RB { background:var(--pos-rb-bg); color:var(--pos-rb); }
   .box-card.WR { background:var(--pos-wr-bg); color:var(--pos-wr); }
@@ -1059,8 +1061,13 @@ function renderBoxView(players) {
     const team = isRev ? (TC - 1 - inRound) : inRound;
     grid[round][team] = { player: sorted[i], pickInRound: inRound + 1 };
   }
-  // Grid template adapts to team count (8/10/12/14)
-  const parts = [`<div class="box-grid" style="grid-template-columns:34px repeat(${TC}, minmax(118px, 1fr)); min-width:${34 + TC * 118 + (TC + 1) * 4}px">`];
+  // Cell width shrinks as team count grows so 14-team boards still fit on a
+  // 1440px viewport without horizontal scroll. Cards still expand to 1fr on wider screens.
+  const cellMin = TC >= 14 ? 92 : TC >= 12 ? 105 : TC >= 10 ? 120 : 135;
+  const headW   = TC >= 14 ? 28 : 32;
+  const gap     = 4;
+  const minWidth = headW + TC * cellMin + (TC + 1) * gap;
+  const parts = [`<div class="box-grid" style="grid-template-columns:${headW}px repeat(${TC}, minmax(${cellMin}px, 1fr)); gap:${gap}px; min-width:${minWidth}px">`];
   parts.push('<div class="box-corner"></div>');
   for (let t = 0; t < TC; t++) parts.push(`<div class="box-col-header">Team ${t+1}</div>`);
   for (let r = 0; r < rounds; r++) {
