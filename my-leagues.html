@@ -5537,51 +5537,63 @@ async function loadRoster(leagueId, season) {
     const scoringType = league.scoring_settings?.rec === 1 ? 'ppr'
                       : league.scoring_settings?.rec === 0.5 ? 'half_ppr' : 'std';
 
-    // Fetch projections for current display week
+    // Fetch projections for current display week.
+    // Sleeper's correct path is /v1/projections/nfl/regular/{year}/{week} —
+    // omitting the `/regular/` segment returns a smaller partial response or 404.
     const displayWeek = nflState?.display_week || nflState?.week || 1;
     const projSeason  = nflState?.season || new Date().getFullYear().toString();
     let projections = {};
     try {
       const projData = await apiFetch(
-        `${API}/projections/nfl/${projSeason}/${displayWeek}?season_type=regular&position[]=QB&position[]=RB&position[]=WR&position[]=TE`
+        `${API}/projections/nfl/regular/${projSeason}/${displayWeek}`
       );
       if (projData && typeof projData === 'object') {
-        // projData = { player_id: { stats: {...}, player: {...} } }
-        Object.entries(projData).forEach(([pid, data]) => {
-          const stats = data.stats || data;
-          const proj  = stats[`pts_${scoringType}`] || stats.pts_ppr || stats.pts_half_ppr || stats.pts_std || 0;
+        // Sleeper returns a flat dict { player_id: {pts_ppr, ...} }
+        Object.entries(projData).forEach(([pid, stats]) => {
+          if (!stats || typeof stats !== 'object') return;
+          const proj = stats[`pts_${scoringType}`] ?? stats.pts_ppr ?? stats.pts_half_ppr ?? stats.pts_std ?? 0;
           if (proj > 0) projections[pid] = +proj;
         });
       }
     } catch(e) { /* projections not available this week */ }
 
-    // Fetch season-long projections for projSeason (auto-fills when Sleeper publishes; '—' until then)
+    // Fetch season-long projections. Try the requested season first; if it 404s
+    // (next-season projections not seeded yet), fall back one year.
+    async function fetchSeasonProj(year) {
+      try {
+        const d = await apiFetch(`${API}/projections/nfl/regular/${year}`);
+        return (d && typeof d === 'object') ? d : null;
+      } catch(e) { return null; }
+    }
     try {
-      const seasonProjData = await apiFetch(
-        `${API}/projections/nfl/${projSeason}?season_type=regular&position[]=QB&position[]=RB&position[]=WR&position[]=TE`
-      );
+      let seasonProjData = await fetchSeasonProj(projSeason);
+      if (!seasonProjData || !Object.keys(seasonProjData).length) {
+        seasonProjData = await fetchSeasonProj(String(parseInt(projSeason,10) - 1));
+      }
       const seasonProj = {};
-      if (seasonProjData && typeof seasonProjData === 'object') {
-        Object.entries(seasonProjData).forEach(([pid, data]) => {
-          const stats = data.stats || data;
-          const proj  = stats[`pts_${scoringType}`] || stats.pts_ppr || stats.pts_half_ppr || stats.pts_std || 0;
+      if (seasonProjData) {
+        Object.entries(seasonProjData).forEach(([pid, stats]) => {
+          if (!stats || typeof stats !== 'object') return;
+          const proj = stats[`pts_${scoringType}`] ?? stats.pts_ppr ?? stats.pts_half_ppr ?? stats.pts_std ?? 0;
           if (proj > 0) seasonProj[pid] = +proj;
         });
       }
       window.ML_SEASON_PROJ = seasonProj;
     } catch(e) { /* season projections not available */ }
 
-    // Fetch 2025 season totals for PPG calculation (one batch call, all players)
+    // Fetch 2025 season totals for PPG (most recently completed season). The
+    // canonical Sleeper stats endpoint is api.sleeper.app/v1, NOT api.sleeper.com,
+    // and the response is a flat dict (not an array).
     try {
-      const ssData = await apiFetch(`https://api.sleeper.com/stats/nfl/regular/2025?season_type=regular`);
+      const ssData = await apiFetch(`${API}/stats/nfl/regular/2025`);
       const seasonStats = {};
-      if (Array.isArray(ssData)) {
-        ssData.forEach(entry => {
-          const stats = entry.stats || {};
+      if (ssData && typeof ssData === 'object') {
+        Object.entries(ssData).forEach(([pid, stats]) => {
+          if (!stats || typeof stats !== 'object') return;
           const gp = stats.gp || 0;
-          const pts = stats[`pts_${scoringType}`] || stats.pts_ppr || stats.pts_half_ppr || stats.pts_std || 0;
+          const pts = stats[`pts_${scoringType}`] ?? stats.pts_ppr ?? stats.pts_half_ppr ?? stats.pts_std ?? 0;
           if (gp > 0 && pts > 0) {
-            seasonStats[String(entry.player_id)] = +(pts / gp).toFixed(1);
+            seasonStats[pid] = +(pts / gp).toFixed(1);
           }
         });
       }
