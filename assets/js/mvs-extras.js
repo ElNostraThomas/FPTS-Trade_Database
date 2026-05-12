@@ -73,7 +73,7 @@
       + '</div>';
   }
 
-  // ── OTC + Rankings row ────────────────────────────────────────────────────
+  // ── OTC + Rankings + Baseline + Trade volume row ──────────────────────────
   function buildOtcRankingsHtml(rec) {
     if (!rec) return '';
     const cells = [];
@@ -85,6 +85,33 @@
         +   '<div class="mvs-extras-label">OTC Value</div>'
         +   '<div class="mvs-extras-val">' + _fmtInt(rec.otcValue)
         +     ' <span class="mvs-extras-diff">(' + sign + _fmtInt(diff) + ' vs MVS)</span></div>'
+        + '</div>');
+    }
+    // Baseline cell — pre-market formula baseline + delta vs current MVS.
+    // Positive delta = market is pricing the player ABOVE baseline (hype),
+    // negative = market is priced BELOW baseline (sell signal / undervalued).
+    if (rec.baseline != null && rec.baseline > 0 && rec.value != null) {
+      const bDiff = rec.value - rec.baseline;
+      const bPct  = Math.round((bDiff / rec.baseline) * 100);
+      const bSign = bDiff >= 0 ? '+' : '';
+      const bClass = bDiff >= 0 ? 'mvs-extras-diff up' : 'mvs-extras-diff down';
+      cells.push(''
+        + '<div class="mvs-extras-cell">'
+        +   '<div class="mvs-extras-label">Baseline</div>'
+        +   '<div class="mvs-extras-val">' + _fmtInt(rec.baseline)
+        +     ' <span class="' + bClass + '">(' + bSign + bPct + '% market)</span></div>'
+        + '</div>');
+    }
+    // Trade volume — liquidity signal from the past 7 days.
+    if (rec.tradesLastWeek != null) {
+      const v = rec.tradesLastWeek;
+      const tone = v >= 200 ? 'hot' : v >= 50 ? 'warm' : v > 0 ? 'cool' : 'cold';
+      const tag  = v >= 200 ? 'Hot' : v >= 50 ? 'Active' : v > 0 ? 'Quiet' : 'No trades';
+      cells.push(''
+        + '<div class="mvs-extras-cell">'
+        +   '<div class="mvs-extras-label">Trade Volume (7d)</div>'
+        +   '<div class="mvs-extras-val">' + _fmtInt(v)
+        +     ' <span class="mvs-vol mvs-vol-' + tone + '">' + tag + '</span></div>'
         + '</div>');
     }
     if (rec.rankings && Object.values(rec.rankings).some(function (v) { return v != null; })) {
@@ -108,22 +135,33 @@
     return '<div class="mvs-extras">' + cells.join('') + '</div>';
   }
 
-  // Composite: returns OTC+Rankings + Sparkline + RecentTrades concatenated.
+  // ── Footer: data-freshness timestamp ──────────────────────────────────────
+  function buildLastUpdatedHtml(lastUpdated) {
+    if (!lastUpdated) return '';
+    // CSV format: "2026-01-20 23:45:42.806" — strip seconds/ms for display
+    const short = String(lastUpdated).replace(/(\d{4}-\d{2}-\d{2})[ T]?(\d{2}:\d{2}).*/, '$1 $2');
+    return '<div class="mvs-foot">MVS data refreshed ' + _escHtml(short) + '</div>';
+  }
+
+  // Composite: returns OTC+Rankings + Sparkline + RecentTrades + Footer.
   // Caller decides whether to use the composite or call sub-helpers individually.
   function buildAllExtrasHtml(playerName) {
     if (typeof window.FP_VALUES === 'undefined') return '';
     const rec = window.FP_VALUES[playerName];
     if (!rec) return '';
+    // rec.history is the toggle-aware alias the page overlay set up.
     return buildOtcRankingsHtml(rec)
          + buildSparklineHtml(rec.history)
-         + buildRecentTradesHtml(rec.recentTrades, playerName);
+         + buildRecentTradesHtml(rec.recentTrades, playerName)
+         + buildLastUpdatedHtml(rec.lastUpdated);
   }
 
   // Expose
   window.MvsExtras = {
-    buildOtcRankings: buildOtcRankingsHtml,
-    buildSparkline:   buildSparklineHtml,
+    buildOtcRankings:  buildOtcRankingsHtml,
+    buildSparkline:    buildSparklineHtml,
     buildRecentTrades: buildRecentTradesHtml,
-    buildAll:         buildAllExtrasHtml,
+    buildLastUpdated:  buildLastUpdatedHtml,
+    buildAll:          buildAllExtrasHtml,
   };
 })();
