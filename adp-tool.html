@@ -214,10 +214,10 @@
   .box-card .card-name { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; line-height:1; overflow:hidden; }
   .box-card .card-meta { display:flex; align-items:center; gap:6px; font-family:'Mulish',sans-serif; font-size:10px; font-weight:800; letter-spacing:.04em; margin-top:auto; opacity:.85; }
   .box-card .card-tier { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:10px; padding:1px 5px; background:rgba(0,0,0,.22); }
-  .box-card .card-fname { font-size:12px; line-height:1; opacity:.85; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-  .box-card .card-lname { font-size:18px; line-height:1.05; margin-top:2px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-  .box-card .card-hs { width:62px; height:auto; min-height:100%; object-fit:cover; object-position:top center; flex-shrink:0; align-self:flex-end; }
-  .box-card .card-hs-fallback { width:62px; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:30px; color:inherit; opacity:.35; }
+  .box-card .card-fname { font-size:10px; line-height:1; opacity:.8; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .box-card .card-lname { font-size:14px; line-height:1.05; margin-top:2px; word-break:break-word; overflow:hidden; max-height:32px; }
+  .box-card .card-hs { width:44px; height:auto; min-height:100%; object-fit:cover; object-position:top center; flex-shrink:0; align-self:flex-end; }
+  .box-card .card-hs-fallback { width:44px; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:22px; color:inherit; opacity:.35; }
   .box-card.QB { background:var(--pos-qb-bg); color:var(--pos-qb); }
   .box-card.RB { background:var(--pos-rb-bg); color:var(--pos-rb); }
   .box-card.WR { background:var(--pos-wr-bg); color:var(--pos-wr); }
@@ -226,6 +226,9 @@
   .box-card.DEF, .box-card.PICK { background:var(--pos-pick-bg); color:var(--pos-pick); }
   .box-card.empty { background:transparent; border:1px dashed var(--border2); opacity:.25; cursor:default; }
   .box-card.empty:hover { transform:none; box-shadow:none; }
+  /* Dimmed = visible but de-emphasized (used for soft filters in box view) */
+  .box-card.dim { opacity:.22; transition:opacity .15s; }
+  .box-card.dim:hover { opacity:.6; transform:none; box-shadow:none; }
 
   /* FILTER DRAWER */
   .drawer-backdrop { position:fixed; inset:0; background:rgba(0,0,0,.65); z-index:200; display:none; }
@@ -457,7 +460,7 @@
     </div>
     <div class="search-box">
       <span class="icon" aria-hidden="true">🔍</span>
-      <input type="search" id="search-input" placeholder="Search player" aria-label="Search player">
+      <input type="search" id="search-input" placeholder="Highlight player" aria-label="Highlight player on the board" title="Type a name to highlight that player. Dims everyone else in Box view; filters the List view.">
       <span class="clear hidden" id="search-clear" role="button" aria-label="Clear search" tabindex="0">✕</span>
     </div>
     <div class="spacer"></div>
@@ -793,6 +796,10 @@ const STATE = {
 const MODE_TO_SOURCE = { picks: 'startup_sf', simple: 'startup_1qb', rookies: 'rookie' };
 const MOBILE_BREAKPOINT_PX = 700;
 function isMobileWidth() { return window.innerWidth < MOBILE_BREAKPOINT_PX; }
+// Positions excluded from display everywhere — DEF/P/FB don't belong in
+// dynasty draft views even when Sleeper has captured them.
+const EXCLUDED_POSITIONS = new Set(['DEF', 'P', 'FB']);
+function isDisplayablePosition(p) { return !EXCLUDED_POSITIONS.has(posOf(p)); }
 const MODE_TO_LABEL  = {
   picks:   { title: 'ADP <span>Startup</span>',  sub: 'Real Sleeper dynasty draft positions — 12-team Superflex startups with picks-as-assets.' },
   simple:  { title: 'ADP <span>1QB</span>',      sub: 'Real Sleeper dynasty draft positions — 12-team 1QB startups.' },
@@ -804,10 +811,13 @@ function getActiveBucket() {
   const payload = window.ADP_PAYLOAD;
   if (!payload || !payload.byMonth) return [];
   const src = MODE_TO_SOURCE[STATE.mode] || 'startup_sf';
+  let list;
   if (!STATE.dateFrom || !STATE.dateTo) {
-    return (payload.byMonth.ALL || {})[src] || [];
+    list = (payload.byMonth.ALL || {})[src] || [];
+  } else {
+    list = aggregateBuckets(payload, STATE.dateFrom, STATE.dateTo, src);
   }
-  return aggregateBuckets(payload, STATE.dateFrom, STATE.dateTo, src);
+  return list.filter(isDisplayablePosition);
 }
 
 // Aggregate per-player ADP across all monthly buckets that overlap the
@@ -872,20 +882,34 @@ function aggregateBuckets(payload, fromISO, toISO, sourceKey) {
   return arr;
 }
 
-function getFilteredPlayers() {
+// "Hard" filters remove players from the universe entirely (age, exp, status).
+function getHardFilteredPlayers() {
   const list = getActiveBucket() || [];
   const f = STATE.filters;
-  const q = STATE.search ? STATE.search.toLowerCase().trim() : '';
   return list.filter(p => {
-    if (f.positions.size && !f.positions.has(posOf(p))) return false;
     if (f.ageMin != null && (p.age == null || p.age < f.ageMin)) return false;
     if (f.ageMax != null && (p.age == null || p.age > f.ageMax)) return false;
     if (f.expMin != null && (p.yearsExp == null || p.yearsExp < f.expMin)) return false;
     if (f.expMax != null && (p.yearsExp == null || p.yearsExp > f.expMax)) return false;
     if (f.status !== 'any' && p.status !== f.status) return false;
-    if (q && !String(p.name || '').toLowerCase().includes(q)) return false;
     return true;
   });
+}
+
+// "Soft" filters (position + search) HIGHLIGHT in Box view (others dimmed),
+// FILTER in List view. This predicate returns true when a player matches the
+// current soft filter set.
+function isSoftMatch(p) {
+  const f = STATE.filters;
+  if (f.positions.size && !f.positions.has(posOf(p))) return false;
+  const q = STATE.search ? STATE.search.toLowerCase().trim() : '';
+  if (q && !String(p.name || '').toLowerCase().includes(q)) return false;
+  return true;
+}
+
+// Fully-filtered list — used by List view, CSV export, and sample/breakdown.
+function getFilteredPlayers() {
+  return getHardFilteredPlayers().filter(isSoftMatch);
 }
 
 function maxDrafts(list) {
@@ -961,19 +985,13 @@ function renderPosBreakdown(players) {
     if (!pos) continue;
     counts[pos] = (counts[pos] || 0) + 1;
   }
-  const order = ['QB','RB','WR','TE','K','DEF','PICK'];
+  const order = ['QB','RB','WR','TE','K'];
   const activeSet = STATE.filters.positions;
-  const parts = ['<span class="pb-label">Positions · click to filter</span>'];
+  const parts = ['<span class="pb-label">Positions · click to highlight</span>'];
   for (const pos of order) {
     if (counts[pos]) {
       const activeCls = activeSet.has(pos) ? ' pb-active' : '';
       parts.push(`<span class="pb-item ${pos}${activeCls}" data-pos-toggle="${escapeHtml(pos)}" role="button" tabindex="0" aria-pressed="${activeSet.has(pos)}">${pos} ${counts[pos]}</span>`);
-    }
-  }
-  for (const pos in counts) {
-    if (!order.includes(pos)) {
-      const activeCls = activeSet.has(pos) ? ' pb-active' : '';
-      parts.push(`<span class="pb-item${activeCls}" data-pos-toggle="${escapeHtml(pos)}" role="button" tabindex="0">${escapeHtml(pos)} ${counts[pos]}</span>`);
     }
   }
   parts.push(`<span class="pb-total">${players.length.toLocaleString()} total</span>`);
@@ -986,24 +1004,28 @@ function renderAll() {
   const lbl = MODE_TO_LABEL[STATE.mode] || MODE_TO_LABEL.picks;
   document.getElementById('page-title').innerHTML = lbl.title;
   document.getElementById('page-subtitle').textContent = lbl.sub;
-  // Sample size from filtered list (max drafts among visible players)
-  const players = getFilteredPlayers();
-  document.getElementById('sample-size').textContent = maxDrafts(players).toLocaleString();
+  // hardList = universe after hard filters; softList = also matches position/search
+  const hardList = getHardFilteredPlayers();
+  const softList = hardList.filter(isSoftMatch);
+  // Sample size = visible (soft-filtered) set
+  document.getElementById('sample-size').textContent = maxDrafts(softList).toLocaleString();
   renderFilterChips();
-  renderPosBreakdown(players);
+  // Breakdown counts the hard-filtered universe so toggling a position doesn't
+  // collapse the chips you'd use to toggle others.
+  renderPosBreakdown(hardList);
   const navStat = document.getElementById('adp-drafts-stat');
   if (navStat) navStat.textContent = maxDrafts(getActiveBucket()).toLocaleString();
   // Sync the URL hash with the current state so the view is shareable.
   writeHashFromState();
   // View
   if (STATE.view === 'box') {
-    renderBoxView(players);
+    renderBoxView(hardList);  // Box renders the full hard list; soft applied as dim mask inside
     document.getElementById('view-box').style.display = '';
     document.getElementById('view-list').style.display = 'none';
     document.getElementById('csv-btn').style.display = 'none';
     document.getElementById('snake-toggle').style.display = '';
   } else {
-    renderListView(players);
+    renderListView(softList);  // List view filters by soft as well
     document.getElementById('view-box').style.display = 'none';
     document.getElementById('view-list').style.display = '';
     document.getElementById('csv-btn').style.display = '';
@@ -1141,7 +1163,8 @@ function renderBoxView(players) {
             : `<span class="card-hs-fallback">${initial}</span>`)
         : '';
       const tier = fpTierFor(p);
-      parts.push(`<div class="box-card ${pos}" data-id="${escapeHtml(p.sleeperId)}">
+      const dimCls = isSoftMatch(p) ? '' : ' dim';
+      parts.push(`<div class="box-card ${pos}${dimCls}" data-id="${escapeHtml(p.sleeperId)}">
         <div class="card-content">
           <div class="card-top">
             <span class="card-pick">${pickLabel}</span>
