@@ -1451,7 +1451,40 @@
   .player-panel .pp-tab { font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 12px; letter-spacing: .06em; }
   .player-panel .pp-tab.active { color: var(--red); border-bottom-color: var(--red); }
   .player-panel .pp-value-val { font-size: 40px; }
+
+  /* ── MVS extras widgets (OTC, rankings, sparkline, recent trades) ─────── */
+  .mvs-section { padding: 16px 24px; border-top: 1px solid var(--border); }
+  .mvs-section-label { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:11px; color:var(--red); text-transform:uppercase; letter-spacing:.06em; margin-bottom:10px; }
+  .mvs-section-sub { color: var(--muted); opacity: .7; font-weight: 700; font-style: normal; text-transform: none; letter-spacing: 0; font-size: 10px; margin-left: 6px; }
+  .mvs-section-foot { display:flex; justify-content:space-between; align-items:center; font-family:'Mulish',sans-serif; font-size:10px; color:var(--muted); margin-top:6px; }
+  .mvs-spark { display:block; width:100%; height:56px; }
+  .mvs-spark-delta { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:11px; }
+  .mvs-extras { display:grid; grid-template-columns:1fr 1fr; gap:0; border-top:1px solid var(--border); border-bottom:1px solid var(--border); }
+  .mvs-extras-cell { padding:12px 16px; border-right:1px solid var(--border); }
+  .mvs-extras-cell:last-child { border-right:none; }
+  .mvs-extras-label { font-size:9px; color:var(--white); opacity:.6; text-transform:uppercase; letter-spacing:.07em; margin-bottom:4px; font-family:'Mulish',sans-serif; }
+  .mvs-extras-val { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:18px; color:var(--white); }
+  .mvs-extras-diff { font-size:11px; opacity:.7; font-style:normal; font-weight:700; font-family:'Mulish',sans-serif; }
+  .mvs-rk-row { display:flex; gap:14px; flex-wrap:wrap; font-size:13px; }
+  .mvs-rk { display:inline-flex; align-items:baseline; gap:4px; white-space:nowrap; }
+  .mvs-rk-l { font-size:9px; opacity:.6; text-transform:uppercase; letter-spacing:.06em; font-family:'Mulish',sans-serif; font-weight:700; }
+  .mvs-rk-v { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:14px; }
+  .mvs-t-cards { display:flex; flex-direction:column; gap:8px; }
+  .mvs-t-card { background:var(--surface); border:1px solid var(--border); padding:10px 12px; }
+  .mvs-t-head { display:flex; gap:8px; align-items:center; margin-bottom:6px; }
+  .mvs-t-date { font-family:'Mulish',sans-serif; font-size:11px; color:var(--muted); font-weight:700; }
+  .mvs-t-fmt  { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:10px; color:var(--red); background:var(--red-bg); padding:2px 6px; letter-spacing:.06em; }
+  .mvs-t-sides { display:flex; align-items:flex-start; gap:8px; }
+  .mvs-t-side { flex:1; min-width:0; display:flex; flex-direction:column; gap:4px; }
+  .mvs-t-assets { display:flex; flex-direction:column; gap:3px; }
+  .mvs-t-asset { display:flex; justify-content:space-between; gap:8px; font-family:'Mulish',sans-serif; font-size:11px; color:var(--white); }
+  .mvs-t-asset-name { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; }
+  .mvs-t-asset-mvs { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; opacity:.85; flex-shrink:0; }
+  .mvs-t-asset-focus .mvs-t-asset-name { color:var(--red); font-weight:900; }
+  .mvs-t-total { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:13px; color:var(--white); border-top:1px solid var(--border); padding-top:3px; text-align:right; }
+  .mvs-t-vs { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; color:var(--red); font-size:16px; align-self:center; padding-top:18px; }
 </style>
+<script src="assets/js/mvs-extras.js"></script>
 </head>
 <body>
 
@@ -1885,11 +1918,8 @@
       <div class="pp-ts"><div class="pp-ts-label">Avg Assets Moved</div><div class="pp-ts-val" id="pp-avg-assets">—</div></div>
     </div>
 
-    <!-- MVS extras row: OTC cross-check + contributor rankings. Hidden when no data. -->
-    <div class="pp-trade-stats" id="pp-extras-row" style="grid-template-columns:1fr 1fr;display:none;border-bottom:1px solid var(--border)">
-      <div class="pp-ts" id="pp-extras-otc"><div class="pp-ts-label">OTC Value</div><div class="pp-ts-val" id="pp-otc-val">—</div></div>
-      <div class="pp-ts" id="pp-extras-rankings"><div class="pp-ts-label">Contributor Rankings</div><div class="pp-ts-val" id="pp-rankings-val" style="display:flex;gap:14px;font-size:13px;flex-wrap:wrap">—</div></div>
-    </div>
+    <!-- MVS extras: OTC + rankings + sparkline + recent trades. Populated via MvsExtras.buildAll(playerName). -->
+    <div id="pp-mvs-extras"></div>
 
     <div class="pp-tabs">
       <button class="pp-tab active" onclick="ppShowTab('trades')">Trades</button>
@@ -7054,39 +7084,11 @@ function openPanelContent(playerName) {
     : "—";
   document.getElementById("pp-avg-assets").textContent = avgAssets;
 
-  // ── MVS extras: OTC cross-check + contributor rankings ──────────────────
-  const extrasRow = document.getElementById("pp-extras-row");
-  const otcCell   = document.getElementById("pp-extras-otc");
-  const rankCell  = document.getElementById("pp-extras-rankings");
-  const otcValEl  = document.getElementById("pp-otc-val");
-  const rankValEl = document.getElementById("pp-rankings-val");
-  let _showExtras = false;
-  if (ktc.otcValue != null) {
-    const diff = (ktc.value || 0) - ktc.otcValue;
-    const sign = diff >= 0 ? '+' : '';
-    const diffClass = diff >= 0 ? 'red' : '';  // value reuses the .red class for the trade-stats column
-    otcValEl.innerHTML = `${ktc.otcValue.toLocaleString()} <span style="font-size:12px;opacity:.7;margin-left:6px">(${sign}${diff.toLocaleString()} vs MVS)</span>`;
-    otcCell.style.display = '';
-    _showExtras = true;
-  } else {
-    otcCell.style.display = 'none';
+  // ── MVS extras: OTC + Rankings + Sparkline + Recent Trades (shared helper) ──
+  const mvsExtrasEl = document.getElementById("pp-mvs-extras");
+  if (mvsExtrasEl) {
+    mvsExtrasEl.innerHTML = window.MvsExtras ? window.MvsExtras.buildAll(playerName) : '';
   }
-  if (ktc.rankings && Object.values(ktc.rankings).some(v => v != null)) {
-    const r = ktc.rankings;
-    const parts = [];
-    const fmt = (label, v) => v != null ? `<span style="white-space:nowrap"><span style="font-size:10px;opacity:.6;text-transform:uppercase;letter-spacing:.06em;margin-right:4px">${label}</span><span style="font-family:'Kanit',sans-serif;font-weight:800;font-style:italic">${v}</span></span>` : '';
-    if (r.main != null) parts.push(fmt('Main', r.main));
-    if (r.jax  != null) parts.push(fmt('Jax',  r.jax));
-    if (r.jay  != null) parts.push(fmt('Jay',  r.jay));
-    if (r.joe  != null) parts.push(fmt('Joe',  r.joe));
-    if (r.trav != null) parts.push(fmt('Trav', r.trav));
-    rankValEl.innerHTML = parts.filter(Boolean).join('');
-    rankCell.style.display = '';
-    _showExtras = true;
-  } else {
-    rankCell.style.display = 'none';
-  }
-  extrasRow.style.display = _showExtras ? 'grid' : 'none';
 
   document.getElementById("pp-trades-tab").innerHTML =
     sorted.length ? sorted.map(t => tradeCardHtml(t)).join("") : `<div style="font-size:13px;opacity:1;padding:20px 0;text-align:center;font-family:'Mulish',sans-serif">No trades found</div>`;
