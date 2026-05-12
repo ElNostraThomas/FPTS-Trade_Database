@@ -1,11 +1,15 @@
 # Local-only workflow scripts
 start.bat
 push.bat
+scrape.bat
 make-pdf.ps1
 sync-tiers.py
 import-tat.py
 sync-fp.py
 sync-adp.py
+
+# Local logs (weekly scrape output)
+logs/
 
 # Secrets / credentials
 .env
