@@ -131,15 +131,15 @@
     font-family: 'Kanit', sans-serif;
     font-weight: 800;
     font-style: italic;
-    font-size: 50px;
+    font-size: 38px;
     line-height: 1;
     letter-spacing: -.01em;
     text-transform: uppercase;
     color: var(--white);
     white-space: nowrap;
   }
-  @media (max-width: 1280px) { .wordmark-tag { font-size: 40px; } }
-  @media (max-width: 1100px) { .wordmark-tag { font-size: 30px; } }
+  @media (max-width: 1280px) { .wordmark-tag { font-size: 32px; } }
+  @media (max-width: 1100px) { .wordmark-tag { font-size: 24px; } }
   @media (max-width: 940px)  { .wordmark-tag { display: none; } }
   .nav-links { display: flex; gap: 0; margin-left: 4px; }
   .nav-link {
@@ -7067,6 +7067,11 @@ function _fptsXpageMlPdToCalc() {
     trade: { sideA: [], sideB: [{ name, pos, value: ktc.value || 0, type: 'player' }] }
   }, 'trade-calculator.html');
 }
+function _fptsXpageMlPdToAdp() {
+  const nameEl = document.getElementById('ml-pd-name');
+  const name = nameEl ? nameEl.textContent.trim() : null;
+  _fptsWriteHandoff({ source: 'leagues', primaryPlayer: name }, 'adp-tool.html');
+}
 function _fptsXpageMlTsToDb() {
   const name = (typeof MLTB !== 'undefined' && MLTB.targetPlayer) ? MLTB.targetPlayer.name : null;
   if (!name || (MLTB && MLTB.targetPlayer && MLTB.targetPlayer.type === 'pick')) {
@@ -7186,6 +7191,7 @@ window._fptsApplyPendingHandoff = function() {
       <div class="fpts-xpage-bar" style="margin-right:8px;display:inline-flex">
         <button class="fpts-xpage-btn" onclick="event.stopPropagation();_fptsXpageMlPdToDb()" title="Open this player's profile in the trade database">Open in Database ↗</button>
         <button class="fpts-xpage-btn" onclick="event.stopPropagation();_fptsXpageMlPdToCalc()" title="Open the standalone trade calculator with this player">Open in Calculator ↗</button>
+        <button class="fpts-xpage-btn" onclick="event.stopPropagation();_fptsXpageMlPdToAdp()" title="Open the ADP tool with this player">Open in ADP ↗</button>
       </div>
       <button class="ml-modal-close" onclick="closePlayerDetail()">✕ Close</button>
     </div>

@@ -74,9 +74,9 @@
   .wordmark { display:flex; align-items:center; flex-shrink:0; }
   .wordmark svg { height:28px; width:auto; }
   .wordmark-group { display:flex; align-items:center; gap:16px; flex-shrink:0; min-width:0; }
-  .wordmark-tag { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:50px; line-height:1; letter-spacing:-.01em; text-transform:uppercase; color:var(--white); white-space:nowrap; }
-  @media (max-width: 1280px) { .wordmark-tag { font-size: 40px; } }
-  @media (max-width: 1100px) { .wordmark-tag { font-size: 30px; } }
+  .wordmark-tag { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:38px; line-height:1; letter-spacing:-.01em; text-transform:uppercase; color:var(--white); white-space:nowrap; }
+  @media (max-width: 1280px) { .wordmark-tag { font-size: 32px; } }
+  @media (max-width: 1100px) { .wordmark-tag { font-size: 24px; } }
   @media (max-width: 940px)  { .wordmark-tag { display: none; } }
   .nav-links { display:flex; gap:0; margin-left:20px; }
   .nav-link { font-family:'Mulish',sans-serif; font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.07em; color:var(--white); opacity:1; padding:0 12px; height:60px; display:flex; align-items:center; text-decoration:none; border-bottom:2px solid transparent; margin-bottom:-2px; transition:opacity .15s; white-space:nowrap; }
@@ -1114,6 +1114,7 @@
       <div class="fpts-xpage-bar" style="margin-top:10px">
         <button class="fpts-xpage-btn" onclick="event.stopPropagation();_fptsXpageCalcToDb()" title="Open the trade database with these players pinned">Open in Database ↗</button>
         <button class="fpts-xpage-btn" onclick="event.stopPropagation();_fptsXpageCalcToLeagues()" title="Open My Leagues with these players">Open in My Leagues ↗</button>
+        <button class="fpts-xpage-btn" onclick="event.stopPropagation();_fptsXpageCalcToAdp()" title="Open the ADP tool">Open in ADP ↗</button>
       </div>
     </div>
   </div>
@@ -2883,6 +2884,12 @@ function _fptsXpageCalcToLeagues() {
   const allPlayers = [...trade.sideA, ...trade.sideB].filter(a => a.type !== 'pick');
   const primary = allPlayers[0] ? allPlayers[0].name : null;
   _fptsWriteHandoff({ source: 'calc', trade, players: allPlayers.map(a => ({ name: a.name })), primaryPlayer: primary }, 'my-leagues.html');
+}
+function _fptsXpageCalcToAdp() {
+  const trade = _fptsCalcCurrentTrade();
+  const allPlayers = [...trade.sideA, ...trade.sideB].filter(a => a.type !== 'pick');
+  const primary = allPlayers[0] ? allPlayers[0].name : null;
+  _fptsWriteHandoff({ source: 'calc', primaryPlayer: primary }, 'adp-tool.html');
 }
 function _fptsCalcCurrentTrade() {
   try {
