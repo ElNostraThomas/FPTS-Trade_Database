@@ -5209,11 +5209,12 @@ async function applySleeperOverlay() {
   try {
     const v = '?v=' + (window.__DATA_VERSION || Date.now());
 
-    // Fetch both values (age/team/pos/ppg/injury) AND adp/auction (dynasty pipeline) in parallel.
-    const [valuesRes, adpRes, auctionRes] = await Promise.all([
+    // Fetch values (age/team/pos/ppg/injury), adp/auction, AND mvs (canonical values).
+    const [valuesRes, adpRes, auctionRes, mvsRes] = await Promise.all([
       fetch('data/values.json'  + v, { cache: 'no-cache' }).catch(() => null),
       fetch('data/adp.json'     + v, { cache: 'no-cache' }).catch(() => null),
       fetch('data/auction.json' + v, { cache: 'no-cache' }).catch(() => null),
+      fetch('data/mvs.json'     + v, { cache: 'no-cache' }).catch(() => null),
     ]);
 
     // ── values.json overlay (Sleeper-sourced attributes) ─────────────────
@@ -5269,6 +5270,24 @@ async function applySleeperOverlay() {
         const rec = oneByKey[key] || sfByKey[key];
         if (!rec || rec.med == null) return;
         p.auction = '$' + Math.round(rec.med);
+      });
+    }
+
+    // ── mvs.json overlay (canonical player VALUE) ────────────────────────
+    // Wholesale-replaces the value column with MVS, honoring the user's
+    // saved SF/1QB format preference.
+    if (mvsRes && mvsRes.ok) {
+      const j = await mvsRes.json();
+      let _fmt = 'sf';
+      try { const _v = localStorage.getItem('fpts-adp-format'); if (_v === '1qb' || _v === 'sf') _fmt = _v; } catch (e) {}
+      const mvsByKey = {};
+      Object.entries(j.players || {}).forEach(([name, rec]) => { mvsByKey[_normNameTiers(name)] = rec; });
+      TIER_PLAYERS.forEach(p => {
+        const rec = mvsByKey[_normNameTiers(p.name)];
+        if (!rec) { p.value = 0; return; }
+        p.value    = (_fmt === '1qb') ? rec.value1qb : rec.valueSf;
+        p.valueSf  = rec.valueSf;
+        p.value1qb = rec.value1qb;
       });
     }
   } catch (e) {

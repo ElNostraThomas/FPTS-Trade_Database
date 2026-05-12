@@ -7,6 +7,7 @@ sync-tiers.py
 import-tat.py
 sync-fp.py
 sync-adp.py
+sync-mvs.py
 
 # Local logs (weekly scrape output)
 logs/

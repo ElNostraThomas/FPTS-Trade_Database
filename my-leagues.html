@@ -7232,6 +7232,48 @@ function _fptsXpageMlPepToDb() {
       });
     }
   }
+  function _applyMvsPayload(j) {
+    if (!j || !j.players) return;
+    window.MVS_PAYLOAD = j;
+    let _fmt = 'sf';
+    try { const _v = localStorage.getItem('fpts-adp-format'); if (_v === '1qb' || _v === 'sf') _fmt = _v; } catch (e) {}
+    if (typeof FP_VALUES !== 'undefined') {
+      const fpByNorm = {};
+      Object.keys(FP_VALUES).forEach(n => { fpByNorm[normalizePlayerName(n)] = n; });
+      const overlaid = new Set();
+      Object.entries(j.players).forEach(([name, mvs]) => {
+        const fpName = FP_VALUES[name] ? name : fpByNorm[normalizePlayerName(name)];
+        const target = fpName ? FP_VALUES[fpName] : (FP_VALUES[name] = { sleeperId: mvs.sleeperId, pos: mvs.position });
+        target.valueSf  = mvs.valueSf;
+        target.value1qb = mvs.value1qb;
+        target.value    = (_fmt === '1qb') ? mvs.value1qb : mvs.valueSf;
+        target.baseline = mvs.baseline;
+        target.trend    = (_fmt === '1qb') ? mvs.trend1qb : mvs.trend;
+        target.tradesLastWeek = mvs.tradesLastWeek;
+        target.otcValue       = mvs.otcValue;
+        target.otcDiff        = mvs.otcDiff;
+        target.rankings       = mvs.rankings;
+        target.recentTrades   = mvs.recentTrades;
+        target.history        = mvs.history;
+        overlaid.add(target);
+      });
+      Object.values(FP_VALUES).forEach(rec => {
+        if (overlaid.has(rec)) return;
+        rec.value = 0; rec.valueSf = 0; rec.value1qb = 0;
+      });
+    }
+    if (typeof PICK_VALUES !== 'undefined' && j.picks) {
+      Object.entries(j.picks).forEach(([key, rec]) => {
+        PICK_VALUES[key] = {
+          value:    (_fmt === '1qb') ? rec.value1qb : rec.valueSf,
+          valueSf:  rec.valueSf,
+          value1qb: rec.value1qb,
+          valueTep: rec.valueSf,
+          label:    rec.label,
+        };
+      });
+    }
+  }
 
   Promise.all([
     fetch('data/values.json' + v).then(r => r.ok ? r.json() : Promise.reject('values ' + r.status)).then(j => { if (typeof FP_VALUES !== 'undefined' && j && j.players) Object.assign(FP_VALUES, j.players); }),
@@ -7240,6 +7282,8 @@ function _fptsXpageMlPepToDb() {
     fetch('data/picks.json' + v).then(r => r.ok ? r.json() : Promise.reject('picks ' + r.status)).then(j => { if (typeof PICK_VALUES !== 'undefined' && j && j.picks) Object.assign(PICK_VALUES, j.picks); }),
     fetch('data/articles.json' + v).then(r => r.ok ? r.json() : Promise.reject('articles ' + r.status)).then(j => { if (j && j.players) window.PLAYER_ARTICLES = j.players; }).catch(() => { /* articles optional */ }),
   ]).then(() => {
+    return fetch('data/mvs.json' + v).then(r => r.ok ? r.json() : null).then(j => { if (j) _applyMvsPayload(j); }).catch(() => {});
+  }).then(() => {
     // Each init function may not exist on every page, and some may throw on
     // pages where their DOM elements aren't present. Catch each individually
     // so a single broken init doesn't block the loader from hiding.
