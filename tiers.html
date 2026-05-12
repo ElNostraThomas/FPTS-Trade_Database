@@ -5204,23 +5204,62 @@ function _normNameTiers(name) {
 async function applySleeperOverlay() {
   try {
     const v = '?v=' + (window.__DATA_VERSION || Date.now());
-    const res = await fetch('data/values.json' + v, { cache: 'no-cache' });
-    if (!res.ok) return;
-    const j = await res.json();
-    const byKey = {};
-    Object.entries(j.players || {}).forEach(([name, rec]) => {
-      byKey[_normNameTiers(name)] = rec;
-    });
-    TIER_PLAYERS.forEach(p => {
-      const rec = byKey[_normNameTiers(p.name)];
-      if (!rec) return;
-      if (rec.age   != null) p.age      = String(rec.age);
-      if (rec.team)          p.team     = rec.team;
-      if (rec.pos)           p.pos      = rec.pos;
-      if (rec.posRank)       p.posRank  = rec.posRank;
-      if (rec.ppg   != null) p.ppg2025  = String(rec.ppg);
-      if (rec.injury)        p.injury   = rec.injury;
-    });
+
+    // Fetch both values (age/team/pos/ppg/injury) AND adp/auction (dynasty pipeline) in parallel.
+    const [valuesRes, adpRes, auctionRes] = await Promise.all([
+      fetch('data/values.json'  + v, { cache: 'no-cache' }).catch(() => null),
+      fetch('data/adp.json'     + v, { cache: 'no-cache' }).catch(() => null),
+      fetch('data/auction.json' + v, { cache: 'no-cache' }).catch(() => null),
+    ]);
+
+    // ── values.json overlay (Sleeper-sourced attributes) ─────────────────
+    if (valuesRes && valuesRes.ok) {
+      const j = await valuesRes.json();
+      const byKey = {};
+      Object.entries(j.players || {}).forEach(([name, rec]) => {
+        byKey[_normNameTiers(name)] = rec;
+      });
+      TIER_PLAYERS.forEach(p => {
+        const rec = byKey[_normNameTiers(p.name)];
+        if (!rec) return;
+        if (rec.age   != null) p.age      = String(rec.age);
+        if (rec.team)          p.team     = rec.team;
+        if (rec.pos)           p.pos      = rec.pos;
+        if (rec.posRank)       p.posRank  = rec.posRank;
+        if (rec.ppg   != null) p.ppg2025  = String(rec.ppg);
+        if (rec.injury)        p.injury   = rec.injury;
+      });
+    }
+
+    // ── adp.json overlay (sleeper_dynasty_adp pipeline) ──────────────────
+    // Overwrites the sheet's adp2026 column with dynasty 1QB ADP so this page
+    // shows the same number the player cards on the other pages show.
+    // adp2025 stays sheet-managed (we don't have last-season data in this pipeline).
+    if (adpRes && adpRes.ok) {
+      const j = await adpRes.json();
+      const oneByKey = {};
+      const oneList = j.byMonth?.ALL?.startup_1qb || [];
+      oneList.forEach(p => { if (p.name) oneByKey[_normNameTiers(p.name)] = p; });
+      TIER_PLAYERS.forEach(p => {
+        const rec = oneByKey[_normNameTiers(p.name)];
+        if (!rec) return;
+        if (rec.adp != null) p.adp2026 = String(rec.adp);
+      });
+    }
+
+    // ── auction.json overlay (real dynasty auction prices) ───────────────
+    // Overwrites sheet's auction column with the median price from real auctions.
+    if (auctionRes && auctionRes.ok) {
+      const j = await auctionRes.json();
+      const oneByKey = {};
+      const oneList = j.byMonth?.ALL?.startup_1qb || [];
+      oneList.forEach(p => { if (p.name) oneByKey[_normNameTiers(p.name)] = p; });
+      TIER_PLAYERS.forEach(p => {
+        const rec = oneByKey[_normNameTiers(p.name)];
+        if (!rec || rec.med == null) return;
+        p.auction = '$' + Math.round(rec.med);
+      });
+    }
   } catch (e) {
     console.warn('[tiers] sleeper overlay skipped:', e && e.message);
   }
