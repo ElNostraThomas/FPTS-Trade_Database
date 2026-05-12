@@ -100,6 +100,11 @@
   .date-range input[type="date"]::-webkit-calendar-picker-indicator { filter:invert(var(--cal-invert, 1)); opacity:.55; cursor:pointer; }
   [data-theme="light"] .date-range input[type="date"]::-webkit-calendar-picker-indicator { filter:invert(0); }
   .date-range .sep { opacity:.4; }
+  .date-presets { display:inline-flex; border:1px solid var(--border2); }
+  .date-presets button { background:var(--surface); color:var(--white); border:none; padding:7px 10px; cursor:pointer; font-family:'Mulish',sans-serif; font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:.06em; transition:all .12s; }
+  .date-presets button + button { border-left:1px solid var(--border2); }
+  .date-presets button:hover { background:var(--surface2); }
+  .date-presets button.active { background:var(--red); color:#111; }
   .sample-badge { display:inline-flex; align-items:center; gap:8px; padding:7px 12px; border:1px solid var(--border2); background:var(--surface); }
   .search-box { display:inline-flex; align-items:center; gap:6px; padding:6px 10px; border:1px solid var(--border2); background:var(--surface); transition:border-color .12s; }
   .search-box:focus-within { border-color:var(--red); }
@@ -110,15 +115,32 @@
   .search-box .clear { cursor:pointer; opacity:.5; transition:opacity .12s; font-size:13px; }
   .search-box .clear:hover { opacity:1; color:var(--red); }
   .search-box .clear.hidden { display:none; }
+  .filter-chips { display:flex; flex-wrap:wrap; gap:6px; padding:0 0 10px; align-items:center; }
+  .filter-chips:empty { display:none; }
+  .filter-chip { display:inline-flex; align-items:center; gap:4px; padding:4px 4px 4px 10px; background:var(--red-bg); border:1px solid var(--red); color:var(--white); font-family:'Mulish',sans-serif; font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:.06em; }
+  .filter-chip .lbl { color:var(--red); }
+  .filter-chip .x { cursor:pointer; padding:0 6px; font-weight:800; opacity:.7; user-select:none; }
+  .filter-chip .x:hover { opacity:1; color:var(--red); }
+  .filter-chips-clear { font-family:'Mulish',sans-serif; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--white); opacity:.55; background:none; border:none; cursor:pointer; padding:4px 8px; }
+  .filter-chips-clear:hover { color:var(--red); opacity:1; }
   .pos-breakdown { display:flex; gap:6px; flex-wrap:wrap; padding:0 0 14px; align-items:center; }
   .pos-breakdown .pb-label { font-family:'Mulish',sans-serif; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.07em; color:var(--white); opacity:.55; margin-right:4px; }
-  .pos-breakdown .pb-item { display:inline-flex; align-items:center; gap:4px; font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:11px; padding:3px 9px; letter-spacing:.04em; }
+  .pos-breakdown .pb-item { display:inline-flex; align-items:center; gap:4px; font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:11px; padding:3px 9px; letter-spacing:.04em; cursor:pointer; transition:transform .12s, box-shadow .12s; user-select:none; }
+  .pos-breakdown .pb-item:hover { transform:translateY(-1px); box-shadow:0 2px 5px rgba(0,0,0,.25); }
+  .pos-breakdown .pb-item.pb-active { outline:2px solid var(--red); outline-offset:1px; }
   .pos-breakdown .pb-total { font-family:'Mulish',sans-serif; font-size:11px; font-weight:700; color:var(--white); opacity:.65; margin-left:6px; letter-spacing:.04em; text-transform:uppercase; }
   .pos-breakdown .pb-item.QB { background:var(--pos-qb-bg); color:var(--pos-qb); }
   .pos-breakdown .pb-item.RB { background:var(--pos-rb-bg); color:var(--pos-rb); }
   .pos-breakdown .pb-item.WR { background:var(--pos-wr-bg); color:var(--pos-wr); }
   .pos-breakdown .pb-item.TE { background:var(--pos-te-bg); color:var(--pos-te); }
   .pos-breakdown .pb-item.K  { background:var(--pos-k-bg);  color:var(--pos-k); }
+  .tier-badge { display:inline-block; padding:2px 7px; font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:10px; letter-spacing:.04em; border:1px solid var(--border2); background:var(--surface2); color:var(--white); }
+  .tier-badge.t1 { background:var(--red);    color:#111; border-color:var(--red); }
+  .tier-badge.t2 { background:var(--green);  color:#111; border-color:var(--green); }
+  .tier-badge.t3 { background:var(--yellow); color:#111; border-color:var(--yellow); }
+  .tier-badge.t4 { background:var(--pos-wr-bg); color:var(--pos-wr); border-color:var(--pos-wr-bg); }
+  .tier-badge.t5 { background:var(--pos-te-bg); color:var(--pos-te); border-color:var(--pos-te-bg); }
+  .tier-badge.t6, .tier-badge.t7, .tier-badge.t8, .tier-badge.t9 { background:var(--surface2); color:var(--white); opacity:.6; }
   .sample-badge .dot { width:8px; height:8px; border-radius:50%; background:var(--green); }
   .sample-badge .label { font-family:'Mulish',sans-serif; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--white); opacity:.65; }
   .sample-badge .value { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:13px; color:var(--white); }
@@ -170,6 +192,8 @@
   .box-card .card-posrank { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:10px; padding:1px 6px; letter-spacing:.04em; background:rgba(0,0,0,.22); color:inherit; }
   .box-card .card-adp { font-weight:700; opacity:.78; }
   .box-card .card-name { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; line-height:1; overflow:hidden; }
+  .box-card .card-meta { display:flex; align-items:center; gap:6px; font-family:'Mulish',sans-serif; font-size:10px; font-weight:800; letter-spacing:.04em; margin-top:auto; opacity:.85; }
+  .box-card .card-tier { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:10px; padding:1px 5px; background:rgba(0,0,0,.22); }
   .box-card .card-fname { font-size:12px; line-height:1; opacity:.85; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .box-card .card-lname { font-size:18px; line-height:1.05; margin-top:2px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .box-card .card-hs { width:62px; height:auto; min-height:100%; object-fit:cover; object-position:top center; flex-shrink:0; align-self:flex-end; }
@@ -355,6 +379,12 @@
       <span class="sep">–</span>
       <input type="date" id="date-to"   aria-label="To date">
     </div>
+    <div class="date-presets" role="tablist" aria-label="Date range presets">
+      <button type="button" data-preset="7">7d</button>
+      <button type="button" data-preset="30" class="active">30d</button>
+      <button type="button" data-preset="90">90d</button>
+      <button type="button" data-preset="all">All</button>
+    </div>
     <div class="sample-badge">
       <span class="dot"></span>
       <span class="label">Sample</span>
@@ -377,6 +407,7 @@
     <button class="icon-btn" id="settings-btn" type="button" title="Team count, rounds, headshots">⚙ Settings</button>
   </div>
 
+  <div class="filter-chips" id="filter-chips"></div>
   <div class="pos-breakdown" id="pos-breakdown"></div>
 
   <div id="view-box" class="view box-wrap"></div>
@@ -518,10 +549,19 @@
 <script>
 // ── DATA STORES ───────────────────────────────────────────────────────────────
 let FP_VALUES = {};
+let FP_BY_NORM = {};  // normalized-name → FP_VALUES record (O(1) lookup index)
 let ADP_DATA = {};
 let PICK_AVAILABILITY = {};
 window.ADP_PAYLOAD = null;
 window.AUCTION_PAYLOAD = null;
+
+function rebuildFpIndex() {
+  FP_BY_NORM = Object.create(null);
+  for (const k in FP_VALUES) {
+    const key = normalizePlayerName(k);
+    if (key) FP_BY_NORM[key] = FP_VALUES[k];
+  }
+}
 
 // ── HELPERS ───────────────────────────────────────────────────────────────────
 function normalizePlayerName(name) {
@@ -634,6 +674,7 @@ function splitName(name) {
     fetch('data/pick-availability.json' + v).then(r => r.ok ? r.json() : Promise.reject('pick-availability ' + r.status)).then(j => { if (j && j.players) PICK_AVAILABILITY = j.players; window.PICK_AVAILABILITY_META = j && j.meta || null; }).catch(() => { /* optional during scaffold */ }),
     fetch('data/articles.json' + v).then(r => r.ok ? r.json() : Promise.reject('articles ' + r.status)).then(j => { if (j && j.players) window.PLAYER_ARTICLES = j.players; }).catch(() => { /* articles optional */ }),
   ]).then(() => {
+    rebuildFpIndex();  // index AFTER both values.json + auction.json overlay
     try { _adpInit(); } catch(e) { console.warn('[fp-bootstrap] _adpInit failed:', e.message); }
     hideLoader();
   }).catch(fail);
@@ -660,6 +701,8 @@ const STATE = {
 };
 
 const MODE_TO_SOURCE = { picks: 'startup_sf', simple: 'startup_1qb', rookies: 'rookie' };
+const MOBILE_BREAKPOINT_PX = 700;
+function isMobileWidth() { return window.innerWidth < MOBILE_BREAKPOINT_PX; }
 const MODE_TO_LABEL  = {
   picks:   { title: 'ADP <span>Startup</span>',  sub: 'Real Sleeper dynasty draft positions — 12-team Superflex startups with picks-as-assets.' },
   simple:  { title: 'ADP <span>1QB</span>',      sub: 'Real Sleeper dynasty draft positions — 12-team 1QB startups.' },
@@ -761,6 +804,63 @@ function maxDrafts(list) {
   return m;
 }
 
+// Render removable chips for every active filter so the user can see and
+// dismiss filters without re-opening the drawer.
+function renderFilterChips() {
+  const target = document.getElementById('filter-chips');
+  if (!target) return;
+  const f = STATE.filters;
+  const chips = [];
+  for (const pos of f.positions) {
+    chips.push(`<span class="filter-chip" data-clear="pos:${escapeHtml(pos)}"><span class="lbl">${escapeHtml(pos)}</span><span class="x" aria-label="Remove">✕</span></span>`);
+  }
+  if (f.ageMin != null || f.ageMax != null) {
+    chips.push(`<span class="filter-chip" data-clear="age"><span class="lbl">Age ${f.ageMin ?? '−'}–${f.ageMax ?? '−'}</span><span class="x" aria-label="Remove">✕</span></span>`);
+  }
+  if (f.expMin != null || f.expMax != null) {
+    chips.push(`<span class="filter-chip" data-clear="exp"><span class="lbl">Exp ${f.expMin ?? '−'}–${f.expMax ?? '−'}</span><span class="x" aria-label="Remove">✕</span></span>`);
+  }
+  if (f.status !== 'any') {
+    chips.push(`<span class="filter-chip" data-clear="status"><span class="lbl">Status: ${escapeHtml(f.status)}</span><span class="x" aria-label="Remove">✕</span></span>`);
+  }
+  if (STATE.search) {
+    chips.push(`<span class="filter-chip" data-clear="search"><span class="lbl">Search: ${escapeHtml(STATE.search)}</span><span class="x" aria-label="Remove">✕</span></span>`);
+  }
+  if (chips.length) chips.push(`<button class="filter-chips-clear" data-clear="all" type="button">Clear all</button>`);
+  target.innerHTML = chips.join('');
+}
+
+function dismissFilterChip(action) {
+  if (!action) return;
+  if (action === 'all') {
+    clearFilters();
+    document.getElementById('search-input').value = '';
+    document.getElementById('search-clear').classList.add('hidden');
+    STATE.search = '';
+  } else if (action === 'age') {
+    STATE.filters.ageMin = null; STATE.filters.ageMax = null;
+    const a = document.getElementById('age-min'); if (a) a.value = '';
+    const b = document.getElementById('age-max'); if (b) b.value = '';
+  } else if (action === 'exp') {
+    STATE.filters.expMin = null; STATE.filters.expMax = null;
+    const a = document.getElementById('exp-min'); if (a) a.value = '';
+    const b = document.getElementById('exp-max'); if (b) b.value = '';
+  } else if (action === 'status') {
+    STATE.filters.status = 'any';
+    document.querySelectorAll('[data-status]').forEach(b => b.classList.toggle('active', b.dataset.status === 'any'));
+  } else if (action === 'search') {
+    STATE.search = '';
+    const s = document.getElementById('search-input'); if (s) s.value = '';
+    const c = document.getElementById('search-clear'); if (c) c.classList.add('hidden');
+  } else if (action.startsWith('pos:')) {
+    const pos = action.slice(4);
+    STATE.filters.positions.delete(pos);
+    const btn = document.querySelector(`[data-pos="${pos}"]`);
+    if (btn) btn.classList.remove('active');
+  }
+  renderAll();
+}
+
 function renderPosBreakdown(players) {
   const target = document.getElementById('pos-breakdown');
   if (!target) return;
@@ -772,12 +872,19 @@ function renderPosBreakdown(players) {
     counts[pos] = (counts[pos] || 0) + 1;
   }
   const order = ['QB','RB','WR','TE','K','DEF','PICK'];
-  const parts = ['<span class="pb-label">Positions</span>'];
+  const activeSet = STATE.filters.positions;
+  const parts = ['<span class="pb-label">Positions · click to filter</span>'];
   for (const pos of order) {
-    if (counts[pos]) parts.push(`<span class="pb-item ${pos}">${pos} ${counts[pos]}</span>`);
+    if (counts[pos]) {
+      const activeCls = activeSet.has(pos) ? ' pb-active' : '';
+      parts.push(`<span class="pb-item ${pos}${activeCls}" data-pos-toggle="${escapeHtml(pos)}" role="button" tabindex="0" aria-pressed="${activeSet.has(pos)}">${pos} ${counts[pos]}</span>`);
+    }
   }
   for (const pos in counts) {
-    if (!order.includes(pos)) parts.push(`<span class="pb-item">${escapeHtml(pos)} ${counts[pos]}</span>`);
+    if (!order.includes(pos)) {
+      const activeCls = activeSet.has(pos) ? ' pb-active' : '';
+      parts.push(`<span class="pb-item${activeCls}" data-pos-toggle="${escapeHtml(pos)}" role="button" tabindex="0">${escapeHtml(pos)} ${counts[pos]}</span>`);
+    }
   }
   parts.push(`<span class="pb-total">${players.length.toLocaleString()} total</span>`);
   target.innerHTML = parts.join('');
@@ -792,6 +899,7 @@ function renderAll() {
   // Sample size from filtered list (max drafts among visible players)
   const players = getFilteredPlayers();
   document.getElementById('sample-size').textContent = maxDrafts(players).toLocaleString();
+  renderFilterChips();
   renderPosBreakdown(players);
   const navStat = document.getElementById('adp-drafts-stat');
   if (navStat) navStat.textContent = maxDrafts(getActiveBucket()).toLocaleString();
@@ -820,6 +928,7 @@ const LIST_COLS = [
   { key: 'adp',        label: 'ADP',        sortable: true  },
   { key: 'rank',       label: 'Rank',       sortable: true  },
   { key: 'posRank',    label: 'PosRank',    sortable: true  },
+  { key: 'tier',       label: 'Tier',       sortable: true  },
   { key: 'position',   label: 'Position',   sortable: true  },
   { key: 'team',       label: 'Team',       sortable: true  },
   { key: 'draftYear',  label: 'Draft Year', sortable: true  },
@@ -851,6 +960,7 @@ function renderListView(players) {
       <td><span class="stat-pill">${p.adp != null ? p.adp.toFixed(1) : '—'}</span></td>
       <td><span class="stat-pill">${p.rank ?? '—'}</span></td>
       <td><span class="stat-pill">${escapeHtml(p.posRank) || '—'}</span></td>
+      <td>${tierBadge(fpTierFor(p)) || '<span class="stat-pill" style="opacity:.4">—</span>'}</td>
       <td>${pos ? `<span class="pos-pill ${pos}">${pos}</span>` : '—'}</td>
       <td>${p.team ? `<span class="team-pill">${escapeHtml(p.team)}</span>` : '—'}</td>
       <td><span class="stat-pill">${p.draftYear ?? '—'}</span></td>
@@ -868,6 +978,7 @@ function sortPlayers(list) {
   copy.sort((a, b) => {
     let av, bv;
     if (col === 'player') { av = a.name; bv = b.name; }
+    else if (col === 'tier') { av = fpTierFor(a); bv = fpTierFor(b); }
     else if (col === 'posRank') {
       // Sort by numeric part of "WR4" → 4 within position, but mixing positions just falls back to alpha.
       const ax = String(a.posRank || ''); const bx = String(b.posRank || '');
@@ -939,6 +1050,7 @@ function renderBoxView(players) {
             ? `<img class="card-hs" src="${hs}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'card-hs-fallback',textContent:'${initial}'}))">`
             : `<span class="card-hs-fallback">${initial}</span>`)
         : '';
+      const tier = fpTierFor(p);
       parts.push(`<div class="box-card ${pos}" data-id="${escapeHtml(p.sleeperId)}">
         <div class="card-content">
           <div class="card-top">
@@ -950,6 +1062,7 @@ function renderBoxView(players) {
             ${nm.first ? `<div class="card-fname">${escapeHtml(nm.first)}</div>` : ''}
             <div class="card-lname">${escapeHtml(nm.last)}</div>
           </div>
+          ${(p.team || tier != null) ? `<div class="card-meta">${escapeHtml(p.team || '')}${tier != null ? `<span class="card-tier">T${tier}</span>` : ''}</div>` : ''}
         </div>
         ${hsHtml}
       </div>`);
@@ -968,14 +1081,78 @@ function setMode(mode) {
 }
 function setView(view) {
   if (view !== 'box' && view !== 'list') return;
+  // Box view is unusable at phone widths — force list and hint why.
+  if (view === 'box' && isMobileWidth()) {
+    view = 'list';
+  }
   STATE.view = view;
   document.querySelectorAll('[data-view]').forEach(b => b.classList.toggle('active', b.dataset.view === view));
   renderAll();
+}
+
+// Enforce list view on narrow screens. Called on init and on resize.
+function enforceMobileView() {
+  const mobile = isMobileWidth();
+  const boxBtn = document.querySelector('[data-view="box"]');
+  if (boxBtn) {
+    boxBtn.disabled = mobile;
+    boxBtn.style.opacity = mobile ? '0.45' : '';
+    boxBtn.style.cursor  = mobile ? 'not-allowed' : '';
+    boxBtn.title = mobile ? 'Box view requires a wider screen — list view is shown on mobile.' : '';
+  }
+  if (mobile && STATE.view === 'box') {
+    STATE.view = 'list';
+    document.querySelectorAll('[data-view]').forEach(b => b.classList.toggle('active', b.dataset.view === 'list'));
+    renderAll();
+  }
 }
 function setDates(fromISO, toISO) {
   STATE.dateFrom = fromISO || null;
   STATE.dateTo   = toISO   || null;
   renderAll();
+}
+
+// Date presets — "7d/30d/90d" sets a range ending today minus N days; "all"
+// clears the range so getActiveBucket falls back to byMonth.ALL.
+function applyDatePreset(preset) {
+  const fromEl = document.getElementById('date-from');
+  const toEl   = document.getElementById('date-to');
+  if (preset === 'all') {
+    STATE.dateFrom = null;
+    STATE.dateTo   = null;
+    fromEl.value = '';
+    toEl.value   = '';
+  } else {
+    const n = Number(preset);
+    if (!Number.isFinite(n) || n <= 0) return;
+    const today = new Date();
+    const from  = new Date(today);
+    from.setDate(from.getDate() - n);
+    const fromISO = isoDate(from);
+    const toISO   = isoDate(today);
+    // Clamp to available data range if the input has min/max attributes set.
+    const minA = fromEl.min || '';
+    const maxA = toEl.max   || '';
+    fromEl.value = (minA && fromISO < minA) ? minA : fromISO;
+    toEl.value   = (maxA && toISO   > maxA) ? maxA : toISO;
+    STATE.dateFrom = fromEl.value;
+    STATE.dateTo   = toEl.value;
+  }
+  document.querySelectorAll('[data-preset]').forEach(b => b.classList.toggle('active', b.dataset.preset === String(preset)));
+  renderAll();
+}
+
+// Detect which preset (if any) the current dateFrom/dateTo matches.
+function detectActivePreset() {
+  if (!STATE.dateFrom && !STATE.dateTo) return 'all';
+  if (!STATE.dateFrom || !STATE.dateTo) return null;
+  const today  = new Date(STATE.dateTo + 'T00:00:00');
+  const from   = new Date(STATE.dateFrom + 'T00:00:00');
+  const days   = Math.round((today - from) / (1000 * 60 * 60 * 24));
+  if (days === 7  || days === 6)  return '7';
+  if (days === 30 || days === 29) return '30';
+  if (days === 90 || days === 89) return '90';
+  return null;
 }
 
 function openDrawer() {
@@ -1142,8 +1319,10 @@ function applyStateToUi() {
   if (snakeBtn) snakeBtn.classList.toggle('active', STATE.snake);
   document.querySelectorAll('[data-pos]').forEach(b => b.classList.toggle('active', STATE.filters.positions.has(b.dataset.pos)));
   document.querySelectorAll('[data-status]').forEach(b => b.classList.toggle('active', b.dataset.status === STATE.filters.status));
-  const dFrom = document.getElementById('date-from'); if (dFrom && STATE.dateFrom) dFrom.value = STATE.dateFrom;
-  const dTo   = document.getElementById('date-to');   if (dTo   && STATE.dateTo)   dTo.value   = STATE.dateTo;
+  const dFrom = document.getElementById('date-from'); if (dFrom) dFrom.value = STATE.dateFrom || '';
+  const dTo   = document.getElementById('date-to');   if (dTo)   dTo.value   = STATE.dateTo   || '';
+  const activePreset = detectActivePreset();
+  document.querySelectorAll('[data-preset]').forEach(b => b.classList.toggle('active', activePreset && b.dataset.preset === activePreset));
   const srch  = document.getElementById('search-input'); if (srch) srch.value = STATE.search || '';
   const sClr  = document.getElementById('search-clear'); if (sClr) sClr.classList.toggle('hidden', !STATE.search);
   const ageMn = document.getElementById('age-min'); if (ageMn) ageMn.value = STATE.filters.ageMin ?? '';
@@ -1250,16 +1429,26 @@ function openModal(sleeperId) {
   document.getElementById('modal-backdrop').classList.add('open');
 }
 
-// Look up the FP_VALUES record for a player by name. ADP data and FP data both
-// key by player name; normalize for "DJ Moore" / "D.J. Moore" style mismatches.
+// Look up the FP_VALUES record for a player by name. Uses FP_BY_NORM index
+// for O(1) lookup; falls back to direct hit if the index hasn't been built.
 function lookupFpValue(name) {
-  if (!name || !FP_VALUES) return null;
+  if (!name) return null;
   if (FP_VALUES[name]) return FP_VALUES[name];
   const key = normalizePlayerName(name);
-  for (const k in FP_VALUES) {
-    if (normalizePlayerName(k) === key) return FP_VALUES[k];
-  }
-  return null;
+  return FP_BY_NORM[key] || null;
+}
+
+function tierBadge(tier) {
+  if (tier == null) return '';
+  const n = Number(tier);
+  if (!Number.isFinite(n)) return '';
+  const t = Math.min(9, Math.max(1, Math.round(n)));
+  return `<span class="tier-badge t${t}">T${tier}</span>`;
+}
+
+function fpTierFor(p) {
+  const fp = lookupFpValue(p && p.name);
+  return fp ? fp.tier : null;
 }
 
 function closeModal() {
@@ -1338,12 +1527,12 @@ function _fptsXpageAdpToLeagues() {
 
 // ── CSV ───────────────────────────────────────────────────────────────────────
 function downloadCsv() {
-  const cols = ['name','position','team','adp','rank','posRank','age','yearsExp','draftYear','draftRound','draftPick','drafts','picks','minPick','maxPick','status','injury','sleeperId'];
+  const cols = ['name','position','team','adp','rank','posRank','tier','age','yearsExp','draftYear','draftRound','draftPick','drafts','picks','minPick','maxPick','status','injury','sleeperId'];
   const rows = [cols.join(',')];
   const players = sortPlayers(getFilteredPlayers());
   for (const p of players) {
     rows.push(cols.map(c => {
-      const v = p[c];
+      const v = (c === 'tier') ? fpTierFor(p) : p[c];
       if (v == null) return '';
       const s = String(v).replace(/"/g, '""');
       return /[",\n]/.test(s) ? `"${s}"` : s;
@@ -1409,18 +1598,24 @@ function _bindEvents() {
   document.querySelectorAll('[data-view]').forEach(b => {
     b.addEventListener('click', () => setView(b.dataset.view));
   });
-  // Date range
+  // Date range — picker inputs
   const dFrom = document.getElementById('date-from');
   const dTo   = document.getElementById('date-to');
   function onDateChange() {
-    // If from > to, swap so the range stays sane.
     if (dFrom.value && dTo.value && dFrom.value > dTo.value) {
       const tmp = dFrom.value; dFrom.value = dTo.value; dTo.value = tmp;
     }
     setDates(dFrom.value, dTo.value);
+    // Manual change → re-detect preset (might still match 7/30/90 exactly)
+    const active = detectActivePreset();
+    document.querySelectorAll('[data-preset]').forEach(b => b.classList.toggle('active', active && b.dataset.preset === active));
   }
   dFrom.addEventListener('change', onDateChange);
   dTo.addEventListener('change', onDateChange);
+  // Date range presets
+  document.querySelectorAll('[data-preset]').forEach(b => {
+    b.addEventListener('click', () => applyDatePreset(b.dataset.preset));
+  });
   // Filter drawer
   document.getElementById('filters-btn').addEventListener('click', openDrawer);
   document.getElementById('drawer-close').addEventListener('click', closeDrawer);
@@ -1461,6 +1656,29 @@ function _bindEvents() {
     if (e.key === 'Escape' && STATE.search) { e.stopPropagation(); searchIn.value = ''; onSearchChange(); }
   });
   searchClr.addEventListener('click', () => { searchIn.value = ''; onSearchChange(); searchIn.focus(); });
+  // Active filter chips — delegated click handler
+  document.getElementById('filter-chips').addEventListener('click', e => {
+    const target = e.target.closest('[data-clear]');
+    if (target) dismissFilterChip(target.dataset.clear);
+  });
+  // Position breakdown — click to toggle into the position filter set,
+  // syncing the corresponding chip in the filter drawer.
+  document.getElementById('pos-breakdown').addEventListener('click', e => {
+    const btn = e.target.closest('[data-pos-toggle]');
+    if (!btn) return;
+    const pos = btn.dataset.posToggle;
+    if (STATE.filters.positions.has(pos)) STATE.filters.positions.delete(pos);
+    else STATE.filters.positions.add(pos);
+    const drawerBtn = document.querySelector(`[data-pos="${pos}"]`);
+    if (drawerBtn) drawerBtn.classList.toggle('active', STATE.filters.positions.has(pos));
+    renderAll();
+  });
+  // Enter/space on a position chip = click (for keyboard a11y)
+  document.getElementById('pos-breakdown').addEventListener('keydown', e => {
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    const btn = e.target.closest('[data-pos-toggle]');
+    if (btn) { e.preventDefault(); btn.click(); }
+  });
   // Snake toggle
   document.getElementById('snake-toggle').addEventListener('click', () => {
     STATE.snake = !STATE.snake;
@@ -1505,8 +1723,15 @@ function _adpInit() {
   loadStateFromHash();    // ...then overrides from URL hash if present
   _bindEvents();
   applyStateToUi();       // reflect STATE into inputs/toggles
+  enforceMobileView();    // collapse to list on narrow screens
   renderAll();
   consumeHandoff();
+  // Re-check on resize (debounced) so users switching orientation are handled.
+  let _rt = null;
+  window.addEventListener('resize', () => {
+    clearTimeout(_rt);
+    _rt = setTimeout(enforceMobileView, 150);
+  });
 }
 
 // If another page handed us a player name, find them in any bucket and
