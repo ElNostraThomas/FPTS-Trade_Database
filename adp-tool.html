@@ -879,10 +879,13 @@ function isMobileWidth() { return window.innerWidth < MOBILE_BREAKPOINT_PX; }
 // (Mason Crosby = "the 5.01 pick", etc.), not as real draftable kickers.
 const EXCLUDED_POSITIONS = new Set(['K', 'DEF', 'P', 'FB']);
 function isDisplayablePosition(p) { return !EXCLUDED_POSITIONS.has(posOf(p)); }
+// Until league-format filters land, every mode pulls from Sleeper Superflex /
+// 2QB startups — only the per-bucket draft subset differs (picks-as-assets,
+// vet-only, or post-rookie-draft). Labels reflect that explicitly.
 const MODE_TO_LABEL  = {
-  picks:   { title: 'ADP <span>Startup</span>',  sub: 'Real Sleeper dynasty draft positions — 12-team Superflex startups with picks-as-assets.' },
-  simple:  { title: 'ADP <span>1QB</span>',      sub: 'Real Sleeper dynasty draft positions — 12-team 1QB startups.' },
-  rookies: { title: 'ADP <span>Rookie</span>',   sub: 'Real Sleeper dynasty rookie draft positions — fresh data, refreshed nightly.' },
+  picks:   { title: 'ADP <span>Picks</span>',   sub: 'Real Sleeper dynasty draft positions — 12-team Superflex / 2QB startups with picks-as-assets.' },
+  simple:  { title: 'ADP <span>Simple</span>',  sub: 'Real Sleeper dynasty draft positions — 12-team Superflex / 2QB vet-only startups (no rookies, no picks).' },
+  rookies: { title: 'ADP <span>Rookies</span>', sub: 'Real Sleeper dynasty draft positions — 12-team Superflex / 2QB startups with the 2026 rookie class in the pool.' },
 };
 
 // ── DATA ACCESS ───────────────────────────────────────────────────────────────
