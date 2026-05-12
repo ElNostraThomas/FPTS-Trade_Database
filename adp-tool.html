@@ -130,8 +130,8 @@
   /* Trend badge — uses a dark overlay so the bright arrow colour stays legible on
      every position-coloured card (QB red / RB green / WR blue / TE orange / K purple) */
   .trend { display:inline-flex; align-items:center; gap:2px; font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:10px; padding:1px 6px; letter-spacing:.04em; margin-left:4px; background:rgba(0,0,0,.55); border:1px solid rgba(0,0,0,.15); }
-  .trend.up   { color:#66dd84; }   /* bright green, contrasts on every card */
-  .trend.down { color:#ffa84d; }   /* bright orange, brand-aligned */
+  .trend.up   { color:#66dd84; }      /* bright green, contrasts on every card */
+  .trend.down { color:var(--red); }   /* brand orange — readable thanks to the dark overlay behind */
   .trend.flat { color:rgba(255,255,255,.55); }
   .sample-badge .dot { width:8px; height:8px; border-radius:50%; background:var(--green); }
   .sample-badge .label { font-family:'Mulish',sans-serif; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--white); opacity:.65; }
