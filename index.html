@@ -2731,128 +2731,11 @@ const SLEEPER_IDS = {
   "Zonovan Knight": "8122"
 };
 
-const TRADES = [
-  {id:"T101",date:"2026-05-07",week:6,qb:"sf",starters:10,teams_count:12,tep:"0.5",ppr:"0.5",passtd:4,roster:25,players:[{name:"Justin Jefferson",pos:"WR",to:"B"},{name:"Bijan Robinson",pos:"RB",to:"A"},{name:"Drake London",pos:"WR",to:"A"}],picks:[],faab:"$50"},
-  {id:"T102",date:"2026-05-06",week:9,qb:"sf",starters:10,teams_count:12,tep:"0.5",ppr:"1",passtd:4,roster:25,players:[{name:"Saquon Barkley",pos:"RB",to:"B"},{name:"Marvin Harrison Jr.",pos:"WR",to:"A"}],picks:[{year:"2027",round:1,slot:5,from:"TBD",to:"B"}],faab:null},
-  {id:"T103",date:"2026-05-04",week:14,qb:"sf",starters:10,teams_count:12,tep:"0.5",ppr:"0.5",passtd:4,roster:30,players:[{name:"Patrick Mahomes",pos:"QB",to:"B"},{name:"Brock Bowers",pos:"TE",to:"B"},{name:"Lamar Jackson",pos:"QB",to:"A"},{name:"Trey McBride",pos:"TE",to:"A"}],picks:[],faab:"$100"},
-  {id:"T104",date:"2026-05-02",week:7,qb:"sf",starters:10,teams_count:12,tep:"0.5",ppr:"1",passtd:4,roster:25,players:[{name:"Puka Nacua",pos:"WR",to:"B"},{name:"Tee Higgins",pos:"WR",to:"A"},{name:"Rome Odunze",pos:"WR",to:"A"}],picks:[],faab:"$25"},
-  {id:"T105",date:"2026-04-29",week:11,qb:"sf",starters:10,teams_count:12,tep:"0.5",ppr:"0.5",passtd:4,roster:25,players:[{name:"Christian McCaffrey",pos:"RB",to:"B"},{name:"Davante Adams",pos:"WR",to:"A"}],picks:[{year:"2026",round:1,slot:4,from:"TBD",to:"B"}],faab:"$150"},
-  {id:"T106",date:"2026-04-26",week:5,qb:"sf",starters:10,teams_count:12,tep:"0.5",ppr:"1",passtd:5,roster:30,players:[{name:"Jahmyr Gibbs",pos:"RB",to:"B"},{name:"Jaxon Smith-Njigba",pos:"WR",to:"A"}],picks:[],faab:null},
-  {id:"T107",date:"2026-04-21",week:13,qb:"sf",starters:10,teams_count:12,tep:"0.5",ppr:"0.5",passtd:4,roster:25,players:[{name:"Josh Allen",pos:"QB",to:"B"},{name:"De'Von Achane",pos:"RB",to:"A"},{name:"Sam LaPorta",pos:"TE",to:"A"}],picks:[],faab:"$50"},
-  {id:"T108",date:"2026-04-15",week:8,qb:"sf",starters:10,teams_count:12,tep:"0.5",ppr:"1",passtd:4,roster:30,players:[{name:"Brian Thomas Jr.",pos:"WR",to:"B"},{name:"Garrett Wilson",pos:"WR",to:"A"}],picks:[{year:"2027",round:2,slot:7,from:"TBD",to:"B"}],faab:null},
-  {id:"T109",date:"2026-04-09",week:4,qb:"sf",starters:10,teams_count:12,tep:"0.5",ppr:"0.5",passtd:4,roster:25,players:[{name:"Amon-Ra St. Brown",pos:"WR",to:"B"},{name:"Malik Nabers",pos:"WR",to:"B"},{name:"Ja'Marr Chase",pos:"WR",to:"A"}],picks:[],faab:"$25"},
-  {id:"T110",date:"2026-04-03",week:16,qb:"sf",starters:10,teams_count:12,tep:"0.5",ppr:"1",passtd:4,roster:30,players:[{name:"Jayden Daniels",pos:"QB",to:"B"},{name:"James Cook",pos:"RB",to:"B"},{name:"C.J. Stroud",pos:"QB",to:"A"},{name:"Kyren Williams",pos:"RB",to:"A"}],picks:[],faab:"$100"},
-  {id:"T111",date:"2026-05-07",week:8,qb:"1qb",starters:10,teams_count:12,tep:"0.5",ppr:"0.5",passtd:4,roster:25,players:[{name:"Justin Jefferson",pos:"WR",to:"B"},{name:"Saquon Barkley",pos:"RB",to:"A"},{name:"Tee Higgins",pos:"WR",to:"A"}],picks:[],faab:"$100"},
-  {id:"T112",date:"2026-05-05",week:11,qb:"1qb",starters:10,teams_count:12,tep:"0.5",ppr:"1",passtd:4,roster:30,players:[{name:"Bijan Robinson",pos:"RB",to:"B"},{name:"Drake London",pos:"WR",to:"A"},{name:"Mark Andrews",pos:"TE",to:"A"}],picks:[{year:"2027",round:1,slot:8,from:"TBD",to:"B"}],faab:null},
-  {id:"T113",date:"2026-05-03",week:6,qb:"1qb",starters:10,teams_count:12,tep:"0.5",ppr:"0.5",passtd:6,roster:25,players:[{name:"Christian McCaffrey",pos:"RB",to:"B"},{name:"Garrett Wilson",pos:"WR",to:"A"},{name:"DeVonta Smith",pos:"WR",to:"A"}],picks:[],faab:"$50"},
-  {id:"T114",date:"2026-04-30",week:14,qb:"1qb",starters:10,teams_count:12,tep:"0.5",ppr:"1",passtd:4,roster:25,players:[{name:"Ja'Marr Chase",pos:"WR",to:"B"},{name:"Marvin Harrison Jr.",pos:"WR",to:"A"},{name:"Brock Bowers",pos:"TE",to:"A"}],picks:[],faab:"$150"},
-  {id:"T115",date:"2026-04-27",week:9,qb:"1qb",starters:10,teams_count:12,tep:"0.5",ppr:"0.5",passtd:4,roster:30,players:[{name:"Lamar Jackson",pos:"QB",to:"B"},{name:"Jordan Love",pos:"QB",to:"A"}],picks:[{year:"2026",round:2,slot:6,from:"TBD",to:"B"}],faab:"$25"},
-  {id:"T116",date:"2026-04-23",week:5,qb:"1qb",starters:10,teams_count:12,tep:"0.5",ppr:"1",passtd:4,roster:25,players:[{name:"Puka Nacua",pos:"WR",to:"B"},{name:"Jahmyr Gibbs",pos:"RB",to:"A"}],picks:[],faab:null},
-  {id:"T117",date:"2026-04-19",week:12,qb:"1qb",starters:10,teams_count:12,tep:"0.5",ppr:"0.5",passtd:5,roster:30,players:[{name:"Tyreek Hill",pos:"WR",to:"B"},{name:"Trey McBride",pos:"TE",to:"B"},{name:"Sam LaPorta",pos:"TE",to:"A"},{name:"James Cook",pos:"RB",to:"A"}],picks:[],faab:"$50"},
-  {id:"T118",date:"2026-04-13",week:7,qb:"1qb",starters:10,teams_count:12,tep:"0.5",ppr:"1",passtd:4,roster:25,players:[{name:"Breece Hall",pos:"RB",to:"B"},{name:"Davante Adams",pos:"WR",to:"A"}],picks:[{year:"2027",round:3,slot:9,from:"TBD",to:"B"}],faab:null},
-  {id:"T119",date:"2026-04-08",week:15,qb:"1qb",starters:10,teams_count:12,tep:"0.5",ppr:"0.5",passtd:4,roster:25,players:[{name:"Jalen Hurts",pos:"QB",to:"B"},{name:"De'Von Achane",pos:"RB",to:"B"},{name:"Patrick Mahomes",pos:"QB",to:"A"},{name:"Tony Pollard",pos:"RB",to:"A"}],picks:[],faab:"$25"},
-  {id:"T120",date:"2026-04-02",week:10,qb:"1qb",starters:10,teams_count:12,tep:"0.5",ppr:"1",passtd:4,roster:30,players:[{name:"Anthony Richardson",pos:"QB",to:"B"},{name:"Rome Odunze",pos:"WR",to:"A"},{name:"Chris Olave",pos:"WR",to:"A"}],picks:[{year:"2028",round:1,slot:5,from:"TBD",to:"B"}],faab:null},
-  {id:"T060",date:"2026-04-28",week:8,qb:"1qb",starters:10,teams_count:8,tep:"0.5",ppr:"1",passtd:4,roster:22,players:[{name:"Brock Bowers",pos:"TE",to:"B"},{name:"C.J. Stroud",pos:"QB",to:"A"},{name:"Malik Nabers",pos:"WR",to:"A"},{name:"Trey McBride",pos:"TE",to:"A"}],picks:[],faab:"$25"},
-  {id:"T078",date:"2026-04-25",week:12,qb:"1qb",starters:13,teams_count:12,tep:"0.5",ppr:"0.5",passtd:4,roster:25,players:[{name:"Christian McCaffrey",pos:"RB",to:"B"}],picks:[{year:"2025",round:3,slot:8,from:"TBD",to:"B"},{year:"2028",round:1,slot:1,from:"TBD",to:"B"}],faab:"$25"},
-  {id:"T067",date:"2026-04-22",week:17,qb:"sf",starters:10,teams_count:14,tep:"0.5",ppr:"1",passtd:4,roster:30,players:[{name:"Jalen Hurts",pos:"QB",to:"B"},{name:"Christian McCaffrey",pos:"RB",to:"B"},{name:"Garrett Wilson",pos:"WR",to:"A"},{name:"DeVonta Smith",pos:"WR",to:"A"}],picks:[{year:"2027",round:4,slot:10,from:"TBD",to:"A"}],faab:"$50"},
-  {id:"T055",date:"2026-04-19",week:18,qb:"sf",starters:9,teams_count:10,tep:"none",ppr:"0.5",passtd:6,roster:25,players:[{name:"Malik Nabers",pos:"WR",to:"B"},{name:"Jalen Hurts",pos:"QB",to:"A"}],picks:[{year:"2025",round:4,slot:5,from:"TBD",to:"B"}],faab:"$25"},
-  {id:"T096",date:"2026-04-18",week:15,qb:"sf",starters:10,teams_count:12,tep:"1.0",ppr:"0.5",passtd:4,roster:30,players:[{name:"George Pickens",pos:"WR",to:"B"},{name:"Breece Hall",pos:"RB",to:"B"},{name:"Lamar Jackson",pos:"QB",to:"A"},{name:"Garrett Wilson",pos:"WR",to:"A"}],picks:[],faab:"$100"},
-  {id:"T066",date:"2026-04-17",week:13,qb:"sf",starters:12,teams_count:8,tep:"0.5",ppr:"0.5",passtd:4,roster:22,players:[{name:"Tony Pollard",pos:"RB",to:"B"},{name:"Tee Higgins",pos:"WR",to:"A"},{name:"Brian Thomas Jr.",pos:"WR",to:"A"}],picks:[{year:"2025",round:1,slot:8,from:"TBD",to:"B"}],faab:"$25"},
-  {id:"T086",date:"2026-04-12",week:5,qb:"sf",starters:10,teams_count:8,tep:"0.5",ppr:"0.5",passtd:4,roster:35,players:[{name:"Brock Bowers",pos:"TE",to:"B"},{name:"Tee Higgins",pos:"WR",to:"B"},{name:"Ja'Marr Chase",pos:"WR",to:"A"},{name:"Jayden Daniels",pos:"QB",to:"A"}],picks:[],faab:null},
-  {id:"T051",date:"2026-04-11",week:2,qb:"1qb",starters:10,teams_count:8,tep:"0.5",ppr:"0.5",passtd:6,roster:40,players:[],picks:[{year:"2028",round:4,slot:6,from:"TBD",to:"A"},{year:"2026",round:2,slot:10,from:"TBD",to:"B"},{year:"2028",round:2,slot:7,from:"TBD",to:"B"}],faab:"$150"},
-  {id:"T048",date:"2026-04-10",week:17,qb:"1qb",starters:13,teams_count:12,tep:"none",ppr:"0.5",passtd:4,roster:30,players:[{name:"Jayden Daniels",pos:"QB",to:"B"},{name:"Lamar Jackson",pos:"QB",to:"A"},{name:"Josh Jacobs",pos:"RB",to:"A"}],picks:[{year:"2028",round:1,slot:4,from:"TBD",to:"B"}],faab:null},
-  {id:"T042",date:"2026-04-04",week:15,qb:"sf",starters:10,teams_count:12,tep:"none",ppr:"1",passtd:4,roster:25,players:[{name:"Jaxon Smith-Njigba",pos:"WR",to:"B"},{name:"Jordan Love",pos:"QB",to:"B"},{name:"Patrick Mahomes",pos:"QB",to:"A"}],picks:[{year:"2026",round:4,slot:8,from:"TBD",to:"A"}],faab:"$150"},
-  {id:"T045",date:"2026-04-04",week:15,qb:"1qb",starters:9,teams_count:14,tep:"none",ppr:"0.5",passtd:4,roster:22,players:[{name:"Saquon Barkley",pos:"RB",to:"B"},{name:"Jordan Love",pos:"QB",to:"A"},{name:"Marvin Harrison Jr.",pos:"WR",to:"A"}],picks:[],faab:null},
-  {id:"T054",date:"2026-04-04",week:17,qb:"sf",starters:10,teams_count:10,tep:"1.0",ppr:"0.5",passtd:4,roster:20,players:[{name:"Josh Allen",pos:"QB",to:"B"},{name:"Sam LaPorta",pos:"TE",to:"B"},{name:"De'Von Achane",pos:"RB",to:"A"}],picks:[],faab:null},
-  {id:"T080",date:"2026-04-04",week:11,qb:"sf",starters:12,teams_count:8,tep:"0.75",ppr:"1",passtd:4,roster:25,players:[{name:"Puka Nacua",pos:"WR",to:"B"}],picks:[{year:"2027",round:4,slot:7,from:"TBD",to:"B"},{year:"2027",round:1,slot:11,from:"TBD",to:"B"}],faab:"$100"},
-  {id:"T091",date:"2026-04-02",week:11,qb:"sf",starters:9,teams_count:8,tep:"none",ppr:"1",passtd:4,roster:30,players:[{name:"Josh Jacobs",pos:"RB",to:"B"},{name:"Mark Andrews",pos:"TE",to:"A"}],picks:[{year:"2027",round:1,slot:11,from:"TBD",to:"B"}],faab:"$50"},
-  {id:"T061",date:"2026-04-01",week:8,qb:"1qb",starters:10,teams_count:12,tep:"0.75",ppr:"1",passtd:4,roster:40,players:[{name:"Jordan Love",pos:"QB",to:"B"},{name:"Kyren Williams",pos:"RB",to:"A"}],picks:[{year:"2028",round:1,slot:2,from:"TBD",to:"B"}],faab:"$100"},
-  {id:"T043",date:"2026-03-28",week:6,qb:"1qb",starters:10,teams_count:12,tep:"0.75",ppr:"1",passtd:6,roster:22,players:[{name:"Tyreek Hill",pos:"WR",to:"B"},{name:"Rome Odunze",pos:"WR",to:"B"},{name:"Davante Adams",pos:"WR",to:"A"}],picks:[],faab:"$150"},
-  {id:"T065",date:"2026-03-26",week:5,qb:"sf",starters:8,teams_count:14,tep:"none",ppr:"1",passtd:4,roster:30,players:[{name:"Jahmyr Gibbs",pos:"RB",to:"B"},{name:"Malik Nabers",pos:"WR",to:"A"}],picks:[],faab:"$150"},
-  {id:"T052",date:"2026-03-24",week:9,qb:"1qb",starters:12,teams_count:12,tep:"0.5",ppr:"1",passtd:5,roster:20,players:[],picks:[{year:"2028",round:1,slot:12,from:"TBD",to:"A"},{year:"2026",round:4,slot:11,from:"TBD",to:"B"},{year:"2026",round:1,slot:8,from:"TBD",to:"B"}],faab:null},
-  {id:"T046",date:"2026-03-23",week:8,qb:"1qb",starters:10,teams_count:12,tep:"0.75",ppr:"0.5",passtd:5,roster:22,players:[{name:"Justin Jefferson",pos:"WR",to:"B"},{name:"James Cook",pos:"RB",to:"A"},{name:"Jayden Daniels",pos:"QB",to:"A"}],picks:[],faab:"$50"},
-  {id:"T071",date:"2026-03-23",week:6,qb:"sf",starters:10,teams_count:12,tep:"none",ppr:"1",passtd:4,roster:35,players:[{name:"Jalen Hurts",pos:"QB",to:"B"},{name:"Rome Odunze",pos:"WR",to:"B"},{name:"Ja'Marr Chase",pos:"WR",to:"A"}],picks:[{year:"2028",round:4,slot:6,from:"TBD",to:"A"}],faab:null},
-  {id:"T084",date:"2026-03-22",week:7,qb:"sf",starters:10,teams_count:12,tep:"0.5",ppr:"0.5",passtd:4,roster:25,players:[{name:"Chris Olave",pos:"WR",to:"B"},{name:"Breece Hall",pos:"RB",to:"A"}],picks:[{year:"2028",round:4,slot:3,from:"TBD",to:"B"}],faab:null},
-  {id:"T049",date:"2026-03-20",week:8,qb:"1qb",starters:12,teams_count:12,tep:"none",ppr:"1",passtd:4,roster:25,players:[{name:"Puka Nacua",pos:"WR",to:"B"},{name:"George Pickens",pos:"WR",to:"A"}],picks:[{year:"2025",round:4,slot:2,from:"TBD",to:"B"}],faab:null},
-  {id:"T053",date:"2026-03-20",week:3,qb:"1qb",starters:12,teams_count:8,tep:"0.5",ppr:"0.5",passtd:4,roster:40,players:[{name:"Mark Andrews",pos:"TE",to:"B"},{name:"Justin Jefferson",pos:"WR",to:"B"},{name:"Brian Thomas Jr.",pos:"WR",to:"A"}],picks:[],faab:"$150"},
-  {id:"T082",date:"2026-03-18",week:8,qb:"1qb",starters:12,teams_count:12,tep:"none",ppr:"1",passtd:5,roster:30,players:[{name:"Brock Bowers",pos:"TE",to:"B"},{name:"Jordan Love",pos:"QB",to:"B"},{name:"Bijan Robinson",pos:"RB",to:"A"}],picks:[],faab:null},
-  {id:"T068",date:"2026-03-15",week:11,qb:"1qb",starters:10,teams_count:12,tep:"none",ppr:"1",passtd:6,roster:25,players:[{name:"Puka Nacua",pos:"WR",to:"B"},{name:"Tee Higgins",pos:"WR",to:"B"},{name:"Kyren Williams",pos:"RB",to:"A"}],picks:[{year:"2025",round:3,slot:7,from:"TBD",to:"A"}],faab:"$25"},
-  {id:"T089",date:"2026-03-14",week:3,qb:"sf",starters:10,teams_count:12,tep:"none",ppr:"0.5",passtd:4,roster:22,players:[],picks:[{year:"2025",round:4,slot:8,from:"TBD",to:"A"},{year:"2025",round:4,slot:6,from:"TBD",to:"B"},{year:"2027",round:1,slot:6,from:"TBD",to:"B"}],faab:"$50"},
-  {id:"T095",date:"2026-03-13",week:17,qb:"1qb",starters:8,teams_count:12,tep:"none",ppr:"0.5",passtd:4,roster:30,players:[{name:"Christian McCaffrey",pos:"RB",to:"B"}],picks:[{year:"2027",round:2,slot:2,from:"TBD",to:"B"},{year:"2025",round:2,slot:8,from:"TBD",to:"B"}],faab:"$25"},
-  {id:"T069",date:"2026-03-12",week:10,qb:"sf",starters:12,teams_count:12,tep:"none",ppr:"1",passtd:4,roster:22,players:[],picks:[{year:"2027",round:1,slot:7,from:"TBD",to:"A"},{year:"2027",round:4,slot:12,from:"TBD",to:"B"},{year:"2025",round:3,slot:10,from:"TBD",to:"B"}],faab:"$25"},
-  {id:"T093",date:"2026-03-11",week:2,qb:"sf",starters:8,teams_count:12,tep:"1.0",ppr:"0.5",passtd:4,roster:40,players:[{name:"James Cook",pos:"RB",to:"B"},{name:"Saquon Barkley",pos:"RB",to:"B"},{name:"Puka Nacua",pos:"WR",to:"A"},{name:"De'Von Achane",pos:"RB",to:"A"}],picks:[{year:"2027",round:4,slot:5,from:"TBD",to:"A"}],faab:"$50"},
-  {id:"T072",date:"2026-03-10",week:7,qb:"sf",starters:13,teams_count:12,tep:"0.75",ppr:"1",passtd:4,roster:25,players:[{name:"Brian Thomas Jr.",pos:"WR",to:"B"},{name:"Josh Allen",pos:"QB",to:"A"},{name:"Patrick Mahomes",pos:"QB",to:"A"}],picks:[{year:"2028",round:4,slot:5,from:"TBD",to:"B"}],faab:null},
-  {id:"T090",date:"2026-03-08",week:3,qb:"sf",starters:13,teams_count:12,tep:"1.0",ppr:"0.5",passtd:4,roster:20,players:[{name:"Mark Andrews",pos:"TE",to:"B"},{name:"Anthony Richardson",pos:"QB",to:"B"},{name:"Bijan Robinson",pos:"RB",to:"A"},{name:"Drake London",pos:"WR",to:"A"}],picks:[],faab:null},
-  {id:"T070",date:"2026-03-04",week:6,qb:"1qb",starters:10,teams_count:10,tep:"none",ppr:"0.5",passtd:4,roster:22,players:[{name:"Evan Engram",pos:"TE",to:"B"},{name:"Brock Bowers",pos:"TE",to:"B"},{name:"Lamar Jackson",pos:"QB",to:"A"}],picks:[{year:"2025",round:3,slot:1,from:"TBD",to:"A"}],faab:null},
-  {id:"T074",date:"2026-03-04",week:15,qb:"sf",starters:10,teams_count:14,tep:"0.5",ppr:"1",passtd:4,roster:35,players:[{name:"Tee Higgins",pos:"WR",to:"B"},{name:"Tony Pollard",pos:"RB",to:"B"},{name:"Evan Engram",pos:"TE",to:"A"},{name:"De'Von Achane",pos:"RB",to:"A"}],picks:[{year:"2025",round:4,slot:1,from:"TBD",to:"A"}],faab:"$50"},
-  {id:"T092",date:"2026-03-04",week:6,qb:"sf",starters:10,teams_count:12,tep:"1.0",ppr:"0.5",passtd:5,roster:30,players:[{name:"George Pickens",pos:"WR",to:"B"},{name:"Davante Adams",pos:"WR",to:"B"},{name:"Brock Bowers",pos:"TE",to:"A"},{name:"Travis Kelce",pos:"TE",to:"A"}],picks:[{year:"2028",round:1,slot:7,from:"TBD",to:"A"}],faab:null},
-  {id:"T079",date:"2026-03-03",week:2,qb:"sf",starters:10,teams_count:12,tep:"0.75",ppr:"0.5",passtd:5,roster:20,players:[{name:"Jaxon Smith-Njigba",pos:"WR",to:"B"},{name:"Breece Hall",pos:"RB",to:"B"},{name:"Jayden Daniels",pos:"QB",to:"A"},{name:"Marvin Harrison Jr.",pos:"WR",to:"A"}],picks:[],faab:"$25"},
-  {id:"T063",date:"2026-02-28",week:11,qb:"sf",starters:8,teams_count:14,tep:"0.5",ppr:"0.5",passtd:4,roster:35,players:[{name:"Breece Hall",pos:"RB",to:"B"},{name:"Lamar Jackson",pos:"QB",to:"A"}],picks:[],faab:null},
-  {id:"T085",date:"2026-02-28",week:8,qb:"sf",starters:8,teams_count:14,tep:"0.5",ppr:"0.5",passtd:6,roster:22,players:[{name:"Travis Kelce",pos:"TE",to:"B"},{name:"Lamar Jackson",pos:"QB",to:"A"},{name:"Sam LaPorta",pos:"TE",to:"A"}],picks:[{year:"2026",round:4,slot:2,from:"TBD",to:"B"}],faab:"$100"},
-  {id:"T059",date:"2026-02-26",week:8,qb:"1qb",starters:10,teams_count:12,tep:"0.75",ppr:"0.5",passtd:4,roster:30,players:[{name:"Chris Olave",pos:"WR",to:"B"},{name:"Sam LaPorta",pos:"TE",to:"B"},{name:"Anthony Richardson",pos:"QB",to:"A"},{name:"Lamar Jackson",pos:"QB",to:"A"}],picks:[],faab:"$150"},
-  {id:"T077",date:"2026-02-25",week:16,qb:"sf",starters:10,teams_count:14,tep:"1.0",ppr:"1",passtd:4,roster:22,players:[{name:"C.J. Stroud",pos:"QB",to:"B"},{name:"Breece Hall",pos:"RB",to:"B"},{name:"Bijan Robinson",pos:"RB",to:"A"},{name:"Marvin Harrison Jr.",pos:"WR",to:"A"}],picks:[],faab:null},
-  {id:"T058",date:"2026-02-21",week:7,qb:"sf",starters:12,teams_count:14,tep:"none",ppr:"0.5",passtd:5,roster:20,players:[{name:"Brock Bowers",pos:"TE",to:"B"},{name:"Garrett Wilson",pos:"WR",to:"B"},{name:"Patrick Mahomes",pos:"QB",to:"A"},{name:"Sam LaPorta",pos:"TE",to:"A"}],picks:[],faab:"$50"},
-  {id:"T062",date:"2026-02-13",week:15,qb:"1qb",starters:10,teams_count:14,tep:"1.0",ppr:"0.5",passtd:6,roster:25,players:[{name:"Davante Adams",pos:"WR",to:"B"},{name:"Amon-Ra St. Brown",pos:"WR",to:"B"},{name:"George Pickens",pos:"WR",to:"A"},{name:"Kyren Williams",pos:"RB",to:"A"}],picks:[{year:"2027",round:2,slot:8,from:"TBD",to:"A"}],faab:"$25"},
-  {id:"T098",date:"2026-02-08",week:11,qb:"1qb",starters:8,teams_count:12,tep:"0.75",ppr:"0.5",passtd:5,roster:25,players:[{name:"Patrick Mahomes",pos:"QB",to:"B"},{name:"Christian McCaffrey",pos:"RB",to:"B"},{name:"Jordan Love",pos:"QB",to:"A"}],picks:[{year:"2028",round:1,slot:3,from:"TBD",to:"A"}],faab:"$50"},
-  {id:"T100",date:"2026-02-06",week:17,qb:"sf",starters:12,teams_count:10,tep:"0.5",ppr:"0.5",passtd:4,roster:30,players:[{name:"Rome Odunze",pos:"WR",to:"B"},{name:"Evan Engram",pos:"TE",to:"A"},{name:"DeVonta Smith",pos:"WR",to:"A"}],picks:[],faab:null},
-  {id:"T064",date:"2026-02-05",week:5,qb:"1qb",starters:9,teams_count:8,tep:"0.75",ppr:"1",passtd:6,roster:25,players:[{name:"Tee Higgins",pos:"WR",to:"B"},{name:"Anthony Richardson",pos:"QB",to:"B"},{name:"Jalen Hurts",pos:"QB",to:"A"},{name:"Marvin Harrison Jr.",pos:"WR",to:"A"}],picks:[],faab:"$150"},
-  {id:"T083",date:"2026-02-05",week:14,qb:"sf",starters:10,teams_count:8,tep:"0.75",ppr:"1",passtd:4,roster:25,players:[{name:"Trey McBride",pos:"TE",to:"B"},{name:"Jalen Hurts",pos:"QB",to:"A"}],picks:[],faab:"$50"},
-  {id:"T056",date:"2026-02-03",week:10,qb:"1qb",starters:10,teams_count:12,tep:"0.5",ppr:"0.5",passtd:4,roster:40,players:[{name:"Jordan Love",pos:"QB",to:"B"},{name:"Breece Hall",pos:"RB",to:"B"},{name:"Trey McBride",pos:"TE",to:"A"}],picks:[{year:"2027",round:3,slot:12,from:"TBD",to:"A"}],faab:"$150"},
-  {id:"T075",date:"2026-01-28",week:14,qb:"sf",starters:10,teams_count:12,tep:"0.75",ppr:"0.5",passtd:5,roster:30,players:[{name:"Josh Jacobs",pos:"RB",to:"B"},{name:"Ja'Marr Chase",pos:"WR",to:"A"},{name:"Jayden Daniels",pos:"QB",to:"A"}],picks:[],faab:null},
-  {id:"T057",date:"2026-01-27",week:9,qb:"1qb",starters:10,teams_count:8,tep:"0.75",ppr:"1",passtd:6,roster:40,players:[{name:"Sam LaPorta",pos:"TE",to:"B"},{name:"Tee Higgins",pos:"WR",to:"B"},{name:"Marvin Harrison Jr.",pos:"WR",to:"B"},{name:"De'Von Achane",pos:"RB",to:"A"},{name:"Rome Odunze",pos:"WR",to:"A"}],picks:[],faab:"$150"},
-  {id:"T097",date:"2026-01-26",week:7,qb:"sf",starters:12,teams_count:12,tep:"1.0",ppr:"1",passtd:6,roster:30,players:[{name:"Saquon Barkley",pos:"RB",to:"B"},{name:"Rome Odunze",pos:"WR",to:"A"},{name:"Bijan Robinson",pos:"RB",to:"A"}],picks:[],faab:null},
-  {id:"T047",date:"2026-01-25",week:14,qb:"sf",starters:10,teams_count:8,tep:"none",ppr:"0.5",passtd:6,roster:40,players:[{name:"Bijan Robinson",pos:"RB",to:"B"}],picks:[{year:"2028",round:3,slot:6,from:"TBD",to:"B"},{year:"2025",round:2,slot:6,from:"TBD",to:"B"}],faab:null},
-  {id:"T094",date:"2026-01-22",week:12,qb:"1qb",starters:10,teams_count:12,tep:"1.0",ppr:"1",passtd:4,roster:25,players:[{name:"Marvin Harrison Jr.",pos:"WR",to:"B"},{name:"Puka Nacua",pos:"WR",to:"A"},{name:"Justin Jefferson",pos:"WR",to:"A"},{name:"Garrett Wilson",pos:"WR",to:"A"}],picks:[],faab:"$150"},
-  {id:"T050",date:"2026-01-15",week:9,qb:"sf",starters:12,teams_count:10,tep:"0.5",ppr:"0.5",passtd:6,roster:30,players:[{name:"Chris Olave",pos:"WR",to:"B"},{name:"Davante Adams",pos:"WR",to:"B"},{name:"Jahmyr Gibbs",pos:"RB",to:"A"}],picks:[{year:"2026",round:2,slot:2,from:"TBD",to:"A"}],faab:"$25"},
-  {id:"T099",date:"2026-01-15",week:10,qb:"1qb",starters:12,teams_count:12,tep:"0.5",ppr:"1",passtd:6,roster:25,players:[{name:"Garrett Wilson",pos:"WR",to:"B"},{name:"James Cook",pos:"RB",to:"B"},{name:"Tony Pollard",pos:"RB",to:"A"},{name:"Josh Allen",pos:"QB",to:"A"}],picks:[],faab:"$150"},
-  {id:"T073",date:"2026-01-12",week:10,qb:"1qb",starters:8,teams_count:12,tep:"1.0",ppr:"0.5",passtd:6,roster:30,players:[{name:"Tee Higgins",pos:"WR",to:"B"},{name:"Josh Jacobs",pos:"RB",to:"A"}],picks:[{year:"2026",round:2,slot:5,from:"TBD",to:"B"}],faab:null},
-  {id:"T081",date:"2026-01-11",week:3,qb:"sf",starters:10,teams_count:14,tep:"0.5",ppr:"0.5",passtd:4,roster:25,players:[{name:"Patrick Mahomes",pos:"QB",to:"B"},{name:"Malik Nabers",pos:"WR",to:"B"},{name:"Jalen Hurts",pos:"QB",to:"A"},{name:"De'Von Achane",pos:"RB",to:"A"}],picks:[],faab:null},
-  {id:"T087",date:"2026-01-10",week:10,qb:"1qb",starters:12,teams_count:10,tep:"1.0",ppr:"0.5",passtd:5,roster:20,players:[{name:"Ja'Marr Chase",pos:"WR",to:"B"},{name:"C.J. Stroud",pos:"QB",to:"B"},{name:"Tyreek Hill",pos:"WR",to:"A"}],picks:[{year:"2025",round:3,slot:4,from:"TBD",to:"A"}],faab:null},
-  {id:"T076",date:"2026-01-08",week:4,qb:"1qb",starters:10,teams_count:12,tep:"0.75",ppr:"1",passtd:5,roster:30,players:[{name:"Anthony Richardson",pos:"QB",to:"B"},{name:"Tee Higgins",pos:"WR",to:"A"},{name:"Davante Adams",pos:"WR",to:"A"},{name:"Saquon Barkley",pos:"RB",to:"A"}],picks:[],faab:"$100"},
-  {id:"T044",date:"2026-01-06",week:7,qb:"sf",starters:10,teams_count:12,tep:"1.0",ppr:"0.5",passtd:4,roster:20,players:[{name:"Sam LaPorta",pos:"TE",to:"B"},{name:"Davante Adams",pos:"WR",to:"A"},{name:"Drake London",pos:"WR",to:"A"},{name:"Christian McCaffrey",pos:"RB",to:"A"}],picks:[],faab:null},
-  {id:"T041",date:"2026-01-02",week:9,qb:"1qb",starters:10,teams_count:14,tep:"none",ppr:"0.5",passtd:4,roster:20,players:[{name:"Sam LaPorta",pos:"TE",to:"B"},{name:"Chris Olave",pos:"WR",to:"A"}],picks:[],faab:"$50"},
-  {id:"T088",date:"2026-01-02",week:5,qb:"sf",starters:10,teams_count:14,tep:"0.75",ppr:"0.5",passtd:4,roster:22,players:[{name:"George Pickens",pos:"WR",to:"B"},{name:"Marvin Harrison Jr.",pos:"WR",to:"B"},{name:"Mark Andrews",pos:"TE",to:"A"}],picks:[],faab:"$150"},
-  {id:"T011",date:"2025-12-23",week:8,qb:"sf",starters:12,teams_count:12,tep:"0.5",ppr:"0.5",passtd:5,roster:40,players:[{name:"Jahmyr Gibbs",pos:"RB",to:"B"},{name:"Tee Higgins",pos:"WR",to:"B"},{name:"Christian McCaffrey",pos:"RB",to:"A"}],picks:[],faab:null},
-  {id:"T017",date:"2025-12-20",week:15,qb:"sf",starters:10,teams_count:8,tep:"0.5",ppr:"0.5",passtd:4,roster:25,players:[{name:"Jayden Daniels",pos:"QB",to:"B"},{name:"Jahmyr Gibbs",pos:"RB",to:"A"},{name:"C.J. Stroud",pos:"QB",to:"A"}],picks:[{year:"2027",round:1,slot:1,from:"TBD",to:"B"}],faab:"$100"},
-  {id:"T018",date:"2025-12-19",week:18,qb:"sf",starters:8,teams_count:12,tep:"none",ppr:"0.5",passtd:4,roster:30,players:[{name:"Jahmyr Gibbs",pos:"RB",to:"B"},{name:"Brock Bowers",pos:"TE",to:"B"},{name:"Sam LaPorta",pos:"TE",to:"A"},{name:"Saquon Barkley",pos:"RB",to:"A"}],picks:[{year:"2027",round:1,slot:11,from:"TBD",to:"A"}],faab:null},
-  {id:"T008",date:"2025-12-18",week:10,qb:"sf",starters:13,teams_count:14,tep:"0.5",ppr:"1",passtd:4,roster:35,players:[{name:"Drake London",pos:"WR",to:"B"},{name:"CeeDee Lamb",pos:"WR",to:"A"},{name:"C.J. Stroud",pos:"QB",to:"A"}],picks:[],faab:null},
-  {id:"T033",date:"2025-12-18",week:9,qb:"sf",starters:10,teams_count:10,tep:"1.0",ppr:"1",passtd:4,roster:20,players:[{name:"Breece Hall",pos:"RB",to:"B"},{name:"Ja'Marr Chase",pos:"WR",to:"A"},{name:"Brian Thomas Jr.",pos:"WR",to:"A"}],picks:[{year:"2025",round:2,slot:8,from:"TBD",to:"B"}],faab:null},
-  {id:"T009",date:"2025-12-17",week:2,qb:"1qb",starters:9,teams_count:10,tep:"0.5",ppr:"1",passtd:6,roster:20,players:[{name:"Jayden Daniels",pos:"QB",to:"B"},{name:"George Pickens",pos:"WR",to:"B"},{name:"Ja'Marr Chase",pos:"WR",to:"A"}],picks:[],faab:"$50"},
-  {id:"T016",date:"2025-12-16",week:8,qb:"1qb",starters:13,teams_count:12,tep:"none",ppr:"1",passtd:6,roster:22,players:[{name:"Bijan Robinson",pos:"RB",to:"B"},{name:"Christian McCaffrey",pos:"RB",to:"A"},{name:"Marvin Harrison Jr.",pos:"WR",to:"A"}],picks:[],faab:"$150"},
-  {id:"T024",date:"2025-12-14",week:4,qb:"sf",starters:12,teams_count:12,tep:"0.5",ppr:"1",passtd:5,roster:25,players:[{name:"Justin Jefferson",pos:"WR",to:"B"}],picks:[{year:"2028",round:1,slot:11,from:"TBD",to:"B"},{year:"2027",round:3,slot:11,from:"TBD",to:"B"}],faab:null},
-  {id:"T038",date:"2025-12-14",week:17,qb:"1qb",starters:10,teams_count:10,tep:"1.0",ppr:"0.5",passtd:5,roster:40,players:[{name:"Ja'Marr Chase",pos:"WR",to:"B"},{name:"Patrick Mahomes",pos:"QB",to:"A"}],picks:[{year:"2027",round:4,slot:9,from:"TBD",to:"B"}],faab:"$150"},
-  {id:"T025",date:"2025-12-10",week:10,qb:"1qb",starters:10,teams_count:14,tep:"0.5",ppr:"0.5",passtd:5,roster:30,players:[{name:"Garrett Wilson",pos:"WR",to:"B"},{name:"Breece Hall",pos:"RB",to:"A"}],picks:[{year:"2028",round:1,slot:5,from:"TBD",to:"B"}],faab:"$50"},
-  {id:"T020",date:"2025-12-09",week:14,qb:"sf",starters:12,teams_count:12,tep:"0.75",ppr:"0.5",passtd:6,roster:20,players:[{name:"Christian McCaffrey",pos:"RB",to:"B"},{name:"Jalen Hurts",pos:"QB",to:"B"},{name:"Mark Andrews",pos:"TE",to:"A"},{name:"Justin Jefferson",pos:"WR",to:"A"}],picks:[],faab:null},
-  {id:"T001",date:"2025-12-04",week:7,qb:"sf",starters:12,teams_count:12,tep:"none",ppr:"1",passtd:4,roster:22,players:[{name:"Mark Andrews",pos:"TE",to:"B"},{name:"Patrick Mahomes",pos:"QB",to:"A"},{name:"Malik Nabers",pos:"WR",to:"A"}],picks:[],faab:"$100"},
-  {id:"T015",date:"2025-11-26",week:2,qb:"1qb",starters:10,teams_count:12,tep:"1.0",ppr:"0.5",passtd:4,roster:25,players:[{name:"Tyreek Hill",pos:"WR",to:"B"},{name:"Josh Allen",pos:"QB",to:"A"}],picks:[],faab:null},
-  {id:"T040",date:"2025-11-24",week:9,qb:"1qb",starters:13,teams_count:12,tep:"0.75",ppr:"0.5",passtd:4,roster:25,players:[{name:"Tee Higgins",pos:"WR",to:"B"},{name:"Brock Bowers",pos:"TE",to:"B"},{name:"Bijan Robinson",pos:"RB",to:"A"},{name:"Jordan Love",pos:"QB",to:"A"}],picks:[],faab:null},
-  {id:"T019",date:"2025-11-22",week:5,qb:"sf",starters:9,teams_count:12,tep:"none",ppr:"1",passtd:6,roster:25,players:[],picks:[{year:"2028",round:3,slot:1,from:"TBD",to:"A"},{year:"2025",round:4,slot:5,from:"TBD",to:"B"},{year:"2025",round:1,slot:6,from:"TBD",to:"B"}],faab:null},
-  {id:"T006",date:"2025-11-21",week:17,qb:"1qb",starters:9,teams_count:12,tep:"none",ppr:"1",passtd:6,roster:30,players:[{name:"Malik Nabers",pos:"WR",to:"B"},{name:"James Cook",pos:"RB",to:"B"},{name:"Davante Adams",pos:"WR",to:"A"},{name:"Josh Jacobs",pos:"RB",to:"A"}],picks:[],faab:"$100"},
-  {id:"T027",date:"2025-11-20",week:17,qb:"sf",starters:10,teams_count:12,tep:"1.0",ppr:"1",passtd:5,roster:40,players:[{name:"Jahmyr Gibbs",pos:"RB",to:"B"},{name:"Jalen Hurts",pos:"QB",to:"B"},{name:"CeeDee Lamb",pos:"WR",to:"A"},{name:"Amon-Ra St. Brown",pos:"WR",to:"A"}],picks:[],faab:"$25"},
-  {id:"T031",date:"2025-11-16",week:1,qb:"sf",starters:10,teams_count:12,tep:"1.0",ppr:"0.5",passtd:4,roster:40,players:[{name:"Brian Thomas Jr.",pos:"WR",to:"B"},{name:"Mark Andrews",pos:"TE",to:"A"},{name:"Ja'Marr Chase",pos:"WR",to:"A"},{name:"Josh Jacobs",pos:"RB",to:"A"}],picks:[],faab:null},
-  {id:"T037",date:"2025-11-15",week:8,qb:"sf",starters:13,teams_count:12,tep:"0.75",ppr:"0.5",passtd:4,roster:20,players:[{name:"Jayden Daniels",pos:"QB",to:"B"}],picks:[{year:"2027",round:3,slot:9,from:"TBD",to:"B"},{year:"2025",round:2,slot:2,from:"TBD",to:"B"}],faab:"$25"},
-  {id:"T039",date:"2025-11-14",week:16,qb:"1qb",starters:10,teams_count:12,tep:"1.0",ppr:"0.5",passtd:4,roster:30,players:[{name:"Tee Higgins",pos:"WR",to:"B"},{name:"Lamar Jackson",pos:"QB",to:"B"},{name:"Breece Hall",pos:"RB",to:"A"},{name:"Jayden Daniels",pos:"QB",to:"A"}],picks:[{year:"2026",round:2,slot:4,from:"TBD",to:"A"}],faab:null},
-  {id:"T030",date:"2025-11-11",week:9,qb:"1qb",starters:10,teams_count:12,tep:"none",ppr:"1",passtd:5,roster:35,players:[{name:"Malik Nabers",pos:"WR",to:"B"}],picks:[{year:"2027",round:4,slot:7,from:"TBD",to:"B"},{year:"2026",round:4,slot:4,from:"TBD",to:"B"}],faab:"$150"},
-  {id:"T005",date:"2025-11-09",week:16,qb:"1qb",starters:9,teams_count:14,tep:"0.5",ppr:"1",passtd:4,roster:20,players:[{name:"Jayden Daniels",pos:"QB",to:"B"},{name:"Josh Jacobs",pos:"RB",to:"B"},{name:"DeVonta Smith",pos:"WR",to:"A"},{name:"Christian McCaffrey",pos:"RB",to:"A"}],picks:[{year:"2027",round:2,slot:11,from:"TBD",to:"A"}],faab:"$150"},
-  {id:"T029",date:"2025-11-09",week:14,qb:"sf",starters:13,teams_count:14,tep:"0.5",ppr:"0.5",passtd:4,roster:30,players:[],picks:[{year:"2025",round:2,slot:3,from:"TBD",to:"A"},{year:"2026",round:4,slot:12,from:"TBD",to:"B"},{year:"2026",round:2,slot:2,from:"TBD",to:"B"}],faab:"$25"},
-  {id:"T034",date:"2025-11-06",week:8,qb:"1qb",starters:10,teams_count:14,tep:"1.0",ppr:"1",passtd:4,roster:30,players:[{name:"Malik Nabers",pos:"WR",to:"B"},{name:"Ja'Marr Chase",pos:"WR",to:"B"},{name:"Jordan Love",pos:"QB",to:"A"},{name:"Jaxon Smith-Njigba",pos:"WR",to:"A"}],picks:[{year:"2026",round:1,slot:10,from:"TBD",to:"A"}],faab:null},
-  {id:"T003",date:"2025-11-04",week:8,qb:"sf",starters:10,teams_count:8,tep:"0.5",ppr:"0.5",passtd:6,roster:30,players:[],picks:[{year:"2027",round:3,slot:10,from:"TBD",to:"A"},{year:"2026",round:1,slot:1,from:"TBD",to:"B"},{year:"2026",round:3,slot:2,from:"TBD",to:"B"}],faab:"$150"},
-  {id:"T036",date:"2025-11-04",week:3,qb:"1qb",starters:10,teams_count:14,tep:"0.5",ppr:"1",passtd:5,roster:25,players:[{name:"Travis Kelce",pos:"TE",to:"B"},{name:"DeVonta Smith",pos:"WR",to:"B"},{name:"Brian Thomas Jr.",pos:"WR",to:"A"}],picks:[{year:"2027",round:3,slot:4,from:"TBD",to:"A"}],faab:"$100"},
-  {id:"T007",date:"2025-11-03",week:4,qb:"sf",starters:13,teams_count:8,tep:"none",ppr:"1",passtd:5,roster:22,players:[{name:"Trey McBride",pos:"TE",to:"B"},{name:"Marvin Harrison Jr.",pos:"WR",to:"A"}],picks:[],faab:"$25"},
-  {id:"T028",date:"2025-11-02",week:16,qb:"1qb",starters:9,teams_count:8,tep:"0.5",ppr:"1",passtd:5,roster:30,players:[{name:"Puka Nacua",pos:"WR",to:"B"},{name:"Brian Thomas Jr.",pos:"WR",to:"B"},{name:"Tony Pollard",pos:"RB",to:"A"},{name:"James Cook",pos:"RB",to:"A"}],picks:[],faab:"$150"},
-  {id:"T035",date:"2025-10-23",week:14,qb:"sf",starters:13,teams_count:14,tep:"0.75",ppr:"1",passtd:6,roster:20,players:[{name:"Mark Andrews",pos:"TE",to:"B"},{name:"James Cook",pos:"RB",to:"A"}],picks:[],faab:null},
-  {id:"T023",date:"2025-10-22",week:4,qb:"sf",starters:10,teams_count:12,tep:"0.5",ppr:"1",passtd:4,roster:30,players:[{name:"Tony Pollard",pos:"RB",to:"B"},{name:"Josh Jacobs",pos:"RB",to:"A"}],picks:[{year:"2026",round:3,slot:1,from:"TBD",to:"B"}],faab:"$100"},
-  {id:"T032",date:"2025-10-21",week:1,qb:"1qb",starters:9,teams_count:12,tep:"none",ppr:"1",passtd:4,roster:35,players:[{name:"Tyreek Hill",pos:"WR",to:"B"},{name:"Drake London",pos:"WR",to:"B"},{name:"Jayden Daniels",pos:"QB",to:"A"}],picks:[{year:"2027",round:1,slot:8,from:"TBD",to:"A"}],faab:null},
-  {id:"T010",date:"2025-10-19",week:18,qb:"sf",starters:8,teams_count:14,tep:"0.5",ppr:"1",passtd:6,roster:25,players:[{name:"Chris Olave",pos:"WR",to:"B"},{name:"Evan Engram",pos:"TE",to:"B"},{name:"Saquon Barkley",pos:"RB",to:"A"}],picks:[],faab:null},
-  {id:"T002",date:"2025-10-17",week:7,qb:"1qb",starters:8,teams_count:12,tep:"none",ppr:"0.5",passtd:4,roster:40,players:[{name:"DeVonta Smith",pos:"WR",to:"B"},{name:"CeeDee Lamb",pos:"WR",to:"B"},{name:"Saquon Barkley",pos:"RB",to:"A"},{name:"James Cook",pos:"RB",to:"A"}],picks:[],faab:"$50"},
-  {id:"T026",date:"2025-10-14",week:8,qb:"1qb",starters:10,teams_count:14,tep:"0.5",ppr:"0.5",passtd:5,roster:40,players:[],picks:[{year:"2027",round:1,slot:4,from:"TBD",to:"A"},{year:"2027",round:2,slot:4,from:"TBD",to:"B"},{year:"2026",round:1,slot:1,from:"TBD",to:"B"}],faab:"$100"},
-  {id:"T004",date:"2025-10-13",week:15,qb:"sf",starters:10,teams_count:14,tep:"0.5",ppr:"1",passtd:4,roster:30,players:[{name:"DeVonta Smith",pos:"WR",to:"B"},{name:"Christian McCaffrey",pos:"RB",to:"B"},{name:"Marvin Harrison Jr.",pos:"WR",to:"A"},{name:"Saquon Barkley",pos:"RB",to:"A"}],picks:[],faab:null},
-  {id:"T022",date:"2025-10-06",week:8,qb:"sf",starters:13,teams_count:12,tep:"1.0",ppr:"1",passtd:4,roster:25,players:[{name:"Amon-Ra St. Brown",pos:"WR",to:"B"},{name:"Trey McBride",pos:"TE",to:"A"},{name:"Justin Jefferson",pos:"WR",to:"A"}],picks:[{year:"2027",round:3,slot:4,from:"TBD",to:"B"}],faab:"$150"},
-  {id:"T013",date:"2025-10-04",week:18,qb:"1qb",starters:10,teams_count:12,tep:"0.5",ppr:"0.5",passtd:4,roster:22,players:[],picks:[{year:"2028",round:2,slot:7,from:"TBD",to:"A"},{year:"2026",round:3,slot:8,from:"TBD",to:"B"},{year:"2026",round:1,slot:8,from:"TBD",to:"B"}],faab:null},
-  {id:"T012",date:"2025-10-03",week:7,qb:"sf",starters:9,teams_count:8,tep:"none",ppr:"0.5",passtd:4,roster:25,players:[{name:"George Pickens",pos:"WR",to:"B"},{name:"Tyreek Hill",pos:"WR",to:"A"},{name:"Mark Andrews",pos:"TE",to:"A"}],picks:[{year:"2026",round:4,slot:7,from:"TBD",to:"B"}],faab:null},
-  {id:"T014",date:"2025-10-02",week:13,qb:"1qb",starters:13,teams_count:8,tep:"none",ppr:"1",passtd:4,roster:35,players:[{name:"Chris Olave",pos:"WR",to:"B"},{name:"Tyreek Hill",pos:"WR",to:"A"}],picks:[],faab:"$25"},
-  {id:"T021",date:"2025-10-02",week:14,qb:"sf",starters:10,teams_count:8,tep:"0.5",ppr:"1",passtd:4,roster:22,players:[{name:"Evan Engram",pos:"TE",to:"B"},{name:"Kyren Williams",pos:"RB",to:"B"},{name:"Brian Thomas Jr.",pos:"WR",to:"A"},{name:"Jalen Hurts",pos:"QB",to:"A"}],picks:[],faab:null}
-];
+let TRADES = [];
+// TRADES is populated dynamically from MVS_PAYLOAD.players.*.recentTrades
+// after data overlay completes. See _buildTradesFromMvs() and the bootstrap
+// Promise chain. The previous hardcoded sample array (~30 entries) was
+// retired in favor of real MVS trade observations.
 
 let filtered = [...TRADES];
 
@@ -2919,19 +2802,22 @@ function applyFilters() {
   if (typeof window !== 'undefined') window.MTP_EXPANDED = null;
   filtered = TRADES.filter(t => {
     const totalAssets = t.players.length + t.picks.length;
+    // Null-safe filter: when a trade's league-context field is null (MVS CSV
+    // doesn't carry it), the filter treats it as a wildcard match. Otherwise
+    // picking "Start 10" would hide every real trade.
     const baseMatch =
       (fqb==="all"||t.qb===fqb) &&
-      (fst==="all"||t.starters===parseInt(fst)) &&
-      (ftm==="all"||t.teams_count===parseInt(ftm)) &&
-      (ftp==="all"||t.tep===ftp) &&
-      (fppr==="all"||t.ppr===fppr) &&
-      (fppc==="all"||t.ppr===fppc) &&
-      (ffaab==="all"||(ffaab==="yes"?!!t.faab:!t.faab)) &&
+      (fst==="all"||t.starters==null||t.starters===parseInt(fst)) &&
+      (ftm==="all"||t.teams_count==null||t.teams_count===parseInt(ftm)) &&
+      (ftp==="all"||t.tep==null||t.tep===ftp) &&
+      (fppr==="all"||t.ppr==null||t.ppr===fppr) &&
+      (fppc==="all"||t.ppr==null||t.ppr===fppc) &&
+      (ffaab==="all"||t.faab===undefined||(ffaab==="yes"?!!t.faab:!t.faab)) &&
       (!fdfrom||t.date>=fdfrom) &&
       (!fdto  ||t.date<=fdto) &&
-      (fptd==="all"||t.passtd===parseInt(fptd)) &&
+      (fptd==="all"||t.passtd==null||t.passtd===parseInt(fptd)) &&
       (fassets==="all"||totalAssets<=parseInt(fassets)) &&
-      (froster==="all"||t.roster<=parseInt(froster));
+      (froster==="all"||t.roster==null||t.roster<=parseInt(froster));
     if(!baseMatch) return false;
     // Rookie pick builder filter
     if(picks.length && !picks.some(sp => t.picks.some(p => p.year===sp.year && p.round===sp.round && (sp.slot===null||p.slot===sp.slot)))) return false;
@@ -7344,6 +7230,62 @@ function closePanel() {
     }
   }
 
+  // Build the global TRADES array from MVS recent_trades. Deduplicates by
+  // transaction_id (each trade appears in N players' recentTrades arrays).
+  // Translates the MVS schema into the {id,date,qb,players[],picks[]} shape
+  // the legacy renderers expect. League-context fields (teams/starters/tep/
+  // ppr/passtd/roster/faab/week) are left null — not present in this CSV
+  // (request submitted to data provider to extend the schema).
+  function _parseMvsPickLabel(name) {
+    if (!name) return null;
+    // "2026 1.01" or "2026 3rd 3.08" — extract year + round + slot
+    let m = name.match(/(\d{4})\s+(?:\d+(?:st|nd|rd|th)\s+)?(\d+)\.(\d+)/i);
+    if (m) return { year: m[1], round: parseInt(m[2]), slot: parseInt(m[3]) };
+    // "2026 1st" or "2026 3rd (Late)" — round only
+    m = name.match(/(\d{4})\s+(\d+)(?:st|nd|rd|th)/i);
+    if (m) return { year: m[1], round: parseInt(m[2]), slot: null };
+    return null;
+  }
+  function _buildTradesFromMvs() {
+    if (typeof window.MVS_PAYLOAD === 'undefined' || !window.MVS_PAYLOAD.players) {
+      return [];
+    }
+    const seen = new Set();
+    const out  = [];
+    Object.values(window.MVS_PAYLOAD.players).forEach(p => {
+      (p.recentTrades || []).forEach(t => {
+        const id = t.transaction_id || `${t.date}|${(t.sides||[]).map(s=>(s.assets||[]).map(a=>a.name).join(',')).join('|')}`;
+        if (seen.has(id)) return;
+        seen.add(id);
+        const players = [];
+        const picks   = [];
+        (t.sides || []).forEach((side, idx) => {
+          const team = idx === 0 ? 'A' : 'B';
+          (side.assets || []).forEach(a => {
+            if (a.isPick || a.position === 'PICK') {
+              const parsed = _parseMvsPickLabel(a.name);
+              picks.push(Object.assign({ to: team, from: 'TBD', label: a.name, mvs: a.mvs }, parsed || { year: null, round: null, slot: null }));
+            } else {
+              players.push({ name: a.name, pos: a.position, to: team, mvs: a.mvs });
+            }
+          });
+        });
+        out.push({
+          id:           id,
+          date:         (t.date || '').slice(0, 10),
+          qb:           t.format || 'sf',
+          players,
+          picks,
+          // Not in CSV — leave null so applyFilters() can wildcard them.
+          week: null, starters: null, teams_count: null, tep: null,
+          ppr: null, passtd: null, roster: null, faab: null,
+        });
+      });
+    });
+    out.sort((a, b) => (a.date < b.date ? 1 : -1));
+    return out;
+  }
+
   Promise.all([
     fetch('data/values.json' + v).then(r => r.ok ? r.json() : Promise.reject('values ' + r.status)).then(j => { if (typeof FP_VALUES !== 'undefined' && j && j.players) Object.assign(FP_VALUES, j.players); }),
     fetch('data/adp.json' + v).then(r => r.ok ? r.json() : Promise.reject('adp ' + r.status)).then(j => _applyAdpPayload(j)),
@@ -7354,6 +7296,9 @@ function closePanel() {
     // MVS overlay AFTER base data so it replaces the value layer wholesale.
     return fetch('data/mvs.json' + v).then(r => r.ok ? r.json() : null).then(j => { if (j) _applyMvsPayload(j); }).catch(() => { /* mvs optional during transition */ });
   }).then(() => {
+    // Now that MVS is loaded, build the global TRADES array from real trade
+    // observations (replaces the retired hardcoded sample data).
+    try { TRADES = _buildTradesFromMvs(); filtered = [...TRADES]; } catch (e) { console.warn('[fp-bootstrap] _buildTradesFromMvs skipped:', e.message); }
     // Each init function may not exist on every page, and some may throw on
     // pages where their DOM elements aren't present. Catch each individually
     // so a single broken init doesn't block the loader from hiding.
@@ -7512,14 +7457,17 @@ function tradeCardHtml(t) {
     return items.join("");
   }
 
-  // Build chips row: all format details + FAAB amount
+  // Build chips row. Only the qb badge is always present; the others are
+  // omitted when the underlying data is null (MVS CSV doesn't carry them yet).
   const chips = [];
   chips.push(`<span class="fmt-chip ${t.qb==="sf"?"sf":""}">${qbLabels[t.qb]||t.qb}</span>`);
-  chips.push(`<span class="fmt-chip">${t.teams_count} Teams</span>`);
-  chips.push(`<span class="fmt-chip">Start ${t.starters}</span>`);
-  const pprLabel = t.ppr==="1"?"Full PPR":t.ppr==="0.5"?"Half PPR":t.ppr==="0.25"?"PPC":"";
-  if(pprLabel) chips.push(`<span class="fmt-chip">${pprLabel}</span>`);
-  if(t.tep!=="none") chips.push(`<span class="fmt-chip tep">${t.tep} TEP</span>`);
+  if(t.teams_count != null) chips.push(`<span class="fmt-chip">${t.teams_count} Teams</span>`);
+  if(t.starters    != null) chips.push(`<span class="fmt-chip">Start ${t.starters}</span>`);
+  if(t.ppr != null) {
+    const pprLabel = t.ppr==="1"?"Full PPR":t.ppr==="0.5"?"Half PPR":t.ppr==="0.25"?"PPC":"";
+    if(pprLabel) chips.push(`<span class="fmt-chip">${pprLabel}</span>`);
+  }
+  if(t.tep && t.tep!=="none") chips.push(`<span class="fmt-chip tep">${t.tep} TEP</span>`);
   if(t.faab) chips.push(`<span class="faab-badge">${t.faab}</span>`);
 
   return `<div class="trade-card">
