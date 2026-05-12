@@ -300,6 +300,8 @@
   .pp-section:last-child { border-bottom:none; }
   .pp-section-label { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:14px; color:var(--red); text-transform:uppercase; letter-spacing:.06em; margin-bottom:14px; }
   .pp-section-label .src { font-family:'Mulish',sans-serif; font-style:normal; font-size:11px; color:var(--white); opacity:.55; font-weight:700; margin-left:10px; letter-spacing:.04em; }
+  .pp-fp-signin { float:right; font-family:'Mulish',sans-serif; font-style:normal; font-size:11px; font-weight:800; letter-spacing:.05em; text-transform:uppercase; color:var(--red); text-decoration:none; padding:4px 10px; border:1px solid var(--red); transition:all .12s; }
+  .pp-fp-signin:hover { background:var(--red); color:#111; }
 
   .pp-articles-empty { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:14px 18px; background:var(--red-bg-soft); border:1px solid var(--border); }
   .pp-articles-empty-msg { font-family:'Mulish',sans-serif; font-size:13px; color:var(--white); opacity:.75; }
@@ -669,7 +671,10 @@
 
     <!-- ARTICLES -->
     <div class="pp-section" id="pp-articles-section">
-      <div class="pp-section-label">Articles <span class="src">FantasyPoints.com</span></div>
+      <div class="pp-section-label">
+        Articles <span class="src">FantasyPoints.com · subscription required</span>
+        <a class="pp-fp-signin" href="https://www.fantasypoints.com/account/login" target="_blank" rel="noopener" title="Open FantasyPoints login in a new tab — articles open directly once you're signed in">Sign in to FantasyPoints ↗</a>
+      </div>
       <div id="pp-articles-body"></div>
     </div>
 
@@ -884,7 +889,19 @@ function getActiveBucket() {
   } else {
     list = aggregateBuckets(payload, STATE.dateFrom, STATE.dateTo, src);
   }
-  return list.filter(isDisplayablePosition);
+  list = list.filter(isDisplayablePosition);
+  // Rookies mode: Sleeper's rookie-draft bucket includes vets (Josh Allen, Mason
+  // Crosby, etc.) because some leagues use rookie drafts for supplemental picks.
+  // Tighten the filter to true rookies: no kickers + yearsExp ≤ 1 (incoming
+  // class or first-year players). yearsExp == null is treated as incoming.
+  if (STATE.mode === 'rookies') {
+    list = list.filter(p => {
+      if (posOf(p) === 'K') return false;
+      const yx = p.yearsExp;
+      return yx == null || yx <= 1;
+    });
+  }
+  return list;
 }
 
 // Aggregate per-player ADP across all monthly buckets that overlap the
@@ -1716,18 +1733,24 @@ function onCompareSearch() {
 }
 
 function renderHeatmap(player) {
+  // Always keep the section visible so the player card has the same layout
+  // across formats (rookies / picks / simple). Show a placeholder when this
+  // player isn't in the heatmap dataset (top 300 startup-ADP only).
   const sec = document.getElementById('pp-heatmap-section');
-  const heatmap = player && player.sleeperId ? (PICK_AVAILABILITY && PICK_AVAILABILITY[String(player.sleeperId)]) : null;
-  if (!heatmap || !heatmap.matrix || !heatmap.matrix.length) {
-    sec.style.display = 'none';
-    return;
-  }
   sec.style.display = '';
-  document.getElementById('hm-expected').textContent = heatmap.expectedPick != null ? heatmap.expectedPick.toFixed(1) : '—';
-  document.getElementById('hm-sampled').textContent  = (heatmap.draftsSampled ?? 0).toLocaleString();
-  // Reset flash state (carries over between modal opens otherwise)
+  const heatmap = player && player.sleeperId ? (PICK_AVAILABILITY && PICK_AVAILABILITY[String(player.sleeperId)]) : null;
   const flashLab = document.getElementById('hm-flash-label');
   if (flashLab) { flashLab.classList.remove('show'); flashLab.textContent = '—'; }
+  if (!heatmap || !heatmap.matrix || !heatmap.matrix.length) {
+    document.getElementById('hm-expected').textContent = '—';
+    document.getElementById('hm-sampled').textContent  = '—';
+    const grid = document.getElementById('hm-grid');
+    grid.style.gridTemplateColumns = '1fr';
+    grid.innerHTML = `<div style="padding:24px;text-align:center;font-family:'Mulish',sans-serif;font-size:12px;color:var(--white);opacity:.55;background:var(--surface2);border:1px solid var(--border)">Pick-availability data isn't tracked for this player — coverage is limited to the top 300 startup ADP.</div>`;
+    return;
+  }
+  document.getElementById('hm-expected').textContent = heatmap.expectedPick != null ? heatmap.expectedPick.toFixed(1) : '—';
+  document.getElementById('hm-sampled').textContent  = (heatmap.draftsSampled ?? 0).toLocaleString();
 
   const slots  = heatmap.slots  || (heatmap.matrix[0] ? heatmap.matrix[0].length : 12);
   const rounds = heatmap.rounds || heatmap.matrix.length;
