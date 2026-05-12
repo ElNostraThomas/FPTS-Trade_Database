@@ -1693,7 +1693,7 @@ function onCompareSearch() {
 }
 
 function renderHeatmap(player) {
-  const sec = document.getElementById('modal-heatmap-section');
+  const sec = document.getElementById('pp-heatmap-section');
   const heatmap = player && player.sleeperId ? (PICK_AVAILABILITY && PICK_AVAILABILITY[String(player.sleeperId)]) : null;
   if (!heatmap || !heatmap.matrix || !heatmap.matrix.length) {
     sec.style.display = 'none';
