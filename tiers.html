@@ -5236,16 +5236,20 @@ async function applySleeperOverlay() {
     }
 
     // ── adp.json overlay (sleeper_dynasty_adp pipeline) ──────────────────
-    // Overwrites the sheet's adp2026 column with dynasty 1QB ADP so this page
-    // shows the same number the player cards on the other pages show.
+    // Overwrites the sheet's adp2026 column with dynasty ADP from the user's
+    // saved format preference (SF or 1QB), with the other format as fallback.
     // adp2025 stays sheet-managed (we don't have last-season data in this pipeline).
     if (adpRes && adpRes.ok) {
       const j = await adpRes.json();
-      const oneByKey = {};
-      const oneList = j.byMonth?.ALL?.startup_1qb || [];
-      oneList.forEach(p => { if (p.name) oneByKey[_normNameTiers(p.name)] = p; });
+      let _fmt = 'sf';
+      try { const _v = localStorage.getItem('fpts-adp-format'); if (_v === '1qb' || _v === 'sf') _fmt = _v; } catch (e) {}
+      const canonList = j.byMonth?.ALL?.[_fmt === '1qb' ? 'startup_1qb' : 'startup_sf'] || [];
+      const fallList  = j.byMonth?.ALL?.[_fmt === '1qb' ? 'startup_sf'  : 'startup_1qb'] || [];
+      const canonByKey = {}, fallByKey = {};
+      canonList.forEach(p => { if (p.name) canonByKey[_normNameTiers(p.name)] = p; });
+      fallList .forEach(p => { if (p.name) fallByKey [_normNameTiers(p.name)] = p; });
       TIER_PLAYERS.forEach(p => {
-        const rec = oneByKey[_normNameTiers(p.name)];
+        const rec = canonByKey[_normNameTiers(p.name)] || fallByKey[_normNameTiers(p.name)];
         if (!rec) return;
         if (rec.adp != null) p.adp2026 = String(rec.adp);
       });
