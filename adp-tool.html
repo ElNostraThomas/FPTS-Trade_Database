@@ -551,6 +551,10 @@
       <button class="controls-btn"        data-mode="simple">Simple</button>
       <button class="controls-btn"        data-mode="rookies">Rookies</button>
     </div>
+    <div class="controls-group" role="tablist" aria-label="QB format">
+      <button class="controls-btn active" data-qb="sf"  title="Superflex / 2QB">SF</button>
+      <button class="controls-btn"        data-qb="1qb" title="Single QB">1QB</button>
+    </div>
     <div class="date-range" id="date-range" aria-label="Date range">
       <span class="cal-icon" aria-hidden="true">📅</span>
       <input type="date" id="date-from" aria-label="From date">
@@ -850,6 +854,7 @@ function splitName(name) {
 // ── STATE ─────────────────────────────────────────────────────────────────────
 const STATE = {
   mode: 'picks',
+  qbFormat: 'sf',  // 'sf' (Superflex / 2QB) or '1qb' (single-QB)
   view: 'box',
   dateFrom: null,  // 'yyyy-mm-dd' string, null = use byMonth.ALL
   dateTo:   null,
@@ -867,11 +872,17 @@ const STATE = {
 
 // Each mode draws from a per-format-bucket aggregate written by sync-adp.py.
 // Drafts are classified by examining their picks list:
-//   picks_sf   → SF startups where K's appear as pick-as-asset placeholders
-//   simple_sf  → SF startups with no K, no incoming rookies (vet-only)
-//   rookies_sf → SF startups that include the current rookie class in the pool
-// So ADP values actually shift per mode because the underlying sample changes.
-const MODE_TO_SOURCE = { picks: 'picks_sf', simple: 'simple_sf', rookies: 'rookies_sf' };
+//   picks_{qb}   → startups where K's appear as pick-as-asset placeholders
+//   simple_{qb}  → startups with no K, no incoming rookies (vet-only)
+//   rookies_{qb} → startups that include the current rookie class in the pool
+// {qb} = 'sf' (Superflex/2QB) or '1qb'. ADP values shift per mode AND per qb format.
+const VALID_MODES = new Set(['picks', 'simple', 'rookies']);
+const VALID_QB    = new Set(['sf', '1qb']);
+function getSourceKey(mode = STATE.mode, qb = STATE.qbFormat) {
+  if (!VALID_MODES.has(mode)) mode = 'picks';
+  if (!VALID_QB.has(qb)) qb = 'sf';
+  return `${mode}_${qb}`;
+}
 const MOBILE_BREAKPOINT_PX = 700;
 function isMobileWidth() { return window.innerWidth < MOBILE_BREAKPOINT_PX; }
 // Positions excluded from display everywhere. K is included here because in
@@ -879,20 +890,19 @@ function isMobileWidth() { return window.innerWidth < MOBILE_BREAKPOINT_PX; }
 // (Mason Crosby = "the 5.01 pick", etc.), not as real draftable kickers.
 const EXCLUDED_POSITIONS = new Set(['K', 'DEF', 'P', 'FB']);
 function isDisplayablePosition(p) { return !EXCLUDED_POSITIONS.has(posOf(p)); }
-// Until league-format filters land, every mode pulls from Sleeper Superflex /
-// 2QB startups — only the per-bucket draft subset differs (picks-as-assets,
-// vet-only, or post-rookie-draft). Labels reflect that explicitly.
+// Labels reflect both the mode (picks/simple/rookies) and the QB format (SF/1QB).
 const MODE_TO_LABEL  = {
-  picks:   { title: 'ADP <span>Picks</span>',   sub: 'Real Sleeper dynasty draft positions — 12-team Superflex / 2QB startups with picks-as-assets.' },
-  simple:  { title: 'ADP <span>Simple</span>',  sub: 'Real Sleeper dynasty draft positions — 12-team Superflex / 2QB vet-only startups (no rookies, no picks).' },
-  rookies: { title: 'ADP <span>Rookies</span>', sub: 'Real Sleeper dynasty draft positions — 12-team Superflex / 2QB startups with the 2026 rookie class in the pool.' },
+  picks:   { title: 'ADP <span>Picks</span>',   subTpl: (fmt) => `Real Sleeper dynasty draft positions — 12-team ${fmt} startups with picks-as-assets.` },
+  simple:  { title: 'ADP <span>Simple</span>',  subTpl: (fmt) => `Real Sleeper dynasty draft positions — 12-team ${fmt} vet-only startups (no rookies, no picks).` },
+  rookies: { title: 'ADP <span>Rookies</span>', subTpl: (fmt) => `Real Sleeper dynasty draft positions — 12-team ${fmt} startups with the 2026 rookie class in the pool.` },
 };
+function qbFormatLabel(qb = STATE.qbFormat) { return qb === '1qb' ? '1QB' : 'Superflex / 2QB'; }
 
 // ── DATA ACCESS ───────────────────────────────────────────────────────────────
 function getActiveBucket() {
   const payload = window.ADP_PAYLOAD;
   if (!payload || !payload.byMonth) return [];
-  const src = MODE_TO_SOURCE[STATE.mode] || 'startup_sf';
+  const src = getSourceKey();
   let list;
   if (!STATE.dateFrom || !STATE.dateTo) {
     list = (payload.byMonth.ALL || {})[src] || [];
@@ -1026,10 +1036,10 @@ function renderPosBreakdown(players) {
 
 // ── RENDER ────────────────────────────────────────────────────────────────────
 function renderAll() {
-  // Title/subtitle reflect mode
+  // Title/subtitle reflect mode + qb format
   const lbl = MODE_TO_LABEL[STATE.mode] || MODE_TO_LABEL.picks;
   document.getElementById('page-title').innerHTML = lbl.title;
-  document.getElementById('page-subtitle').textContent = lbl.sub;
+  document.getElementById('page-subtitle').textContent = lbl.subTpl(qbFormatLabel());
   // hardList = universe after hard filters; softList = also matches position/search
   const hardList = getHardFilteredPlayers();
   const softList = hardList.filter(isSoftMatch);
@@ -1228,10 +1238,17 @@ function renderBoxView(players) {
 
 // ── HANDLERS ──────────────────────────────────────────────────────────────────
 function setMode(mode) {
-  if (!MODE_TO_SOURCE[mode]) return;
+  if (!VALID_MODES.has(mode)) return;
   STATE.mode = mode;
   document.querySelectorAll('[data-mode]').forEach(b => b.classList.toggle('active', b.dataset.mode === mode));
   rebuildTrendIndex();  // trend is mode-specific (different data source per mode)
+  renderAll();
+}
+function setQbFormat(qb) {
+  if (!VALID_QB.has(qb)) return;
+  STATE.qbFormat = qb;
+  document.querySelectorAll('[data-qb]').forEach(b => b.classList.toggle('active', b.dataset.qb === qb));
+  rebuildTrendIndex();  // trend is per (mode, qbFormat) bucket
   renderAll();
 }
 function setView(view) {
@@ -1381,6 +1398,7 @@ function resetSettings() {
 function buildHashString() {
   const p = new URLSearchParams();
   if (STATE.mode !== 'picks') p.set('mode', STATE.mode);
+  if (STATE.qbFormat !== 'sf') p.set('qb', STATE.qbFormat);
   if (STATE.view !== 'box')   p.set('view', STATE.view);
   if (STATE.dateFrom)         p.set('from', STATE.dateFrom);
   if (STATE.dateTo)           p.set('to',   STATE.dateTo);
@@ -1402,7 +1420,8 @@ function loadStateFromHash() {
   const raw = (location.hash || '').replace(/^#/, '');
   if (!raw) return;
   const p = new URLSearchParams(raw);
-  if (p.has('mode') && MODE_TO_SOURCE[p.get('mode')]) STATE.mode = p.get('mode');
+  if (p.has('mode') && VALID_MODES.has(p.get('mode'))) STATE.mode = p.get('mode');
+  if (p.has('qb')   && VALID_QB.has(p.get('qb')))      STATE.qbFormat = p.get('qb');
   if (p.has('view') && (p.get('view') === 'list' || p.get('view') === 'box')) STATE.view = p.get('view');
   if (p.has('from')) STATE.dateFrom = p.get('from');
   if (p.has('to'))   STATE.dateTo   = p.get('to');
@@ -1418,6 +1437,7 @@ function loadStateFromHash() {
 // chips / inputs reflect the loaded values without a full re-bind.
 function applyStateToUi() {
   document.querySelectorAll('[data-mode]').forEach(b => b.classList.toggle('active', b.dataset.mode === STATE.mode));
+  document.querySelectorAll('[data-qb]').forEach(b => b.classList.toggle('active', b.dataset.qb === STATE.qbFormat));
   document.querySelectorAll('[data-view]').forEach(b => b.classList.toggle('active', b.dataset.view === STATE.view));
   const snakeBtn = document.getElementById('snake-toggle');
   if (snakeBtn) snakeBtn.classList.toggle('active', STATE.snake);
@@ -1555,7 +1575,7 @@ function rebuildTrendIndex() {
   TREND_INDEX = Object.create(null);
   const payload = window.ADP_PAYLOAD;
   if (!payload || !payload.byMonth) return;
-  const src = MODE_TO_SOURCE[STATE.mode] || 'startup_sf';
+  const src = getSourceKey();
   const months = Object.keys(payload.byMonth).filter(m => m !== 'ALL').sort().reverse();
   if (months.length < 2) return;
   // Index per-month: normName → adp
@@ -1882,6 +1902,10 @@ function _bindEvents() {
   document.querySelectorAll('[data-mode]').forEach(b => {
     b.addEventListener('click', () => setMode(b.dataset.mode));
   });
+  // QB format buttons (SF / 1QB)
+  document.querySelectorAll('[data-qb]').forEach(b => {
+    b.addEventListener('click', () => setQbFormat(b.dataset.qb));
+  });
   // View buttons
   document.querySelectorAll('[data-view]').forEach(b => {
     b.addEventListener('click', () => setView(b.dataset.view));
@@ -2086,9 +2110,12 @@ function consumeHandoff() {
       const p = list.find(x => String(x.name || '').toLowerCase() === target);
       if (p && p.sleeperId) {
         // Switch to the source that contains them so the modal pulls from the
-        // same data path the rest of the page is showing.
-        const modeForSrc = Object.entries(MODE_TO_SOURCE).find(([_, v]) => v === src);
-        if (modeForSrc && modeForSrc[0] !== STATE.mode) { STATE.mode = modeForSrc[0]; applyStateToUi(); renderAll(); }
+        // same data path the rest of the page is showing. Parse src as `${mode}_${qb}`.
+        const [srcMode, srcQb] = src.split('_');
+        let changed = false;
+        if (VALID_MODES.has(srcMode) && srcMode !== STATE.mode)         { STATE.mode = srcMode;         changed = true; }
+        if (VALID_QB.has(srcQb)     && srcQb     !== STATE.qbFormat)    { STATE.qbFormat = srcQb;       changed = true; }
+        if (changed) { applyStateToUi(); rebuildTrendIndex(); renderAll(); }
         setTimeout(() => openModal(p.sleeperId), 60);
         return;
       }
