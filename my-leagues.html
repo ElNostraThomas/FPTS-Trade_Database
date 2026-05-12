@@ -1954,6 +1954,18 @@
   .ml-exposure-row.pos-TE { border-left: 4px solid var(--pos-te-bg); }
   .ml-exposure-row.pos-K  { border-left: 4px solid var(--pos-k-bg); }
   .ml-exposure-row.pos-PK { border-left: 4px solid var(--pos-pick-bg); }
+
+  /* Phase 5: roster row base styles (extracted from inline) */
+  .ml-team-roster-row { display:grid; grid-template-columns:32px 1fr 50px 60px 70px; gap:8px; align-items:center; padding:6px 4px; cursor:pointer; border-bottom:1px solid var(--border); }
+  .ml-team-roster-row:hover { background:var(--surface); }
+  .ml-team-roster-row .mlr-name-wrap { min-width:0; }
+  .ml-team-roster-row .ml-team-roster-name { display:flex; align-items:center; gap:6px; font-family:'Mulish',sans-serif; font-size:12px; color:var(--white); font-weight:700; }
+  .ml-team-roster-row .mlr-name { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; }
+  .ml-team-roster-row .mlr-team { font-family:'Mulish',sans-serif; font-size:9px; color:var(--muted); font-weight:700; }
+  .ml-team-roster-row .mlr-age, .ml-team-roster-row .mlr-posr { font-family:'Mulish',sans-serif; font-size:10px; color:var(--muted); text-align:center; }
+  .ml-team-roster-row .mlr-val { font-family:'Mulish',sans-serif; font-size:11px; color:var(--white); font-weight:700; text-align:right; }
+  .ml-team-roster-row .mlr-pk { display:inline-flex; align-items:center; justify-content:center; background:var(--pos-pick-bg,#9b91d4); color:var(--black); font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:10px; padding:1px 6px; flex-shrink:0; }
+  .ml-exposure-row-img.fallback { display:flex; align-items:center; justify-content:center; font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:9px; color:var(--white); }
 </style>
 </head>
 <body>
@@ -5060,20 +5072,18 @@ function mlBuildTeamRosterHtml(leagueId, rosterId) {
     const valStr = p.value ? p.value.toLocaleString() : '—';
     const sidEsc = String(p.sid);
     return `
-      <div onclick="openPlayerDetail('${sidEsc}')" class="ml-team-roster-row pos-${p.pos}"
-        style="display:grid;grid-template-columns:32px 1fr 50px 60px 70px;gap:8px;align-items:center;padding:6px 4px;cursor:pointer;border-bottom:1px solid var(--border)"
-        onmouseover="this.style.background='var(--surface)'" onmouseout="this.style.background='transparent'">
+      <div onclick="openPlayerDetail('${sidEsc}')" class="ml-team-roster-row pos-${p.pos}">
         ${playerThumb(p.sid)}
-        <div style="min-width:0">
-          <div class="ml-team-roster-name" style="display:flex;align-items:center;gap:6px;font-family:'Mulish',sans-serif;font-size:12px;color:var(--white);font-weight:700">
+        <div class="mlr-name-wrap">
+          <div class="ml-team-roster-name">
             ${posBadge(p.pos)}
-            <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0">${p.name}</span>
-            <span style="font-family:'Mulish',sans-serif;font-size:9px;color:var(--muted);font-weight:700">${p.team || ''}</span>
+            <span class="mlr-name">${p.name}</span>
+            <span class="mlr-team">${p.team || ''}</span>
           </div>
         </div>
-        <span style="font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);text-align:center">${ageStr}</span>
-        <span style="font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);text-align:center">${p.posRank || ''}</span>
-        <span style="font-family:'Mulish',sans-serif;font-size:11px;color:var(--white);font-weight:700;text-align:right">${valStr}</span>
+        <span class="mlr-age">${ageStr}</span>
+        <span class="mlr-posr">${p.posRank || ''}</span>
+        <span class="mlr-val">${valStr}</span>
       </div>
     `;
   };
@@ -5082,19 +5092,17 @@ function mlBuildTeamRosterHtml(leagueId, rosterId) {
     const val = mlPickValue(pk.season, pk.round) || 0;
     const label = `${pk.season} Round ${pk.round}${pk.isNatural ? '' : ' (acquired)'}`;
     return `
-      <div onclick="openTradeSuggestModalForPick('${pk.season}',${pk.round},'${leagueId}',${rosterId})" class="ml-team-roster-row pos-PK"
-        style="display:grid;grid-template-columns:32px 1fr 50px 60px 70px;gap:8px;align-items:center;padding:6px 4px;cursor:pointer;border-bottom:1px solid var(--border)"
-        onmouseover="this.style.background='var(--surface)'" onmouseout="this.style.background='transparent'">
+      <div onclick="openTradeSuggestModalForPick('${pk.season}',${pk.round},'${leagueId}',${rosterId})" class="ml-team-roster-row pos-PK">
         ${pickThumb()}
-        <div style="min-width:0">
-          <div class="ml-team-roster-name" style="display:flex;align-items:center;gap:6px;font-family:'Mulish',sans-serif;font-size:12px;color:var(--white);font-weight:700">
-            <span style="display:inline-flex;align-items:center;justify-content:center;background:var(--pos-pick-bg,#9b91d4);color:var(--black);font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:10px;padding:1px 6px;flex-shrink:0">PK</span>
-            <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0">${label}</span>
+        <div class="mlr-name-wrap">
+          <div class="ml-team-roster-name">
+            <span class="mlr-pk">PK</span>
+            <span class="mlr-name">${label}</span>
           </div>
         </div>
         <span></span>
         <span></span>
-        <span style="font-family:'Mulish',sans-serif;font-size:11px;color:var(--white);font-weight:700;text-align:right">${val ? val.toLocaleString() : '—'}</span>
+        <span class="mlr-val">${val ? val.toLocaleString() : '—'}</span>
       </div>
     `;
   };
@@ -5532,7 +5540,7 @@ function renderExposureList() {
     const photo = p.sleeperId ? `https://sleepercdn.com/content/nfl/players/thumb/${p.sleeperId}.jpg` : '';
     const initials = (p.name || '').split(' ').map(s=>s[0]).join('').slice(0,2).toUpperCase();
     return `<div class="ml-exposure-row pos-${(p.position || '').toUpperCase()}" onclick="openPlayerDetail('${p.sleeperId}')">
-      ${photo ? `<img class="ml-exposure-row-img" src="${photo}" onerror="this.style.visibility='hidden'">` : `<div class="ml-exposure-row-img" style="display:flex;align-items:center;justify-content:center;font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:9px;color:var(--white)">${initials}</div>`}
+      ${photo ? `<img class="ml-exposure-row-img" src="${photo}" onerror="this.style.visibility='hidden'">` : `<div class="ml-exposure-row-img fallback">${initials}</div>`}
       <span class="ml-exposure-row-name" title="${htmlEscape(p.name)}">${htmlEscape(p.name)}</span>
       <span class="ml-exposure-row-posr" style="color:${posColor(p.position)}">${p.posR || ''}</span>
       <span class="ml-exposure-row-shares">${p.shares}</span>
