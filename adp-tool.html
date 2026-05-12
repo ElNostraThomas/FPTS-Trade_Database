@@ -304,10 +304,34 @@
   .pp-articles-empty { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:14px 18px; background:var(--red-bg-soft); border:1px solid var(--border); }
   .pp-articles-empty-msg { font-family:'Mulish',sans-serif; font-size:13px; color:var(--white); opacity:.75; }
   .pp-articles-list { display:flex; flex-direction:column; gap:8px; }
-  .pp-article { display:block; padding:10px 12px; background:var(--surface2); border:1px solid var(--border); text-decoration:none; transition:border-color .12s; }
+  .pp-article { display:block; padding:10px 12px; background:var(--surface2); border:1px solid var(--border); cursor:pointer; transition:border-color .12s; }
   .pp-article:hover { border-color:var(--red); }
+  .pp-article.expanded { border-color:var(--red); }
+  .pp-article-head { display:flex; align-items:flex-start; justify-content:space-between; gap:10px; }
+  .pp-article-headtext { flex:1; min-width:0; }
   .pp-article-title { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:13px; color:var(--white); line-height:1.25; }
   .pp-article-meta { font-family:'Mulish',sans-serif; font-size:10px; color:var(--white); opacity:.55; margin-top:4px; letter-spacing:.04em; text-transform:uppercase; }
+  .pp-article-toggle { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:11px; color:var(--red); flex-shrink:0; padding-top:2px; }
+  .pp-article-body { display:none; margin-top:12px; padding-top:12px; border-top:1px solid var(--border); font-family:'Mulish',sans-serif; font-size:13px; line-height:1.6; color:var(--white); opacity:.9; }
+  .pp-article.expanded .pp-article-body { display:block; }
+  .pp-article-body p { margin-bottom:10px; }
+  .pp-article-body h1, .pp-article-body h2, .pp-article-body h3, .pp-article-body h4 { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; color:var(--white); text-transform:uppercase; letter-spacing:.04em; margin:16px 0 8px; }
+  .pp-article-body h1 { font-size:18px; }
+  .pp-article-body h2 { font-size:16px; }
+  .pp-article-body h3 { font-size:14px; }
+  .pp-article-body h4 { font-size:13px; }
+  .pp-article-body img { max-width:100%; height:auto; margin:10px 0; display:block; }
+  .pp-article-body ul, .pp-article-body ol { margin:8px 0 12px 20px; }
+  .pp-article-body li { margin-bottom:4px; }
+  .pp-article-body blockquote { border-left:3px solid var(--red); margin:10px 0; padding:6px 14px; opacity:.85; font-style:italic; }
+  .pp-article-body a { color:var(--red); text-decoration:underline; }
+  .pp-article-body a:hover { color:var(--white); }
+  .pp-article-body figure, .pp-article-body figcaption { margin:0; opacity:.85; font-size:12px; }
+  .pp-article-loading { padding:20px; text-align:center; font-style:italic; opacity:.6; font-family:'Mulish',sans-serif; font-size:13px; }
+  .pp-article-error { padding:14px; background:var(--red-bg-soft); border:1px solid var(--border); font-family:'Mulish',sans-serif; font-size:12px; color:var(--white); }
+  .pp-article-error a { color:var(--red); font-weight:800; text-decoration:underline; }
+  .pp-article-extlink { display:inline-block; margin-top:14px; font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:11px; color:var(--red); text-decoration:none; text-transform:uppercase; letter-spacing:.05em; padding:6px 12px; border:1px solid var(--red); }
+  .pp-article-extlink:hover { background:var(--red); color:#111; }
 
   /* HEATMAP */
   .hm-callout { display:flex; gap:18px; align-items:center; margin-bottom:14px; padding:10px 14px; background:var(--surface2); border-left:3px solid var(--red); }
@@ -452,12 +476,8 @@
     /* Pos breakdown chips hug content */
     .pos-breakdown .pb-item { padding: 6px 8px; font-size: 11px; }
 
-    /* List view: hide low-value columns at this width */
-    .list-table th:nth-child(8), .list-table td:nth-child(8),    /* Draft Year */
-    .list-table th:nth-child(9), .list-table td:nth-child(9),    /* Draft Rd  */
-    .list-table th:nth-child(10), .list-table td:nth-child(10) { /* Drafts    */
-      display: none;
-    }
+    /* List view on small phones: hide NFL Draft column (col 8) to keep core stats visible */
+    .list-table th:nth-child(8), .list-table td:nth-child(8) { display: none; }
 
     /* Modal even tighter */
     .pp-top-bar { padding: 10px 12px; }
@@ -728,6 +748,19 @@ function escapeHtml(s) {
 
 function posOf(p) { return String(p && p.position || '').toUpperCase(); }
 function thumbUrl(p) { return p && p.sleeperId ? `https://sleepercdn.com/content/nfl/players/thumb/${p.sleeperId}.jpg` : ''; }
+
+// Compact NFL Draft display: "2023 R1 #7" → year + round + overall pick when
+// available, gracefully degrades to whatever subset is known.
+function formatNflDraft(p) {
+  if (!p) return '—';
+  const y = p.draftYear, r = p.draftRound, k = p.draftPick;
+  if (!y && !r && !k) return '—';
+  const parts = [];
+  if (y) parts.push(String(y));
+  if (r) parts.push('R' + r);
+  if (k) parts.push('#' + k);
+  return parts.join(' ');
+}
 
 // Cross-page handoff (matches index/tiers/calc/my-leagues).
 window._fptsWriteHandoff = function(payload, destUrl) {
@@ -1029,17 +1062,15 @@ function renderAll() {
 
 // LIST -----------------------------------------------------------------------
 const LIST_COLS = [
-  { key: 'hs',         label: 'HS',         sortable: false },
-  { key: 'player',     label: 'Player',     sortable: true  },
-  { key: 'adp',        label: 'ADP',        sortable: true  },
-  { key: 'rank',       label: 'Rank',       sortable: true  },
-  { key: 'posRank',    label: 'PosRank',    sortable: true  },
-  { key: 'position',   label: 'Position',   sortable: true  },
-  { key: 'team',       label: 'Team',       sortable: true  },
-  { key: 'draftYear',  label: 'Draft Year', sortable: true  },
-  { key: 'draftRound', label: 'Rd',         sortable: true  },
-  { key: 'drafts',     label: 'Drafts',     sortable: true  },
-  { key: 'age',        label: 'Age',        sortable: true  },
+  { key: 'hs',        label: 'HS',        sortable: false },
+  { key: 'player',    label: 'Player',    sortable: true  },
+  { key: 'adp',       label: 'ADP',       sortable: true  },
+  { key: 'rank',      label: 'Rank',      sortable: true  },
+  { key: 'posRank',   label: 'PosRank',   sortable: true  },
+  { key: 'position',  label: 'Position',  sortable: true  },
+  { key: 'team',      label: 'Team',      sortable: true  },
+  { key: 'nflDraft',  label: 'NFL Draft', sortable: true  },
+  { key: 'age',       label: 'Age',       sortable: true  },
 ];
 
 function renderListView(players) {
@@ -1067,9 +1098,7 @@ function renderListView(players) {
       <td><span class="stat-pill">${escapeHtml(p.posRank) || '—'}</span></td>
       <td>${pos ? `<span class="pos-pill ${pos}">${pos}</span>` : '—'}</td>
       <td>${p.team ? `<span class="team-pill">${escapeHtml(p.team)}</span>` : '—'}</td>
-      <td><span class="stat-pill">${p.draftYear ?? '—'}</span></td>
-      <td><span class="stat-pill">${p.draftRound ?? '—'}</span></td>
-      <td><span class="stat-pill">${p.drafts ?? '—'}</span></td>
+      <td><span class="stat-pill">${formatNflDraft(p)}</span></td>
       <td><span class="stat-pill">${p.age != null ? p.age.toFixed(1) : '—'}</span></td>
     </tr>`;
   }).join('');
@@ -1082,6 +1111,13 @@ function sortPlayers(list) {
   copy.sort((a, b) => {
     let av, bv;
     if (col === 'player') { av = a.name; bv = b.name; }
+    else if (col === 'nflDraft') {
+      // Earlier draft year > later year; within year, earlier round/pick first.
+      const k = (p) => (p && p.draftYear ? p.draftYear * 1e6 : 0)
+                    + (p && p.draftRound ? p.draftRound * 1000 : 0)
+                    + (p && p.draftPick ? p.draftPick : 0);
+      av = k(a); bv = k(b);
+    }
     else if (col === 'posRank') {
       // Sort by numeric part of "WR4" → 4 within position, but mixing positions just falls back to alpha.
       const ax = String(a.posRank || ''); const bx = String(b.posRank || '');
@@ -1398,6 +1434,7 @@ function applyStateToUi() {
 
 // MODAL ---------------------------------------------------------------------
 let CURRENT_MODAL_PLAYER = null;
+let CURRENT_MODAL_ARTICLES = [];   // article objects with .body for the current player
 
 function openModal(sleeperId) {
   const list = getActiveBucket() || [];
@@ -1436,11 +1473,6 @@ function openModal(sleeperId) {
   const ppg        = fpRec.ppg != null ? fpRec.ppg.toFixed(1) : '—';
   const adpStr     = p.adp != null ? p.adp.toFixed(1) : '—';
   const auctionStr = fpRec.auction || fpRec.auctionSf || '—';
-  const nflDraft   = (p.draftYear || p.draftRound)
-                       ? `${p.draftYear ?? '—'} · R${p.draftRound ?? '—'}`
-                       : '—';
-  const drafts     = (p.drafts ?? 0).toLocaleString();
-  const pickRange  = (p.minPick != null || p.maxPick != null) ? `${p.minPick ?? '—'}–${p.maxPick ?? '—'}` : '—';
   const trendStr   = fmtTrend(trendRec) || '—';
   const trendCls   = trendRec ? (trendRec.delta < 0 ? 'green' : (trendRec.delta > 0 ? 'red' : '')) : '';
 
@@ -1452,9 +1484,6 @@ function openModal(sleeperId) {
     ['PPG',          ppg],
     ['Dynasty ADP',  adpStr],
     ['Auction',      auctionStr],
-    ['NFL Draft',    nflDraft],
-    ['Drafts',       drafts],
-    ['Pick Range',   pickRange],
     ['MoM Trend',    trendStr, trendCls],
   ];
   document.getElementById('pp-stats').innerHTML = stats.map(([k, v, cls]) =>
@@ -1480,12 +1509,21 @@ function openModal(sleeperId) {
   const articlesBody = document.getElementById('pp-articles-body');
   const arts = (window.PLAYER_ARTICLES && window.PLAYER_ARTICLES[p.name]) || [];
   if (arts && arts.length) {
-    articlesBody.innerHTML = `<div class="pp-articles-list">${arts.slice(0, 5).map(a => {
+    // Stash the article objects for this open so the click handler can render
+    // the trusted FP-supplied `body` HTML inline without scraping at runtime.
+    CURRENT_MODAL_ARTICLES = arts.slice(0, 5);
+    articlesBody.innerHTML = `<div class="pp-articles-list">${CURRENT_MODAL_ARTICLES.map((a, i) => {
       const dateStr = a.date ? new Date(a.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
-      return `<a class="pp-article" href="${escapeHtml(a.url)}" target="_blank" rel="noopener">
-        <div class="pp-article-title">${escapeHtml(a.title)}</div>
-        <div class="pp-article-meta">${escapeHtml(a.author || '')} ${a.author && dateStr ? '·' : ''} ${escapeHtml(dateStr)}</div>
-      </a>`;
+      return `<div class="pp-article" data-idx="${i}" data-url="${escapeHtml(a.url)}" role="button" tabindex="0">
+        <div class="pp-article-head">
+          <div class="pp-article-headtext">
+            <div class="pp-article-title">${escapeHtml(a.title)}</div>
+            <div class="pp-article-meta">${escapeHtml(a.author || '')} ${a.author && dateStr ? '·' : ''} ${escapeHtml(dateStr)}</div>
+          </div>
+          <div class="pp-article-toggle">▼</div>
+        </div>
+        <div class="pp-article-body"></div>
+      </div>`;
     }).join('')}</div>`;
   } else {
     const browseUrl = `https://www.fantasypoints.com/search?q=${encodeURIComponent(p.name)}`;
@@ -1559,6 +1597,62 @@ function trendBadge(playerName) {
     return `<span class="trend up" title="ADP improved from ${t.prev.toFixed(1)} (${t.prevMonth}) to ${t.recent.toFixed(1)} (${t.recentMonth})">▲ ${label}</span>`;
   }
   return `<span class="trend down" title="ADP slipped from ${t.prev.toFixed(1)} (${t.prevMonth}) to ${t.recent.toFixed(1)} (${t.recentMonth})">▼ ${label}</span>`;
+}
+
+// Sanitize the trusted FP article body before injection. The body comes from
+// our own authenticated /v2/articles call (saved into data/articles.json by
+// sync-fp.py), so the source is trusted — this is defense-in-depth that
+// strips any unexpected scripts/event-handlers/javascript: URLs anyway.
+function _sanitizeArticleHtml(html) {
+  if (!html) return '';
+  const doc = new DOMParser().parseFromString('<div id="r">' + html + '</div>', 'text/html');
+  const root = doc.getElementById('r');
+  if (!root) return '';
+  // Remove tags that can execute code or pull in external resources we don't want inlined.
+  root.querySelectorAll('script, style, noscript, link, meta, iframe, object, embed, form, input, button').forEach(el => el.remove());
+  // Strip event-handler attrs and javascript:/data: URLs that could exfiltrate.
+  root.querySelectorAll('*').forEach(el => {
+    for (const attr of Array.from(el.attributes)) {
+      const name = attr.name.toLowerCase();
+      const val  = String(attr.value || '').trim().toLowerCase();
+      if (name.startsWith('on')) { el.removeAttribute(attr.name); continue; }
+      if ((name === 'href' || name === 'src' || name === 'xlink:href') && /^(javascript|vbscript|data:text\/html):/i.test(val)) {
+        el.removeAttribute(attr.name);
+      }
+    }
+  });
+  // Open links in a new tab, no-referrer.
+  root.querySelectorAll('a').forEach(a => { a.target = '_blank'; a.rel = 'noopener noreferrer'; });
+  // Lazy-load images and drop srcset complexity.
+  root.querySelectorAll('img').forEach(img => { img.loading = 'lazy'; img.removeAttribute('srcset'); });
+  return root.innerHTML;
+}
+
+function expandArticle(articleEl) {
+  if (articleEl.classList.contains('expanded')) {
+    articleEl.classList.remove('expanded');
+    const tog = articleEl.querySelector('.pp-article-toggle');
+    if (tog) tog.textContent = '▼';
+    return;
+  }
+  const idx = Number(articleEl.dataset.idx);
+  const art = CURRENT_MODAL_ARTICLES[idx];
+  const body = articleEl.querySelector('.pp-article-body');
+  const tog  = articleEl.querySelector('.pp-article-toggle');
+  articleEl.classList.add('expanded');
+  if (tog) tog.textContent = '▲';
+
+  if (body.dataset.loaded === 'true' || !art) return;
+
+  const extUrl = articleEl.dataset.url || (art && art.url) || '';
+  const extLinkHtml = extUrl ? `<a class="pp-article-extlink" href="${escapeHtml(extUrl)}" target="_blank" rel="noopener">Read on FantasyPoints ↗</a>` : '';
+
+  if (art.body && art.body.trim()) {
+    body.innerHTML = _sanitizeArticleHtml(art.body) + extLinkHtml;
+  } else {
+    body.innerHTML = `<div class="pp-article-error">Article body unavailable in the local cache — re-run <code>sync-fp.py</code> to capture it.${extLinkHtml ? ' ' + extLinkHtml : ''}</div>`;
+  }
+  body.dataset.loaded = 'true';
 }
 
 function closeModal() {
@@ -1951,6 +2045,13 @@ function _bindEvents() {
   });
   // Modal close + cross-page buttons
   document.getElementById('modal-close').addEventListener('click', closeModal);
+  // Article expand/collapse — clicking a card toggles inline render
+  document.getElementById('pp-articles-body').addEventListener('click', e => {
+    // Allow native clicks on links inside the rendered body / external link button
+    if (e.target.closest('.pp-article-body a, .pp-article-extlink')) return;
+    const card = e.target.closest('.pp-article[data-idx]');
+    if (card) { e.preventDefault(); expandArticle(card); }
+  });
   document.getElementById('xpage-db').addEventListener('click',      e => { e.stopPropagation(); _fptsXpageAdpToDb(); });
   document.getElementById('xpage-calc').addEventListener('click',    e => { e.stopPropagation(); _fptsXpageAdpToCalc(); });
   document.getElementById('xpage-leagues').addEventListener('click', e => { e.stopPropagation(); _fptsXpageAdpToLeagues(); });
