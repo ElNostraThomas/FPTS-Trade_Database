@@ -7200,10 +7200,13 @@ function closePanel() {
     fetch('data/picks.json' + v).then(r => r.ok ? r.json() : Promise.reject('picks ' + r.status)).then(j => { if (typeof PICK_VALUES !== 'undefined' && j && j.picks) Object.assign(PICK_VALUES, j.picks); }),
     fetch('data/articles.json' + v).then(r => r.ok ? r.json() : Promise.reject('articles ' + r.status)).then(j => { if (j && j.players) window.PLAYER_ARTICLES = j.players; }).catch(() => { /* articles optional */ }),
   ]).then(() => {
-    if (typeof applyFilters === 'function') applyFilters();
-    if (typeof buildPickSlots === 'function') buildPickSlots();
-    if (typeof renderAll === 'function') renderAll();
-    if (typeof renderTiers === 'function') renderTiers();
+    // Each init function may not exist on every page, and some may throw on
+    // pages where their DOM elements aren't present. Catch each individually
+    // so a single broken init doesn't block the loader from hiding.
+    try { if (typeof applyFilters === 'function') applyFilters(); } catch(e) { console.warn('[fp-bootstrap] applyFilters skipped:', e.message); }
+    try { if (typeof buildPickSlots === 'function') buildPickSlots(); } catch(e) { console.warn('[fp-bootstrap] buildPickSlots skipped:', e.message); }
+    try { if (typeof renderAll === 'function') renderAll(); } catch(e) { console.warn('[fp-bootstrap] renderAll skipped:', e.message); }
+    try { if (typeof renderTiers === 'function') renderTiers(); } catch(e) { console.warn('[fp-bootstrap] renderTiers skipped:', e.message); }
     hideLoader();
   }).catch(fail);
 })();
