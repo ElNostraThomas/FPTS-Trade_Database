@@ -7006,7 +7006,7 @@ function openPanelContent(playerName) {
     ktc.rank    ? `<div class="pp-meta-item"><div class="pp-meta-label">Overall Rank</div><div class="pp-meta-val">#${ktc.rank}</div></div>` : "",
     ktc.ppg     ? `<div class="pp-meta-item"><div class="pp-meta-label">PPG</div><div class="pp-meta-val">${ktc.ppg}</div></div>` : "",
     ktc.adp     ? `<div class="pp-meta-item"><div class="pp-meta-label">Dynasty ADP</div><div class="pp-meta-val">${ktc.adp}</div></div>` : "",
-    ktc.auction ? `<div class="pp-meta-item"><div class="pp-meta-label">Auction</div><div class="pp-meta-val" style="color:var(--green)">$${ktc.auction}</div></div>` : "",
+    ktc.auction ? `<div class="pp-meta-item"><div class="pp-meta-label">Auction</div><div class="pp-meta-val" style="color:var(--green)">$${String(ktc.auction).replace(/^\$+/, '')}</div></div>` : "",
     `<div class="pp-meta-item" id="pp-trending-adds"><div class="pp-meta-label">Trending Adds</div><div class="pp-meta-val" style="opacity:.4">...</div></div>`,
     `<div class="pp-meta-item" id="pp-trending-drops"><div class="pp-meta-label">Trending Drops</div><div class="pp-meta-val" style="opacity:.4">...</div></div>`,
   ].join("")

@@ -1564,8 +1564,8 @@
     margin-bottom: 18px; padding: 14px; background: var(--surface2);
     border: 1px solid var(--border);
   }
-  .ml-pd-stat-label { font-family: 'Mulish', sans-serif; font-size: 9px; opacity: .5; text-transform: uppercase; letter-spacing: .07em; margin-bottom: 4px; }
-  .ml-pd-stat-val { font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 16px; color: var(--white); }
+  .ml-pd-stat-label { font-family: 'Mulish', sans-serif; font-size: 10px; opacity: .6; text-transform: uppercase; letter-spacing: .07em; margin-bottom: 6px; line-height: 1.4; padding-top: 2px; white-space: nowrap; }
+  .ml-pd-stat-val { font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 16px; color: var(--white); line-height: 1.2; }
   .ml-pd-stat-val.green { color: var(--green); }
   .ml-pd-stat-val.red { color: var(--red); }
 
@@ -3949,7 +3949,13 @@ function openPlayerDetail(sleeperId) {
       ${expDisplay !== null ? `<div><div class="ml-pd-stat-label">EXP</div><div class="ml-pd-stat-val">${expDisplay}</div></div>` : ''}
       ${ktc.ppg ? `<div><div class="ml-pd-stat-label">PPG '25</div><div class="ml-pd-stat-val">${ktc.ppg}</div></div>` : ''}
       ${ktc.adp ? `<div><div class="ml-pd-stat-label">Dynasty ADP</div><div class="ml-pd-stat-val">${ktc.adp}</div></div>` : ''}
-      ${ktc.auction ? `<div><div class="ml-pd-stat-label">Auction</div><div class="ml-pd-stat-val green">$${ktc.auction}</div></div>` : ''}
+      ${ktc.auction ? (() => {
+        // FP returns auction values pre-formatted as strings like "$20+", "$7-9", or sometimes bare "1".
+        // Normalize to a single leading $.
+        const raw = String(ktc.auction);
+        const label = '$' + raw.replace(/^\$+/, '');
+        return `<div><div class="ml-pd-stat-label">Auction</div><div class="ml-pd-stat-val green">${label}</div></div>`;
+      })() : ''}
     </div>
   `;
 
@@ -5472,7 +5478,7 @@ function renderExposureList() {
     const initials = (p.name || '').split(' ').map(s=>s[0]).join('').slice(0,2).toUpperCase();
     return `<div class="ml-exposure-row" onclick="openPlayerDetail('${p.sleeperId}')">
       ${photo ? `<img class="ml-exposure-row-img" src="${photo}" onerror="this.style.visibility='hidden'">` : `<div class="ml-exposure-row-img" style="display:flex;align-items:center;justify-content:center;font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:9px;color:var(--white)">${initials}</div>`}
-      <span class="ml-exposure-row-name" title="${p.name}">${p.name}</span>
+      <span class="ml-exposure-row-name" title="${htmlEscape(p.name)}">${htmlEscape(p.name)}</span>
       <span class="ml-exposure-row-posr" style="color:${posColor(p.position)}">${p.posR || ''}</span>
       <span class="ml-exposure-row-shares">${p.shares}</span>
       <span class="ml-exposure-row-value">${p.value ? p.value.toLocaleString() : '—'}</span>
