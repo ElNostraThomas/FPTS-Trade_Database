@@ -1403,6 +1403,54 @@
     /* Articles section — tighter padding on tiny screens */
     .pp-articles-section .pp-article-inline > div { padding: 6px 10px !important; }
   }
+
+  /* ============================================================
+     Shared design-system utilities (canonical source: adp-tool.html)
+     ============================================================
+     Lifted verbatim so trend arrows, position pills, and team pills
+     render identically on every page. Append-only — does not override
+     any existing rules with the same class names (verified).            */
+  .trend { display:inline-flex; align-items:center; gap:2px; font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:11px; padding:0 2px; letter-spacing:.04em; margin-left:4px; background:transparent; border:none;
+    text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, 0 -1px 0 #000, 0 1px 0 #000, -1px 0 0 #000, 1px 0 0 #000;
+    -webkit-text-stroke: 0.5px #000; }
+  .trend.up   { color:#66dd84; }
+  .trend.down { color:var(--red); }
+  .trend.flat { color:#ffffff; }
+  .pos-pill { display:inline-block; padding:3px 9px; font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:11px; letter-spacing:.04em; }
+  .pos-pill.QB { background:var(--pos-qb-bg); color:var(--pos-qb); }
+  .pos-pill.RB { background:var(--pos-rb-bg); color:var(--pos-rb); }
+  .pos-pill.WR { background:var(--pos-wr-bg); color:var(--pos-wr); }
+  .pos-pill.TE { background:var(--pos-te-bg); color:var(--pos-te); }
+  .pos-pill.K  { background:var(--pos-k-bg);  color:var(--pos-k); }
+  .pos-pill.DEF, .pos-pill.PICK { background:var(--pos-pick-bg); color:var(--pos-pick); }
+  .team-pill { display:inline-block; padding:3px 8px; background:var(--surface2); border:1px solid var(--border2); font-family:'Mulish',sans-serif; font-weight:700; font-size:10px; letter-spacing:.05em; color:var(--white); }
+
+  /* Position-color stripe on table-style rank/value rows (per visual-unification plan) */
+  .rank-card.pos-qb { border-left: 4px solid var(--pos-qb-bg); padding-left: 13px; }
+  .rank-card.pos-rb { border-left: 4px solid var(--pos-rb-bg); padding-left: 13px; }
+  .rank-card.pos-wr { border-left: 4px solid var(--pos-wr-bg); padding-left: 13px; }
+  .rank-card.pos-te { border-left: 4px solid var(--pos-te-bg); padding-left: 13px; }
+  .rank-card.pos-k  { border-left: 4px solid var(--pos-k-bg);  padding-left: 13px; }
+  .value-row.pos-qb { border-left: 3px solid var(--pos-qb-bg); }
+  .value-row.pos-rb { border-left: 3px solid var(--pos-rb-bg); }
+  .value-row.pos-wr { border-left: 3px solid var(--pos-wr-bg); }
+  .value-row.pos-te { border-left: 3px solid var(--pos-te-bg); }
+  .value-row.pos-k  { border-left: 3px solid var(--pos-k-bg);  }
+
+  /* ============================================================
+     Phase 3: player-panel retheme to match adp-tool pp-modal pattern
+     (CSS-only — JS untouched. Overrides via .player-panel ancestor.)
+     ============================================================ */
+  .player-panel .pp-close-bar { background: var(--surface); border-bottom: 1px solid var(--border); padding: 12px 24px; }
+  .player-panel .pp-close-bar > div:first-child { font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 13px; color: var(--red); text-transform: uppercase; letter-spacing: .06em; }
+  .player-panel .pp-profile { padding: 24px 28px 18px; gap: 24px; align-items: center; }
+  .player-panel .pp-avatar { width: 96px; height: 96px; border-radius: 50%; box-shadow: 0 0 0 2px var(--border2); }
+  .player-panel .pp-name { font-size: 32px; letter-spacing: .02em; }
+  .player-panel .pp-pos-team { margin-bottom: 10px; }
+  .player-panel .pp-team-name { font-family: 'Mulish', sans-serif; font-size: 13px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
+  .player-panel .pp-tab { font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 12px; letter-spacing: .06em; }
+  .player-panel .pp-tab.active { color: var(--red); border-bottom-color: var(--red); }
+  .player-panel .pp-value-val { font-size: 40px; }
 </style>
 </head>
 <body>
@@ -3073,9 +3121,9 @@ function renderTopPlayers() {
   all.forEach(p=>{if(!byPos[p.pos])byPos[p.pos]=[];byPos[p.pos].push(p);});
   document.getElementById("tab-top-players").innerHTML=
     `<div class="section-hdr"><span class="section-num">02</span><span class="section-title">Most Traded Players</span></div>`+
-    all.map((p,i)=>`<div class="rank-row-wrap" data-key="p:${p.name}"><div class="rank-card expandable" onclick="toggleExpandPlayer('${p.name.replace(/'/g,"\\'")}',event)"><span class="rank-num ${i>2?"muted":""}">${i+1}</span>${_imgThumb(p.name,28)}<span class="pos-badge ${pc(p.pos)}">${p.pos}</span><div class="rank-info"><div class="rank-name clickable-player" onclick="event.stopPropagation();openPanel('${p.name.replace(/'/g,"\\'")}')">${p.name}</div><div class="rank-sub">${p.count} trade${p.count!==1?"s":""}</div></div><div class="rank-bar"><div class="rank-bar-track"><div class="rank-bar-fill" style="width:${Math.round(p.count/max*100)}%;background:${posColors[p.pos]||"var(--white)"}"></div></div></div><span class="rank-count">${p.count}</span><span class="rank-chevron">▼</span></div><div class="expand-container"></div></div>`).join("")+
+    all.map((p,i)=>`<div class="rank-row-wrap" data-key="p:${p.name}"><div class="rank-card expandable ${pc(p.pos)}" onclick="toggleExpandPlayer('${p.name.replace(/'/g,"\\'")}',event)"><span class="rank-num ${i>2?"muted":""}">${i+1}</span>${_imgThumb(p.name,28)}<span class="pos-badge ${pc(p.pos)}">${p.pos}</span><div class="rank-info"><div class="rank-name clickable-player" onclick="event.stopPropagation();openPanel('${p.name.replace(/'/g,"\\'")}')">${p.name}</div><div class="rank-sub">${p.count} trade${p.count!==1?"s":""}</div></div><div class="rank-bar"><div class="rank-bar-track"><div class="rank-bar-fill" style="width:${Math.round(p.count/max*100)}%;background:${posColors[p.pos]||"var(--white)"}"></div></div></div><span class="rank-count">${p.count}</span><span class="rank-chevron">▼</span></div><div class="expand-container"></div></div>`).join("")+
     `<div class="divider"></div><div class="section-hdr"><span class="section-num">02B</span><span class="section-title">By Position</span></div><div class="two-col">`+
-    ["WR","RB","QB","TE"].filter(pos=>byPos[pos]).map(pos=>`<div><div class="sub-hdr">${pos}</div>${byPos[pos].map((p,i)=>`<div class="rank-row-wrap" data-key="p:${p.name}"><div class="rank-card expandable" onclick="toggleExpandPlayer('${p.name.replace(/'/g,"\\'")}',event)"><span class="rank-num ${i>0?"muted":""}">${i+1}</span>${_imgThumb(p.name,28)}<div class="rank-info"><div class="rank-name clickable-player" onclick="event.stopPropagation();openPanel('${p.name.replace(/'/g,"\\'")}')">${p.name}</div><div class="rank-sub">${p.count} trade${p.count!==1?"s":""}</div></div><div class="rank-bar"><div class="rank-bar-track"><div class="rank-bar-fill" style="width:${Math.round(p.count/max*100)}%;background:${posColors[pos]||"var(--white)"}"></div></div></div><span class="rank-count">${p.count}</span><span class="rank-chevron">▼</span></div><div class="expand-container"></div></div>`).join("")}</div>`).join("")+
+    ["WR","RB","QB","TE"].filter(pos=>byPos[pos]).map(pos=>`<div><div class="sub-hdr">${pos}</div>${byPos[pos].map((p,i)=>`<div class="rank-row-wrap" data-key="p:${p.name}"><div class="rank-card expandable ${pc(p.pos)}" onclick="toggleExpandPlayer('${p.name.replace(/'/g,"\\'")}',event)"><span class="rank-num ${i>0?"muted":""}">${i+1}</span>${_imgThumb(p.name,28)}<div class="rank-info"><div class="rank-name clickable-player" onclick="event.stopPropagation();openPanel('${p.name.replace(/'/g,"\\'")}')">${p.name}</div><div class="rank-sub">${p.count} trade${p.count!==1?"s":""}</div></div><div class="rank-bar"><div class="rank-bar-track"><div class="rank-bar-fill" style="width:${Math.round(p.count/max*100)}%;background:${posColors[pos]||"var(--white)"}"></div></div></div><span class="rank-count">${p.count}</span><span class="rank-chevron">▼</span></div><div class="expand-container"></div></div>`).join("")}</div>`).join("")+
     `</div>`;
 }
 
@@ -3163,12 +3211,12 @@ function renderValueTracker() {
     const isUp = p.trend > 0;
     const arrow = isUp ? "▲" : "▼";
     const changeStr = isUp ? `+${p.trend}` : `${p.trend}`;
-    return `<div class="value-row" onclick="openPanel('${p.name.replace(/'/g,"\\'")}')">
+    return `<div class="value-row ${pc(p.pos)}" onclick="openPanel('${p.name.replace(/'/g,"\\'")}')">
       ${_imgThumb(p.name,22)}
       <span class="pos-badge ${pc(p.pos)}" style="font-size:10px;padding:2px 5px;flex-shrink:0">${p.pos}</span>
       <span class="value-row-name">${p.name}</span>
       <span class="value-row-val">${p.value.toLocaleString()}</span>
-      <span class="value-row-change ${isUp?"up":"down"}">${arrow} ${changeStr}</span>
+      <span class="value-row-change ${isUp?"up":"down"}"><span class="trend ${isUp?"up":"down"}">${arrow} ${changeStr}</span></span>
     </div>`;
   }
 
@@ -7001,7 +7049,14 @@ function openPanelContent(playerName) {
   // Overall rank now lives in the meta row chip — clear this line
   document.getElementById("pp-value-rank").textContent = "";
   const trendEl = document.getElementById("pp-value-trend");
-  trendEl.textContent = trendNum > 0 ? `▲ +${trendNum} (7d)` : trendNum < 0 ? `▼ ${trendNum} (7d)` : "— (7d)";
+  // Wrap the arrow+number in a .trend span so it picks up the canonical
+  // text-stroke outline (shared utility from adp-tool). The outer
+  // .pp-value-trend keeps its own font/colour/margin for the "(7d)" suffix.
+  trendEl.innerHTML = trendNum > 0
+    ? `<span class="trend up">▲ +${trendNum}</span> <span style="opacity:.65">(7d)</span>`
+    : trendNum < 0
+      ? `<span class="trend down">▼ ${trendNum}</span> <span style="opacity:.65">(7d)</span>`
+      : `<span class="trend flat">—</span> <span style="opacity:.65">(7d)</span>`;
   trendEl.className = `pp-value-trend ${trendNum>0?"up":trendNum<0?"down":""}`;
 
   document.getElementById("pp-meta-row").innerHTML = [

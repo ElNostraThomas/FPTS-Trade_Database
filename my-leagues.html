@@ -1899,6 +1899,61 @@
     .ml-league-name { font-size: 13px !important; }
     .ml-league-meta { font-size: 10px !important; }
   }
+
+  /* ============================================================
+     Shared design-system utilities (canonical source: adp-tool.html)
+     ============================================================ */
+  .trend { display:inline-flex; align-items:center; gap:2px; font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:11px; padding:0 2px; letter-spacing:.04em; margin-left:4px; background:transparent; border:none;
+    text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, 0 -1px 0 #000, 0 1px 0 #000, -1px 0 0 #000, 1px 0 0 #000;
+    -webkit-text-stroke: 0.5px #000; }
+  .trend.up   { color:#66dd84; }
+  .trend.down { color:var(--red); }
+  .trend.flat { color:#ffffff; }
+  .pos-pill { display:inline-block; padding:3px 9px; font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:11px; letter-spacing:.04em; }
+  .pos-pill.QB { background:var(--pos-qb-bg); color:var(--pos-qb); }
+  .pos-pill.RB { background:var(--pos-rb-bg); color:var(--pos-rb); }
+  .pos-pill.WR { background:var(--pos-wr-bg); color:var(--pos-wr); }
+  .pos-pill.TE { background:var(--pos-te-bg); color:var(--pos-te); }
+  .pos-pill.K  { background:var(--pos-k-bg);  color:var(--pos-k); }
+  .pos-pill.DEF, .pos-pill.PICK { background:var(--pos-pick-bg); color:var(--pos-pick); }
+  .team-pill { display:inline-block; padding:3px 8px; background:var(--surface2); border:1px solid var(--border2); font-family:'Mulish',sans-serif; font-weight:700; font-size:10px; letter-spacing:.05em; color:var(--white); }
+
+  /* ============================================================
+     Phase 4: ml-modal retheme to match adp-tool pp-modal visuals.
+     CSS overrides only — placed at end of <style> for higher specificity.
+     ============================================================ */
+  .ml-modal .ml-modal-header { padding: 14px 24px !important; background: var(--surface); border-bottom: 1px solid var(--border); }
+  .ml-modal .ml-modal-title { font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 13px; color: var(--red); text-transform: uppercase; letter-spacing: .06em; }
+  .ml-modal .ml-modal-close { font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 11px; padding: 6px 12px; text-transform: uppercase; letter-spacing: .05em; }
+  /* Hero section → pp-profile look */
+  .ml-modal .ml-pd-hero { gap: 24px; padding: 24px 28px 18px; border-bottom: 1px solid var(--border); }
+  .ml-modal .ml-pd-avatar { width: 96px !important; height: 96px !important; border-radius: 50%; border: 2px solid var(--border2); background: var(--surface2); }
+  .ml-modal .ml-pd-avatar-initials { font-size: 34px !important; opacity: .5; }
+  .ml-modal .ml-pd-name { font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 32px !important; text-transform: uppercase; line-height: 1; color: var(--white); margin-bottom: 8px; }
+  .ml-modal .ml-pd-team { font-family: 'Mulish', sans-serif; font-size: 13px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--white); opacity: .85; }
+  /* Stats grid → pp-stats look (k/v stack, Kanit italic v) */
+  .ml-modal .ml-pd-stat-label { font-family: 'Mulish', sans-serif; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--white); opacity: .55; margin-bottom: 2px; }
+  .ml-modal .ml-pd-stat-val { font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 18px; line-height: 1.1; color: var(--white); }
+  /* Status pills → pos-pill look */
+  .ml-modal .ml-pd-status { padding: 4px 12px; }
+  .ml-modal .ml-pd-status-label { font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; letter-spacing: .04em; }
+
+  /* ============================================================
+     Phase 6: position-color left-edge stripes on roster + exposure rows.
+     Templates need to render `pos-{X}` class on each row for these to apply.
+     ============================================================ */
+  .ml-team-roster-row.pos-QB { border-left: 4px solid var(--pos-qb-bg); padding-left: 8px !important; }
+  .ml-team-roster-row.pos-RB { border-left: 4px solid var(--pos-rb-bg); padding-left: 8px !important; }
+  .ml-team-roster-row.pos-WR { border-left: 4px solid var(--pos-wr-bg); padding-left: 8px !important; }
+  .ml-team-roster-row.pos-TE { border-left: 4px solid var(--pos-te-bg); padding-left: 8px !important; }
+  .ml-team-roster-row.pos-K  { border-left: 4px solid var(--pos-k-bg);  padding-left: 8px !important; }
+  .ml-team-roster-row.pos-PK { border-left: 4px solid var(--pos-pick-bg); padding-left: 8px !important; }
+  .ml-exposure-row.pos-QB { border-left: 4px solid var(--pos-qb-bg); }
+  .ml-exposure-row.pos-RB { border-left: 4px solid var(--pos-rb-bg); }
+  .ml-exposure-row.pos-WR { border-left: 4px solid var(--pos-wr-bg); }
+  .ml-exposure-row.pos-TE { border-left: 4px solid var(--pos-te-bg); }
+  .ml-exposure-row.pos-K  { border-left: 4px solid var(--pos-k-bg); }
+  .ml-exposure-row.pos-PK { border-left: 4px solid var(--pos-pick-bg); }
 </style>
 </head>
 <body>
@@ -5005,7 +5060,7 @@ function mlBuildTeamRosterHtml(leagueId, rosterId) {
     const valStr = p.value ? p.value.toLocaleString() : '—';
     const sidEsc = String(p.sid);
     return `
-      <div onclick="openPlayerDetail('${sidEsc}')" class="ml-team-roster-row"
+      <div onclick="openPlayerDetail('${sidEsc}')" class="ml-team-roster-row pos-${p.pos}"
         style="display:grid;grid-template-columns:32px 1fr 50px 60px 70px;gap:8px;align-items:center;padding:6px 4px;cursor:pointer;border-bottom:1px solid var(--border)"
         onmouseover="this.style.background='var(--surface)'" onmouseout="this.style.background='transparent'">
         ${playerThumb(p.sid)}
@@ -5027,7 +5082,7 @@ function mlBuildTeamRosterHtml(leagueId, rosterId) {
     const val = mlPickValue(pk.season, pk.round) || 0;
     const label = `${pk.season} Round ${pk.round}${pk.isNatural ? '' : ' (acquired)'}`;
     return `
-      <div onclick="openTradeSuggestModalForPick('${pk.season}',${pk.round},'${leagueId}',${rosterId})" class="ml-team-roster-row"
+      <div onclick="openTradeSuggestModalForPick('${pk.season}',${pk.round},'${leagueId}',${rosterId})" class="ml-team-roster-row pos-PK"
         style="display:grid;grid-template-columns:32px 1fr 50px 60px 70px;gap:8px;align-items:center;padding:6px 4px;cursor:pointer;border-bottom:1px solid var(--border)"
         onmouseover="this.style.background='var(--surface)'" onmouseout="this.style.background='transparent'">
         ${pickThumb()}
@@ -5388,7 +5443,7 @@ function renderExposureList() {
     const ord = (n) => ({1:'1st', 2:'2nd', 3:'3rd', 4:'4th', 5:'5th'})[n] || `${n}th`;
     listEl.innerHTML = filtered.slice(0, 200).map(p => {
       const label = `${p.season} ${ord(p.round)}`;
-      return `<div class="ml-exposure-row" onclick="openPickExposurePicker('${p.season}',${p.round})" title="Click to choose which league to trade in">
+      return `<div class="ml-exposure-row pos-PK" onclick="openPickExposurePicker('${p.season}',${p.round})" title="Click to choose which league to trade in">
         <span class="ml-exposure-row-img" style="background:var(--surface2);display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--border)"><svg xmlns="http://www.w3.org/2000/svg" viewBox="413 0 95 90" width="15" height="15" style="display:block"><path d="M508.084,47.801l-8.983,41.534c0,0 -75.276,-0.036 -85.237,-0.002l0.015,-0.067c0,0 2.533,-17.352 5.641,-25.475c3.708,-9.689 16.604,-32.658 16.604,-32.658c12.902,8.212 8.658,21.025 7.099,27.21c11.719,-8.962 11.012,-17.186 11.003,-28.608c-0.006,-7.356 4.797,-23.375 17.858,-28.257c-4.305,14.678 3.971,24.95 7.333,30.494c6.362,10.492 1.397,21.17 1.397,21.17c0,0 9.268,-3.36 8.863,-15.254c-0.117,-3.424 -1.714,-14.283 8.012,-18.422c-0.754,9.397 5.495,18.682 10.395,28.336Z" fill="var(--red)"/></svg></span>
         <span class="ml-exposure-row-name" title="${label}">${label}</span>
         <span class="ml-exposure-row-posr" style="color:#9b91d4">R${p.round}</span>
@@ -5476,7 +5531,7 @@ function renderExposureList() {
   listEl.innerHTML = filtered.slice(0, 200).map(p => {
     const photo = p.sleeperId ? `https://sleepercdn.com/content/nfl/players/thumb/${p.sleeperId}.jpg` : '';
     const initials = (p.name || '').split(' ').map(s=>s[0]).join('').slice(0,2).toUpperCase();
-    return `<div class="ml-exposure-row" onclick="openPlayerDetail('${p.sleeperId}')">
+    return `<div class="ml-exposure-row pos-${(p.position || '').toUpperCase()}" onclick="openPlayerDetail('${p.sleeperId}')">
       ${photo ? `<img class="ml-exposure-row-img" src="${photo}" onerror="this.style.visibility='hidden'">` : `<div class="ml-exposure-row-img" style="display:flex;align-items:center;justify-content:center;font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:9px;color:var(--white)">${initials}</div>`}
       <span class="ml-exposure-row-name" title="${htmlEscape(p.name)}">${htmlEscape(p.name)}</span>
       <span class="ml-exposure-row-posr" style="color:${posColor(p.position)}">${p.posR || ''}</span>

@@ -113,17 +113,35 @@
   .side-total { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:20px; color:var(--white); opacity:0.4; }
   .side-total.has-value { opacity:1; color:var(--red); }
   .side-assets { padding:10px 12px; min-height:120px; flex:1; display:flex; flex-direction:column; gap:6px; }
-  .asset-row { display:flex; align-items:center; gap:8px; background:var(--black); border:1px solid var(--border); padding:7px 10px; }
-  .asset-pos { font-family:'Kanit',sans-serif; font-weight:800; font-style:normal; font-size:11px; min-width:36px; width:36px; display:inline-flex; align-items:center; justify-content:center; padding:2px 0; flex-shrink:0; }
+  /* Asset chip — solid position-colored mini card with stacked name (matches adp-tool box-card design system) */
+  .asset-row { display:flex; align-items:center; gap:8px; background:var(--surface2); border:1px solid var(--border); padding:7px 10px; cursor:pointer; transition:transform .12s, box-shadow .12s; }
+  .asset-row:hover { transform:translateY(-1px); box-shadow:0 2px 8px rgba(0,0,0,.35); }
+  .asset-row[data-pos="QB"] { background:var(--pos-qb-bg); color:var(--pos-qb); }
+  .asset-row[data-pos="RB"] { background:var(--pos-rb-bg); color:var(--pos-rb); }
+  .asset-row[data-pos="WR"] { background:var(--pos-wr-bg); color:var(--pos-wr); }
+  .asset-row[data-pos="TE"] { background:var(--pos-te-bg); color:var(--pos-te); }
+  .asset-row[data-pos="K"]  { background:var(--pos-k-bg);  color:var(--pos-k); }
+  .asset-row[data-pos="PK"] { background:var(--pos-pick-bg); color:var(--pos-pick); }
+
+  /* Legacy .pos-* classes (used by .asset-pos badge + side-search dropdown) */
   .pos-WR { background:var(--pos-wr-bg); color:var(--pos-wr); }
   .pos-RB { background:var(--pos-rb-bg); color:var(--pos-rb); }
   .pos-QB { background:var(--pos-qb-bg); color:var(--pos-qb); }
   .pos-TE { background:var(--pos-te-bg); color:var(--pos-te); }
   .pos-K  { background:var(--pos-k-bg);  color:var(--pos-k);  }
   .pos-PK { background:var(--pos-pick-bg); color:var(--pos-pick); }
-  .asset-name { font-family:'Mulish',sans-serif; font-weight:900; font-size:13px; color:var(--white); flex:1; }
-  .asset-val { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:13px; color:var(--white); opacity:0.5; white-space:nowrap; }
-  .asset-remove { background:none; border:none; color:var(--white); opacity:0.3; cursor:pointer; font-size:14px; padding:0 2px; line-height:1; transition:opacity .15s; flex-shrink:0; }
+
+  /* asset-pos badge (when row is data-pos-colored, this becomes a dark overlay pill instead of a coloured block) */
+  .asset-row[data-pos] .asset-pos { background:rgba(0,0,0,.22); color:inherit; min-width:0; width:auto; padding:1px 6px; font-size:9px; font-style:italic; }
+  .asset-pos { font-family:'Kanit',sans-serif; font-weight:800; font-style:normal; font-size:11px; min-width:36px; width:36px; display:inline-flex; align-items:center; justify-content:center; padding:2px 0; flex-shrink:0; }
+
+  /* Stacked name inside chip: first name small uppercase Mulish, last name large Kanit italic */
+  .asset-name { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:14px; color:inherit; flex:1; min-width:0; display:flex; flex-direction:column; gap:0; line-height:1; overflow:hidden; }
+  .asset-name .fn { font-family:'Mulish',sans-serif; font-style:normal; font-weight:800; font-size:9px; letter-spacing:.06em; opacity:.78; text-transform:uppercase; line-height:1; margin-bottom:1px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .asset-name .ln { font-size:14px; line-height:1.05; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+  .asset-val { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:13px; color:inherit; opacity:.92; white-space:nowrap; }
+  .asset-remove { background:none; border:none; color:inherit; opacity:.55; cursor:pointer; font-size:14px; padding:0 2px; line-height:1; transition:opacity .15s; flex-shrink:0; }
   .asset-remove:hover { opacity:1; color:var(--red); }
   .faab-row { display:flex; align-items:center; gap:8px; padding:8px 12px; border-top:1px solid var(--border); }
   .faab-label { font-family:'Mulish',sans-serif; font-size:11px; font-weight:700; color:var(--white); opacity:0.5; text-transform:uppercase; letter-spacing:.06em; }
@@ -1050,6 +1068,56 @@
     .balance-row-label { font-size: 11px !important; width: auto !important; min-width: 48px; }
     .asset-name { font-size: 12px !important; }
   }
+
+  /* ============================================================
+     Player-detail modal (lifted from adp-tool.html pp-modal)
+     ============================================================ */
+  .modal-backdrop { position:fixed; inset:0; background:rgba(0,0,0,.75); z-index:300; display:none; align-items:center; justify-content:center; padding:20px; }
+  .modal-backdrop.open { display:flex; }
+  .modal-backdrop .modal { background:var(--surface); border:1px solid var(--border); border-top:3px solid var(--red); max-width:1100px; width:100%; max-height:92vh; overflow-y:auto; padding:0; position:relative; }
+  .pp-top-bar { display:flex; align-items:center; justify-content:space-between; gap:14px; padding:14px 24px; border-bottom:1px solid var(--border); background:var(--surface); flex-wrap:wrap; }
+  .pp-top-title { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:13px; color:var(--red); text-transform:uppercase; letter-spacing:.06em; flex-shrink:0; }
+  .pp-top-actions { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+  .pp-action-btn { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:11px; color:var(--white); background:transparent; border:1px solid var(--border2); padding:6px 12px; cursor:pointer; text-transform:uppercase; letter-spacing:.05em; text-decoration:none; white-space:nowrap; transition:all .12s; }
+  .pp-action-btn:hover { border-color:var(--red); color:var(--red); }
+  .pp-profile { display:flex; gap:24px; align-items:flex-start; padding:24px 28px 18px; border-bottom:1px solid var(--border); }
+  .pp-hs { width:96px; height:96px; border-radius:50%; background:var(--surface2); border:2px solid var(--border2); overflow:hidden; flex-shrink:0; display:flex; align-items:center; justify-content:center; }
+  .pp-hs img { width:100%; height:100%; object-fit:cover; object-position:top; }
+  .pp-hs-fallback { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:34px; color:var(--white); opacity:.5; }
+  .pp-info { flex:1; min-width:0; }
+  .pp-id { display:flex; align-items:center; gap:10px; margin-bottom:4px; }
+  .pp-id .pos-pill { font-size:11px; padding:3px 10px; }
+  .pp-team-label { font-family:'Mulish',sans-serif; font-size:13px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; color:var(--white); opacity:.85; }
+  .pp-name { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:32px; text-transform:uppercase; line-height:1; color:var(--white); margin-bottom:14px; word-break:break-word; }
+  .pp-stats { display:flex; flex-wrap:wrap; gap:6px 30px; }
+  .pp-stat { display:flex; flex-direction:column; gap:2px; min-width:60px; }
+  .pp-stat .k { font-family:'Mulish',sans-serif; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.07em; color:var(--white); opacity:.55; }
+  .pp-stat .v { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:18px; color:var(--white); line-height:1.1; }
+  .pp-fp { text-align:right; flex-shrink:0; min-width:130px; padding-top:6px; }
+  .pp-fp .k { font-family:'Mulish',sans-serif; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.07em; color:var(--white); opacity:.55; margin-bottom:6px; }
+  .pp-fp .v { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:42px; line-height:1; color:var(--white); }
+  .pp-section { padding:18px 28px; border-bottom:1px solid var(--border); }
+  .pp-section:last-child { border-bottom:none; }
+  .pp-section-label { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:14px; color:var(--red); text-transform:uppercase; letter-spacing:.06em; margin-bottom:14px; }
+  .pp-section-label .src { font-family:'Mulish',sans-serif; font-style:normal; font-size:11px; color:var(--white); opacity:.55; font-weight:700; margin-left:10px; letter-spacing:.04em; }
+
+  /* ============================================================
+     Shared design-system utilities (canonical source: adp-tool.html)
+     ============================================================ */
+  .trend { display:inline-flex; align-items:center; gap:2px; font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:11px; padding:0 2px; letter-spacing:.04em; margin-left:4px; background:transparent; border:none;
+    text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, 0 -1px 0 #000, 0 1px 0 #000, -1px 0 0 #000, 1px 0 0 #000;
+    -webkit-text-stroke: 0.5px #000; }
+  .trend.up   { color:#66dd84; }
+  .trend.down { color:var(--red); }
+  .trend.flat { color:#ffffff; }
+  .pos-pill { display:inline-block; padding:3px 9px; font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:11px; letter-spacing:.04em; }
+  .pos-pill.QB { background:var(--pos-qb-bg); color:var(--pos-qb); }
+  .pos-pill.RB { background:var(--pos-rb-bg); color:var(--pos-rb); }
+  .pos-pill.WR { background:var(--pos-wr-bg); color:var(--pos-wr); }
+  .pos-pill.TE { background:var(--pos-te-bg); color:var(--pos-te); }
+  .pos-pill.K  { background:var(--pos-k-bg);  color:var(--pos-k); }
+  .pos-pill.DEF, .pos-pill.PICK { background:var(--pos-pick-bg); color:var(--pos-pick); }
+  .team-pill { display:inline-block; padding:3px 8px; background:var(--surface2); border:1px solid var(--border2); font-family:'Mulish',sans-serif; font-weight:700; font-size:10px; letter-spacing:.05em; color:var(--white); }
 </style>
 </head>
 <body>
@@ -2131,10 +2199,15 @@ function renderBuilder() {
                 ? pickThumb(28)
                 : `<span style="width:28px;height:28px;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;">${SLEEPER_IDS[a.name]?`<img src="https://sleepercdn.com/content/nfl/players/thumb/${SLEEPER_IDS[a.name]}.jpg" alt="" style="width:28px;height:28px;min-width:28px;border-radius:50%;object-fit:cover;flex-shrink:0;" onerror="this.style.display='none'">`:''}</span>`;
               const posBadgeHtml = isPick ? '' : `<span class="asset-pos pos-${a.pos}">${a.pos}</span>`;
+              // Stacked name: split at last space (handles "Amon-Ra St. Brown" → "Amon-Ra St." / "Brown")
+              const parts = String(a.name || '').trim().split(/\s+/);
+              const fname = parts.length > 1 ? parts.slice(0, -1).join(' ') : '';
+              const lname = parts[parts.length - 1] || a.name;
+              const nameHtml = `<span class="asset-name">${fname ? `<span class="fn">${fname.replace(/'/g,"\\'")}</span>` : ''}<span class="ln">${lname.replace(/'/g,"\\'")}</span></span>`;
               return `
-            <div class="asset-row">
+            <div class="asset-row" data-pos="${a.pos}" onclick="if(event.target.closest('.asset-remove'))return; window._openCalcPlayerModal && _openCalcPlayerModal('${a.name.replace(/'/g,"\\'")}', '${a.pos}', '${side.id}', ${i})">
               ${posBadgeHtml}
-              ${thumbHtml}<span class="asset-name">${a.name}</span>
+              ${thumbHtml}${nameHtml}
               <span class="asset-val">${adjVal(a).toLocaleString()}</span>
               <button class="asset-remove" onclick="removeAsset('${side.id}',${i})">✕</button>
             </div>`;
@@ -2920,6 +2993,112 @@ window.addEventListener('DOMContentLoaded', () => {
     } catch(e) { console.warn('handoff apply failed:', e); }
   }, 200);
 });
+
+// ── PLAYER-DETAIL MODAL (lifted from adp-tool pp-modal pattern) ─────────────
+window._openCalcPlayerModal = function(playerName, pos, sideId, assetIdx) {
+  const backdrop = document.getElementById('calc-modal-backdrop');
+  if (!backdrop) return;
+  // Resolve FP_VALUES record for trade-relevant context (value/SF/TEP/auction/PPG)
+  const fp = (typeof FP_VALUES !== 'undefined' && FP_VALUES[playerName]) || {};
+  const sleeperId = (typeof SLEEPER_IDS !== 'undefined' && SLEEPER_IDS[playerName]) || fp.sleeperId || '';
+  const team = fp.team || '';
+  const posSafe = (pos || (fp.posRank || '').replace(/\d+$/, '') || 'WR').toUpperCase();
+  const escHtml = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  // HS
+  const hsEl = document.getElementById('calc-pp-hs');
+  if (sleeperId) {
+    hsEl.innerHTML = `<img src="https://sleepercdn.com/content/nfl/players/thumb/${sleeperId}.jpg" alt="" referrerpolicy="no-referrer" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'pp-hs-fallback',textContent:'${escHtml((playerName||'?').slice(0,1).toUpperCase())}'}))">`;
+  } else {
+    hsEl.innerHTML = `<span class="pp-hs-fallback">${escHtml((playerName||'?').slice(0,1).toUpperCase())}</span>`;
+  }
+  // Identity row + big name
+  const posPill = document.getElementById('calc-pp-pos');
+  posPill.className = 'pos-pill ' + posSafe;
+  posPill.textContent = fp.posRank || posSafe;
+  document.getElementById('calc-pp-team').textContent = team;
+  document.getElementById('calc-pp-name').textContent = playerName;
+  // Inline stats
+  const adpStr     = fp.adp != null ? fp.adp.toFixed(1) : '—';
+  const ageStr     = fp.age != null ? fp.age.toFixed(1) : '—';
+  const ppgStr     = fp.ppg != null ? fp.ppg.toFixed(1) : '—';
+  const overall    = fp.rank ?? '—';
+  const auctionStr = fp.auction || fp.auctionSf || '—';
+  const stats = [
+    ['Age',          ageStr],
+    ['Pos Rank',     fp.posRank || '—'],
+    ['Overall Rank', overall === '—' ? '—' : '#' + overall],
+    ['PPG',          ppgStr],
+    ['Dynasty ADP',  adpStr],
+    ['Auction',      auctionStr],
+  ];
+  document.getElementById('calc-pp-stats').innerHTML = stats.map(([k,v]) =>
+    `<div class="pp-stat"><div class="k">${escHtml(k)}</div><div class="v">${escHtml(v)}</div></div>`).join('');
+  // Right-floating FP Value
+  document.getElementById('calc-pp-fpv').textContent = (fp.value != null) ? fp.value.toLocaleString() : '—';
+  // Cross-page handoff wiring
+  window._calcModalPlayerName = playerName;
+  // Open
+  backdrop.classList.add('open');
+};
+window._closeCalcModal = function() {
+  const backdrop = document.getElementById('calc-modal-backdrop');
+  if (backdrop) backdrop.classList.remove('open');
+};
+window._calcXpageToDb = function() {
+  const name = window._calcModalPlayerName;
+  if (!name) { window.open('index.html', '_blank', 'noopener'); return; }
+  if (typeof _fptsWriteHandoff === 'function') {
+    _fptsWriteHandoff({ source: 'calc', primaryPlayer: name }, 'index.html');
+  } else { window.open('index.html', '_blank', 'noopener'); }
+};
+window._calcXpageToAdp = function() {
+  const name = window._calcModalPlayerName;
+  if (typeof _fptsWriteHandoff === 'function') {
+    _fptsWriteHandoff({ source: 'calc', primaryPlayer: name }, 'adp-tool.html');
+  } else { window.open('adp-tool.html', '_blank', 'noopener'); }
+};
+window._calcXpageToLeagues = function() {
+  const name = window._calcModalPlayerName;
+  if (typeof _fptsWriteHandoff === 'function') {
+    _fptsWriteHandoff({ source: 'calc', primaryPlayer: name, players: name ? [{name}] : [] }, 'my-leagues.html');
+  } else { window.open('my-leagues.html', '_blank', 'noopener'); }
+};
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    const bd = document.getElementById('calc-modal-backdrop');
+    if (bd && bd.classList.contains('open')) _closeCalcModal();
+  }
+});
 </script>
+
+<!-- PLAYER-DETAIL MODAL — matches adp-tool pp-modal layout for site-wide consistency -->
+<div class="modal-backdrop" id="calc-modal-backdrop" onclick="if(event.target===this)_closeCalcModal()">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="calc-pp-name">
+    <div class="pp-top-bar">
+      <div class="pp-top-title">Player Profile</div>
+      <div class="pp-top-actions">
+        <button class="pp-action-btn" type="button" onclick="_calcXpageToDb()">Open in Database ↗</button>
+        <button class="pp-action-btn" type="button" onclick="_calcXpageToAdp()">Open in ADP ↗</button>
+        <button class="pp-action-btn" type="button" onclick="_calcXpageToLeagues()">Open in My Leagues ↗</button>
+        <button class="pp-action-btn" type="button" onclick="_closeCalcModal()">✕ Close</button>
+      </div>
+    </div>
+    <div class="pp-profile">
+      <div class="pp-hs" id="calc-pp-hs"></div>
+      <div class="pp-info">
+        <div class="pp-id">
+          <span class="pos-pill" id="calc-pp-pos"></span>
+          <span class="pp-team-label" id="calc-pp-team"></span>
+        </div>
+        <div class="pp-name" id="calc-pp-name">—</div>
+        <div class="pp-stats" id="calc-pp-stats"></div>
+      </div>
+      <div class="pp-fp">
+        <div class="k">Fantasy Points</div>
+        <div class="v" id="calc-pp-fpv">—</div>
+      </div>
+    </div>
+  </div>
+</div>
 </body>
 </html>
