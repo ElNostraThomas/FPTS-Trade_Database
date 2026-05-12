@@ -183,7 +183,8 @@
   .box-col-header { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:12px; color:var(--red); text-transform:uppercase; padding:8px 6px 6px; text-align:center; border-bottom:2px solid var(--red); margin-bottom:4px; letter-spacing:.04em; background:var(--surface); position:sticky; top:0; z-index:2; cursor:pointer; transition:background .12s; user-select:none; }
   .box-col-header:hover { background:var(--surface2); }
   .box-col-header.active { background:var(--red); color:#111; }
-  .box-corner { background:var(--surface); border-bottom:2px solid var(--red); position:sticky; top:0; left:0; z-index:3; cursor:pointer; }
+  /* Corner cell: matches both the team-header bottom border AND the round-column right border so the cross-hair lines align cleanly. */
+  .box-corner { background:var(--surface); border-bottom:2px solid var(--red); border-right:1px solid var(--border); margin-bottom:4px; position:sticky; top:0; left:0; z-index:3; cursor:pointer; }
   .box-corner:hover { background:var(--surface2); }
   .box-row-head { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:11px; color:var(--red); text-align:center; padding:2px 0; letter-spacing:.04em; display:flex; align-items:center; justify-content:center; background:var(--surface); border-right:1px solid var(--border); position:sticky; left:0; z-index:1; cursor:pointer; transition:background .12s; user-select:none; }
   .box-row-head:hover { background:var(--surface2); }
@@ -1021,7 +1022,7 @@ function renderBoxView(players) {
     const inRound = i % TC;
     const isRev = STATE.snake && (round % 2 === 1);
     const team = isRev ? (TC - 1 - inRound) : inRound;
-    grid[round][team] = { player: sorted[i], pickInRound: inRound + 1 };
+    grid[round][team] = { player: sorted[i], pickInRound: inRound + 1, pickOverall: i + 1 };
   }
   // Cell width shrinks as team count grows so 14-team boards still fit on a
   // 1440px viewport without horizontal scroll. Cards still expand to 1fr on wider screens.
@@ -1050,7 +1051,7 @@ function renderBoxView(players) {
       const initial = escapeHtml((p.name || '?').slice(0, 1).toUpperCase());
       const nm = splitName(p.name);
       const posRank = p.posRank || (pos || '');
-      const adpStr  = p.adp != null ? p.adp.toFixed(1) : '—';
+      const overallPick = cell.pickOverall;
       const hsHtml = hs
         ? `<img class="card-hs" src="${hs}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'card-hs-fallback',textContent:'${initial}'}))">`
         : `<span class="card-hs-fallback">${initial}</span>`;
@@ -1068,7 +1069,7 @@ function renderBoxView(players) {
           <div class="card-top">
             <span class="card-pick">${pickLabel}</span>
             ${posRank ? `<span class="card-posrank">${escapeHtml(posRank)}</span>` : ''}
-            <span class="card-adp">${adpStr}</span>
+            <span class="card-adp">${overallPick}</span>
           </div>
           <div class="card-name">
             ${nm.first ? `<div class="card-fname">${escapeHtml(nm.first)}</div>` : ''}
