@@ -748,12 +748,12 @@
   .pp-team-name { font-family: 'Mulish', sans-serif; font-size: 12px; font-weight: 700; color: var(--white); opacity: 1; text-transform: uppercase; letter-spacing: .06em; }
 
   .pp-ktc { text-align: right; flex-shrink: 0; }
-  .pp-ktc-label { font-size: 9px; color: var(--white); opacity: 1; text-transform: uppercase; letter-spacing: .08em; font-family: 'Mulish', sans-serif; margin-bottom: 4px; }
-  .pp-ktc-val { font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 36px; color: var(--white); line-height: 1; }
-  .pp-ktc-rank { font-family: 'Mulish', sans-serif; font-size: 12px; color: var(--white); opacity: 1; margin-top: 4px; }
-  .pp-ktc-trend { font-size: 12px; font-weight: 700; font-family: 'Mulish', sans-serif; margin-top: 2px; color: var(--white); opacity: .55; }
-  .pp-ktc-trend.up { color: #5dcaa5; opacity: 1; }
-  .pp-ktc-trend.down { color: var(--red); opacity: 1; }
+  .pp-value-label { font-size: 9px; color: var(--white); opacity: 1; text-transform: uppercase; letter-spacing: .08em; font-family: 'Mulish', sans-serif; margin-bottom: 4px; }
+  .pp-value-val { font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 36px; color: var(--white); line-height: 1; }
+  .pp-value-rank { font-family: 'Mulish', sans-serif; font-size: 12px; color: var(--white); opacity: 1; margin-top: 4px; }
+  .pp-value-trend { font-size: 12px; font-weight: 700; font-family: 'Mulish', sans-serif; margin-top: 2px; color: var(--white); opacity: .55; }
+  .pp-value-trend.up { color: #5dcaa5; opacity: 1; }
+  .pp-value-trend.down { color: var(--red); opacity: 1; }
 
   .pp-trade-stats {
     display: grid;
@@ -1370,8 +1370,8 @@
     .pp-profile { padding: 14px !important; flex-wrap: wrap; gap: 12px; }
     .pp-avatar { width: 56px !important; height: 56px !important; }
     .pp-name { font-size: 20px !important; }
-    .pp-ktc-val { font-size: 28px !important; }
-    .pp-ktc-rank { font-size: 11px; }
+    .pp-value-val { font-size: 28px !important; }
+    .pp-value-rank { font-size: 11px; }
     .pp-trade-stats { grid-template-columns: 1fr 1fr !important; }
     .pp-ts { padding: 8px 12px; }
     .pp-ts-val { font-size: 16px; }
@@ -1902,6 +1902,7 @@
 </style>
 </head>
 <body>
+<div id="_fp-loading" style="position:fixed;inset:0;background:var(--black);color:var(--white);display:flex;align-items:center;justify-content:center;font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:28px;text-transform:uppercase;letter-spacing:.06em;z-index:9999;">Loading…</div>
 <div style="background:var(--nav-bg);border-bottom:2px solid var(--red);position:sticky;top:0;z-index:100"><nav class="topnav" style="border:none;position:static">
   <div class="wordmark-group">
   <div class="wordmark" id="wordmark-svg">
@@ -2521,990 +2522,11 @@ const SLEEPER_IDS = {
   "Zay Flowers": "9997"
 };
 
-const ADP_DATA = {
-  "Josh Allen":                  { sf:{ overall:0,  posRank:"QB1"  }, oneqb:{ overall:0,  posRank:"QB18"  }},
-  "Bijan Robinson":              { sf:{ overall:0,  posRank:"RB1"  }, oneqb:{ overall:0,  posRank:"RB1"  }},
-  "Ja'Marr Chase":               { sf:{ overall:0,  posRank:"WR1"  }, oneqb:{ overall:0,  posRank:"WR3"  }},
-  "Jahmyr Gibbs":                { sf:{ overall:0,  posRank:"RB2"  }, oneqb:{ overall:0,  posRank:"RB2"  }},
-  "Jaxon Smith-Njigba":          { sf:{ overall:0,  posRank:"WR2"  }, oneqb:{ overall:0,  posRank:"WR4"  }},
-  "Drake Maye":                  { sf:{ overall:0,  posRank:"QB2"  }, oneqb:{ overall:0,  posRank:"QB21"  }},
-  "Puka Nacua":                  { sf:{ overall:0,  posRank:"WR3"  }, oneqb:{ overall:0,  posRank:"WR5"  }},
-  "Amon-Ra St. Brown":           { sf:{ overall:0,  posRank:"WR4"  }, oneqb:{ overall:0,  posRank:"WR7"  }},
-  "Brock Bowers":                { sf:{ overall:0,  posRank:"TE1"  }, oneqb:{ overall:0,  posRank:"TE11"  }},
-  "Malik Nabers":                { sf:{ overall:0,  posRank:"WR5"  }, oneqb:{ overall:0,  posRank:"WR8"  }},
-  "Jayden Daniels":              { sf:{ overall:0,  posRank:"QB3"  }, oneqb:{ overall:0,  posRank:"QB35"  }},
-  "Ashton Jeanty":               { sf:{ overall:0,  posRank:"RB3"  }, oneqb:{ overall:0,  posRank:"RB6"  }},
-  "Lamar Jackson":               { sf:{ overall:0,  posRank:"QB4"  }, oneqb:{ overall:0,  posRank:"QB39"  }},
-  "Caleb Williams":              { sf:{ overall:0,  posRank:"QB5"  }, oneqb:{ overall:0,  posRank:"QB41"  }},
-  "Justin Jefferson":            { sf:{ overall:0,  posRank:"WR6"  }, oneqb:{ overall:0,  posRank:"WR10"  }},
-  "Trey McBride":                { sf:{ overall:0,  posRank:"TE2"  }, oneqb:{ overall:0,  posRank:"TE14"  }},
-  "2026 Pick 1.01":              { sf:{ overall:0,  posRank:"PICK1"  }, oneqb:{ overall:0,  posRank:"PICK10"  }},
-  "Jeremiyah Love":              { sf:{ overall:0,  posRank:"RB4"  }, oneqb:{ overall:0,  posRank:"RB9"  }},
-  "Joe Burrow":                  { sf:{ overall:0,  posRank:"QB6"  }, oneqb:{ overall:0,  posRank:"QB49"  }},
-  "CeeDee Lamb":                 { sf:{ overall:0,  posRank:"WR7"  }, oneqb:{ overall:0,  posRank:"WR12"  }},
-  "Drake London":                { sf:{ overall:0,  posRank:"WR8"  }, oneqb:{ overall:0,  posRank:"WR16"  }},
-  "Patrick Mahomes":             { sf:{ overall:0,  posRank:"QB7"  }, oneqb:{ overall:0,  posRank:"QB60"  }},
-  "De'Von Achane":               { sf:{ overall:0,  posRank:"RB5"  }, oneqb:{ overall:0,  posRank:"RB13"  }},
-  "Omarion Hampton":             { sf:{ overall:0,  posRank:"RB6"  }, oneqb:{ overall:0,  posRank:"RB15"  }},
-  "Jalen Hurts":                 { sf:{ overall:0,  posRank:"QB8"  }, oneqb:{ overall:0,  posRank:"QB63"  }},
-  "Justin Herbert":              { sf:{ overall:0,  posRank:"QB9"  }, oneqb:{ overall:0,  posRank:"QB66"  }},
-  "Jaxson Dart":                 { sf:{ overall:0,  posRank:"QB10"  }, oneqb:{ overall:0,  posRank:"QB67"  }},
-  "Tetairoa McMillan":           { sf:{ overall:0,  posRank:"WR9"  }, oneqb:{ overall:0,  posRank:"WR20"  }},
-  "Jonathan Taylor":             { sf:{ overall:0,  posRank:"RB7"  }, oneqb:{ overall:0,  posRank:"RB17"  }},
-  "Trevor Lawrence":             { sf:{ overall:0,  posRank:"QB11"  }, oneqb:{ overall:0,  posRank:"QB72"  }},
-  "Colston Loveland":            { sf:{ overall:0,  posRank:"TE3"  }, oneqb:{ overall:0,  posRank:"TE23"  }},
-  "James Cook":                  { sf:{ overall:0,  posRank:"RB8"  }, oneqb:{ overall:0,  posRank:"RB19"  }},
-  "Bo Nix":                      { sf:{ overall:0,  posRank:"QB12"  }, oneqb:{ overall:0,  posRank:"QB75"  }},
-  "George Pickens":              { sf:{ overall:0,  posRank:"WR10"  }, oneqb:{ overall:0,  posRank:"WR22"  }},
-  "2026 Pick 1.02":              { sf:{ overall:0,  posRank:"PICK2"  }, oneqb:{ overall:0,  posRank:"PICK30"  }},
-  "Emeka Egbuka":                { sf:{ overall:0,  posRank:"WR11"  }, oneqb:{ overall:0,  posRank:"WR24"  }},
-  "Brock Purdy":                 { sf:{ overall:0,  posRank:"QB13"  }, oneqb:{ overall:0,  posRank:"QB78"  }},
-  "Fernando Mendoza":            { sf:{ overall:0,  posRank:"QB14"  }, oneqb:{ overall:0,  posRank:"QB82"  }},
-  "Tyler Warren":                { sf:{ overall:0,  posRank:"TE4"  }, oneqb:{ overall:0,  posRank:"TE37"  }},
-  "Carnell Tate":                { sf:{ overall:0,  posRank:"WR12"  }, oneqb:{ overall:0,  posRank:"WR27"  }},
-  "Nico Collins":                { sf:{ overall:0,  posRank:"WR13"  }, oneqb:{ overall:0,  posRank:"WR29"  }},
-  "2026 Pick 1.03":              { sf:{ overall:0,  posRank:"PICK3"  }, oneqb:{ overall:0,  posRank:"PICK30"  }},
-  "Jordan Love":                 { sf:{ overall:0,  posRank:"QB15"  }, oneqb:{ overall:0,  posRank:"QB86"  }},
-  "Garrett Wilson":              { sf:{ overall:0,  posRank:"WR14"  }, oneqb:{ overall:0,  posRank:"WR32"  }},
-  "Rashee Rice":                 { sf:{ overall:0,  posRank:"WR15"  }, oneqb:{ overall:0,  posRank:"WR33"  }},
-  "Breece Hall":                 { sf:{ overall:0,  posRank:"RB9"  }, oneqb:{ overall:0,  posRank:"RB25"  }},
-  "Christian McCaffrey":         { sf:{ overall:0,  posRank:"RB10"  }, oneqb:{ overall:0,  posRank:"RB26"  }},
-  "Jordyn Tyson":                { sf:{ overall:0,  posRank:"WR16"  }, oneqb:{ overall:0,  posRank:"WR34"  }},
-  "Kenneth Walker III":          { sf:{ overall:0,  posRank:"RB11"  }, oneqb:{ overall:0,  posRank:"RB28"  }},
-  "Chris Olave":                 { sf:{ overall:0,  posRank:"WR17"  }, oneqb:{ overall:0,  posRank:"WR38"  }},
-  "Dak Prescott":                { sf:{ overall:0,  posRank:"QB16"  }, oneqb:{ overall:0,  posRank:"QB91"  }},
-  "2026 Pick 1.04":              { sf:{ overall:0,  posRank:"PICK4"  }, oneqb:{ overall:0,  posRank:"PICK41"  }},
-  "A.J. Brown":                  { sf:{ overall:0,  posRank:"WR18"  }, oneqb:{ overall:0,  posRank:"WR40"  }},
-  "TreVeyon Henderson":          { sf:{ overall:0,  posRank:"RB12"  }, oneqb:{ overall:0,  posRank:"RB30"  }},
-  "Quinshon Judkins":            { sf:{ overall:0,  posRank:"RB13"  }, oneqb:{ overall:0,  posRank:"RB31"  }},
-  "Cam Ward":                    { sf:{ overall:0,  posRank:"QB17"  }, oneqb:{ overall:0,  posRank:"QB98"  }},
-  "2026 Pick 1.05":              { sf:{ overall:0,  posRank:"PICK5"  }, oneqb:{ overall:0,  posRank:"PICK51"  }},
-  "Marvin Harrison Jr.":         { sf:{ overall:0,  posRank:"WR19"  }, oneqb:{ overall:0,  posRank:"WR44"  }},
-  "Ladd McConkey":               { sf:{ overall:0,  posRank:"WR20"  }, oneqb:{ overall:0,  posRank:"WR45"  }},
-  "Makai Lemon":                 { sf:{ overall:0,  posRank:"WR21"  }, oneqb:{ overall:0,  posRank:"WR46"  }},
-  "Saquon Barkley":              { sf:{ overall:0,  posRank:"RB14"  }, oneqb:{ overall:0,  posRank:"RB36"  }},
-  "Rome Odunze":                 { sf:{ overall:0,  posRank:"WR22"  }, oneqb:{ overall:0,  posRank:"WR50"  }},
-  "C.J. Stroud":                 { sf:{ overall:0,  posRank:"QB18"  }, oneqb:{ overall:0,  posRank:"QB108"  }},
-  "Jadarian Price":              { sf:{ overall:0,  posRank:"RB15"  }, oneqb:{ overall:0,  posRank:"RB42"  }},
-  "Brian Thomas Jr.":            { sf:{ overall:0,  posRank:"WR23"  }, oneqb:{ overall:0,  posRank:"WR51"  }},
-  "Chase Brown":                 { sf:{ overall:0,  posRank:"RB16"  }, oneqb:{ overall:0,  posRank:"RB43"  }},
-  "2026 Pick 1.06":              { sf:{ overall:0,  posRank:"PICK6"  }, oneqb:{ overall:0,  posRank:"PICK56"  }},
-  "DeVonta Smith":               { sf:{ overall:0,  posRank:"WR24"  }, oneqb:{ overall:0,  posRank:"WR52"  }},
-  "Kyren Williams":              { sf:{ overall:0,  posRank:"RB17"  }, oneqb:{ overall:0,  posRank:"RB47"  }},
-  "Bucky Irving":                { sf:{ overall:0,  posRank:"RB18"  }, oneqb:{ overall:0,  posRank:"RB48"  }},
-  "Tucker Kraft":                { sf:{ overall:0,  posRank:"TE5"  }, oneqb:{ overall:0,  posRank:"TE62"  }},
-  "Luther Burden III":           { sf:{ overall:0,  posRank:"WR25"  }, oneqb:{ overall:0,  posRank:"WR54"  }},
-  "Harold Fannin Jr.":           { sf:{ overall:0,  posRank:"TE6"  }, oneqb:{ overall:0,  posRank:"TE64"  }},
-  "Baker Mayfield":              { sf:{ overall:0,  posRank:"QB19"  }, oneqb:{ overall:0,  posRank:"QB121"  }},
-  "Jared Goff":                  { sf:{ overall:0,  posRank:"QB20"  }, oneqb:{ overall:0,  posRank:"QB124"  }},
-  "Tyler Shough":                { sf:{ overall:0,  posRank:"QB21"  }, oneqb:{ overall:0,  posRank:"QB125"  }},
-  "Jaylen Waddle":               { sf:{ overall:0,  posRank:"WR26"  }, oneqb:{ overall:0,  posRank:"WR56"  }},
-  "2026 1st":                    { sf:{ overall:0,  posRank:"PICK7"  }, oneqb:{ overall:0,  posRank:"PICK61"  }},
-  "Zay Flowers":                 { sf:{ overall:0,  posRank:"WR27"  }, oneqb:{ overall:0,  posRank:"WR58"  }},
-  "Tee Higgins":                 { sf:{ overall:0,  posRank:"WR28"  }, oneqb:{ overall:0,  posRank:"WR61"  }},
-  "Kenyon Sadiq":                { sf:{ overall:0,  posRank:"TE7"  }, oneqb:{ overall:0,  posRank:"TE70"  }},
-  "2026 Pick 1.07":              { sf:{ overall:0,  posRank:"PICK8"  }, oneqb:{ overall:0,  posRank:"PICK62"  }},
-  "2027 1st":                    { sf:{ overall:0,  posRank:"PICK9"  }, oneqb:{ overall:0,  posRank:"PICK68"  }},
-  "Kyler Murray":                { sf:{ overall:0,  posRank:"QB22"  }, oneqb:{ overall:0,  posRank:"QB138"  }},
-  "Cam Skattebo":                { sf:{ overall:0,  posRank:"RB19"  }, oneqb:{ overall:0,  posRank:"RB53"  }},
-  "KC Concepcion":               { sf:{ overall:0,  posRank:"WR29"  }, oneqb:{ overall:0,  posRank:"WR65"  }},
-  "Travis Etienne Jr.":          { sf:{ overall:0,  posRank:"RB20"  }, oneqb:{ overall:0,  posRank:"RB55"  }},
-  "Sam Darnold":                 { sf:{ overall:0,  posRank:"QB23"  }, oneqb:{ overall:0,  posRank:"QB142"  }},
-  "Josh Jacobs":                 { sf:{ overall:0,  posRank:"RB21"  }, oneqb:{ overall:0,  posRank:"RB57"  }},
-  "Sam LaPorta":                 { sf:{ overall:0,  posRank:"TE8"  }, oneqb:{ overall:0,  posRank:"TE71"  }},
-  "Javonte Williams":            { sf:{ overall:0,  posRank:"RB22"  }, oneqb:{ overall:0,  posRank:"RB59"  }},
-  "Bryce Young":                 { sf:{ overall:0,  posRank:"QB24"  }, oneqb:{ overall:0,  posRank:"QB145"  }},
-  "Jameson Williams":            { sf:{ overall:0,  posRank:"WR30"  }, oneqb:{ overall:0,  posRank:"WR68"  }},
-  "2026 Pick 1.08":              { sf:{ overall:0,  posRank:"PICK10"  }, oneqb:{ overall:0,  posRank:"PICK70"  }},
-  "2026 Pick 1.09":              { sf:{ overall:0,  posRank:"PICK11"  }, oneqb:{ overall:0,  posRank:"PICK72"  }},
-  "Kyle Pitts":                  { sf:{ overall:0,  posRank:"TE9"  }, oneqb:{ overall:0,  posRank:"TE74"  }},
-  "Omar Cooper":                 { sf:{ overall:0,  posRank:"WR31"  }, oneqb:{ overall:0,  posRank:"WR73"  }},
-  "Daniel Jones":                { sf:{ overall:0,  posRank:"QB25"  }, oneqb:{ overall:0,  posRank:"QB164"  }},
-  "Ty Simpson":                  { sf:{ overall:0,  posRank:"QB26"  }, oneqb:{ overall:0,  posRank:"QB165"  }},
-  "Derrick Henry":               { sf:{ overall:0,  posRank:"RB23"  }, oneqb:{ overall:0,  posRank:"RB69"  }},
-  "2026 Pick 1.10":              { sf:{ overall:0,  posRank:"PICK12"  }, oneqb:{ overall:0,  posRank:"PICK74"  }},
-  "Malik Willis":                { sf:{ overall:0,  posRank:"QB27"  }, oneqb:{ overall:0,  posRank:"QB168"  }},
-  "Eli Stowers":                 { sf:{ overall:0,  posRank:"TE10"  }, oneqb:{ overall:0,  posRank:"TE81"  }},
-  "Matthew Stafford":            { sf:{ overall:0,  posRank:"QB28"  }, oneqb:{ overall:0,  posRank:"QB173"  }},
-  "2026 Pick 1.11":              { sf:{ overall:0,  posRank:"PICK13"  }, oneqb:{ overall:0,  posRank:"PICK77"  }},
-  "2026 Pick 1.12":              { sf:{ overall:0,  posRank:"PICK14"  }, oneqb:{ overall:0,  posRank:"PICK84"  }},
-  "D.J. Moore":                  { sf:{ overall:0,  posRank:"WR32"  }, oneqb:{ overall:0,  posRank:"WR80"  }},
-  "Denzel Boston":               { sf:{ overall:0,  posRank:"WR33"  }, oneqb:{ overall:0,  posRank:"WR83"  }},
-  "Oronde Gadsden":              { sf:{ overall:0,  posRank:"TE11"  }, oneqb:{ overall:0,  posRank:"TE90"  }},
-  "Bhayshul Tuten":              { sf:{ overall:0,  posRank:"RB24"  }, oneqb:{ overall:0,  posRank:"RB76"  }},
-  "2026 Pick 2.01":              { sf:{ overall:0,  posRank:"PICK15"  }, oneqb:{ overall:0,  posRank:"PICK90"  }},
-  "D'Andre Swift":               { sf:{ overall:0,  posRank:"RB25"  }, oneqb:{ overall:0,  posRank:"RB77"  }},
-  "Alec Pierce":                 { sf:{ overall:0,  posRank:"WR34"  }, oneqb:{ overall:0,  posRank:"WR88"  }},
-  "2028 1st":                    { sf:{ overall:0,  posRank:"PICK16"  }, oneqb:{ overall:0,  posRank:"PICK91"  }},
-  "DK Metcalf":                  { sf:{ overall:0,  posRank:"WR35"  }, oneqb:{ overall:0,  posRank:"WR89"  }},
-  "Jonah Coleman":               { sf:{ overall:0,  posRank:"RB26"  }, oneqb:{ overall:0,  posRank:"RB79"  }},
-  "George Kittle":               { sf:{ overall:0,  posRank:"TE12"  }, oneqb:{ overall:0,  posRank:"TE104"  }},
-  "2026 Pick 2.02":              { sf:{ overall:0,  posRank:"PICK17"  }, oneqb:{ overall:0,  posRank:"PICK95"  }},
-  "Matthew Golden":              { sf:{ overall:0,  posRank:"WR36"  }, oneqb:{ overall:0,  posRank:"WR92"  }},
-  "David Montgomery":            { sf:{ overall:0,  posRank:"RB27"  }, oneqb:{ overall:0,  posRank:"RB84"  }},
-  "Terry McLaurin":              { sf:{ overall:0,  posRank:"WR37"  }, oneqb:{ overall:0,  posRank:"WR93"  }},
-  "Christian Watson":            { sf:{ overall:0,  posRank:"WR38"  }, oneqb:{ overall:0,  posRank:"WR94"  }},
-  "Davante Adams":               { sf:{ overall:0,  posRank:"WR39"  }, oneqb:{ overall:0,  posRank:"WR95"  }},
-  "Chuba Hubbard":               { sf:{ overall:0,  posRank:"RB28"  }, oneqb:{ overall:0,  posRank:"RB85"  }},
-  "2029 1st":                    { sf:{ overall:0,  posRank:"PICK18"  }, oneqb:{ overall:0,  posRank:"PICK105"  }},
-  "Chris Bell":                  { sf:{ overall:0,  posRank:"WR40"  }, oneqb:{ overall:0,  posRank:"WR96"  }},
-  "Jake Ferguson":               { sf:{ overall:0,  posRank:"TE13"  }, oneqb:{ overall:0,  posRank:"TE110"  }},
-  "2026 Pick 2.03":              { sf:{ overall:0,  posRank:"PICK19"  }, oneqb:{ overall:0,  posRank:"PICK105"  }},
-  "RJ Harvey":                   { sf:{ overall:0,  posRank:"RB29"  }, oneqb:{ overall:0,  posRank:"RB87"  }},
-  "Jordan Addison":              { sf:{ overall:0,  posRank:"WR41"  }, oneqb:{ overall:0,  posRank:"WR100"  }},
-  "Michael Wilson":              { sf:{ overall:0,  posRank:"WR42"  }, oneqb:{ overall:0,  posRank:"WR101"  }},
-  "Mike Evans":                  { sf:{ overall:0,  posRank:"WR43"  }, oneqb:{ overall:0,  posRank:"WR102"  }},
-  "Travis Hunter":               { sf:{ overall:0,  posRank:"WR44"  }, oneqb:{ overall:0,  posRank:"WR103"  }},
-  "2026 Pick 2.04":              { sf:{ overall:0,  posRank:"PICK20"  }, oneqb:{ overall:0,  posRank:"PICK107"  }},
-  "Jayden Reed":                 { sf:{ overall:0,  posRank:"WR45"  }, oneqb:{ overall:0,  posRank:"WR105"  }},
-  "Isaiah Likely":               { sf:{ overall:0,  posRank:"TE14"  }, oneqb:{ overall:0,  posRank:"TE123"  }},
-  "Antonio Williams":            { sf:{ overall:0,  posRank:"WR46"  }, oneqb:{ overall:0,  posRank:"WR107"  }},
-  "Ricky Pearsall":              { sf:{ overall:0,  posRank:"WR47"  }, oneqb:{ overall:0,  posRank:"WR109"  }},
-  "Zach Charbonnet":             { sf:{ overall:0,  posRank:"RB30"  }, oneqb:{ overall:0,  posRank:"RB97"  }},
-  "Wan'Dale Robinson":           { sf:{ overall:0,  posRank:"WR48"  }, oneqb:{ overall:0,  posRank:"WR111"  }},
-  "Parker Washington":           { sf:{ overall:0,  posRank:"WR49"  }, oneqb:{ overall:0,  posRank:"WR112"  }},
-  "Josh Downs":                  { sf:{ overall:0,  posRank:"WR50"  }, oneqb:{ overall:0,  posRank:"WR113"  }},
-  "2026 Pick 2.05":              { sf:{ overall:0,  posRank:"PICK21"  }, oneqb:{ overall:0,  posRank:"PICK118"  }},
-  "Germie Bernard":              { sf:{ overall:0,  posRank:"WR51"  }, oneqb:{ overall:0,  posRank:"WR115"  }},
-  "Nicholas Singleton":          { sf:{ overall:0,  posRank:"RB31"  }, oneqb:{ overall:0,  posRank:"RB99"  }},
-  "Dalton Kincaid":              { sf:{ overall:0,  posRank:"TE15"  }, oneqb:{ overall:0,  posRank:"TE131"  }},
-  "Michael Pittman Jr.":         { sf:{ overall:0,  posRank:"WR52"  }, oneqb:{ overall:0,  posRank:"WR118"  }},
-  "Jayden Higgins":              { sf:{ overall:0,  posRank:"WR53"  }, oneqb:{ overall:0,  posRank:"WR119"  }},
-  "2026 Pick 2.06":              { sf:{ overall:0,  posRank:"PICK22"  }, oneqb:{ overall:0,  posRank:"PICK125"  }},
-  "Rico Dowdle":                 { sf:{ overall:0,  posRank:"RB32"  }, oneqb:{ overall:0,  posRank:"RB106"  }},
-  "Michael Penix Jr.":           { sf:{ overall:0,  posRank:"QB29"  }, oneqb:{ overall:0,  posRank:"QB213"  }},
-  "Quentin Johnston":            { sf:{ overall:0,  posRank:"WR54"  }, oneqb:{ overall:0,  posRank:"WR122"  }},
-  "2026 2nd":                    { sf:{ overall:0,  posRank:"PICK23"  }, oneqb:{ overall:0,  posRank:"PICK129"  }},
-  "Xavier Worthy":               { sf:{ overall:0,  posRank:"WR55"  }, oneqb:{ overall:0,  posRank:"WR126"  }},
-  "J.J. McCarthy":               { sf:{ overall:0,  posRank:"QB30"  }, oneqb:{ overall:0,  posRank:"QB216"  }},
-  "2026 Pick 2.07":              { sf:{ overall:0,  posRank:"PICK24"  }, oneqb:{ overall:0,  posRank:"PICK132"  }},
-  "Emmett Johnson":              { sf:{ overall:0,  posRank:"RB33"  }, oneqb:{ overall:0,  posRank:"RB114"  }},
-  "Kyle Monangai":               { sf:{ overall:0,  posRank:"RB34"  }, oneqb:{ overall:0,  posRank:"RB116"  }},
-  "Jakobi Meyers":               { sf:{ overall:0,  posRank:"WR56"  }, oneqb:{ overall:0,  posRank:"WR129"  }},
-  "Courtland Sutton":            { sf:{ overall:0,  posRank:"WR57"  }, oneqb:{ overall:0,  posRank:"WR130"  }},
-  "Jaylen Warren":               { sf:{ overall:0,  posRank:"RB35"  }, oneqb:{ overall:0,  posRank:"RB117"  }},
-  "Chris Godwin":                { sf:{ overall:0,  posRank:"WR58"  }, oneqb:{ overall:0,  posRank:"WR132"  }},
-  "2026 Pick 2.08":              { sf:{ overall:0,  posRank:"PICK25"  }, oneqb:{ overall:0,  posRank:"PICK138"  }},
-  "Jonathon Brooks":             { sf:{ overall:0,  posRank:"RB36"  }, oneqb:{ overall:0,  posRank:"RB120"  }},
-  "Tua Tagovailoa":              { sf:{ overall:0,  posRank:"QB31"  }, oneqb:{ overall:0,  posRank:"QB222"  }},
-  "Brenton Strange":             { sf:{ overall:0,  posRank:"TE16"  }, oneqb:{ overall:0,  posRank:"TE150"  }},
-  "De'Zhaun Stribling":          { sf:{ overall:0,  posRank:"WR59"  }, oneqb:{ overall:0,  posRank:"WR137"  }},
-  "Carson Beck":                 { sf:{ overall:0,  posRank:"QB32"  }, oneqb:{ overall:0,  posRank:"QB226"  }},
-  "Elijah Sarratt":              { sf:{ overall:0,  posRank:"WR60"  }, oneqb:{ overall:0,  posRank:"WR140"  }},
-  "Mark Andrews":                { sf:{ overall:0,  posRank:"TE17"  }, oneqb:{ overall:0,  posRank:"TE153"  }},
-  "Romeo Doubs":                 { sf:{ overall:0,  posRank:"WR61"  }, oneqb:{ overall:0,  posRank:"WR141"  }},
-  "2026 Pick 2.09":              { sf:{ overall:0,  posRank:"PICK26"  }, oneqb:{ overall:0,  posRank:"PICK144"  }},
-  "Rhamondre Stevenson":         { sf:{ overall:0,  posRank:"RB37"  }, oneqb:{ overall:0,  posRank:"RB127"  }},
-  "2027 2nd":                    { sf:{ overall:0,  posRank:"PICK27"  }, oneqb:{ overall:0,  posRank:"PICK150"  }},
-  "Blake Corum":                 { sf:{ overall:0,  posRank:"RB38"  }, oneqb:{ overall:0,  posRank:"RB128"  }},
-  "Chig Okonkwo":                { sf:{ overall:0,  posRank:"TE18"  }, oneqb:{ overall:0,  posRank:"TE159"  }},
-  "Zachariah Branch":            { sf:{ overall:0,  posRank:"WR62"  }, oneqb:{ overall:0,  posRank:"WR143"  }},
-  "T.J. Hockenson":              { sf:{ overall:0,  posRank:"TE19"  }, oneqb:{ overall:0,  posRank:"TE162"  }},
-  "Geno Smith":                  { sf:{ overall:0,  posRank:"QB33"  }, oneqb:{ overall:0,  posRank:"QB227"  }},
-  "Khalil Shakir":               { sf:{ overall:0,  posRank:"WR63"  }, oneqb:{ overall:0,  posRank:"WR147"  }},
-  "Shedeur Sanders":             { sf:{ overall:0,  posRank:"QB34"  }, oneqb:{ overall:0,  posRank:"QB229"  }},
-  "2026 Pick 2.10":              { sf:{ overall:0,  posRank:"PICK28"  }, oneqb:{ overall:0,  posRank:"PICK150"  }},
-  "Tony Pollard":                { sf:{ overall:0,  posRank:"RB39"  }, oneqb:{ overall:0,  posRank:"RB133"  }},
-  "Kaytron Allen":               { sf:{ overall:0,  posRank:"RB40"  }, oneqb:{ overall:0,  posRank:"RB134"  }},
-  "Jacory Croskey-Merritt":      { sf:{ overall:0,  posRank:"RB41"  }, oneqb:{ overall:0,  posRank:"RB135"  }},
-  "AJ Barner":                   { sf:{ overall:0,  posRank:"TE20"  }, oneqb:{ overall:0,  posRank:"TE166"  }},
-  "Jalen Coker":                 { sf:{ overall:0,  posRank:"WR64"  }, oneqb:{ overall:0,  posRank:"WR149"  }},
-  "J.K. Dobbins":                { sf:{ overall:0,  posRank:"RB42"  }, oneqb:{ overall:0,  posRank:"RB136"  }},
-  "2026 Pick 2.11":              { sf:{ overall:0,  posRank:"PICK29"  }, oneqb:{ overall:0,  posRank:"PICK154"  }},
-  "Malachi Fields":              { sf:{ overall:0,  posRank:"WR65"  }, oneqb:{ overall:0,  posRank:"WR151"  }},
-  "Dallas Goedert":              { sf:{ overall:0,  posRank:"TE21"  }, oneqb:{ overall:0,  posRank:"TE169"  }},
-  "Kenneth Gainwell":            { sf:{ overall:0,  posRank:"RB43"  }, oneqb:{ overall:0,  posRank:"RB139"  }},
-  "Travis Kelce":                { sf:{ overall:0,  posRank:"TE22"  }, oneqb:{ overall:0,  posRank:"TE172"  }},
-  "Ted Hurst":                   { sf:{ overall:0,  posRank:"WR66"  }, oneqb:{ overall:0,  posRank:"WR154"  }},
-  "Jacoby Brissett":             { sf:{ overall:0,  posRank:"QB35"  }, oneqb:{ overall:0,  posRank:"QB236"  }},
-  "Jalen McMillan":              { sf:{ overall:0,  posRank:"WR67"  }, oneqb:{ overall:0,  posRank:"WR155"  }},
-  "2026 Pick 2.12":              { sf:{ overall:0,  posRank:"PICK30"  }, oneqb:{ overall:0,  posRank:"PICK164"  }},
-  "Chris Brazzell":              { sf:{ overall:0,  posRank:"WR68"  }, oneqb:{ overall:0,  posRank:"WR158"  }},
-  "Mike Washington":             { sf:{ overall:0,  posRank:"RB44"  }, oneqb:{ overall:0,  posRank:"RB144"  }},
-  "Rachaad White":               { sf:{ overall:0,  posRank:"RB45"  }, oneqb:{ overall:0,  posRank:"RB146"  }},
-  "2026 Pick 3.01":              { sf:{ overall:0,  posRank:"PICK31"  }, oneqb:{ overall:0,  posRank:"PICK168"  }},
-  "Tyler Allgeier":              { sf:{ overall:0,  posRank:"RB46"  }, oneqb:{ overall:0,  posRank:"RB148"  }},
-  "Brandon Aiyuk":               { sf:{ overall:0,  posRank:"WR69"  }, oneqb:{ overall:0,  posRank:"WR167"  }},
-  "2028 2nd":                    { sf:{ overall:0,  posRank:"PICK32"  }, oneqb:{ overall:0,  posRank:"PICK176"  }},
-  "Deshaun Watson":              { sf:{ overall:0,  posRank:"QB36"  }, oneqb:{ overall:0,  posRank:"QB242"  }},
-  "Drew Allar":                  { sf:{ overall:0,  posRank:"QB37"  }, oneqb:{ overall:0,  posRank:"QB244"  }},
-  "Juwan Johnson":               { sf:{ overall:0,  posRank:"TE23"  }, oneqb:{ overall:0,  posRank:"TE186"  }},
-  "2026 Pick 3.02":              { sf:{ overall:0,  posRank:"PICK33"  }, oneqb:{ overall:0,  posRank:"PICK175"  }},
-  "Woody Marks":                 { sf:{ overall:0,  posRank:"RB47"  }, oneqb:{ overall:0,  posRank:"RB152"  }},
-  "Skyler Bell":                 { sf:{ overall:0,  posRank:"WR70"  }, oneqb:{ overall:0,  posRank:"WR171"  }},
-  "Max Klare":                   { sf:{ overall:0,  posRank:"TE24"  }, oneqb:{ overall:0,  posRank:"TE187"  }},
-  "Jauan Jennings":              { sf:{ overall:0,  posRank:"WR71"  }, oneqb:{ overall:0,  posRank:"WR174"  }},
-  "Jordan Mason":                { sf:{ overall:0,  posRank:"RB48"  }, oneqb:{ overall:0,  posRank:"RB156"  }},
-  "Dylan Sampson":               { sf:{ overall:0,  posRank:"RB49"  }, oneqb:{ overall:0,  posRank:"RB157"  }},
-  "2029 2nd":                    { sf:{ overall:0,  posRank:"PICK34"  }, oneqb:{ overall:0,  posRank:"PICK185"  }},
-  "Tyrone Tracy":                { sf:{ overall:0,  posRank:"RB50"  }, oneqb:{ overall:0,  posRank:"RB160"  }},
-  "Isiah Pacheco":               { sf:{ overall:0,  posRank:"RB51"  }, oneqb:{ overall:0,  posRank:"RB161"  }},
-  "2026 Pick 3.03":              { sf:{ overall:0,  posRank:"PICK35"  }, oneqb:{ overall:0,  posRank:"PICK181"  }},
-  "Gunnar Helm":                 { sf:{ overall:0,  posRank:"TE25"  }, oneqb:{ overall:0,  posRank:"TE189"  }},
-  "Chris Rodriguez":             { sf:{ overall:0,  posRank:"RB52"  }, oneqb:{ overall:0,  posRank:"RB163"  }},
-  "Kirk Cousins":                { sf:{ overall:0,  posRank:"QB38"  }, oneqb:{ overall:0,  posRank:"QB250"  }},
-  "Tre' Harris":                 { sf:{ overall:0,  posRank:"WR72"  }, oneqb:{ overall:0,  posRank:"WR180"  }},
-  "Ja'Kobi Lane":                { sf:{ overall:0,  posRank:"WR73"  }, oneqb:{ overall:0,  posRank:"WR182"  }},
-  "Rashid Shaheed":              { sf:{ overall:0,  posRank:"WR74"  }, oneqb:{ overall:0,  posRank:"WR183"  }},
-  "2026 Pick 3.04":              { sf:{ overall:0,  posRank:"PICK36"  }, oneqb:{ overall:0,  posRank:"PICK185"  }},
-  "2026 Pick 3.05":              { sf:{ overall:0,  posRank:"PICK37"  }, oneqb:{ overall:0,  posRank:"PICK188"  }},
-  "Braelon Allen":               { sf:{ overall:0,  posRank:"RB53"  }, oneqb:{ overall:0,  posRank:"RB170"  }},
-  "Demond Claiborne":            { sf:{ overall:0,  posRank:"RB54"  }, oneqb:{ overall:0,  posRank:"RB175"  }},
-  "Isaac TeSlaa":                { sf:{ overall:0,  posRank:"WR75"  }, oneqb:{ overall:0,  posRank:"WR188"  }},
-  "2026 Pick 3.06":              { sf:{ overall:0,  posRank:"PICK38"  }, oneqb:{ overall:0,  posRank:"PICK192"  }},
-  "Tyjae Spears":                { sf:{ overall:0,  posRank:"RB55"  }, oneqb:{ overall:0,  posRank:"RB176"  }},
-  "Aaron Jones":                 { sf:{ overall:0,  posRank:"RB56"  }, oneqb:{ overall:0,  posRank:"RB177"  }},
-  "Jerry Jeudy":                 { sf:{ overall:0,  posRank:"WR76"  }, oneqb:{ overall:0,  posRank:"WR191"  }},
-  "Keon Coleman":                { sf:{ overall:0,  posRank:"WR77"  }, oneqb:{ overall:0,  posRank:"WR190"  }},
-  "Kaleb Johnson":               { sf:{ overall:0,  posRank:"RB57"  }, oneqb:{ overall:0,  posRank:"RB178"  }},
-  "Tank Bigsby":                 { sf:{ overall:0,  posRank:"RB58"  }, oneqb:{ overall:0,  posRank:"RB179"  }},
-  "2026 3rd":                    { sf:{ overall:0,  posRank:"PICK39"  }, oneqb:{ overall:0,  posRank:"PICK193"  }},
-  "Alvin Kamara":                { sf:{ overall:0,  posRank:"RB59"  }, oneqb:{ overall:0,  posRank:"RB181"  }},
-  "Aaron Rodgers":               { sf:{ overall:0,  posRank:"QB39"  }, oneqb:{ overall:0,  posRank:"QB260"  }},
-  "2026 Pick 3.07":              { sf:{ overall:0,  posRank:"PICK40"  }, oneqb:{ overall:0,  posRank:"PICK195"  }},
-  "David Njoku":                 { sf:{ overall:0,  posRank:"TE26"  }, oneqb:{ overall:0,  posRank:"TE199"  }},
-  "Brian Robinson":              { sf:{ overall:0,  posRank:"RB60"  }, oneqb:{ overall:0,  posRank:"RB184"  }},
-  "Jalen Nailor":                { sf:{ overall:0,  posRank:"WR78"  }, oneqb:{ overall:0,  posRank:"WR193"  }},
-  "Tory Horton":                 { sf:{ overall:0,  posRank:"WR79"  }, oneqb:{ overall:0,  posRank:"WR194"  }},
-  "Stefon Diggs":                { sf:{ overall:0,  posRank:"WR80"  }, oneqb:{ overall:0,  posRank:"WR195"  }},
-  "Keaton Mitchell":             { sf:{ overall:0,  posRank:"RB61"  }, oneqb:{ overall:0,  posRank:"RB185"  }},
-  "Anthony Richardson":          { sf:{ overall:0,  posRank:"QB40"  }, oneqb:{ overall:0,  posRank:"QB261"  }},
-  "2026 Pick 3.08":              { sf:{ overall:0,  posRank:"PICK41"  }, oneqb:{ overall:0,  posRank:"PICK198"  }},
-  "Hunter Henry":                { sf:{ overall:0,  posRank:"TE27"  }, oneqb:{ overall:0,  posRank:"TE202"  }},
-  "Tank Dell":                   { sf:{ overall:0,  posRank:"WR81"  }, oneqb:{ overall:0,  posRank:"WR197"  }},
-  "Dalton Schultz":              { sf:{ overall:0,  posRank:"TE28"  }, oneqb:{ overall:0,  posRank:"TE203"  }},
-  "Jack Bech":                   { sf:{ overall:0,  posRank:"WR82"  }, oneqb:{ overall:0,  posRank:"WR198"  }},
-  "2026 Pick 3.09":              { sf:{ overall:0,  posRank:"PICK42"  }, oneqb:{ overall:0,  posRank:"PICK199"  }},
-  "Justin Fields":               { sf:{ overall:0,  posRank:"QB41"  }, oneqb:{ overall:0,  posRank:"QB263"  }},
-  "2026 Pick 3.10":              { sf:{ overall:0,  posRank:"PICK43"  }, oneqb:{ overall:0,  posRank:"PICK199"  }},
-  "2027 3rd":                    { sf:{ overall:0,  posRank:"PICK44"  }, oneqb:{ overall:0,  posRank:"PICK203"  }},
-  "Kaelon Black":                { sf:{ overall:0,  posRank:"RB62"  }, oneqb:{ overall:0,  posRank:"RB192"  }},
-  "Cade Otton":                  { sf:{ overall:0,  posRank:"TE29"  }, oneqb:{ overall:0,  posRank:"TE206"  }},
-  "Troy Franklin":               { sf:{ overall:0,  posRank:"WR83"  }, oneqb:{ overall:0,  posRank:"WR200"  }},
-  "2026 Pick 3.11":              { sf:{ overall:0,  posRank:"PICK45"  }, oneqb:{ overall:0,  posRank:"PICK202"  }},
-  "Tyreek Hill":                 { sf:{ overall:0,  posRank:"WR84"  }, oneqb:{ overall:0,  posRank:"WR201"  }},
-  "Oscar Delp":                  { sf:{ overall:0,  posRank:"TE30"  }, oneqb:{ overall:0,  posRank:"TE208"  }},
-  "Adam Randall":                { sf:{ overall:0,  posRank:"RB63"  }, oneqb:{ overall:0,  posRank:"RB196"  }},
-  "Jake Tonges":                 { sf:{ overall:0,  posRank:"TE31"  }, oneqb:{ overall:0,  posRank:"TE211"  }},
-  "2026 Pick 3.12":              { sf:{ overall:0,  posRank:"PICK46"  }, oneqb:{ overall:0,  posRank:"PICK204"  }},
-  "2029 3rd":                    { sf:{ overall:0,  posRank:"PICK47"  }, oneqb:{ overall:0,  posRank:"PICK206"  }},
-  "2028 3rd":                    { sf:{ overall:0,  posRank:"PICK48"  }, oneqb:{ overall:0,  posRank:"PICK207"  }},
-  "Mac Jones":                   { sf:{ overall:0,  posRank:"QB42"  }, oneqb:{ overall:0,  posRank:"QB266"  }},
-  "Terrance Ferguson":           { sf:{ overall:0,  posRank:"TE32"  }, oneqb:{ overall:0,  posRank:"TE215"  }},
-  "2026 Pick 4.01":              { sf:{ overall:0,  posRank:"PICK49"  }, oneqb:{ overall:0,  posRank:"PICK204"  }},
-  "Dontayvion Wicks":            { sf:{ overall:0,  posRank:"WR85"  }, oneqb:{ overall:0,  posRank:"WR204"  }},
-  "Eli Raridon":                 { sf:{ overall:0,  posRank:"TE33"  }, oneqb:{ overall:0,  posRank:"TE217"  }},
-  "2026 Pick 4.02":              { sf:{ overall:0,  posRank:"PICK50"  }, oneqb:{ overall:0,  posRank:"PICK206"  }},
-  "Kayshon Boutte":              { sf:{ overall:0,  posRank:"WR86"  }, oneqb:{ overall:0,  posRank:"WR205"  }},
-  "Cade Klubnik":                { sf:{ overall:0,  posRank:"QB43"  }, oneqb:{ overall:0,  posRank:"QB270"  }},
-  "Chimere Dike":                { sf:{ overall:0,  posRank:"WR87"  }, oneqb:{ overall:0,  posRank:"WR207"  }},
-  "2026 Pick 4.03":              { sf:{ overall:0,  posRank:"PICK51"  }, oneqb:{ overall:0,  posRank:"PICK210"  }},
-  "Pat Bryant":                  { sf:{ overall:0,  posRank:"WR88"  }, oneqb:{ overall:0,  posRank:"WR209"  }},
-  "Malik Washington":            { sf:{ overall:0,  posRank:"WR89"  }, oneqb:{ overall:0,  posRank:"WR210"  }},
-  "Jaylin Noel":                 { sf:{ overall:0,  posRank:"WR90"  }, oneqb:{ overall:0,  posRank:"WR212"  }},
-  "2026 Pick 4.04":              { sf:{ overall:0,  posRank:"PICK52"  }, oneqb:{ overall:0,  posRank:"PICK213"  }},
-  "Adonai Mitchell":             { sf:{ overall:0,  posRank:"WR91"  }, oneqb:{ overall:0,  posRank:"WR214"  }},
-  "Mason Taylor":                { sf:{ overall:0,  posRank:"TE34"  }, oneqb:{ overall:0,  posRank:"TE225"  }},
-  "2026 Pick 4.05":              { sf:{ overall:0,  posRank:"PICK53"  }, oneqb:{ overall:0,  posRank:"PICK217"  }},
-  "2026 Pick 4.06":              { sf:{ overall:0,  posRank:"PICK54"  }, oneqb:{ overall:0,  posRank:"PICK220"  }},
-  "Brenen Thompson":             { sf:{ overall:0,  posRank:"WR92"  }, oneqb:{ overall:0,  posRank:"WR218"  }},
-  "2026 4th":                    { sf:{ overall:0,  posRank:"PICK55"  }, oneqb:{ overall:0,  posRank:"PICK220"  }},
-  "Elic Ayomanor":               { sf:{ overall:0,  posRank:"WR93"  }, oneqb:{ overall:0,  posRank:"WR220"  }},
-  "2026 Pick 4.07":              { sf:{ overall:0,  posRank:"PICK56"  }, oneqb:{ overall:0,  posRank:"PICK222"  }},
-  "Justin Joly":                 { sf:{ overall:0,  posRank:"TE35"  }, oneqb:{ overall:0,  posRank:"TE230"  }},
-  "Garrett Nussmeier":           { sf:{ overall:0,  posRank:"QB44"  }, oneqb:{ overall:0,  posRank:"QB279"  }},
-  "2026 Pick 4.08":              { sf:{ overall:0,  posRank:"PICK57"  }, oneqb:{ overall:0,  posRank:"PICK225"  }},
-  "Kyle Williams":               { sf:{ overall:0,  posRank:"WR94"  }, oneqb:{ overall:0,  posRank:"WR223"  }},
-  "2026 Pick 4.09":              { sf:{ overall:0,  posRank:"PICK58"  }, oneqb:{ overall:0,  posRank:"PICK227"  }},
-  "2029 4th":                    { sf:{ overall:0,  posRank:"PICK59"  }, oneqb:{ overall:0,  posRank:"PICK230"  }},
-  "2026 Pick 4.10":              { sf:{ overall:0,  posRank:"PICK60"  }, oneqb:{ overall:0,  posRank:"PICK227"  }},
-  "Trey Benson":                 { sf:{ overall:0,  posRank:"RB64"  }, oneqb:{ overall:0,  posRank:"RB219"  }},
-  "2026 Pick 4.11":              { sf:{ overall:0,  posRank:"PICK61"  }, oneqb:{ overall:0,  posRank:"PICK230"  }},
-  "Tre Tucker":                  { sf:{ overall:0,  posRank:"WR95"  }, oneqb:{ overall:0,  posRank:"WR228"  }},
-  "Kimani Vidal":                { sf:{ overall:0,  posRank:"RB65"  }, oneqb:{ overall:0,  posRank:"RB221"  }},
-  "2026 Pick 4.12":              { sf:{ overall:0,  posRank:"PICK62"  }, oneqb:{ overall:0,  posRank:"PICK232"  }},
-  "2027 4th":                    { sf:{ overall:0,  posRank:"PICK63"  }, oneqb:{ overall:0,  posRank:"PICK237"  }},
-  "Kevin Coleman":               { sf:{ overall:0,  posRank:"WR96"  }, oneqb:{ overall:0,  posRank:"WR231"  }},
-  "Deebo Samuel":                { sf:{ overall:0,  posRank:"WR97"  }, oneqb:{ overall:0,  posRank:"WR232"  }},
-  "Eli Heidenreich":             { sf:{ overall:0,  posRank:"RB66"  }, oneqb:{ overall:0,  posRank:"RB224"  }},
-  "2028 4th":                    { sf:{ overall:0,  posRank:"PICK64"  }, oneqb:{ overall:0,  posRank:"PICK240"  }},
-  "Bryce Lance":                 { sf:{ overall:0,  posRank:"WR98"  }, oneqb:{ overall:0,  posRank:"WR235"  }},
-  "Theo Johnson":                { sf:{ overall:0,  posRank:"TE36"  }, oneqb:{ overall:0,  posRank:"TE247"  }},
-  "Michael Trigg":               { sf:{ overall:0,  posRank:"TE37"  }, oneqb:{ overall:0,  posRank:"TE248"  }},
-  "Michael Mayer":               { sf:{ overall:0,  posRank:"TE38"  }, oneqb:{ overall:0,  posRank:"TE251"  }},
-  "Taylen Green":                { sf:{ overall:0,  posRank:"QB45"  }, oneqb:{ overall:0,  posRank:"QB286"  }},
-  "Pat Freiermuth":              { sf:{ overall:0,  posRank:"TE39"  }, oneqb:{ overall:0,  posRank:"TE253"  }},
-  "James Conner":                { sf:{ overall:0,  posRank:"RB67"  }, oneqb:{ overall:0,  posRank:"RB233"  }},
-  "Calvin Ridley":               { sf:{ overall:0,  posRank:"WR99"  }, oneqb:{ overall:0,  posRank:"WR243"  }},
-  "Emanuel Wilson":              { sf:{ overall:0,  posRank:"RB68"  }, oneqb:{ overall:0,  posRank:"RB234"  }},
-  "Elijah Arroyo":               { sf:{ overall:0,  posRank:"TE40"  }, oneqb:{ overall:0,  posRank:"TE255"  }},
-  "Evan Engram":                 { sf:{ overall:0,  posRank:"TE41"  }, oneqb:{ overall:0,  posRank:"TE258"  }},
-  "Jordan James":                { sf:{ overall:0,  posRank:"RB69"  }, oneqb:{ overall:0,  posRank:"RB237"  }},
-  "Cooper Kupp":                 { sf:{ overall:0,  posRank:"WR100"  }, oneqb:{ overall:0,  posRank:"WR245"  }},
-  "Darnell Mooney":              { sf:{ overall:0,  posRank:"WR101"  }, oneqb:{ overall:0,  posRank:"WR246"  }},
-  "Will Howard":                 { sf:{ overall:0,  posRank:"QB46"  }, oneqb:{ overall:0,  posRank:"QB290"  }},
-  "Devin Neal":                  { sf:{ overall:0,  posRank:"RB70"  }, oneqb:{ overall:0,  posRank:"RB238"  }},
-  "Caleb Douglas":               { sf:{ overall:0,  posRank:"WR102"  }, oneqb:{ overall:0,  posRank:"WR249"  }},
-  "Ollie Gordon":                { sf:{ overall:0,  posRank:"RB71"  }, oneqb:{ overall:0,  posRank:"RB239"  }},
-  "Jaylen Wright":               { sf:{ overall:0,  posRank:"RB72"  }, oneqb:{ overall:0,  posRank:"RB240"  }},
-  "Sean Tucker":                 { sf:{ overall:0,  posRank:"RB73"  }, oneqb:{ overall:0,  posRank:"RB241"  }},
-  "Ja'Tavion Sanders":           { sf:{ overall:0,  posRank:"TE42"  }, oneqb:{ overall:0,  posRank:"TE264"  }},
-  "DJ Giddens":                  { sf:{ overall:0,  posRank:"RB74"  }, oneqb:{ overall:0,  posRank:"RB252"  }},
-  "Jaydon Blue":                 { sf:{ overall:0,  posRank:"RB75"  }, oneqb:{ overall:0,  posRank:"RB254"  }},
-  "Ray Davis":                   { sf:{ overall:0,  posRank:"RB76"  }, oneqb:{ overall:0,  posRank:"RB256"  }},
-  "Le'Veon Moss":                { sf:{ overall:0,  posRank:"RB77"  }, oneqb:{ overall:0,  posRank:"RB257"  }},
-  "MarShawn Lloyd":              { sf:{ overall:0,  posRank:"RB78"  }, oneqb:{ overall:0,  posRank:"RB259"  }},
-  "Jalen Milroe":                { sf:{ overall:0,  posRank:"QB47"  }, oneqb:{ overall:0,  posRank:"QB300"  }},
-  "Colby Parkinson":             { sf:{ overall:0,  posRank:"TE43"  }, oneqb:{ overall:0,  posRank:"TE272"  }},
-  "Deion Burks":                 { sf:{ overall:0,  posRank:"WR103"  }, oneqb:{ overall:0,  posRank:"WR265"  }},
-  "J'Mari Taylor":               { sf:{ overall:0,  posRank:"RB79"  }, oneqb:{ overall:0,  posRank:"RB262"  }},
-  "Jack Endries":                { sf:{ overall:0,  posRank:"TE44"  }, oneqb:{ overall:0,  posRank:"TE274"  }},
-  "Dont'e Thornton":             { sf:{ overall:0,  posRank:"WR104"  }, oneqb:{ overall:0,  posRank:"WR267"  }},
-  "Greg Dulcich":                { sf:{ overall:0,  posRank:"TE45"  }, oneqb:{ overall:0,  posRank:"TE275"  }},
-  "Xavier Legette":              { sf:{ overall:0,  posRank:"WR105"  }, oneqb:{ overall:0,  posRank:"WR268"  }},
-  "CJ Daniels":                  { sf:{ overall:0,  posRank:"WR106"  }, oneqb:{ overall:0,  posRank:"WR269"  }},
-  "Zavion Thomas":               { sf:{ overall:0,  posRank:"WR107"  }, oneqb:{ overall:0,  posRank:"WR273"  }},
-  "Riley Leonard":               { sf:{ overall:0,  posRank:"QB48"  }, oneqb:{ overall:0,  posRank:"QB308"  }},
-  "Seth McGowan":                { sf:{ overall:0,  posRank:"RB80"  }, oneqb:{ overall:0,  posRank:"RB271"  }},
-  "Marvin Mims":                 { sf:{ overall:0,  posRank:"WR108"  }, oneqb:{ overall:0,  posRank:"WR278"  }},
-  "Rashod Bateman":              { sf:{ overall:0,  posRank:"WR109"  }, oneqb:{ overall:0,  posRank:"WR281"  }},
-  "Tez Johnson":                 { sf:{ overall:0,  posRank:"WR110"  }, oneqb:{ overall:0,  posRank:"WR283"  }},
-  "LeQuint Allen":               { sf:{ overall:0,  posRank:"RB81"  }, oneqb:{ overall:0,  posRank:"RB276"  }},
-  "Jam Miller":                  { sf:{ overall:0,  posRank:"RB82"  }, oneqb:{ overall:0,  posRank:"RB277"  }},
-  "Christian Kirk":              { sf:{ overall:0,  posRank:"WR111"  }, oneqb:{ overall:0,  posRank:"WR284"  }},
-  "Jameis Winston":              { sf:{ overall:0,  posRank:"QB49"  }, oneqb:{ overall:0,  posRank:"QB315"  }},
-  "Tanner Koziol":               { sf:{ overall:0,  posRank:"TE46"  }, oneqb:{ overall:0,  posRank:"TE287"  }},
-  "Joe Mixon":                   { sf:{ overall:0,  posRank:"RB83"  }, oneqb:{ overall:0,  posRank:"RB280"  }},
-  "Will Kacmarek":               { sf:{ overall:0,  posRank:"TE47"  }, oneqb:{ overall:0,  posRank:"TE288"  }},
-  "Isaiah Bond":                 { sf:{ overall:0,  posRank:"WR112"  }, oneqb:{ overall:0,  posRank:"WR285"  }},
-  "Brashard Smith":              { sf:{ overall:0,  posRank:"RB84"  }, oneqb:{ overall:0,  posRank:"RB282"  }},
-  "Marcus Mariota":              { sf:{ overall:0,  posRank:"QB50"  }, oneqb:{ overall:0,  posRank:"QB320"  }},
-  "Quinn Ewers":                 { sf:{ overall:0,  posRank:"QB51"  }, oneqb:{ overall:0,  posRank:"QB321"  }},
-  "Cole Kmet":                   { sf:{ overall:0,  posRank:"TE48"  }, oneqb:{ overall:0,  posRank:"TE294"  }},
-  "Matthew Hibner":              { sf:{ overall:0,  posRank:"TE49"  }, oneqb:{ overall:0,  posRank:"TE295"  }},
-  "Jalen Tolbert":               { sf:{ overall:0,  posRank:"WR113"  }, oneqb:{ overall:0,  posRank:"WR291"  }},
-  "Tahj Brooks":                 { sf:{ overall:0,  posRank:"RB85"  }, oneqb:{ overall:0,  posRank:"RB289"  }},
-  "Marlin Klein":                { sf:{ overall:0,  posRank:"TE50"  }, oneqb:{ overall:0,  posRank:"TE297"  }},
-  "Marquise Brown":              { sf:{ overall:0,  posRank:"WR114"  }, oneqb:{ overall:0,  posRank:"WR293"  }},
-  "Cedric Tillman":              { sf:{ overall:0,  posRank:"WR115"  }, oneqb:{ overall:0,  posRank:"WR296"  }},
-  "Trevor Etienne":              { sf:{ overall:0,  posRank:"RB86"  }, oneqb:{ overall:0,  posRank:"RB292"  }},
-  "Joe Milton":                  { sf:{ overall:0,  posRank:"QB52"  }, oneqb:{ overall:0,  posRank:"QB329"  }},
-  "Cole Payton":                 { sf:{ overall:0,  posRank:"QB53"  }, oneqb:{ overall:0,  posRank:"QB330"  }},
-  "Joe Flacco":                  { sf:{ overall:0,  posRank:"QB54"  }, oneqb:{ overall:0,  posRank:"QB331"  }},
-  "Jaylin Lane":                 { sf:{ overall:0,  posRank:"WR116"  }, oneqb:{ overall:0,  posRank:"WR301"  }},
-  "DeMario Douglas":             { sf:{ overall:0,  posRank:"WR117"  }, oneqb:{ overall:0,  posRank:"WR303"  }},
-  "Isaiah Davis":                { sf:{ overall:0,  posRank:"RB87"  }, oneqb:{ overall:0,  posRank:"RB298"  }},
-  "Ryan Flournoy":               { sf:{ overall:0,  posRank:"WR118"  }, oneqb:{ overall:0,  posRank:"WR304"  }},
-  "Ben Sinnott":                 { sf:{ overall:0,  posRank:"TE51"  }, oneqb:{ overall:0,  posRank:"TE309"  }},
-  "Roman Hemby":                 { sf:{ overall:0,  posRank:"RB88"  }, oneqb:{ overall:0,  posRank:"RB299"  }},
-  "Jahan Dotson":                { sf:{ overall:0,  posRank:"WR119"  }, oneqb:{ overall:0,  posRank:"WR305"  }},
-  "Keenan Allen":                { sf:{ overall:0,  posRank:"WR120"  }, oneqb:{ overall:0,  posRank:"WR306"  }},
-  "Sam Roush":                   { sf:{ overall:0,  posRank:"TE52"  }, oneqb:{ overall:0,  posRank:"TE313"  }},
-  "Jalen Royals":                { sf:{ overall:0,  posRank:"WR121"  }, oneqb:{ overall:0,  posRank:"WR307"  }},
-  "Najee Harris":                { sf:{ overall:0,  posRank:"RB89"  }, oneqb:{ overall:0,  posRank:"RB302"  }},
-  "Devaughn Vele":               { sf:{ overall:0,  posRank:"WR122"  }, oneqb:{ overall:0,  posRank:"WR310"  }},
-  "Luke McCaffrey":              { sf:{ overall:0,  posRank:"WR123"  }, oneqb:{ overall:0,  posRank:"WR311"  }},
-  "Darnell Washington":          { sf:{ overall:0,  posRank:"TE53"  }, oneqb:{ overall:0,  posRank:"TE317"  }},
-  "Mike Gesicki":                { sf:{ overall:0,  posRank:"TE54"  }, oneqb:{ overall:0,  posRank:"TE319"  }},
-  "Josh Cameron":                { sf:{ overall:0,  posRank:"WR124"  }, oneqb:{ overall:0,  posRank:"WR314"  }},
-  "Jarquez Hunter":              { sf:{ overall:0,  posRank:"RB90"  }, oneqb:{ overall:0,  posRank:"RB312"  }},
-  "Tyrod Taylor":                { sf:{ overall:0,  posRank:"QB55"  }, oneqb:{ overall:0,  posRank:"QB343"  }},
-  "Tyson Bagent":                { sf:{ overall:0,  posRank:"QB56"  }, oneqb:{ overall:0,  posRank:"QB344"  }},
-  "Robert Henry":                { sf:{ overall:0,  posRank:"RB91"  }, oneqb:{ overall:0,  posRank:"RB316"  }},
-  "Kendre Miller":               { sf:{ overall:0,  posRank:"RB92"  }, oneqb:{ overall:0,  posRank:"RB318"  }},
-  "Cyrus Allen":                 { sf:{ overall:0,  posRank:"WR125"  }, oneqb:{ overall:0,  posRank:"WR322"  }},
-  "Luke Musgrave":               { sf:{ overall:0,  posRank:"TE55"  }, oneqb:{ overall:0,  posRank:"TE326"  }},
-  "Treylon Burks":               { sf:{ overall:0,  posRank:"WR126"  }, oneqb:{ overall:0,  posRank:"WR324"  }},
-  "Spencer Rattler":             { sf:{ overall:0,  posRank:"QB57"  }, oneqb:{ overall:0,  posRank:"QB352"  }},
-  "Savion Williams":             { sf:{ overall:0,  posRank:"WR127"  }, oneqb:{ overall:0,  posRank:"WR325"  }},
-  "Jerome Ford":                 { sf:{ overall:0,  posRank:"RB93"  }, oneqb:{ overall:0,  posRank:"RB323"  }},
-  "Andrei Iosivas":              { sf:{ overall:0,  posRank:"WR128"  }, oneqb:{ overall:0,  posRank:"WR327"  }},
-  "Ja'Lynn Polk":                { sf:{ overall:0,  posRank:"WR129"  }, oneqb:{ overall:0,  posRank:"WR328"  }},
-  "Noah Gray":                   { sf:{ overall:0,  posRank:"TE56"  }, oneqb:{ overall:0,  posRank:"TE332"  }},
-  "Dillon Gabriel":              { sf:{ overall:0,  posRank:"QB58"  }, oneqb:{ overall:0,  posRank:"QB355"  }},
-  "Jaren Kanak":                 { sf:{ overall:0,  posRank:"TE57"  }, oneqb:{ overall:0,  posRank:"TE333"  }},
-  "Mason Rudolph":               { sf:{ overall:0,  posRank:"QB59"  }, oneqb:{ overall:0,  posRank:"QB358"  }},
-  "Jeff Caldwell":               { sf:{ overall:0,  posRank:"WR130"  }, oneqb:{ overall:0,  posRank:"WR334"  }},
-  "KeAndre Lambert-Smith":       { sf:{ overall:0,  posRank:"WR131"  }, oneqb:{ overall:0,  posRank:"WR335"  }},
-  "Trey Lance":                  { sf:{ overall:0,  posRank:"QB60"  }, oneqb:{ overall:0,  posRank:"QB361"  }},
-  "Davis Mills":                 { sf:{ overall:0,  posRank:"QB61"  }, oneqb:{ overall:0,  posRank:"QB360"  }},
-  "John Metchie":                { sf:{ overall:0,  posRank:"WR132"  }, oneqb:{ overall:0,  posRank:"WR337"  }},
-  "Efton Chism":                 { sf:{ overall:0,  posRank:"WR133"  }, oneqb:{ overall:0,  posRank:"WR338"  }},
-  "Justice Hill":                { sf:{ overall:0,  posRank:"RB94"  }, oneqb:{ overall:0,  posRank:"RB336"  }},
-  "Malik Benson":                { sf:{ overall:0,  posRank:"WR134"  }, oneqb:{ overall:0,  posRank:"WR339"  }},
-  "Darius Slayton":              { sf:{ overall:0,  posRank:"WR135"  }, oneqb:{ overall:0,  posRank:"WR340"  }},
-  "Tyquan Thornton":             { sf:{ overall:0,  posRank:"WR136"  }, oneqb:{ overall:0,  posRank:"WR342"  }},
-  "Kendrick Bourne":             { sf:{ overall:0,  posRank:"WR137"  }, oneqb:{ overall:0,  posRank:"WR345"  }},
-  "Jimmy Horn":                  { sf:{ overall:0,  posRank:"WR138"  }, oneqb:{ overall:0,  posRank:"WR346"  }},
-  "John Michael Gyllenborg":     { sf:{ overall:0,  posRank:"TE58"  }, oneqb:{ overall:0,  posRank:"TE349"  }},
-  "Will Shipley":                { sf:{ overall:0,  posRank:"RB95"  }, oneqb:{ overall:0,  posRank:"RB341"  }},
-  "Mack Hollins":                { sf:{ overall:0,  posRank:"WR139"  }, oneqb:{ overall:0,  posRank:"WR348"  }},
-  "Zach Ertz":                   { sf:{ overall:0,  posRank:"TE59"  }, oneqb:{ overall:0,  posRank:"TE353"  }},
-  "Tanner McKee":                { sf:{ overall:0,  posRank:"QB62"  }, oneqb:{ overall:0,  posRank:"QB372"  }},
-  "Kenny Pickett":               { sf:{ overall:0,  posRank:"QB63"  }, oneqb:{ overall:0,  posRank:"QB374"  }},
-  "Isaac Guerendo":              { sf:{ overall:0,  posRank:"RB96"  }, oneqb:{ overall:0,  posRank:"RB347"  }},
-  "Kareem Hunt":                 { sf:{ overall:0,  posRank:"RB97"  }, oneqb:{ overall:0,  posRank:"RB351"  }},
-  "Audric Estime":               { sf:{ overall:0,  posRank:"RB98"  }, oneqb:{ overall:0,  posRank:"RB350"  }},
-  "KaVontae Turpin":             { sf:{ overall:0,  posRank:"WR140"  }, oneqb:{ overall:0,  posRank:"WR356"  }},
-  "Dawson Knox":                 { sf:{ overall:0,  posRank:"TE60"  }, oneqb:{ overall:0,  posRank:"TE357"  }},
-  "Devin Singletary":            { sf:{ overall:0,  posRank:"RB99"  }, oneqb:{ overall:0,  posRank:"RB354"  }},
-  "Will Levis":                  { sf:{ overall:0,  posRank:"QB64"  }, oneqb:{ overall:0,  posRank:"QB378"  }},
-  "Joe Fagnano":                 { sf:{ overall:0,  posRank:"QB65"  }, oneqb:{ overall:0,  posRank:"QB379"  }},
-  "Gardner Minshew":             { sf:{ overall:0,  posRank:"QB66"  }, oneqb:{ overall:0,  posRank:"QB380"  }},
-  "Calvin Austin":               { sf:{ overall:0,  posRank:"WR141"  }, oneqb:{ overall:0,  posRank:"WR359"  }},
-  "Tutu Atwell":                 { sf:{ overall:0,  posRank:"WR142"  }, oneqb:{ overall:0,  posRank:"WR362"  }},
-  "Roman Wilson":                { sf:{ overall:0,  posRank:"WR143"  }, oneqb:{ overall:0,  posRank:"WR364"  }},
-  "Tyler Higbee":                { sf:{ overall:0,  posRank:"TE61"  }, oneqb:{ overall:0,  posRank:"TE371"  }},
-  "Jordan Whittington":          { sf:{ overall:0,  posRank:"WR144"  }, oneqb:{ overall:0,  posRank:"WR367"  }},
-  "Noah Fant":                   { sf:{ overall:0,  posRank:"TE62"  }, oneqb:{ overall:0,  posRank:"TE373"  }},
-  "Tyler Huntley":               { sf:{ overall:0,  posRank:"QB67"  }, oneqb:{ overall:0,  posRank:"QB384"  }},
-  "Phil Mafah":                  { sf:{ overall:0,  posRank:"RB100"  }, oneqb:{ overall:0,  posRank:"RB363"  }},
-  "Xavier Hutchinson":           { sf:{ overall:0,  posRank:"WR145"  }, oneqb:{ overall:0,  posRank:"WR370"  }},
-  "Ty Johnson":                  { sf:{ overall:0,  posRank:"RB101"  }, oneqb:{ overall:0,  posRank:"RB365"  }},
-  "Kenny McIntosh":              { sf:{ overall:0,  posRank:"RB102"  }, oneqb:{ overall:0,  posRank:"RB366"  }},
-  "George Holani":               { sf:{ overall:0,  posRank:"RB103"  }, oneqb:{ overall:0,  posRank:"RB368"  }},
-  "Chris Brooks":                { sf:{ overall:0,  posRank:"RB104"  }, oneqb:{ overall:0,  posRank:"RB369"  }},
-  "Noah Thomas":                 { sf:{ overall:0,  posRank:"WR146"  }, oneqb:{ overall:0,  posRank:"WR375"  }},
-  "Jonnu Smith":                 { sf:{ overall:0,  posRank:"TE63"  }, oneqb:{ overall:0,  posRank:"TE382"  }},
-  "Emari Demercado":             { sf:{ overall:0,  posRank:"RB105"  }, oneqb:{ overall:0,  posRank:"RB376"  }},
-  "Malik Davis":                 { sf:{ overall:0,  posRank:"RB106"  }, oneqb:{ overall:0,  posRank:"RB377"  }},
-  "Olamide Zaccheaus":           { sf:{ overall:0,  posRank:"WR147"  }, oneqb:{ overall:0,  posRank:"WR383"  }},
-  "Raheim Sanders":              { sf:{ overall:0,  posRank:"RB107"  }, oneqb:{ overall:0,  posRank:"RB381"  }},
-  "Teddy Bridgewater":           { sf:{ overall:0,  posRank:"QB68"  }, oneqb:{ overall:0,  posRank:"QB390"  }},
-  "Jarrett Stidham":             { sf:{ overall:0,  posRank:"QB69"  }, oneqb:{ overall:0,  posRank:"QB391"  }},
-  "Konata Mumpfield":            { sf:{ overall:0,  posRank:"WR148"  }, oneqb:{ overall:0,  posRank:"WR385"  }},
-  "Jahdae Walker":               { sf:{ overall:0,  posRank:"WR149"  }, oneqb:{ overall:0,  posRank:"WR386"  }},
-  "Cade Stover":                 { sf:{ overall:0,  posRank:"TE64"  }, oneqb:{ overall:0,  posRank:"TE388"  }},
-  "Nick Westbrook-Ikhine":       { sf:{ overall:0,  posRank:"WR150"  }, oneqb:{ overall:0,  posRank:"WR387"  }},
-  "Austin Ekeler":               { sf:{ overall:0,  posRank:"RB108"  }, oneqb:{ overall:0,  posRank:"RB389"  }},
-  "Mitchell Evans":              { sf:{ overall:0,  posRank:"TE65"  }, oneqb:{ overall:0,  posRank:"TE392"  }},
-  "Tommy Tremble":               { sf:{ overall:0,  posRank:"TE66"  }, oneqb:{ overall:0,  posRank:"TE393"  }},
-  "Zach Wilson":                 { sf:{ overall:0,  posRank:"QB70"  }, oneqb:{ overall:0,  posRank:"QB396"  }},
-  "Daniel Bellinger":            { sf:{ overall:0,  posRank:"TE67"  }, oneqb:{ overall:0,  posRank:"TE394"  }},
-  "Roschon Johnson":             { sf:{ overall:0,  posRank:"RB109"  }, oneqb:{ overall:0,  posRank:"RB395"  }},
-  "Devontez Walker":             { sf:{ overall:0,  posRank:"WR151"  }, oneqb:{ overall:0,  posRank:"WR397"  }},
-  "Rasheen Ali":                 { sf:{ overall:0,  posRank:"RB110"  }, oneqb:{ overall:0,  posRank:"RB398"  }}
-};
+let ADP_DATA = {};
 
-const PICK_KTC = {
-    // ── 2025 ──────────────────────────────
-    "2025-1.01": 9400, "2025-1.02": 8800, "2025-1.03": 8200, "2025-1.04": 7600,
-    "2025-1.05": 7100, "2025-1.06": 6700, "2025-1.07": 6300, "2025-1.08": 5900,
-    "2025-1.09": 5500, "2025-1.10": 5100, "2025-1.11": 4700, "2025-1.12": 4400,
-    "2025-2.01": 4100, "2025-2.02": 3800, "2025-2.03": 3600, "2025-2.04": 3400,
-    "2025-2.05": 3200, "2025-2.06": 3000, "2025-2.07": 2800, "2025-2.08": 2600,
-    "2025-2.09": 2400, "2025-2.10": 2200, "2025-2.11": 2000, "2025-2.12": 1900,
-    "2025-3.01": 1800, "2025-3.02": 1700, "2025-3.03": 1600, "2025-3.04": 1500,
-    "2025-3.05": 1400, "2025-3.06": 1300, "2025-3.07": 1200, "2025-3.08": 1100,
-    "2025-3.09": 1000, "2025-3.10":  950, "2025-3.11":  900, "2025-3.12":  850,
-    "2025-4.01":  800, "2025-4.02":  750, "2025-4.03":  700, "2025-4.04":  660,
-    "2025-4.05":  620, "2025-4.06":  580, "2025-4.07":  540, "2025-4.08":  510,
-    "2025-4.09":  480, "2025-4.10":  450, "2025-4.11":  420, "2025-4.12":  400,
-    // ── 2026 ──────────────────────────────
-    "2026-1.01": 8700, "2026-1.02": 8100, "2026-1.03": 7600, "2026-1.04": 7100,
-    "2026-1.05": 6600, "2026-1.06": 6200, "2026-1.07": 5800, "2026-1.08": 5400,
-    "2026-1.09": 5100, "2026-1.10": 4800, "2026-1.11": 4500, "2026-1.12": 4200,
-    "2026-2.01": 3800, "2026-2.02": 3500, "2026-2.03": 3300, "2026-2.04": 3100,
-    "2026-2.05": 2900, "2026-2.06": 2700, "2026-2.07": 2550, "2026-2.08": 2400,
-    "2026-2.09": 2250, "2026-2.10": 2100, "2026-2.11": 1950, "2026-2.12": 1800,
-    "2026-3.01": 1650, "2026-3.02": 1550, "2026-3.03": 1450, "2026-3.04": 1350,
-    "2026-3.05": 1250, "2026-3.06": 1170, "2026-3.07": 1090, "2026-3.08": 1010,
-    "2026-3.09":  940, "2026-3.10":  880, "2026-3.11":  820, "2026-3.12":  770,
-    "2026-4.01":  720, "2026-4.02":  680, "2026-4.03":  640, "2026-4.04":  600,
-    "2026-4.05":  565, "2026-4.06":  530, "2026-4.07":  495, "2026-4.08":  465,
-    "2026-4.09":  435, "2026-4.10":  410, "2026-4.11":  385, "2026-4.12":  360,
-    // ── 2027 ──────────────────────────────
-    "2027-1.01": 7900, "2027-1.02": 7400, "2027-1.03": 6900, "2027-1.04": 6500,
-    "2027-1.05": 6100, "2027-1.06": 5700, "2027-1.07": 5350, "2027-1.08": 5000,
-    "2027-1.09": 4700, "2027-1.10": 4400, "2027-1.11": 4100, "2027-1.12": 3850,
-    "2027-2.01": 3500, "2027-2.02": 3250, "2027-2.03": 3050, "2027-2.04": 2850,
-    "2027-2.05": 2650, "2027-2.06": 2480, "2027-2.07": 2320, "2027-2.08": 2170,
-    "2027-2.09": 2030, "2027-2.10": 1900, "2027-2.11": 1780, "2027-2.12": 1670,
-    "2027-3.01": 1500, "2027-3.02": 1400, "2027-3.03": 1310, "2027-3.04": 1230,
-    "2027-3.05": 1150, "2027-3.06": 1080, "2027-3.07": 1010, "2027-3.08":  950,
-    "2027-3.09":  890, "2027-3.10":  840, "2027-3.11":  790, "2027-3.12":  740,
-    "2027-4.01":  690, "2027-4.02":  650, "2027-4.03":  610, "2027-4.04":  575,
-    "2027-4.05":  540, "2027-4.06":  505, "2027-4.07":  475, "2027-4.08":  445,
-    "2027-4.09":  418, "2027-4.10":  392, "2027-4.11":  368, "2027-4.12":  345,
-    // ── 2028 ──────────────────────────────
-    "2028-1.01": 7200, "2028-1.02": 6750, "2028-1.03": 6300, "2028-1.04": 5900,
-    "2028-1.05": 5550, "2028-1.06": 5200, "2028-1.07": 4880, "2028-1.08": 4570,
-    "2028-1.09": 4280, "2028-1.10": 4010, "2028-1.11": 3760, "2028-1.12": 3530,
-    "2028-2.01": 3200, "2028-2.02": 2980, "2028-2.03": 2780, "2028-2.04": 2590,
-    "2028-2.05": 2420, "2028-2.06": 2260, "2028-2.07": 2110, "2028-2.08": 1975,
-    "2028-2.09": 1850, "2028-2.10": 1730, "2028-2.11": 1620, "2028-2.12": 1520,
-    "2028-3.01": 1370, "2028-3.02": 1280, "2028-3.03": 1200, "2028-3.04": 1120,
-    "2028-3.05": 1050, "2028-3.06":  985, "2028-3.07":  925, "2028-3.08":  870,
-    "2028-3.09":  815, "2028-3.10":  765, "2028-3.11":  720, "2028-3.12":  675,
-    "2028-4.01":  630, "2028-4.02":  592, "2028-4.03":  555, "2028-4.04":  520,
-    "2028-4.05":  490, "2028-4.06":  460, "2028-4.07":  432, "2028-4.08":  406,
-    "2028-4.09":  382, "2028-4.10":  358, "2028-4.11":  336, "2028-4.12":  315,
-  };
+let PICK_VALUES = {};
 
-const KTC_DATA = {
-  "Josh Allen":                  { value:10134, rank:1,  posRank:"QB1",  team:"BUF", age:30.0, exp:0,  trend:"-241",  ppg:22.0, adp:0,  auction:0 },
-  "Bijan Robinson":              { value:10112, rank:2,  posRank:"RB1",  team:"ATL", age:24.3, exp:0,  trend:"-183",  ppg:21.8, adp:0,  auction:0 },
-  "Ja'Marr Chase":               { value:9577, rank:3,  posRank:"WR1",  team:"CIN", age:26.2, exp:0,  trend:"-292",  ppg:19.6, adp:0,  auction:0 },
-  "Jahmyr Gibbs":                { value:9565, rank:4,  posRank:"RB2",  team:"DET", age:24.2, exp:0,  trend:"+77",  ppg:21.6, adp:0,  auction:0 },
-  "Jaxon Smith-Njigba":          { value:9516, rank:5,  posRank:"WR2",  team:"SEA", age:24.3, exp:0,  trend:"+280",  ppg:21.2, adp:0,  auction:0 },
-  "Drake Maye":                  { value:8818, rank:6,  posRank:"QB2",  team:"NE", age:23.7, exp:0,  trend:"+127",  ppg:21.2, adp:0,  auction:0 },
-  "Puka Nacua":                  { value:8676, rank:7,  posRank:"WR3",  team:"LAR", age:25.0, exp:0,  trend:"+184",  ppg:23.4, adp:0,  auction:0 },
-  "Amon-Ra St. Brown":           { value:7627, rank:8,  posRank:"WR4",  team:"DET", age:26.6, exp:0,  trend:"+327",  ppg:19.1, adp:0,  auction:0 },
-  "Brock Bowers":                { value:7533, rank:9,  posRank:"TE1",  team:"LV", age:23.4, exp:0,  trend:"+33",  ppg:14.7, adp:0,  auction:0 },
-  "Malik Nabers":                { value:7502, rank:10,  posRank:"WR5",  team:"NYG", age:22.8, exp:0,  trend:"+254",  ppg:14.3, adp:0,  auction:0 },
-  "Jayden Daniels":              { value:7414, rank:11,  posRank:"QB3",  team:"WAS", age:25.4, exp:0,  trend:"-189",  ppg:16.8, adp:0,  auction:0 },
-  "Ashton Jeanty":               { value:7345, rank:12,  posRank:"RB3",  team:"LV", age:22.5, exp:0,  trend:"+348",  ppg:14.4, adp:0,  auction:0 },
-  "Lamar Jackson":               { value:7319, rank:13,  posRank:"QB4",  team:"BAL", age:29.4, exp:0,  trend:"-99",  ppg:17.1, adp:0,  auction:0 },
-  "Caleb Williams":              { value:7131, rank:14,  posRank:"QB5",  team:"CHI", age:24.5, exp:0,  trend:"+283",  ppg:19.1, adp:0,  auction:0 },
-  "Justin Jefferson":            { value:7110, rank:15,  posRank:"WR6",  team:"MIN", age:26.9, exp:0,  trend:"-401",  ppg:11.9, adp:0,  auction:0 },
-  "Trey McBride":                { value:6972, rank:16,  posRank:"TE2",  team:"ARI", age:26.5, exp:0,  trend:"-317",  ppg:18.6, adp:0,  auction:0 },
-  "2026 Pick 1.01":              { value:6895, rank:17,  posRank:"PICK1",  team:"", age:0, exp:0,  trend:"-278",  ppg:0, adp:0,  auction:0 },
-  "Jeremiyah Love":              { value:6799, rank:17,  posRank:"RB4",  team:"ARI", age:21.0, exp:0,  trend:"-287",  ppg:0, adp:0,  auction:0 },
-  "Joe Burrow":                  { value:6729, rank:18,  posRank:"QB6",  team:"CIN", age:29.4, exp:0,  trend:"-130",  ppg:17.4, adp:0,  auction:0 },
-  "CeeDee Lamb":                 { value:6584, rank:19,  posRank:"WR7",  team:"DAL", age:27.1, exp:0,  trend:"-248",  ppg:14.3, adp:0,  auction:0 },
-  "Drake London":                { value:5942, rank:20,  posRank:"WR8",  team:"ATL", age:24.8, exp:0,  trend:"+110",  ppg:16.8, adp:0,  auction:0 },
-  "Patrick Mahomes":             { value:5925, rank:21,  posRank:"QB7",  team:"KC", age:30.7, exp:0,  trend:"+42",  ppg:21.2, adp:0,  auction:0 },
-  "De'Von Achane":               { value:5852, rank:22,  posRank:"RB5",  team:"MIA", age:24.6, exp:0,  trend:"-138",  ppg:20.2, adp:0,  auction:0 },
-  "Omarion Hampton":             { value:5821, rank:23,  posRank:"RB6",  team:"LAC", age:23.2, exp:0,  trend:"-166",  ppg:15.1, adp:0,  auction:0 },
-  "Jalen Hurts":                 { value:5679, rank:24,  posRank:"QB8",  team:"PHI", age:27.8, exp:0,  trend:"+24",  ppg:19.1, adp:0,  auction:0 },
-  "Justin Herbert":              { value:5639, rank:25,  posRank:"QB9",  team:"LAC", age:28.2, exp:0,  trend:"-298",  ppg:18.7, adp:0,  auction:0 },
-  "Jaxson Dart":                 { value:5565, rank:26,  posRank:"QB10",  team:"NYG", age:23.0, exp:0,  trend:"+60",  ppg:17.6, adp:0,  auction:0 },
-  "Tetairoa McMillan":           { value:5166, rank:27,  posRank:"WR9",  team:"CAR", age:23.1, exp:0,  trend:"-14",  ppg:12.4, adp:0,  auction:0 },
-  "Jonathan Taylor":             { value:5060, rank:28,  posRank:"RB7",  team:"IND", age:27.3, exp:0,  trend:"+39",  ppg:21.3, adp:0,  auction:0 },
-  "Trevor Lawrence":             { value:4997, rank:29,  posRank:"QB11",  team:"JAX", age:26.6, exp:0,  trend:"+93",  ppg:20.6, adp:0,  auction:0 },
-  "Colston Loveland":            { value:4966, rank:30,  posRank:"TE3",  team:"CHI", age:22.1, exp:0,  trend:"+9",  ppg:10.3, adp:0,  auction:0 },
-  "James Cook":                  { value:4858, rank:31,  posRank:"RB8",  team:"BUF", age:26.6, exp:0,  trend:"-11",  ppg:17.8, adp:0,  auction:0 },
-  "Bo Nix":                      { value:4685, rank:32,  posRank:"QB12",  team:"DEN", age:26.2, exp:0,  trend:"-415",  ppg:18.6, adp:0,  auction:0 },
-  "George Pickens":              { value:4633, rank:33,  posRank:"WR10",  team:"DAL", age:25.2, exp:0,  trend:"+20",  ppg:17.2, adp:0,  auction:0 },
-  "2026 Pick 1.02":              { value:4520, rank:34,  posRank:"PICK2",  team:"", age:0, exp:0,  trend:"-216",  ppg:0, adp:0,  auction:0 },
-  "Emeka Egbuka":                { value:4473, rank:34,  posRank:"WR11",  team:"TB", age:23.6, exp:0,  trend:"+2",  ppg:11.5, adp:0,  auction:0 },
-  "Brock Purdy":                 { value:4462, rank:35,  posRank:"QB13",  team:"SF", age:26.4, exp:0,  trend:"-302",  ppg:20.8, adp:0,  auction:0 },
-  "Fernando Mendoza":            { value:4333, rank:36,  posRank:"QB14",  team:"LV", age:22.6, exp:0,  trend:"+138",  ppg:0, adp:0,  auction:0 },
-  "Tyler Warren":                { value:4328, rank:37,  posRank:"TE4",  team:"IND", age:24.0, exp:0,  trend:"-177",  ppg:11.1, adp:0,  auction:0 },
-  "Carnell Tate":                { value:4322, rank:38,  posRank:"WR12",  team:"TEN", age:21.3, exp:0,  trend:"+154",  ppg:0, adp:0,  auction:0 },
-  "Nico Collins":                { value:4295, rank:39,  posRank:"WR13",  team:"HOU", age:27.2, exp:0,  trend:"+131",  ppg:15.1, adp:0,  auction:0 },
-  "2026 Pick 1.03":              { value:4202, rank:40,  posRank:"PICK3",  team:"", age:0, exp:0,  trend:"+51",  ppg:0, adp:0,  auction:0 },
-  "Jordan Love":                 { value:4146, rank:40,  posRank:"QB15",  team:"GB", age:27.5, exp:0,  trend:"+211",  ppg:16.1, adp:0,  auction:0 },
-  "Garrett Wilson":              { value:4063, rank:41,  posRank:"WR14",  team:"NYJ", age:25.8, exp:0,  trend:"-256",  ppg:14.2, adp:0,  auction:0 },
-  "Rashee Rice":                 { value:4036, rank:42,  posRank:"WR15",  team:"KC", age:26.1, exp:0,  trend:"+198",  ppg:18.8, adp:0,  auction:0 },
-  "Breece Hall":                 { value:4029, rank:43,  posRank:"RB9",  team:"NYJ", age:25.0, exp:0,  trend:"+243",  ppg:13.0, adp:0,  auction:0 },
-  "Christian McCaffrey":         { value:3975, rank:44,  posRank:"RB10",  team:"SF", age:29.9, exp:0,  trend:"+123",  ppg:24.5, adp:0,  auction:0 },
-  "Jordyn Tyson":                { value:3970, rank:45,  posRank:"WR16",  team:"NO", age:21.8, exp:0,  trend:"+480",  ppg:0, adp:0,  auction:0 },
-  "Kenneth Walker III":          { value:3940, rank:46,  posRank:"RB11",  team:"KC", age:25.6, exp:0,  trend:"-452",  ppg:0, adp:0,  auction:0 },
-  "Chris Olave":                 { value:3916, rank:47,  posRank:"WR17",  team:"NO", age:25.9, exp:0,  trend:"-334",  ppg:16.8, adp:0,  auction:0 },
-  "Dak Prescott":                { value:3910, rank:48,  posRank:"QB16",  team:"DAL", age:32.8, exp:0,  trend:"+67",  ppg:19.0, adp:0,  auction:0 },
-  "2026 Pick 1.04":              { value:3883, rank:49,  posRank:"PICK4",  team:"", age:0, exp:0,  trend:"+101",  ppg:0, adp:0,  auction:0 },
-  "A.J. Brown":                  { value:3835, rank:49,  posRank:"WR18",  team:"PHI", age:28.9, exp:0,  trend:"+299",  ppg:14.7, adp:0,  auction:0 },
-  "TreVeyon Henderson":          { value:3798, rank:50,  posRank:"RB12",  team:"NE", age:23.6, exp:0,  trend:"-164",  ppg:12.1, adp:0,  auction:0 },
-  "Quinshon Judkins":            { value:3796, rank:51,  posRank:"RB13",  team:"CLE", age:22.5, exp:0,  trend:"-20",  ppg:11.3, adp:0,  auction:0 },
-  "Cam Ward":                    { value:3792, rank:52,  posRank:"QB17",  team:"TEN", age:24.0, exp:0,  trend:"+283",  ppg:11.4, adp:0,  auction:0 },
-  "2026 Pick 1.05":              { value:3763, rank:53,  posRank:"PICK5",  team:"", age:0, exp:0,  trend:"+313",  ppg:0, adp:0,  auction:0 },
-  "Marvin Harrison Jr.":         { value:3699, rank:53,  posRank:"WR19",  team:"ARI", age:23.8, exp:0,  trend:"+244",  ppg:0, adp:0,  auction:0 },
-  "Ladd McConkey":               { value:3693, rank:54,  posRank:"WR20",  team:"LAC", age:24.5, exp:0,  trend:"-18",  ppg:11.3, adp:0,  auction:0 },
-  "Makai Lemon":                 { value:3679, rank:55,  posRank:"WR21",  team:"PHI", age:22.0, exp:0,  trend:"-263",  ppg:0, adp:0,  auction:0 },
-  "Saquon Barkley":              { value:3636, rank:56,  posRank:"RB14",  team:"PHI", age:29.3, exp:0,  trend:"-75",  ppg:14.5, adp:0,  auction:0 },
-  "Rome Odunze":                 { value:3552, rank:57,  posRank:"WR22",  team:"CHI", age:24.0, exp:0,  trend:"-83",  ppg:12.2, adp:0,  auction:0 },
-  "C.J. Stroud":                 { value:3527, rank:58,  posRank:"QB18",  team:"HOU", age:24.6, exp:0,  trend:"+237",  ppg:15.5, adp:0,  auction:0 },
-  "Jadarian Price":              { value:3482, rank:59,  posRank:"RB15",  team:"SEA", age:22.6, exp:0,  trend:"+954",  ppg:0, adp:0,  auction:0 },
-  "Brian Thomas Jr.":            { value:3440, rank:60,  posRank:"WR23",  team:"JAX", age:23.6, exp:0,  trend:"-82",  ppg:0, adp:0,  auction:0 },
-  "Chase Brown":                 { value:3423, rank:61,  posRank:"RB16",  team:"CIN", age:26.2, exp:0,  trend:"-333",  ppg:16.6, adp:0,  auction:0 },
-  "2026 Pick 1.06":              { value:3395, rank:62,  posRank:"PICK6",  team:"", age:0, exp:0,  trend:"+329",  ppg:0, adp:0,  auction:0 },
-  "DeVonta Smith":               { value:3393, rank:62,  posRank:"WR24",  team:"PHI", age:27.5, exp:0,  trend:"+175",  ppg:11.9, adp:0,  auction:0 },
-  "Kyren Williams":              { value:3373, rank:63,  posRank:"RB17",  team:"LAR", age:25.7, exp:0,  trend:"+92",  ppg:15.5, adp:0,  auction:0 },
-  "Bucky Irving":                { value:3328, rank:64,  posRank:"RB18",  team:"TB", age:23.7, exp:0,  trend:"-307",  ppg:13.8, adp:0,  auction:0 },
-  "Tucker Kraft":                { value:3324, rank:65,  posRank:"TE5",  team:"GB", age:25.5, exp:0,  trend:"-214",  ppg:14.7, adp:0,  auction:0 },
-  "Luther Burden III":           { value:3310, rank:66,  posRank:"WR25",  team:"CHI", age:22.4, exp:0,  trend:"-248",  ppg:0, adp:0,  auction:0 },
-  "Harold Fannin Jr.":           { value:3306, rank:67,  posRank:"TE6",  team:"CLE", age:21.8, exp:0,  trend:"-107",  ppg:0, adp:0,  auction:0 },
-  "Baker Mayfield":              { value:3294, rank:68,  posRank:"QB19",  team:"TB", age:31.1, exp:0,  trend:"-171",  ppg:16.6, adp:0,  auction:0 },
-  "Jared Goff":                  { value:3282, rank:69,  posRank:"QB20",  team:"DET", age:31.6, exp:0,  trend:"+0",  ppg:17.9, adp:0,  auction:0 },
-  "Tyler Shough":                { value:3274, rank:70,  posRank:"QB21",  team:"NO", age:26.6, exp:0,  trend:"+225",  ppg:14.9, adp:0,  auction:0 },
-  "Jaylen Waddle":               { value:3257, rank:71,  posRank:"WR26",  team:"DEN", age:27.5, exp:0,  trend:"+155",  ppg:12.1, adp:0,  auction:0 },
-  "2026 1st":                    { value:3237, rank:72,  posRank:"PICK7",  team:"", age:0, exp:0,  trend:"+326",  ppg:0, adp:0,  auction:0 },
-  "Zay Flowers":                 { value:3219, rank:72,  posRank:"WR27",  team:"BAL", age:25.7, exp:0,  trend:"+87",  ppg:14.3, adp:0,  auction:0 },
-  "Tee Higgins":                 { value:3131, rank:73,  posRank:"WR28",  team:"CIN", age:27.3, exp:0,  trend:"-150",  ppg:14.1, adp:0,  auction:0 },
-  "Kenyon Sadiq":                { value:3101, rank:74,  posRank:"TE7",  team:"NYJ", age:21.2, exp:0,  trend:"-119",  ppg:0, adp:0,  auction:0 },
-  "2026 Pick 1.07":              { value:3079, rank:75,  posRank:"PICK8",  team:"", age:0, exp:0,  trend:"+323",  ppg:0, adp:0,  auction:0 },
-  "2027 1st":                    { value:3058, rank:75,  posRank:"PICK9",  team:"", age:0, exp:0,  trend:"+46",  ppg:0, adp:0,  auction:0 },
-  "Kyler Murray":                { value:3039, rank:75,  posRank:"QB22",  team:"MIN", age:28.8, exp:0,  trend:"-76",  ppg:16.2, adp:0,  auction:0 },
-  "Cam Skattebo":                { value:3036, rank:76,  posRank:"RB19",  team:"NYG", age:24.3, exp:0,  trend:"+254",  ppg:16.0, adp:0,  auction:0 },
-  "KC Concepcion":               { value:3021, rank:77,  posRank:"WR29",  team:"CLE", age:21.6, exp:0,  trend:"+243",  ppg:0, adp:0,  auction:0 },
-  "Travis Etienne Jr.":          { value:3020, rank:78,  posRank:"RB20",  team:"NO", age:27.3, exp:0,  trend:"-69",  ppg:0, adp:0,  auction:0 },
-  "Sam Darnold":                 { value:2992, rank:79,  posRank:"QB23",  team:"SEA", age:29.0, exp:0,  trend:"+36",  ppg:14.7, adp:0,  auction:0 },
-  "Josh Jacobs":                 { value:2983, rank:80,  posRank:"RB21",  team:"GB", age:28.3, exp:0,  trend:"+5",  ppg:15.8, adp:0,  auction:0 },
-  "Sam LaPorta":                 { value:2980, rank:81,  posRank:"TE8",  team:"DET", age:25.3, exp:0,  trend:"-87",  ppg:11.9, adp:0,  auction:0 },
-  "Javonte Williams":            { value:2924, rank:82,  posRank:"RB22",  team:"DAL", age:26.1, exp:0,  trend:"+76",  ppg:15.2, adp:0,  auction:0 },
-  "Bryce Young":                 { value:2913, rank:83,  posRank:"QB24",  team:"CAR", age:24.8, exp:0,  trend:"-15",  ppg:14.3, adp:0,  auction:0 },
-  "Jameson Williams":            { value:2911, rank:84,  posRank:"WR30",  team:"DET", age:25.1, exp:0,  trend:"-96",  ppg:12.9, adp:0,  auction:0 },
-  "2026 Pick 1.08":              { value:2897, rank:85,  posRank:"PICK10",  team:"", age:0, exp:0,  trend:"+342",  ppg:0, adp:0,  auction:0 },
-  "2026 Pick 1.09":              { value:2794, rank:85,  posRank:"PICK11",  team:"", age:0, exp:0,  trend:"+326",  ppg:0, adp:0,  auction:0 },
-  "Kyle Pitts":                  { value:2757, rank:85,  posRank:"TE9",  team:"ATL", age:25.6, exp:0,  trend:"-55",  ppg:12.4, adp:0,  auction:0 },
-  "Omar Cooper":                 { value:2662, rank:86,  posRank:"WR31",  team:"NYJ", age:22.4, exp:0,  trend:"+187",  ppg:0, adp:0,  auction:0 },
-  "Daniel Jones":                { value:2649, rank:87,  posRank:"QB25",  team:"IND", age:29.0, exp:0,  trend:"-42",  ppg:18.0, adp:0,  auction:0 },
-  "Ty Simpson":                  { value:2637, rank:88,  posRank:"QB26",  team:"LAR", age:23.4, exp:0,  trend:"+392",  ppg:0, adp:0,  auction:0 },
-  "Derrick Henry":               { value:2636, rank:89,  posRank:"RB23",  team:"BAL", age:32.4, exp:0,  trend:"+47",  ppg:16.4, adp:0,  auction:0 },
-  "2026 Pick 1.10":              { value:2630, rank:90,  posRank:"PICK12",  team:"", age:0, exp:0,  trend:"+344",  ppg:0, adp:0,  auction:0 },
-  "Malik Willis":                { value:2566, rank:90,  posRank:"QB27",  team:"MIA", age:27.0, exp:0,  trend:"+40",  ppg:12.8, adp:0,  auction:0 },
-  "Eli Stowers":                 { value:2565, rank:91,  posRank:"TE10",  team:"PHI", age:23.1, exp:0,  trend:"+368",  ppg:0, adp:0,  auction:0 },
-  "Matthew Stafford":            { value:2507, rank:92,  posRank:"QB28",  team:"LAR", age:38.3, exp:0,  trend:"+40",  ppg:21.1, adp:0,  auction:0 },
-  "2026 Pick 1.11":              { value:2484, rank:93,  posRank:"PICK13",  team:"", age:0, exp:0,  trend:"+283",  ppg:0, adp:0,  auction:0 },
-  "2026 Pick 1.12":              { value:2354, rank:93,  posRank:"PICK14",  team:"", age:0, exp:0,  trend:"+245",  ppg:0, adp:0,  auction:0 },
-  "D.J. Moore":                  { value:2353, rank:93,  posRank:"WR32",  team:"BUF", age:29.1, exp:0,  trend:"+27",  ppg:0, adp:0,  auction:0 },
-  "Denzel Boston":               { value:2312, rank:94,  posRank:"WR33",  team:"CLE", age:22.4, exp:0,  trend:"-80",  ppg:0, adp:0,  auction:0 },
-  "Oronde Gadsden":              { value:2311, rank:95,  posRank:"TE11",  team:"LAC", age:22.9, exp:0,  trend:"-108",  ppg:8.8, adp:0,  auction:0 },
-  "Bhayshul Tuten":              { value:2274, rank:96,  posRank:"RB24",  team:"JAX", age:23.3, exp:0,  trend:"+38",  ppg:5.9, adp:0,  auction:0 },
-  "2026 Pick 2.01":              { value:2237, rank:97,  posRank:"PICK15",  team:"", age:0, exp:0,  trend:"+331",  ppg:0, adp:0,  auction:0 },
-  "D'Andre Swift":               { value:2193, rank:97,  posRank:"RB25",  team:"CHI", age:27.3, exp:0,  trend:"+201",  ppg:14.3, adp:0,  auction:0 },
-  "Alec Pierce":                 { value:2184, rank:98,  posRank:"WR34",  team:"IND", age:26.0, exp:0,  trend:"-193",  ppg:12.2, adp:0,  auction:0 },
-  "DK Metcalf":                  { value:2183, rank:99,  posRank:"WR35",  team:"PIT", age:28.4, exp:0,  trend:"+238",  ppg:12.5, adp:0,  auction:0 },
-  "2028 1st":                    { value:2183, rank:99,  posRank:"PICK16",  team:"", age:0, exp:0,  trend:"+8",  ppg:0, adp:0,  auction:0 },
-  "Jonah Coleman":               { value:2179, rank:100,  posRank:"RB26",  team:"DEN", age:22.7, exp:0,  trend:"+41",  ppg:0, adp:0,  auction:0 },
-  "George Kittle":               { value:2176, rank:101,  posRank:"TE12",  team:"SF", age:32.6, exp:0,  trend:"+113",  ppg:14.7, adp:0,  auction:0 },
-  "2026 Pick 2.02":              { value:2131, rank:102,  posRank:"PICK17",  team:"", age:0, exp:0,  trend:"+322",  ppg:0, adp:0,  auction:0 },
-  "Matthew Golden":              { value:2090, rank:102,  posRank:"WR36",  team:"GB", age:22.8, exp:0,  trend:"-2",  ppg:5.0, adp:0,  auction:0 },
-  "David Montgomery":            { value:2090, rank:103,  posRank:"RB27",  team:"HOU", age:28.9, exp:0,  trend:"+60",  ppg:9.8, adp:0,  auction:0 },
-  "Terry McLaurin":              { value:2088, rank:104,  posRank:"WR37",  team:"WAS", age:30.7, exp:0,  trend:"-13",  ppg:11.4, adp:0,  auction:0 },
-  "Christian Watson":            { value:2081, rank:105,  posRank:"WR38",  team:"GB", age:27.0, exp:0,  trend:"+149",  ppg:13.2, adp:0,  auction:0 },
-  "Davante Adams":               { value:2070, rank:106,  posRank:"WR39",  team:"LAR", age:33.4, exp:0,  trend:"-143",  ppg:15.9, adp:0,  auction:0 },
-  "Chuba Hubbard":               { value:2057, rank:107,  posRank:"RB28",  team:"CAR", age:26.9, exp:0,  trend:"+138",  ppg:8.4, adp:0,  auction:0 },
-  "2029 1st":                    { value:2055, rank:108,  posRank:"PICK18",  team:"", age:0, exp:0,  trend:"+72",  ppg:0, adp:0,  auction:0 },
-  "Jake Ferguson":               { value:2053, rank:109,  posRank:"TE13",  team:"DAL", age:27.3, exp:0,  trend:"+118",  ppg:11.1, adp:0,  auction:0 },
-  "Chris Bell":                  { value:2053, rank:108,  posRank:"WR40",  team:"MIA", age:21.9, exp:0,  trend:"+428",  ppg:0, adp:0,  auction:0 },
-  "2026 Pick 2.03":              { value:2034, rank:110,  posRank:"PICK19",  team:"", age:0, exp:0,  trend:"+291",  ppg:0, adp:0,  auction:0 },
-  "Jordan Addison":              { value:2016, rank:111,  posRank:"WR41",  team:"MIN", age:24.3, exp:0,  trend:"-268",  ppg:9.7, adp:0,  auction:0 },
-  "RJ Harvey":                   { value:2016, rank:110,  posRank:"RB29",  team:"DEN", age:25.3, exp:0,  trend:"-209",  ppg:12.2, adp:0,  auction:0 },
-  "Michael Wilson":              { value:2010, rank:112,  posRank:"WR42",  team:"ARI", age:26.2, exp:0,  trend:"-76",  ppg:13.0, adp:0,  auction:0 },
-  "Mike Evans":                  { value:1998, rank:113,  posRank:"WR43",  team:"SF", age:32.7, exp:0,  trend:"-53",  ppg:10.6, adp:0,  auction:0 },
-  "Travis Hunter":               { value:1994, rank:114,  posRank:"WR44",  team:"JAX", age:23.0, exp:0,  trend:"+116",  ppg:9.1, adp:0,  auction:0 },
-  "2026 Pick 2.04":              { value:1946, rank:115,  posRank:"PICK20",  team:"", age:0, exp:0,  trend:"+265",  ppg:0, adp:0,  auction:0 },
-  "Jayden Reed":                 { value:1939, rank:115,  posRank:"WR45",  team:"GB", age:26.1, exp:0,  trend:"+298",  ppg:6.9, adp:0,  auction:0 },
-  "Isaiah Likely":               { value:1923, rank:116,  posRank:"TE14",  team:"NYG", age:26.1, exp:0,  trend:"-72",  ppg:4.4, adp:0,  auction:0 },
-  "Antonio Williams":            { value:1895, rank:117,  posRank:"WR46",  team:"WAS", age:21.8, exp:0,  trend:"+514",  ppg:0, adp:0,  auction:0 },
-  "Ricky Pearsall":              { value:1885, rank:118,  posRank:"WR47",  team:"SF", age:25.7, exp:0,  trend:"-48",  ppg:9.8, adp:0,  auction:0 },
-  "Zach Charbonnet":             { value:1875, rank:119,  posRank:"RB30",  team:"SEA", age:25.4, exp:0,  trend:"+20",  ppg:11.3, adp:0,  auction:0 },
-  "Wan'Dale Robinson":           { value:1873, rank:120,  posRank:"WR48",  team:"TEN", age:25.4, exp:0,  trend:"-137",  ppg:13.6, adp:0,  auction:0 },
-  "Parker Washington":           { value:1872, rank:121,  posRank:"WR49",  team:"JAX", age:24.2, exp:0,  trend:"-172",  ppg:11.5, adp:0,  auction:0 },
-  "Josh Downs":                  { value:1866, rank:122,  posRank:"WR50",  team:"IND", age:24.8, exp:0,  trend:"+175",  ppg:8.5, adp:0,  auction:0 },
-  "2026 Pick 2.05":              { value:1865, rank:123,  posRank:"PICK21",  team:"", age:0, exp:0,  trend:"+255",  ppg:0, adp:0,  auction:0 },
-  "Germie Bernard":              { value:1862, rank:123,  posRank:"WR51",  team:"PIT", age:22.5, exp:0,  trend:"+355",  ppg:0, adp:0,  auction:0 },
-  "Nicholas Singleton":          { value:1858, rank:124,  posRank:"RB31",  team:"TEN", age:22.4, exp:0,  trend:"+98",  ppg:0, adp:0,  auction:0 },
-  "Dalton Kincaid":              { value:1846, rank:125,  posRank:"TE15",  team:"BUF", age:26.6, exp:0,  trend:"-86",  ppg:10.5, adp:0,  auction:0 },
-  "Michael Pittman Jr.":         { value:1819, rank:126,  posRank:"WR52",  team:"PIT", age:28.6, exp:0,  trend:"-91",  ppg:0, adp:0,  auction:0 },
-  "Jayden Higgins":              { value:1812, rank:127,  posRank:"WR53",  team:"HOU", age:23.4, exp:0,  trend:"-103",  ppg:7.6, adp:0,  auction:0 },
-  "2026 Pick 2.06":              { value:1791, rank:128,  posRank:"PICK22",  team:"", age:0, exp:0,  trend:"+256",  ppg:0, adp:0,  auction:0 },
-  "Rico Dowdle":                 { value:1768, rank:128,  posRank:"RB32",  team:"PIT", age:27.9, exp:0,  trend:"+27",  ppg:12.7, adp:0,  auction:0 },
-  "Michael Penix Jr.":           { value:1766, rank:129,  posRank:"QB29",  team:"ATL", age:26.0, exp:0,  trend:"-56",  ppg:0, adp:0,  auction:0 },
-  "Quentin Johnston":            { value:1761, rank:130,  posRank:"WR54",  team:"LAC", age:24.7, exp:0,  trend:"+61",  ppg:12.2, adp:0,  auction:0 },
-  "2026 2nd":                    { value:1757, rank:131,  posRank:"PICK23",  team:"", age:0, exp:0,  trend:"+250",  ppg:0, adp:0,  auction:0 },
-  "Xavier Worthy":               { value:1747, rank:131,  posRank:"WR55",  team:"KC", age:23.1, exp:0,  trend:"-102",  ppg:7.9, adp:0,  auction:0 },
-  "J.J. McCarthy":               { value:1735, rank:132,  posRank:"QB30",  team:"MIN", age:23.3, exp:0,  trend:"+39",  ppg:13.7, adp:0,  auction:0 },
-  "2026 Pick 2.07":              { value:1722, rank:133,  posRank:"PICK24",  team:"", age:0, exp:0,  trend:"+242",  ppg:0, adp:0,  auction:0 },
-  "Emmett Johnson":              { value:1709, rank:133,  posRank:"RB33",  team:"KC", age:22.6, exp:0,  trend:"-110",  ppg:0, adp:0,  auction:0 },
-  "Kyle Monangai":               { value:1706, rank:134,  posRank:"RB34",  team:"CHI", age:23.9, exp:0,  trend:"-20",  ppg:8.6, adp:0,  auction:0 },
-  "Jakobi Meyers":               { value:1700, rank:135,  posRank:"WR56",  team:"JAX", age:29.5, exp:0,  trend:"+38",  ppg:11.0, adp:0,  auction:0 },
-  "Courtland Sutton":            { value:1696, rank:136,  posRank:"WR57",  team:"DEN", age:30.6, exp:0,  trend:"-61",  ppg:12.9, adp:0,  auction:0 },
-  "Jaylen Warren":               { value:1689, rank:137,  posRank:"RB35",  team:"PIT", age:27.5, exp:0,  trend:"+90",  ppg:13.6, adp:0,  auction:0 },
-  "Chris Godwin":                { value:1675, rank:138,  posRank:"WR58",  team:"TB", age:30.2, exp:0,  trend:"+149",  ppg:9.2, adp:0,  auction:0 },
-  "2026 Pick 2.08":              { value:1659, rank:139,  posRank:"PICK25",  team:"", age:0, exp:0,  trend:"+209",  ppg:0, adp:0,  auction:0 },
-  "Jonathon Brooks":             { value:1657, rank:139,  posRank:"RB36",  team:"CAR", age:22.8, exp:0,  trend:"+47",  ppg:0, adp:0,  auction:0 },
-  "Tua Tagovailoa":              { value:1653, rank:140,  posRank:"QB31",  team:"ATL", age:28.2, exp:0,  trend:"-93",  ppg:12.5, adp:0,  auction:0 },
-  "Brenton Strange":             { value:1642, rank:141,  posRank:"TE16",  team:"JAX", age:25.4, exp:0,  trend:"+3",  ppg:9.8, adp:0,  auction:0 },
-  "De'Zhaun Stribling":          { value:1635, rank:142,  posRank:"WR59",  team:"SF", age:23.4, exp:0,  trend:"+1635",  ppg:0, adp:0,  auction:0 },
-  "Carson Beck":                 { value:1612, rank:143,  posRank:"QB32",  team:"ARI", age:23.5, exp:0,  trend:"+357",  ppg:0, adp:0,  auction:0 },
-  "Elijah Sarratt":              { value:1607, rank:144,  posRank:"WR60",  team:"BAL", age:23.0, exp:0,  trend:"-100",  ppg:0, adp:0,  auction:0 },
-  "Mark Andrews":                { value:1606, rank:145,  posRank:"TE17",  team:"BAL", age:30.7, exp:0,  trend:"+97",  ppg:7.7, adp:0,  auction:0 },
-  "Romeo Doubs":                 { value:1604, rank:146,  posRank:"WR61",  team:"NE", age:26.1, exp:0,  trend:"-226",  ppg:10.3, adp:0,  auction:0 },
-  "2026 Pick 2.09":              { value:1599, rank:147,  posRank:"PICK26",  team:"", age:0, exp:0,  trend:"+182",  ppg:0, adp:0,  auction:0 },
-  "Rhamondre Stevenson":         { value:1592, rank:147,  posRank:"RB37",  team:"NE", age:28.2, exp:0,  trend:"+15",  ppg:12.8, adp:0,  auction:0 },
-  "2027 2nd":                    { value:1580, rank:148,  posRank:"PICK27",  team:"", age:0, exp:0,  trend:"+28",  ppg:0, adp:0,  auction:0 },
-  "Blake Corum":                 { value:1578, rank:148,  posRank:"RB38",  team:"LAR", age:25.5, exp:0,  trend:"-81",  ppg:7.2, adp:0,  auction:0 },
-  "Chig Okonkwo":                { value:1574, rank:149,  posRank:"TE18",  team:"WAS", age:26.7, exp:0,  trend:"-43",  ppg:7.3, adp:0,  auction:0 },
-  "Zachariah Branch":            { value:1570, rank:150,  posRank:"WR62",  team:"ATL", age:22.1, exp:0,  trend:"-40",  ppg:0, adp:0,  auction:0 },
-  "T.J. Hockenson":              { value:1564, rank:151,  posRank:"TE19",  team:"MIN", age:28.9, exp:0,  trend:"+19",  ppg:7.5, adp:0,  auction:0 },
-  "Geno Smith":                  { value:1560, rank:152,  posRank:"QB33",  team:"NYJ", age:35.6, exp:0,  trend:"+217",  ppg:12.7, adp:0,  auction:0 },
-  "Khalil Shakir":               { value:1551, rank:153,  posRank:"WR63",  team:"BUF", age:26.3, exp:0,  trend:"+143",  ppg:10.4, adp:0,  auction:0 },
-  "Shedeur Sanders":             { value:1548, rank:154,  posRank:"QB34",  team:"CLE", age:24.3, exp:0,  trend:"-143",  ppg:11.9, adp:0,  auction:0 },
-  "2026 Pick 2.10":              { value:1544, rank:155,  posRank:"PICK28",  team:"", age:0, exp:0,  trend:"+228",  ppg:0, adp:0,  auction:0 },
-  "Tony Pollard":                { value:1536, rank:155,  posRank:"RB39",  team:"TEN", age:29.0, exp:0,  trend:"+214",  ppg:10.9, adp:0,  auction:0 },
-  "Jacory Croskey-Merritt":      { value:1532, rank:157,  posRank:"RB41",  team:"WAS", age:25.1, exp:0,  trend:"+141",  ppg:8.3, adp:0,  auction:0 },
-  "Kaytron Allen":               { value:1532, rank:156,  posRank:"RB40",  team:"WAS", age:23.4, exp:0,  trend:"+164",  ppg:0, adp:0,  auction:0 },
-  "AJ Barner":                   { value:1525, rank:158,  posRank:"TE20",  team:"SEA", age:24.0, exp:0,  trend:"+99",  ppg:8.7, adp:0,  auction:0 },
-  "Jalen Coker":                 { value:1518, rank:159,  posRank:"WR64",  team:"CAR", age:24.5, exp:0,  trend:"+15",  ppg:8.2, adp:0,  auction:0 },
-  "J.K. Dobbins":                { value:1515, rank:160,  posRank:"RB42",  team:"DEN", age:27.4, exp:0,  trend:"-233",  ppg:11.6, adp:0,  auction:0 },
-  "2026 Pick 2.11":              { value:1493, rank:161,  posRank:"PICK29",  team:"", age:0, exp:0,  trend:"+224",  ppg:0, adp:0,  auction:0 },
-  "Malachi Fields":              { value:1492, rank:161,  posRank:"WR65",  team:"NYG", age:22.7, exp:0,  trend:"+86",  ppg:0, adp:0,  auction:0 },
-  "Dallas Goedert":              { value:1487, rank:162,  posRank:"TE21",  team:"PHI", age:31.4, exp:0,  trend:"-61",  ppg:12.3, adp:0,  auction:0 },
-  "Kenneth Gainwell":            { value:1478, rank:163,  posRank:"RB43",  team:"TB", age:27.2, exp:0,  trend:"+16",  ppg:13.1, adp:0,  auction:0 },
-  "Travis Kelce":                { value:1469, rank:164,  posRank:"TE22",  team:"KC", age:36.6, exp:0,  trend:"-1",  ppg:11.4, adp:0,  auction:0 },
-  "Ted Hurst":                   { value:1465, rank:165,  posRank:"WR66",  team:"TB", age:21.9, exp:0,  trend:"+134",  ppg:0, adp:0,  auction:0 },
-  "Jacoby Brissett":             { value:1465, rank:166,  posRank:"QB35",  team:"ARI", age:33.4, exp:0,  trend:"-89",  ppg:16.8, adp:0,  auction:0 },
-  "Jalen McMillan":              { value:1457, rank:167,  posRank:"WR67",  team:"TB", age:24.4, exp:0,  trend:"-98",  ppg:7.5, adp:0,  auction:0 },
-  "2026 Pick 2.12":              { value:1445, rank:168,  posRank:"PICK30",  team:"", age:0, exp:0,  trend:"+220",  ppg:0, adp:0,  auction:0 },
-  "Chris Brazzell":              { value:1440, rank:168,  posRank:"WR68",  team:"CAR", age:22.6, exp:0,  trend:"-202",  ppg:0, adp:0,  auction:0 },
-  "Mike Washington":             { value:1435, rank:169,  posRank:"RB44",  team:"LV", age:22.9, exp:0,  trend:"-553",  ppg:0, adp:0,  auction:0 },
-  "Rachaad White":               { value:1427, rank:170,  posRank:"RB45",  team:"WAS", age:27.3, exp:0,  trend:"+70",  ppg:8.4, adp:0,  auction:0 },
-  "2026 Pick 3.01":              { value:1400, rank:171,  posRank:"PICK31",  team:"", age:0, exp:0,  trend:"+215",  ppg:0, adp:0,  auction:0 },
-  "Tyler Allgeier":              { value:1398, rank:171,  posRank:"RB46",  team:"ARI", age:26.1, exp:0,  trend:"-430",  ppg:7.2, adp:0,  auction:0 },
-  "Brandon Aiyuk":               { value:1383, rank:172,  posRank:"WR69",  team:"SF", age:28.2, exp:0,  trend:"-138",  ppg:0, adp:0,  auction:0 },
-  "2028 2nd":                    { value:1381, rank:173,  posRank:"PICK32",  team:"", age:0, exp:0,  trend:"+55",  ppg:0, adp:0,  auction:0 },
-  "Deshaun Watson":              { value:1374, rank:173,  posRank:"QB36",  team:"CLE", age:30.7, exp:0,  trend:"+214",  ppg:0, adp:0,  auction:0 },
-  "Drew Allar":                  { value:1359, rank:174,  posRank:"QB37",  team:"PIT", age:22.2, exp:0,  trend:"+341",  ppg:0, adp:0,  auction:0 },
-  "Juwan Johnson":               { value:1359, rank:175,  posRank:"TE23",  team:"NO", age:29.7, exp:0,  trend:"+62",  ppg:10.6, adp:0,  auction:0 },
-  "2026 Pick 3.02":              { value:1358, rank:176,  posRank:"PICK33",  team:"", age:0, exp:0,  trend:"+212",  ppg:0, adp:0,  auction:0 },
-  "Woody Marks":                 { value:1351, rank:176,  posRank:"RB47",  team:"HOU", age:25.4, exp:0,  trend:"+19",  ppg:9.4, adp:0,  auction:0 },
-  "Skyler Bell":                 { value:1348, rank:177,  posRank:"WR70",  team:"BUF", age:23.9, exp:0,  trend:"+70",  ppg:0, adp:0,  auction:0 },
-  "Max Klare":                   { value:1348, rank:178,  posRank:"TE24",  team:"LAR", age:22.9, exp:0,  trend:"-21",  ppg:0, adp:0,  auction:0 },
-  "Jauan Jennings":              { value:1341, rank:179,  posRank:"WR71",  team:"MIN", age:28.9, exp:0,  trend:"+367",  ppg:11.6, adp:0,  auction:0 },
-  "Jordan Mason":                { value:1330, rank:180,  posRank:"RB48",  team:"MIN", age:27.0, exp:0,  trend:"-28",  ppg:8.1, adp:0,  auction:0 },
-  "Dylan Sampson":               { value:1325, rank:181,  posRank:"RB49",  team:"CLE", age:21.7, exp:0,  trend:"+21",  ppg:5.8, adp:0,  auction:0 },
-  "2029 2nd":                    { value:1321, rank:182,  posRank:"PICK34",  team:"", age:0, exp:0,  trend:"-25",  ppg:0, adp:0,  auction:0 },
-  "Tyrone Tracy":                { value:1321, rank:182,  posRank:"RB50",  team:"NYG", age:26.5, exp:0,  trend:"+272",  ppg:10.7, adp:0,  auction:0 },
-  "Isiah Pacheco":               { value:1320, rank:183,  posRank:"RB51",  team:"DET", age:27.2, exp:0,  trend:"-9",  ppg:6.7, adp:0,  auction:0 },
-  "2026 Pick 3.03":              { value:1318, rank:184,  posRank:"PICK35",  team:"", age:0, exp:0,  trend:"+207",  ppg:0, adp:0,  auction:0 },
-  "Gunnar Helm":                 { value:1315, rank:184,  posRank:"TE25",  team:"TEN", age:23.7, exp:0,  trend:"-146",  ppg:5.7, adp:0,  auction:0 },
-  "Chris Rodriguez":             { value:1311, rank:185,  posRank:"RB52",  team:"JAX", age:26.6, exp:0,  trend:"+35",  ppg:7.1, adp:0,  auction:0 },
-  "Kirk Cousins":                { value:1306, rank:186,  posRank:"QB38",  team:"LV", age:37.8, exp:0,  trend:"+51",  ppg:10.9, adp:0,  auction:0 },
-  "Tre' Harris":                 { value:1300, rank:187,  posRank:"WR72",  team:"LAC", age:24.2, exp:0,  trend:"-250",  ppg:4.1, adp:0,  auction:0 },
-  "Ja'Kobi Lane":                { value:1294, rank:188,  posRank:"WR73",  team:"BAL", age:22.0, exp:0,  trend:"-153",  ppg:0, adp:0,  auction:0 },
-  "Rashid Shaheed":              { value:1287, rank:189,  posRank:"WR74",  team:"SEA", age:27.7, exp:0,  trend:"-95",  ppg:8.7, adp:0,  auction:0 },
-  "2026 Pick 3.04":              { value:1280, rank:190,  posRank:"PICK36",  team:"", age:0, exp:0,  trend:"+203",  ppg:0, adp:0,  auction:0 },
-  "2026 Pick 3.05":              { value:1245, rank:190,  posRank:"PICK37",  team:"", age:0, exp:0,  trend:"+200",  ppg:0, adp:0,  auction:0 },
-  "Braelon Allen":               { value:1245, rank:190,  posRank:"RB53",  team:"NYJ", age:22.3, exp:0,  trend:"-47",  ppg:3.8, adp:0,  auction:0 },
-  "Demond Claiborne":            { value:1225, rank:191,  posRank:"RB54",  team:"MIN", age:22.6, exp:0,  trend:"-90",  ppg:0, adp:0,  auction:0 },
-  "Isaac TeSlaa":                { value:1214, rank:192,  posRank:"WR75",  team:"DET", age:24.2, exp:0,  trend:"-22",  ppg:4.5, adp:0,  auction:0 },
-  "2026 Pick 3.06":              { value:1211, rank:193,  posRank:"PICK38",  team:"", age:0, exp:0,  trend:"+195",  ppg:0, adp:0,  auction:0 },
-  "Tyjae Spears":                { value:1206, rank:193,  posRank:"RB55",  team:"TEN", age:24.9, exp:0,  trend:"+322",  ppg:8.6, adp:0,  auction:0 },
-  "Aaron Jones":                 { value:1205, rank:194,  posRank:"RB56",  team:"MIN", age:31.5, exp:0,  trend:"+56",  ppg:9.9, adp:0,  auction:0 },
-  "Jerry Jeudy":                 { value:1203, rank:195,  posRank:"WR76",  team:"CLE", age:27.1, exp:0,  trend:"-67",  ppg:7.1, adp:0,  auction:0 },
-  "Keon Coleman":                { value:1202, rank:196,  posRank:"WR77",  team:"BUF", age:23.0, exp:0,  trend:"+19",  ppg:7.9, adp:0,  auction:0 },
-  "Kaleb Johnson":               { value:1197, rank:197,  posRank:"RB57",  team:"PIT", age:22.8, exp:0,  trend:"-98",  ppg:0.9, adp:0,  auction:0 },
-  "Tank Bigsby":                 { value:1197, rank:198,  posRank:"RB58",  team:"PHI", age:23.7, exp:0,  trend:"-6",  ppg:3.2, adp:0,  auction:0 },
-  "2026 3rd":                    { value:1195, rank:199,  posRank:"PICK39",  team:"", age:0, exp:0,  trend:"+193",  ppg:0, adp:0,  auction:0 },
-  "Alvin Kamara":                { value:1188, rank:199,  posRank:"RB59",  team:"NO", age:30.8, exp:0,  trend:"+17",  ppg:9.2, adp:0,  auction:0 },
-  "Aaron Rodgers":               { value:1182, rank:200,  posRank:"QB39",  team:"", age:42.5, exp:0,  trend:"+423",  ppg:14.6, adp:0,  auction:0 },
-  "David Njoku":                 { value:1179, rank:201,  posRank:"TE26",  team:"", age:29.9, exp:0,  trend:"+36",  ppg:7.2, adp:0,  auction:0 },
-  "2026 Pick 3.07":              { value:1179, rank:201,  posRank:"PICK40",  team:"", age:0, exp:0,  trend:"+192",  ppg:0, adp:0,  auction:0 },
-  "Brian Robinson":              { value:1171, rank:202,  posRank:"RB60",  team:"ATL", age:27.2, exp:0,  trend:"-46",  ppg:3.7, adp:0,  auction:0 },
-  "Jalen Nailor":                { value:1167, rank:203,  posRank:"WR78",  team:"LV", age:27.2, exp:0,  trend:"+202",  ppg:5.9, adp:0,  auction:0 },
-  "Tory Horton":                 { value:1166, rank:204,  posRank:"WR79",  team:"SEA", age:23.5, exp:0,  trend:"+130",  ppg:8.1, adp:0,  auction:0 },
-  "Stefon Diggs":                { value:1159, rank:205,  posRank:"WR80",  team:"", age:32.5, exp:0,  trend:"+401",  ppg:12.4, adp:0,  auction:0 },
-  "Keaton Mitchell":             { value:1158, rank:206,  posRank:"RB61",  team:"LAC", age:24.3, exp:0,  trend:"-76",  ppg:4.3, adp:0,  auction:0 },
-  "Anthony Richardson":          { value:1158, rank:207,  posRank:"QB40",  team:"IND", age:24.0, exp:0,  trend:"+115",  ppg:1.1, adp:0,  auction:0 },
-  "2026 Pick 3.08":              { value:1149, rank:208,  posRank:"PICK41",  team:"", age:0, exp:0,  trend:"+188",  ppg:0, adp:0,  auction:0 },
-  "Hunter Henry":                { value:1149, rank:208,  posRank:"TE27",  team:"NE", age:31.4, exp:0,  trend:"+67",  ppg:10.5, adp:0,  auction:0 },
-  "Tank Dell":                   { value:1138, rank:209,  posRank:"WR81",  team:"HOU", age:26.6, exp:0,  trend:"+28",  ppg:0, adp:0,  auction:0 },
-  "Dalton Schultz":              { value:1132, rank:210,  posRank:"TE28",  team:"HOU", age:29.9, exp:0,  trend:"+282",  ppg:10.5, adp:0,  auction:0 },
-  "Jack Bech":                   { value:1127, rank:211,  posRank:"WR82",  team:"LV", age:23.4, exp:0,  trend:"+216",  ppg:2.6, adp:0,  auction:0 },
-  "2026 Pick 3.09":              { value:1121, rank:212,  posRank:"PICK42",  team:"", age:0, exp:0,  trend:"+185",  ppg:0, adp:0,  auction:0 },
-  "Justin Fields":               { value:1119, rank:212,  posRank:"QB41",  team:"KC", age:27.2, exp:0,  trend:"-193",  ppg:16.0, adp:0,  auction:0 },
-  "2026 Pick 3.10":              { value:1093, rank:213,  posRank:"PICK43",  team:"", age:0, exp:0,  trend:"+181",  ppg:0, adp:0,  auction:0 },
-  "2027 3rd":                    { value:1087, rank:213,  posRank:"PICK44",  team:"", age:0, exp:0,  trend:"+38",  ppg:0, adp:0,  auction:0 },
-  "Kaelon Black":                { value:1085, rank:213,  posRank:"RB62",  team:"SF", age:24.6, exp:0,  trend:"+1085",  ppg:0, adp:0,  auction:0 },
-  "Cade Otton":                  { value:1078, rank:214,  posRank:"TE29",  team:"TB", age:27.1, exp:0,  trend:"+23",  ppg:7.6, adp:0,  auction:0 },
-  "Troy Franklin":               { value:1069, rank:215,  posRank:"WR83",  team:"DEN", age:23.3, exp:0,  trend:"-122",  ppg:10.4, adp:0,  auction:0 },
-  "2026 Pick 3.11":              { value:1067, rank:216,  posRank:"PICK45",  team:"", age:0, exp:0,  trend:"+178",  ppg:0, adp:0,  auction:0 },
-  "Tyreek Hill":                 { value:1065, rank:216,  posRank:"WR84",  team:"", age:32.2, exp:0,  trend:"-218",  ppg:13.4, adp:0,  auction:0 },
-  "Oscar Delp":                  { value:1061, rank:217,  posRank:"TE30",  team:"NO", age:22.8, exp:0,  trend:"+111",  ppg:0, adp:0,  auction:0 },
-  "Adam Randall":                { value:1052, rank:218,  posRank:"RB63",  team:"BAL", age:21.8, exp:0,  trend:"-158",  ppg:0, adp:0,  auction:0 },
-  "Jake Tonges":                 { value:1046, rank:219,  posRank:"TE31",  team:"SF", age:26.9, exp:0,  trend:"+206",  ppg:5.5, adp:0,  auction:0 },
-  "2026 Pick 3.12":              { value:1042, rank:220,  posRank:"PICK46",  team:"", age:0, exp:0,  trend:"+175",  ppg:0, adp:0,  auction:0 },
-  "2029 3rd":                    { value:1031, rank:220,  posRank:"PICK47",  team:"", age:0, exp:0,  trend:"-30",  ppg:0, adp:0,  auction:0 },
-  "2028 3rd":                    { value:1025, rank:220,  posRank:"PICK48",  team:"", age:0, exp:0,  trend:"+84",  ppg:0, adp:0,  auction:0 },
-  "Mac Jones":                   { value:1023, rank:220,  posRank:"QB42",  team:"SF", age:27.7, exp:0,  trend:"-76",  ppg:12.4, adp:0,  auction:0 },
-  "Terrance Ferguson":           { value:1021, rank:221,  posRank:"TE32",  team:"LAR", age:23.2, exp:0,  trend:"-400",  ppg:3.7, adp:0,  auction:0 },
-  "2026 Pick 4.01":              { value:1019, rank:222,  posRank:"PICK49",  team:"", age:0, exp:0,  trend:"+172",  ppg:0, adp:0,  auction:0 },
-  "Dontayvion Wicks":            { value:1004, rank:222,  posRank:"WR85",  team:"PHI", age:24.9, exp:0,  trend:"+49",  ppg:5.4, adp:0,  auction:0 },
-  "Eli Raridon":                 { value:997, rank:223,  posRank:"TE33",  team:"NE", age:22.3, exp:0,  trend:"+997",  ppg:0, adp:0,  auction:0 },
-  "2026 Pick 4.02":              { value:996, rank:224,  posRank:"PICK50",  team:"", age:0, exp:0,  trend:"+169",  ppg:0, adp:0,  auction:0 },
-  "Kayshon Boutte":              { value:991, rank:224,  posRank:"WR86",  team:"NE", age:24.0, exp:0,  trend:"-190",  ppg:8.9, adp:0,  auction:0 },
-  "Cade Klubnik":                { value:986, rank:225,  posRank:"QB43",  team:"NYJ", age:22.6, exp:0,  trend:"+81",  ppg:0, adp:0,  auction:0 },
-  "Chimere Dike":                { value:982, rank:226,  posRank:"WR87",  team:"TEN", age:24.4, exp:0,  trend:"-123",  ppg:7.4, adp:0,  auction:0 },
-  "2026 Pick 4.03":              { value:975, rank:227,  posRank:"PICK51",  team:"", age:0, exp:0,  trend:"+167",  ppg:0, adp:0,  auction:0 },
-  "Pat Bryant":                  { value:968, rank:227,  posRank:"WR88",  team:"DEN", age:23.4, exp:0,  trend:"-133",  ppg:5.0, adp:0,  auction:0 },
-  "Malik Washington":            { value:965, rank:228,  posRank:"WR89",  team:"MIA", age:25.4, exp:0,  trend:"-98",  ppg:6.9, adp:0,  auction:0 },
-  "Jaylin Noel":                 { value:955, rank:229,  posRank:"WR90",  team:"HOU", age:23.7, exp:0,  trend:"-39",  ppg:4.0, adp:0,  auction:0 },
-  "2026 Pick 4.04":              { value:954, rank:230,  posRank:"PICK52",  team:"", age:0, exp:0,  trend:"+164",  ppg:0, adp:0,  auction:0 },
-  "Adonai Mitchell":             { value:945, rank:230,  posRank:"WR91",  team:"NYJ", age:23.6, exp:0,  trend:"-307",  ppg:5.5, adp:0,  auction:0 },
-  "Mason Taylor":                { value:944, rank:231,  posRank:"TE34",  team:"NYJ", age:22.0, exp:0,  trend:"-604",  ppg:6.8, adp:0,  auction:0 },
-  "2026 Pick 4.05":              { value:934, rank:232,  posRank:"PICK53",  team:"", age:0, exp:0,  trend:"+161",  ppg:0, adp:0,  auction:0 },
-  "2026 Pick 4.06":              { value:915, rank:232,  posRank:"PICK54",  team:"", age:0, exp:0,  trend:"+158",  ppg:0, adp:0,  auction:0 },
-  "Brenen Thompson":             { value:913, rank:232,  posRank:"WR92",  team:"LAC", age:22.8, exp:0,  trend:"-216",  ppg:0, adp:0,  auction:0 },
-  "2026 4th":                    { value:906, rank:233,  posRank:"PICK55",  team:"", age:0, exp:0,  trend:"+157",  ppg:0, adp:0,  auction:0 },
-  "Elic Ayomanor":               { value:898, rank:233,  posRank:"WR93",  team:"TEN", age:23.0, exp:0,  trend:"-282",  ppg:7.3, adp:0,  auction:0 },
-  "2026 Pick 4.07":              { value:897, rank:234,  posRank:"PICK56",  team:"", age:0, exp:0,  trend:"+156",  ppg:0, adp:0,  auction:0 },
-  "Justin Joly":                 { value:890, rank:234,  posRank:"TE35",  team:"DEN", age:21.9, exp:0,  trend:"+97",  ppg:0, adp:0,  auction:0 },
-  "Garrett Nussmeier":           { value:880, rank:235,  posRank:"QB44",  team:"KC", age:24.3, exp:0,  trend:"-268",  ppg:0, adp:0,  auction:0 },
-  "2026 Pick 4.08":              { value:879, rank:236,  posRank:"PICK57",  team:"", age:0, exp:0,  trend:"+153",  ppg:0, adp:0,  auction:0 },
-  "Kyle Williams":               { value:878, rank:236,  posRank:"WR94",  team:"NE", age:23.5, exp:0,  trend:"-273",  ppg:2.9, adp:0,  auction:0 },
-  "2026 Pick 4.09":              { value:862, rank:237,  posRank:"PICK58",  team:"", age:0, exp:0,  trend:"+151",  ppg:0, adp:0,  auction:0 },
-  "2029 4th":                    { value:856, rank:237,  posRank:"PICK59",  team:"", age:0, exp:0,  trend:"-20",  ppg:0, adp:0,  auction:0 },
-  "2026 Pick 4.10":              { value:846, rank:237,  posRank:"PICK60",  team:"", age:0, exp:0,  trend:"+149",  ppg:0, adp:0,  auction:0 },
-  "Trey Benson":                 { value:836, rank:237,  posRank:"RB64",  team:"ARI", age:23.8, exp:0,  trend:"-488",  ppg:8.8, adp:0,  auction:0 },
-  "2026 Pick 4.11":              { value:830, rank:238,  posRank:"PICK61",  team:"", age:0, exp:0,  trend:"+146",  ppg:0, adp:0,  auction:0 },
-  "Tre Tucker":                  { value:829, rank:238,  posRank:"WR95",  team:"LV", age:25.2, exp:0,  trend:"+2",  ppg:9.5, adp:0,  auction:0 },
-  "Kimani Vidal":                { value:821, rank:239,  posRank:"RB65",  team:"LAC", age:24.7, exp:0,  trend:"+97",  ppg:9.1, adp:0,  auction:0 },
-  "2026 Pick 4.12":              { value:815, rank:240,  posRank:"PICK62",  team:"", age:0, exp:0,  trend:"+144",  ppg:0, adp:0,  auction:0 },
-  "2027 4th":                    { value:815, rank:240,  posRank:"PICK63",  team:"", age:0, exp:0,  trend:"+36",  ppg:0, adp:0,  auction:0 },
-  "Kevin Coleman":               { value:814, rank:240,  posRank:"WR96",  team:"MIA", age:22.7, exp:0,  trend:"-47",  ppg:0, adp:0,  auction:0 },
-  "Deebo Samuel":                { value:809, rank:241,  posRank:"WR97",  team:"", age:30.3, exp:0,  trend:"-177",  ppg:11.8, adp:0,  auction:0 },
-  "Eli Heidenreich":             { value:802, rank:242,  posRank:"RB66",  team:"PIT", age:22.9, exp:0,  trend:"+802",  ppg:0, adp:0,  auction:0 },
-  "2028 4th":                    { value:790, rank:243,  posRank:"PICK64",  team:"", age:0, exp:0,  trend:"+26",  ppg:0, adp:0,  auction:0 },
-  "Bryce Lance":                 { value:785, rank:243,  posRank:"WR98",  team:"NO", age:23.7, exp:0,  trend:"+785",  ppg:0, adp:0,  auction:0 },
-  "Theo Johnson":                { value:769, rank:244,  posRank:"TE36",  team:"NYG", age:25.2, exp:0,  trend:"-103",  ppg:8.5, adp:0,  auction:0 },
-  "Michael Trigg":               { value:765, rank:245,  posRank:"TE37",  team:"DAL", age:23.9, exp:0,  trend:"-325",  ppg:0, adp:0,  auction:0 },
-  "Michael Mayer":               { value:760, rank:246,  posRank:"TE38",  team:"LV", age:24.9, exp:0,  trend:"+199",  ppg:5.7, adp:0,  auction:0 },
-  "Taylen Green":                { value:750, rank:247,  posRank:"QB45",  team:"CLE", age:23.6, exp:0,  trend:"-377",  ppg:0, adp:0,  auction:0 },
-  "Pat Freiermuth":              { value:741, rank:248,  posRank:"TE39",  team:"PIT", age:27.6, exp:0,  trend:"+1",  ppg:6.7, adp:0,  auction:0 },
-  "James Conner":                { value:735, rank:249,  posRank:"RB67",  team:"ARI", age:31.0, exp:0,  trend:"-353",  ppg:11.1, adp:0,  auction:0 },
-  "Calvin Ridley":               { value:729, rank:250,  posRank:"WR99",  team:"TEN", age:31.4, exp:0,  trend:"-51",  ppg:6.8, adp:0,  auction:0 },
-  "Emanuel Wilson":              { value:728, rank:251,  posRank:"RB68",  team:"SEA", age:27.0, exp:0,  trend:"-460",  ppg:5.6, adp:0,  auction:0 },
-  "Elijah Arroyo":               { value:724, rank:252,  posRank:"TE40",  team:"SEA", age:23.1, exp:0,  trend:"-107",  ppg:2.8, adp:0,  auction:0 },
-  "Evan Engram":                 { value:713, rank:253,  posRank:"TE41",  team:"DEN", age:31.7, exp:0,  trend:"+123",  ppg:6.4, adp:0,  auction:0 },
-  "Jordan James":                { value:708, rank:254,  posRank:"RB69",  team:"SF", age:22.1, exp:0,  trend:"-432",  ppg:0, adp:0,  auction:0 },
-  "Cooper Kupp":                 { value:706, rank:255,  posRank:"WR100",  team:"SEA", age:32.9, exp:0,  trend:"+284",  ppg:7.3, adp:0,  auction:0 },
-  "Darnell Mooney":              { value:705, rank:256,  posRank:"WR101",  team:"NYG", age:28.6, exp:0,  trend:"-22",  ppg:5.5, adp:0,  auction:0 },
-  "Will Howard":                 { value:702, rank:257,  posRank:"QB46",  team:"PIT", age:24.6, exp:0,  trend:"+62",  ppg:0, adp:0,  auction:0 },
-  "Devin Neal":                  { value:699, rank:258,  posRank:"RB70",  team:"NO", age:22.8, exp:0,  trend:"+200",  ppg:6.0, adp:0,  auction:0 },
-  "Caleb Douglas":               { value:698, rank:259,  posRank:"WR102",  team:"MIA", age:22.7, exp:0,  trend:"+550",  ppg:0, adp:0,  auction:0 },
-  "Ollie Gordon":                { value:696, rank:260,  posRank:"RB71",  team:"MIA", age:22.3, exp:0,  trend:"-345",  ppg:3.2, adp:0,  auction:0 },
-  "Jaylen Wright":               { value:695, rank:261,  posRank:"RB72",  team:"MIA", age:23.1, exp:0,  trend:"+87",  ppg:4.8, adp:0,  auction:0 },
-  "Sean Tucker":                 { value:679, rank:262,  posRank:"RB73",  team:"TB", age:24.6, exp:0,  trend:"+26",  ppg:5.4, adp:0,  auction:0 },
-  "Ja'Tavion Sanders":           { value:632, rank:263,  posRank:"TE42",  team:"CAR", age:23.1, exp:0,  trend:"+121",  ppg:4.2, adp:0,  auction:0 },
-  "DJ Giddens":                  { value:623, rank:264,  posRank:"RB74",  team:"IND", age:22.7, exp:0,  trend:"-29",  ppg:1.1, adp:0,  auction:0 },
-  "Jaydon Blue":                 { value:619, rank:265,  posRank:"RB75",  team:"DAL", age:22.4, exp:0,  trend:"+9",  ppg:4.1, adp:0,  auction:0 },
-  "Ray Davis":                   { value:606, rank:266,  posRank:"RB76",  team:"BUF", age:26.5, exp:0,  trend:"+75",  ppg:3.8, adp:0,  auction:0 },
-  "Le'Veon Moss":                { value:597, rank:267,  posRank:"RB77",  team:"MIA", age:0, exp:0,  trend:"-590",  ppg:0, adp:0,  auction:0 },
-  "MarShawn Lloyd":              { value:587, rank:268,  posRank:"RB78",  team:"GB", age:25.4, exp:0,  trend:"+177",  ppg:0, adp:0,  auction:0 },
-  "Jalen Milroe":                { value:574, rank:269,  posRank:"QB47",  team:"SEA", age:23.4, exp:0,  trend:"+152",  ppg:0, adp:0,  auction:0 },
-  "Colby Parkinson":             { value:559, rank:270,  posRank:"TE43",  team:"LAR", age:27.4, exp:0,  trend:"-35",  ppg:8.7, adp:0,  auction:0 },
-  "Deion Burks":                 { value:557, rank:271,  posRank:"WR103",  team:"IND", age:23.4, exp:0,  trend:"-590",  ppg:0, adp:0,  auction:0 },
-  "J'Mari Taylor":               { value:554, rank:272,  posRank:"RB79",  team:"JAX", age:0, exp:0,  trend:"-567",  ppg:0, adp:0,  auction:0 },
-  "Jack Endries":                { value:547, rank:273,  posRank:"TE44",  team:"CIN", age:22.1, exp:0,  trend:"-586",  ppg:0, adp:0,  auction:0 },
-  "Dont'e Thornton":             { value:546, rank:274,  posRank:"WR104",  team:"LV", age:23.5, exp:0,  trend:"-176",  ppg:1.6, adp:0,  auction:0 },
-  "Greg Dulcich":                { value:542, rank:275,  posRank:"TE45",  team:"MIA", age:26.1, exp:0,  trend:"+312",  ppg:6.3, adp:0,  auction:0 },
-  "Xavier Legette":              { value:541, rank:276,  posRank:"WR105",  team:"CAR", age:25.3, exp:0,  trend:"-99",  ppg:6.0, adp:0,  auction:0 },
-  "CJ Daniels":                  { value:536, rank:277,  posRank:"WR106",  team:"LAR", age:24.4, exp:0,  trend:"-417",  ppg:0, adp:0,  auction:0 },
-  "Zavion Thomas":               { value:506, rank:278,  posRank:"WR107",  team:"CHI", age:22.3, exp:0,  trend:"+506",  ppg:0, adp:0,  auction:0 },
-  "Riley Leonard":               { value:504, rank:279,  posRank:"QB48",  team:"IND", age:23.7, exp:0,  trend:"+9",  ppg:6.4, adp:0,  auction:0 },
-  "Seth McGowan":                { value:483, rank:280,  posRank:"RB80",  team:"IND", age:24.6, exp:0,  trend:"+483",  ppg:0, adp:0,  auction:0 },
-  "Marvin Mims":                 { value:476, rank:281,  posRank:"WR108",  team:"DEN", age:24.2, exp:0,  trend:"-78",  ppg:6.2, adp:0,  auction:0 },
-  "Rashod Bateman":              { value:454, rank:282,  posRank:"WR109",  team:"BAL", age:26.5, exp:0,  trend:"+43",  ppg:4.3, adp:0,  auction:0 },
-  "Tez Johnson":                 { value:450, rank:283,  posRank:"WR110",  team:"TB", age:24.0, exp:0,  trend:"-234",  ppg:5.8, adp:0,  auction:0 },
-  "LeQuint Allen":               { value:449, rank:284,  posRank:"RB81",  team:"JAX", age:21.8, exp:0,  trend:"-9",  ppg:1.6, adp:0,  auction:0 },
-  "Christian Kirk":              { value:444, rank:286,  posRank:"WR111",  team:"SF", age:29.5, exp:0,  trend:"-67",  ppg:4.5, adp:0,  auction:0 },
-  "Jam Miller":                  { value:444, rank:285,  posRank:"RB82",  team:"NE", age:0, exp:0,  trend:"-354",  ppg:0, adp:0,  auction:0 },
-  "Jameis Winston":              { value:443, rank:287,  posRank:"QB49",  team:"NYG", age:32.4, exp:0,  trend:"+188",  ppg:15.1, adp:0,  auction:0 },
-  "Tanner Koziol":               { value:433, rank:288,  posRank:"TE46",  team:"JAX", age:22.3, exp:0,  trend:"+433",  ppg:0, adp:0,  auction:0 },
-  "Joe Mixon":                   { value:432, rank:289,  posRank:"RB83",  team:"", age:29.8, exp:0,  trend:"-31",  ppg:0, adp:0,  auction:0 },
-  "Will Kacmarek":               { value:431, rank:290,  posRank:"TE47",  team:"MIA", age:23.3, exp:0,  trend:"+431",  ppg:0, adp:0,  auction:0 },
-  "Brashard Smith":              { value:414, rank:292,  posRank:"RB84",  team:"KC", age:23.1, exp:0,  trend:"-84",  ppg:3.7, adp:0,  auction:0 },
-  "Isaiah Bond":                 { value:414, rank:291,  posRank:"WR112",  team:"CLE", age:22.2, exp:0,  trend:"-367",  ppg:3.4, adp:0,  auction:0 },
-  "Marcus Mariota":              { value:399, rank:293,  posRank:"QB50",  team:"WAS", age:32.6, exp:0,  trend:"+69",  ppg:12.0, adp:0,  auction:0 },
-  "Quinn Ewers":                 { value:384, rank:294,  posRank:"QB51",  team:"MIA", age:23.2, exp:0,  trend:"+53",  ppg:9.0, adp:0,  auction:0 },
-  "Cole Kmet":                   { value:367, rank:295,  posRank:"TE48",  team:"CHI", age:27.2, exp:0,  trend:"-57",  ppg:4.9, adp:0,  auction:0 },
-  "Matthew Hibner":              { value:362, rank:296,  posRank:"TE49",  team:"BAL", age:24.2, exp:0,  trend:"+362",  ppg:0, adp:0,  auction:0 },
-  "Jalen Tolbert":               { value:358, rank:297,  posRank:"WR113",  team:"MIA", age:27.2, exp:0,  trend:"-23",  ppg:3.6, adp:0,  auction:0 },
-  "Tahj Brooks":                 { value:351, rank:298,  posRank:"RB85",  team:"CIN", age:24.0, exp:0,  trend:"+124",  ppg:0.4, adp:0,  auction:0 },
-  "Marlin Klein":                { value:341, rank:299,  posRank:"TE50",  team:"HOU", age:23.7, exp:0,  trend:"-423",  ppg:0, adp:0,  auction:0 },
-  "Marquise Brown":              { value:341, rank:300,  posRank:"WR114",  team:"PHI", age:29.0, exp:0,  trend:"-35",  ppg:8.6, adp:0,  auction:0 },
-  "Cedric Tillman":              { value:330, rank:301,  posRank:"WR115",  team:"CLE", age:26.1, exp:0,  trend:"+5",  ppg:4.6, adp:0,  auction:0 },
-  "Trevor Etienne":              { value:326, rank:302,  posRank:"RB86",  team:"CAR", age:21.9, exp:0,  trend:"-40",  ppg:0.7, adp:0,  auction:0 },
-  "Joe Milton":                  { value:324, rank:303,  posRank:"QB52",  team:"DAL", age:26.2, exp:0,  trend:"+109",  ppg:3.1, adp:0,  auction:0 },
-  "Cole Payton":                 { value:309, rank:304,  posRank:"QB53",  team:"PHI", age:23.6, exp:0,  trend:"-422",  ppg:0, adp:0,  auction:0 },
-  "Joe Flacco":                  { value:308, rank:305,  posRank:"QB54",  team:"CIN", age:41.3, exp:0,  trend:"-2",  ppg:12.1, adp:0,  auction:0 },
-  "Jaylin Lane":                 { value:296, rank:306,  posRank:"WR116",  team:"WAS", age:24.0, exp:0,  trend:"+10",  ppg:3.3, adp:0,  auction:0 },
-  "DeMario Douglas":             { value:289, rank:307,  posRank:"WR117",  team:"NE", age:25.4, exp:0,  trend:"-10",  ppg:5.6, adp:0,  auction:0 },
-  "Isaiah Davis":                { value:287, rank:308,  posRank:"RB87",  team:"NYJ", age:24.2, exp:0,  trend:"+60",  ppg:4.5, adp:0,  auction:0 },
-  "Ryan Flournoy":               { value:286, rank:309,  posRank:"WR118",  team:"DAL", age:26.6, exp:0,  trend:"-9",  ppg:7.1, adp:0,  auction:0 },
-  "Ben Sinnott":                 { value:286, rank:310,  posRank:"TE51",  team:"WAS", age:23.9, exp:0,  trend:"-77",  ppg:1.8, adp:0,  auction:0 },
-  "Roman Hemby":                 { value:284, rank:311,  posRank:"RB88",  team:"LV", age:0, exp:0,  trend:"+284",  ppg:0, adp:0,  auction:0 },
-  "Jahan Dotson":                { value:280, rank:312,  posRank:"WR119",  team:"ATL", age:26.2, exp:0,  trend:"+60",  ppg:3.0, adp:0,  auction:0 },
-  "Keenan Allen":                { value:277, rank:313,  posRank:"WR120",  team:"", age:34.1, exp:0,  trend:"-36",  ppg:10.7, adp:0,  auction:0 },
-  "Jalen Royals":                { value:271, rank:315,  posRank:"WR121",  team:"KC", age:23.2, exp:0,  trend:"-46",  ppg:0.3, adp:0,  auction:0 },
-  "Sam Roush":                   { value:271, rank:314,  posRank:"TE52",  team:"CHI", age:22.7, exp:0,  trend:"-462",  ppg:0, adp:0,  auction:0 },
-  "Najee Harris":                { value:269, rank:316,  posRank:"RB89",  team:"", age:28.2, exp:0,  trend:"-284",  ppg:3.9, adp:0,  auction:0 },
-  "Devaughn Vele":               { value:254, rank:317,  posRank:"WR122",  team:"NO", age:28.4, exp:0,  trend:"-93",  ppg:5.1, adp:0,  auction:0 },
-  "Luke McCaffrey":              { value:253, rank:318,  posRank:"WR123",  team:"WAS", age:25.1, exp:0,  trend:"+33",  ppg:5.7, adp:0,  auction:0 },
-  "Darnell Washington":          { value:251, rank:319,  posRank:"TE53",  team:"PIT", age:24.7, exp:0,  trend:"+10",  ppg:4.6, adp:0,  auction:0 },
-  "Mike Gesicki":                { value:249, rank:320,  posRank:"TE54",  team:"CIN", age:30.6, exp:0,  trend:"+17",  ppg:5.4, adp:0,  auction:0 },
-  "Josh Cameron":                { value:248, rank:321,  posRank:"WR124",  team:"JAX", age:23.2, exp:0,  trend:"-398",  ppg:0, adp:0,  auction:0 },
-  "Jarquez Hunter":              { value:231, rank:322,  posRank:"RB90",  team:"LAR", age:23.4, exp:0,  trend:"-3",  ppg:0, adp:0,  auction:0 },
-  "Tyrod Taylor":                { value:223, rank:323,  posRank:"QB55",  team:"GB", age:36.8, exp:0,  trend:"+223",  ppg:10.7, adp:0,  auction:0 },
-  "Tyson Bagent":                { value:216, rank:324,  posRank:"QB56",  team:"CHI", age:25.9, exp:0,  trend:"+50",  ppg:0.9, adp:0,  auction:0 },
-  "Robert Henry":                { value:212, rank:325,  posRank:"RB91",  team:"WAS", age:0, exp:0,  trend:"+212",  ppg:0, adp:0,  auction:0 },
-  "Kendre Miller":               { value:211, rank:326,  posRank:"RB92",  team:"NO", age:23.9, exp:0,  trend:"-109",  ppg:4.8, adp:0,  auction:0 },
-  "Cyrus Allen":                 { value:200, rank:327,  posRank:"WR125",  team:"KC", age:23.3, exp:0,  trend:"+200",  ppg:0, adp:0,  auction:0 },
-  "Luke Musgrave":               { value:194, rank:328,  posRank:"TE55",  team:"GB", age:25.7, exp:0,  trend:"-53",  ppg:2.9, adp:0,  auction:0 },
-  "Treylon Burks":               { value:189, rank:329,  posRank:"WR126",  team:"WAS", age:26.2, exp:0,  trend:"+164",  ppg:3.6, adp:0,  auction:0 },
-  "Spencer Rattler":             { value:188, rank:330,  posRank:"QB57",  team:"NO", age:25.6, exp:0,  trend:"+4",  ppg:11.6, adp:0,  auction:0 },
-  "Savion Williams":             { value:186, rank:331,  posRank:"WR127",  team:"GB", age:24.5, exp:0,  trend:"-17",  ppg:2.1, adp:0,  auction:0 },
-  "Jerome Ford":                 { value:181, rank:332,  posRank:"RB93",  team:"WAS", age:26.7, exp:0,  trend:"+48",  ppg:3.4, adp:0,  auction:0 },
-  "Andrei Iosivas":              { value:177, rank:333,  posRank:"WR128",  team:"CIN", age:26.6, exp:0,  trend:"+84",  ppg:5.3, adp:0,  auction:0 },
-  "Noah Gray":                   { value:175, rank:335,  posRank:"TE56",  team:"KC", age:27.0, exp:0,  trend:"+64",  ppg:2.4, adp:0,  auction:0 },
-  "Ja'Lynn Polk":                { value:175, rank:334,  posRank:"WR129",  team:"NO", age:24.1, exp:0,  trend:"-57",  ppg:0, adp:0,  auction:0 },
-  "Dillon Gabriel":              { value:172, rank:336,  posRank:"QB58",  team:"CLE", age:25.4, exp:0,  trend:"-7",  ppg:7.2, adp:0,  auction:0 },
-  "Jaren Kanak":                 { value:171, rank:337,  posRank:"TE57",  team:"TEN", age:22.3, exp:0,  trend:"+171",  ppg:0, adp:0,  auction:0 },
-  "Mason Rudolph":               { value:154, rank:338,  posRank:"QB59",  team:"PIT", age:30.8, exp:0,  trend:"+54",  ppg:2.8, adp:0,  auction:0 },
-  "Jeff Caldwell":               { value:146, rank:339,  posRank:"WR130",  team:"KC", age:0, exp:0,  trend:"-396",  ppg:0, adp:0,  auction:0 },
-  "KeAndre Lambert-Smith":       { value:142, rank:340,  posRank:"WR131",  team:"LAC", age:24.6, exp:0,  trend:"+73",  ppg:1.6, adp:0,  auction:0 },
-  "Trey Lance":                  { value:141, rank:341,  posRank:"QB60",  team:"LAC", age:26.0, exp:0,  trend:"+61",  ppg:3.6, adp:0,  auction:0 },
-  "Davis Mills":                 { value:140, rank:342,  posRank:"QB61",  team:"HOU", age:27.6, exp:0,  trend:"-84",  ppg:11.6, adp:0,  auction:0 },
-  "John Metchie":                { value:135, rank:343,  posRank:"WR132",  team:"CAR", age:25.8, exp:0,  trend:"-69",  ppg:4.5, adp:0,  auction:0 },
-  "Efton Chism":                 { value:133, rank:344,  posRank:"WR133",  team:"NE", age:24.6, exp:0,  trend:"+29",  ppg:2.1, adp:0,  auction:0 },
-  "Justice Hill":                { value:126, rank:345,  posRank:"RB94",  team:"BAL", age:28.5, exp:0,  trend:"-27",  ppg:6.5, adp:0,  auction:0 },
-  "Malik Benson":                { value:123, rank:346,  posRank:"WR134",  team:"LV", age:23.6, exp:0,  trend:"-278",  ppg:0, adp:0,  auction:0 },
-  "Darius Slayton":              { value:122, rank:347,  posRank:"WR135",  team:"NYG", age:29.3, exp:0,  trend:"+83",  ppg:7.1, adp:0,  auction:0 },
-  "Tyquan Thornton":             { value:120, rank:348,  posRank:"WR136",  team:"KC", age:25.8, exp:0,  trend:"-26",  ppg:5.8, adp:0,  auction:0 },
-  "Jimmy Horn":                  { value:116, rank:350,  posRank:"WR138",  team:"CAR", age:23.7, exp:0,  trend:"+40",  ppg:2.2, adp:0,  auction:0 },
-  "Kendrick Bourne":             { value:116, rank:349,  posRank:"WR137",  team:"ARI", age:30.8, exp:0,  trend:"+116",  ppg:5.8, adp:0,  auction:0 },
-  "John Michael Gyllenborg":     { value:113, rank:351,  posRank:"TE58",  team:"KC", age:0, exp:0,  trend:"-247",  ppg:0, adp:0,  auction:0 },
-  "Will Shipley":                { value:112, rank:352,  posRank:"RB95",  team:"PHI", age:23.7, exp:0,  trend:"+72",  ppg:1.2, adp:0,  auction:0 },
-  "Zach Ertz":                   { value:110, rank:354,  posRank:"TE59",  team:"", age:35.5, exp:0,  trend:"-26",  ppg:9.7, adp:0,  auction:0 },
-  "Mack Hollins":                { value:110, rank:353,  posRank:"WR139",  team:"NE", age:32.7, exp:0,  trend:"+70",  ppg:7.6, adp:0,  auction:0 },
-  "Tanner McKee":                { value:108, rank:355,  posRank:"QB62",  team:"PHI", age:26.1, exp:0,  trend:"+47",  ppg:3.7, adp:0,  auction:0 },
-  "Isaac Guerendo":              { value:105, rank:357,  posRank:"RB96",  team:"SF", age:25.9, exp:0,  trend:"+43",  ppg:0.1, adp:0,  auction:0 },
-  "Kenny Pickett":               { value:105, rank:356,  posRank:"QB63",  team:"CAR", age:27.9, exp:0,  trend:"-74",  ppg:1.6, adp:0,  auction:0 },
-  "Kareem Hunt":                 { value:95, rank:358,  posRank:"RB97",  team:"", age:30.8, exp:0,  trend:"-15",  ppg:8.6, adp:0,  auction:0 },
-  "Audric Estime":               { value:94, rank:359,  posRank:"RB98",  team:"NO", age:22.7, exp:0,  trend:"+12",  ppg:6.9, adp:0,  auction:0 },
-  "Devin Singletary":            { value:90, rank:362,  posRank:"RB99",  team:"NYG", age:28.7, exp:0,  trend:"-93",  ppg:6.4, adp:0,  auction:0 },
-  "KaVontae Turpin":             { value:90, rank:360,  posRank:"WR140",  team:"DAL", age:29.8, exp:0,  trend:"-7",  ppg:5.6, adp:0,  auction:0 },
-  "Dawson Knox":                 { value:90, rank:361,  posRank:"TE60",  team:"BUF", age:29.5, exp:0,  trend:"-104",  ppg:6.1, adp:0,  auction:0 },
-  "Will Levis":                  { value:90, rank:363,  posRank:"QB64",  team:"TEN", age:26.9, exp:0,  trend:"-61",  ppg:0, adp:0,  auction:0 },
-  "Joe Fagnano":                 { value:86, rank:364,  posRank:"QB65",  team:"BAL", age:0, exp:0,  trend:"-486",  ppg:0, adp:0,  auction:0 },
-  "Gardner Minshew":             { value:84, rank:365,  posRank:"QB66",  team:"ARI", age:30.0, exp:0,  trend:"-133",  ppg:0.2, adp:0,  auction:0 },
-  "Calvin Austin":               { value:77, rank:366,  posRank:"WR141",  team:"NYG", age:27.2, exp:0,  trend:"-73",  ppg:6.2, adp:0,  auction:0 },
-  "Tutu Atwell":                 { value:75, rank:367,  posRank:"WR142",  team:"MIA", age:26.6, exp:0,  trend:"+30",  ppg:3.1, adp:0,  auction:0 },
-  "Roman Wilson":                { value:68, rank:368,  posRank:"WR143",  team:"PIT", age:24.9, exp:0,  trend:"-28",  ppg:3.0, adp:0,  auction:0 },
-  "Tyler Higbee":                { value:66, rank:369,  posRank:"TE61",  team:"LAR", age:33.4, exp:0,  trend:"+66",  ppg:7.1, adp:0,  auction:0 },
-  "Jordan Whittington":          { value:65, rank:370,  posRank:"WR144",  team:"LAR", age:25.6, exp:0,  trend:"+65",  ppg:2.1, adp:0,  auction:0 },
-  "Noah Fant":                   { value:64, rank:371,  posRank:"TE62",  team:"NO", age:28.5, exp:0,  trend:"-30",  ppg:5.0, adp:0,  auction:0 },
-  "Phil Mafah":                  { value:62, rank:373,  posRank:"RB100",  team:"DAL", age:23.6, exp:0,  trend:"+6",  ppg:10.9, adp:0,  auction:0 },
-  "Tyler Huntley":               { value:62, rank:372,  posRank:"QB67",  team:"BAL", age:28.3, exp:0,  trend:"-63",  ppg:8.0, adp:0,  auction:0 },
-  "Ty Johnson":                  { value:61, rank:375,  posRank:"RB101",  team:"BUF", age:28.7, exp:0,  trend:"+61",  ppg:5.9, adp:0,  auction:0 },
-  "Xavier Hutchinson":           { value:61, rank:374,  posRank:"WR145",  team:"HOU", age:26.0, exp:0,  trend:"-54",  ppg:5.8, adp:0,  auction:0 },
-  "Kenny McIntosh":              { value:59, rank:376,  posRank:"RB102",  team:"SEA", age:26.2, exp:0,  trend:"-73",  ppg:0, adp:0,  auction:0 },
-  "George Holani":               { value:58, rank:377,  posRank:"RB103",  team:"SEA", age:26.4, exp:0,  trend:"+0",  ppg:1.9, adp:0,  auction:0 },
-  "Chris Brooks":                { value:57, rank:378,  posRank:"RB104",  team:"GB", age:26.3, exp:0,  trend:"+28",  ppg:1.9, adp:0,  auction:0 },
-  "Noah Thomas":                 { value:54, rank:379,  posRank:"WR146",  team:"CIN", age:0, exp:0,  trend:"-648",  ppg:0, adp:0,  auction:0 },
-  "Jonnu Smith":                 { value:47, rank:380,  posRank:"TE63",  team:"", age:30.7, exp:0,  trend:"-96",  ppg:5.0, adp:0,  auction:0 },
-  "Emari Demercado":             { value:46, rank:381,  posRank:"RB105",  team:"KC", age:27.3, exp:0,  trend:"-154",  ppg:4.5, adp:0,  auction:0 },
-  "Malik Davis":                 { value:44, rank:382,  posRank:"RB106",  team:"DAL", age:27.5, exp:0,  trend:"-2",  ppg:4.1, adp:0,  auction:0 },
-  "Olamide Zaccheaus":           { value:42, rank:383,  posRank:"WR147",  team:"ATL", age:28.8, exp:0,  trend:"-29",  ppg:5.3, adp:0,  auction:0 },
-  "Raheim Sanders":              { value:41, rank:384,  posRank:"RB107",  team:"CLE", age:23.9, exp:0,  trend:"+11",  ppg:5.1, adp:0,  auction:0 },
-  "Teddy Bridgewater":           { value:38, rank:385,  posRank:"QB68",  team:"DET", age:33.5, exp:0,  trend:"+38",  ppg:0.7, adp:0,  auction:0 },
-  "Jarrett Stidham":             { value:35, rank:386,  posRank:"QB69",  team:"DEN", age:29.8, exp:0,  trend:"+35",  ppg:0, adp:0,  auction:0 },
-  "Konata Mumpfield":            { value:31, rank:387,  posRank:"WR148",  team:"LAR", age:23.6, exp:0,  trend:"+31",  ppg:1.5, adp:0,  auction:0 },
-  "Jahdae Walker":               { value:29, rank:388,  posRank:"WR149",  team:"CHI", age:23.9, exp:0,  trend:"-29",  ppg:3.0, adp:0,  auction:0 },
-  "Cade Stover":                 { value:28, rank:389,  posRank:"TE64",  team:"HOU", age:25.9, exp:0,  trend:"+28",  ppg:2.2, adp:0,  auction:0 },
-  "Nick Westbrook-Ikhine":       { value:27, rank:390,  posRank:"WR150",  team:"IND", age:29.2, exp:0,  trend:"+27",  ppg:1.3, adp:0,  auction:0 },
-  "Austin Ekeler":               { value:22, rank:391,  posRank:"RB108",  team:"", age:31.0, exp:0,  trend:"-13",  ppg:6.5, adp:0,  auction:0 },
-  "Mitchell Evans":              { value:21, rank:392,  posRank:"TE65",  team:"CAR", age:23.2, exp:0,  trend:"+10",  ppg:2.8, adp:0,  auction:0 },
-  "Zach Wilson":                 { value:18, rank:394,  posRank:"QB70",  team:"NO", age:26.8, exp:0,  trend:"-48",  ppg:0.3, adp:0,  auction:0 },
-  "Tommy Tremble":               { value:18, rank:393,  posRank:"TE66",  team:"CAR", age:26.0, exp:0,  trend:"+8",  ppg:3.8, adp:0,  auction:0 },
-  "Daniel Bellinger":            { value:17, rank:395,  posRank:"TE67",  team:"TEN", age:25.6, exp:0,  trend:"+17",  ppg:3.7, adp:0,  auction:0 },
-  "Roschon Johnson":             { value:14, rank:396,  posRank:"RB109",  team:"CHI", age:25.3, exp:0,  trend:"+14",  ppg:0.2, adp:0,  auction:0 },
-  "Devontez Walker":             { value:6, rank:397,  posRank:"WR151",  team:"BAL", age:24.9, exp:0,  trend:"-12",  ppg:3.1, adp:0,  auction:0 },
-  "Rasheen Ali":                 { value:4, rank:398,  posRank:"RB110",  team:"BAL", age:25.2, exp:0,  trend:"+4",  ppg:1.6, adp:0,  auction:0 }
-};
+let FP_VALUES = {};
 
 // ── State ──────────────────────────────────────────────────────────────────
 const ML = {
@@ -3597,7 +2619,7 @@ function posColor(pos) {
 //
 // Inputs:
 //   avgAge      Number — average age of skill-position players on this roster
-//   totalValue  Number — sum of KTC values for all skill-position players
+//   totalValue  Number — sum of trade values for all skill-position players
 //   leagueAvg   Object { age, value } — league-wide medians for context
 //
 // Heuristic (placeholder):
@@ -3844,13 +2866,13 @@ document.addEventListener('DOMContentLoaded', mlApplyExposureCollapsed);
 // Also call directly in case DOMContentLoaded already fired
 if (document.readyState !== 'loading') mlApplyExposureCollapsed();
 
-// Look up a pick's KTC value when the draft slot is unknown — uses the round
+// Look up a pick's trade value when the draft slot is unknown — uses the round
 // midpoint slot as a reasonable proxy (e.g. 1.06 / 1.07 in a 12-team league).
 function mlPickValue(season, round) {
-  const keys = Object.keys(PICK_KTC || {}).filter(k => k.startsWith(`${season}-${round}.`));
+  const keys = Object.keys(PICK_VALUES || {}).filter(k => k.startsWith(`${season}-${round}.`));
   if (!keys.length) return 0;
   keys.sort();
-  return PICK_KTC[keys[Math.floor(keys.length / 2)]] || 0;
+  return PICK_VALUES[keys[Math.floor(keys.length / 2)]] || 0;
 }
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -4306,8 +3328,8 @@ function mlBuildAssetPool(leagueId, rosterId) {
     const p = players[pid];
     if (!p) return;
     const name = p.full_name || `${p.first_name || ''} ${p.last_name || ''}`.trim();
-    const ktc = mlGetKtcByName(name);
-    if (!ktc || !ktc.value) return;  // skip if no KTC value (untracked players)
+    const ktc = mlGetValueByName(name);
+    if (!ktc || !ktc.value) return;  // skip if no trade value (untracked players)
     assets.push({
       id: `p_${pid}`,
       name,
@@ -4368,7 +3390,7 @@ function mlFitNote(pkg, archetype, fitScore) {
 }
 
 // Generate up to N suggested trade packages.
-// targetValue is the KTC value of the player being acquired.
+// targetValue is the trade value of the player being acquired.
 // archetype is the owning team's archetype.
 function mlGenerateTradeSuggestions(myAssets, targetValue, archetype, maxCount) {
   if (!targetValue || !myAssets.length) return [];
@@ -4499,7 +3521,7 @@ function openTradeSuggestModal(sleeperId, leagueId) {
   });
   const lp = lgPlayers[sid];
   const targetName = lp ? (lp.full_name || `${lp.first_name || ''} ${lp.last_name || ''}`.trim()) : 'Unknown Player';
-  const targetKtc = mlGetKtcByName(targetName) || {};
+  const targetKtc = mlGetValueByName(targetName) || {};
   const targetValue = targetKtc.value || 0;
   const targetPos = lp ? lp.position : (targetKtc.posRank ? targetKtc.posRank.replace(/\d+/g, '') : '');
 
@@ -4625,7 +3647,7 @@ function mltbRender() {
         ${targetSid ? `<img src="https://sleepercdn.com/content/nfl/players/thumb/${targetSid}.jpg" style="width:48px;height:48px;border-radius:3px;object-fit:cover;background:var(--surface)" onerror="this.style.visibility='hidden'">` : ''}
         <div style="flex:1;min-width:0">
           <div style="font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:18px;color:var(--white);text-transform:uppercase;line-height:1.1">${targetPlayer ? targetPlayer.name : 'Unknown'}</div>
-          <div style="font-family:'Mulish',sans-serif;font-size:11px;color:var(--muted);margin-top:2px">${targetPlayer ? (targetPlayer.pos + ' · KTC ' + targetPlayer.value.toLocaleString()) : ''} · in ${leagueName}</div>
+          <div style="font-family:'Mulish',sans-serif;font-size:11px;color:var(--muted);margin-top:2px">${targetPlayer ? (targetPlayer.pos + ' · Value ' + targetPlayer.value.toLocaleString()) : ''} · in ${leagueName}</div>
           ${ownerName ? `<div style="font-family:'Mulish',sans-serif;font-size:11px;color:var(--white);opacity:.8;margin-top:2px">Owner: <span class="ml-pd-owner-name">${displayedOwnerName}</span>${archChip}</div>` : ''}
         </div>
       </div>
@@ -4634,7 +3656,7 @@ function mltbRender() {
 
   // Edge cases first
   if (!targetPlayer) {
-    body.innerHTML = headerStrip + mltbCalcCtaBlock("No KTC value available for this player. You can still build a custom trade in the calculator.");
+    body.innerHTML = headerStrip + mltbCalcCtaBlock("No trade value available for this player. You can still build a custom trade in the calculator.");
     return;
   }
   if (!ownerRosterId) {
@@ -4853,10 +3875,10 @@ function mlGetPlayerStatus(sleeperId) {
   return { state: 'taken', team: teamName, rosterId: owningRoster.roster_id, avgFaab, claims };
 }
 
-// Resolve a player's KTC value/rank via name (since KTC_DATA is keyed by name)
-function mlGetKtcByName(name) {
+// Resolve a player's trade value/rank via name (since FP_VALUES is keyed by name)
+function mlGetValueByName(name) {
   if (!name) return null;
-  return KTC_DATA[name] || null;
+  return FP_VALUES[name] || null;
 }
 
 // Build a Sleeper-id -> name map (best effort) using the players cache.
@@ -4908,7 +3930,7 @@ function openPlayerDetail(sleeperId) {
   const name = resolvedName;
   const pos  = resolvedPos;
   const team = resolvedTeam;
-  const ktc = mlGetKtcByName(name) || {};
+  const ktc = mlGetValueByName(name) || {};
   const status = mlGetPlayerStatus(sid);
 
   const photo = `${CDN}/content/nfl/players/thumb/${sid}.jpg`;
@@ -4921,7 +3943,7 @@ function openPlayerDetail(sleeperId) {
   // Stats grid
   const stats = `
     <div class="ml-pd-stats">
-      ${ktc.value ? `<div><div class="ml-pd-stat-label">KTC Value</div><div class="ml-pd-stat-val">${ktc.value.toLocaleString()}</div></div>` : ''}
+      ${ktc.value ? `<div><div class="ml-pd-stat-label">Trade Value</div><div class="ml-pd-stat-val">${ktc.value.toLocaleString()}</div></div>` : ''}
       ${ktc.posRank ? `<div><div class="ml-pd-stat-label">Pos Rank</div><div class="ml-pd-stat-val">${ktc.posRank}</div></div>` : ''}
       ${ktc.age ? `<div><div class="ml-pd-stat-label">Age</div><div class="ml-pd-stat-val">${ktc.age}</div></div>` : ''}
       ${expDisplay !== null ? `<div><div class="ml-pd-stat-label">EXP</div><div class="ml-pd-stat-val">${expDisplay}</div></div>` : ''}
@@ -5043,7 +4065,7 @@ function openCalcModal(targetName, targetSleeperId, opts) {
     MLCALC.sides.B = [opts.targetAsset];
   } else {
     // Resolve via player name (existing behavior)
-    const ktc = mlGetKtcByName(targetName);
+    const ktc = mlGetValueByName(targetName);
     if (ktc) {
       const pos = ktc.posRank ? ktc.posRank.replace(/\d+/g, '') : 'WR';
       MLCALC.sides.B = [{ name: targetName, value: ktc.value, pos, type: 'player', sleeperId: targetSleeperId || null }];
@@ -5193,14 +4215,14 @@ function mlCalcSearch(sideId, query) {
       }
     }
     // UNSCOPED MODE (existing behavior): Side A defaults to the active league's roster,
-    // Side B falls back to all KTC_DATA.
+    // Side B falls back to all FP_VALUES.
     else if (sideId === 'A' && !q && window.ML_MY_PLAYER_IDS && window.ML_PLAYERS) {
       assets = window.ML_MY_PLAYER_IDS
         .map(pid => {
           const p = window.ML_PLAYERS[pid];
           if (!p) return null;
           const name = p.full_name || ((p.first_name||'') + ' ' + (p.last_name||'')).trim();
-          const ktc = mlGetKtcByName(name);
+          const ktc = mlGetValueByName(name);
           if (!ktc) return null;
           return { name, value: ktc.value, pos: p.position, type: 'player', isMine: true };
         })
@@ -5208,8 +4230,8 @@ function mlCalcSearch(sideId, query) {
         .filter(a => !taken.has(a.name))
         .sort((a, b) => b.value - a.value);
     } else {
-      // All KTC players + picks
-      assets = Object.entries(KTC_DATA)
+      // All FP-tracked players + picks
+      assets = Object.entries(FP_VALUES)
         .map(([name, d]) => ({ name, value: d.value, pos: d.posRank ? d.posRank.replace(/\d+/g,'') : 'WR', type: 'player' }))
         .filter(a => !taken.has(a.name))
         .filter(a => !q || a.name.toLowerCase().includes(q))
@@ -5656,7 +4678,7 @@ function mlComputeLeagueValueData(leagueId) {
       if (!p || !posVals.hasOwnProperty(p.position)) return;
       const pname = p.full_name || `${p.first_name || ''} ${p.last_name || ''}`.trim();
       if (!pname) return;
-      posVals[p.position] += KTC_DATA[pname]?.value || 0;
+      posVals[p.position] += FP_VALUES[pname]?.value || 0;
       if (p.age && p.age > 0) ages.push(p.age);
     });
     const avgAge = ages.length ? ages.reduce((s,a)=>s+a,0)/ages.length : 0;
@@ -5947,7 +4969,7 @@ function mlBuildTeamRosterHtml(leagueId, rosterId) {
     const p = lgPlayers[pid];
     if (!p) return;
     const name = p.full_name || `${p.first_name || ''} ${p.last_name || ''}`.trim();
-    const ktc = mlGetKtcByName(name) || {};
+    const ktc = mlGetValueByName(name) || {};
     const pos = (p.position || (ktc.posRank ? ktc.posRank.replace(/\d+/g, '') : '')).toUpperCase();
     const item = {
       sid: pid,
@@ -6176,7 +5198,7 @@ function openPickExposurePicker(season, round) {
       <span style="display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;flex-shrink:0;background:var(--surface2);border:1px solid var(--border);border-radius:50%"><svg xmlns="http://www.w3.org/2000/svg" viewBox="413 0 95 90" width="20" height="20" style="display:block"><path d="M508.084,47.801l-8.983,41.534c0,0 -75.276,-0.036 -85.237,-0.002l0.015,-0.067c0,0 2.533,-17.352 5.641,-25.475c3.708,-9.689 16.604,-32.658 16.604,-32.658c12.902,8.212 8.658,21.025 7.099,27.21c11.719,-8.962 11.012,-17.186 11.003,-28.608c-0.006,-7.356 4.797,-23.375 17.858,-28.257c-4.305,14.678 3.971,24.95 7.333,30.494c6.362,10.492 1.397,21.17 1.397,21.17c0,0 9.268,-3.36 8.863,-15.254c-0.117,-3.424 -1.714,-14.283 8.012,-18.422c-0.754,9.397 5.495,18.682 10.395,28.336Z" fill="var(--red)"/></svg></span>
       <div style="flex:1">
         <div style="font-family:'Mulish',sans-serif;font-weight:900;font-size:14px;color:var(--white)">${data.season} ${ord(data.round)} Round Pick</div>
-        <div style="font-family:'Mulish',sans-serif;font-size:11px;color:var(--muted);margin-top:3px">KTC Value: ${data.value ? data.value.toLocaleString() : '—'} · Exposure: ${data.exposure.toFixed(0)}%</div>
+        <div style="font-family:'Mulish',sans-serif;font-size:11px;color:var(--muted);margin-top:3px">Trade Value: ${data.value ? data.value.toLocaleString() : '—'} · Exposure: ${data.exposure.toFixed(0)}%</div>
       </div>
     </div>
     <div style="font-family:'Mulish',sans-serif;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px">Choose a league to open in the trade calculator</div>
@@ -6245,13 +5267,13 @@ function computePlayerExposure() {
     });
   });
 
-  // Build list with KTC value + position rank
+  // Build list with trade value + position rank
   const list = Object.entries(counts).map(([pid, info]) => {
     const p = info.player;
     if (!p) return null;
     const fullName = p.full_name || `${p.first_name||''} ${p.last_name||''}`.trim();
     if (!fullName) return null; // Skip phantom records with no name at all
-    const ktc = KTC_DATA[fullName] || {};
+    const ktc = FP_VALUES[fullName] || {};
     const value = ktc.value || 0;
     const posR  = ktc.posRank || (p.position || '');
     return {
@@ -6649,14 +5671,14 @@ function _mlComputeOptimalLineup(playerIds, players, projections, rosterPosition
   const playableSlots = rosterPositions.filter(s => !benchSlots.has(s));
   if (!playableSlots.length) return new Set();
 
-  // Decide which signal to rank by: projections (in-season) or KTC value (pre-season fallback)
+  // Decide which signal to rank by: projections (in-season) or trade value (pre-season fallback)
   const hasProjData = projections && Object.values(projections).some(v => v > 0);
   const signal = (id, name) => {
     if (hasProjData) {
       return (projections && projections[id]) ? +projections[id] : 0;
     }
-    // Fallback: KTC value — auto-switches to projections when those become available
-    const ktc = (typeof KTC_DATA !== 'undefined') ? (KTC_DATA[name] || {}) : {};
+    // Fallback: trade value — auto-switches to projections when those become available
+    const ktc = (typeof FP_VALUES !== 'undefined') ? (FP_VALUES[name] || {}) : {};
     return +(ktc.value || 0);
   };
 
@@ -6742,7 +5764,7 @@ function renderRoster(playerIds, players, starters, myPicks, rosterToTeam, proje
     // Use full fallback chain — some Sleeper records have empty first/last names
     const rawName = p.full_name || `${p.first_name || ''} ${p.last_name || ''}`.trim();
     const name    = rawName || `Unknown #${id}`;
-    const ktc     = (rawName && KTC_DATA[rawName]) || {};
+    const ktc     = (rawName && FP_VALUES[rawName]) || {};
     const sid     = (rawName && SLEEPER_IDS[rawName]) || id;
     const isStart = starters.includes(id);
     const proj = (projections && projections[id]) ? +projections[id] : null;
@@ -6842,15 +5864,15 @@ function renderRoster(playerIds, players, starters, myPicks, rosterToTeam, proje
       </div>`;
   }
 
-  // Look up a pick's KTC value. We don't always know the draft slot, so we use
+  // Look up a pick's trade value. We don't always know the draft slot, so we use
   // the round midpoint slot (06 or 07 in a 12-team league) as a reasonable proxy.
   function pickValue(season, round) {
-    const seasonKeys = Object.keys(PICK_KTC || {}).filter(k => k.startsWith(`${season}-${round}.`));
+    const seasonKeys = Object.keys(PICK_VALUES || {}).filter(k => k.startsWith(`${season}-${round}.`));
     if (!seasonKeys.length) return 0;
     // Pick the midpoint slot
     seasonKeys.sort();
     const mid = seasonKeys[Math.floor(seasonKeys.length / 2)];
-    return PICK_KTC[mid] || 0;
+    return PICK_VALUES[mid] || 0;
   }
 
   // ── Draft Picks section ────────────────────────────────────────────────
@@ -7521,7 +6543,7 @@ async function renderTradeYear(leagueId, idx, allTradesByYear, players, leagueCh
           if (!name.trim() || name.length > 40 || /[^a-zA-Z .',-]/.test(name)) return;
           const pos  = p.position || '?';
           const team = p.team || 'FA';
-          const ktc  = KTC_DATA[name] || {};
+          const ktc  = FP_VALUES[name] || {};
           const sid  = SLEEPER_IDS[name] || pid;
           assets.push({ type:'player', name, pos, team, sid,
             value: ktc.value || 0, adp: ktc.adp || null, posRank: ktc.posRank || null });
@@ -7533,7 +6555,7 @@ async function renderTradeYear(leagueId, idx, allTradesByYear, players, leagueCh
         if (dp.owner_id !== rid) return;
         const label   = `${dp.season} Rd${dp.round}`;
         const origOwner = rosterToTeam[dp.roster_id] || `Team ${dp.roster_id}`;
-        const val     = PICK_KTC?.[label] || 0;
+        const val     = PICK_VALUES?.[label] || 0;
         assets.push({ type:'pick', label, origOwner, value: val });
       });
 
@@ -7656,7 +6678,7 @@ async function loadStandings(leagueId) {
         if (!p || !posVals.hasOwnProperty(p.position)) return;
         const pname = p.full_name || `${p.first_name || ''} ${p.last_name || ''}`.trim();
         if (!pname) return;
-        posVals[p.position] += KTC_DATA[pname]?.value || 0;
+        posVals[p.position] += FP_VALUES[pname]?.value || 0;
         if (p.age && p.age > 0) ages.push(p.age);
       });
       const avgAge = ages.length ? (ages.reduce((s,a)=>s+a, 0) / ages.length) : 0;
@@ -7991,7 +7013,7 @@ function _fptsXpageMlPdToCalc() {
   const nameEl = document.getElementById('ml-pd-name');
   const name = nameEl ? nameEl.textContent.trim() : null;
   if (!name) { window.open('trade-calculator.html', '_blank', 'noopener'); return; }
-  const ktc = (typeof KTC_DATA !== 'undefined' ? KTC_DATA[name] : null) || {};
+  const ktc = (typeof FP_VALUES !== 'undefined' ? FP_VALUES[name] : null) || {};
   const pos = (ktc.posRank || 'WR').replace(/\d+$/, '') || 'WR';
   _fptsWriteHandoff({
     source: 'leagues',
@@ -8010,6 +7032,29 @@ function _fptsXpageMlTsToDb() {
 function _fptsXpageMlPepToDb() {
   window.open('index.html', '_blank', 'noopener');
 }
+// ── DATA BOOTSTRAP: fetch FP API data from data/*.json, then run initial render ──
+(function _fpBootstrap(){
+  const v = '?v=' + (window.__DATA_VERSION || Date.now());
+  function hideLoader(){ const el = document.getElementById('_fp-loading'); if (el) el.style.display = 'none'; }
+  function fail(msg){
+    const el = document.getElementById('_fp-loading');
+    if (el) { el.style.background = '#7a1a1a'; el.textContent = 'Data load failed — ' + msg; }
+    console.error('[fp-bootstrap]', msg);
+  }
+  Promise.all([
+    fetch('data/values.json' + v).then(r => r.ok ? r.json() : Promise.reject('values ' + r.status)).then(j => { if (typeof FP_VALUES !== 'undefined' && j && j.players) Object.assign(FP_VALUES, j.players); }),
+    fetch('data/adp.json' + v).then(r => r.ok ? r.json() : Promise.reject('adp ' + r.status)).then(j => { if (typeof ADP_DATA !== 'undefined' && j && j.players) Object.assign(ADP_DATA, j.players); }),
+    fetch('data/picks.json' + v).then(r => r.ok ? r.json() : Promise.reject('picks ' + r.status)).then(j => { if (typeof PICK_VALUES !== 'undefined' && j && j.picks) Object.assign(PICK_VALUES, j.picks); }),
+    fetch('data/articles.json' + v).then(r => r.ok ? r.json() : Promise.reject('articles ' + r.status)).then(j => { if (j && j.players) window.PLAYER_ARTICLES = j.players; }).catch(() => { /* articles optional */ }),
+  ]).then(() => {
+    if (typeof applyFilters === 'function') applyFilters();
+    if (typeof buildPickSlots === 'function') buildPickSlots();
+    if (typeof renderAll === 'function') renderAll();
+    if (typeof renderTiers === 'function') renderTiers();
+    hideLoader();
+  }).catch(fail);
+})();
+
 window.addEventListener('DOMContentLoaded', () => {
   const ho = _fptsReadHandoff();
   if (!ho) return;

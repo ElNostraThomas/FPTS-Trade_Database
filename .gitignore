@@ -4,6 +4,7 @@ push.bat
 make-pdf.ps1
 sync-tiers.py
 import-tat.py
+sync-fp.py
 
 # Secrets / credentials
 .env
@@ -15,6 +16,10 @@ secret*
 *.token
 service-account.json
 sync-tiers.config.json
+sync-fp.config.json
+
+# API sample files (used to inspect endpoint shapes during dev; not for production)
+*-sample.json
 
 # Project-local data — never push to live site
 tiers.csv
