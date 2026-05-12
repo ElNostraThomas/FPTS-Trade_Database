@@ -5406,6 +5406,34 @@ function renderExposureList() {
   // Apply search
   if (search) {
     filtered = filtered.filter(p => p.name.toLowerCase().includes(search));
+
+    // When the user is searching by name, also surface non-rostered FP players
+    // (Josh Allen, etc. — players who aren't on any of your rosters yet).
+    // These appear with 0 shares / 0% exposure so the user can still inspect
+    // them and decide whether to trade for / waiver-claim them.
+    if (typeof FP_VALUES !== 'undefined' && FP_VALUES) {
+      const seenSids = new Set(filtered.map(p => p.sleeperId).filter(Boolean));
+      const seenNames = new Set(filtered.map(p => (p.name || '').toLowerCase()));
+      const posAllowed = filter === 'ALL' ? ['QB','RB','WR','TE'] : [filter];
+      Object.entries(FP_VALUES).forEach(([name, rec]) => {
+        if (!name) return;
+        if (seenNames.has(name.toLowerCase())) return;
+        if (rec.sleeperId && seenSids.has(rec.sleeperId)) return;
+        if (rec.pos && !posAllowed.includes(rec.pos)) return;
+        if (!name.toLowerCase().includes(search)) return;
+        filtered.push({
+          sleeperId: rec.sleeperId || '',
+          name,
+          position: rec.pos || '—',
+          team: rec.team || 'FA',
+          value: rec.value || 0,
+          posR:  rec.posRank || '',
+          shares: 0,
+          exposure: 0,
+          leagueIds: [],
+        });
+      });
+    }
   }
 
   // Apply sort

@@ -3158,7 +3158,7 @@ function renderValueTracker() {
     const isUp = p.trend > 0;
     const arrow = isUp ? "▲" : "▼";
     const changeStr = isUp ? `+${p.trend}` : `${p.trend}`;
-    return `<div class="value-row" onclick="openPanel('${p.name.replace(/'/g,"\'")}')">
+    return `<div class="value-row" onclick="openPanel('${p.name.replace(/'/g,"\\'")}')">
       ${_imgThumb(p.name,22)}
       <span class="pos-badge ${pc(p.pos)}" style="font-size:10px;padding:2px 5px;flex-shrink:0">${p.pos}</span>
       <span class="value-row-name">${p.name}</span>
@@ -6351,12 +6351,12 @@ function ppRenderTabStrip() {
     const ktcRank = FP_VALUES[name]?.posRank || "";
     const pos = (ktcRank.replace(/\d+$/,"")) || info?.pos || "?";
     const ktcPos = pos;
-    return `<div onclick="ppSwitchTo('${name.replace(/'/g,"\'")}')"
+    return `<div onclick="ppSwitchTo('${name.replace(/'/g,"\\'")}')"
       style="display:flex;align-items:center;gap:8px;padding:0 16px;height:44px;cursor:pointer;border-bottom:2px solid ${isActive?"var(--red)":"transparent"};background:${isActive?"var(--surface)":"transparent"};flex-shrink:0;transition:all .15s;white-space:nowrap">
       ${_imgThumb(name,24)}
       <span class="pos-badge ${pc(ktcPos)}" style="font-size:10px;padding:2px 6px">${ktcPos}</span>
       <span style="font-family:'Mulish',sans-serif;font-weight:900;font-size:13px;color:var(--white);opacity:${isActive?1:0.6}">${name}</span>
-      <span onclick="event.stopPropagation();ppRemovePlayer('${name.replace(/'/g,"\'")}')"
+      <span onclick="event.stopPropagation();ppRemovePlayer('${name.replace(/'/g,"\\'")}')"
         style="color:var(--white);opacity:1;font-size:12px;cursor:pointer;margin-left:4px;line-height:1"
         onmouseover="this.style.opacity=1;this.style.color='var(--red)'" onmouseout="this.style.opacity=0.3;this.style.color='var(--white)'">✕</span>
     </div>`;
@@ -6413,7 +6413,7 @@ function tradeSearchInput(side, val) {
   }
   resultsEl.innerHTML=fr.map((r,i)=>`
     <div class="main-search-result${i===0?" focused":""}"
-      onclick="tradeSearchAdd('${side}','${r.label.replace(/'/g,"\'")}','${r.type}','${r.key.replace(/'/g,"\'")}','${(r.pos||"").replace(/'/g,"\'")}')"
+      onclick="tradeSearchAdd('${side}','${r.label.replace(/'/g,"\\'")}','${r.type}','${r.key.replace(/'/g,"\\'")}','${(r.pos||"").replace(/'/g,"\\'")}')"
       onmouseover="this.parentNode.querySelectorAll('.main-search-result').forEach(e=>e.classList.remove('focused'));this.classList.add('focused')">
       ${(()=>{ if(r.type==="pick") return pickThumb(24); const sid=SLEEPER_IDS[r.label]||(()=>{const k=normalizePlayerName(r.label);const m=Object.keys(SLEEPER_IDS).find(n=>normalizePlayerName(n)===k);return m?SLEEPER_IDS[m]:null;})(); const initials=(r.label||"").split(" ").map(s=>s[0]).join("").slice(0,2).toUpperCase(); return sid ? `<img src="https://sleepercdn.com/content/nfl/players/thumb/${sid}.jpg" style="width:24px;height:24px;border-radius:50%;object-fit:cover;flex-shrink:0;background:var(--surface2);" onerror="_imgThumbFallback(this,24,'${initials}')">` : `<span style="width:24px;height:24px;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;border-radius:50%;background:var(--surface2);border:1px solid var(--border);color:var(--muted);font-family:'Mulish',sans-serif;font-weight:700;font-size:9px;">${initials}</span>`; })()}
       <span class="pos-badge ${pc(r.pos)}" style="${r.type==='pick'?'display:none':''}">${r.pos||''}</span>
@@ -6465,7 +6465,7 @@ function renderTradeSideTags(side) {
   el.innerHTML=tradeSearch[side].map(a=>`
     <span style="display:inline-flex;align-items:center;gap:5px;background:var(--surface);border:1px solid var(--red);padding:3px 10px;font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:12px;color:var(--white)">
       ${a.type==="pick"?pickThumb(20)+a.label:a.label}
-      <span onclick="removeTradeSearchAsset('${side}','${a.key.replace(/'/g,"\'")}')" style="cursor:pointer;color:var(--red);font-size:13px;line-height:1;font-style:normal">✕</span>
+      <span onclick="removeTradeSearchAsset('${side}','${a.key.replace(/'/g,"\\'")}')" style="cursor:pointer;color:var(--red);font-size:13px;line-height:1;font-style:normal">✕</span>
     </span>`).join("");
   const hasAny=tradeSearch.a.length||tradeSearch.b.length;
   const bar=document.getElementById("player-filter-bar");
@@ -6867,7 +6867,7 @@ function tfQuerySlot(containerId, side, val) {
   if(!listEl) { _drawTradeFinder(containerId); return; }
   listEl.innerHTML = opts.length ? opts.map(a=>`
     <div class="tf-add-option"
-      onclick="tfAddFromSearch('${containerId}','${side}','${a.label.replace(/'/g,"\'")}',${a.value},'${a.posKey}','${a.type}')"
+      onclick="tfAddFromSearch('${containerId}','${side}','${a.label.replace(/'/g,"\\'")}',${a.value},'${a.posKey}','${a.type}')"
       onmouseover="this.parentNode.querySelectorAll('.tf-add-option').forEach(e=>e.classList.remove('focused'));this.classList.add('focused')">
       ${a.type==="pick"?pickThumb(24):_imgThumb(a.label,24)+`<span class="pos-badge ${pc(a.posKey)}" style="font-size:9px;padding:1px 5px">${a.posKey||""}</span>`}
       <span class="tf-add-option-name">${a.label}</span>

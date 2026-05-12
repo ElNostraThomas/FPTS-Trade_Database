@@ -341,7 +341,7 @@
       <option value="https://www.fantasypoints.com/nfl/rankings/dynasty#/">Rankings</option>
       <option value="https://www.fantasypoints.com/nfl/adp/dynasty#/">ADP</option>
     </select>
-    <span class="nav-stat">Synced <strong id="tiers-updated-stat"><!-- TIERS:SYNCED:START -->May 11, 2026 8:31 PM<!-- TIERS:SYNCED:END --></strong></span>
+    <span class="nav-stat">Synced <strong id="tiers-updated-stat"><!-- TIERS:SYNCED:START -->May 11, 2026 8:56 PM<!-- TIERS:SYNCED:END --></strong></span>
     <span class="nav-badge">SEASON 2026</span>
     <button id="theme-toggle" onclick="toggleTheme()"
       style="background:none;border:1px solid var(--border2);color:var(--white);font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:11px;padding:5px 12px;cursor:pointer;transition:all .2s;letter-spacing:.04em;display:flex;align-items:center;gap:6px"
@@ -5187,6 +5187,49 @@ function toggleTheme() {
 }
 
 // ════════════════════════════════════════════════════════════════════════
+//  SLEEPER OVERLAY — mutate TIER_PLAYERS with live age/team/pos/ppg2025
+//  pulled from data/values.json (which sync-fp.py overlays from Sleeper).
+//  The Google Sheet stays the source for tier order, buy/sell, priority,
+//  contender, notes — i.e. anything that's a human judgement call.
+// ════════════════════════════════════════════════════════════════════════
+function _normNameTiers(name) {
+  if (!name) return '';
+  return String(name)
+    .normalize('NFKD').replace(/[̀-ͯ]/g, '')   // strip accents
+    .toLowerCase()
+    .replace(/\b(jr|sr|ii|iii|iv|v)\.?\b/g, '')           // drop suffixes
+    .replace(/[^a-z0-9]/g, '');                            // drop punct/space
+}
+
+async function applySleeperOverlay() {
+  try {
+    const v = '?v=' + (window.__DATA_VERSION || Date.now());
+    const res = await fetch('data/values.json' + v, { cache: 'no-cache' });
+    if (!res.ok) return;
+    const j = await res.json();
+    const byKey = {};
+    Object.entries(j.players || {}).forEach(([name, rec]) => {
+      byKey[_normNameTiers(name)] = rec;
+    });
+    let matched = 0;
+    TIER_PLAYERS.forEach(p => {
+      const rec = byKey[_normNameTiers(p.name)];
+      if (!rec) return;
+      matched++;
+      if (rec.age   != null) p.age      = String(rec.age);
+      if (rec.team)          p.team     = rec.team;
+      if (rec.pos)           p.pos      = rec.pos;
+      if (rec.posRank)       p.posRank  = rec.posRank;
+      if (rec.ppg   != null) p.ppg2025  = String(rec.ppg);
+      if (rec.injury)        p.injury   = rec.injury;
+    });
+    console.log('[tiers] sleeper overlay matched ' + matched + ' of ' + TIER_PLAYERS.length + ' players');
+  } catch (e) {
+    console.warn('[tiers] sleeper overlay skipped:', e && e.message);
+  }
+}
+
+// ════════════════════════════════════════════════════════════════════════
 //  INIT
 // ════════════════════════════════════════════════════════════════════════
 window.addEventListener('DOMContentLoaded', () => {
@@ -5216,8 +5259,10 @@ window.addEventListener('DOMContentLoaded', () => {
   document.getElementById('tiers-updated').textContent = TIER_UPDATED;
   document.getElementById('tiers-updated-stat').textContent = TIER_UPDATED;
 
-  // Initial render
+  // First paint immediately (Google-Sheet values), then re-render once
+  // the Sleeper overlay lands so the page is never blank.
   renderTiers();
+  applySleeperOverlay().then(() => renderTiers());
 });
 </script>
 </body>

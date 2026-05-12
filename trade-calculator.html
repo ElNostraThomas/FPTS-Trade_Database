@@ -2638,7 +2638,7 @@ function tradeSearchInput(side, val) {
   }
   resultsEl.innerHTML=fr.map((r,i)=>`
     <div class="main-search-result${i===0?" focused":""}"
-      onclick="tradeSearchAdd('${side}','${r.label.replace(/'/g,"\'")}','${r.type}','${r.key.replace(/'/g,"\'")}','${(r.pos||"").replace(/'/g,"\'")}')"
+      onclick="tradeSearchAdd('${side}','${r.label.replace(/'/g,"\\'")}','${r.type}','${r.key.replace(/'/g,"\\'")}','${(r.pos||"").replace(/'/g,"\\'")}')"
       onmouseover="this.parentNode.querySelectorAll('.main-search-result').forEach(e=>e.classList.remove('focused'));this.classList.add('focused')">
       ${r.type==="pick"?`<span class="pick-badge" style="font-size:11px;padding:2px 8px;flex-shrink:0">${r.label}</span>`:_imgThumb(r.label,24)+`<span class="pos-badge ${pc(r.pos)}">${r.pos}</span>`}
       <span class="main-search-result-name">${highlightMatch(r.label,val)}</span>
@@ -2692,7 +2692,7 @@ function renderTradeSideTags(side) {
   el.innerHTML=tradeSearch[side].map(a=>`
     <span style="display:inline-flex;align-items:center;gap:5px;background:var(--surface);border:1px solid var(--red);padding:3px 10px;font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:12px;color:var(--white)">
       ${a.type==="pick"?`<span class="pick-badge" style="font-size:11px;padding:1px 6px">${a.label}</span>`:a.label}
-      <span onclick="removeTradeSearchAsset('${side}','${a.key.replace(/'/g,"\'")}')" style="cursor:pointer;color:var(--red);font-size:13px;line-height:1;font-style:normal">✕</span>
+      <span onclick="removeTradeSearchAsset('${side}','${a.key.replace(/'/g,"\\'")}')" style="cursor:pointer;color:var(--red);font-size:13px;line-height:1;font-style:normal">✕</span>
     </span>`).join("");
   const hasAny=tradeSearch.a.length||tradeSearch.b.length;
   const bar=document.getElementById("player-filter-bar");
