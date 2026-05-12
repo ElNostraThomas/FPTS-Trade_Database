@@ -7087,9 +7087,60 @@ function _fptsXpageMlPepToDb() {
     if (el) { el.style.background = '#7a1a1a'; el.textContent = 'Data load failed — ' + msg; }
     console.error('[fp-bootstrap]', msg);
   }
+  // Shared shape converter (matches index.html + trade-calculator.html bootstraps).
+  function _indexByNorm(list) {
+    const out = {};
+    (list || []).forEach(p => {
+      if (!p || !p.name) return;
+      const key = normalizePlayerName(p.name);
+      if (key) out[key] = p;
+    });
+    return out;
+  }
+  function _applyAdpPayload(j) {
+    if (!j || !j.byMonth) return;
+    window.ADP_PAYLOAD = j;
+    const all = j.byMonth.ALL || {};
+    const sfByKey  = _indexByNorm(all.startup_sf);
+    const oneByKey = _indexByNorm(all.startup_1qb);
+    if (typeof ADP_DATA !== 'undefined') {
+      Object.values(sfByKey).forEach(p => {
+        ADP_DATA[p.name] = ADP_DATA[p.name] || {};
+        ADP_DATA[p.name].sf    = { overall: p.adp, posRank: p.posRank };
+      });
+      Object.values(oneByKey).forEach(p => {
+        ADP_DATA[p.name] = ADP_DATA[p.name] || {};
+        ADP_DATA[p.name].oneqb = { overall: p.adp, posRank: p.posRank };
+      });
+    }
+    if (typeof FP_VALUES !== 'undefined') {
+      Object.entries(FP_VALUES).forEach(([fpName, rec]) => {
+        const key = normalizePlayerName(fpName);
+        const p = oneByKey[key] || sfByKey[key];
+        if (p) rec.adp = p.adp;
+      });
+    }
+  }
+  function _applyAuctionPayload(j) {
+    if (!j || !j.byMonth) return;
+    window.AUCTION_PAYLOAD = j;
+    const all = j.byMonth.ALL || {};
+    const sfByKey  = _indexByNorm(all.startup_sf);
+    const oneByKey = _indexByNorm(all.startup_1qb);
+    function fmt(p) { return (p && p.med != null) ? ('$' + Math.round(p.med)) : null; }
+    if (typeof FP_VALUES !== 'undefined') {
+      Object.entries(FP_VALUES).forEach(([fpName, rec]) => {
+        const key = normalizePlayerName(fpName);
+        const one = oneByKey[key]; if (one) rec.auction   = fmt(one);
+        const sf  = sfByKey[key];  if (sf)  rec.auctionSf = fmt(sf);
+      });
+    }
+  }
+
   Promise.all([
     fetch('data/values.json' + v).then(r => r.ok ? r.json() : Promise.reject('values ' + r.status)).then(j => { if (typeof FP_VALUES !== 'undefined' && j && j.players) Object.assign(FP_VALUES, j.players); }),
-    fetch('data/adp.json' + v).then(r => r.ok ? r.json() : Promise.reject('adp ' + r.status)).then(j => { if (typeof ADP_DATA !== 'undefined' && j && j.players) Object.assign(ADP_DATA, j.players); }),
+    fetch('data/adp.json' + v).then(r => r.ok ? r.json() : Promise.reject('adp ' + r.status)).then(j => _applyAdpPayload(j)),
+    fetch('data/auction.json' + v).then(r => r.ok ? r.json() : Promise.reject('auction ' + r.status)).then(j => _applyAuctionPayload(j)).catch(() => { /* auction optional */ }),
     fetch('data/picks.json' + v).then(r => r.ok ? r.json() : Promise.reject('picks ' + r.status)).then(j => { if (typeof PICK_VALUES !== 'undefined' && j && j.picks) Object.assign(PICK_VALUES, j.picks); }),
     fetch('data/articles.json' + v).then(r => r.ok ? r.json() : Promise.reject('articles ' + r.status)).then(j => { if (j && j.players) window.PLAYER_ARTICLES = j.players; }).catch(() => { /* articles optional */ }),
   ]).then(() => {

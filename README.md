@@ -1,70 +1,95 @@
 # Fantasy Points Front Office — Session Handoff
 
 A static fantasy-football site deployed via GitHub Pages from `main`.
-Four HTML pages: `index.html` (trade DB), `trade-calculator.html`, `tiers.html`, `my-leagues.html`.
+Four HTML pages today: `index.html` (trade DB), `trade-calculator.html`, `tiers.html`, `my-leagues.html`. A fifth page (`adp-tool.html`) is in progress.
 
 Full operator manual: [`docs/WORKFLOW.md`](docs/WORKFLOW.md). This file is the
 **resume-where-we-left-off** doc.
 
 ---
 
-## State as of last session (2026-05-11)
+## Where we are (end of 2026-05-11 session)
 
-**Architecture**
-- `sync-fp.py` pulls both Fantasy Points **and** Sleeper in one run, merges them
-  per-player, writes `data/*.json`. FP owns value/rank/ADP/auction/picks/articles/trend.
-  Sleeper owns age/team/pos/injury/PPG/projections.
-- `tiers.html` overlays Sleeper attributes onto Google-Sheet tier rows at page load.
-- All four pages bootstrap-fetch `data/*.json` at runtime; no embedded player data.
+**Big change this session: dynasty ADP + auction now come from your own data pipeline, not the FP API.**
 
-**Recently shipped (in this session)**
-- Hybrid FP + Sleeper sync (`sync-fp.py` rewrite).
-- `data/values.json` gained `age`, `injury`, `sleeperId`, real `ppg` from 2025 stats.
-- `data/projections.json` reshaped to Sleeper format (keyed by `sleeper_id`).
-- Articles fix: absolute URLs to `fantasypoints.com`, `date` field name corrected.
-- Apostrophe-escape bug fixed at 12 call sites in `index.html` / `trade-calculator.html`
-  (players like Ja'Marr Chase, D'Andre Swift now clickable in dropdowns).
-- Player Exposure search in `my-leagues.html` now surfaces non-rostered players
-  at 0% so Josh Allen etc. show up even when not on your rosters.
-- `KNOWN_PLAYERS` arrays emptied; FP_VALUES (~947 players) is now the comprehensive
-  player universe everywhere.
+You ran `01_ingest_historical.ipynb` in `C:\Users\deons\Desktop\sleeper_dynasty_adp\scripts_or_notebooks` to mine ~1,800 real dynasty drafts and ~856 real dynasty auctions. That feeds a new `sync-adp.py` script in this repo which writes three new JSON files the site consumes.
 
-**Pending (you'll do these)**
-- [ ] **Run `push.bat` to deploy** — there are uncommitted changes on disk
-      (10 files including `sync-fp.py`, all four HTML pages, and regenerated
-      `data/*.json`). GitHub Pages redeploys ~2 minutes after push.
-- [ ] After deploy, smoke-test:
-  - Trade DB / Trade Calculator: search "ja'marr" — Ja'Marr Chase should be
-    clickable; search "josh allen" — should appear and be clickable.
-  - my-leagues Player Exposure: search "josh allen" — should appear at 0%
-    if you don't own him in any league.
-  - tiers.html: ages/teams/PPG should reflect Sleeper data (refresh after
-    `data/values.json` deploys).
-- [ ] Annual rotation reminder: `SLEEPER_STATS_SEASON = "2025"` near the top of
-      `sync-fp.py` needs to flip to `"2026"` after Week 18 of the 2026 season
-      closes out (early 2027). Stats and PPG will be stale otherwise.
+### New data architecture
+
+```
+sleeper_dynasty_adp/  (separate desktop folder, your data factory)
+  └─ data/snapshots/
+       ├─ adp_time_series_ALL.parquet      (219k rows, 7 monthly buckets)
+       ├─ auction_price_series_ALL.parquet (34k rows, real auction prices)
+       └─ draft_catalog_ALL.parquet        (36k drafts metadata)
+  └─ data/raw/picks/picks_2026.parquet     (2M picks, fuels heatmap)
+                ↓
+        sync-adp.py  (this repo, gitignored)
+                ↓
+  data/adp.json               per-player ADP, monthly + ALL buckets, by view (startup_sf/1qb/rookie)
+  data/auction.json           per-player auction price ranges (avg/med/min/max) from real dynasty auctions
+  data/pick-availability.json per-player [round][slot] -> probability heatmap, top-300 players
+```
+
+### Per-data-field source-of-truth (current)
+
+| Field | Source |
+|---|---|
+| `value`, `valueSf`, `valueTep`, `rank`, `posRank`, `trend`, `tier` | Fantasy Points API → `data/values.json` (via `sync-fp.py`) |
+| `age`, `team`, `pos`, `injury`, `ppg`, `sleeperId` | Sleeper API → `data/values.json` (via `sync-fp.py` overlay) |
+| `adp` (1QB + SF) | sleeper_dynasty_adp parquets → `data/adp.json` (via `sync-adp.py`) |
+| `auction`, `auctionSf` | sleeper_dynasty_adp parquets → `data/auction.json` (via `sync-adp.py`) |
+| Pick availability heatmap | sleeper_dynasty_adp parquets → `data/pick-availability.json` (via `sync-adp.py`) |
+| Articles | Fantasy Points API → `data/articles.json` |
+| Tier rankings, buy/sell, priority, contender, notes | Google Sheet → `tiers.html` (via `sync-tiers.py`) |
+| Roster data (my-leagues) | Sleeper API at runtime |
+| Trade corpus | **Still synthetic** (placeholder — pending real trade source) |
+
+### Tasks completed in this session
+
+- [x] #16 Inspect parquet schemas in sleeper_dynasty_adp
+- [x] #17 Build `sync-adp.py` (reads parquets, produces 3 JSON files)
+- [x] #18 Strip FP's ADP + auction values from `data/values.json` output (FP endpoints still called for name/rank resolution)
+- [x] #19 Add sync-adp step to `push.bat` (5-step pipeline now)
+- [x] #20 Wire `index.html` / `my-leagues.html` / `trade-calculator.html` bootstraps to fetch + apply the new ADP/auction shape
+
+### Tasks remaining (UI build for `adp-tool.html`)
+
+- [ ] #21 Scaffold `adp-tool.html` (brand + nav + shell, no functionality yet)
+- [ ] #22 Build Box + List views with Picks/Simple/Rookies mode toggle
+- [ ] #23 Modal player card on adp-tool.html (lift from index.html, mount into modal)
+- [ ] #24 Build Pick Availability heatmap component (round × slot grid, dropoff bars, expected-pick callout)
+- [ ] #25 Wire heatmap into player card on every page (index, calc, my-leagues, adp-tool)
+- [ ] #26 Filters drawer + Settings drawer on adp-tool.html
+
+These are the big UI lifts. Probably 2–4 focused sessions.
+
+---
+
+## Before doing anything else in the next session
+
+**Run `push.bat`** to ship what's already done. Uncommitted changes on disk include `sync-adp.py`, all three updated bootstraps, README, push.bat, .gitignore. Once it deploys, smoke-test:
+
+- Player cards (any page): the **Auction** stat should now show real dynasty auction values like `$84`, `$76`, `$1` — these are medians from real Sleeper dynasty auctions, not FP's redraft-flavored numbers.
+- Player cards: the **Dynasty ADP** stat should reflect dynasty 1QB draft ADP (Josh Allen ≈ 6, Bijan ≈ 4, Drake Maye ≈ 5).
+- Nothing else should change visually — the data feed swapped, the rendering didn't.
 
 ---
 
 ## How to start the next Claude Code session
 
-When you open the new session, paste this as your first message:
+Paste this as the first message:
 
 ```
 Read README.md to see where we left off. Confirm the deploy went through
-by running `git log --oneline -5` and `git status`. Then wait for my next
-instruction.
+by running `git log --oneline -5` and `git status`. We're picking up at
+task #21 (scaffold adp-tool.html). Look at the visual references in
+images shared previously: ADP Startup board (Box view), ADP List view,
+Pick Availability heatmap. Same branding as the other 4 pages — Kanit
+ExtraBold Italic display, Mulish body, --red = #ED810C accent.
 ```
 
-That's it — Claude will load the memory files automatically (architecture,
-brand, escape-pitfall, etc.) and `README.md` will tell it about the
-in-progress work. From there, just describe what you want next.
-
-If you want Claude to also re-pull fresh data before you work:
-```
-Read README.md, confirm clean tree, then run `python sync-fp.py` so we're
-on the latest Sleeper + FP data before I tell you what's next.
-```
+If anything in `data/*.json` is stale, also run `python sync-adp.py` and `python sync-fp.py` to refresh.
 
 ---
 
@@ -74,24 +99,45 @@ on the latest Sleeper + FP data before I tell you what's next.
 |---|---|
 | Deploy everything (the 90% command) | `push.bat` |
 | Preview locally | `start.bat` → opens http://localhost:8000/ |
-| Refresh FP+Sleeper data without pushing | `python sync-fp.py` |
+| Refresh dynasty ADP + auction + heatmap | `python sync-adp.py` |
+| Refresh FP + Sleeper values | `python sync-fp.py` |
 | Refresh tier rankings from Google Sheet | `python sync-tiers.py` |
-| Bulk-import a new TAT CSV | `python import-tat.py` |
-| Service-account email (Google Sheets perms) | `python import-tat.py --whoami` |
+| Re-ingest Sleeper drafts (slow, ~30 min) | `cd ../sleeper_dynasty_adp/scripts_or_notebooks ; python 01_ingest_historical.py` |
 
 Full reference: `docs/WORKFLOW.md`.
 
 ---
 
-## File map (the ones you'll touch)
+## File map
 
 - **`index.html`** — trade database (largest, ~8500 lines; use Grep/offsets, never read in full)
 - **`trade-calculator.html`** — trade value calculator
-- **`tiers.html`** — dynasty trade tiers (data auto-synced from Google Sheet + Sleeper overlay)
+- **`tiers.html`** — dynasty trade tiers
 - **`my-leagues.html`** — Sleeper user/league importer
-- **`sync-fp.py`** — pulls FP + Sleeper, writes `data/*.json` (local-only, gitignored)
-- **`sync-tiers.py`** — pulls Google Sheet, rewrites `tiers.html` TIER_PLAYERS block
-- **`import-tat.py`** — uploads TAT CSV to Google Sheet (local-only)
-- **`push.bat`** — runs syncs → rebuilds PDF → commits + pushes (local-only)
+- **`adp-tool.html`** — *planned, not yet built* (new page for tasks #21–#26)
+- **`sync-fp.py`** — FP + Sleeper sync (local-only, gitignored)
+- **`sync-adp.py`** — dynasty ADP/auction/heatmap sync from parquet (local-only, gitignored)
+- **`sync-tiers.py`** — Google Sheet → tiers.html (local-only)
+- **`import-tat.py`** — TAT CSV → Google Sheet (local-only)
+- **`push.bat`** — 5-step deploy pipeline (local-only)
+- **`sync-adp.config.json`** — paths to your sleeper_dynasty_adp folder (local-only)
 - **`docs/WORKFLOW.md`** — full operator manual
 - **`docs/function-reference.html`** + **`.pdf`** — printable function reference
+
+---
+
+## Outside-the-repo dependency
+
+This site now depends on data produced by `C:\Users\deons\Desktop\sleeper_dynasty_adp` (a separate repo/folder on your desktop). If those parquet files go stale, run the notebook there. The notebook itself talks to the Sleeper API directly (no auth) and produces the parquet files; `sync-adp.py` in this repo reads them.
+
+When the auction or ADP data gets stale, the refresh cycle is:
+
+```powershell
+# Step 1: pull fresh dynasty data (15-30+ min)
+cd C:\Users\deons\Desktop\sleeper_dynasty_adp\scripts_or_notebooks
+python 01_ingest_historical.py
+
+# Step 2: come back here, deploy
+cd C:\Users\deons\Desktop\05_11_26 dynasty Tool\FPTS-Trade_Database
+push.bat
+```

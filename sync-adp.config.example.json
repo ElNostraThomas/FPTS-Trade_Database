@@ -1,0 +1,10 @@
+{
+  "_comment_1": "Copy this file to sync-adp.config.json and edit the paths to point at your sleeper_dynasty_adp snapshot dir.",
+  "_comment_2": "On Windows escape backslashes (\\\\) or use forward slashes.",
+  "snapshot_dir":   "C:/Users/deons/Desktop/sleeper_dynasty_adp/scripts_or_notebooks/sleeper_dynasty_adp/data/snapshots",
+  "picks_dir":      "C:/Users/deons/Desktop/sleeper_dynasty_adp/scripts_or_notebooks/sleeper_dynasty_adp/data/raw/picks",
+  "season":         2026,
+  "team_count":     12,
+  "min_drafts":     5,
+  "top_n_heatmap":  300
+}

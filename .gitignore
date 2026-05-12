@@ -5,6 +5,7 @@ make-pdf.ps1
 sync-tiers.py
 import-tat.py
 sync-fp.py
+sync-adp.py
 
 # Secrets / credentials
 .env
@@ -17,6 +18,7 @@ secret*
 service-account.json
 sync-tiers.config.json
 sync-fp.config.json
+sync-adp.config.json
 
 # API sample files (used to inspect endpoint shapes during dev; not for production)
 *-sample.json
