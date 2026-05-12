@@ -128,7 +128,6 @@
   .pos-breakdown .pb-item { display:inline-flex; align-items:center; gap:4px; font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:11px; padding:3px 9px; letter-spacing:.04em; cursor:pointer; transition:transform .12s, box-shadow .12s; user-select:none; }
   .pos-breakdown .pb-item:hover { transform:translateY(-1px); box-shadow:0 2px 5px rgba(0,0,0,.25); }
   .pos-breakdown .pb-item.pb-active { outline:2px solid var(--red); outline-offset:1px; }
-  .pos-breakdown .pb-total { font-family:'Mulish',sans-serif; font-size:11px; font-weight:700; color:var(--white); opacity:.65; margin-left:6px; letter-spacing:.04em; text-transform:uppercase; }
   .pos-breakdown .pb-item.QB { background:var(--pos-qb-bg); color:var(--pos-qb); }
   .pos-breakdown .pb-item.RB { background:var(--pos-rb-bg); color:var(--pos-rb); }
   .pos-breakdown .pb-item.WR { background:var(--pos-wr-bg); color:var(--pos-wr); }
@@ -196,23 +195,28 @@
   /* BOX VIEW (snake draft board) */
   .box-wrap { overflow-x:auto; }
   .box-grid { display:grid; grid-template-columns:34px repeat(12, minmax(118px, 1fr)); gap:4px; min-width:1500px; }
-  .box-col-header { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:12px; color:var(--red); text-transform:uppercase; padding:8px 6px 6px; text-align:center; border-bottom:2px solid var(--red); margin-bottom:4px; letter-spacing:.04em; background:var(--surface); position:sticky; top:0; z-index:2; }
-  .box-corner { background:var(--surface); border-bottom:2px solid var(--red); position:sticky; top:0; left:0; z-index:3; }
-  .box-row-head { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:11px; color:var(--red); text-align:center; padding:2px 0; letter-spacing:.04em; display:flex; align-items:center; justify-content:center; background:var(--surface); border-right:1px solid var(--border); position:sticky; left:0; z-index:1; }
+  .box-col-header { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:12px; color:var(--red); text-transform:uppercase; padding:8px 6px 6px; text-align:center; border-bottom:2px solid var(--red); margin-bottom:4px; letter-spacing:.04em; background:var(--surface); position:sticky; top:0; z-index:2; cursor:pointer; transition:background .12s; user-select:none; }
+  .box-col-header:hover { background:var(--surface2); }
+  .box-col-header.active { background:var(--red); color:#111; }
+  .box-corner { background:var(--surface); border-bottom:2px solid var(--red); position:sticky; top:0; left:0; z-index:3; cursor:pointer; }
+  .box-corner:hover { background:var(--surface2); }
+  .box-row-head { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:11px; color:var(--red); text-align:center; padding:2px 0; letter-spacing:.04em; display:flex; align-items:center; justify-content:center; background:var(--surface); border-right:1px solid var(--border); position:sticky; left:0; z-index:1; cursor:pointer; transition:background .12s; user-select:none; }
+  .box-row-head:hover { background:var(--surface2); }
+  .box-row-head.active { background:var(--red); color:#111; }
   .box-card { position:relative; display:flex; flex-direction:column; min-height:60px; cursor:pointer; overflow:hidden; padding:5px 7px; transition:transform .12s, box-shadow .12s; }
   .box-card:hover { transform:translateY(-1px); box-shadow:0 3px 8px rgba(0,0,0,.35); }
-  .box-card .card-content { display:flex; flex-direction:column; gap:2px; position:relative; z-index:1; padding-right:26px; min-width:0; }
+  .box-card .card-content { display:flex; flex-direction:column; gap:2px; position:relative; z-index:1; min-width:0; }
   .box-card .card-top { display:flex; align-items:center; gap:5px; font-family:'Mulish',sans-serif; font-size:9px; font-weight:800; letter-spacing:.03em; }
   .box-card .card-pick { font-weight:800; }
   .box-card .card-posrank { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:9px; padding:1px 5px; letter-spacing:.04em; background:rgba(0,0,0,.22); color:inherit; }
   .box-card .card-adp { font-weight:700; opacity:.78; font-size:9px; }
-  .box-card .card-name { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; line-height:1; overflow:hidden; margin-top:1px; }
+  .box-card .card-name { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; line-height:1; overflow:hidden; margin-top:1px; padding-right:26px; }
   .box-card .card-fname { font-size:9px; line-height:1; opacity:.8; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .box-card .card-lname { font-size:13px; line-height:1.05; margin-top:1px; word-break:break-word; overflow:hidden; max-height:30px; }
-  .box-card .card-meta { display:flex; align-items:center; gap:4px; font-family:'Mulish',sans-serif; font-size:9px; font-weight:800; letter-spacing:.04em; margin-top:auto; opacity:.85; padding-top:2px; }
-  /* Small circular headshot pinned to the top-right corner — doesn't steal vertical space */
-  .box-card .card-hs { position:absolute; top:4px; right:4px; width:22px; height:22px; border-radius:50%; object-fit:cover; object-position:top; border:1px solid rgba(0,0,0,.18); background:rgba(0,0,0,.1); }
-  .box-card .card-hs-fallback { position:absolute; top:4px; right:4px; width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:11px; color:inherit; opacity:.55; background:rgba(0,0,0,.12); border:1px solid rgba(0,0,0,.18); }
+  .box-card .card-meta { display:flex; align-items:center; gap:4px; font-family:'Mulish',sans-serif; font-size:9px; font-weight:800; letter-spacing:.04em; margin-top:auto; opacity:.85; padding-top:2px; padding-right:26px; }
+  /* Small circular headshot pinned to the bottom-right corner — out of the way of the top stats row */
+  .box-card .card-hs { position:absolute; bottom:4px; right:4px; width:22px; height:22px; border-radius:50%; object-fit:cover; object-position:top; border:1px solid rgba(0,0,0,.18); background:rgba(0,0,0,.1); }
+  .box-card .card-hs-fallback { position:absolute; bottom:4px; right:4px; width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:11px; color:inherit; opacity:.55; background:rgba(0,0,0,.12); border:1px solid rgba(0,0,0,.18); }
   .box-card.QB { background:var(--pos-qb-bg); color:var(--pos-qb); }
   .box-card.RB { background:var(--pos-rb-bg); color:var(--pos-rb); }
   .box-card.WR { background:var(--pos-wr-bg); color:var(--pos-wr); }
@@ -747,6 +751,8 @@ const STATE = {
   search: '',
   filters: {
     positions: new Set(),
+    rounds:    new Set(),  // 1-indexed; empty = no round filter (all)
+    teams:     new Set(),  // 1-indexed; empty = no team filter (all)
   },
   sort: { col: 'rank', dir: 'asc' },
 };
@@ -918,7 +924,8 @@ function renderPosBreakdown(players) {
       parts.push(`<span class="pb-item ${pos}${activeCls}" data-pos-toggle="${escapeHtml(pos)}" role="button" tabindex="0" aria-pressed="${activeSet.has(pos)}">${pos} ${counts[pos]}</span>`);
     }
   }
-  parts.push(`<span class="pb-total">${players.length.toLocaleString()} total</span>`);
+  // Total moves to a hover-tooltip so the row width stays fixed when the value changes.
+  target.title = `${players.length.toLocaleString()} players total`;
   target.innerHTML = parts.join('');
 }
 
@@ -1068,10 +1075,16 @@ function renderBoxView(players) {
   const gap     = 4;
   const minWidth = headW + TC * cellMin + (TC + 1) * gap;
   const parts = [`<div class="box-grid" style="grid-template-columns:${headW}px repeat(${TC}, minmax(${cellMin}px, 1fr)); gap:${gap}px; min-width:${minWidth}px">`];
-  parts.push('<div class="box-corner"></div>');
-  for (let t = 0; t < TC; t++) parts.push(`<div class="box-col-header">Team ${t+1}</div>`);
+  const roundFilter = STATE.filters.rounds;
+  const teamFilter  = STATE.filters.teams;
+  parts.push('<div class="box-corner" title="Click to clear round/team highlights"></div>');
+  for (let t = 0; t < TC; t++) {
+    const active = teamFilter.has(t + 1) ? ' active' : '';
+    parts.push(`<div class="box-col-header${active}" data-team="${t+1}">Team ${t+1}</div>`);
+  }
   for (let r = 0; r < rounds; r++) {
-    parts.push(`<div class="box-row-head">R${r+1}</div>`);
+    const active = roundFilter.has(r + 1) ? ' active' : '';
+    parts.push(`<div class="box-row-head${active}" data-round="${r+1}">R${r+1}</div>`);
     for (let t = 0; t < TC; t++) {
       const cell = grid[r][t];
       if (!cell) { parts.push(`<div class="box-card empty"></div>`); continue; }
@@ -1086,7 +1099,11 @@ function renderBoxView(players) {
       const hsHtml = hs
         ? `<img class="card-hs" src="${hs}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'card-hs-fallback',textContent:'${initial}'}))">`
         : `<span class="card-hs-fallback">${initial}</span>`;
-      const dimCls = isSoftMatch(p) ? '' : ' dim';
+      // Dim a card if it fails ANY active soft filter: position/search, round, or team.
+      const matchesPosSearch = isSoftMatch(p);
+      const matchesRound     = !roundFilter.size || roundFilter.has(r + 1);
+      const matchesTeam      = !teamFilter.size  || teamFilter.has(t + 1);
+      const dimCls = (matchesPosSearch && matchesRound && matchesTeam) ? '' : ' dim';
       const trendHtml = trendBadge(p.name);
       const metaHtml  = (p.team || trendHtml)
         ? `<div class="card-meta">${escapeHtml(p.team || '')}${trendHtml}</div>`
@@ -1196,10 +1213,12 @@ function detectActivePreset() {
   return null;
 }
 
-// clearFilters: wipe the soft filters (position highlight + search). Used by
-// the active-filter chips "Clear all" action and by preset application.
+// clearFilters: wipe the soft filters (position highlight + search + round/team).
+// Used by the active-filter chips "Clear all" action and by preset application.
 function clearFilters() {
   STATE.filters.positions.clear();
+  STATE.filters.rounds.clear();
+  STATE.filters.teams.clear();
   STATE.search = '';
   const s = document.getElementById('search-input'); if (s) s.value = '';
   const c = document.getElementById('search-clear'); if (c) c.classList.add('hidden');
@@ -1938,8 +1957,35 @@ function _bindEvents() {
     const th = e.target.closest('th[data-sort]');
     if (th) setSort(th.dataset.sort);
   });
-  // Card/row click → modal (event delegation, dodges the apostrophe-in-name escape pitfall)
+  // Card/row click → modal (event delegation, dodges the apostrophe-in-name escape pitfall).
+  // Also handles round/team header clicks for highlighting whole rows/columns.
   document.getElementById('view-box').addEventListener('click', e => {
+    // Corner → clear all round/team highlights
+    if (e.target.closest('.box-corner')) {
+      STATE.filters.rounds.clear();
+      STATE.filters.teams.clear();
+      renderAll();
+      return;
+    }
+    // Row header → toggle round highlight
+    const rowHead = e.target.closest('.box-row-head[data-round]');
+    if (rowHead) {
+      const r = Number(rowHead.dataset.round);
+      if (STATE.filters.rounds.has(r)) STATE.filters.rounds.delete(r);
+      else STATE.filters.rounds.add(r);
+      renderAll();
+      return;
+    }
+    // Column header → toggle team highlight
+    const colHead = e.target.closest('.box-col-header[data-team]');
+    if (colHead) {
+      const t = Number(colHead.dataset.team);
+      if (STATE.filters.teams.has(t)) STATE.filters.teams.delete(t);
+      else STATE.filters.teams.add(t);
+      renderAll();
+      return;
+    }
+    // Otherwise: a card click
     const card = e.target.closest('[data-id]');
     if (card && !card.classList.contains('empty')) openModal(card.dataset.id);
   });
