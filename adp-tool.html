@@ -893,22 +893,12 @@ function getActiveBucket() {
     list = aggregateBuckets(payload, STATE.dateFrom, STATE.dateTo, src);
   }
   list = list.filter(isDisplayablePosition);
-  // Rookies mode: source is startup_sf (so ADPs are real startup positions),
-  // narrowed to true rookies (yearsExp ≤ 1 or null) with kickers excluded.
-  // Re-rank afterwards so the board's 1.01 / 1.02 / posRank labels reflect
-  // the visible filtered subset rather than the full startup ordering.
+  // Rookies mode: show the FULL startup_sf board (rookies sit at their real
+  // startup positions — Love at 2.06, Tate at 4.06, etc.). Just exclude
+  // kickers. Rookies vs vets is handled in isSoftMatch as a highlight (vets
+  // dim, rookies stay bright) — so the board structure matches Picks mode.
   if (STATE.mode === 'rookies') {
-    list = list
-      .filter(p => posOf(p) !== 'K')
-      .filter(p => p.yearsExp == null || p.yearsExp <= 1)
-      .slice()
-      .sort((a, b) => (a.adp ?? 9999) - (b.adp ?? 9999));
-    const posCount = Object.create(null);
-    list = list.map((p, i) => {
-      const pos = posOf(p);
-      posCount[pos] = (posCount[pos] || 0) + 1;
-      return Object.assign({}, p, { rank: i + 1, posRank: pos + posCount[pos] });
-    });
+    list = list.filter(p => posOf(p) !== 'K');
   }
   return list;
 }
@@ -980,13 +970,18 @@ function getHardFilteredPlayers() {
   return getActiveBucket() || [];
 }
 
-// "Soft" filters (position + search) HIGHLIGHT in Box view (others dimmed),
-// FILTER in List view. This predicate returns true when a player matches.
+// "Soft" filters (position + search + rookies-mode highlight) HIGHLIGHT in Box
+// view (others dimmed), FILTER in List view. Returns true when player matches.
 function isSoftMatch(p) {
   const f = STATE.filters;
   if (f.positions.size && !f.positions.has(posOf(p))) return false;
   const q = STATE.search ? STATE.search.toLowerCase().trim() : '';
   if (q && !String(p.name || '').toLowerCase().includes(q)) return false;
+  // Rookies mode highlights rookies on the full startup board — vets dim
+  if (STATE.mode === 'rookies') {
+    const yx = p.yearsExp;
+    if (yx != null && yx > 1) return false;
+  }
   return true;
 }
 
