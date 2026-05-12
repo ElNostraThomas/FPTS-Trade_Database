@@ -5249,13 +5249,16 @@ async function applySleeperOverlay() {
 
     // ── auction.json overlay (real dynasty auction prices) ───────────────
     // Overwrites sheet's auction column with the median price from real auctions.
+    // Dynasty auctions are overwhelmingly SF (essentially zero 1QB auctions in
+    // the dataset), so try 1QB first then fall back to SF.
     if (auctionRes && auctionRes.ok) {
       const j = await auctionRes.json();
-      const oneByKey = {};
-      const oneList = j.byMonth?.ALL?.startup_1qb || [];
-      oneList.forEach(p => { if (p.name) oneByKey[_normNameTiers(p.name)] = p; });
+      const oneByKey = {}, sfByKey = {};
+      (j.byMonth?.ALL?.startup_1qb || []).forEach(p => { if (p.name) oneByKey[_normNameTiers(p.name)] = p; });
+      (j.byMonth?.ALL?.startup_sf  || []).forEach(p => { if (p.name) sfByKey [_normNameTiers(p.name)] = p; });
       TIER_PLAYERS.forEach(p => {
-        const rec = oneByKey[_normNameTiers(p.name)];
+        const key = _normNameTiers(p.name);
+        const rec = oneByKey[key] || sfByKey[key];
         if (!rec || rec.med == null) return;
         p.auction = '$' + Math.round(rec.med);
       });

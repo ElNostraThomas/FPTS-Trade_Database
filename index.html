@@ -7192,8 +7192,13 @@ function closePanel() {
     if (typeof FP_VALUES !== 'undefined') {
       Object.entries(FP_VALUES).forEach(([fpName, rec]) => {
         const key = normalizePlayerName(fpName);
-        const one = oneByKey[key]; if (one) rec.auction   = fmt(one);
-        const sf  = sfByKey[key];  if (sf)  rec.auctionSf = fmt(sf);
+        const one = oneByKey[key];
+        const sf  = sfByKey[key];
+        // Headline auction = 1QB if available, else fall back to SF.
+        // Dynasty auction data is overwhelmingly SF, so this fallback is the
+        // expected path for most players.
+        rec.auction   = fmt(one) || fmt(sf) || rec.auction || null;
+        rec.auctionSf = fmt(sf)              || rec.auctionSf || null;
       });
     }
   }

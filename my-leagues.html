@@ -7131,8 +7131,10 @@ function _fptsXpageMlPepToDb() {
     if (typeof FP_VALUES !== 'undefined') {
       Object.entries(FP_VALUES).forEach(([fpName, rec]) => {
         const key = normalizePlayerName(fpName);
-        const one = oneByKey[key]; if (one) rec.auction   = fmt(one);
-        const sf  = sfByKey[key];  if (sf)  rec.auctionSf = fmt(sf);
+        const one = oneByKey[key];
+        const sf  = sfByKey[key];
+        rec.auction   = fmt(one) || fmt(sf) || rec.auction || null;
+        rec.auctionSf = fmt(sf)              || rec.auctionSf || null;
       });
     }
   }
