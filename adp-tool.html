@@ -865,15 +865,19 @@ const STATE = {
   sort: { col: 'rank', dir: 'asc' },
 };
 
-// Rookies mode draws from the same startup_sf pool as Picks (so the ADP
-// numbers reflect real startup-draft positions, not rookie-only drafts),
-// then filters down to rookies and drops kickers. Picks/Simple stay as-is.
-const MODE_TO_SOURCE = { picks: 'startup_sf', simple: 'startup_1qb', rookies: 'startup_sf' };
+// Each mode draws from a per-format-bucket aggregate written by sync-adp.py.
+// Drafts are classified by examining their picks list:
+//   picks_sf   → SF startups where K's appear as pick-as-asset placeholders
+//   simple_sf  → SF startups with no K, no incoming rookies (vet-only)
+//   rookies_sf → SF startups that include the current rookie class in the pool
+// So ADP values actually shift per mode because the underlying sample changes.
+const MODE_TO_SOURCE = { picks: 'picks_sf', simple: 'simple_sf', rookies: 'rookies_sf' };
 const MOBILE_BREAKPOINT_PX = 700;
 function isMobileWidth() { return window.innerWidth < MOBILE_BREAKPOINT_PX; }
-// Positions excluded from display everywhere — DEF/P/FB don't belong in
-// dynasty draft views even when Sleeper has captured them.
-const EXCLUDED_POSITIONS = new Set(['DEF', 'P', 'FB']);
+// Positions excluded from display everywhere. K is included here because in
+// the picks bucket Sleeper-K player_ids are used as pick-as-asset placeholders
+// (Mason Crosby = "the 5.01 pick", etc.), not as real draftable kickers.
+const EXCLUDED_POSITIONS = new Set(['K', 'DEF', 'P', 'FB']);
 function isDisplayablePosition(p) { return !EXCLUDED_POSITIONS.has(posOf(p)); }
 const MODE_TO_LABEL  = {
   picks:   { title: 'ADP <span>Startup</span>',  sub: 'Real Sleeper dynasty draft positions — 12-team Superflex startups with picks-as-assets.' },
@@ -892,15 +896,9 @@ function getActiveBucket() {
   } else {
     list = aggregateBuckets(payload, STATE.dateFrom, STATE.dateTo, src);
   }
-  list = list.filter(isDisplayablePosition);
-  // Rookies mode: show the FULL startup_sf board (rookies sit at their real
-  // startup positions — Love at 2.06, Tate at 4.06, etc.). Just exclude
-  // kickers. Rookies vs vets is handled in isSoftMatch as a highlight (vets
-  // dim, rookies stay bright) — so the board structure matches Picks mode.
-  if (STATE.mode === 'rookies') {
-    list = list.filter(p => posOf(p) !== 'K');
-  }
-  return list;
+  // Bucketing is handled upstream in sync-adp.py — each mode's source already
+  // contains the right players for that format. Just drop the global excludes.
+  return list.filter(isDisplayablePosition);
 }
 
 // Aggregate per-player ADP across all monthly buckets that overlap the
@@ -970,18 +968,13 @@ function getHardFilteredPlayers() {
   return getActiveBucket() || [];
 }
 
-// "Soft" filters (position + search + rookies-mode highlight) HIGHLIGHT in Box
-// view (others dimmed), FILTER in List view. Returns true when player matches.
+// "Soft" filters (position + search) HIGHLIGHT in Box view (others dimmed),
+// FILTER in List view. Returns true when player matches.
 function isSoftMatch(p) {
   const f = STATE.filters;
   if (f.positions.size && !f.positions.has(posOf(p))) return false;
   const q = STATE.search ? STATE.search.toLowerCase().trim() : '';
   if (q && !String(p.name || '').toLowerCase().includes(q)) return false;
-  // Rookies mode highlights rookies on the full startup board — vets dim
-  if (STATE.mode === 'rookies') {
-    const yx = p.yearsExp;
-    if (yx != null && yx > 1) return false;
-  }
   return true;
 }
 
