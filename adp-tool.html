@@ -865,7 +865,10 @@ const STATE = {
   sort: { col: 'rank', dir: 'asc' },
 };
 
-const MODE_TO_SOURCE = { picks: 'startup_sf', simple: 'startup_1qb', rookies: 'rookie' };
+// Rookies mode draws from the same startup_sf pool as Picks (so the ADP
+// numbers reflect real startup-draft positions, not rookie-only drafts),
+// then filters down to rookies and drops kickers. Picks/Simple stay as-is.
+const MODE_TO_SOURCE = { picks: 'startup_sf', simple: 'startup_1qb', rookies: 'startup_sf' };
 const MOBILE_BREAKPOINT_PX = 700;
 function isMobileWidth() { return window.innerWidth < MOBILE_BREAKPOINT_PX; }
 // Positions excluded from display everywhere — DEF/P/FB don't belong in
@@ -890,15 +893,21 @@ function getActiveBucket() {
     list = aggregateBuckets(payload, STATE.dateFrom, STATE.dateTo, src);
   }
   list = list.filter(isDisplayablePosition);
-  // Rookies mode: Sleeper's rookie-draft bucket includes vets (Josh Allen, Mason
-  // Crosby, etc.) because some leagues use rookie drafts for supplemental picks.
-  // Tighten the filter to true rookies: no kickers + yearsExp ≤ 1 (incoming
-  // class or first-year players). yearsExp == null is treated as incoming.
+  // Rookies mode: source is startup_sf (so ADPs are real startup positions),
+  // narrowed to true rookies (yearsExp ≤ 1 or null) with kickers excluded.
+  // Re-rank afterwards so the board's 1.01 / 1.02 / posRank labels reflect
+  // the visible filtered subset rather than the full startup ordering.
   if (STATE.mode === 'rookies') {
-    list = list.filter(p => {
-      if (posOf(p) === 'K') return false;
-      const yx = p.yearsExp;
-      return yx == null || yx <= 1;
+    list = list
+      .filter(p => posOf(p) !== 'K')
+      .filter(p => p.yearsExp == null || p.yearsExp <= 1)
+      .slice()
+      .sort((a, b) => (a.adp ?? 9999) - (b.adp ?? 9999));
+    const posCount = Object.create(null);
+    list = list.map((p, i) => {
+      const pos = posOf(p);
+      posCount[pos] = (posCount[pos] || 0) + 1;
+      return Object.assign({}, p, { rank: i + 1, posRank: pos + posCount[pos] });
     });
   }
   return list;
