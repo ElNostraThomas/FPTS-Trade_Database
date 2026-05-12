@@ -147,15 +147,6 @@
   .icon-btn:hover { border-color:var(--red); color:var(--red); }
   .icon-btn.active { background:var(--red); color:#111; border-color:var(--red); }
   .icon-btn.active:hover { color:#111; opacity:.92; }
-  .presets-wrap { position:relative; display:inline-block; }
-  .presets-menu { position:absolute; top:calc(100% + 4px); right:0; background:var(--surface); border:1px solid var(--red); min-width:240px; max-width:340px; z-index:60; display:none; padding:4px; box-shadow:0 4px 14px rgba(0,0,0,.5); }
-  .presets-menu.open { display:block; }
-  .presets-item { display:flex; align-items:center; justify-content:space-between; padding:8px 10px; cursor:pointer; gap:8px; font-family:'Mulish',sans-serif; font-size:12px; font-weight:700; color:var(--white); transition:background .12s; }
-  .presets-item:hover { background:var(--surface2); }
-  .presets-item.add { color:var(--red); border-bottom:1px solid var(--border); margin-bottom:4px; padding-bottom:10px; font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; text-transform:uppercase; letter-spacing:.05em; font-size:11px; }
-  .presets-item .del { background:none; border:none; color:var(--white); opacity:.5; cursor:pointer; padding:0 4px; font-size:13px; }
-  .presets-item .del:hover { opacity:1; color:var(--red); }
-  .presets-empty { padding:14px; text-align:center; font-family:'Mulish',sans-serif; font-size:11px; opacity:.55; font-style:italic; }
 
   /* SHARED PILLS */
   .pos-pill { display:inline-block; padding:3px 9px; font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:11px; letter-spacing:.04em; }
@@ -484,10 +475,6 @@
     </div>
     <button class="icon-btn active" id="snake-toggle" type="button" title="Snake the draft order (round 2 reverses, round 3 reverses again, etc.)">🐍 Snake</button>
     <button class="icon-btn" id="csv-btn"     type="button" style="display:none">⤓ CSV</button>
-    <div class="presets-wrap">
-      <button class="icon-btn" id="presets-btn" type="button" title="Saved views">⭐ Presets</button>
-      <div class="presets-menu" id="presets-menu" role="menu" aria-hidden="true"></div>
-    </div>
     <button class="icon-btn" id="settings-btn" type="button" title="Team count and rounds">⚙ Settings</button>
   </div>
 
@@ -1317,88 +1304,6 @@ function loadStateFromHash() {
   const rd = numIfSet('rd'); if (rd && rd >= 1 && rd <= 30) STATE.rounds = rd;
 }
 
-// ── SAVED PRESETS ─────────────────────────────────────────────────────────────
-const PRESETS_KEY = 'fpts-adp-presets';
-const PRESET_MAX = 12;
-
-function loadPresets() {
-  try {
-    const raw = localStorage.getItem(PRESETS_KEY);
-    if (!raw) return [];
-    const arr = JSON.parse(raw);
-    return Array.isArray(arr) ? arr.filter(p => p && p.name) : [];
-  } catch (e) { return []; }
-}
-function persistPresets(arr) {
-  try { localStorage.setItem(PRESETS_KEY, JSON.stringify(arr)); } catch (e) {}
-}
-
-function saveCurrentAsPreset() {
-  const raw = prompt('Name this view:');
-  if (raw == null) return;
-  const name = String(raw).trim().slice(0, 50);
-  if (!name) return;
-  const presets = loadPresets();
-  // Replace any preset with the same name; otherwise prepend.
-  const dup = presets.findIndex(p => p.name === name);
-  const entry = { name, hash: buildHashString(), ts: Date.now() };
-  if (dup >= 0) presets.splice(dup, 1);
-  presets.unshift(entry);
-  if (presets.length > PRESET_MAX) presets.length = PRESET_MAX;
-  persistPresets(presets);
-  renderPresetsMenu();
-}
-
-function deletePresetByIndex(i) {
-  const presets = loadPresets();
-  if (i < 0 || i >= presets.length) return;
-  presets.splice(i, 1);
-  persistPresets(presets);
-  renderPresetsMenu();
-}
-
-function applyPresetByIndex(i) {
-  const presets = loadPresets();
-  const p = presets[i];
-  if (!p) return;
-  // Reset to defaults, then re-apply the preset's hash.
-  STATE.mode = 'picks';
-  STATE.view = 'box';
-  STATE.snake = true;
-  STATE.search = '';
-  STATE.filters.positions = new Set();
-  initDateRange();
-  try { history.replaceState(null, '', '#' + (p.hash || '')); } catch (e) {}
-  loadStateFromHash();
-  applyStateToUi();
-  enforceMobileView();
-  rebuildTrendIndex();
-  renderAll();
-  closePresetsMenu();
-}
-
-function renderPresetsMenu() {
-  const menu = document.getElementById('presets-menu');
-  if (!menu) return;
-  const presets = loadPresets();
-  const parts = [`<div class="presets-item add" data-action="save" role="menuitem">＋ Save current view</div>`];
-  if (presets.length === 0) {
-    parts.push(`<div class="presets-empty">No saved presets yet.</div>`);
-  } else {
-    presets.forEach((p, i) => {
-      parts.push(`<div class="presets-item" data-action="apply" data-i="${i}" role="menuitem">
-        <span>${escapeHtml(p.name)}</span>
-        <button class="del" data-action="delete" data-i="${i}" type="button" aria-label="Delete preset">✕</button>
-      </div>`);
-    });
-  }
-  menu.innerHTML = parts.join('');
-}
-
-function openPresetsMenu()  { renderPresetsMenu(); const m = document.getElementById('presets-menu'); m.classList.add('open'); m.setAttribute('aria-hidden', 'false'); }
-function closePresetsMenu() { const m = document.getElementById('presets-menu'); m.classList.remove('open'); m.setAttribute('aria-hidden', 'true'); }
-function togglePresetsMenu(){ const m = document.getElementById('presets-menu'); m.classList.contains('open') ? closePresetsMenu() : openPresetsMenu(); }
-
 // Sync visible UI to the current STATE — used after hash load so toggles /
 // chips / inputs reflect the loaded values without a full re-bind.
 function applyStateToUi() {
@@ -1879,25 +1784,6 @@ function _bindEvents() {
   });
   // Shared drawer backdrop — clicking closes the (only remaining) settings drawer
   document.getElementById('drawer-backdrop').addEventListener('click', closeSettings);
-  // Presets menu
-  document.getElementById('presets-btn').addEventListener('click', e => {
-    e.stopPropagation();
-    togglePresetsMenu();
-  });
-  document.getElementById('presets-menu').addEventListener('click', e => {
-    const target = e.target.closest('[data-action]');
-    if (!target) return;
-    e.stopPropagation();
-    const action = target.dataset.action;
-    const i = Number(target.dataset.i);
-    if (action === 'save')        saveCurrentAsPreset();
-    else if (action === 'apply')  applyPresetByIndex(i);
-    else if (action === 'delete') deletePresetByIndex(i);
-  });
-  // Close presets menu on outside click
-  document.addEventListener('click', e => {
-    if (!e.target.closest('.presets-wrap')) closePresetsMenu();
-  });
   // Settings drawer
   document.getElementById('settings-btn').addEventListener('click', openSettings);
   document.getElementById('settings-close').addEventListener('click', closeSettings);
