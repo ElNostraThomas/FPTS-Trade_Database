@@ -2933,29 +2933,43 @@ document.addEventListener('DOMContentLoaded', mlApplyExposureCollapsed);
 // Also call directly in case DOMContentLoaded already fired
 if (document.readyState !== 'loading') mlApplyExposureCollapsed();
 
-// Look up a pick's trade value when the draft slot is unknown — uses the round
-// midpoint slot as a reasonable proxy (e.g. 1.06 / 1.07 in a 12-team league).
+// Look up a pick's trade value when the draft slot is unknown.
+// Strategy:
+//   1) Median of specific slots if present (e.g. "2026-1.01"..."2026-1.12").
+//   2) Otherwise fall back to the generic round key ("2027-1") that the
+//      MVS feed provides for years where no specific slots have been priced yet.
+//   3) Returns a record { value, valueSf, value1qb } or 0 if nothing found.
 function mlPickValue(season, round) {
-  const keys = Object.keys(PICK_VALUES || {}).filter(k => k.startsWith(`${season}-${round}.`));
-  if (!keys.length) return 0;
-  keys.sort();
-  return PICK_VALUES[keys[Math.floor(keys.length / 2)]] || 0;
+  const specific = Object.keys(PICK_VALUES || {}).filter(k => k.startsWith(`${season}-${round}.`));
+  if (specific.length) {
+    specific.sort();
+    return PICK_VALUES[specific[Math.floor(specific.length / 2)]] || 0;
+  }
+  // Fallback: generic round key from MVS picks ("2027-1", "2028-1", etc.)
+  return PICK_VALUES[`${season}-${round}`] || 0;
 }
 
 // ════════════════════════════════════════════════════════════════════════════
 // mlGetOwnedPicks — compute the full list of draft picks a roster currently owns
 // (their natural picks not yet traded away + any picks acquired via trade)
 // ════════════════════════════════════════════════════════════════════════════
-function mlGetOwnedPicks(rosterId, tradedPicks, leagueRounds, currentSeason) {
+function mlGetOwnedPicks(rosterId, tradedPicks, leagueRounds, currentSeason, completedDraftSeasons) {
   const picks = [];
   const rounds = leagueRounds && leagueRounds > 0 ? Math.min(leagueRounds, 5) : 4;
+  const completed = completedDraftSeasons instanceof Set ? completedDraftSeasons : new Set();
 
   // Determine which seasons are tracked
   const seasonsSet = new Set();
   (tradedPicks || []).forEach(p => seasonsSet.add(String(p.season)));
   const baseYear = parseInt(currentSeason, 10) || (new Date()).getFullYear();
   for (let s = 0; s < 3; s++) seasonsSet.add(String(baseYear + s));
-  const seasons = [...seasonsSet].filter(s => parseInt(s, 10) >= baseYear).sort();
+  // Filter: keep only future-or-current seasons whose rookie draft hasn't
+  // completed. Once a draft is "complete", those picks are spent (rookies
+  // are now on rosters) and should not display as owned.
+  const seasons = [...seasonsSet]
+    .filter(s => parseInt(s, 10) >= baseYear)
+    .filter(s => !completed.has(String(s)))
+    .sort();
 
   // Picks that have been traded (any hop) — keyed by "season:round:original"
   const tradedKeys = new Set();
@@ -2974,8 +2988,9 @@ function mlGetOwnedPicks(rosterId, tradedPicks, leagueRounds, currentSeason) {
     }
   });
 
-  // 2. Picks traded TO this roster
+  // 2. Picks traded TO this roster (excluding completed-draft seasons)
   (tradedPicks || []).forEach(p => {
+    if (completed.has(String(p.season))) return;  // pick was spent in completed draft
     if (String(p.owner_id) === String(rosterId)) {
       picks.push({
         season: String(p.season), round: p.round,
@@ -3408,7 +3423,7 @@ function mlBuildAssetPool(leagueId, rosterId) {
   });
 
   // Picks (uses the cross-league owned-picks computation)
-  const ownedPicks = mlGetOwnedPicks(rosterId, data.tradedPicks, data.draftRounds, data.leagueSeason);
+  const ownedPicks = mlGetOwnedPicks(rosterId, data.tradedPicks, data.draftRounds, data.leagueSeason, data.completedDraftSeasons);
   ownedPicks.forEach((pk, idx) => {
     const value = mlPickValue(pk.season, pk.round) || 0;
     if (!value) return;
@@ -4504,12 +4519,21 @@ async function fetchAllLeaguesData() {
   await Promise.all(leagues.map(async (l) => {
     const leagueId = l.league_id;
     try {
-      const [rosters, users, players, tradedPicks] = await Promise.all([
+      const [rosters, users, players, tradedPicks, drafts] = await Promise.all([
         apiFetch(`${API}/league/${leagueId}/rosters`),
         apiFetch(`${API}/league/${leagueId}/users`),
         playersPromise,
         apiFetch(`${API}/league/${leagueId}/traded_picks`).catch(() => []),
+        apiFetch(`${API}/league/${leagueId}/drafts`).catch(() => []),
       ]);
+      // Seasons whose rookie draft is already complete — those picks have been
+      // used to draft rookies (who now appear on rosters), so they should NOT
+      // be listed as "owned picks" anymore.
+      const completedDraftSeasons = new Set(
+        (drafts || [])
+          .filter(d => d && d.status === 'complete' && d.season)
+          .map(d => String(d.season))
+      );
       const myRoster = rosters.find(r => r.owner_id === ML.userId);
       // If user has no roster in this league, they're a co-commissioner / observer.
       // Skip — these leagues add noise to the list and have no exposure data.
@@ -4526,6 +4550,7 @@ async function fetchAllLeaguesData() {
       window.ML_ALL_LEAGUE_DATA[leagueId] = {
         rosters, users, players, myRosterId, myPlayerIds, myPickKeys,
         tradedPicks: tradedPicks || [],
+        completedDraftSeasons,  // Set of season strings whose rookie draft is done
         draftRounds: l.settings?.draft_rounds || 4,
         leagueSeason: String(l.season || ML.selectedSeason || (new Date()).getFullYear()),
         leagueName: l.name, totalRosters: l.total_rosters
@@ -4761,7 +4786,7 @@ function mlComputeLeagueValueData(leagueId) {
 
   // Compute pick value for EVERY team using the full owned-picks computation.
   teams.forEach(t => {
-    const owned = mlGetOwnedPicks(t.rosterId, d.tradedPicks, d.draftRounds, d.leagueSeason);
+    const owned = mlGetOwnedPicks(t.rosterId, d.tradedPicks, d.draftRounds, d.leagueSeason, d.completedDraftSeasons);
     t.pickValue = owned.reduce((sum, p) => sum + mlPickValue(p.season, p.round), 0);
     t.pickCount = owned.length;
   });
@@ -5061,7 +5086,7 @@ function mlBuildTeamRosterHtml(leagueId, rosterId) {
   Object.keys(groups).forEach(k => groups[k].sort((a,b) => (b.value||0) - (a.value||0)));
 
   // Build picks (use the cross-league owned-picks computation)
-  const ownedPicks = mlGetOwnedPicks(rosterId, data.tradedPicks, data.draftRounds, data.leagueSeason);
+  const ownedPicks = mlGetOwnedPicks(rosterId, data.tradedPicks, data.draftRounds, data.leagueSeason, data.completedDraftSeasons);
   ownedPicks.sort((a,b) => {
     if (a.season !== b.season) return String(a.season).localeCompare(String(b.season));
     return a.round - b.round;
@@ -5217,7 +5242,7 @@ function computePickExposure() {
   leagueIds.forEach(lid => {
     const d = all[lid];
     if (!d || d.myRosterId == null) return;
-    const owned = mlGetOwnedPicks(d.myRosterId, d.tradedPicks, d.draftRounds, d.leagueSeason);
+    const owned = mlGetOwnedPicks(d.myRosterId, d.tradedPicks, d.draftRounds, d.leagueSeason, d.completedDraftSeasons);
     // League name lookup
     let leagueName = `League ${lid}`;
     try {
@@ -5590,13 +5615,17 @@ async function loadRoster(leagueId, season) {
   showSpinner('roster-loading');
   try {
     // Fetch NFL state to get current week, plus all roster data + projections
-    const [rosters, users, players, tradedPicks, nflState] = await Promise.all([
+    const [rosters, users, players, tradedPicks, nflState, drafts] = await Promise.all([
       apiFetch(`${API}/league/${leagueId}/rosters`),
       apiFetch(`${API}/league/${leagueId}/users`),
       getPlayers(),
       apiFetch(`${API}/league/${leagueId}/traded_picks`),
       apiFetch(`${API}/state/nfl`),
+      apiFetch(`${API}/league/${leagueId}/drafts`).catch(() => []),
     ]);
+    const completedDraftSeasons = new Set(
+      (drafts || []).filter(d => d && d.status === 'complete' && d.season).map(d => String(d.season))
+    );
 
     ML.leagueRosters[leagueId] = rosters;
     ML.leagueUsers[leagueId]   = users;
@@ -5729,7 +5758,8 @@ async function loadRoster(leagueId, season) {
       myRoster.roster_id,
       tradedPicks,
       league.settings?.draft_rounds,
-      String(league.season || ML.selectedSeason || (new Date()).getFullYear())
+      String(league.season || ML.selectedSeason || (new Date()).getFullYear()),
+      completedDraftSeasons,
     );
 
     renderRoster(
@@ -5975,13 +6005,16 @@ function renderRoster(playerIds, players, starters, myPicks, rosterToTeam, proje
 
   // Look up a pick's trade value. We don't always know the draft slot, so we use
   // the round midpoint slot (06 or 07 in a 12-team league) as a reasonable proxy.
+  // Falls back to the generic round key ("2027-1") when no specific slots exist
+  // — MVS feed only prices generic rounds for future-future seasons.
   function pickValue(season, round) {
     const seasonKeys = Object.keys(PICK_VALUES || {}).filter(k => k.startsWith(`${season}-${round}.`));
-    if (!seasonKeys.length) return 0;
-    // Pick the midpoint slot
-    seasonKeys.sort();
-    const mid = seasonKeys[Math.floor(seasonKeys.length / 2)];
-    return PICK_VALUES[mid] || 0;
+    if (seasonKeys.length) {
+      seasonKeys.sort();
+      const mid = seasonKeys[Math.floor(seasonKeys.length / 2)];
+      return PICK_VALUES[mid] || 0;
+    }
+    return PICK_VALUES[`${season}-${round}`] || 0;
   }
 
   // ── Draft Picks section ────────────────────────────────────────────────

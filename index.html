@@ -1885,6 +1885,12 @@
       <div class="pp-ts"><div class="pp-ts-label">Avg Assets Moved</div><div class="pp-ts-val" id="pp-avg-assets">—</div></div>
     </div>
 
+    <!-- MVS extras row: OTC cross-check + contributor rankings. Hidden when no data. -->
+    <div class="pp-trade-stats" id="pp-extras-row" style="grid-template-columns:1fr 1fr;display:none;border-bottom:1px solid var(--border)">
+      <div class="pp-ts" id="pp-extras-otc"><div class="pp-ts-label">OTC Value</div><div class="pp-ts-val" id="pp-otc-val">—</div></div>
+      <div class="pp-ts" id="pp-extras-rankings"><div class="pp-ts-label">Contributor Rankings</div><div class="pp-ts-val" id="pp-rankings-val" style="display:flex;gap:14px;font-size:13px;flex-wrap:wrap">—</div></div>
+    </div>
+
     <div class="pp-tabs">
       <button class="pp-tab active" onclick="ppShowTab('trades')">Trades</button>
       <button class="pp-tab" onclick="ppShowTab('stats')">Player Stats</button>
@@ -7047,6 +7053,40 @@ function openPanelContent(playerName) {
     ? (playerTrades.reduce((s,t) => s + t.players.length + t.picks.length - 1, 0) / playerTrades.length).toFixed(1)
     : "—";
   document.getElementById("pp-avg-assets").textContent = avgAssets;
+
+  // ── MVS extras: OTC cross-check + contributor rankings ──────────────────
+  const extrasRow = document.getElementById("pp-extras-row");
+  const otcCell   = document.getElementById("pp-extras-otc");
+  const rankCell  = document.getElementById("pp-extras-rankings");
+  const otcValEl  = document.getElementById("pp-otc-val");
+  const rankValEl = document.getElementById("pp-rankings-val");
+  let _showExtras = false;
+  if (ktc.otcValue != null) {
+    const diff = (ktc.value || 0) - ktc.otcValue;
+    const sign = diff >= 0 ? '+' : '';
+    const diffClass = diff >= 0 ? 'red' : '';  // value reuses the .red class for the trade-stats column
+    otcValEl.innerHTML = `${ktc.otcValue.toLocaleString()} <span style="font-size:12px;opacity:.7;margin-left:6px">(${sign}${diff.toLocaleString()} vs MVS)</span>`;
+    otcCell.style.display = '';
+    _showExtras = true;
+  } else {
+    otcCell.style.display = 'none';
+  }
+  if (ktc.rankings && Object.values(ktc.rankings).some(v => v != null)) {
+    const r = ktc.rankings;
+    const parts = [];
+    const fmt = (label, v) => v != null ? `<span style="white-space:nowrap"><span style="font-size:10px;opacity:.6;text-transform:uppercase;letter-spacing:.06em;margin-right:4px">${label}</span><span style="font-family:'Kanit',sans-serif;font-weight:800;font-style:italic">${v}</span></span>` : '';
+    if (r.main != null) parts.push(fmt('Main', r.main));
+    if (r.jax  != null) parts.push(fmt('Jax',  r.jax));
+    if (r.jay  != null) parts.push(fmt('Jay',  r.jay));
+    if (r.joe  != null) parts.push(fmt('Joe',  r.joe));
+    if (r.trav != null) parts.push(fmt('Trav', r.trav));
+    rankValEl.innerHTML = parts.filter(Boolean).join('');
+    rankCell.style.display = '';
+    _showExtras = true;
+  } else {
+    rankCell.style.display = 'none';
+  }
+  extrasRow.style.display = _showExtras ? 'grid' : 'none';
 
   document.getElementById("pp-trades-tab").innerHTML =
     sorted.length ? sorted.map(t => tradeCardHtml(t)).join("") : `<div style="font-size:13px;opacity:1;padding:20px 0;text-align:center;font-family:'Mulish',sans-serif">No trades found</div>`;
