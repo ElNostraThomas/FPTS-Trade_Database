@@ -6602,7 +6602,11 @@ function renderAgeCurve(containerId, player) {
     return Math.round(maxVal * Math.pow(0.93, adp - 1));
   }
 
-  const adpOverall = adpData ? adpData.sf.overall : (ktc.adp || null);
+  // Honor user's ADP-format choice from adp-tool (defaults to SF).
+  let _adpFmt = 'sf';
+  try { const v = localStorage.getItem('fpts-adp-format'); if (v === '1qb' || v === 'sf') _adpFmt = v; } catch (e) {}
+  const _adpSlot = _adpFmt === '1qb' ? adpData?.oneqb : adpData?.sf;
+  const adpOverall = (_adpSlot && _adpSlot.overall) ?? (ktc.adp || null);
   const adpImpliedVal = adpToValue(adpOverall);
 
   // Age/value curves by position

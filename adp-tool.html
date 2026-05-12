@@ -1248,6 +1248,7 @@ function setMode(mode) {
 function setQbFormat(qb) {
   if (!VALID_QB.has(qb)) return;
   STATE.qbFormat = qb;
+  try { localStorage.setItem('fpts-adp-format', qb); } catch (e) {}
   document.querySelectorAll('[data-qb]').forEach(b => b.classList.toggle('active', b.dataset.qb === qb));
   rebuildTrendIndex();  // trend is per (mode, qbFormat) bucket
   renderAll();
@@ -2080,6 +2081,8 @@ function _bindEvents() {
 
 function _adpInit() {
   loadSettings();
+  // Restore saved QB-format preference (overridden by URL hash if present below).
+  try { const saved = localStorage.getItem('fpts-adp-format'); if (saved && VALID_QB.has(saved)) STATE.qbFormat = saved; } catch (e) {}
   initDateRange();        // populates default dates first
   loadStateFromHash();    // ...then overrides from URL hash if present
   _bindEvents();
