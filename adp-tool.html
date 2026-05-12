@@ -376,7 +376,8 @@
     /* Controls bar: wrap tightly, ensure touch targets ≥36px tall */
     .controls-bar { gap: 6px; padding: 10px 0 14px; }
     .controls-group { width: 100%; }
-    .controls-group:first-of-type { width: auto; } /* mode toggle stays inline */
+    .controls-group[aria-label="ADP mode"],
+    .controls-group[aria-label="QB format"] { width: auto; } /* mode + format toggles stay inline */
     .controls-btn { padding: 8px 12px; font-size: 11px; min-height: 36px; }
     .date-range { padding: 6px 10px; }
     .date-range input[type="date"] { font-size: 16px; min-height: 32px; }   /* 16px to keep iOS Safari from zooming on focus */
