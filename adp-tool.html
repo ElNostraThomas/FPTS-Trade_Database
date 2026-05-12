@@ -351,26 +351,131 @@
   .compare-col .cc-stat .k { opacity:.55; text-transform:uppercase; letter-spacing:.05em; font-size:9px; font-weight:700; font-family:'Mulish',sans-serif; }
   .compare-col .cc-stat .v { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:13px; }
 
+  /* ===== TABLET / LARGE PHONE LANDSCAPE (≤768px) ===== */
   @media (max-width: 768px) {
     .topnav { padding: 0 10px; gap: 8px; height: 48px; }
     .wordmark svg { height: 20px; }
     .nav-links { display: none !important; }
-    .mobile-nav-select { display: inline-block; }
+    .mobile-nav-select { display: inline-block; min-height: 36px; padding: 8px 10px; }
     .nav-right { gap: 8px; }
-    .nav-stat { display: none; }
+    .nav-stat, .nav-badge { display: none; }
+    /* Compact theme toggle so it doesn't push the SEASON / nav off-screen */
+    #theme-toggle { padding: 6px 10px !important; font-size: 10px !important; min-height: 36px; }
     .page { padding: 0 10px 40px; }
-    .page-header { flex-direction: column; align-items: flex-start; padding: 14px 0 12px; }
+    .page-header { flex-direction: column; align-items: flex-start; padding: 14px 0 12px; gap: 4px; }
     .page-title { font-size: 22px !important; }
-    .controls-bar { gap: 6px; padding: 8px 0 12px; }
-    .controls-btn { padding: 6px 10px; font-size: 10px; }
-    .date-range, .icon-btn, .sample-badge { padding: 6px 10px; font-size: 10px; }
-    .date-range input[type="date"] { font-size: 10px; }
+    .page-subtitle { font-size: 11px; }
+
+    /* Controls bar: wrap tightly, ensure touch targets ≥36px tall */
+    .controls-bar { gap: 6px; padding: 10px 0 14px; }
+    .controls-group { width: 100%; }
+    .controls-group:first-of-type { width: auto; } /* mode toggle stays inline */
+    .controls-btn { padding: 8px 12px; font-size: 11px; min-height: 36px; }
+    .date-range { padding: 6px 10px; }
+    .date-range input[type="date"] { font-size: 16px; min-height: 32px; }   /* 16px to keep iOS Safari from zooming on focus */
+    .date-presets button { padding: 8px 10px; font-size: 11px; min-height: 36px; }
+    .icon-btn, .sample-badge { padding: 8px 10px; font-size: 10px; min-height: 36px; }
     .sample-badge .value { font-size: 11px; }
-    .drawer { width: 100%; }
+    .search-box { flex: 1 1 100%; }
+    .search-box input { min-width: 0; font-size: 16px; min-height: 32px; }   /* 16px to keep iOS Safari from zooming on focus */
+    .spacer { display: none; }
+
+    /* Pos breakdown: bigger tap targets, single row scroll if needed */
+    .pos-breakdown .pb-label { display: none; }   /* save horizontal room */
+    .pos-breakdown .pb-item { padding: 6px 12px; font-size: 12px; min-height: 36px; }
+    .pos-breakdown .pb-clear { padding: 6px 12px; min-height: 36px; }
+
+    /* Drawer (settings only) covers the screen */
+    .drawer { width: 100%; padding: 18px; }
+    .drawer-section { margin-bottom: 16px; }
+    .chip, .drawer-btn { min-height: 38px; padding: 8px 14px; }
+
+    /* List view tighter padding so rows feel readable on narrow screens */
+    .list-table th { font-size: 9px; padding: 8px 8px; }
+    .list-table td { padding: 6px 8px; }
+    .list-table .player-name { font-size: 13px; }
+    .list-table tbody tr td:first-child { padding-left: 8px; }
+    .hs { width: 28px; height: 28px; }
+
+    /* MODAL — stack the top bar (title above actions), bigger close button */
+    .modal { max-height: 96vh; }
+    .pp-top-bar { padding: 10px 14px; gap: 10px; flex-direction: column; align-items: stretch; }
+    .pp-top-title { font-size: 12px; }
+    .pp-top-actions { gap: 6px; }
+    .pp-compare-wrap { min-width: 0; flex: 1 1 100%; }
+    .pp-compare-input { font-size: 16px; min-height: 38px; }   /* 16px to keep iOS Safari from zooming on focus */
+    .pp-action-btn { padding: 8px 12px; min-height: 38px; font-size: 11px; flex: 1 1 auto; text-align: center; }
+    #modal-close { min-width: 70px; flex: 0 0 auto; background: var(--surface2); }
+
+    .pp-profile { flex-direction: column; gap: 14px; padding: 18px 16px; }
+    .pp-hs { width: 80px; height: 80px; }
     .pp-name { font-size: 22px; }
+    .pp-stats { gap: 6px 18px; }
+    .pp-fp { text-align: left; min-width: 0; padding-top: 0; }
     .pp-fp .v { font-size: 28px; }
-    .pp-profile { flex-direction: column; gap: 14px; }
-    .pp-fp { text-align: left; min-width: 0; }
+
+    .pp-section { padding: 14px 16px; }
+
+    /* Heatmap: keep cells readable but don't overflow */
+    .hm-callout { gap: 12px; flex-wrap: wrap; padding: 8px 12px; }
+    .hm-callout .hm-co-v { font-size: 16px; }
+    .hm-callout .hm-co-note { display: none; }   /* save room — tooltip handles explanation */
+    .hm-legend { flex-wrap: wrap; }
+    .hm-legend-bar { width: 100px; }
+
+    /* Compare cards stack 1-2 per row on mobile */
+    .compare-grid { grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; }
+    .compare-col { padding: 10px; min-height: 200px; }
+    .compare-col .cc-hs { width: 50px; height: 50px; }
+    .compare-col .cc-name { font-size: 14px; }
+    .compare-col .cc-stat .v { font-size: 12px; }
+  }
+
+  /* ===== PHONE PORTRAIT (≤480px) ===== */
+  @media (max-width: 480px) {
+    /* Tighter backdrop padding so the modal gets more screen real estate */
+    .modal-backdrop { padding: 10px; }
+    .topnav { gap: 6px; height: 44px; }
+    .wordmark svg { height: 18px; }
+    .wordmark-tag { display: none !important; }
+    .page-title { font-size: 18px !important; }
+    .page-subtitle { font-size: 10px; }
+
+    /* Date range presets fit one-per-half-width */
+    .date-presets button { padding: 8px 6px; font-size: 10px; }
+    /* Mode toggle text shrinks on tiny screens */
+    .controls-group .controls-btn { padding: 8px 8px; font-size: 10px; }
+
+    /* Sample badge label shorter visual */
+    .sample-badge .label:first-of-type { display: none; }   /* hide "Sample" word */
+
+    /* Pos breakdown chips hug content */
+    .pos-breakdown .pb-item { padding: 6px 8px; font-size: 11px; }
+
+    /* List view: hide low-value columns at this width */
+    .list-table th:nth-child(8), .list-table td:nth-child(8),    /* Draft Year */
+    .list-table th:nth-child(9), .list-table td:nth-child(9),    /* Draft Rd  */
+    .list-table th:nth-child(10), .list-table td:nth-child(10) { /* Drafts    */
+      display: none;
+    }
+
+    /* Modal even tighter */
+    .pp-top-bar { padding: 10px 12px; }
+    .pp-action-btn { font-size: 10px; padding: 8px 8px; }
+    .pp-name { font-size: 18px; }
+    .pp-fp .v { font-size: 22px; }
+    .pp-profile { padding: 14px 12px; gap: 10px; }
+    .pp-hs { width: 64px; height: 64px; }
+    .pp-section { padding: 12px 12px; }
+    .pp-section-label { font-size: 12px; }
+    .pp-stat .v { font-size: 14px; }
+
+    /* Heatmap cell heights bumped for finger tap */
+    .hm-cell { min-height: 22px; }
+    .hm-corner, .hm-col-head, .hm-row-head { min-height: 22px; font-size: 8px; }
+
+    /* Compare cards single column */
+    .compare-grid { grid-template-columns: 1fr; }
   }
 </style>
 </head>
