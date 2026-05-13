@@ -7360,6 +7360,17 @@ function closePanel() {
     // MVS overlay AFTER base data so it replaces the value layer wholesale.
     return fetch('data/mvs.json' + v).then(r => r.ok ? r.json() : null).then(j => { if (j) _applyMvsPayload(j); }).catch(() => { /* mvs optional during transition */ });
   }).then(() => {
+    // Fill in the legacy SLEEPER_IDS map from FP_VALUES so every name with a
+    // known Sleeper ID (now sourced via MVS overlay) gets a CDN thumbnail.
+    // The hardcoded SLEEPER_IDS list only knew ~750 players; MVS covers 526
+    // active names including newer guys like Jake Bobo, Oronde Gadsden, etc.
+    if (typeof SLEEPER_IDS !== 'undefined' && typeof FP_VALUES !== 'undefined') {
+      try {
+        Object.entries(FP_VALUES).forEach(([name, rec]) => {
+          if (!SLEEPER_IDS[name] && rec && rec.sleeperId) SLEEPER_IDS[name] = String(rec.sleeperId);
+        });
+      } catch (e) { console.warn('[fp-bootstrap] SLEEPER_IDS hydrate skipped:', e.message); }
+    }
     // Now that MVS is loaded, build the global TRADES array from real trade
     // observations (replaces the retired hardcoded sample data).
     try { TRADES = _buildTradesFromMvs(); filtered = [...TRADES]; } catch (e) { console.warn('[fp-bootstrap] _buildTradesFromMvs skipped:', e.message); }
@@ -7501,7 +7512,14 @@ function tradeCardHtml(t) {
     const items = [];
     side.players.forEach(p => {
       const nflTeam = FP_VALUES[p.name]?.team || "";
-      const sid = SLEEPER_IDS[p.name] || null;
+      // Fall back through three layers: legacy SLEEPER_IDS map → FP_VALUES → MVS_PAYLOAD.
+      // MVS payload carries sleeper IDs for every active player (526 records), which
+      // covers names like "Jake Bobo" / "Terrell Jennings" / "Oronde Gadsden" that the
+      // hardcoded SLEEPER_IDS map never knew about.
+      const sid = SLEEPER_IDS[p.name]
+        || FP_VALUES[p.name]?.sleeperId
+        || (window.MVS_PAYLOAD?.players?.[p.name]?.sleeperId)
+        || null;
       const thumbUrl = sid ? `https://sleepercdn.com/content/nfl/players/thumb/${sid}.jpg` : null;
       const thumbHtml = thumbUrl ? `<img src="${thumbUrl}" alt="" style="width:28px;height:28px;min-width:28px;border-radius:50%;object-fit:cover;flex-shrink:0;" onerror="this.style.display='none'">` : '';
       items.push(`<div class="tc-asset">

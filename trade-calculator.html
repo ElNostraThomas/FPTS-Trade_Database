@@ -2610,6 +2610,18 @@ function resetAll() {
   ]).then(() => {
     return fetch('data/mvs.json' + v).then(r => r.ok ? r.json() : null).then(j => { if (j) _applyMvsPayload(j); }).catch(() => {});
   }).then(() => {
+    // Fill in SLEEPER_IDS from FP_VALUES (MVS overlay populated sleeperIds)
+    // so trade-card thumbnails + modal headshots find a Sleeper photo for
+    // every active player. The hardcoded SLEEPER_IDS list is missing newer
+    // names; MVS covers them all.
+    if (typeof SLEEPER_IDS !== 'undefined' && typeof FP_VALUES !== 'undefined') {
+      try {
+        Object.entries(FP_VALUES).forEach(([name, rec]) => {
+          if (!SLEEPER_IDS[name] && rec && rec.sleeperId) SLEEPER_IDS[name] = String(rec.sleeperId);
+        });
+      } catch (e) { console.warn('[fp-bootstrap] SLEEPER_IDS hydrate skipped:', e.message); }
+    }
+  }).then(() => {
     // Each init function may not exist on every page, and some may throw on
     // pages where their DOM elements aren't present. Catch each individually
     // so a single broken init doesn't block the loader from hiding.
