@@ -143,3 +143,38 @@ html, body { overflow-x: hidden !important; }
   font-size: 28px; text-transform: uppercase; letter-spacing: .06em;
   z-index: 9999;
 }
+
+/* ── NFL TEAM LOGOS ──────────────────────────────────────────────────────
+   See assets/js/team-helpers.js for the helpers that emit this markup.
+   Logos are served from sleepercdn.com (same CDN as player headshots),
+   transparent-background PNGs that work on both dark + light themes. */
+
+/* Inline replacement for team-abbreviation text. Sized to match adjacent text. */
+.team-logo { height:14px; width:auto; vertical-align:middle; object-fit:contain; display:inline-block; }
+.team-logo--lg { height:22px; }
+.team-logo--xl { height:32px; }
+/* Fallback rendered by onerror if the image fails to load. Mirrors original team-text look. */
+.team-logo-fallback {
+  display:inline-block; vertical-align:middle;
+  font-family:'Mulish',sans-serif; font-size:11px; font-weight:700;
+  letter-spacing:.05em; text-transform:uppercase; color:var(--white);
+}
+
+/* Player-headshot wrapper that hosts a team-logo badge in the bottom-right.
+   Keeps the existing headshot markup intact — the wrapper just establishes
+   a positioning context for the .player-hs-team img. */
+.player-hs-wrap { position:relative; display:inline-block; line-height:0; }
+.player-hs-team {
+  position:absolute; bottom:-2px; right:-2px;
+  width:14px; height:14px; border-radius:50%;
+  background:var(--surface);
+  border:1.5px solid var(--surface);
+  padding:1px;
+  box-shadow:0 1px 3px rgba(0,0,0,.4);
+  object-fit:contain;
+  pointer-events:none;
+  z-index:2;
+}
+.player-hs-team--md { width:18px; height:18px; }   /* for 34-40px headshots */
+.player-hs-team--lg { width:24px; height:24px; }   /* for 60-80px headshots */
+.player-hs-team--xl { width:28px; height:28px; bottom:0; right:0; }  /* for 96px modal hero */

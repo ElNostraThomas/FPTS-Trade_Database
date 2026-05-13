@@ -219,6 +219,9 @@
   /* Small circular headshot pinned to the bottom-right corner — matches the reference layout */
   .box-card .card-hs { position:absolute; bottom:4px; right:4px; width:32px; height:32px; border-radius:50%; object-fit:cover; object-position:top; border:1px solid rgba(0,0,0,.18); background:rgba(0,0,0,.1); }
   .box-card .card-hs-fallback { position:absolute; bottom:4px; right:4px; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:14px; color:inherit; opacity:.55; background:rgba(0,0,0,.12); border:1px solid rgba(0,0,0,.18); }
+  /* Team-logo badge in the bottom-right corner of .card-hs. Anchored to the
+     same corner as .card-hs so it overlaps the headshot edge. */
+  .box-card .player-hs-team { bottom:2px; right:2px; }
   .box-card.QB { background:var(--pos-qb-bg); color:var(--pos-qb); }
   .box-card.RB { background:var(--pos-rb-bg); color:var(--pos-rb); }
   .box-card.WR { background:var(--pos-wr-bg); color:var(--pos-wr); }
@@ -514,7 +517,10 @@
 <!-- Shared player panel — DB's slide-in drawer, used identically on every page -->
 <script>window.FPTS_CURRENT_PAGE = 'adp';</script>
 <link rel="stylesheet" href="assets/css/player-panel.css?v=1778655500">
-<script src="assets/js/player-panel.js?v=1778660000" defer></script>
+<!-- Team logo helpers — must load BEFORE player-panel.js so the modal-hero
+     badge wiring finds window.TeamHelpers. -->
+<script src="assets/js/team-helpers.js?v=1778680000"></script>
+<script src="assets/js/player-panel.js?v=1778680000" defer></script>
 <style>
   /* Hide the legacy in-page modal — openModal now routes to the shared panel. */
   #modal-backdrop { display: none !important; }
@@ -1203,11 +1209,23 @@ function renderListView(players) {
   body.innerHTML = sorted.map(p => {
     const pos = posOf(p);
     const hs = thumbUrl(p);
-    const thumbHtml = isRookiePick(p)
+    const rawThumb = isRookiePick(p)
       ? flameThumb('hs', 34)
       : (hs
           ? `<img class="hs" src="${hs}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'hs hs-fallback',textContent:'${escapeHtml((p.name||'?').slice(0,1).toUpperCase())}'}))">`
           : `<span class="hs hs-fallback">${escapeHtml((p.name||'?').slice(0,1).toUpperCase())}</span>`);
+    // Wrap the headshot with a team-logo badge if the player has a current
+    // NFL team and TeamHelpers loaded. RDP rows skip the badge.
+    const thumbHtml = (!isRookiePick(p) && p.team && window.TeamHelpers)
+      ? window.TeamHelpers.wrapWithBadge(rawThumb, p.team, { badgeCls: 'player-hs-team--md' })
+      : rawThumb;
+    // Team column: prefer the logo when TeamHelpers is loaded, fall back to
+    // the old team-pill text on legacy / no-team rows. Keep the pill chrome
+    // visible so the column's visual weight matches sibling stat cells.
+    const teamCellHtml = !p.team ? '—'
+      : (window.TeamHelpers
+          ? `<span class="team-pill" style="padding:3px 8px">${window.TeamHelpers.logoImg(p.team, { size: 16 })}</span>`
+          : `<span class="team-pill">${escapeHtml(p.team)}</span>`);
     return `<tr class="${pos}" data-id="${escapeHtml(p.sleeperId)}">
       <td>${thumbHtml}</td>
       <td><span class="player-name name-color ${pos}">${escapeHtml(p.name)}</span></td>
@@ -1215,7 +1233,7 @@ function renderListView(players) {
       <td><span class="stat-pill">${p.rank ?? '—'}</span></td>
       <td><span class="stat-pill">${escapeHtml(p.posRank) || '—'}</span></td>
       <td>${pos ? `<span class="pos-pill ${pos}">${pos}</span>` : '—'}</td>
-      <td>${p.team ? `<span class="team-pill">${escapeHtml(p.team)}</span>` : '—'}</td>
+      <td>${teamCellHtml}</td>
       <td><span class="stat-pill">${formatNflDraft(p)}</span></td>
       <td><span class="stat-pill">${p.age != null ? p.age.toFixed(1) : '—'}</span></td>
     </tr>`;
@@ -1318,19 +1336,31 @@ function renderBoxView(players) {
       const nm = splitName(p.name);
       const posRank = p.posRank || (pos || '');
       const overallPick = cell.pickOverall;
-      const hsHtml = isRookiePick(p)
+      const rawHs = isRookiePick(p)
         ? flameThumb('card-hs', 32)
         : (hs
             ? `<img class="card-hs" src="${hs}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'card-hs-fallback',textContent:'${initial}'}))">`
             : `<span class="card-hs-fallback">${initial}</span>`);
+      // .card-hs is absolute-positioned at bottom:4 right:4 inside .box-card.
+      // The badge gets a scoped CSS rule (.box-card .player-hs-team) in
+      // adp-tool's <style> block that anchors it to the same corner so it
+      // overlaps the bottom-right of the headshot.
+      const hsBadge = (!isRookiePick(p) && p.team && window.TeamHelpers)
+        ? window.TeamHelpers.headshotBadge(p.team, { cls: 'player-hs-team--md' })
+        : '';
+      const hsHtml = rawHs + hsBadge;
       // Dim a card if it fails ANY active soft filter: position/search, round, or team.
       const matchesPosSearch = isSoftMatch(p);
       const matchesRound     = !roundFilter.size || roundFilter.has(r + 1);
       const matchesTeam      = !teamFilter.size  || teamFilter.has(t + 1);
       const dimCls = (matchesPosSearch && matchesRound && matchesTeam) ? '' : ' dim';
       const trendHtml = trendBadge(p.name);
+      // Team logo replaces the 3-letter text in the card-meta line.
+      const teamLogoHtml = (p.team && window.TeamHelpers)
+        ? window.TeamHelpers.logoImg(p.team, { size: 14 })
+        : escapeHtml(p.team || '');
       const metaHtml  = (p.team || trendHtml)
-        ? `<div class="card-meta">${escapeHtml(p.team || '')}${trendHtml}</div>`
+        ? `<div class="card-meta">${teamLogoHtml}${trendHtml}</div>`
         : '';
       parts.push(`<div class="box-card ${pos}${dimCls}" data-id="${escapeHtml(p.sleeperId)}">
         <div class="card-content">

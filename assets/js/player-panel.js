@@ -519,6 +519,11 @@
     const avatarEl = document.getElementById('pp-avatar');
     if (!avatarEl) return; // panel not mounted (defensive)
     const fallbackHtml = `<div style="width:80px;height:80px;background:${_posCol(pos)};display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:800;font-style:italic;color:${_posTxt(pos)}">${initials}</div>`;
+    // Team-logo badge appended to the avatar — only for real players with a
+    // current NFL team. RDP placeholders + free agents skip the badge.
+    const teamBadgeHtml = (!isRookiePick && global.TeamHelpers && ktc.team)
+      ? global.TeamHelpers.headshotBadge(ktc.team, { cls: 'player-hs-team--xl' })
+      : '';
     if (isRookiePick) {
       avatarEl.innerHTML = pickThumb(80);
     } else if (photoUrl) {
@@ -526,18 +531,24 @@
       img.src = photoUrl;
       img.alt = playerName;
       img.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block;';
-      img.onerror = () => { avatarEl.innerHTML = fallbackHtml; };
+      img.onerror = () => { avatarEl.innerHTML = fallbackHtml + teamBadgeHtml; };
       avatarEl.innerHTML = '';
       avatarEl.appendChild(img);
+      if (teamBadgeHtml) avatarEl.insertAdjacentHTML('beforeend', teamBadgeHtml);
     } else {
-      avatarEl.innerHTML = fallbackHtml;
+      avatarEl.innerHTML = fallbackHtml + teamBadgeHtml;
     }
 
     const _set = (id, html) => { const el = document.getElementById(id); if (el) el.innerHTML = html; };
     const _setText = (id, txt) => { const el = document.getElementById(id); if (el) el.textContent = txt; };
 
     _set('pp-pos-badge', `<span class="pos-badge ${_pc(pos)}" style="font-size:12px;padding:3px 10px">${pos}</span>`);
-    _setText('pp-nfl-team', ktc.team || '—');
+    // Team display: logo + abbreviation when TeamHelpers is loaded + player has a team.
+    // Falls back to plain text on legacy pages (no TeamHelpers) or empty-team players.
+    const _teamHtml = (global.TeamHelpers && ktc.team)
+      ? global.TeamHelpers.logoImg(ktc.team, { withText: true })
+      : (ktc.team || '—');
+    _set('pp-nfl-team', _teamHtml);
     _setText('pp-player-name', playerName);
     _setText('pp-value-val', ktc.value ? ktc.value.toLocaleString() : 'N/A');
     // Overall rank now lives in the meta row chip — clear this line

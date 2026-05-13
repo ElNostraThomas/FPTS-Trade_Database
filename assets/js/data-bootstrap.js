@@ -45,6 +45,14 @@
      bootstrap fetches them as one Promise.all, so any page using this
      module gets all three in lockstep automatically. The heatmap "Data
      refreshed" stamp on every page will always equal the ADP refresh date.
+
+   LOAD ORDER WITH team-helpers.js
+     If a page also uses team-helpers.js (for team-logo badges + inline
+     logos in place of "ATL"/"BUF" text), it MUST be loaded BEFORE
+     player-panel.js — that module checks window.TeamHelpers when it
+     renders the modal-hero avatar badge + team-text setter. data-bootstrap.js
+     itself doesn't depend on team-helpers; the helpers are pure utilities
+     and can load at any time relative to this script.
    ════════════════════════════════════════════════════════════════════════ */
 
 (function (global) {

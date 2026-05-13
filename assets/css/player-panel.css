@@ -134,6 +134,7 @@
   font-size: 22px; color: var(--white);
   overflow: hidden;
   border-radius:3px;
+  position: relative;  /* anchor for .player-hs-team badge in bottom-right */
 }
 .pp-avatar img {
   width: 100%; height: 100%;

@@ -1191,7 +1191,9 @@
 <!-- Shared player panel — DB's slide-in drawer used identically on every page -->
 <script>window.FPTS_CURRENT_PAGE = 'calc';</script>
 <link rel="stylesheet" href="assets/css/player-panel.css?v=1778655500">
-<script src="assets/js/player-panel.js?v=1778660000" defer></script>
+<!-- Team logo helpers — load BEFORE player-panel.js so modal-hero badge works. -->
+<script src="assets/js/team-helpers.js?v=1778680000"></script>
+<script src="assets/js/player-panel.js?v=1778680000" defer></script>
 <style>
   /* Hide the legacy in-page modal — its click handlers now route to the shared panel instead. */
   #calc-modal-backdrop { display: none !important; }

@@ -1016,7 +1016,9 @@
 <!-- Shared player panel — DB's slide-in drawer used identically on every page -->
 <script>window.FPTS_CURRENT_PAGE = 'db';</script>
 <link rel="stylesheet" href="assets/css/player-panel.css?v=1778655500">
-<script src="assets/js/player-panel.js?v=1778660000" defer></script>
+<!-- Team logo helpers — load BEFORE player-panel.js so modal-hero badge works. -->
+<script src="assets/js/team-helpers.js?v=1778680000"></script>
+<script src="assets/js/player-panel.js?v=1778680000" defer></script>
 <style>
   /* The inline #player-panel below is now replaced by the shared module's
      injected copy. Hide the inline element so it doesn't double-render. */
@@ -6257,10 +6259,18 @@ function tradeCardHtml(t) {
         || null;
       const thumbUrl = sid ? `https://sleepercdn.com/content/nfl/players/thumb/${sid}.jpg` : null;
       const thumbHtml = thumbUrl ? `<img src="${thumbUrl}" alt="" style="width:28px;height:28px;min-width:28px;border-radius:50%;object-fit:cover;flex-shrink:0;" onerror="this.style.display='none'">` : '';
+      // Wrap headshot with team-logo badge when TeamHelpers available + player has a team.
+      const wrappedThumb = (nflTeam && window.TeamHelpers)
+        ? window.TeamHelpers.wrapWithBadge(thumbHtml, nflTeam, { badgeCls: '' })
+        : thumbHtml;
+      // Replace plain team text with the logo (text kept as alt/title).
+      const teamHtml = (nflTeam && window.TeamHelpers)
+        ? `<span class="tc-nfl-team">${window.TeamHelpers.logoImg(nflTeam, { size: 14 })}</span>`
+        : (nflTeam ? `<span class="tc-nfl-team">${nflTeam}</span>` : '');
       items.push(`<div class="tc-asset">
-        <span style="width:28px;height:28px;flex-shrink:0;display:inline-block;">${thumbHtml}</span>
+        <span style="width:28px;height:28px;flex-shrink:0;display:inline-block;">${wrappedThumb}</span>
         <span class="pos-badge ${pc(ppos)}">${ppos}</span>
-        <span class="tc-asset-name clickable-player" onclick="openPanel('${pname.replace(/'/g,"\\'")}')">${pname}</span>${nflTeam?`<span class="tc-nfl-team">${nflTeam}</span>`:""}
+        <span class="tc-asset-name clickable-player" onclick="openPanel('${pname.replace(/'/g,"\\'")}')">${pname}</span>${teamHtml}
       </div>`);
     });
     side.picks.forEach(pk => {
