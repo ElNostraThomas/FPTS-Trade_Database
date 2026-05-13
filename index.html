@@ -2297,22 +2297,19 @@ function mountPlayerArticles(parentEl, playerName, opts) {
 
   row.style.display = '';
 
-  // First article — wrap in the SAME banner box as the no-articles state
-  // so the Articles section has a consistent visual treatment.
+  // First article — title is the link
   const first = articles[0];
   row.querySelector('.pp-article-inline').innerHTML = `
-    <div style="display:flex;align-items:center;gap:10px;width:100%;padding:8px 12px;background:rgba(237,129,12,0.06);border:1px dashed var(--border2);border-radius:3px">
-      <a href="${first.url}" target="_blank" rel="noopener"
-         style="font-family:'Mulish',sans-serif;font-weight:900;font-size:13px;color:var(--white);text-decoration:none;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"
-         onmouseover="this.style.color='var(--red)'"
-         onmouseout="this.style.color='var(--white)'"
-         title="${(first.title||'').replace(/"/g,'&quot;')}">${first.title || '(untitled)'}</a>
-      ${first.date ? `<span style="font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);opacity:.5;flex-shrink:0">${ppFmtArticleDate(first.date)}</span>` : ''}
-      <a href="${first.url}" target="_blank" rel="noopener"
-         style="font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:10px;color:var(--red);text-decoration:none;text-transform:uppercase;letter-spacing:.06em;flex-shrink:0;padding:5px 10px;border:1px solid var(--red);border-radius:3px"
-         onmouseover="this.style.opacity=.7"
-         onmouseout="this.style.opacity=1">Read →</a>
-    </div>
+    <a href="${first.url}" target="_blank" rel="noopener"
+       style="font-family:'Mulish',sans-serif;font-weight:900;font-size:13px;color:var(--white);text-decoration:none;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"
+       onmouseover="this.style.color='var(--red)'"
+       onmouseout="this.style.color='var(--white)'"
+       title="${(first.title||'').replace(/"/g,'&quot;')}">${first.title || '(untitled)'}</a>
+    ${first.date ? `<span style="font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);opacity:.5;flex-shrink:0">${ppFmtArticleDate(first.date)}</span>` : ''}
+    <a href="${first.url}" target="_blank" rel="noopener"
+       style="font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:10px;color:var(--red);text-decoration:none;text-transform:uppercase;letter-spacing:.06em;flex-shrink:0"
+       onmouseover="this.style.opacity=.7"
+       onmouseout="this.style.opacity=1">Read →</a>
   `;
 
   // Articles 2-5 in dropdown
