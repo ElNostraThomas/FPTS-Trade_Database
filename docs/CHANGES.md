@@ -6,6 +6,72 @@ the operator manual see [`WORKFLOW.md`](WORKFLOW.md).
 
 ---
 
+## 2026-05-13 (afternoon) — Picks bucket fix + RDP heatmap + scaffold for new pages
+
+### ADP Tool: Picks bucket
+
+- **Real players + RDP placeholders intermixed.** The previous fix overwrote
+  the Picks bucket with RDP-only records (78 entries in slot order). The
+  data factory `app_adp_board.py:1543` actually concatenates real picks with
+  relabeled K picks before aggregation — port that. New `relabel_picks_K_to_rdp`
+  helper in `sync-adp.py` rewrites K `player_id`s to `ROOKIE_PICK_X.YY`
+  in-place inside `build_format_adp`, so aggregation produces a unified pool
+  of real players + RDP records.
+- **Tightened classification.** `classify_startup_drafts` changed from
+  "any K = picks" to "K in rounds 1..RDP_EARLY_ROUNDS (=4) = picks", matching
+  factory's `early_rounds=4`. Vet-only leagues with a real K in round 18 no
+  longer pollute the picks bucket. Verified: picks_sf now has 681 real +
+  77 RDP records; rank 1 is Josh Allen (ADP 2.6, 1,017 drafts), Rookie Pick
+  1.01 enters at rank 16 (ADP 16.0).
+- **1QB picks toggle hidden.** Only 4 qualifying 2026 1QB drafts; below
+  `min_drafts=5`. `adp-tool.html` adds `_applyPicksOneQbConstraint` that
+  hides the 1QB button while in Picks mode and silently forces qbFormat to
+  'sf'. Toggle reappears on Simple/Rookies.
+- **RDP card styling.** Added `.box-card.RDP` / `.pos-pill.RDP` / `tr.RDP`
+  selectors to the `--pos-pick-bg` (brand purple) rules so RDP cards no
+  longer render with a black default.
+
+### Pick-availability heatmap
+
+- **RDP heatmap entries.** New `build_rdp_pick_availability` function in
+  `sync-adp.py` produces availability matrices for each `ROOKIE_PICK_X.YY`
+  slot, drawn from qualifying picks-bucket drafts only. Per-(round, slot)
+  probability math extracted to the shared `_availability_matrix_from_picks`
+  helper — both real-player and RDP heatmaps use it. `data/pick-availability.json`
+  now has 300 real players + 77 RDP entries (Rookie Pick 1.01 = expected
+  pick 15.96, dropoff 92% → 37% → 3% over rounds 1-3).
+- **"Data refreshed" stamp.** `assets/js/heatmap.js` renders a new stat cell
+  next to "Expected pick" and "Drafts sampled" showing the source data's
+  version date. Pulled from `window.PICK_AVAILABILITY_META.version` which
+  is now stashed on every page's pick-availability.json fetch. Guaranteed
+  in lockstep with ADP because `sync-adp.py` writes the same `version`
+  timestamp to `adp.json`, `auction.json`, and `pick-availability.json`.
+
+### Scaffold for new pages
+
+- **`assets/js/data-bootstrap.js`** (new, 307 lines). Single shared data
+  layer: fetches all 7 `data/*.json` files, populates 9 `window.*` globals,
+  exposes canonical `_applyAdpPayload` / `_applyAuctionPayload` /
+  `_applyMvsPayload` helpers, fires `fpts:data-ready` when done. Public API
+  on `window.FPTS_DATA`. Pages opt in by setting `FPTS_CURRENT_PAGE` and
+  including this script.
+- **`assets/css/brand.css`** (new). Canonical brand variables, fonts, top
+  nav, position pills, page chrome. Extracted from `adp-tool.html:8-167`.
+  Existing 5 pages keep their inline copies (unchanged); future pages link
+  to this.
+- **`templates/page-template.html`** (new). Copy-this-to-start scaffold
+  with three TODO markers + a `fpts:data-ready` listener skeleton.
+- **`docs/WORKFLOW.md` § "2b. Add a new page or tool"** documents the
+  6-step copy-fill-test-push flow.
+
+### Commits
+
+- `2c05c93` Picks bucket: real players + RDP placeholders intermixed
+- `44aca37` Add RDP heatmap entries to pick-availability.json
+- (pending) data-bootstrap + page-template scaffold + heatmap data-refresh stamp
+
+---
+
 ## 2026-05-13 — My-Leagues → shared drawer (accordion variant) + data fixes + push.bat hardening
 
 ### Architecture

@@ -20,6 +20,7 @@
 
    data/adp.json            sleeper_dynasty_adp parquet          sync-adp.py
      → ADP_PAYLOAD.byMonth.{YYYY-MM,ALL}.{picks,simple,rookies,startup}_{sf,1qb}
+     → picks_sf records mix real players + ROOKIE_PICK_X.YY placeholders
 
    data/auction.json        Sleeper auction medians              sync-adp.py
      → AUCTION_PAYLOAD.byMonth.ALL.startup_{sf,1qb}
@@ -33,8 +34,31 @@
    data/articles.json       FantasyPoints recent articles         sync-fp.py
      → PLAYER_ARTICLES[name] = [{ title, url, snippet, image }]
 
-   data/pick-availability.json   Heatmap data (adp-tool only)     sync-adp.py
-     → loaded lazily for the player modal heatmap
+   data/pick-availability.json   Per-entity board heatmap        sync-adp.py
+     → PICK_AVAILABILITY[sleeperId].{matrix, dropoff, expectedPick, draftsSampled}
+     → Real players (300 most-drafted) + ROOKIE_PICK_X.YY entries (~77)
+     → PICK_AVAILABILITY_META.{version, season, teamCount, topN}
+       feeds the "Data refreshed" stamp on every heatmap render
+
+   CONSISTENCY: adp.json, auction.json, and pick-availability.json carry
+   identical `version` timestamps (same `now` value in sync-adp.py main()).
+   Heatmap and ADP always reflect the same data snapshot.
+
+   ──────────────────────────────────────────────────────────────────────
+   PAGE SCAFFOLD (assets/js/data-bootstrap.js + brand.css + page-template.html)
+   ──────────────────────────────────────────────────────────────────────
+   New pages don't hand-roll the bootstrap above. They include
+   assets/js/data-bootstrap.js which:
+     - Fetches all 7 data/*.json files in a single Promise.all
+     - Populates window.FP_VALUES / PICK_VALUES / SLEEPER_IDS / ADP_PAYLOAD
+       / AUCTION_PAYLOAD / MVS_PAYLOAD / PLAYER_ARTICLES / PICK_AVAILABILITY
+       / PICK_AVAILABILITY_META
+     - Runs _applyAdpPayload + _applyAuctionPayload + _applyMvsPayload
+     - Fires document.dispatchEvent('fpts:data-ready') when done
+
+   See docs/WORKFLOW.md § "2b. Add a new page or tool" for the full flow.
+   The existing 5 pages still inline their own bootstrap (pre-scaffold);
+   they migrate when next touched.
    ──────────────────────────────────────────────────────────────────────
 */
 
@@ -176,8 +200,8 @@ window.LegendContent = {
       {
         name: 'Controls Bar',
         items: [
-          { label: 'Mode Buttons (data-mode)', what: 'Toggle between Picks / Simple / Rookies modes. Each maps to a different draft-subset aggregate.', source: 'STATE.mode (default "picks"); buttons at L549-553; setMode() at L1247', values: 'picks (kickers as pick placeholders) / simple (vet-only, no rookies/kickers) / rookies (incl. 2026 rookies)', notes: 'Bucket classification done upstream in sync-adp.py classify_startup_drafts(). Trend index rebuilds on every mode switch.' },
-          { label: 'QB Format Buttons (data-qb)', what: 'Toggle between Superflex/2QB and 1QB player pools. Affects board contents + ADP values + sample size.', source: 'STATE.qbFormat (default "sf"); buttons at L554-557; setQbFormat() at L1255', values: 'SF or 1QB; persists in localStorage "fpts-adp-format"', notes: '1QB sample is ~half SF size — wider confidence intervals on deep ADP. Toggle also affects DB age/value chart on index page via cross-page persistence (commit eeefe91).' },
+          { label: 'Mode Buttons (data-mode)', what: 'Toggle between Picks / Simple / Rookies modes. Each maps to a different draft-subset aggregate.', source: 'STATE.mode (default "picks"); buttons at L549-553; setMode() at L1247', values: 'picks (real players + RDP placeholders from K-as-pick startups) / simple (vet-only, no rookies/kickers) / rookies (incl. 2026 rookies)', notes: 'Picks bucket: sync-adp.py classify_startup_drafts identifies startups with K in rounds 1-4, then relabel_picks_K_to_rdp rewrites K player_ids to ROOKIE_PICK_X.YY before aggregation — so the board shows real top-of-board players AND rookie pick slots intermixed. Trend index rebuilds on every mode switch.' },
+          { label: 'QB Format Buttons (data-qb)', what: 'Toggle between Superflex/2QB and 1QB player pools. The 1QB button is HIDDEN while on Picks mode (only 4 qualifying 2026 picks-as-K 1QB drafts; below min_drafts).', source: 'STATE.qbFormat (default "sf"); buttons at L554-557; setQbFormat() at L1255; _applyPicksOneQbConstraint() hides/shows the 1QB button per STATE.mode', values: 'SF or 1QB; persists in localStorage "fpts-adp-format"', notes: '1QB sample is ~half SF size on Simple/Rookies — wider confidence intervals on deep ADP. Toggle hide is purely visual; setQbFormat("1qb") still works programmatically. Toggle also affects DB age/value chart on index page via cross-page persistence (commit eeefe91).' },
           { label: 'Date Range (#date-from, #date-to)', what: 'Constrain ADP aggregation to a date window.', source: 'STATE.dateFrom + dateTo; getActiveBucket() at L892', values: 'YYYY-MM-DD; both empty = byMonth.ALL aggregate', notes: 'aggregateBuckets() walks per-month buckets and re-aggregates pick-weighted ADP for the window.' },
           { label: 'Date Presets (data-preset)', what: 'Quick buttons for 7d / 30d / 90d / All.', source: 'applyPreset() at L2936', values: '7 / 30 / 90 / all', notes: 'Auto-populates the date inputs and triggers a re-aggregate.' },
           { label: 'View Toggle (data-view)', what: 'Switch board between Box (card grid) and List (sortable table with CSV download).', source: 'STATE.view; setView() at L1237', values: 'box (default) / list', notes: 'Box view forced to List on phones (<700px). Disabled box button shown greyed.' },
@@ -196,7 +220,7 @@ window.LegendContent = {
       {
         name: 'Board (Box View)',
         items: [
-          { label: 'Box Card (.box-card)', what: 'One per player slot. Top row: pick number / pos rank / ADP. Below: stacked first-name + last-name. Bottom-right: circular HS.', source: 'renderBoard() L1100+; box-card markup', values: 'Background = position color (QB red, RB green, WR blue, TE orange, K purple)', notes: 'Click to open the player modal with trend, history, articles, heatmap.' },
+          { label: 'Box Card (.box-card)', what: 'One per player slot. Top row: pick number / pos rank / ADP. Below: stacked first-name + last-name. Bottom-right: circular HS or brand flame thumbnail (RDP rows).', source: 'renderBoard() L1100+; box-card markup; isRookiePick(p) routes RDP rows to flameThumb()', values: 'Background = position color (QB red, RB green, WR blue, TE orange, K/RDP purple)', notes: 'Click to open the player modal with trend, history, articles, heatmap. RDP rows (synthetic sleeperId "ROOKIE_PICK_X.YY") open a modal with the orange flame avatar + "RDP" pos chip + the new RDP heatmap.' },
           { label: 'Pick Number', what: 'Overall pick position in the draft (1-N).', source: 'Computed from team × round + slot per snake or linear order', values: 'Integer 1 through (teams × rounds)', notes: 'Snake order reverses every other round; linear is sequential.' },
           { label: 'Position Rank', what: 'Rank within the player\'s position (WR1, RB12, etc.).', source: 'p.posRank from ADP payload', values: 'String "QB1", "WR12"', notes: 'Computed in sync-adp.py from the pick-weighted aggregate.' },
           { label: 'ADP Value', what: 'Pick-weighted average draft position across all drafts in the bucket.', source: 'p.adp from adp.json[bucket]', values: 'Decimal, e.g. 14.3', notes: 'Lower = drafted earlier. Min sample threshold = 5 drafts in sync-adp.py.' },
@@ -218,7 +242,7 @@ window.LegendContent = {
           { label: 'Top Bar (.pp-top-bar)', what: 'Modal header: PLAYER PROFILE label (red Kanit) + xpage action buttons + ✕ Close.', source: 'Static markup', values: 'Open in Database / Open in Calculator / Open in My Leagues / ✕ Close', notes: 'xpage buttons write _fptsWriteHandoff and open destination in new tab.' },
           { label: 'Player Profile (.pp-profile)', what: 'Hero with 96px circular HS, position pill + NFL team, 32px Kanit name, inline stats grid, right-floating Fantasy Points value.', source: 'CURRENT_MODAL_PLAYER + inline stat lookups', values: 'Stats: Age, Pos Rank, Overall Rank, PPG, Dynasty ADP, Auction', notes: 'Visual contract identical to DB + Calc + My Leagues modals.' },
           { label: 'Articles Section (.pp-articles-section)', what: 'Recent FantasyPoints articles mentioning this player.', source: 'PLAYER_ARTICLES[name] from data/articles.json', values: 'Dropdown preview of titles; click "Show N more" to expand; "Sign in to FantasyPoints" link', notes: 'Match logic in sync-fp.py build_articles_map(): title match OR ≥2 body mentions.' },
-          { label: 'Pick-Availability Heatmap', what: 'Probability cells showing the chance this player is still available at each pick slot, by round.', source: 'data/pick-availability.json — generated by sync-adp.py', values: 'Cells 0%-100%, color band from green (likely available) to red (rarely)', notes: 'Only shown for "picks" mode where pick-as-asset placeholders exist. heatmap section ID #pp-heatmap-section.' },
+          { label: 'Pick-Availability Heatmap', what: 'Probability cells showing the chance this player (or rookie pick) is still available at each pick slot, by round. Now renders for real players AND ROOKIE_PICK_X.YY placeholders.', source: 'data/pick-availability.json — generated by sync-adp.py via build_pick_availability (300 real players) + build_rdp_pick_availability (~77 RDP slots). assets/js/heatmap.js Heatmap.render is entity-agnostic and looks up by sleeperId.', values: 'Cells 0%-100% orange-alpha gradient (darker = more likely available). RDP entries: e.g. Rookie Pick 1.01 has expected pick 15.96 and dropoff 92% → 37% → 3% over rounds 1-3.', notes: 'Shown on every page that opens the player panel (DB / Calc / ML / Tiers / ADP). The "Data refreshed" stat cell pulls from window.PICK_AVAILABILITY_META.version — guaranteed identical to adp.json + auction.json versions because all three are written in the same sync-adp.py invocation.' },
           { label: 'Compare Mode (compare-grid)', what: 'Add up to 3 other players via the search input on the modal to compare side-by-side.', source: 'compareState + compare-grid rendering', values: 'Each column: stats, value, trend, articles', notes: 'Stripped down to ADP-relevant comparison; reuses .pp-stat / .pp-fp visual style.' },
         ],
       },

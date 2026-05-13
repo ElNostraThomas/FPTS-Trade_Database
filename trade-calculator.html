@@ -1183,7 +1183,7 @@
 <script src="assets/js/mvs-extras.js?v=1778642255"></script>
 <script src="assets/js/player-articles.js?v=1778642300"></script>
 <link rel="stylesheet" href="assets/css/heatmap.css?v=1778642255">
-<script src="assets/js/heatmap.js?v=1778642255"></script>
+<script src="assets/js/heatmap.js?v=1778670000"></script>
 <link rel="stylesheet" href="assets/css/legend.css?v=1778642255">
 <script src="assets/js/legend-content.js?v=1778642255"></script>
 <script src="assets/js/legend.js?v=1778642255"></script>
@@ -2649,7 +2649,7 @@ function resetAll() {
     fetch('data/auction.json' + v).then(r => r.ok ? r.json() : Promise.reject('auction ' + r.status)).then(j => _applyAuctionPayload(j)).catch(() => { /* auction optional */ }),
     fetch('data/picks.json' + v).then(r => r.ok ? r.json() : Promise.reject('picks ' + r.status)).then(j => { if (typeof PICK_VALUES !== 'undefined' && j && j.picks) Object.assign(PICK_VALUES, j.picks); }),
     fetch('data/articles.json' + v).then(r => r.ok ? r.json() : Promise.reject('articles ' + r.status)).then(j => { if (j && j.players) window.PLAYER_ARTICLES = j.players; }).catch(() => { /* articles optional */ }),
-    fetch('data/pick-availability.json' + v).then(r => r.ok ? r.json() : null).then(j => { if (j && j.players) window.PICK_AVAILABILITY = j.players; }).catch(() => { /* heatmap optional */ }),
+    fetch('data/pick-availability.json' + v).then(r => r.ok ? r.json() : null).then(j => { if (j && j.players) window.PICK_AVAILABILITY = j.players; if (j) window.PICK_AVAILABILITY_META = { version: j.version, season: j.season, teamCount: j.teamCount, topN: j.topN }; }).catch(() => { /* heatmap optional */ }),
   ]).then(() => {
     return fetch('data/mvs.json' + v).then(r => r.ok ? r.json() : null).then(j => { if (j) _applyMvsPayload(j); }).catch(() => {});
   }).then(() => {

@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<!--
+═══════════════════════════════════════════════════════════════════════════
+  FPTS Front Office — page template (scaffold for new pages / tools)
+═══════════════════════════════════════════════════════════════════════════
+
+  COPY THIS FILE WHEN STARTING A NEW PAGE OR TOOL.
+
+  Steps:
+    1.  Copy `templates/page-template.html` to `<your-new-page>.html` at
+        the repo root (sibling of index.html, adp-tool.html, etc.).
+    2.  Edit the three TODO markers below:
+          - `<title>`             — show the page name in the browser tab.
+          - `window.FPTS_CURRENT_PAGE`  — short slug ('newpage', 'optimizer', etc.).
+          - `<main id="page-body">` — the page's unique content + page-specific JS.
+    3.  Add a new nav link entry (Database / Calculator / User Importer /
+        Tiers / ADP / your new page) to every existing page's `<nav class="nav-links">`
+        block AND to this template's nav block. One-time manual step until
+        nav becomes a shared partial.
+
+  WHAT YOU GET FOR FREE (no extra wiring needed in the new page):
+    • Brand CSS variables, fonts, top nav, position pills, page chrome
+    • Data layer — every JSON in data/ pre-fetched and exposed on window globals:
+        window.FP_VALUES, window.PICK_VALUES, window.SLEEPER_IDS,
+        window.ADP_PAYLOAD, window.AUCTION_PAYLOAD, window.MVS_PAYLOAD,
+        window.PLAYER_ARTICLES, window.PICK_AVAILABILITY,
+        window.PICK_AVAILABILITY_META
+    • Slide-out player panel with all 5 tabs:
+        Trades / Player Stats / Age Curve / Trade Finder / ADP Heatmap
+    • MVS extras header (OTC, Baseline, Trade Volume, Contributor Rankings)
+    • FantasyPoints articles banner
+    • Pick-availability heatmap with "Data refreshed" stamp
+    • Rookie-pick placeholder support (ROOKIE_PICK_X.YY flame thumbnails)
+    • Legend drawer
+
+  ALL data refreshes in lockstep with ADP every time sync-adp.py runs.
+
+  Asset versioning: keep `?v=...` query strings on every shared-module
+  reference. When a shared module changes, bump the token across all pages
+  that use it (push.bat's sync-check warnings catch most drift).
+
+═══════════════════════════════════════════════════════════════════════════
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+
+<!-- TODO: change page title -->
+<title>Fantasy Points Front Office — New Page</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Kanit:ital,wght@0,400;0,700;1,800&family=Mulish:wght@400;700;900&display=swap" rel="stylesheet">
+
+<!-- Brand-level styles: fonts, color variables, nav, page chrome, pos pills. -->
+<link rel="stylesheet" href="assets/css/brand.css?v=1778670000">
+
+<!-- Shared UI component modules (CSS). -->
+<link rel="stylesheet" href="assets/css/mvs-extras.css?v=1778642255">
+<link rel="stylesheet" href="assets/css/heatmap.css?v=1778642255">
+<link rel="stylesheet" href="assets/css/legend.css?v=1778642255">
+<link rel="stylesheet" href="assets/css/player-panel.css?v=1778655500">
+
+<!-- Page identity + data layer config (must run BEFORE data-bootstrap.js). -->
+<script>
+  // TODO: change to your page's slug (short, lowercase, no spaces).
+  window.FPTS_CURRENT_PAGE = 'newpage';
+
+  // OPTIONAL: skip data files you don't need. Default = fetch everything.
+  // window.FPTS_DATA_OPTS = { skip: ['picks'] };  // example: skip picks.json
+</script>
+
+<!-- Shared UI component modules (JS) — load in dependency order. -->
+<script src="assets/js/mvs-extras.js?v=1778642255"></script>
+<script src="assets/js/player-articles.js?v=1778642300"></script>
+<script src="assets/js/heatmap.js?v=1778670000"></script>
+<script src="assets/js/legend-content.js?v=1778642255"></script>
+<script src="assets/js/legend.js?v=1778642255"></script>
+<script src="assets/js/player-panel.js?v=1778660000" defer></script>
+
+<!-- Data bootstrap — fetches every data/*.json, populates window globals,
+     fires 'fpts:data-ready' when done. -->
+<script src="assets/js/data-bootstrap.js?v=1778670000"></script>
+</head>
+
+<body>
+
+<div id="_fp-loading">Loading…</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     TOP NAV — identical across every page. When adding a new page, add
+     its link to both the .nav-links block AND the mobile <select> options
+     here AND on every existing page. (Phase 2: extract to a shared partial.)
+     ═══════════════════════════════════════════════════════════════════════ -->
+<div style="background:var(--nav-bg);border-bottom:2px solid var(--red);position:sticky;top:0;z-index:100"><nav class="topnav" style="border:none;position:static">
+  <div class="wordmark-group">
+  <div class="wordmark" id="wordmark-svg">
+    <svg viewBox="0 0 878 90" xmlns="http://www.w3.org/2000/svg" style="fill-rule:evenodd;clip-rule:evenodd">
+      <path d="M508.084,47.801l-8.983,41.534c0,0 -75.276,-0.036 -85.237,-0.002l0.015,-0.067c0,0 2.533,-17.352 5.641,-25.475c3.708,-9.689 16.604,-32.658 16.604,-32.658c12.902,8.212 8.658,21.025 7.099,27.21c11.719,-8.962 11.012,-17.186 11.003,-28.608c-0.006,-7.356 4.797,-23.375 17.858,-28.257c-4.305,14.678 3.971,24.95 7.333,30.494c6.362,10.492 1.397,21.17 1.397,21.17c0,0 9.268,-3.36 8.863,-15.254c-0.117,-3.424 -1.714,-14.283 8.012,-18.422c-0.754,9.397 5.495,18.682 10.395,28.336Z" fill="var(--red)"/>
+      <path d="M19.856,0.761l47.225,0l-3.757,16.803l-22.539,0l-4.159,18.236l19.99,0l-3.757,16.933l-19.99,0l-8.184,36.602l-24.686,0l19.856,-88.573Z" fill="var(--white)" fill-rule="nonzero"/>
+      <path d="M82.991,0.761l28.577,0l-1.207,88.573l-24.954,0l0.939,-14.589l-16.234,0l-5.635,14.589l-19.99,0l38.505,-88.573Zm4.293,58.745l2.147,-34.648l-13.416,34.648l11.27,0Z" fill="var(--white)" fill-rule="nonzero"/>
+      <path d="M135.036,0.761l26.698,0l3.757,47.804l10.733,-47.804l17.709,0l-19.856,88.573l-26.564,0l-3.891,-47.413l-10.599,47.413l-17.844,0l19.856,-88.573Z" fill="var(--white)" fill-rule="nonzero"/>
+      <path d="M211.755,18.215l-15.831,0l3.891,-17.454l55.678,0l-3.891,17.454l-15.295,0l-15.965,71.119l-24.552,0l15.965,-71.119Z" fill="var(--white)" fill-rule="nonzero"/>
+      <path d="M270.166,0.884l28.537,0l-1.206,88.451l-24.92,0l0.938,-14.568l-16.211,0l-5.627,14.568l-19.963,0l38.451,-88.451Zm4.287,58.664l2.144,-34.6l-13.398,34.6l11.254,0Z" fill="var(--white)" fill-rule="nonzero"/>
+      <path d="M316.507,17.764c2.387,-11.843 10.165,-17.764 23.335,-17.764l16.971,0c6.718,0 11.623,1.888 14.717,5.664c3.094,3.776 3.933,8.753 2.519,14.932l-1.989,10.298l-23.865,0l2.387,-10.427c0.707,-3.433 -0.53,-5.149 -3.712,-5.149l-1.326,0c-1.591,0 -2.828,0.365 -3.712,1.094c-0.884,0.729 -1.547,2.038 -1.989,3.926l-1.326,6.05c-0.354,1.802 -0.243,3.24 0.331,4.312c0.575,1.073 1.746,1.995 3.514,2.768l11.933,4.377c5.038,1.974 8.508,4.72 10.408,8.238c1.9,3.518 2.232,7.981 0.994,13.387l-2.652,12.1c-2.387,11.843 -10.209,17.764 -23.468,17.764l-17.369,0c-6.718,0 -11.623,-1.909 -14.717,-5.728c-3.094,-3.819 -3.933,-8.903 -2.519,-15.254l2.254,-10.942l24.263,0l-2.519,11.456c-0.707,3.433 0.486,5.149 3.58,5.149l1.591,0c1.591,0 2.806,-0.386 3.646,-1.159c0.84,-0.772 1.436,-2.06 1.79,-3.862l1.856,-7.723c0.442,-1.888 0.354,-3.347 -0.265,-4.377c-0.619,-1.03 -1.812,-1.931 -3.58,-2.703l-12.198,-4.634c-9.9,-3.776 -13.656,-11.027 -11.27,-21.754l2.387,-10.04Z" fill="var(--white)" fill-rule="nonzero"/>
+      <path d="M411.302,62.129l-6.16,27.043l-25.31,0l6.294,-27.954l-5.223,-60.458l26.382,0l0.536,33.414l15.4,-33.414l20.623,0l-32.542,61.368Z" fill="var(--white)" fill-rule="nonzero"/>
+      <path d="M526.915,0.761l37.555,0c6.861,0 11.828,1.91 14.902,5.731c3.074,3.821 3.853,9.075 2.339,15.761l-3.475,16.933c-1.515,6.513 -4.232,11.311 -8.152,14.393c-3.92,3.083 -9.222,4.624 -15.904,4.624l-15.503,0l-6.95,31.131l-24.591,0l19.78,-88.575Zm21.651,41.291c1.604,0 2.851,-0.369 3.742,-1.107c0.891,-0.738 1.515,-2.062 1.871,-3.973l3.341,-14.849c0.713,-3.474 -0.445,-5.21 -3.475,-5.21l-6.148,0l-5.613,25.14l6.281,0Z" fill="var(--white)" fill-rule="nonzero"/>
+      <path d="M591.621,18.118c2.541,-11.572 10.254,-17.357 23.136,-17.357l17.747,0c6.573,0 11.437,1.893 14.592,5.679c3.155,3.786 3.988,8.87 2.498,15.251l-11.305,50.285c-2.541,11.572 -10.254,17.357 -23.136,17.357l-17.747,0c-6.66,0 -11.524,-1.893 -14.592,-5.679c-3.067,-3.786 -3.9,-8.87 -2.498,-15.251l11.305,-50.285Zm34.047,3.574c0.438,-1.617 0.329,-2.872 -0.329,-3.765c-0.657,-0.893 -1.731,-1.34 -3.221,-1.34l-1.84,0c-3.067,0 -4.952,1.659 -5.653,4.977l-10.517,46.839c-0.351,1.617 -0.175,2.872 0.526,3.765c0.701,0.893 1.753,1.34 3.155,1.34l1.84,0c2.98,0 4.82,-1.659 5.521,-4.977l10.517,-46.839Z" fill="var(--white)" fill-rule="nonzero"/>
+      <path d="M663.756,0.884l24.652,0l-19.829,88.452l-24.652,0l19.829,-88.452Z" fill="var(--white)" fill-rule="nonzero"/>
+      <path d="M697.921,0.884l26.662,0l3.751,47.738l10.718,-47.738l17.685,0l-19.829,88.452l-26.528,0l-3.885,-47.348l-10.584,47.348l-17.819,0l19.829,-88.452Z" fill="var(--white)" fill-rule="nonzero"/>
+      <path d="M774.557,18.314l-15.809,0l3.885,-17.43l55.601,0l-3.885,17.43l-15.274,0l-15.943,71.022l-24.518,0l15.943,-71.022Z" fill="var(--white)" fill-rule="nonzero"/>
+      <path d="M819.769,18.472c2.363,-11.725 10.064,-17.588 23.104,-17.588l16.803,0c6.651,0 11.508,1.869 14.571,5.608c3.063,3.739 3.894,8.667 2.494,14.784l-1.969,10.196l-23.629,0l2.363,-10.324c0.7,-3.399 -0.525,-5.098 -3.676,-5.098l-1.313,0c-1.575,0 -2.801,0.361 -3.676,1.083c-0.875,0.722 -1.532,2.018 -1.969,3.887l-1.313,5.99c-0.35,1.784 -0.241,3.208 0.328,4.27c0.569,1.062 1.728,1.975 3.479,2.74l11.815,4.333c4.988,1.954 8.423,4.673 10.305,8.157c1.882,3.484 2.21,7.902 0.985,13.255l-2.625,11.98c-2.363,11.725 -10.108,17.588 -23.236,17.588l-17.197,0c-6.651,0 -11.508,-1.891 -14.571,-5.672c-3.063,-3.781 -3.894,-8.815 -2.494,-15.103l2.232,-10.833l24.023,0l-2.494,11.343c-0.7,3.399 0.481,5.098 3.544,5.098l1.575,0c1.575,0 2.779,-0.382 3.61,-1.147c0.831,-0.765 1.422,-2.039 1.772,-3.824l1.838,-7.647c0.438,-1.869 0.35,-3.314 -0.263,-4.333c-0.613,-1.02 -1.794,-1.912 -3.544,-2.676l-12.077,-4.588c-9.802,-3.739 -13.521,-10.918 -11.158,-21.539l2.363,-9.941Z" fill="var(--white)" fill-rule="nonzero"/>
+    </svg>
+  </div>
+  <span class="wordmark-tag">Front Office</span>
+  </div>
+  <nav class="nav-links">
+    <a class="nav-link" href="index.html">Database</a>
+    <a class="nav-link" href="trade-calculator.html">Calculator</a>
+    <a class="nav-link" href="my-leagues.html">User Importer</a>
+    <a class="nav-link" href="tiers.html">Tiers</a>
+    <a class="nav-link" href="adp-tool.html">ADP</a>
+    <a class="nav-link" href="https://www.fantasypoints.com/nfl/rankings/dynasty#/" target="_blank">Rankings</a>
+    <!-- TODO: add your new page's link here -->
+  </nav>
+  <div class="nav-right">
+    <select class="mobile-nav-select" onchange="if(this.value)window.location.href=this.value">
+      <option value="">— Pages —</option>
+      <option value="index.html">Database</option>
+      <option value="trade-calculator.html">Calculator</option>
+      <option value="my-leagues.html">User Importer</option>
+      <option value="tiers.html">Tiers</option>
+      <option value="adp-tool.html">ADP</option>
+      <option value="https://www.fantasypoints.com/nfl/rankings/dynasty#/">Rankings</option>
+    </select>
+    <span class="nav-badge">SEASON 2026</span>
+    <button id="theme-toggle" onclick="toggleTheme()"
+      style="background:none;border:1px solid var(--border2);color:var(--white);font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:11px;padding:5px 12px;cursor:pointer;transition:all .2s;letter-spacing:.04em;display:flex;align-items:center;gap:6px"
+      onmouseover="this.style.borderColor='var(--red)';this.style.color='var(--red)'"
+      onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--white)'">
+      <span id="theme-icon">☀️</span>
+      <span id="theme-label">LIGHT</span>
+    </button>
+  </div>
+</nav></div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     PAGE BODY — replace the placeholder below with your page's content.
+     ═══════════════════════════════════════════════════════════════════════ -->
+<main id="page-body" class="page">
+
+  <div class="page-header">
+    <div>
+      <!-- TODO: page-specific title + subtitle -->
+      <div class="page-title">New <span>Page</span></div>
+      <div class="page-subtitle">Placeholder — describe what this page does here.</div>
+    </div>
+  </div>
+
+  <!-- TODO: page-specific markup goes here. -->
+  <p style="padding:20px 0;opacity:.65">Scaffold page. Replace <code>&lt;main id="page-body"&gt;</code> contents with your page's unique markup, then add page-specific JS to the script block at the bottom.</p>
+
+</main>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     REQUIRED MOUNT DIVS — every page that opens the player panel needs
+     these slots present (player-panel.js looks for them). Don't remove.
+     ═══════════════════════════════════════════════════════════════════════ -->
+<div id="pp-mvs-extras"></div>
+<div id="pp-articles-mount"></div>
+<div id="pp-league-context"></div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     PAGE-SPECIFIC JS — runs after data-bootstrap.js fetches every JSON
+     and fires 'fpts:data-ready'. Read from window.FP_VALUES, etc. here.
+     ═══════════════════════════════════════════════════════════════════════ -->
+<script>
+  // Theme toggle (shared across all pages).
+  function toggleTheme() {
+    const cur = document.documentElement.getAttribute('data-theme') || 'dark';
+    const next = cur === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    document.getElementById('theme-icon').textContent = next === 'dark' ? '☀️' : '🌙';
+    document.getElementById('theme-label').textContent = next === 'dark' ? 'LIGHT' : 'DARK';
+    try { localStorage.setItem('fpts-theme', next); } catch (e) {}
+  }
+  (function _initTheme() {
+    try {
+      const saved = localStorage.getItem('fpts-theme');
+      if (saved === 'light') toggleTheme();
+    } catch (e) {}
+  })();
+
+  // Wait for data-bootstrap.js to hydrate all globals, then render.
+  document.addEventListener('fpts:data-ready', function (e) {
+    // Dismiss the loading overlay.
+    const overlay = document.getElementById('_fp-loading');
+    if (overlay) overlay.style.display = 'none';
+
+    // ─────── TODO: PAGE-SPECIFIC RENDERING GOES HERE ──────────────────
+    //
+    // Everything is loaded:
+    //   window.FP_VALUES, window.PICK_VALUES, window.SLEEPER_IDS,
+    //   window.ADP_PAYLOAD, window.AUCTION_PAYLOAD, window.MVS_PAYLOAD,
+    //   window.PLAYER_ARTICLES, window.PICK_AVAILABILITY,
+    //   window.PICK_AVAILABILITY_META  (drives heatmap "Data refreshed" stamp)
+    //
+    // Example:
+    //   const players = Object.keys(window.FP_VALUES).sort();
+    //   document.getElementById('page-body').innerHTML += `<p>${players.length} players loaded</p>`;
+    //
+    // To open the slide-out player panel:
+    //   window.openPanel('Bijan Robinson');
+    //
+    // To render the heatmap inline somewhere:
+    //   window.Heatmap.render(someContainerEl, sleeperId);
+    //
+    // ───────────────────────────────────────────────────────────────────
+  });
+</script>
+
+</body>
+</html>

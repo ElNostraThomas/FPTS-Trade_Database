@@ -71,6 +71,45 @@ The 4 main pages:
 - `tiers.html` — Dynasty Trade Tiers (data is auto-synced; don't hand-edit the `TIER_PLAYERS` block)
 - `trade-calculator.html` — Trade Calculator
 
+### 2b. Add a new page or tool
+
+The repo ships a scaffold so new pages inherit every shared pattern (data, ADP, heatmap, trades, position colors, slide-out drawer, articles, legend) automatically. You should never have to re-wire any of those by hand.
+
+1. **Copy the scaffold**:
+   ```powershell
+   copy templates\page-template.html your-new-page.html
+   ```
+2. **Edit the three TODO markers** in your new page:
+   - `<title>` — browser-tab title.
+   - `window.FPTS_CURRENT_PAGE = 'newpage';` — a short slug.
+   - `<main id="page-body">` — the page's unique markup.
+3. **Add the page link to the nav block** in the new page itself **AND** in all 5 existing pages (`index.html`, `trade-calculator.html`, `my-leagues.html`, `tiers.html`, `adp-tool.html`). One-time manual step; the nav has matching `<a class="nav-link">` entries plus a mobile `<select>` `<option>`.
+4. **Write page-specific code** inside the `document.addEventListener('fpts:data-ready', ...)` block at the bottom of the template. By the time that event fires:
+   - Every `data/*.json` file has been fetched
+   - Every `window.*` global is hydrated (FP_VALUES, PICK_VALUES, SLEEPER_IDS, ADP_PAYLOAD, AUCTION_PAYLOAD, MVS_PAYLOAD, PLAYER_ARTICLES, PICK_AVAILABILITY, PICK_AVAILABILITY_META)
+   - The shared player-panel drawer is ready: `window.openPanel('Bijan Robinson')` works
+   - The heatmap renderer is ready: `window.Heatmap.render(el, sleeperId)` works
+5. **Test locally**: `start.bat` → open `http://localhost:8000/your-new-page.html` and verify the page loads, the nav looks right, clicking any player opens the drawer with all 5 tabs.
+6. **Deploy**: `push.bat`.
+
+**What's shared** (the scaffold loads all of these — you never copy them into your page):
+- `assets/css/brand.css` — color variables, fonts, nav, position pills, page chrome
+- `assets/css/player-panel.css` + `assets/js/player-panel.js` — slide-out drawer
+- `assets/css/heatmap.css` + `assets/js/heatmap.js` — pick-availability heatmap
+- `assets/css/mvs-extras.css` + `assets/js/mvs-extras.js` — OTC/Baseline/Trade Volume header
+- `assets/js/player-articles.js` — FantasyPoints article banner
+- `assets/css/legend.css` + `assets/js/legend.js` + `assets/js/legend-content.js` — developer Legend drawer
+- `assets/js/data-bootstrap.js` — the data layer (all 7 JSON fetches + window mirrors + `_apply*` helpers + `fpts:data-ready` event)
+
+**What stays page-specific** (you write these):
+- Your `<main id="page-body">` markup
+- Your `fpts:data-ready` listener that reads the globals and renders your page
+- Optional inline `<style>` for page-specific UI (anything that isn't brand-level)
+
+**Skipping data sources**: If your page doesn't need certain JSON files, set `window.FPTS_DATA_OPTS = { skip: ['picks', 'mvs'] }` before the data-bootstrap script tag. Default behavior fetches everything — recommended unless you have a clear reason.
+
+**The 5 existing pages** still carry their hand-rolled bootstrap blocks (predate the scaffold). They work as-is. Migrating any of them to use `data-bootstrap.js` is a separate cleanup that can happen whenever you next touch the page — it's a ~40-line subtraction.
+
 ### 3. Update the function reference doc (the printable PDF)
 
 1. Edit `docs/function-reference.html` directly.
@@ -171,6 +210,9 @@ If FP adds new endpoints you want to use, or you want to add a new data input:
 | `assets/js/player-articles.js` | Shared articles section (banner-style) used in every player drawer |
 | `assets/css/heatmap.css` + `assets/js/heatmap.js` | Pick-availability heatmap component |
 | `assets/css/legend.css` + `assets/js/legend.js` + `legend-content.js` | In-app developer legend drawer |
+| `assets/css/brand.css` | Canonical brand variables, fonts, top-nav, position pills, page chrome. Used by new pages via the scaffold; the 5 original pages still carry inline copies (pre-scaffold). |
+| `assets/js/data-bootstrap.js` | Shared data layer: fetches every `data/*.json`, populates `window.FP_VALUES` / `PICK_VALUES` / `SLEEPER_IDS` / `ADP_PAYLOAD` / `AUCTION_PAYLOAD` / `MVS_PAYLOAD` / `PLAYER_ARTICLES` / `PICK_AVAILABILITY` / `PICK_AVAILABILITY_META`, fires `fpts:data-ready`. Used by new pages via the scaffold. |
+| `templates/page-template.html` | Starter HTML for new pages. Copy + edit three TODO markers — see "Add a new page or tool" workflow above. |
 | `docs/function-reference.html` | Source of the function reference (hand-edited) |
 | `docs/function-reference.pdf` | Generated from the HTML by `make-pdf.ps1` |
 | `docs/WORKFLOW.md` | This file |

@@ -42,6 +42,11 @@
     const rounds = heatmap.rounds || heatmap.matrix.length;
     const expected = heatmap.expectedPick != null ? heatmap.expectedPick.toFixed(1) : '—';
     const sampled  = (heatmap.draftsSampled || 0).toLocaleString();
+    // Refresh stamp — pulled from PICK_AVAILABILITY_META.version (set by each
+    // page's pick-availability.json fetch). Same `version` timestamp lives on
+    // adp.json + auction.json so heatmap data is provably in lockstep with ADP.
+    const metaVersion = (window.PICK_AVAILABILITY_META && window.PICK_AVAILABILITY_META.version) || '';
+    const refreshed = metaVersion ? String(metaVersion).split('T')[0] : '';
 
     let bodyHtml = '<div class="hm-corner"></div>';
     for (let s = 1; s <= slots; s++) bodyHtml += '<div class="hm-col-head">' + s + '</div>';
@@ -67,6 +72,7 @@
       +   '<div class="hm-callout">'
       +     '<div class="hm-co-stat"><span class="hm-co-k">Expected pick</span><span class="hm-co-v">' + expected + '</span></div>'
       +     '<div class="hm-co-stat"><span class="hm-co-k">Drafts sampled</span><span class="hm-co-v">' + sampled + '</span></div>'
+      +     (refreshed ? '<div class="hm-co-stat"><span class="hm-co-k">Data refreshed</span><span class="hm-co-v">' + escHtml(refreshed) + '</span></div>' : '')
       +     '<div class="hm-co-note">Each cell shows the % chance the player is still on the board at that pick. Darker orange = more likely available.</div>'
       +   '</div>'
       +   '<div class="hm-legend">'

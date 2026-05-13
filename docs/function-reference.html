@@ -1546,8 +1546,14 @@
   <div class="red-bar"></div>
 
   <div class="feature-block">
-    <h3 class="feature-title"><span class="num">A</span>Five JSON files in data/</h3>
-    <p class="feature-body">Each page bootstraps by fetching: <span class="kbd">data/values.json</span> (FP + Sleeper player metadata, written by <span class="kbd">sync-fp.py</span>), <span class="kbd">data/adp.json</span> (dynasty ADP buckets from the sleeper_dynasty_adp pipeline, written by <span class="kbd">sync-adp.py</span>), <span class="kbd">data/auction.json</span> (Sleeper auction medians, same source), <span class="kbd">data/picks.json</span> (legacy pick values), and <span class="kbd">data/mvs.json</span> (canonical Market Value Score, written by <span class="kbd">sync-mvs.py</span> from the manually-dropped CSV at <span class="kbd">data/source/player_market_mvs.csv</span>).</p>
+    <h3 class="feature-title"><span class="num">A</span>Seven JSON files in data/</h3>
+    <p class="feature-body">Each page bootstraps by fetching: <span class="kbd">data/values.json</span> (FP + Sleeper player metadata, written by <span class="kbd">sync-fp.py</span>), <span class="kbd">data/adp.json</span> (dynasty ADP buckets — picks/simple/rookies × SF/1QB — from the sleeper_dynasty_adp pipeline, written by <span class="kbd">sync-adp.py</span>), <span class="kbd">data/auction.json</span> (Sleeper auction medians, same source), <span class="kbd">data/pick-availability.json</span> (per-entity 14×12 availability heatmap matrices; 300 real players + ~77 ROOKIE_PICK_X.YY rookie pick slots), <span class="kbd">data/picks.json</span> (pick values), <span class="kbd">data/articles.json</span> (FantasyPoints article mentions), and <span class="kbd">data/mvs.json</span> (canonical Market Value Score, written by <span class="kbd">sync-mvs.py</span> from <span class="kbd">data/source/player_market_mvs.csv</span>).</p>
+    <p class="feature-body"><b>Lockstep guarantee</b>: <span class="kbd">adp.json</span>, <span class="kbd">auction.json</span>, and <span class="kbd">pick-availability.json</span> are written in the same <span class="kbd">sync-adp.py</span> invocation with identical <span class="kbd">version</span> timestamps (single <span class="kbd">now</span> value). The heatmap's "Data refreshed" stat cell pulls from that version field, so it always matches the ADP refresh date wherever the heatmap renders.</p>
+  </div>
+
+  <div class="feature-block">
+    <h3 class="feature-title"><span class="num">A2</span>Picks bucket: real players + RDP placeholders</h3>
+    <p class="feature-body">In dynasty startups that pre-draft rookie picks as Kicker placeholders, <span class="kbd">sync-adp.py</span>'s <span class="kbd">classify_startup_drafts</span> identifies the fingerprint (K in rounds 1..4) and <span class="kbd">relabel_picks_K_to_rdp</span> rewrites those K <span class="kbd">player_id</span> values to <span class="kbd">ROOKIE_PICK_X.YY</span> before aggregation. The resulting <span class="kbd">picks_sf</span> view has real top-of-board players (rank 1: Josh Allen, ADP 2.6) intermixed with rookie pick slots (rank 16: Rookie Pick 1.01, ADP 16.0). <span class="kbd">build_rdp_pick_availability</span> applies the same trick to produce a heatmap matrix for each rookie pick slot; both functions share <span class="kbd">_availability_matrix_from_picks</span> as their math kernel.</p>
   </div>
 
   <div class="feature-block">
@@ -1610,7 +1616,22 @@
   <div class="red-bar"></div>
 
   <div class="feature-block">
-    <h3 class="feature-title"><span class="num">A</span>MvsExtras module</h3>
+    <h3 class="feature-title"><span class="num">A</span>data-bootstrap.js (the new data layer for future pages)</h3>
+    <p class="feature-body"><span class="kbd">assets/js/data-bootstrap.js</span> is the single shared data layer for pages built with the scaffold. Set <span class="kbd">window.FPTS_CURRENT_PAGE</span> before the script tag, then it fetches all 7 data/*.json files in a single <span class="kbd">Promise.all</span>, populates 9 <span class="kbd">window.*</span> globals (FP_VALUES, PICK_VALUES, SLEEPER_IDS, ADP_PAYLOAD, AUCTION_PAYLOAD, MVS_PAYLOAD, PLAYER_ARTICLES, PICK_AVAILABILITY, PICK_AVAILABILITY_META), runs the canonical <span class="kbd">_applyAdpPayload</span> / <span class="kbd">_applyAuctionPayload</span> / <span class="kbd">_applyMvsPayload</span> helpers, and fires <span class="kbd">document.dispatchEvent('fpts:data-ready')</span> when done. The existing 5 pages still inline their bootstrap; they migrate to this when next touched.</p>
+  </div>
+
+  <div class="feature-block">
+    <h3 class="feature-title"><span class="num">A2</span>brand.css (canonical visual rules)</h3>
+    <p class="feature-body"><span class="kbd">assets/css/brand.css</span> holds the brand variables (<span class="kbd">--red</span> = #ED810C, full position palette, dark/light tokens), self-hosted Kanit + Mulish font faces, top-nav styles, page chrome (<span class="kbd">.page</span>, <span class="kbd">.page-header</span>, <span class="kbd">.page-title</span>, <span class="kbd">.page-subtitle</span>), and shared widget styles (<span class="kbd">.pos-pill</span>, <span class="kbd">.team-pill</span>, <span class="kbd">.stat-pill</span>, <span class="kbd">.trend</span>, <span class="kbd">.icon-btn</span>). Linked by the scaffold; existing pages still inline their copies. Pulling brand-level styles out makes new pages a fraction of the size and guarantees consistent typography + colors across the site.</p>
+  </div>
+
+  <div class="feature-block">
+    <h3 class="feature-title"><span class="num">A3</span>page-template.html (the scaffold)</h3>
+    <p class="feature-body"><span class="kbd">templates/page-template.html</span> is the copy-this-when-starting-a-new-page file. Has the full <span class="kbd">&lt;head&gt;</span> with all the shared module includes wired correctly, the canonical top-nav block, the three required mount divs (<span class="kbd">#pp-mvs-extras</span>, <span class="kbd">#pp-articles-mount</span>, <span class="kbd">#pp-league-context</span>), and a <span class="kbd">fpts:data-ready</span> listener skeleton at the bottom. Three clearly-marked TODO spots: title, FPTS_CURRENT_PAGE slug, and the <span class="kbd">&lt;main id="page-body"&gt;</span> content. Full flow documented in <span class="kbd">docs/WORKFLOW.md</span> § "2b. Add a new page or tool".</p>
+  </div>
+
+  <div class="feature-block">
+    <h3 class="feature-title"><span class="num">B</span>MvsExtras module</h3>
     <p class="feature-body"><span class="kbd">assets/js/mvs-extras.js</span> exposes <span class="kbd">window.MvsExtras</span> with helpers <span class="kbd">buildOtcRankings</span>, <span class="kbd">buildSparkline</span>, <span class="kbd">buildRecentTrades</span>, <span class="kbd">buildLastUpdated</span>, and <span class="kbd">buildAll</span>. Player modals on the DB, Calc, and My-Leagues pages call <span class="kbd">MvsExtras.buildAll(playerName)</span> and inject the returned HTML into a designated container — one source of truth for the per-modal MVS section.</p>
   </div>
 
@@ -1698,32 +1719,45 @@
 
   <p class="feature-body">Every player modal across the 5 pages renders the same vertical structure: <b>profile → MVS extras → articles → 5-tab strip → tab content</b>. The shared modules — <span class="kbd">assets/css/mvs-extras.css</span> + <span class="kbd">assets/js/mvs-extras.js</span>, <span class="kbd">assets/js/player-articles.js</span>, <span class="kbd">assets/css/heatmap.css</span> + <span class="kbd">assets/js/heatmap.js</span> — drop in via <span class="kbd">&lt;link&gt;</span> and <span class="kbd">&lt;script&gt;</span> tags so adding a new page is mostly markup plus a few mount calls. <span class="kbd">push.bat</span> counts the <span class="kbd">pp-mvs-extras</span> and <span class="kbd">articles-mount</span> container divs per page and warns if any modal is missing the required sections.</p>
 
-  <h3 class="fn-section-head">Adding a new page with a player modal</h3>
+  <h3 class="fn-section-head">Adding a new page (recommended path: the scaffold)</h3>
 
-  <p class="feature-body">Drop these <span class="kbd">&lt;link&gt;</span> + <span class="kbd">&lt;script&gt;</span> tags in the page's <span class="kbd">&lt;head&gt;</span> (with the <span class="kbd">?v=</span> cache-bust tokens copied from any existing page):</p>
+  <p class="feature-body">As of 2026-05-13 there's a <b>page scaffold</b> so new pages inherit every shared pattern (data, ADP, heatmap, trades, articles, drawer, brand styling) without re-wiring anything. Copy <span class="kbd">templates/page-template.html</span>, edit three TODO markers (title, <span class="kbd">FPTS_CURRENT_PAGE</span> slug, <span class="kbd">&lt;main id="page-body"&gt;</span> content), and write a <span class="kbd">document.addEventListener('fpts:data-ready', ...)</span> listener for page-specific rendering. The scaffold pulls in:</p>
 
-  <pre style="background:var(--surface);border:1px solid var(--border);padding:10px 14px;font-family:'Consolas','Menlo',monospace;font-size:10pt;line-height:1.4;color:var(--ink);overflow:auto;margin:8px 0 14px;border-radius:0">&lt;link rel="stylesheet" href="assets/css/mvs-extras.css?v=..."&gt;
+  <pre style="background:var(--surface);border:1px solid var(--border);padding:10px 14px;font-family:'Consolas','Menlo',monospace;font-size:10pt;line-height:1.4;color:var(--ink);overflow:auto;margin:8px 0 14px;border-radius:0">&lt;link rel="stylesheet" href="assets/css/brand.css?v=..."&gt;
+&lt;link rel="stylesheet" href="assets/css/mvs-extras.css?v=..."&gt;
+&lt;link rel="stylesheet" href="assets/css/heatmap.css?v=..."&gt;
+&lt;link rel="stylesheet" href="assets/css/legend.css?v=..."&gt;
+&lt;link rel="stylesheet" href="assets/css/player-panel.css?v=..."&gt;
+
+&lt;script&gt;
+  window.FPTS_CURRENT_PAGE = 'newpage';
+&lt;/script&gt;
+
 &lt;script src="assets/js/mvs-extras.js?v=..."&gt;&lt;/script&gt;
 &lt;script src="assets/js/player-articles.js?v=..."&gt;&lt;/script&gt;
-&lt;link rel="stylesheet" href="assets/css/heatmap.css?v=..."&gt;
-&lt;script src="assets/js/heatmap.js?v=..."&gt;&lt;/script&gt;</pre>
+&lt;script src="assets/js/heatmap.js?v=..."&gt;&lt;/script&gt;
+&lt;script src="assets/js/legend-content.js?v=..."&gt;&lt;/script&gt;
+&lt;script src="assets/js/legend.js?v=..."&gt;&lt;/script&gt;
+&lt;script src="assets/js/player-panel.js?v=..." defer&gt;&lt;/script&gt;
+&lt;script src="assets/js/data-bootstrap.js?v=..."&gt;&lt;/script&gt;</pre>
 
-  <p class="feature-body">Place these container divs inside your modal in this order:</p>
+  <p class="feature-body"><b>data-bootstrap.js</b> fetches all 7 <span class="kbd">data/*.json</span> files in one <span class="kbd">Promise.all</span>, populates <span class="kbd">window.FP_VALUES / PICK_VALUES / SLEEPER_IDS / ADP_PAYLOAD / AUCTION_PAYLOAD / MVS_PAYLOAD / PLAYER_ARTICLES / PICK_AVAILABILITY / PICK_AVAILABILITY_META</span>, runs the canonical <span class="kbd">_applyAdpPayload</span> / <span class="kbd">_applyAuctionPayload</span> / <span class="kbd">_applyMvsPayload</span> helpers, then fires <span class="kbd">fpts:data-ready</span>. Adp.json + auction.json + pick-availability.json all carry the same <span class="kbd">version</span> timestamp (single <span class="kbd">now</span> in sync-adp.py main), so the heatmap "Data refreshed" stamp always matches the ADP refresh date.</p>
 
-  <pre style="background:var(--surface);border:1px solid var(--border);padding:10px 14px;font-family:'Consolas','Menlo',monospace;font-size:10pt;line-height:1.4;color:var(--ink);overflow:auto;margin:8px 0 14px;border-radius:0">&lt;div class="pp-profile"&gt; ... &lt;/div&gt;
-&lt;div id="myPage-pp-mvs-extras"&gt;&lt;/div&gt;
-&lt;div id="myPage-pp-articles-mount"&gt;&lt;/div&gt;
-&lt;div class="pp-tabs"&gt; ...5 tab buttons... &lt;/div&gt;
-&lt;div id="myPage-pp-trades-tab"&gt;&lt;/div&gt;
-... 4 more tab content divs ...</pre>
+  <p class="feature-body">Required mount divs (template already places these):</p>
 
-  <p class="feature-body">On modal-open, populate via:</p>
+  <pre style="background:var(--surface);border:1px solid var(--border);padding:10px 14px;font-family:'Consolas','Menlo',monospace;font-size:10pt;line-height:1.4;color:var(--ink);overflow:auto;margin:8px 0 14px;border-radius:0">&lt;div id="pp-mvs-extras"&gt;&lt;/div&gt;
+&lt;div id="pp-articles-mount"&gt;&lt;/div&gt;
+&lt;div id="pp-league-context"&gt;&lt;/div&gt;</pre>
 
-  <pre style="background:var(--surface);border:1px solid var(--border);padding:10px 14px;font-family:'Consolas','Menlo',monospace;font-size:10pt;line-height:1.4;color:var(--ink);overflow:auto;margin:8px 0 14px;border-radius:0">MvsExtras.buildHeader(playerName)  →  innerHTML of pp-mvs-extras div
-PlayerArticles.mount(articlesEl, playerName)
-Heatmap.render(heatmapTabEl, sleeperId)  // on Heatmap tab activation</pre>
+  <p class="feature-body">The slide-out player drawer (<span class="kbd">player-panel.js</span>) mounts itself into <span class="kbd">document.body</span> on first <span class="kbd">init()</span> — no further markup needed. Open it via <span class="kbd">window.openPanel(playerName)</span>. The drawer's 5 tabs (Trades / Player Stats / Age Curve / Trade Finder / ADP Heatmap) all render from the data-bootstrap globals automatically.</p>
 
-  <p class="feature-body">That's the full pattern. Total markup + JS for a new page's modal is under ~100 lines.</p>
+  <h3 class="fn-section-head">Legacy path (5 existing pages)</h3>
+
+  <p class="feature-body">The 5 existing pages predate the scaffold and still inline their own ~40-line bootstrap blocks plus duplicate copies of the brand CSS. They work as-is; migration to <span class="kbd">data-bootstrap.js</span> + <span class="kbd">brand.css</span> is a per-page cleanup that can happen whenever each is next touched. The legacy modal pattern (custom <span class="kbd">myPage-pp-mvs-extras</span> mount div names, manual <span class="kbd">MvsExtras.buildHeader</span> / <span class="kbd">PlayerArticles.mount</span> / <span class="kbd">Heatmap.render</span> calls) is still supported.</p>
+
+  <h3 class="fn-section-head">RDP placeholders + heatmap</h3>
+
+  <p class="feature-body">The Picks bucket on the ADP Tool renders real players (Bijan, Jefferson, etc.) intermixed with <span class="kbd">ROOKIE_PICK_X.YY</span> placeholders representing rookie picks that were drafted as kickers in dynasty startups. Built by <span class="kbd">sync-adp.py</span>'s <span class="kbd">relabel_picks_K_to_rdp</span> helper inside <span class="kbd">build_format_adp</span> — K player_ids in qualifying picks-as-K startups (K in rounds 1..4) get rewritten to <span class="kbd">ROOKIE_PICK_X.YY</span> before aggregation. The same synthetic ids flow through <span class="kbd">SLEEPER_IDS</span>, the player drawer (flame avatar + "RDP" pos chip), and <span class="kbd">pick-availability.json</span> — where <span class="kbd">build_rdp_pick_availability</span> produces availability matrices for each rookie-pick slot. The frontend <span class="kbd">Heatmap.render</span> is entity-agnostic and just looks them up by id.</p>
 
   <div class="footer-strip"><span>FPTS · FUNCTION REFERENCE</span><span class="accent">27 · CLOSING · END</span></div>
 </section>

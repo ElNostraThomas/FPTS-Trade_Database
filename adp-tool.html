@@ -506,7 +506,7 @@
 <script src="assets/js/mvs-extras.js?v=1778642255"></script>
 <script src="assets/js/player-articles.js?v=1778642300"></script>
 <link rel="stylesheet" href="assets/css/heatmap.css?v=1778642255">
-<script src="assets/js/heatmap.js?v=1778642255"></script>
+<script src="assets/js/heatmap.js?v=1778670000"></script>
 <link rel="stylesheet" href="assets/css/legend.css?v=1778642255">
 <script src="assets/js/legend-content.js?v=1778642255"></script>
 <script src="assets/js/legend.js?v=1778642255"></script>
@@ -932,7 +932,7 @@ function splitName(name) {
     // monthly walkback when prev is missing.
     fetch('data/adp-prev.json' + v).then(r => r.ok ? r.json() : null).then(j => { if (j) window.ADP_PAYLOAD_PREV = j; }).catch(() => {}),
     fetch('data/auction.json' + v).then(r => r.ok ? r.json() : Promise.reject('auction ' + r.status)).then(j => _applyAuctionPayload(j)).catch(() => { /* auction optional */ }),
-    fetch('data/pick-availability.json' + v).then(r => r.ok ? r.json() : Promise.reject('pick-availability ' + r.status)).then(j => { if (j && j.players) PICK_AVAILABILITY = j.players; window.PICK_AVAILABILITY_META = j && j.meta || null; }).catch(() => { /* optional during scaffold */ }),
+    fetch('data/pick-availability.json' + v).then(r => r.ok ? r.json() : Promise.reject('pick-availability ' + r.status)).then(j => { if (j && j.players) PICK_AVAILABILITY = j.players; if (j) window.PICK_AVAILABILITY_META = { version: j.version, season: j.season, teamCount: j.teamCount, topN: j.topN }; }).catch(() => { /* optional during scaffold */ }),
     fetch('data/articles.json' + v).then(r => r.ok ? r.json() : Promise.reject('articles ' + r.status)).then(j => { if (j && j.players) window.PLAYER_ARTICLES = j.players; }).catch(() => { /* articles optional */ }),
     // MVS payload — needed by the shared player-panel module so the Trades
     // tab can build a player's recent-trade list, and so the panel can
