@@ -570,9 +570,9 @@
     </div>
     <div class="date-presets" role="tablist" aria-label="Date range presets">
       <button type="button" data-preset="7">7d</button>
-      <button type="button" data-preset="30" class="active">30d</button>
+      <button type="button" data-preset="30">30d</button>
       <button type="button" data-preset="90">90d</button>
-      <button type="button" data-preset="all">All</button>
+      <button type="button" data-preset="all" class="active">All</button>
     </div>
     <div class="sample-badge">
       <span class="dot"></span>
@@ -1873,7 +1873,8 @@ function downloadCsv() {
 
 // ── INIT ──────────────────────────────────────────────────────────────────────
 function initDateRange() {
-  // Default range: most recent month bucket → 30 days back from the latest day available.
+  // Default range: ALL (empty inputs → getActiveBucket reads byMonth.ALL).
+  // User can pick a narrower window via the 7d/30d/90d presets or the date pickers.
   const payload = window.ADP_PAYLOAD;
   const from = document.getElementById('date-from');
   const to   = document.getElementById('date-to');
@@ -1887,20 +1888,14 @@ function initDateRange() {
       maxISO = isoDate(new Date(ymax, mmax, 0));  // last day of latest bucket
     }
   }
-  // Default to ~30-day window ending at today (or the latest data day).
-  const today = new Date();
-  const todayISO = isoDate(today);
-  const upper = (maxISO && todayISO > maxISO) ? maxISO : todayISO;
-  const upperD = new Date(upper + 'T00:00:00'); upperD.setDate(upperD.getDate() - 30);
-  const lower = isoDate(upperD);
-  from.value = lower;
-  to.value   = upper;
+  from.value = '';
+  to.value   = '';
   if (minISO) from.min = minISO;
   if (maxISO) to.max   = maxISO;
   if (minISO) to.min   = minISO;
   if (maxISO) from.max = maxISO;
-  STATE.dateFrom = from.value;
-  STATE.dateTo   = to.value;
+  STATE.dateFrom = null;
+  STATE.dateTo   = null;
 }
 
 function isoDate(d) {
