@@ -509,6 +509,14 @@
 <script src="assets/js/legend-content.js?v=1778642255"></script>
 <script src="assets/js/legend.js?v=1778642255"></script>
 <script>document.addEventListener('DOMContentLoaded', function(){ if (window.Legend) Legend.init('adp-tool'); });</script>
+<!-- Shared player panel — DB's slide-in drawer, used identically on every page -->
+<script>window.FPTS_CURRENT_PAGE = 'adp';</script>
+<link rel="stylesheet" href="assets/css/player-panel.css?v=1778652000">
+<script src="assets/js/player-panel.js?v=1778652000" defer></script>
+<style>
+  /* Hide the legacy in-page modal — openModal now routes to the shared panel. */
+  #modal-backdrop { display: none !important; }
+</style>
 </head>
 <body>
 
@@ -755,6 +763,13 @@ let FP_BY_NORM = {};  // normalized-name → FP_VALUES record (O(1) lookup index
 let ADP_DATA = {};
 let PICK_AVAILABILITY = {};
 let TREND_INDEX = Object.create(null);  // normName → {delta, recent, prev, recentMonth, prevMonth}
+
+// Mirror page-local data globals to window so the shared player-panel module
+// (loaded from a separate <script src=>) can see them. Without these mirrors
+// every stat in the panel renders as "—".
+window.FP_VALUES = FP_VALUES;
+window.ADP_DATA  = ADP_DATA;
+window.PICK_AVAILABILITY = PICK_AVAILABILITY;
 window.ADP_PAYLOAD = null;
 window.AUCTION_PAYLOAD = null;
 
@@ -1514,6 +1529,18 @@ function openModal(sleeperId) {
   const p = list.find(x => String(x.sleeperId) === String(sleeperId));
   if (!p) return;
   CURRENT_MODAL_PLAYER = p;
+
+  // ── Shared-module hand-off ──────────────────────────────────────────────
+  // Route through the shared player-panel so ADP's player card matches
+  // DB / Calc exactly. The inline rendering below the early-return is
+  // kept dormant only in case the shared module hasn't loaded yet.
+  window.FP_VALUES = FP_VALUES;
+  window.ADP_DATA  = ADP_DATA;
+  window.PICK_AVAILABILITY = PICK_AVAILABILITY;
+  if (typeof window.openPanel === 'function' && p.name) {
+    try { window.openPanel(p.name); return; } catch (e) { console.warn('[adp] shared openPanel failed:', e); }
+  }
+
   const pos = posOf(p);
   const fpRec = lookupFpValue(p.name) || {};
 
@@ -1704,10 +1731,12 @@ function trendBadge(playerName) {
 }
 
 function closeModal() {
-  document.getElementById('modal-backdrop').classList.remove('open');
+  if (typeof window.closePanel === 'function') { try { window.closePanel(); } catch (e) {} }
+  const bd = document.getElementById('modal-backdrop');
+  if (bd) bd.classList.remove('open');
   CURRENT_MODAL_PLAYER = null;
   // Exit compare mode silently if closed while comparing
-  if (COMPARE_LIST.length) { COMPARE_LIST = []; document.getElementById('modal').classList.remove('compare-mode'); document.getElementById('modal-compare-section').style.display = 'none'; }
+  if (COMPARE_LIST.length) { COMPARE_LIST = []; const modal = document.getElementById('modal'); if (modal) modal.classList.remove('compare-mode'); const cs = document.getElementById('modal-compare-section'); if (cs) cs.style.display = 'none'; }
 }
 
 // ── COMPARE MODE ──────────────────────────────────────────────────────────────
