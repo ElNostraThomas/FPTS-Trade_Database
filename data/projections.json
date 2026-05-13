@@ -1,5 +1,5 @@
 {
-  "version": "2026-05-13T07:29:19.041708+00:00",
+  "version": "2026-05-13T08:25:42.060596+00:00",
   "source": "sleeper",
   "season": "2026",
   "byPlayerId": {
@@ -15918,7 +15918,21 @@
       "adp_ppr": 999.0,
       "adp_rookie": 999.0,
       "adp_std": 999.0,
-      "gp": 18.0
+      "bonus_rec_te": 13.0,
+      "gp": 18.0,
+      "pts_half_ppr": 25.1,
+      "pts_ppr": 31.6,
+      "pts_std": 18.6,
+      "rec": 13.0,
+      "rec_0_4": 2.6,
+      "rec_10_19": 3.9,
+      "rec_20_29": 2.6,
+      "rec_30_39": 1.3,
+      "rec_40p": 1.3,
+      "rec_5_9": 2.6,
+      "rec_fd": 12.6,
+      "rec_td": 1.0,
+      "rec_yd": 126.0
     },
     "13310": {
       "adp_2qb": 999.0,
@@ -21159,7 +21173,21 @@
       "adp_std": 999.0,
       "gp": 18.0
     },
-    "14035": {},
+    "14035": {
+      "adp_2qb": 999.0,
+      "adp_dynasty": 999.0,
+      "adp_dynasty_2qb": 999.0,
+      "adp_dynasty_half_ppr": 999.0,
+      "adp_dynasty_ppr": 999.0,
+      "adp_dynasty_std": 999.0,
+      "adp_half_ppr": 999.0,
+      "adp_idp": 999.0,
+      "adp_idp_1qb": 999.0,
+      "adp_ppr": 999.0,
+      "adp_rookie": 999.0,
+      "adp_std": 999.0,
+      "gp": 18.0
+    },
     "12771": {
       "adp_2qb": 999.0,
       "adp_dynasty": 999.0,
@@ -117986,7 +118014,21 @@
       "adp_std": 999.0,
       "gp": 18.0
     },
-    "14034": {},
+    "14034": {
+      "adp_2qb": 999.0,
+      "adp_dynasty": 999.0,
+      "adp_dynasty_2qb": 999.0,
+      "adp_dynasty_half_ppr": 999.0,
+      "adp_dynasty_ppr": 999.0,
+      "adp_dynasty_std": 999.0,
+      "adp_half_ppr": 999.0,
+      "adp_idp": 999.0,
+      "adp_idp_1qb": 999.0,
+      "adp_ppr": 999.0,
+      "adp_rookie": 999.0,
+      "adp_std": 999.0,
+      "gp": 18.0
+    },
     "13103": {
       "adp_2qb": 999.0,
       "adp_dynasty": 999.0,
