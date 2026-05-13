@@ -5,6 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Fantasy Points Front Office — ADP Tool</title>
 <link href="https://fonts.googleapis.com/css2?family=Kanit:ital,wght@0,400;0,700;1,800&family=Mulish:wght@400;700;900&display=swap" rel="stylesheet">
+<!-- Brand-level shared styles (variables, fonts, nav, pos pills, team-logo
+     sizing). Loaded BEFORE this page's inline <style> so existing per-page
+     overrides still win on duplicate selectors; the new .team-logo /
+     .player-hs-team rules add cleanly. -->
+<link rel="stylesheet" href="assets/css/brand.css?v=1778680001">
 <style>
   /* Brand fonts (local TTFs from Fantasy-Design-Prompt kit) override Google Fonts
      for the canonical brand weights so on-page text matches the wordmark exactly. */
@@ -519,7 +524,7 @@
 <link rel="stylesheet" href="assets/css/player-panel.css?v=1778655500">
 <!-- Team logo helpers — must load BEFORE player-panel.js so the modal-hero
      badge wiring finds window.TeamHelpers. -->
-<script src="assets/js/team-helpers.js?v=1778680000"></script>
+<script src="assets/js/team-helpers.js?v=1778680001"></script>
 <script src="assets/js/player-panel.js?v=1778680000" defer></script>
 <style>
   /* Hide the legacy in-page modal — openModal now routes to the shared panel. */

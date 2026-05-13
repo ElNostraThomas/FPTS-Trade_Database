@@ -78,7 +78,11 @@
     const url  = logoUrl(t);
     const alt  = _esc(t);
     const onerr = 'this.replaceWith(Object.assign(document.createElement(\'span\'),{className:\'team-logo-fallback\',textContent:\'' + alt + '\'}))';
-    const img = '<img class="' + cls + '" src="' + url + '" alt="' + alt + '" title="' + alt + '" data-team="' + alt + '" style="height:' + size + 'px" loading="lazy" onerror="' + onerr + '">';
+    // width:auto guards against a stray `img { width:100% }` rule from the
+    // host page; height controls the scale and the PNG's aspect ratio
+    // determines the rendered width.
+    const inline = 'height:' + size + 'px;width:auto;object-fit:contain;vertical-align:middle;display:inline-block';
+    const img = '<img class="' + cls + '" src="' + url + '" alt="' + alt + '" title="' + alt + '" data-team="' + alt + '" style="' + inline + '" loading="lazy" onerror="' + onerr + '">';
     if (opts.withText) {
       return '<span class="team-logo-wrap" style="display:inline-flex;align-items:center;gap:5px">' + img + '<span class="team-text" style="font-family:\'Mulish\',sans-serif;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--white);opacity:.78">' + alt + '</span></span>';
     }
@@ -95,11 +99,33 @@
     opts = opts || {};
     const t = _norm(team);
     if (!t) return '';
+
+    // Resolve the badge size from the optional modifier class. Inline sizing
+    // is emitted so the badge looks right even when brand.css isn't loaded
+    // (e.g. the 5 existing pages still inline their brand styles instead of
+    // linking to brand.css). The class is still emitted so any page-specific
+    // override like `.box-card .player-hs-team { bottom:2px;right:2px }`
+    // continues to work.
+    const SIZES = {
+      'player-hs-team--md': 18,  // for 32-40px headshots (list rows, box cards, ML roster)
+      'player-hs-team--lg': 24,  // for 60-80px headshots
+      'player-hs-team--xl': 28,  // for 96px modal hero
+    };
+    const modMatch = String(opts.cls || '').match(/player-hs-team--(?:md|lg|xl)/);
+    const size = modMatch ? SIZES[modMatch[0]] : 14;
     const cls = 'player-hs-team' + (opts.cls ? ' ' + opts.cls : '');
+
+    const inline = 'position:absolute;bottom:-2px;right:-2px;'
+                 + 'width:' + size + 'px;height:' + size + 'px;'
+                 + 'border-radius:50%;background:var(--surface);'
+                 + 'border:1.5px solid var(--surface);padding:1px;'
+                 + 'box-shadow:0 1px 3px rgba(0,0,0,.4);'
+                 + 'object-fit:contain;pointer-events:none;z-index:2';
+
     const url = logoUrl(t);
     const alt = _esc(t);
     const onerr = 'this.style.display=\'none\'';
-    return '<img class="' + cls + '" src="' + url + '" alt="' + alt + '" title="' + alt + '" data-team="' + alt + '" loading="lazy" onerror="' + onerr + '">';
+    return '<img class="' + cls + '" src="' + url + '" alt="' + alt + '" title="' + alt + '" data-team="' + alt + '" style="' + inline + '" loading="lazy" onerror="' + onerr + '">';
   }
 
   // Convenience: wrap arbitrary headshot HTML in a .player-hs-wrap and append

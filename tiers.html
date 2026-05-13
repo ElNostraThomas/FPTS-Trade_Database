@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Fantasy Points Front Office — Tiers</title>
 
+<!-- Brand-level shared styles (loaded BEFORE inline <style> so page overrides win). -->
+<link rel="stylesheet" href="assets/css/brand.css?v=1778680001">
+
 <style>
   :root {
     --black: #000;
@@ -351,7 +354,7 @@
 <script>window.FPTS_CURRENT_PAGE = 'tiers';</script>
 <link rel="stylesheet" href="assets/css/player-panel.css?v=1778655500">
 <!-- Team logo helpers — load BEFORE player-panel.js so modal-hero badge works. -->
-<script src="assets/js/team-helpers.js?v=1778680000"></script>
+<script src="assets/js/team-helpers.js?v=1778680001"></script>
 <script src="assets/js/player-panel.js?v=1778680000" defer></script>
 <style>
   /* Hide the legacy in-page modal — _tiersOpenModal now routes to the shared panel. */
@@ -400,7 +403,7 @@
       <option value="adp-tool.html">ADP</option>
       <option value="https://www.fantasypoints.com/nfl/rankings/dynasty#/">Rankings</option>
     </select>
-    <span class="nav-stat">Synced <strong id="tiers-updated-stat"><!-- TIERS:SYNCED:START -->May 13, 2026 3:34 PM<!-- TIERS:SYNCED:END --></strong></span>
+    <span class="nav-stat">Synced <strong id="tiers-updated-stat"><!-- TIERS:SYNCED:START -->May 13, 2026 3:45 PM<!-- TIERS:SYNCED:END --></strong></span>
     <span class="nav-badge">SEASON 2026</span>
     <button id="theme-toggle" onclick="toggleTheme()"
       style="background:none;border:1px solid var(--border2);color:var(--white);font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:11px;padding:5px 12px;cursor:pointer;transition:all .2s;letter-spacing:.04em;display:flex;align-items:center;gap:6px"
