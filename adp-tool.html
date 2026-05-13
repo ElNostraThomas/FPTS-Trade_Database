@@ -188,9 +188,11 @@
   /* Corner cell: matches both the team-header bottom border AND the round-column right border so the cross-hair lines align cleanly. */
   .box-corner { background:var(--surface); border-bottom:2px solid var(--red); border-right:1px solid var(--border); margin-bottom:4px; position:sticky; top:0; left:0; z-index:3; cursor:pointer; }
   .box-corner:hover { background:var(--surface2); }
-  .box-row-head { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:11px; color:var(--red); text-align:center; padding:2px 0; letter-spacing:.04em; display:flex; align-items:center; justify-content:center; background:var(--surface); border-right:1px solid var(--border); position:sticky; left:0; z-index:1; cursor:pointer; transition:background .12s; user-select:none; }
+  .box-row-head { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:11px; color:var(--red); text-align:center; padding:2px 0; letter-spacing:.04em; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1px; background:var(--surface); border-right:1px solid var(--border); position:sticky; left:0; z-index:1; cursor:pointer; transition:background .12s; user-select:none; }
   .box-row-head:hover { background:var(--surface2); }
   .box-row-head.active { background:var(--red); color:#111; }
+  .box-row-head .bc-arrow { font-family:'Mulish',sans-serif; font-size:11px; font-weight:800; font-style:normal; color:var(--white); opacity:.55; line-height:1; }
+  .box-row-head.active .bc-arrow { color:#111; opacity:.85; }
   .box-card { position:relative; display:flex; flex-direction:column; min-height:60px; cursor:pointer; overflow:hidden; padding:5px 7px; transition:transform .12s, box-shadow .12s; }
   .box-card:hover { transform:translateY(-1px); box-shadow:0 3px 8px rgba(0,0,0,.35); }
   .box-card .card-content { display:flex; flex-direction:column; gap:2px; position:relative; z-index:1; min-width:0; }
@@ -198,14 +200,14 @@
   .box-card .card-pick { font-weight:800; }
   .box-card .card-posrank { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:9px; padding:1px 5px; letter-spacing:.04em; background:rgba(0,0,0,.22); color:inherit; }
   .box-card .card-adp { font-weight:700; opacity:.78; font-size:9px; }
-  .box-card .card-name { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; line-height:1; overflow:hidden; margin-top:1px; padding-right:26px; }
+  .box-card .card-name { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; line-height:1; overflow:hidden; margin-top:1px; padding-right:34px; }
   .box-card .card-fname { font-size:9px; line-height:1; opacity:.8; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   /* Last name forced to a single line so card heights stay uniform across the board */
   .box-card .card-lname { font-size:12px; line-height:1.1; margin-top:1px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-  .box-card .card-meta { display:flex; align-items:center; gap:4px; font-family:'Mulish',sans-serif; font-size:9px; font-weight:800; letter-spacing:.04em; margin-top:auto; opacity:.85; padding-top:2px; padding-right:26px; }
+  .box-card .card-meta { display:flex; align-items:center; gap:4px; font-family:'Mulish',sans-serif; font-size:9px; font-weight:800; letter-spacing:.04em; margin-top:auto; opacity:.85; padding-top:2px; padding-right:34px; }
   /* Small circular headshot pinned to the bottom-right corner — matches the reference layout */
-  .box-card .card-hs { position:absolute; bottom:4px; right:4px; width:24px; height:24px; border-radius:50%; object-fit:cover; object-position:top; border:1px solid rgba(0,0,0,.18); background:rgba(0,0,0,.1); }
-  .box-card .card-hs-fallback { position:absolute; bottom:4px; right:4px; width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:12px; color:inherit; opacity:.55; background:rgba(0,0,0,.12); border:1px solid rgba(0,0,0,.18); }
+  .box-card .card-hs { position:absolute; bottom:4px; right:4px; width:32px; height:32px; border-radius:50%; object-fit:cover; object-position:top; border:1px solid rgba(0,0,0,.18); background:rgba(0,0,0,.1); }
+  .box-card .card-hs-fallback { position:absolute; bottom:4px; right:4px; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:14px; color:inherit; opacity:.55; background:rgba(0,0,0,.12); border:1px solid rgba(0,0,0,.18); }
   .box-card.QB { background:var(--pos-qb-bg); color:var(--pos-qb); }
   .box-card.RB { background:var(--pos-rb-bg); color:var(--pos-rb); }
   .box-card.WR { background:var(--pos-wr-bg); color:var(--pos-wr); }
@@ -1196,7 +1198,12 @@ function renderBoxView(players) {
   }
   for (let r = 0; r < rounds; r++) {
     const active = roundFilter.has(r + 1) ? ' active' : '';
-    parts.push(`<div class="box-row-head${active}" data-round="${r+1}">R${r+1}</div>`);
+    // Direction arrow: in snake drafts odd rounds (r=0,2,4...) start at Team 1
+    // and go right (→); even rounds reverse and start at the last team going
+    // left (←). For linear drafts every round starts at Team 1 → goes right.
+    const goingRight = !STATE.snake || (r % 2 === 0);
+    const arrow = goingRight ? '→' : '←';
+    parts.push(`<div class="box-row-head${active}" data-round="${r+1}"><span>R${r+1}</span><span class="bc-arrow" title="${goingRight ? 'Round starts at Team 1' : 'Round starts at last team (snake)'}">${arrow}</span></div>`);
     for (let t = 0; t < TC; t++) {
       const cell = grid[r][t];
       if (!cell) { parts.push(`<div class="box-card empty"></div>`); continue; }
