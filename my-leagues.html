@@ -2024,7 +2024,35 @@
 <link rel="stylesheet" href="assets/css/legend.css?v=1778642255">
 <script src="assets/js/legend-content.js?v=1778642255"></script>
 <script src="assets/js/legend.js?v=1778642255"></script>
-<script>document.addEventListener('DOMContentLoaded', function(){ if (window.Legend) Legend.init('my-leagues'); });</script>
+<link rel="stylesheet" href="assets/css/player-panel.css?v=1778645000">
+<script src="assets/js/player-panel.js?v=1778645000"></script>
+<style>
+  /* ML uses the shared slide-out panel as an accordion (not horizontal tabs).
+     Hide legacy modal + horizontal tab strip; show all five tab bodies stacked. */
+  #ml-pd-backdrop { display: none !important; }
+  body.fpts-ml-page .pp-tabs { display: none !important; }
+  body.fpts-ml-page #pp-trades-tab,
+  body.fpts-ml-page #pp-stats-tab,
+  body.fpts-ml-page #pp-curve-tab,
+  body.fpts-ml-page #pp-finder-tab,
+  body.fpts-ml-page #pp-heatmap-tab {
+    display: block !important;
+    border-top: 1px solid var(--border);
+  }
+  body.fpts-ml-page .pp-accordion-header {
+    display: flex; align-items: center; justify-content: space-between;
+    width: 100%; padding: 14px 18px; background: var(--surface);
+    border: none; border-bottom: 1px solid var(--border);
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 13px; color: var(--red); text-transform: uppercase; letter-spacing: 0.08em;
+    cursor: pointer; text-align: left;
+  }
+  body.fpts-ml-page .pp-accordion-header:hover { background: var(--surface2); }
+  body.fpts-ml-page .pp-accordion-header .pp-acc-caret { font-size: 11px; opacity: .7; transition: transform .15s ease; }
+  body.fpts-ml-page .pp-acc-collapsed > .pp-accordion-header .pp-acc-caret { transform: rotate(-90deg); }
+  body.fpts-ml-page .pp-acc-collapsed > *:not(.pp-accordion-header) { display: none !important; }
+</style>
+<script>document.addEventListener('DOMContentLoaded', function(){ if (window.Legend) Legend.init('my-leagues'); document.body.classList.add('fpts-ml-page'); window.FPTS_CURRENT_PAGE = 'ml'; });</script>
 </head>
 <body>
 <div id="_fp-loading" style="position:fixed;inset:0;background:var(--black);color:var(--white);display:flex;align-items:center;justify-content:center;font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:28px;text-transform:uppercase;letter-spacing:.06em;z-index:9999;">Loading…</div>
@@ -2652,6 +2680,14 @@ let ADP_DATA = {};
 let PICK_VALUES = {};
 
 let FP_VALUES = {};
+
+// Mirror page-locals to window so the shared player-panel module can read them.
+// SLEEPER_IDS is `const` above — its identity stays; PICK_VALUES / FP_VALUES are mutated
+// in-place via Object.assign by the data fetchers below, so the mirror references stay valid.
+window.FP_VALUES   = FP_VALUES;
+window.SLEEPER_IDS = SLEEPER_IDS;
+window.PICK_VALUES = PICK_VALUES;
+window.ADP_DATA    = ADP_DATA;
 
 // ── State ──────────────────────────────────────────────────────────────────
 const ML = {
@@ -4037,83 +4073,6 @@ function mlPlayerName(sleeperId) {
 }
 
 // Tab switcher for the my-leagues player detail modal. 5 tabs match DB.
-window._mlShowTab = function (name) {
-  const tabs = {
-    trades:  'ml-pd-trades-tab',
-    stats:   'ml-pd-stats-tab',
-    curve:   'ml-pd-curve-tab',
-    finder:  'ml-pd-finder-tab',
-    heatmap: 'ml-pd-heatmap-tab',
-  };
-  Object.entries(tabs).forEach(([k, id]) => {
-    const el = document.getElementById(id);
-    if (el) el.style.display = (k === name) ? 'block' : 'none';
-  });
-  document.querySelectorAll('.ml-modal .pp-tab, #ml-pd-body .pp-tab').forEach(btn => {
-    const m = btn.getAttribute('onclick') || '';
-    btn.classList.toggle('active', m.indexOf("'" + name + "'") !== -1);
-  });
-  const playerName = window._mlActivePlayerName || '';
-  const sid = window._mlActiveSleeperId || null;
-  if (name === 'trades') {
-    const el = document.getElementById('ml-pd-trades-tab');
-    if (el) el.innerHTML = _mlRenderTradesTab(playerName);
-  } else if (name === 'heatmap' && window.Heatmap) {
-    const el = document.getElementById('ml-pd-heatmap-tab');
-    if (el) window.Heatmap.render(el, sid);
-  } else if (name === 'curve') {
-    const el = document.getElementById('ml-pd-curve-tab');
-    if (el) el.innerHTML = _mlRenderAgeCurveTab(playerName);
-  } else if (name === 'stats' || name === 'finder') {
-    const el = document.getElementById(tabs[name]);
-    if (el) el.innerHTML = _mlRenderDbCtaTab(name, playerName);
-  }
-};
-
-function _mlRenderTradesTab(playerName) {
-  if (!playerName || !window.MVS_PAYLOAD || !window.MVS_PAYLOAD.players) {
-    return '<div style="padding:14px 24px;font-size:12px;color:var(--white);opacity:.7;font-family:\'Mulish\',sans-serif">No recent trades available.</div>';
-  }
-  const rec = window.MVS_PAYLOAD.players[playerName];
-  const trades = (rec && rec.recentTrades) || [];
-  if (!trades.length) return '<div style="padding:14px 24px;font-size:12px;color:var(--white);opacity:.7;font-family:\'Mulish\',sans-serif">No recent trades for ' + playerName + '.</div>';
-  if (window.MvsExtras && window.MvsExtras.buildRecentTrades) {
-    return '<div style="padding:14px 24px">' + window.MvsExtras.buildRecentTrades(trades, playerName) + '</div>';
-  }
-  return '';
-}
-function _mlRenderAgeCurveTab(playerName) {
-  const fp = (typeof FP_VALUES !== 'undefined' && FP_VALUES[playerName]) || {};
-  const age = fp.age, pos = (fp.posRank || '').replace(/\d+/g,'') || fp.pos || '';
-  if (age == null) return '<div style="padding:14px 24px;font-size:12px;color:var(--white);opacity:.7;font-family:\'Mulish\',sans-serif">Age data unavailable.</div>';
-  const peaks = { QB: 28, RB: 24, WR: 26, TE: 27 };
-  const peak = peaks[pos] || 26;
-  const delta = age - peak;
-  const label = Math.abs(delta) < 1 ? 'at positional peak' : (delta < 0 ? Math.round(Math.abs(delta)) + ' yrs from peak (rising)' : Math.round(delta) + ' yrs past peak (declining)');
-  return '<div style="padding:18px 24px;font-family:\'Mulish\',sans-serif;color:var(--white)">'
-    + '<div style="font-family:\'Kanit\',sans-serif;font-weight:800;font-style:italic;font-size:12px;color:var(--red);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">Age Curve</div>'
-    + '<div style="font-size:14px;margin-bottom:6px"><b>' + age + ' yrs old</b> · ' + pos + ' positional peak ~' + peak + '</div>'
-    + '<div style="font-size:13px;opacity:.85">' + label + '</div>'
-    + '<div style="margin-top:14px;padding:10px;background:var(--surface);border:1px solid var(--border);font-size:11px;opacity:.75;line-height:1.55">For the full multi-year visualization, open this player in the Database.</div>'
-    + '</div>';
-}
-function _mlRenderDbCtaTab(tabName, playerName) {
-  const label = { stats: 'Player Stats', finder: 'Trade Finder' }[tabName] || tabName;
-  return '<div style="padding:24px;text-align:center;font-family:\'Mulish\',sans-serif;color:var(--white)">'
-    + '<div style="font-family:\'Kanit\',sans-serif;font-weight:800;font-style:italic;font-size:14px;color:var(--red);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">' + label + '</div>'
-    + '<div style="font-size:13px;opacity:.85;margin-bottom:14px">Full ' + label + ' is available in the Trade Database modal.</div>'
-    + '<button class="pp-action-btn" type="button" onclick="_mlOpenInDb()" style="margin:0 auto">Open in Database ↗</button>'
-    + '</div>';
-}
-window._mlOpenInDb = function () {
-  const name = window._mlActivePlayerName;
-  if (typeof _fptsWriteHandoff === 'function' && name) {
-    _fptsWriteHandoff({ source: 'my-leagues', primaryPlayer: name }, 'index.html');
-  } else {
-    window.open('index.html', '_blank', 'noopener');
-  }
-};
-
 // Open the player detail modal for a Sleeper player_id (string).
 function openPlayerDetail(sleeperId) {
   const sid = String(sleeperId);
@@ -4156,144 +4115,136 @@ function openPlayerDetail(sleeperId) {
   const name = resolvedName;
   const pos  = resolvedPos;
   const team = resolvedTeam;
-  const ktc = mlGetValueByName(name) || {};
-  const status = mlGetPlayerStatus(sid);
 
-  const photo = `${CDN}/content/nfl/players/thumb/${sid}.jpg`;
-  const initials = name.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
+  // Make sure the SLEEPER_IDS map (page-local, mirrored to window) knows this
+  // player so the shared panel can render the headshot from the name alone.
+  if (name && sid && !window.SLEEPER_IDS[name]) window.SLEEPER_IDS[name] = sid;
 
-  // Years of experience (from Sleeper players DB — already loaded on login)
-  const yoe = (p && p.years_exp !== undefined && p.years_exp !== null) ? p.years_exp : null;
-  const expDisplay = yoe === null ? null : (yoe === 0 ? 'Rookie' : `${yoe} yr${yoe !== 1 ? 's' : ''}`);
-
-  // Stats grid
-  const stats = `
-    <div class="ml-pd-stats">
-      ${ktc.value ? `<div><div class="ml-pd-stat-label">Trade Value</div><div class="ml-pd-stat-val">${ktc.value.toLocaleString()}</div></div>` : ''}
-      ${ktc.posRank ? `<div><div class="ml-pd-stat-label">Pos Rank</div><div class="ml-pd-stat-val">${ktc.posRank}</div></div>` : ''}
-      ${ktc.age ? `<div><div class="ml-pd-stat-label">Age</div><div class="ml-pd-stat-val">${ktc.age}</div></div>` : ''}
-      ${expDisplay !== null ? `<div><div class="ml-pd-stat-label">EXP</div><div class="ml-pd-stat-val">${expDisplay}</div></div>` : ''}
-      ${ktc.ppg ? `<div><div class="ml-pd-stat-label">PPG '25</div><div class="ml-pd-stat-val">${ktc.ppg}</div></div>` : ''}
-      ${ktc.adp ? `<div><div class="ml-pd-stat-label">Dynasty ADP</div><div class="ml-pd-stat-val">${ktc.adp}</div></div>` : ''}
-      ${ktc.auction ? (() => {
-        // FP returns auction values pre-formatted as strings like "$20+", "$7-9", or sometimes bare "1".
-        // Normalize to a single leading $.
-        const raw = String(ktc.auction);
-        const label = '$' + raw.replace(/^\$+/, '');
-        return `<div><div class="ml-pd-stat-label">Auction</div><div class="ml-pd-stat-val green">${label}</div></div>`;
-      })() : ''}
-    </div>
-  `;
-
-  // Status block
-  const lg = window.ML_LEAGUE;
-  const sleeperLeagueUrl = lg ? `https://sleeper.com/leagues/${lg.league_id}/team` : '#';
-  let statusBlock = '';
-  if (status.state === 'mine') {
-    statusBlock = `
-      <div class="ml-pd-status mine">
-        <span class="ml-pd-status-label">★ On Your Roster</span>
-        <span class="ml-pd-status-meta">You own this player</span>
-      </div>`;
-  } else if (status.state === 'taken') {
-    const faabBit = (status.avgFaab !== null && status.claims > 0)
-      ? `${status.claims} prior waiver claim${status.claims!==1?'s':''} · avg $${status.avgFaab}`
-      : '';
-    statusBlock = `
-      <div class="ml-pd-status taken">
-        <span class="ml-pd-status-label">On ${mlEscapeHTML(status.team)}</span>
-        ${faabBit ? `<span class="ml-pd-status-meta">${faabBit}</span>` : ''}
-      </div>
-      <div class="ml-pd-actions">
-        <button class="ml-pd-btn primary" onclick="openTradeSuggestModal('${sid}','${lg ? lg.league_id : ''}')">Trade For →</button>
-        <a class="ml-pd-btn" href="${sleeperLeagueUrl}" target="_blank" rel="noopener">Send Offer On Sleeper ↗</a>
-      </div>`;
-  } else {
-    const faabBit = (status.avgFaab !== null && status.claims > 0)
-      ? `Avg $${status.avgFaab} FAAB · ${status.claims} prior claim${status.claims!==1?'s':''}`
-      : 'No prior claims this season';
-    statusBlock = `
-      <div class="ml-pd-status free">
-        <span class="ml-pd-status-label">Available — Waivers / FA</span>
-        <span class="ml-pd-status-meta">${faabBit}</span>
-      </div>
-      <div class="ml-pd-actions">
-        <a class="ml-pd-btn primary" href="${sleeperLeagueUrl}" target="_blank" rel="noopener">Claim On Sleeper ↗</a>
-      </div>`;
-  }
-
-  // Inline profile stats — same 7 cells as the DB / Calc / Tiers / ADP modals
-  // so every player card has identical content above the tab strip.
-  const _auctionStr = ktc.auction ? ('$' + String(ktc.auction).replace(/^\$+/, '')) : null;
-  const inlineStats = `<div class="ml-pd-info-stats">
-    <div class="ml-pd-info-stat"><div class="ml-pd-info-stat-k">Age</div><div class="ml-pd-info-stat-v">${ktc.age != null ? ktc.age : '—'}</div></div>
-    <div class="ml-pd-info-stat"><div class="ml-pd-info-stat-k">EXP</div><div class="ml-pd-info-stat-v">${expDisplay || '—'}</div></div>
-    <div class="ml-pd-info-stat"><div class="ml-pd-info-stat-k">Pos Rank</div><div class="ml-pd-info-stat-v">${ktc.posRank || '—'}</div></div>
-    <div class="ml-pd-info-stat"><div class="ml-pd-info-stat-k">Overall Rank</div><div class="ml-pd-info-stat-v">${ktc.rank ? '#'+ktc.rank : '—'}</div></div>
-    <div class="ml-pd-info-stat"><div class="ml-pd-info-stat-k">PPG</div><div class="ml-pd-info-stat-v">${ktc.ppg != null ? ktc.ppg : '—'}</div></div>
-    <div class="ml-pd-info-stat"><div class="ml-pd-info-stat-k">Dynasty ADP</div><div class="ml-pd-info-stat-v">${ktc.adp != null ? ktc.adp : '—'}</div></div>
-    <div class="ml-pd-info-stat"><div class="ml-pd-info-stat-k">Auction</div><div class="ml-pd-info-stat-v" ${_auctionStr?'style="color:var(--green)"':''}>${_auctionStr || '—'}</div></div>
-  </div>`;
-
-  document.getElementById('ml-pd-body').innerHTML = `
-    <div class="ml-pd-hero">
-      <div class="ml-pd-avatar" id="ml-pd-avatar-wrap">
-        <img src="${photo}" alt="${mlEscapeHTML(name)}" data-initials="${mlEscapeHTML(initials)}" onerror="mlImgInitialsFallback(this)">
-      </div>
-      <div class="ml-pd-info">
-        <div class="ml-pd-pos-team">${pos ? posBadge(pos) : ''} <span class="ml-pd-team">${mlEscapeHTML(team || '')}</span></div>
-        <div class="ml-pd-name">${mlEscapeHTML(name)}</div>
-        ${inlineStats}
-      </div>
-      <div class="ml-pd-fp">
-        <div class="ml-pd-fp-k">Fantasy Points</div>
-        <div class="ml-pd-fp-v">${ktc.value != null ? Number(ktc.value).toLocaleString() : '—'}</div>
-      </div>
-    </div>
-    <div id="ml-pd-mvs-extras"></div>
-    <!-- SYNC-RULE: keep this 5-tab strip aligned with the player modals on
-         the other three pages (DB / Calc / ADP-tool). Add or change tabs in
-         all four files in the same commit. push.bat warns on drift. -->
-    <div class="pp-tabs" style="border-top:1px solid var(--border)">
-      <button class="pp-tab active" type="button" onclick="_mlShowTab('trades')">Trades</button>
-      <button class="pp-tab" type="button" onclick="_mlShowTab('stats')">Player Stats</button>
-      <button class="pp-tab" type="button" onclick="_mlShowTab('curve')">Age Curve</button>
-      <button class="pp-tab" type="button" onclick="_mlShowTab('finder')">Trade Finder</button>
-      <button class="pp-tab" type="button" onclick="_mlShowTab('heatmap')">ADP Heatmap</button>
-    </div>
-    <div id="ml-pd-trades-tab"></div>
-    <div id="ml-pd-stats-tab" style="display:none"></div>
-    <div id="ml-pd-curve-tab" style="display:none"></div>
-    <div id="ml-pd-finder-tab" style="display:none"></div>
-    <div id="ml-pd-heatmap-tab" style="display:none"></div>
-    <div id="ml-pd-articles-mount"></div>
-    ${statusBlock}
-    <div id="ml-pd-availability-mount"></div>
-  `;
-  // MVS extras (OTC + rankings + sparkline + recent trades) — shared helper
-  const mlMvsExtras = document.getElementById('ml-pd-mvs-extras');
-  if (mlMvsExtras) mlMvsExtras.innerHTML = window.MvsExtras ? window.MvsExtras.buildHeader(name) : '';
-  // Stash state for lazy tab renders + reset to Trades tab (default)
-  window._mlActiveSleeperId = sid || null;
-  window._mlActivePlayerName = name || '';
-  ['ml-pd-trades-tab','ml-pd-stats-tab','ml-pd-curve-tab','ml-pd-finder-tab','ml-pd-heatmap-tab'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.innerHTML = '';
-  });
-  if (typeof window._mlShowTab === 'function') window._mlShowTab('trades');
-  // Track current player so the hide-usernames toggle can re-render
+  // Stash ML-specific context for the post-open hook (status badge + availability).
+  window._mlPanelContext = { sid, name, pos, team };
   window.ML_PD_CURRENT_SID = sid;
-  // Mount the shared articles section (auto-hides if no articles)
-  const articlesMount = document.getElementById('ml-pd-articles-mount');
-  if (articlesMount) mountPlayerArticles(articlesMount, name, { chrome: 'banner' });
-  // Render cross-league availability (Sleeper-style "Availability in Other Leagues")
-  renderPlayerAvailability(sid);
-  document.getElementById('ml-pd-backdrop').classList.add('open');
+
+  if (typeof window.openPanel === 'function') {
+    window.openPanel(name);
+    // Shared panel renders synchronously; defer the ML overlay one tick so
+    // accordion wrapping + slot injection layer cleanly on top.
+    setTimeout(() => _mlAfterPanelOpen(name, sid, pos, team), 0);
+  }
 }
 
 function closePlayerDetail() {
-  document.getElementById('ml-pd-backdrop').classList.remove('open');
+  if (typeof window.closePanel === 'function') window.closePanel();
   window.ML_PD_CURRENT_SID = null;
+}
+
+// ── ML POST-OPEN HOOK ─────────────────────────────────────────────────────
+// Layers My-Leagues-specific content (status badge + cross-league availability)
+// into the shared panel's #pp-league-context slot and converts the horizontal
+// tab strip into a stacked accordion. Heatmap section is expanded by default;
+// the other four sections are collapsed but remembered across reloads.
+const ML_ACCORDION_KEY = 'fpts-ml-acc-open';
+const ML_TAB_LABELS = {
+  'pp-trades-tab':  'Trades',
+  'pp-stats-tab':   'Player Stats',
+  'pp-curve-tab':   'Age Curve',
+  'pp-finder-tab':  'Trade Finder',
+  'pp-heatmap-tab': 'ADP Heatmap',
+};
+
+function _mlReadAccordionOpenSet() {
+  try {
+    const raw = localStorage.getItem(ML_ACCORDION_KEY);
+    if (!raw) return new Set(['pp-heatmap-tab']);
+    const arr = JSON.parse(raw);
+    return new Set(Array.isArray(arr) ? arr : ['pp-heatmap-tab']);
+  } catch (e) { return new Set(['pp-heatmap-tab']); }
+}
+
+function _mlWriteAccordionOpenSet(set) {
+  try { localStorage.setItem(ML_ACCORDION_KEY, JSON.stringify([...set])); } catch (e) {}
+}
+
+function _mlBuildStatusBlock(sid) {
+  const status = mlGetPlayerStatus(sid);
+  const lg = window.ML_LEAGUE;
+  const sleeperLeagueUrl = lg ? `https://sleeper.com/leagues/${lg.league_id}/team` : '#';
+  if (status.state === 'mine') {
+    return `<div class="ml-pd-status mine">
+      <span class="ml-pd-status-label">★ On Your Roster</span>
+      <span class="ml-pd-status-meta">You own this player</span>
+    </div>`;
+  }
+  if (status.state === 'taken') {
+    const faabBit = (status.avgFaab !== null && status.claims > 0)
+      ? `${status.claims} prior waiver claim${status.claims !== 1 ? 's' : ''} · avg $${status.avgFaab}`
+      : '';
+    return `<div class="ml-pd-status taken">
+      <span class="ml-pd-status-label">On ${mlEscapeHTML(status.team)}</span>
+      ${faabBit ? `<span class="ml-pd-status-meta">${faabBit}</span>` : ''}
+    </div>
+    <div class="ml-pd-actions">
+      <button class="ml-pd-btn primary" onclick="openTradeSuggestModal('${sid}','${lg ? lg.league_id : ''}')">Trade For →</button>
+      <a class="ml-pd-btn" href="${sleeperLeagueUrl}" target="_blank" rel="noopener">Send Offer On Sleeper ↗</a>
+    </div>`;
+  }
+  const faabBit = (status.avgFaab !== null && status.claims > 0)
+    ? `Avg $${status.avgFaab} FAAB · ${status.claims} prior claim${status.claims !== 1 ? 's' : ''}`
+    : 'No prior claims this season';
+  return `<div class="ml-pd-status free">
+    <span class="ml-pd-status-label">Available — Waivers / FA</span>
+    <span class="ml-pd-status-meta">${faabBit}</span>
+  </div>
+  <div class="ml-pd-actions">
+    <a class="ml-pd-btn primary" href="${sleeperLeagueUrl}" target="_blank" rel="noopener">Claim On Sleeper ↗</a>
+  </div>`;
+}
+
+function _mlAfterPanelOpen(name, sid, pos, team) {
+  // 1. Populate the league-context slot with status badge + availability section.
+  const slot = document.getElementById('pp-league-context');
+  if (slot) {
+    slot.innerHTML = `${_mlBuildStatusBlock(sid)}<div id="ml-pd-availability-mount"></div>`;
+    renderPlayerAvailability(sid);
+  }
+
+  // 2. Force-render the four secondary tab bodies. (Trades auto-renders inside
+  //    openPanelContent.) We call renderers directly because ppShowTab resolves
+  //    'curve' → 'age-curve' and reads a non-existent #pp-age-curve-tab id.
+  const player = window._currentPanelPlayer || null;
+  const activeSid = window._ppActiveSleeperId || sid;
+  try { if (typeof window.renderPlayerStats  === 'function') window.renderPlayerStats('pp-stats-tab', player); } catch (e) {}
+  try { if (typeof window.renderAgeCurve     === 'function') window.renderAgeCurve('pp-curve-tab', player); } catch (e) {}
+  try { if (typeof window.renderTradeFinder  === 'function') window.renderTradeFinder('pp-finder-tab', player); } catch (e) {}
+  try {
+    if (window.Heatmap && typeof window.Heatmap.render === 'function') {
+      const hEl = document.getElementById('pp-heatmap-tab');
+      if (hEl) window.Heatmap.render(hEl, activeSid);
+    }
+  } catch (e) {}
+
+  // 3. Wrap each tab body with an accordion header and apply persisted state.
+  const openSet = _mlReadAccordionOpenSet();
+  Object.entries(ML_TAB_LABELS).forEach(([tabId, label]) => {
+    const tab = document.getElementById(tabId);
+    if (!tab) return;
+    // Inject header if not already present
+    let header = tab.querySelector(':scope > .pp-accordion-header');
+    if (!header) {
+      header = document.createElement('button');
+      header.type = 'button';
+      header.className = 'pp-accordion-header';
+      header.innerHTML = `<span>${label}</span><span class="pp-acc-caret">▼</span>`;
+      header.addEventListener('click', () => {
+        const collapsed = tab.classList.toggle('pp-acc-collapsed');
+        if (collapsed) openSet.delete(tabId); else openSet.add(tabId);
+        _mlWriteAccordionOpenSet(openSet);
+      });
+      tab.insertBefore(header, tab.firstChild);
+    }
+    // Apply collapsed state
+    if (openSet.has(tabId)) tab.classList.remove('pp-acc-collapsed');
+    else tab.classList.add('pp-acc-collapsed');
+  });
 }
 
 // ── CALCULATOR MODAL ──────────────────────────────────────────────────────
@@ -4555,7 +4506,7 @@ document.addEventListener('keydown', (e) => {
     if (document.getElementById('ml-pep-backdrop')?.classList.contains('open')) closePickExposurePicker();
     else if (document.getElementById('ml-ts-backdrop')?.classList.contains('open')) closeTradeSuggestModal();
     else if (document.getElementById('ml-calc-backdrop')?.classList.contains('open')) closeCalcModal();
-    else if (document.getElementById('ml-pd-backdrop')?.classList.contains('open')) closePlayerDetail();
+    else if (document.querySelector('#player-panel.open')) closePlayerDetail();
   }
 });
 
@@ -5800,10 +5751,11 @@ function mlSignOut() {
   document.getElementById('ml-landing').style.display = '';
   document.getElementById('ml-username-input').value = '';
   // Close any open modals
-  ['ml-ts-backdrop','ml-calc-backdrop','ml-pd-backdrop'].forEach(id => {
+  ['ml-ts-backdrop','ml-calc-backdrop'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.classList.remove('open');
   });
+  if (typeof window.closePanel === 'function') window.closePanel();
   // Reset ticker
   // ticker call removed
 }
@@ -7582,21 +7534,6 @@ window._fptsApplyPendingHandoff = function() {
 <!-- ════════════════════════════════════════════════════════════
      PLAYER DETAIL MODAL + CALCULATOR MODAL
 ══════════════════════════════════════════════════════════════ -->
-
-<div class="ml-modal-backdrop" id="ml-pd-backdrop" onclick="if(event.target===this) closePlayerDetail()">
-  <div class="ml-modal" onclick="event.stopPropagation()">
-    <div class="ml-modal-header">
-      <span class="ml-modal-title">Player Profile</span>
-      <div class="fpts-xpage-bar" style="margin-right:8px;display:inline-flex">
-        <button class="fpts-xpage-btn" onclick="event.stopPropagation();_fptsXpageMlPdToDb()" title="Open this player's profile in the trade database">Open in Database ↗</button>
-        <button class="fpts-xpage-btn" onclick="event.stopPropagation();_fptsXpageMlPdToCalc()" title="Open the standalone trade calculator with this player">Open in Calculator ↗</button>
-        <button class="fpts-xpage-btn" onclick="event.stopPropagation();_fptsXpageMlPdToAdp()" title="Open the ADP tool with this player">Open in ADP ↗</button>
-      </div>
-      <button class="ml-modal-close" onclick="closePlayerDetail()">✕ Close</button>
-    </div>
-    <div class="ml-modal-body" id="ml-pd-body"></div>
-  </div>
-</div>
 
 <div class="ml-modal-backdrop" id="ml-calc-backdrop" onclick="if(event.target===this) closeCalcModal()">
   <div class="ml-modal ml-calc-modal" onclick="event.stopPropagation()">
