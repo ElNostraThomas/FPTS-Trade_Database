@@ -389,7 +389,7 @@
       <option value="adp-tool.html">ADP</option>
       <option value="https://www.fantasypoints.com/nfl/rankings/dynasty#/">Rankings</option>
     </select>
-    <span class="nav-stat">Synced <strong id="tiers-updated-stat"><!-- TIERS:SYNCED:START -->May 12, 2026 9:46 PM<!-- TIERS:SYNCED:END --></strong></span>
+    <span class="nav-stat">Synced <strong id="tiers-updated-stat"><!-- TIERS:SYNCED:START -->May 12, 2026 9:54 PM<!-- TIERS:SYNCED:END --></strong></span>
     <span class="nav-badge">SEASON 2026</span>
     <button id="theme-toggle" onclick="toggleTheme()"
       style="background:none;border:1px solid var(--border2);color:var(--white);font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:11px;padding:5px 12px;cursor:pointer;transition:all .2s;letter-spacing:.04em;display:flex;align-items:center;gap:6px"
@@ -5517,9 +5517,9 @@ function _tiersOpenModal(name) {
     '<div class="pp-stat"><div class="k">' + k + '</div><div class="v">' + v + '</div></div>').join('');
   // FP value
   document.getElementById('tiers-pp-fpv').textContent = (fp.value != null) ? Number(fp.value).toLocaleString() : '—';
-  // MVS extras
+  // MVS extras — header only (no recent trades; those live in the Trades tab)
   const extrasEl = document.getElementById('tiers-pp-mvs-extras');
-  if (extrasEl) extrasEl.innerHTML = window.MvsExtras ? window.MvsExtras.buildAll(name) : '';
+  if (extrasEl) extrasEl.innerHTML = window.MvsExtras ? window.MvsExtras.buildHeader(name) : '';
   // Reset tabs
   ['tiers-pp-trades-tab','tiers-pp-stats-tab','tiers-pp-curve-tab','tiers-pp-finder-tab','tiers-pp-heatmap-tab'].forEach(id => {
     const el = document.getElementById(id);

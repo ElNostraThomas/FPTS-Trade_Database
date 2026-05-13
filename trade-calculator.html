@@ -3204,7 +3204,7 @@ window._openCalcPlayerModal = function(playerName, pos, sideId, assetIdx) {
   document.getElementById('calc-pp-fpv').textContent = (fp.value != null) ? fp.value.toLocaleString() : '—';
   // MVS extras (OTC + rankings + sparkline + recent trades)
   const calcExtras = document.getElementById('calc-pp-mvs-extras');
-  if (calcExtras) calcExtras.innerHTML = window.MvsExtras ? window.MvsExtras.buildAll(playerName) : '';
+  if (calcExtras) calcExtras.innerHTML = window.MvsExtras ? window.MvsExtras.buildHeader(playerName) : '';
   // Stash state for lazy tab renders + reset to Trades tab (default)
   window._calcActiveSleeperId = sleeperId || null;
   ['calc-pp-trades-tab','calc-pp-stats-tab','calc-pp-curve-tab','calc-pp-finder-tab','calc-pp-heatmap-tab'].forEach(id => {

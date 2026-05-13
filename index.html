@@ -7172,7 +7172,7 @@ function openPanelContent(playerName) {
   // ── MVS extras: OTC + Rankings + Sparkline + Recent Trades (shared helper) ──
   const mvsExtrasEl = document.getElementById("pp-mvs-extras");
   if (mvsExtrasEl) {
-    mvsExtrasEl.innerHTML = window.MvsExtras ? window.MvsExtras.buildAll(playerName) : '';
+    mvsExtrasEl.innerHTML = window.MvsExtras ? window.MvsExtras.buildHeader(playerName) : '';
   }
   // Stash sleeperId on the panel so the ADP Heatmap tab can render
   // it lazily when the user clicks the tab (avoids the inline section

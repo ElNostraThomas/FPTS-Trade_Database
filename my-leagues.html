@@ -4236,7 +4236,7 @@ function openPlayerDetail(sleeperId) {
   `;
   // MVS extras (OTC + rankings + sparkline + recent trades) — shared helper
   const mlMvsExtras = document.getElementById('ml-pd-mvs-extras');
-  if (mlMvsExtras) mlMvsExtras.innerHTML = window.MvsExtras ? window.MvsExtras.buildAll(name) : '';
+  if (mlMvsExtras) mlMvsExtras.innerHTML = window.MvsExtras ? window.MvsExtras.buildHeader(name) : '';
   // Stash state for lazy tab renders + reset to Trades tab (default)
   window._mlActiveSleeperId = sid || null;
   window._mlActivePlayerName = name || '';

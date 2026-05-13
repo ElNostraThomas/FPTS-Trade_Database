@@ -143,13 +143,26 @@
     return '<div class="mvs-foot">MVS data refreshed ' + _escHtml(short) + '</div>';
   }
 
-  // Composite: returns OTC+Rankings + Sparkline + RecentTrades + Footer.
-  // Caller decides whether to use the composite or call sub-helpers individually.
+  // Header composite: OTC+Rankings + Sparkline + Footer.
+  // Recent Trades intentionally NOT included — those live inside the
+  // Trades tab on every modal to avoid duplicating content above + inside
+  // the tab strip.
+  function buildHeaderExtrasHtml(playerName) {
+    if (typeof window.FP_VALUES === 'undefined') return '';
+    const rec = window.FP_VALUES[playerName];
+    if (!rec) return '';
+    return buildOtcRankingsHtml(rec)
+         + buildSparklineHtml(rec.history)
+         + buildLastUpdatedHtml(rec.lastUpdated);
+  }
+
+  // Legacy composite (still includes RecentTrades) — kept for backwards
+  // compatibility if any caller still wants the full block. Prefer
+  // buildHeader + the Trades tab for new modals.
   function buildAllExtrasHtml(playerName) {
     if (typeof window.FP_VALUES === 'undefined') return '';
     const rec = window.FP_VALUES[playerName];
     if (!rec) return '';
-    // rec.history is the toggle-aware alias the page overlay set up.
     return buildOtcRankingsHtml(rec)
          + buildSparklineHtml(rec.history)
          + buildRecentTradesHtml(rec.recentTrades, playerName)
@@ -162,6 +175,7 @@
     buildSparkline:    buildSparklineHtml,
     buildRecentTrades: buildRecentTradesHtml,
     buildLastUpdated:  buildLastUpdatedHtml,
-    buildAll:          buildAllExtrasHtml,
+    buildHeader:       buildHeaderExtrasHtml,   // NEW — preferred (no trades)
+    buildAll:          buildAllExtrasHtml,      // legacy — still includes trades
   };
 })();
