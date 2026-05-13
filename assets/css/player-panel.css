@@ -1,0 +1,519 @@
+/* ════════════════════════════════════════════════════════════════════════
+   PLAYER PANEL — shared CSS module
+   Source of truth: extracted from index.html (FPTS Trade Database).
+   Loaded by every page that uses the player-panel slide-in drawer:
+   index.html, trade-calculator.html, my-leagues.html, adp-tool.html, tiers.html.
+   ════════════════════════════════════════════════════════════════════════ */
+
+/* ── PLAYER PANEL — overlay + drawer ─────────────────────────────────────── */
+.panel-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.7);
+  z-index: 200;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .25s;
+}
+.panel-overlay.open { opacity: 1; pointer-events: all; }
+
+.player-panel {
+  position: fixed;
+  top: 0; right: 0; bottom: 0;
+  width: min(1360px, 95vw);
+  background: var(--black);
+  border-left: 2px solid var(--red);
+  z-index: 201;
+  transform: translateX(100%);
+  transition: transform .3s cubic-bezier(.4,0,.2,1);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.player-panel.open { transform: translateX(0); }
+
+/* ── Close bar / search wrap ─────────────────────────────────────────────── */
+.pp-close-bar { background: var(--black); padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); flex-shrink: 0; gap: 12px; }
+.pp-search-wrap { position: relative; flex: 1; max-width: 380px; }
+
+/* Two-column card layout (rarely used, kept for compatibility) */
+.pp-col { display: contents; }
+.pp-col-left  .pp-col-header { grid-column:1; grid-row:1; border-right:1px solid var(--border); }
+#pp-col-right-header          { grid-column:2; grid-row:1; background:var(--surface2); }
+#pp-profile-left              { grid-column:1; grid-row:2; border-right:1px solid var(--border); }
+#pp-profile-right             { grid-column:2; grid-row:2; background:var(--surface2); }
+#pp-stats-left                { grid-column:1; grid-row:3; border-right:1px solid var(--border); }
+#pp-stats-right               { grid-column:2; grid-row:3; background:var(--surface2); }
+.pp-col-left .pp-tabs         { grid-column:1; grid-row:4; align-self:start; border-right:1px solid var(--border); }
+#pp-right-tabs                { grid-column:2; grid-row:4; align-self:start; background:var(--surface2); }
+.pp-col-left .pp-scroll       { grid-column:1; grid-row:5; overflow-y:auto; overflow-x:hidden; border-right:1px solid var(--border); }
+#pp-scroll-right              { grid-column:2; grid-row:5; overflow-y:auto; background:var(--surface2); }
+#pp-right-content             { grid-column:2; grid-row:1 / 6; background:var(--surface2); display:flex; flex-direction:column; justify-content:center; }
+.pp-col-left { border-right: none; }
+.pp-col-right { background: var(--surface2); }
+.pp-col-empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 40px;
+}
+.pp-col-header {
+  background: var(--red);
+  padding: 4px 16px;
+  font-family: 'Kanit', sans-serif;
+  font-weight: 800;
+  font-style: italic;
+  font-size: 11px;
+  color: var(--white);
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  flex-shrink: 0;
+}
+
+/* ── Search input + dropdown ─────────────────────────────────────────────── */
+.pp-search-input {
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  color: var(--white);
+  font-family: 'Mulish', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 7px 14px;
+  outline: none;
+  transition: border-color .15s;
+}
+.pp-search-input:focus { border-color: var(--red); }
+.pp-search-input::placeholder { color: var(--white); opacity: 1; font-weight: 400; }
+.pp-search-results {
+  position: absolute;
+  top: 100%;
+  left: 0; right: 0;
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-top: none;
+  z-index: 300;
+  max-height: 220px;
+  overflow-y: auto;
+  display: none;
+}
+.pp-search-results.open { display: block; }
+.pp-search-result {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 14px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--border);
+  transition: background .1s;
+}
+.pp-search-result:last-child { border-bottom: none; }
+.pp-search-result:hover, .pp-search-result.focused { background: var(--surface2); }
+.pp-search-result-name { font-family: 'Mulish', sans-serif; font-weight: 900; font-size: 13px; color: var(--white); flex: 1; }
+.pp-search-result-count { font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 12px; color: var(--white); opacity: 1; }
+.panel-close { background: none; border: 1px solid var(--border2); color: var(--white); font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 12px; padding: 5px 14px; cursor: pointer; transition: border-color .15s; }
+.panel-close:hover { border-color: var(--red); color: var(--red); }
+
+/* ── Profile row ─────────────────────────────────────────────────────────── */
+.pp-profile {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 20px 24px;
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+  flex-shrink: 0;
+}
+.pp-avatar {
+  width: 80px; height: 80px;
+  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+  font-size: 22px; color: var(--white);
+  overflow: hidden;
+  border-radius:3px;
+}
+.pp-avatar img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  object-position: top center;
+}
+.pp-info { flex: 1; min-width: 0; }
+.pp-name { font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 26px; color: var(--white); text-transform: uppercase; line-height: 1; margin-bottom: 8px; }
+.pp-meta { display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 10px; align-items: flex-start; }
+.pp-meta-item { display: flex; flex-direction: column; gap: 2px; align-items: center; min-width: 36px; text-align: center; }
+.pp-meta-label { font-size: 9px; color: var(--white); opacity: 1; text-transform: uppercase; letter-spacing: .08em; font-family: 'Mulish', sans-serif; white-space: nowrap; }
+.pp-meta-val { font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 14px; color: var(--white); white-space: nowrap; line-height: 1.2; }
+.pp-pos-team { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.pp-team-name { font-family: 'Mulish', sans-serif; font-size: 12px; font-weight: 700; color: var(--white); opacity: 1; text-transform: uppercase; letter-spacing: .06em; }
+
+.pp-ktc { text-align: right; flex-shrink: 0; }
+.pp-value-label { font-size: 9px; color: var(--white); opacity: 1; text-transform: uppercase; letter-spacing: .08em; font-family: 'Mulish', sans-serif; margin-bottom: 4px; }
+.pp-value-val { font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 36px; color: var(--white); line-height: 1; }
+.pp-value-rank { font-family: 'Mulish', sans-serif; font-size: 12px; color: var(--white); opacity: 1; margin-top: 4px; }
+.pp-value-trend { font-size: 12px; font-weight: 700; font-family: 'Mulish', sans-serif; margin-top: 2px; color: var(--white); opacity: .55; }
+.pp-value-trend.up { color: #5dcaa5; opacity: 1; }
+.pp-value-trend.down { color: var(--red); opacity: 1; }
+
+/* ── Trade stats grid (legacy 4-cell row; kept for back-compat) ──────────── */
+.pp-trade-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  min-height: 80px;
+}
+.pp-ts { padding: 12px 16px; border-right: 1px solid var(--border); }
+.pp-ts:last-child { border-right: none; }
+.pp-ts-label { font-size: 9px; color: var(--white); opacity: 1; text-transform: uppercase; letter-spacing: .07em; margin-bottom: 4px; font-family: 'Mulish', sans-serif; }
+.pp-ts-val { font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 20px; color: var(--white); }
+.pp-ts-val.red { color: var(--red); }
+
+/* ── Tab strip + scroll body ─────────────────────────────────────────────── */
+.pp-tabs { display: flex; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+.pp-tab { font-family: 'Mulish', sans-serif; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--white); opacity: 1; padding: 10px 18px; cursor: pointer; border: none; background: none; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: opacity .15s; }
+.pp-tab.active { opacity: 1; border-bottom-color: var(--red); }
+
+.pp-scroll { flex: 1; overflow-y: auto; padding: 18px 20px; }
+.pp-also-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border); }
+.pp-also-row:last-child { border-bottom: none; }
+
+/* ── TRADE FINDER tab ────────────────────────────────────────────────────── */
+.tf-wrap { padding: 16px 0; }
+.tf-section-title { font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 11px; color: var(--red); text-transform: uppercase; letter-spacing: .07em; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
+.tf-sides { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
+.tf-side { background: var(--surface); border: 1px solid var(--border); padding: 12px; }
+.tf-side-label { font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 11px; color: var(--white); opacity: 1; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 8px; }
+.tf-side-val { font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 26px; color: var(--white); line-height: 1; }
+.tf-asset-list { display: flex; flex-direction: column; gap: 5px; margin-top: 8px; }
+.tf-asset {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--surface); border: 1px solid var(--border2);
+  padding: 7px 10px; cursor: default;
+  transition: transform .12s, box-shadow .12s;
+}
+/* SYNC-RULE: Trade Finder chips (.tf-asset) and Trade Calculator chips
+   (.asset-row in trade-calculator.html) must use the same position
+   palette + stacked-name layout. If you add a new position, change a
+   color, or rework the chip layout in one place, mirror the change in
+   the other in the same commit. */
+.tf-asset[data-pos="QB"]   { background: var(--pos-qb-bg);   color: var(--pos-qb);   border-color: rgba(0,0,0,.18); }
+.tf-asset[data-pos="RB"]   { background: var(--pos-rb-bg);   color: var(--pos-rb);   border-color: rgba(0,0,0,.18); }
+.tf-asset[data-pos="WR"]   { background: var(--pos-wr-bg);   color: var(--pos-wr);   border-color: rgba(0,0,0,.18); }
+.tf-asset[data-pos="TE"]   { background: var(--pos-te-bg);   color: var(--pos-te);   border-color: rgba(0,0,0,.18); }
+.tf-asset[data-pos="K"]    { background: var(--pos-k-bg);    color: var(--pos-k);    border-color: rgba(0,0,0,.18); }
+.tf-asset[data-pos="PK"]   { background: var(--pos-pick-bg); color: var(--pos-pick); border-color: rgba(0,0,0,.18); }
+.tf-asset[data-pos] .pos-badge { background: rgba(0,0,0,.22); color: inherit; }
+/* Stacked name inside chip — first name small Mulish, last name big Kanit italic */
+.tf-asset-name { font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 14px; color: inherit; flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1; overflow: hidden; }
+.tf-asset-name .fn { font-family: 'Mulish', sans-serif; font-style: normal; font-weight: 800; font-size: 9px; letter-spacing: .06em; opacity: .78; text-transform: uppercase; line-height: 1; margin-bottom: 1px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tf-asset-name .ln { font-size: 14px; line-height: 1.05; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tf-asset-val { font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 13px; color: inherit; opacity: .92; white-space: nowrap; }
+.tf-asset-remove { cursor: pointer; color: inherit; opacity: .55; font-size: 13px; font-weight: 900; transition: opacity .15s; }
+.tf-asset-remove:hover { opacity: 1; }
+.tf-add-input {
+  flex: 1; background: var(--surface); border: 1px solid var(--border2);
+  color: var(--white); font-family: 'Mulish', sans-serif; font-size: 12px; font-weight: 700;
+  padding: 7px 10px; outline: none; transition: border-color .15s;
+}
+.tf-add-input:focus { border-color: var(--red); }
+.tf-add-input::placeholder { opacity: 1; font-weight: 400; }
+.tf-add-dropdown {
+  position: absolute; top: 100%; left: 0; right: 0;
+  background: var(--surface); border: 1px solid var(--border2); border-top: none;
+  z-index: 400; max-height: 180px; overflow-y: auto; display: none;
+}
+.tf-add-dropdown.open { display: block; }
+.tf-add-option {
+  display: flex; align-items: center; gap: 8px; padding: 8px 12px;
+  cursor: pointer; border-bottom: 1px solid var(--border); font-size: 12px;
+  transition: background .1s;
+}
+.tf-add-option:last-child { border-bottom: none; }
+.tf-add-option:hover, .tf-add-option.focused { background: var(--surface2); }
+.tf-add-option-name { font-family: 'Mulish', sans-serif; font-weight: 900; color: var(--white); flex: 1; }
+.tf-add-option-val { font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 12px; color: var(--white); opacity: 1; }
+.tf-balance-bar {
+  background: var(--surface); border: 1px solid var(--border);
+  padding: 14px 16px; margin-bottom: 14px;
+}
+.tf-balance-track { background: var(--border); height: 6px; position: relative; margin-bottom: 8px; }
+.tf-balance-fill { height: 6px; position: absolute; top: 0; transition: all .3s; }
+.tf-balance-mid { position: absolute; top: -4px; left: 50%; width: 2px; height: 14px; background: var(--white); opacity: 1; }
+.tf-balance-summary { font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 14px; color: var(--white); }
+.tf-suggest-item {
+  display: flex; align-items: center; gap: 10px; padding: 9px 12px;
+  background: var(--surface); border: 1px solid var(--border);
+  margin-bottom: 5px; cursor: pointer; transition: border-color .15s;
+}
+.tf-suggest-item:hover { border-color: var(--red); }
+
+/* ── Outlined trend arrow (shared utility) ───────────────────────────────── */
+.trend { display:inline-flex; align-items:center; gap:2px; font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:11px; padding:0 2px; letter-spacing:.04em; margin-left:4px; background:transparent; border:none;
+  text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, 0 -1px 0 #000, 0 1px 0 #000, -1px 0 0 #000, 1px 0 0 #000;
+  -webkit-text-stroke: 0.5px #000; }
+.trend.up   { color:#66dd84; }
+.trend.down { color:var(--red); }
+.trend.flat { color:#ffffff; }
+
+/* ── Cross-page handoff buttons (mount inside .pp-close-bar) ─────────────── */
+.fpts-xpage-btn { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:10px; color:var(--white); background:transparent; border:1px solid var(--border2); padding:5px 10px; cursor:pointer; text-transform:uppercase; letter-spacing:.06em; text-decoration:none; display:inline-flex; align-items:center; gap:4px; transition:all .15s; white-space:nowrap; }
+.fpts-xpage-btn:hover { border-color:var(--red); color:var(--red); }
+.fpts-xpage-btn.primary { background:var(--red); border-color:var(--red); color:var(--white); }
+.fpts-xpage-btn.primary:hover { opacity:.85; color:var(--white); }
+.fpts-xpage-bar { display:flex; gap:6px; align-items:center; flex-wrap:wrap; }
+
+/* ── Phase 3: retheme to match adp-tool pp-modal pattern ─────────────────── */
+.player-panel .pp-close-bar { background: var(--surface); border-bottom: 1px solid var(--border); padding: 12px 24px; }
+.player-panel .pp-close-bar > div:first-child { font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 13px; color: var(--red); text-transform: uppercase; letter-spacing: .06em; }
+.player-panel .pp-profile { padding: 24px 28px 18px; gap: 24px; align-items: center; }
+.player-panel .pp-avatar { width: 96px; height: 96px; border-radius: 50%; box-shadow: 0 0 0 2px var(--border2); }
+.player-panel .pp-name { font-size: 32px; letter-spacing: .02em; }
+.player-panel .pp-pos-team { margin-bottom: 10px; }
+.player-panel .pp-team-name { font-family: 'Mulish', sans-serif; font-size: 13px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
+.player-panel .pp-tab { font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 12px; letter-spacing: .06em; }
+.player-panel .pp-tab.active { color: var(--red); border-bottom-color: var(--red); }
+.player-panel .pp-value-val { font-size: 40px; }
+
+/* ════════════════════════════════════════════════════════════════════════
+   RESPONSIVE — mobile-friendly cascade (base rules above, media queries here)
+   ════════════════════════════════════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+  /* ─── Cross-page button bar ─── */
+  .fpts-xpage-bar { flex-wrap: wrap; gap: 4px; }
+  .fpts-xpage-btn { font-size: 9px; padding: 6px 8px; min-height: 32px; }
+
+  /* ─── PLAYER PANEL ─── */
+  .player-panel {
+    width: 100vw !important;
+    max-width: 100vw !important;
+    right: 0 !important;
+    left: 0 !important;
+    border-left: none !important;
+    border-top: 2px solid var(--red);
+  }
+  .pp-close-bar { padding: 8px 12px; gap: 8px; flex-wrap: wrap; }
+  /* PP Close bar with new fpts buttons — let bar wrap to 2 rows on mobile */
+  .pp-close-bar { flex-wrap: wrap !important; gap: 6px !important; padding: 8px 10px !important; }
+  .pp-close-bar > div:first-child { font-size: 11px !important; }
+  .pp-search-wrap { order: 99; flex-basis: 100% !important; max-width: 100% !important; }
+  /* Move fpts bar between the title and Close — keep it on row 1 */
+  .pp-close-bar .fpts-xpage-bar { order: 50; }
+  .pp-close-bar .panel-close { order: 51; flex-shrink: 0; }
+
+  .pp-search-input { min-width: 0 !important; width: 100% !important; font-size: 12px; }
+  .pp-search-wrap { max-width: 100% !important; width: 100% !important; }
+  .panel-close { font-size: 11px; padding: 4px 10px; }
+  #pp-player-tabs { min-height: 36px; }
+  .pp-profile { padding: 14px !important; flex-wrap: wrap; gap: 12px; }
+  .pp-avatar { width: 56px !important; height: 56px !important; }
+  .pp-name { font-size: 20px !important; }
+  .pp-value-val { font-size: 28px !important; }
+  .pp-value-rank { font-size: 11px; }
+  .pp-trade-stats { grid-template-columns: 1fr 1fr !important; }
+  .pp-ts { padding: 8px 12px; }
+  .pp-ts-val { font-size: 16px; }
+  .pp-ts-label { font-size: 8px; }
+  .pp-tabs { flex-wrap: nowrap; overflow-x: auto; }
+  .pp-scroll { padding: 10px; overflow-x: hidden; }
+  #pp-stats-tab { overflow-x: auto !important; -webkit-overflow-scrolling: touch; }
+  .pp-meta { flex-wrap: wrap !important; gap: 10px 14px !important; }
+  .pp-meta-item { min-width: 40px; }
+  .pp-meta-label { font-size: 8px; }
+  .pp-meta-val { font-size: 12px; }
+  .pp-name { font-size: 18px !important; }
+  .pp-avatar { width: 48px !important; height: 48px !important; }
+  .pp-tab { font-size: 10px; padding: 8px 10px; white-space: nowrap; }
+
+  /* ─── TRADE FINDER ─── */
+  .tf-sides { display: block !important; }
+  .tf-side { width: 100% !important; margin-bottom: 8px; }
+  .tf-balance-bar { padding: 10px 12px; }
+  .tf-section-title { font-size: 10px; }
+  .tf-side-val { font-size: 20px; }
+  .tf-asset-name { font-size: 11px; }
+}
+
+@media (max-width: 480px) {
+  .pp-close-bar { justify-content: space-between; }
+  .pp-search-wrap { order: 3; width: 100% !important; }
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   MOBILE OVERFLOW + TAP TARGET FIXES
+   ════════════════════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+
+  /* ─── 1. Bottom safe-area for tap dead zone ─── */
+  .player-panel {
+    padding-bottom: max(20px, env(safe-area-inset-bottom)) !important;
+  }
+  .pp-scroll {
+    padding-bottom: max(40px, calc(env(safe-area-inset-bottom) + 30px)) !important;
+  }
+  /* Tabs sit just above scroll area — also need safety */
+  .pp-tabs {
+    position: sticky;
+    bottom: env(safe-area-inset-bottom);
+    background: var(--black);
+    z-index: 5;
+  }
+
+  /* Allow horizontal scroll only on tab strips that explicitly need it */
+  .pp-tabs {
+    overflow-x: auto !important;
+    max-width: 100% !important;
+  }
+
+  /* ─── Modal/panel overflow ─── */
+  .player-panel {
+    width: 100vw !important;
+    max-width: 100vw !important;
+    left: 0 !important;
+    right: 0 !important;
+  }
+
+  /* Long player names truncate gracefully */
+  .pp-name {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* ─── Tap targets — minimum 36px height for clickables ─── */
+  .pp-tab,
+  .panel-close,
+  .fpts-xpage-btn,
+  .pp-player-tab {
+    min-height: 36px !important;
+  }
+  /* Player tabs need extra hit area on mobile */
+  .pp-tab {
+    padding: 12px 14px !important;
+    min-height: 44px !important;
+    font-size: 11px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .pp-tab { font-size: 10px !important; padding: 12px 10px !important; }
+  .pp-close-bar { padding: 6px 10px !important; }
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   PLAYER CARD MOBILE FIXES v11.5.1
+   Targeted fixes for the player panel internal layout on mobile.
+   ════════════════════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+
+  /* ─── FIX 1: Close bar layout — stack into 2 rows cleanly ─── */
+  .pp-close-bar {
+    flex-wrap: wrap !important;
+    gap: 8px 6px !important;
+    padding: 8px 10px !important;
+    align-items: stretch !important;
+  }
+  /* Label takes its space, doesn't fight for width */
+  .pp-close-bar > div:first-child {
+    flex: 0 0 auto !important;
+    font-size: 11px !important;
+    align-self: center;
+  }
+  /* Search input wrap — let it shrink, drop to its own row if needed */
+  .pp-search-wrap {
+    flex: 1 1 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    order: 99 !important;
+  }
+  .pp-search-input {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    font-size: 14px !important;
+  }
+  /* Cross-page bar takes whatever it needs */
+  .pp-close-bar .fpts-xpage-bar {
+    flex: 1 1 auto !important;
+    justify-content: flex-start;
+  }
+  /* Close button stays compact on the right */
+  .pp-close-bar .panel-close {
+    flex: 0 0 auto !important;
+    align-self: center;
+  }
+
+  /* ─── FIX 2: Articles empty state — stack vertically ─── */
+  .pp-articles-section .pp-article-inline > div {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 8px !important;
+  }
+  .pp-articles-section .pp-article-inline > div > span {
+    width: 100% !important;
+    white-space: normal !important;
+  }
+  .pp-articles-section .pp-article-inline > div > a {
+    align-self: flex-start;
+    flex-shrink: 0;
+  }
+
+  /* ─── FIX 3: Articles populated state — also stack ─── */
+  .pp-articles-section .pp-article-inline {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 6px !important;
+  }
+  .pp-articles-section .pp-article-inline > a {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  /* ─── FIX 4: Player tabs — full-width tappable strip ─── */
+  .pp-tabs {
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+    gap: 0 !important;
+  }
+  .pp-tab {
+    flex: 1 1 auto !important;
+    min-width: max-content !important;
+    padding: 12px 14px !important;
+    font-size: 11px !important;
+    white-space: nowrap !important;
+  }
+
+  /* ─── FIX 5: Tab content overflow — content doesn't bleed below tabs ─── */
+  .pp-scroll {
+    overflow-y: auto !important;
+    max-height: calc(100vh - 280px) !important;
+    -webkit-overflow-scrolling: touch;
+  }
+  /* Trade stats grid 2-col clean layout */
+  .pp-trade-stats {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 1px !important;
+  }
+  .pp-trade-stats > div {
+    padding: 8px 12px !important;
+    min-width: 0 !important;
+  }
+  .pp-trade-stats .pp-stat-num {
+    font-size: 22px !important;
+  }
+}
+
+/* Extra-narrow phones (≤480px) — additional tightening for player card */
+@media (max-width: 480px) {
+  .pp-close-bar > div:first-child { font-size: 10px !important; }
+  .pp-tab { font-size: 10px !important; padding: 10px 10px !important; }
+  .pp-scroll { max-height: calc(100vh - 260px) !important; }
+  .pp-trade-stats .pp-stat-num { font-size: 18px !important; }
+  /* Articles section — tighter padding on tiny screens */
+  .pp-articles-section .pp-article-inline > div { padding: 6px 10px !important; }
+}
