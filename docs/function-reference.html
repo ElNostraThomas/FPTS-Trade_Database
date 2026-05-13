@@ -1537,10 +1537,106 @@
 </section>
 
 <!-- ════════════════════════════════════════════════════════════════════
-     24 — DOS & DONTS / WORKING WITH THIS DOC
+     24 — DATA PIPELINE & MVS OVERLAY
 ══════════════════════════════════════════════════════════════════════ -->
 <section class="page">
   <div class="page-num">24</div>
+  <h2 class="page-title">DATA<br>PIPELINE</h2>
+  <p class="page-tagline">How player data flows from source CSVs and APIs into every page's UI — layer by layer, with MVS as the canonical value source.</p>
+  <div class="red-bar"></div>
+
+  <div class="feature-block">
+    <h3 class="feature-title"><span class="num">A</span>Five JSON files in data/</h3>
+    <p class="feature-body">Each page bootstraps by fetching: <span class="kbd">data/values.json</span> (FP + Sleeper player metadata, written by <span class="kbd">sync-fp.py</span>), <span class="kbd">data/adp.json</span> (dynasty ADP buckets from the sleeper_dynasty_adp pipeline, written by <span class="kbd">sync-adp.py</span>), <span class="kbd">data/auction.json</span> (Sleeper auction medians, same source), <span class="kbd">data/picks.json</span> (legacy pick values), and <span class="kbd">data/mvs.json</span> (canonical Market Value Score, written by <span class="kbd">sync-mvs.py</span> from the manually-dropped CSV at <span class="kbd">data/source/player_market_mvs.csv</span>).</p>
+  </div>
+
+  <div class="feature-block">
+    <h3 class="feature-title"><span class="num">B</span>The MVS overlay</h3>
+    <p class="feature-body">Once <span class="kbd">FP_VALUES</span> is populated from values.json, the MVS payload is applied on top via <span class="kbd">_applyMvsPayload()</span> — wholesale-replacing the <b>value</b>, <b>trend</b>, <b>baseline</b>, <b>history</b>, <b>tradesLastWeek</b>, <b>otcValue</b>, and <b>rankings</b> fields. FP-API metadata (age, team, pos, ppg) is preserved untouched. Players in FP_VALUES but absent from MVS have their value zeroed so they don't surface in value-sorted lists.</p>
+  </div>
+
+  <div class="feature-block">
+    <h3 class="feature-title"><span class="num">C</span>Toggle-aware aliases</h3>
+    <p class="feature-body">For every multi-format field, the overlay writes three versions on each <span class="kbd">FP_VALUES[name]</span> entry: <span class="kbd">valueSf</span> + <span class="kbd">value1qb</span> + <span class="kbd">value</span> (alias to whichever matches the saved <span class="kbd">fpts-adp-format</span> localStorage value). Same scheme for baseline / history / tradesLastWeek / trend. Shared helpers (e.g. <span class="kbd">MvsExtras.buildAll</span>) read the alias and never need to re-check the toggle.</p>
+  </div>
+
+  <div class="feature-block">
+    <h3 class="feature-title"><span class="num">D</span>Steady update workflow</h3>
+    <p class="feature-body">A new MVS CSV drop replaces <span class="kbd">data/source/player_market_mvs.csv</span> — push.bat step [3b/5] runs <span class="kbd">sync-mvs.py</span> which regenerates <span class="kbd">data/mvs.json</span>, then commits and pushes. History per player trims to last 14 days, recent trades to last 3, keeping the JSON ~2.8 MB.</p>
+  </div>
+
+  <div class="footer-strip"><span>FPTS · FUNCTION REFERENCE</span><span class="accent">24 · DATA PIPELINE</span></div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════════════════
+     25 — LEGEND SYSTEM
+══════════════════════════════════════════════════════════════════════ -->
+<section class="page">
+  <div class="page-num">25</div>
+  <h2 class="page-title">LEGEND<br>SYSTEM</h2>
+  <p class="page-tagline">Per-page expandable documentation drawer — keeps developers and curious users oriented as the site grows.</p>
+  <div class="red-bar"></div>
+
+  <div class="feature-block">
+    <h3 class="feature-title"><span class="num">A</span>Three shared files</h3>
+    <p class="feature-body"><span class="kbd">assets/css/legend.css</span> styles the trigger button + slide-out drawer + accordion sections. <span class="kbd">assets/js/legend.js</span> handles open/close/render. <span class="kbd">assets/js/legend-content.js</span> holds the per-page content dictionary keyed by page slug (<span class="kbd">index</span> / <span class="kbd">adp-tool</span> / <span class="kbd">trade-calculator</span> / <span class="kbd">my-leagues</span> / <span class="kbd">tiers</span>).</p>
+  </div>
+
+  <div class="feature-block">
+    <h3 class="feature-title"><span class="num">B</span>Item schema</h3>
+    <p class="feature-body">Each documented item carries a <b>label</b> (UI name), <b>what</b> (1-2 sentence description), <b>source</b> (file/function/path, rendered monospaced), <b>values</b> (how to interpret displayed numbers + examples), and optional <b>notes</b> (caveats, hints, related code). Missing fields gracefully omit from the rendered output.</p>
+  </div>
+
+  <div class="feature-block">
+    <h3 class="feature-title"><span class="num">C</span>Wiring a page</h3>
+    <p class="feature-body">Each page links <span class="kbd">assets/css/legend.css</span> in its head, then loads <span class="kbd">legend-content.js</span> + <span class="kbd">legend.js</span> in order. On DOMContentLoaded the page calls <span class="kbd">Legend.init('page-key')</span> which builds the floating trigger + drawer DOM and binds keyboard + click handlers. Escape and outside-click both close the drawer.</p>
+  </div>
+
+  <div class="feature-block">
+    <h3 class="feature-title"><span class="num">D</span>Coverage today</h3>
+    <p class="feature-body">~184 items across 38 sections, 5 pages. Trade Database is the deepest (62 items). Each page ends with an <b>"Interactions & Conventions"</b> quick-reference section covering position colors, brand red, keyboard shortcuts, mobile widths, localStorage keys, and numeric thresholds.</p>
+  </div>
+
+  <div class="footer-strip"><span>FPTS · FUNCTION REFERENCE</span><span class="accent">25 · LEGEND</span></div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════════════════
+     26 — SHARED MODULES & PERSISTENCE
+══════════════════════════════════════════════════════════════════════ -->
+<section class="page">
+  <div class="page-num">26</div>
+  <h2 class="page-title">SHARED MODULES<br>& PERSISTENCE</h2>
+  <p class="page-tagline">Two patterns that keep the site coherent: shared JS modules in <span class="kbd">assets/js/</span>, and localStorage keys that cross page boundaries.</p>
+  <div class="red-bar"></div>
+
+  <div class="feature-block">
+    <h3 class="feature-title"><span class="num">A</span>MvsExtras module</h3>
+    <p class="feature-body"><span class="kbd">assets/js/mvs-extras.js</span> exposes <span class="kbd">window.MvsExtras</span> with helpers <span class="kbd">buildOtcRankings</span>, <span class="kbd">buildSparkline</span>, <span class="kbd">buildRecentTrades</span>, <span class="kbd">buildLastUpdated</span>, and <span class="kbd">buildAll</span>. Player modals on the DB, Calc, and My-Leagues pages call <span class="kbd">MvsExtras.buildAll(playerName)</span> and inject the returned HTML into a designated container — one source of truth for the per-modal MVS section.</p>
+  </div>
+
+  <div class="feature-block">
+    <h3 class="feature-title"><span class="num">B</span>localStorage keys</h3>
+    <p class="feature-body"><span class="kbd">fpts-handoff</span> (transient, 60s TTL) carries cross-page player/trade payloads. <span class="kbd">fpts-adp-format</span> ("sf" or "1qb") determines which value format the entire site reads. <span class="kbd">fpts-theme</span> ("dark" or "light") drives the brand palette. <span class="kbd">fpts-sleeper-user</span> caches the my-leagues username. <span class="kbd">fpts-imported-league</span> peeks the last-selected league for the DB read-only restore.</p>
+  </div>
+
+  <div class="feature-block">
+    <h3 class="feature-title"><span class="num">C</span>Cross-page handoff envelope</h3>
+    <p class="feature-body"><span class="kbd">_fptsWriteHandoff(payload, destUrl)</span> stamps a timestamp + payload into localStorage and opens destUrl in a new tab. <span class="kbd">_fptsReadHandoff()</span> reads + clears + returns null if older than 60 seconds. Each page consumes the handoff inside its bootstrap. The envelope shape: <span class="kbd">{ source, primaryPlayer, trade?, players? }</span>.</p>
+  </div>
+
+  <div class="feature-block">
+    <h3 class="feature-title"><span class="num">D</span>Update discipline</h3>
+    <p class="feature-body">When adding or changing UI features, also update <span class="kbd">assets/js/legend-content.js</span> for the affected page slug. <span class="kbd">push.bat</span> warns (non-blocking) if HTML/JS changes were staged without a corresponding legend-content edit. Regenerate this PDF via <span class="kbd">make-pdf.ps1</span> — runs automatically as push.bat step [4/5].</p>
+  </div>
+
+  <div class="footer-strip"><span>FPTS · FUNCTION REFERENCE</span><span class="accent">26 · SHARED + PERSIST</span></div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════════════════
+     27 — DOS & DONTS / WORKING WITH THIS DOC
+══════════════════════════════════════════════════════════════════════ -->
+<section class="page">
+  <div class="page-num">27</div>
   <h2 class="page-title">CLOSING<br>NOTES</h2>
   <p class="page-tagline">A presentation reminder, plus the working conventions that will keep this codebase coherent as it grows.</p>
   <div class="red-bar"></div>
@@ -1565,13 +1661,23 @@
 
     <div class="dod-cell do"><span class="mark">✓</span>Use the brand palette — <span class="kbd">#ED810C</span>, <span class="kbd">#111111</span>, <span class="kbd">#F0F0F0</span> — through CSS variables.</div>
     <div class="dod-cell dont"><span class="mark">✗</span>Inline arbitrary hex values into per-component styles.</div>
+
+    <div class="dod-cell do"><span class="mark">✓</span>When adding or changing UI features, update <span class="kbd">assets/js/legend-content.js</span> for the affected page slug.</div>
+    <div class="dod-cell dont"><span class="mark">✗</span>Ship a new feature without documenting it in the legend — developers handed the codebase will look there first.</div>
+
+    <div class="dod-cell do"><span class="mark">✓</span>Layer the MVS overlay on top of <span class="kbd">FP_VALUES</span> via <span class="kbd">_applyMvsPayload</span> — it preserves Sleeper-sourced metadata.</div>
+    <div class="dod-cell dont"><span class="mark">✗</span>Read player values from <span class="kbd">data/values.json</span> directly without applying the MVS overlay — values will be stale.</div>
   </div>
 
   <h3 class="fn-section-head">How to update this document</h3>
 
-  <p class="feature-body">This file lives at <span class="kbd">docs/function-reference.html</span> and ships alongside the four main pages. When a new function lands or an existing one changes scope, edit this file the same way you edit the others, then run <span class="kbd">push.bat</span> to commit and deploy. The file is print-styled for Letter portrait — open in Chrome, <span class="kbd">Ctrl/Cmd + P</span>, set destination to <em>Save as PDF</em>, layout Portrait, margins None, and turn on background graphics.</p>
+  <p class="feature-body">This file lives at <span class="kbd">docs/function-reference.html</span> and ships alongside the four main pages. When a new function lands or an existing one changes scope, edit this file the same way you edit the others, then run <span class="kbd">push.bat</span> to commit and deploy. The PDF at <span class="kbd">docs/function-reference.pdf</span> is regenerated automatically by push.bat step [4/5] via <span class="kbd">make-pdf.ps1</span> (headless Chrome → Letter portrait print).</p>
 
-  <div class="footer-strip"><span>FPTS · FUNCTION REFERENCE</span><span class="accent">24 · CLOSING · END</span></div>
+  <h3 class="fn-section-head">Legend sync check (automated)</h3>
+
+  <p class="feature-body"><span class="kbd">push.bat</span> includes a non-blocking check before commit: if any of the five HTML pages or shared JS modules in <span class="kbd">assets/js/</span> have staged changes but <span class="kbd">assets/js/legend-content.js</span> has none, the script prints a yellow warning suggesting the developer review the legend. Users can override (changes still commit) but the prompt keeps documentation in sync with code.</p>
+
+  <div class="footer-strip"><span>FPTS · FUNCTION REFERENCE</span><span class="accent">27 · CLOSING · END</span></div>
 </section>
 
 </body>
