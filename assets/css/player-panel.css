@@ -518,6 +518,10 @@
   .pp-articles-section .pp-article-inline > div { padding: 6px 10px !important; }
 }
 
+/* Page-specific "league context" slot collapses to nothing when empty so
+   it doesn't show a hairline border on pages that never populate it. */
+#pp-league-context:empty { display: none !important; }
+
 /* ── Trade-card layout (lifted from index.html so the Trades tab renders
       identically on every page, not just DB) ──────────────────────────── */
 .trade-card {

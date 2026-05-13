@@ -135,6 +135,13 @@
            consistent across every player regardless of heatmap coverage. -->
       <div id="pp-heatmap-tab" style="display:none"></div>
     </div>
+    <!-- Page-specific "league context" slot. DB / Calc / ADP / Tiers leave
+         it empty. My-Leagues populates it after openPanel() with the
+         on-your-roster status badge, Trade For / Send Offer buttons, and
+         cross-league availability section. Lives outside .pp-scroll with
+         flex-shrink:0 so it always pins to the bottom of the panel and
+         survives the openPanelContent clear-and-render pass. -->
+    <div id="pp-league-context" style="flex-shrink:0;border-top:1px solid var(--border);background:var(--surface)"></div>
   </div>
 
 </div>`;
@@ -579,6 +586,14 @@
     // future reintroduction is a one-line change; for now it renders empty.
     const mvsExtrasEl = document.getElementById('pp-mvs-extras');
     if (mvsExtrasEl) mvsExtrasEl.innerHTML = '';
+
+    // ── League-context slot — page-specific. Cleared on every render so
+    // switching players resets it. The host page (e.g. My-Leagues) writes
+    // into #pp-league-context AFTER openPanel(name) returns, populating
+    // the status badge + action buttons + availability section. Other
+    // pages just leave it empty (renders as collapsed via :empty rule).
+    const leagueCtxEl = document.getElementById('pp-league-context');
+    if (leagueCtxEl) leagueCtxEl.innerHTML = '';
     // Stash sleeperId for the ADP Heatmap tab.
     global._ppActiveSleeperId = sleeperId || null;
     const heatmapTabEl = document.getElementById('pp-heatmap-tab');
