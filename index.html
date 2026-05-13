@@ -421,6 +421,10 @@
   }
   .filter-date:focus { outline: none; border-color: var(--red); }
   .filter-date.active { border-color: var(--red); }
+  /* Native calendar picker icon — invert to white on dark theme for visibility */
+  .filter-date::-webkit-calendar-picker-indicator { filter: invert(1) brightness(1.5); opacity: 0.95; cursor: pointer; }
+  .filter-date::-webkit-calendar-picker-indicator:hover { opacity: 1; }
+  [data-theme="light"] .filter-date::-webkit-calendar-picker-indicator { filter: invert(0); opacity: 0.85; }
   .date-range-row {
     background: var(--surface);
     border: 1px solid var(--border);

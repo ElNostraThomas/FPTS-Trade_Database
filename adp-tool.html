@@ -97,8 +97,10 @@
   .date-range { display:inline-flex; align-items:center; gap:8px; padding:6px 12px; border:1px solid var(--border2); background:var(--surface); color:var(--white); font-family:'Mulish',sans-serif; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; }
   .date-range .cal-icon { opacity:.65; font-size:13px; }
   .date-range input[type="date"] { background:transparent; border:none; color:var(--white); font-family:'Mulish',sans-serif; font-size:11px; font-weight:700; padding:2px 0; cursor:pointer; outline:none; color-scheme:var(--color-scheme); }
-  .date-range input[type="date"]::-webkit-calendar-picker-indicator { filter:invert(var(--cal-invert, 1)); opacity:.55; cursor:pointer; }
-  [data-theme="light"] .date-range input[type="date"]::-webkit-calendar-picker-indicator { filter:invert(0); }
+  /* Dark theme: invert native calendar icon to render WHITE for visibility */
+  .date-range input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1) brightness(1.5); opacity: 0.95; cursor: pointer; }
+  .date-range input[type="date"]::-webkit-calendar-picker-indicator:hover { opacity: 1; }
+  [data-theme="light"] .date-range input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(0); opacity: 0.85; }
   .date-range .sep { opacity:.4; }
   .date-presets { display:inline-flex; border:1px solid var(--border2); }
   .date-presets button { background:var(--surface); color:var(--white); border:none; padding:7px 10px; cursor:pointer; font-family:'Mulish',sans-serif; font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:.06em; transition:all .12s; }
@@ -563,7 +565,6 @@
       <button class="controls-btn"        data-qb="1qb" title="Single QB">1QB</button>
     </div>
     <div class="date-range" id="date-range" aria-label="Date range">
-      <span class="cal-icon" aria-hidden="true">📅</span>
       <input type="date" id="date-from" aria-label="From date">
       <span class="sep">–</span>
       <input type="date" id="date-to"   aria-label="To date">
