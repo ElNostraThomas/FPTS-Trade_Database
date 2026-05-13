@@ -5720,6 +5720,24 @@ const KNOWN_PLAYERS = [];
 const posColMap = { WR:"var(--pos-wr-bg)",RB:"var(--pos-rb-bg)",QB:"var(--pos-qb-bg)",TE:"var(--pos-te-bg)",K:"var(--pos-k-bg)" };
 const posTxtMap = { WR:"var(--pos-wr)",   RB:"var(--pos-rb)",   QB:"var(--pos-qb)",   TE:"var(--pos-te)",   K:"var(--pos-k)"   };
 
+// ─── Mirror page-local data to window so the shared player-panel module can
+//     read it. `let` / `const` at the top of a classic <script> stays in the
+//     script's scope and never becomes a window property automatically. The
+//     shared module (loaded from a separate <script src=>) reads
+//     window.FP_VALUES / window.TRADES / etc., so without these mirrors every
+//     stat in the panel renders as "—".
+//     FP_VALUES is mutated in place via Object.assign, so the reference stays
+//     valid. TRADES is reassigned later in the bootstrap chain — the bootstrap
+//     also writes `window.TRADES = TRADES` after each rebuild so this stays
+//     fresh.
+window.FP_VALUES    = FP_VALUES;
+window.SLEEPER_IDS  = SLEEPER_IDS;
+window.TRADES       = TRADES;
+window.KNOWN_PLAYERS = KNOWN_PLAYERS;
+window.ADP_DATA     = ADP_DATA;
+window.posColMap    = posColMap;
+window.posTxtMap    = posTxtMap;
+
 // ppSearchInput / ppSearchKey / ppSearchSelect / ppFocusResult / ppSwitchTo /
 // ppRemovePlayer / ppRenderTabStrip and the global ppPlayers / ppActivePlayer
 // state previously lived here. All moved to assets/js/player-panel.js (shared
@@ -6145,7 +6163,7 @@ function renderAssetFilterTags(){renderTradeSideTags("a");renderTradeSideTags("b
     }
     // Now that MVS is loaded, build the global TRADES array from real trade
     // observations (replaces the retired hardcoded sample data).
-    try { TRADES = _buildTradesFromMvs(); filtered = [...TRADES]; } catch (e) { console.warn('[fp-bootstrap] _buildTradesFromMvs skipped:', e.message); }
+    try { TRADES = _buildTradesFromMvs(); filtered = [...TRADES]; window.TRADES = TRADES; } catch (e) { console.warn('[fp-bootstrap] _buildTradesFromMvs skipped:', e.message); }
     // Each init function may not exist on every page, and some may throw on
     // pages where their DOM elements aren't present. Catch each individually
     // so a single broken init doesn't block the loader from hiding.
