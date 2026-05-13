@@ -4214,7 +4214,9 @@ function openPlayerDetail(sleeperId) {
     </div>
     ${stats}
     <div id="ml-pd-mvs-extras"></div>
-    <!-- Tab strip — matches the DB player panel for cross-page consistency. -->
+    <!-- SYNC-RULE: keep this 5-tab strip aligned with the player modals on
+         the other three pages (DB / Calc / ADP-tool). Add or change tabs in
+         all four files in the same commit. push.bat warns on drift. -->
     <div class="pp-tabs" style="border-top:1px solid var(--border)">
       <button class="pp-tab active" type="button" onclick="_mlShowTab('trades')">Trades</button>
       <button class="pp-tab" type="button" onclick="_mlShowTab('stats')">Player Stats</button>

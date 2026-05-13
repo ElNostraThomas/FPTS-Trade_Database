@@ -1667,6 +1667,9 @@
 
     <div class="dod-cell do"><span class="mark">✓</span>Layer the MVS overlay on top of <span class="kbd">FP_VALUES</span> via <span class="kbd">_applyMvsPayload</span> — it preserves Sleeper-sourced metadata.</div>
     <div class="dod-cell dont"><span class="mark">✗</span>Read player values from <span class="kbd">data/values.json</span> directly without applying the MVS overlay — values will be stale.</div>
+
+    <div class="dod-cell do"><span class="mark">✓</span>Keep the 5-tab strip <b>identical</b> across every player modal: Trades / Player Stats / Age Curve / Trade Finder / ADP Heatmap. Update all four (DB / Calc / My-Leagues / ADP-tool) together.</div>
+    <div class="dod-cell dont"><span class="mark">✗</span>Add or remove a tab on one modal without mirroring the change across the other three. Push.bat warns; user-facing inconsistency is unacceptable.</div>
   </div>
 
   <h3 class="fn-section-head">How to update this document</h3>
@@ -1676,6 +1679,10 @@
   <h3 class="fn-section-head">Legend sync check (automated)</h3>
 
   <p class="feature-body"><span class="kbd">push.bat</span> includes a non-blocking check before commit: if any of the five HTML pages or shared JS modules in <span class="kbd">assets/js/</span> have staged changes but <span class="kbd">assets/js/legend-content.js</span> has none, the script prints a yellow warning suggesting the developer review the legend. Users can override (changes still commit) but the prompt keeps documentation in sync with code.</p>
+
+  <h3 class="fn-section-head">Player-modal tab sync check (automated)</h3>
+
+  <p class="feature-body">The four pages that own a player modal (<span class="kbd">index.html</span>, <span class="kbd">trade-calculator.html</span>, <span class="kbd">my-leagues.html</span>, <span class="kbd">adp-tool.html</span>) must keep the same five tab buttons: <b>Trades / Player Stats / Age Curve / Trade Finder / ADP Heatmap</b>. <span class="kbd">push.bat</span> counts the tab buttons on each page and warns (non-blocking) if any page differs from the others — adding a tab on only one modal is the most common consistency regression. Each modal's tab strip in the HTML carries a <span class="kbd">SYNC-RULE</span> comment as a reminder for developers reading the markup.</p>
 
   <div class="footer-strip"><span>FPTS · FUNCTION REFERENCE</span><span class="accent">27 · CLOSING · END</span></div>
 </section>

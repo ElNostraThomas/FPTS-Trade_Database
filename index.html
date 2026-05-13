@@ -1954,6 +1954,10 @@
     <!-- MVS extras: OTC + rankings + sparkline + recent trades. Populated via MvsExtras.buildAll(playerName). -->
     <div id="pp-mvs-extras"></div>
 
+    <!-- SYNC-RULE: this 5-tab strip must stay aligned across every player
+         modal on the site (DB / Calc / My-Leagues / ADP-tool). When you
+         add, rename, or remove a tab here, update the other three pages
+         in the same commit. push.bat warns if they drift apart. -->
     <div class="pp-tabs">
       <button class="pp-tab active" onclick="ppShowTab('trades')">Trades</button>
       <button class="pp-tab" onclick="ppShowTab('stats')">Player Stats</button>

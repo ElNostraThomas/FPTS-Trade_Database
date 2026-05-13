@@ -3355,11 +3355,11 @@ function _calcRenderDbCtaTab(tabName, playerName) {
     <!-- MVS extras: OTC + rankings + sparkline + recent trades (shared helper) -->
     <div id="calc-pp-mvs-extras"></div>
 
-    <!-- Tab strip — matches the DB player panel for cross-page consistency.
-         Trades + ADP Heatmap render inline using MVS data + Heatmap module.
-         Player Stats / Age Curve / Trade Finder show a "View in Database"
-         CTA because those depend on large render code that lives on the
-         DB page (PLAYER_STATS_DATA + age curves + combinatorial finder). -->
+    <!-- SYNC-RULE: keep this 5-tab strip aligned with the player modals on
+         the other three pages (DB / My-Leagues / ADP-tool). Add or change
+         tabs in all four files in the same commit. push.bat warns on drift.
+         Trades + ADP Heatmap render inline; Player Stats / Age Curve /
+         Trade Finder show "Open in Database" CTAs (heavy code lives on DB). -->
     <div class="pp-tabs" style="border-top:1px solid var(--border)">
       <button class="pp-tab active" type="button" onclick="_calcShowTab('trades')">Trades</button>
       <button class="pp-tab" type="button" onclick="_calcShowTab('stats')">Player Stats</button>
