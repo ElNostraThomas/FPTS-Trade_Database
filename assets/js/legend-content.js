@@ -4,13 +4,42 @@
 
    Item schema:
      label   — the UI element's name as the user sees it
-     what    — 1-2 sentence description of its purpose
-     source  — file/field/path the data comes from
-     values  — how to interpret the displayed value (when applicable)
-     notes   — caveats, edge cases, or developer hints (optional)
+     what    — 2-3 sentences explaining the purpose & behavior
+     source  — file/function/field/path the data comes from
+     values  — how to interpret the displayed value, with thresholds/examples
+     notes   — caveats, edge cases, or developer hints (function names, file:line, related code)
 
    When updating the site, please keep this file in sync — it's what developers
-   will read to understand what each feature does and where its data lives. */
+   will read to understand what each feature does and where its data lives.
+
+   ──────────────────────────────────────────────────────────────────────
+   GLOBAL DATA PIPELINE (high-level — same on every page)
+   ──────────────────────────────────────────────────────────────────────
+   data/values.json         FantasyPoints API + Sleeper join     sync-fp.py
+     → FP_VALUES[name].{value, age, team, pos, posRank, ppg, sleeperId, injury}
+
+   data/adp.json            sleeper_dynasty_adp parquet          sync-adp.py
+     → ADP_PAYLOAD.byMonth.{YYYY-MM,ALL}.{picks,simple,rookies,startup}_{sf,1qb}
+
+   data/auction.json        Sleeper auction medians              sync-adp.py
+     → AUCTION_PAYLOAD.byMonth.ALL.startup_{sf,1qb}
+
+   data/picks.json          Pick values (legacy slot format)     sync-fp.py
+     → PICK_VALUES["2026-1.01"] = { value, valueSf, valueTep }
+
+   data/mvs.json            MVS canonical values (NEW)            sync-mvs.py
+     → MVS_PAYLOAD.players + .picks  (overlays FP_VALUES wholesale)
+
+   data/articles.json       FantasyPoints recent articles         sync-fp.py
+     → PLAYER_ARTICLES[name] = [{ title, url, snippet, image }]
+
+   data/projections.json    Sleeper season + weekly proj          sync-fp.py
+     → window.PROJECTIONS keyed by sleeper_id
+
+   data/pick-availability.json   Heatmap data (adp-tool only)     sync-adp.py
+     → loaded lazily for the player modal heatmap
+   ──────────────────────────────────────────────────────────────────────
+*/
 
 window.LegendContent = {
 
@@ -18,76 +47,103 @@ window.LegendContent = {
   'index': {
     title: 'Trade Database',
     blurb: 'Aggregated dynasty trade observations with per-player insights. ' +
-           'All trade data is sourced from data/mvs.json (player_market_mvs CSV ' +
-           '→ sync-mvs.py). Player metadata (age, team, ppg) is from data/values.json ' +
-           '(FantasyPoints API → sync-fp.py).',
+           'Master TRADES array is built at page load from data/mvs.json player.recentTrades (deduplicated ' +
+           'by transaction_id, ~1,405 unique trades). Player values come from data/mvs.json (wholesale ' +
+           'overlay on data/values.json). Visit any other page from a player\'s panel via the cross-page handoff buttons.',
     sections: [
+      {
+        name: 'Topnav',
+        items: [
+          { label: 'Wordmark + Front Office Tag', what: 'Brand identity in the top-left. SVG asset that swaps light/dark when the theme toggle changes.', source: 'Inline SVG; light variant defined in WORDMARK_LIGHT constant', values: '—', notes: 'Same wordmark across all 5 pages; if it ever diverges, run a regression check.' },
+          { label: 'Nav Links (Calculator / User Importer / Tiers / ADP / Rankings)', what: 'Cross-page navigation. Current page\'s own link is omitted from its own nav.', source: 'Hardcoded <a class="nav-link"> markup in each page\'s topnav', values: 'Rankings opens FantasyPoints.com externally', notes: 'Order is identical across pages — verify if you add a new page (commit 2d88de2 verified consistency).' },
+          { label: 'Theme Toggle (#theme-toggle)', what: 'Toggles between dark and light variants of the brand palette.', source: 'Click handler reassigns CSS var values via document.documentElement.setAttribute("data-theme", ...)', values: 'dark (default) / light', notes: 'CSS in :root vs [data-theme="light"] block; wordmark SVG also swaps. Persisted in localStorage as "fpts-theme".' },
+        ],
+      },
       {
         name: 'Filter Panel',
         items: [
-          { label: 'QB Format Filter', what: 'Filter trade list to Superflex / 1QB / All.', source: 'recent_trades.format from CSV', values: 'SF / 1QB / All', notes: 'Picking a non-"all" value with no other filter shows all trades for that QB format.' },
-          { label: 'Teams Count Filter', what: 'Filter trades by league size (8/10/12/14).', source: 'NOT in current CSV — filter is null-safe (wildcard match)', values: '8 / 10 / 12 / 14 / All', notes: 'Awaiting CSV schema extension (see data/source/REQUEST-csv-schema-extension.md).' },
-          { label: 'Starters Filter', what: 'Filter by lineup starter count.', source: 'NOT in current CSV — null-safe wildcard', values: '8 / 9 / 10 / 11 / 12 / 13 / All', notes: 'Schema-extension pending.' },
-          { label: 'TEP Filter', what: 'Filter by tight-end-premium bonus.', source: 'NOT in current CSV — null-safe wildcard', values: 'none / 0.25 / 0.5 / 0.75 / 1.0 / All', notes: 'Schema-extension pending.' },
-          { label: 'PPR Filter', what: 'Filter by points-per-reception variant.', source: 'NOT in current CSV — null-safe wildcard', values: 'Full PPR / Half PPR / PPC / Standard / All', notes: 'Schema-extension pending.' },
-          { label: 'FAAB Filter', what: 'Show only trades that include FAAB budget.', source: 'NOT in current CSV — null-safe wildcard', values: 'Includes FAAB / No FAAB / All', notes: 'Schema-extension pending.' },
-          { label: 'Date Range', what: 'Constrain trade list to a date window.', source: 'recent_trades.date from CSV (YYYY-MM-DD)', values: 'Empty = no constraint', notes: 'Always available since date is in the CSV.' },
-          { label: 'Asset Count Filter', what: 'Cap total assets per trade (players + picks).', source: 'Computed from trade.players + trade.picks lengths', values: '≤2 / ≤3 / ≤4 / ≤5 / All', notes: 'Useful for finding 1-for-1 vs blockbuster trades.' },
-          { label: 'Rookie Pick Builder', what: 'Filter trades that include specific rookie picks.', source: 'recent_trades.sides[].assets where isPick=true', values: 'Select pick year/round to filter', notes: 'Picks are deduplicated by transaction_id across all player recentTrades.' },
+          { label: 'Filter Collapsible (mobile)', what: 'On phone widths the filter panel collapses behind a toggle button to save real estate.', source: 'toggleMobileFilters() at index.html ~L7550; #filter-toggle-btn + #filter-collapsible-body', values: '—', notes: 'Desktop view always shows filters expanded.' },
+          { label: 'QB Format Filter (#f-qb)', what: 'Filter trade list to Superflex / 1QB / All. Matched against t.qb (set from CSV recent_trades.format).', source: 'applyFilters() at L2904; checks t.qb === fqb', values: 'all (default) / sf / 1qb', notes: 'qb field IS in the CSV (100% coverage) so this filter is fully functional.' },
+          { label: 'Teams Count Filter (#f-teams)', what: 'Filter trades by league size. Currently null-safe (CSV does not carry teams_count per trade), so any pick except All matches every trade with null.', source: 'applyFilters() L2925: (ftm==="all"||t.teams_count==null||t.teams_count===parseInt(ftm))', values: '8 / 10 / 12 / 14 / All', notes: 'Awaiting CSV schema extension — see data/source/REQUEST-csv-schema-extension.md.' },
+          { label: 'Starters Filter (#f-starters)', what: 'Filter by lineup starter count. Null-safe (data not in CSV yet).', source: 'applyFilters() L2924', values: '8 / 9 / 10 / 11 / 12 / 13 / All', notes: 'Schema-extension pending.' },
+          { label: 'TEP Filter (#f-tep)', what: 'Filter by tight-end-premium bonus. Null-safe.', source: 'applyFilters() L2926', values: 'none / 0.25 / 0.5 / 0.75 / 1.0 / All', notes: 'Schema-extension pending.' },
+          { label: 'PPR Filter (#f-ppr)', what: 'Filter by points-per-reception variant. Null-safe.', source: 'applyFilters() L2927', values: '1 (Full PPR) / 0.5 (Half) / 0.25 (PPC) / 0 (Standard) / All', notes: 'Schema-extension pending.' },
+          { label: 'PPC Filter (#f-ppc)', what: 'Separate PPC slot — currently a duplicate of PPR. Both check t.ppr in applyFilters.', source: 'applyFilters() L2928', values: '—', notes: 'May be redundant; consider removing once CSV schema extends.' },
+          { label: 'Pass-TD Filter (#f-passtd)', what: 'Filter by points-per-passing-touchdown. Null-safe.', source: 'applyFilters() L2932', values: '4 / 6 / All', notes: 'Schema-extension pending.' },
+          { label: 'FAAB Filter (#f-faab)', what: 'Trades that include FAAB on either side. Null-safe in current data.', source: 'applyFilters() L2929', values: 'yes / no / All', notes: 'Schema-extension pending.' },
+          { label: 'Roster Size Filter (#f-roster)', what: 'Cap roster size (bench depth). Null-safe.', source: 'applyFilters() L2934', values: '20 / 22 / 25 / 30 / 35 / 40 / All', notes: 'Schema-extension pending.' },
+          { label: 'Date Range (#f-date-from, #f-date-to)', what: 'Constrain trades to a date window. Always functional since CSV provides ISO dates.', source: 'applyFilters() L2930-2931', values: 'YYYY-MM-DD strings; empty = no constraint', notes: 'See setDatePreset() at L2921 for the preset chips.' },
+          { label: 'Asset Count Filter (#f-assets)', what: 'Cap total assets per trade (players + picks combined).', source: 'applyFilters() L2933 with totalAssets computed inline', values: '≤2 / ≤3 / ≤4 / ≤5 / All', notes: 'Useful for finding 1-for-1 vs blockbuster trades.' },
+          { label: 'Rookie Pick Builder (#f-rookie-picks)', what: 'Builder UI to filter for trades that include specific rookie picks (year + round, optional slot).', source: 'getSelectedPicks() returns array of {year, round, slot}; applyFilters() L2937 checks intersection', values: 'Multi-select chips per pick', notes: 'Used heavily by rookie-pick-hunting users.' },
+          { label: 'Active Filter Chips Row', what: 'Visual readout of which non-default filters are currently applied. Click X to clear that filter.', source: 'Built inside applyFilters() L2962 onwards', values: 'Color-tinted chips per active filter', notes: 'Hidden when all filters are at default (All / empty).' },
+          { label: 'Reset Filters Button', what: 'One-click reset of every filter back to All / empty / default.', source: 'resetFilters() at L2965', values: '—', notes: 'Does not clear the Side A/B trade search — only the dropdowns + dates.' },
         ],
       },
       {
-        name: 'Trade Search (Side A / Side B)',
+        name: 'Trade Search (Two-Sided)',
         items: [
-          { label: 'Side A / Side B Search', what: 'Find trades that include specified assets on each side. Both sides must match.', source: 'Combines player + pick autocompletes against TRADES array', values: 'Multiple chips per side allowed', notes: 'Search is symmetric — A and B sides can be swapped without affecting results.' },
-          { label: 'Trade Cards', what: 'Each card shows one observed trade with both sides, asset MVS values, and date.', source: 'TRADES array (built from data/mvs.json player.recentTrades)', values: 'Format chip = SF or 1QB; other chips render only when data exists', notes: 'There are ~1,405 unique real trades after dedup by transaction_id.' },
+          { label: 'Side A / Side B Search Inputs (#search-a, #search-b)', what: 'Find trades that include specific assets on each side. Both sides must match for a trade to appear.', source: 'tradeSearch.a + tradeSearch.b arrays of {type,label}; matched in applyFilters() L2939', values: 'Player names or pick labels like "2026 1st"', notes: 'Sides are symmetric — A and B can be swapped without affecting results.' },
+          { label: 'Search Result Dropdown (.pp-search-results)', what: 'Live autocomplete of players + picks as user types. Selecting a result adds it as a chip on that side.', source: 'Filters FP_VALUES keys + known pick labels by input substring; rendered inline below input', values: 'Tiny HS + pos pill + name per result', notes: 'See .pp-search-result CSS at L1795-1801.' },
+          { label: 'Side Tags (search-tags-a / search-tags-b)', what: 'Chips representing the user\'s active search asset selections.', source: 'tradeSearch[side] array; rendered after each pick', values: 'Click X to remove the chip', notes: 'Both sides cleared by clearMainSearch() at L7558.' },
+          { label: 'Filter Count Badge', what: 'Shows "X trades" matching the current Side A + B search.', source: '#player-filter-count text content; updated in applyFilters()', values: 'Numeric count', notes: 'Hidden until a search is active.' },
         ],
       },
       {
-        name: 'Most Traded Players / Picks',
+        name: 'Sections 01-04 (the main page content)',
         items: [
-          { label: 'Most Traded Players (02)', what: 'Top 10 players who appear most in the filtered trade list.', source: 'Aggregated count of player.name across filtered TRADES', values: 'Bar chart shows relative count', notes: 'Click a row to expand the player\'s individual trades inline.' },
-          { label: 'Most Traded Rookie Picks (03)', what: 'Top 10 picks (year + round) appearing most in filtered trades.', source: 'Aggregated count of pick.year + pick.round across filtered TRADES', values: 'Bar chart, grouped by year-round', notes: 'Picks parsed from CSV labels like "2026 1.01" → {year:2026, round:1, slot:1}.' },
+          { label: '01 — Recent Trades List', what: 'Time-ordered list of trade cards matching all active filters.', source: 'renderRecent() at L2979; reads filtered array (TRADES filtered by applyFilters)', values: 'Up to 100 trades shown per page; sorted newest first by date', notes: '~1,405 total trades after dedup; trade card template at L7525.' },
+          { label: 'Trade Card (.trade-card)', what: 'Anatomy: date + format chip on top, two sides (A/B) with each asset row showing HS + pos badge + name + NFL team, dotted divider between sides, format/league chips below.', source: 'tradeCardHtml() near L7470', values: 'Asset rows render players + picks; picks open pick modal on click', notes: 'Chips conditionally render based on data availability (commit 8e60ee8).' },
+          { label: '02 — Most Traded Players', what: 'Top 10 players appearing most in the filtered TRADES list. Bar chart of relative trade frequency.', source: 'renderTopPlayers() at L3047; aggregates filtered.flatMap(t => t.players)', values: 'Bar = trade count relative to max; click row to expand inline trade list', notes: 'Expanded rows use toggleExpandPlayer() at L2997.' },
+          { label: '03 — Most Traded Rookie Picks', what: 'Top 10 picks (year + round combined) appearing most in filtered trades.', source: 'renderTopPicks() at L3063', values: 'Bar chart of relative pick movement', notes: 'Aggregates picks regardless of slot — "2026 R1" counts all 1.01-1.12.' },
+          { label: '04 — Assets Traded by Type (position distribution)', what: 'Distribution of all assets in the filtered trade list, grouped by position + a PICKS bucket.', source: 'renderPositions() at L3107', values: 'QB / RB / WR / TE / PICKS bars in position colors', notes: 'PICKS uses purple (--pos-pick-bg). Click a row to expand asset detail.' },
+          { label: 'Section Tabs (Recent / Top Players / Top Picks / Positions)', what: 'Switch between sections 01-04 on narrow screens. Desktop shows all simultaneously.', source: 'showTab() at L3123', values: 'recent / top-players / top-picks / positions', notes: 'Tab UI is mobile-first; desktop visibility is overridden via CSS.' },
         ],
       },
       {
         name: 'Value Tracker (Risers / Fallers)',
         items: [
-          { label: 'Risers', what: 'Top 10 players with the largest positive ADP change over the past 30 days.', source: 'FP_VALUES[name].trend, populated by _applyAdpPayload from monthly ADP deltas', values: 'Positive trend = ADP improved (rising); higher = bigger move', notes: 'Replaced the previous FP-API scalar trend in commit 892b2ad — now uses ADP-derived month-over-month movement.' },
-          { label: 'Fallers', what: 'Top 10 players with the largest negative ADP change over the past 30 days.', source: 'Same as Risers, filtered to negative trend', values: 'Negative trend = ADP got worse (falling); lower = bigger drop', notes: 'Sorted ascending (most negative first).' },
-        ],
-      },
-      {
-        name: 'Position Distribution',
-        items: [
-          { label: 'Assets Traded by Type (04)', what: 'Distribution of all assets in the filtered trade list, grouped by position.', source: 'Counted from filtered TRADES.players[].pos + count of picks bucket', values: 'PICKS row uses purple, position rows use brand position-color', notes: 'Click an asset-type row to expand individual trades involving that asset class.' },
+          { label: 'Risers Panel (#value-risers)', what: 'Top 10 players whose ADP has improved the most (rising up draft boards) over the past 30 days.', source: 'renderValueTracker() at L3129; uses FP_VALUES[name].trend (positive = rising)', values: 'Each row: HS + pos badge + name + value + green ▲ trend amount', notes: 'Trend populated by _applyAdpPayload from month-over-month ADP deltas (commit 892b2ad).' },
+          { label: 'Fallers Panel (#value-fallers)', what: 'Top 10 players whose ADP has worsened the most.', source: 'Same source as Risers, filtered to negative trend; sorted ascending', values: 'Each row: HS + pos + name + value + red ▼ trend amount', notes: 'Trend convention: positive trend = ADP improved; negative = ADP fell.' },
+          { label: 'Trend Outline (.trend)', what: 'Visual treatment for trend arrows so they\'re legible over any background color (position-colored rows).', source: 'Shared CSS rule applied across all pages via assets utilities', values: 'text-shadow 8-direction + -webkit-text-stroke 0.5px #000', notes: 'Trend up = #66dd84 (green); down = var(--red) #ED810C.' },
         ],
       },
       {
         name: 'Player Panel (slide-in)',
         items: [
-          { label: 'Player Profile Header', what: 'Top section with circular headshot, position pill, NFL team, large player name, and inline stats.', source: 'FP_VALUES[name] for stats; headshot URL built from sleeperId via sleepercdn.com', values: 'Stats row shows Age, Pos Rank, Overall Rank, PPG, Dynasty ADP, Auction', notes: 'Headshot falls back to first-letter initial if Sleeper CDN 404s.' },
-          { label: 'Fantasy Points Value', what: 'Right-floating canonical player value.', source: 'FP_VALUES[name].value (= MVS overlay; SF or 1QB based on toggle)', values: 'Number range ~1 to ~10,500 (MVS units)', notes: 'Toggle SF↔1QB on adp-tool to switch which format this shows. Persists in localStorage.' },
-          { label: 'Trade Stats Row (4 columns)', what: 'Aggregated stats across all trades involving this player.', source: 'Computed from TRADES.filter(t => t.players.some(p => p.name === playerName))', values: 'Times Traded, Avg Pick Included, Avg Added Value Needed, Avg Assets Moved', notes: 'Updates live as filters change (only trades matching active filters count).' },
-          { label: 'MVS Extras — OTC Value', what: 'On-The-Clock value with delta vs MVS.', source: 'FP_VALUES[name].otcValue (CSV: otc_value column)', values: 'Format: "9,000 (+1,452 vs MVS)"; positive diff = MVS higher than OTC', notes: 'Hidden when CSV row lacks otc_value.' },
-          { label: 'MVS Extras — Baseline', what: 'Pre-market formula baseline + % delta vs current MVS.', source: 'FP_VALUES[name].baseline (CSV: baseline_sf / baseline_1qb)', values: 'Positive % = market priced above baseline (hype); negative % = below (sell signal)', notes: 'Toggle-aware: uses baseline_1qb when format=1qb.' },
-          { label: 'MVS Extras — Trade Volume (7d)', what: 'Number of times this player was in an observed trade in the past 7 days.', source: 'FP_VALUES[name].tradesLastWeek (CSV: trades_last_week_sf / trades_last_week_1qb)', values: 'Hot ≥200 / Active ≥50 / Quiet >0 / No trades', notes: 'Liquidity signal — high volume means more reliable price discovery.' },
-          { label: 'MVS Extras — Contributor Rankings', what: 'Per-contributor consensus rankings.', source: 'FP_VALUES[name].rankings.{main, jax, jay, joe, trav} (CSV: *_rankings columns)', values: 'Lower number = higher consensus rank (1 = best)', notes: 'Main is the aggregated consensus; the four named contributors are individual rankers.' },
-          { label: 'MVS History Sparkline', what: '14-day MVS value history.', source: 'FP_VALUES[name].history (CSV: history_sf or history_1qb, last 14 entries)', values: 'Green line = value rose; red = fell; white = flat; footer shows min · delta · current · max', notes: 'Toggle-aware: shows 1QB history when format toggle is 1QB.' },
-          { label: 'Recent Trades Widget', what: 'Last 3 actual observed trades involving this player.', source: 'FP_VALUES[name].recentTrades (CSV: recent_trades JSON column, trimmed to 3 most recent)', values: 'Each card: date, format badge, both sides with assets + MVS, side totals', notes: 'Focus player\'s name is highlighted red so you can spot them in multi-asset packages.' },
-          { label: 'Tabs', what: 'Switch the bottom pane between Trades, Player Stats, Age Curve, Trade Finder.', source: 'ppShowTab() with state preserved in ppLastTab variable', values: '4 tab options', notes: 'Reopening the panel restores the last-selected tab so users don\'t lose their place.' },
-          { label: 'Trades Tab', what: 'Full list of trades involving this player (not just last 3).', source: 'TRADES array filtered by playerName, sorted by date desc', values: 'Each row is the same trade card as the main Recent Trades list', notes: 'Respects the global filter chips selected at the top of the page.' },
-          { label: 'Player Stats Tab', what: '2025 season fantasy stats (passing, rushing, receiving, PPG).', source: 'PLAYER_STATS_DATA hardcoded block (large embedded array)', values: 'PPG, games played, pass/rush/rec yards + TDs', notes: 'Currently hardcoded — could be replaced with Sleeper /stats endpoint for live data.' },
-          { label: 'Age Curve Tab', what: 'Position-relative value projection across the player\'s career arc.', source: 'Computed from FP_VALUES[name].age, value, posKey + per-position curve constants', values: 'Curve peaks at position-appropriate age (RB 24, WR 26, TE 27, QB 28)', notes: 'Curves are heuristics, not regression-fitted.' },
-          { label: 'Trade Finder Tab', what: 'Suggest fair trade packages on either side using FP_VALUES.', source: 'Combinatorial search over FP_VALUES + PICK_VALUES within a value tolerance', values: 'Each suggestion shows asset list + total value', notes: 'Uses MVS value as the matching target — so swaps reflect real market data.' },
-          { label: 'Cross-page Action Bar', what: 'Buttons to send the current player to Calculator / ADP / My Leagues.', source: '_fptsWriteHandoff() writes player name to localStorage; destination page reads on load', values: '60-second TTL on the handoff payload', notes: 'Single-tab UX — opens in a new tab.' },
-          { label: 'MVS Data Refreshed Footer', what: 'Timestamp showing when the MVS CSV was last regenerated.', source: 'FP_VALUES[name].lastUpdated (CSV: last_updated column)', values: 'Format: "MVS data refreshed YYYY-MM-DD HH:MM"', notes: 'Per-player timestamp, but all players in one CSV share the same update time.' },
+          { label: 'Open Trigger', what: 'Click any player name in any rank card, trade asset, or value-row → panel slides in from right.', source: 'openPanel(name) at L7000+; transformed via .open class on #player-panel', values: '—', notes: 'Cross-page handoff also auto-opens it on load if ?fpts-handoff in URL.' },
+          { label: 'Close Button + Backdrop Click', what: 'Two ways to close: ✕ button at top-right of panel, or click outside the panel onto the dimmed backdrop.', source: 'closePanel() at L7062', values: '—', notes: 'Escape key also closes (handler on document).' },
+          { label: 'Cross-page Action Bar (top)', what: '"Open in Calculator / ADP / My Leagues" buttons. Each writes player name to localStorage via _fptsWriteHandoff with 60s TTL, then opens the destination page in a new tab.', source: 'L1991-2012; uses window.open(url, "_blank", "noopener")', values: '—', notes: 'Destination page reads via _fptsReadHandoff and auto-opens that player.' },
+          { label: 'Player Profile (.pp-profile)', what: 'Header section: 96px circular HS, position pill + NFL team, 32px Kanit name, inline stats row, right-floating Fantasy Points value.', source: 'Markup at L1881-1887, CSS overrides at L1440-1453', values: 'Stats row: Age, Pos Rank, Overall Rank, PPG, Dynasty ADP, Auction', notes: 'Visual unification commit fce350f matched this to adp-tool/tiers patterns.' },
+          { label: 'Fantasy Points Value (#pp-value-val)', what: 'Right-floating canonical player value. The headline number the entire site reads as "this player\'s value".', source: 'FP_VALUES[name].value, which is now MVS-overlaid (commit 019ca4e). SF or 1QB per toggle.', values: 'Number range ~1 to ~10,500 in MVS units', notes: 'Toggle SF↔1QB on adp-tool to switch which format shows here. Persists in localStorage fpts-adp-format.' },
+          { label: 'Trade Stats Row (#pp-stats-left)', what: '4-column grid showing how often this player appears in trades + average context per trade.', source: 'Computed in openPanel from playerTrades = TRADES.filter(t => has player)', values: 'Times Traded (red) / Avg Pick Included / Avg Added Value Needed / Avg Assets Moved', notes: 'Recomputes whenever the global TRADES filter changes.' },
+          { label: 'MVS Extras: OTC Value', what: 'OnTheClock cross-check value with delta vs current MVS. Helps identify if MVS is in line with the secondary market.', source: 'FP_VALUES[name].otcValue from CSV otc_value column', values: 'Format: "9,000 (+1,452 vs MVS)". Positive = MVS above OTC.', notes: 'Hidden when CSV row lacks otc_value. Rendered by MvsExtras.buildOtcRankings.' },
+          { label: 'MVS Extras: Baseline', what: 'Pre-market formula baseline value + percentage delta vs current MVS. Indicates whether the market is paying a premium (hype) or discount (sell signal) vs the formula\'s expected value.', source: 'FP_VALUES[name].baseline (toggle-aware between baselineSf / baseline1qb)', values: 'Positive % (green) = market above baseline; negative % (red) = below', notes: 'Toggle-aware via _applyMvsPayload — uses baseline_1qb when fmt=1qb (commit 1aaa21e).' },
+          { label: 'MVS Extras: Trade Volume (7d)', what: 'Number of distinct trades this player has been involved in across the dynasty scrape over the past 7 days. Real-time liquidity signal.', source: 'FP_VALUES[name].tradesLastWeek (toggle-aware between tradesLastWeekSf / 1qb)', values: 'Hot ≥200 (red badge) / Active ≥50 (orange) / Quiet >0 (grey) / No trades', notes: 'High volume means more reliable price discovery — the market is actively assessing this player.' },
+          { label: 'MVS Extras: Contributor Rankings', what: 'Individual ranker positions from the FantasyPoints contributor team plus the aggregated Main consensus.', source: 'FP_VALUES[name].rankings.{main, jax, jay, joe, trav} (CSV: *_rankings columns)', values: 'Lower number = higher rank (1 = best). Main is the aggregate; named contributors are individuals.', notes: 'When ranker disagreement is wide (e.g. Jax 50 vs Trav 200), the player is contentious.' },
+          { label: 'MVS History Sparkline', what: 'Inline SVG line chart of the player\'s MVS value over the past 14 days. No charting library — pure SVG path.', source: 'FP_VALUES[name].history (toggle-aware history / historySf / history1qb), each entry {mvs, date}', values: 'Green line = value rose since start; red = fell; white = flat. Footer: min · delta · current · max', notes: 'Color of stroke matches trend direction. Footer text shows specific delta number.' },
+          { label: 'Recent Trades Widget', what: 'Last 3 most recent actual trade observations involving this specific player. Shows both sides + each asset\'s MVS at trade time.', source: 'FP_VALUES[name].recentTrades (CSV recent_trades JSON, trimmed to 3 most recent)', values: 'Each card: date + format badge + side A vs side B with asset list + side totals', notes: 'Focus player\'s name is highlighted red so users can spot them in multi-asset packages. Asset .mvs reflects trade-time value, not current.' },
+          { label: 'MVS Data Refreshed (footer)', what: 'Timestamp showing when the MVS CSV was last regenerated (per the upstream data run).', source: 'FP_VALUES[name].lastUpdated from CSV last_updated column', values: 'Format: "MVS data refreshed YYYY-MM-DD HH:MM"', notes: 'All players share the same lastUpdated per CSV run, so it\'s a global freshness marker.' },
+          { label: 'Tabs Row (.pp-tabs)', what: 'Tab switcher for the bottom pane: Trades, Player Stats, Age Curve, Trade Finder.', source: 'ppShowTab() at L7574', values: '4 tabs; last-selected persisted in ppLastTab variable so reopening the panel restores it', notes: 'ppLastTab is cleared on closePanel() so a fresh open starts on Trades.' },
+          { label: 'Tab: Trades (#pp-trades-tab)', what: 'Full list of trades involving this player. Same trade card template as the main 01 Recent Trades list. Respects active filters.', source: 'sorted = playerTrades; rendered via tradeCardHtml(t)', values: '—', notes: 'If no trades match, shows "No trades found".' },
+          { label: 'Tab: Player Stats (#pp-stats-tab)', what: '2025 fantasy season stats: PPG, games played, pass/rush/rec yards + TDs, targets.', source: 'PLAYER_STATS_DATA hardcoded block near L3134', values: 'Big stat blocks for QB (pass yds/td), RB (rush yds/td), WR/TE (rec/yds/td/tgt)', notes: 'Currently hardcoded — could be replaced with a Sleeper /stats endpoint or sync-fp.py output.' },
+          { label: 'Tab: Age Curve (#pp-age-curve-tab)', what: 'Position-relative value projection across the player\'s career arc. Visualizes when value typically peaks for their position.', source: 'renderAgeCurve() computes from FP_VALUES[name].age + posKey + per-position curve constants', values: 'Curves: RB peak 24, WR 26, TE 27, QB 28', notes: 'Curve constants in `curves` object at L6612; heuristic, not regression-fitted.' },
+          { label: 'Tab: Trade Finder (#pp-finder-tab)', what: 'Combinatorial trade suggestion engine. Generates fair trade packages on either side using current MVS values as the matching target.', source: 'renderTradeFinder() at L7598+; combines FP_VALUES + PICK_VALUES within value tolerance', values: 'Each suggestion shows asset list + total value + balance indicator', notes: 'Reuses the same valuation logic the Trade Calculator uses (multipliers + base value).' },
         ],
       },
       {
-        name: 'Cross-page Navigation',
+        name: 'Pick Panel (separate slide-in for picks)',
         items: [
-          { label: 'Topnav Links', what: 'Sticky red-bordered top bar with links to Calculator, User Importer, Tiers, ADP, Rankings.', source: 'Hardcoded nav-link list (consistent across all 5 pages)', values: 'Current page\'s link is omitted from its own nav', notes: 'Wordmark on the left is the brand identity SVG, swaps for light theme.' },
+          { label: 'Open Trigger', what: 'Click any pick label in any trade card → opens the pick panel (similar to player panel but for draft picks).', source: 'openPickPage(year, round) at L7409', values: '—', notes: 'Distinct panel #pick-panel — separate from #player-panel.' },
+          { label: 'Pick Profile Header', what: '"Pick {Year} R{Round}" identity, plus trade stats showing how often this pick has moved.', source: 'pickTrades = TRADES.filter(t => t.picks.includes year+round)', values: 'Times Traded, Avg Players Included, Avg Picks Included, etc.', notes: 'Mirrors player-panel structure for visual consistency.' },
+          { label: 'Related Rounds + Years', what: 'Sidebar showing other rounds for the same year + other years for the same round (so you can pivot to adjacent picks).', source: 'otherRounds / otherYears arrays computed inline', values: 'Click any to navigate to that pick', notes: 'Helps users compare 2026 R1 vs 2026 R2, or 2026 R1 vs 2027 R1.' },
+        ],
+      },
+      {
+        name: 'Cross-page Handoff System',
+        items: [
+          { label: '_fptsWriteHandoff(payload, destUrl)', what: 'Writes player name (and optional trade payload) to localStorage key "fpts-handoff" with 60s TTL, then opens destUrl in a new tab.', source: 'L757-763', values: 'payload: { source, primaryPlayer, trade?, players? }', notes: 'TTL prevents stale handoffs from triggering when users browse to a destination page much later.' },
+          { label: '_fptsReadHandoff()', what: 'Reads and clears the handoff key. Returns null if older than 60s.', source: 'L764-773', values: 'Returns the payload or null', notes: 'Each destination page consumes the handoff inside its own _adpInit / loader / bootstrap.' },
+          { label: 'Floating Calc/ADP/Leagues buttons (panel)', what: 'Visible action bar at top of player panel. Each writes a player-name handoff and opens the destination.', source: '_fptsXpageOpenCalcFromPanel() etc. at L1991-2012', values: '—', notes: 'Trade-Finder tab has its own variant: _fptsXpageOpenCalcFromFinder pushes the full trade package.' },
         ],
       },
     ],
@@ -96,47 +152,72 @@ window.LegendContent = {
   // ════════════════════════════════════════════════════════════════════════
   'adp-tool': {
     title: 'ADP Tool',
-    blurb: 'Real Sleeper dynasty draft ADP rendered as a box-card board or a sortable list. ' +
-           'Data is sourced from data/adp.json — the sleeper_dynasty_adp pipeline scrapes ' +
-           'Sleeper completed startup drafts, classifies them, and aggregates pick-weighted ADP.',
+    blurb: 'Real Sleeper dynasty draft ADP rendered as a box-card board or sortable list. ' +
+           'Data from data/adp.json — the sleeper_dynasty_adp pipeline scrapes completed startup drafts, ' +
+           'classifies them into picks/simple/rookies buckets, and aggregates pick-weighted ADP for SF + 1QB formats. ' +
+           'Mode + QB-format + date range combine to select which aggregate fills the board.',
     sections: [
       {
-        name: 'Controls Bar',
+        name: 'Page Header',
         items: [
-          { label: 'Mode Toggle (Picks / Simple / Rookies)', what: 'Selects which subset of startup drafts the board reflects.', source: 'STATE.mode → MODE_TO_SOURCE → adp.json buckets', values: 'Picks = drafts with kickers as pick placeholders; Simple = vet-only (no rookies/kickers); Rookies = startups including the 2026 rookie class', notes: 'Bucket classification done upstream in sync-adp.py classify_startup_drafts().' },
-          { label: 'QB Format Toggle (SF / 1QB)', what: 'Switch between Superflex/2QB and Single-QB league pools.', source: 'STATE.qbFormat → getSourceKey() → "{mode}_{sf|1qb}" in adp.json', values: 'SF default; persists in localStorage as fpts-adp-format', notes: '1QB sample is ~half the size of SF — wider confidence intervals on deep ADP.' },
-          { label: 'Date Range', what: 'Constrain the ADP aggregation to a date window.', source: 'STATE.dateFrom / .dateTo → aggregateBuckets() walks adp.json.byMonth', values: 'Defaults to byMonth.ALL (full history) when both empty', notes: 'Presets (7d / 30d / 90d / All) auto-populate the date inputs.' },
-          { label: 'View Toggle (Box / List)', what: 'Switch board between card grid and tabular list.', source: 'STATE.view; List view exposes CSV download', values: 'Box default; forced to List on phone widths (<700px)', notes: 'Box view is disabled (visibly grey) on mobile.' },
-          { label: 'Snake Toggle', what: 'Enable/disable snake draft order on the board layout.', source: 'STATE.snake', values: 'On = round 2 reverses, round 3 forwards (standard snake); Off = linear', notes: 'Affects only the visual board layout, not ADP values themselves.' },
+          { label: 'Page Title (#page-title)', what: 'Display title that updates based on STATE.mode (e.g. "ADP Picks").', source: 'renderAll() L1031 reads MODE_TO_LABEL[STATE.mode].title', values: 'ADP Picks / ADP Simple / ADP Rookies', notes: 'Title font is 32px Kanit ExtraBoldItalic.' },
+          { label: 'Page Subtitle (#page-subtitle)', what: 'Dynamic subtitle describing the current view, including QB format.', source: 'lbl.subTpl(qbFormatLabel()) at L1032', values: 'e.g. "12-team Superflex / 2QB startups with picks-as-assets"', notes: 'Format label flips between "Superflex / 2QB" and "1QB" per STATE.qbFormat.' },
         ],
       },
       {
-        name: 'Position Breakdown',
+        name: 'Controls Bar',
         items: [
-          { label: 'Position Chips (QB/RB/WR/TE)', what: 'Filter the board to one or more positions.', source: 'STATE.filters.positions Set; recomputed via isSoftMatch()', values: 'Multi-select — click to toggle each', notes: 'Counts show how many players in the filtered set are at each position.' },
-          { label: 'Sample Badge', what: 'Total number of distinct drafts feeding the current view.', source: 'maxDrafts(softList) sums per-player drafts and takes max', values: 'Hundreds to ~1000+ depending on filters', notes: 'Larger sample = more reliable ADP.' },
+          { label: 'Mode Buttons (data-mode)', what: 'Toggle between Picks / Simple / Rookies modes. Each maps to a different draft-subset aggregate.', source: 'STATE.mode (default "picks"); buttons at L549-553; setMode() at L1247', values: 'picks (kickers as pick placeholders) / simple (vet-only, no rookies/kickers) / rookies (incl. 2026 rookies)', notes: 'Bucket classification done upstream in sync-adp.py classify_startup_drafts(). Trend index rebuilds on every mode switch.' },
+          { label: 'QB Format Buttons (data-qb)', what: 'Toggle between Superflex/2QB and 1QB player pools. Affects board contents + ADP values + sample size.', source: 'STATE.qbFormat (default "sf"); buttons at L554-557; setQbFormat() at L1255', values: 'SF or 1QB; persists in localStorage "fpts-adp-format"', notes: '1QB sample is ~half SF size — wider confidence intervals on deep ADP. Toggle also affects DB age/value chart on index page via cross-page persistence (commit eeefe91).' },
+          { label: 'Date Range (#date-from, #date-to)', what: 'Constrain ADP aggregation to a date window.', source: 'STATE.dateFrom + dateTo; getActiveBucket() at L892', values: 'YYYY-MM-DD; both empty = byMonth.ALL aggregate', notes: 'aggregateBuckets() walks per-month buckets and re-aggregates pick-weighted ADP for the window.' },
+          { label: 'Date Presets (data-preset)', what: 'Quick buttons for 7d / 30d / 90d / All.', source: 'applyPreset() at L2936', values: '7 / 30 / 90 / all', notes: 'Auto-populates the date inputs and triggers a re-aggregate.' },
+          { label: 'View Toggle (data-view)', what: 'Switch board between Box (card grid) and List (sortable table with CSV download).', source: 'STATE.view; setView() at L1237', values: 'box (default) / list', notes: 'Box view forced to List on phones (<700px). Disabled box button shown greyed.' },
+          { label: 'Snake Toggle (#snake-toggle)', what: 'Enable/disable snake order for the visual board layout. Doesn\'t affect ADP values themselves.', source: 'STATE.snake (default true)', values: 'On = round 2 reverses; Off = linear', notes: 'Affects only visual layout.' },
+          { label: 'Sample Badge', what: 'Number of distinct drafts feeding the current view.', source: 'maxDrafts(softList) at L1037', values: 'Hundreds to ~1000+ depending on filters', notes: 'Larger sample = more reliable ADP. Bigger drops on filter combinations.' },
+        ],
+      },
+      {
+        name: 'Search + Position Filter',
+        items: [
+          { label: 'Search Box (#search-input)', what: 'Live filter the board by player name.', source: 'STATE.search; isSoftMatch() filters', values: 'Substring match (case-insensitive)', notes: 'Search clear (×) button revealed when input non-empty.' },
+          { label: 'Position Chips (#pos-breakdown)', what: 'Toggle chips for QB / RB / WR / TE / K to filter board by position(s).', source: 'STATE.filters.positions Set', values: 'Multi-select — click each to toggle', notes: 'Chip shows count of players in soft-filtered set per position.' },
+          { label: 'Settings Drawer (.drawer)', what: 'Hamburger drawer with advanced controls: team count (8/10/12/14), rounds (1-30), pos breakdown toggles.', source: 'syncSettingsUi() at L1430; saveSettings/loadSettings persist to localStorage', values: '#team-count / #rounds inputs', notes: 'Team count + rounds affect board layout (rows × cols) for box view.' },
         ],
       },
       {
         name: 'Board (Box View)',
         items: [
-          { label: 'Box Card', what: 'One card per player slot showing pick number, position rank, ADP, name, and headshot.', source: 'getActiveBucket() returns the active aggregate; positions assigned via snake or linear', values: 'Top row: pick / pos rank / ADP; bottom: stacked first/last name; corner: circular HS', notes: 'Background color matches position. Click to open player modal.' },
-          { label: 'Trend Arrow', what: 'Month-over-month ADP movement.', source: 'TREND_INDEX built by rebuildTrendIndex() from per-month ADP deltas', values: 'Green up = ADP improved; red down = ADP got worse; flat white = no change', notes: 'Outlined with 8-direction text-shadow for readability over any background color.' },
+          { label: 'Box Card (.box-card)', what: 'One per player slot. Top row: pick number / pos rank / ADP. Below: stacked first-name + last-name. Bottom-right: circular HS.', source: 'renderBoard() L1100+; box-card markup', values: 'Background = position color (QB red, RB green, WR blue, TE orange, K purple)', notes: 'Click to open the player modal with trend, history, articles, heatmap.' },
+          { label: 'Pick Number', what: 'Overall pick position in the draft (1-N).', source: 'Computed from team × round + slot per snake or linear order', values: 'Integer 1 through (teams × rounds)', notes: 'Snake order reverses every other round; linear is sequential.' },
+          { label: 'Position Rank', what: 'Rank within the player\'s position (WR1, RB12, etc.).', source: 'p.posRank from ADP payload', values: 'String "QB1", "WR12"', notes: 'Computed in sync-adp.py from the pick-weighted aggregate.' },
+          { label: 'ADP Value', what: 'Pick-weighted average draft position across all drafts in the bucket.', source: 'p.adp from adp.json[bucket]', values: 'Decimal, e.g. 14.3', notes: 'Lower = drafted earlier. Min sample threshold = 5 drafts in sync-adp.py.' },
+          { label: 'Trend Arrow', what: 'Month-over-month ADP movement.', source: 'TREND_INDEX from rebuildTrendIndex() at L1576', values: 'Green ▲ = ADP improved (rising); red ▼ = worsened; flat white = no change', notes: 'Outlined with 8-direction text-shadow for readability over position-colored backgrounds.' },
         ],
       },
       {
         name: 'Board (List View)',
         items: [
-          { label: 'Sortable Columns', what: 'Click any column header to sort ascending/descending.', source: 'STATE.sort.{col, dir}', values: 'Rank, Player, Pos, NFL Draft (year + round), Times Drafted', notes: 'Last column NFL Draft combines year + round into one display.' },
-          { label: 'Download CSV', what: 'Export the currently filtered list as CSV.', source: 'Generated client-side from the rendered rows', values: 'Filename includes the mode + date range', notes: 'No server round-trip — runs entirely in browser.' },
+          { label: 'Sortable Columns', what: 'Click any column header to sort ascending/descending.', source: 'STATE.sort.{col, dir}', values: 'Rank, Player, Pos, NFL Draft (year + round combined), Times Drafted', notes: 'List view exposes more detail per row than box cards.' },
+          { label: 'Tiny HS (.hs)', what: '28px circular thumbnail per row.', source: 'thumbUrl() builds Sleeper CDN URL from sleeperId', values: '—', notes: 'Falls back to initial letter on CDN 404.' },
+          { label: 'Download CSV Button (#export-csv)', what: 'Export the currently filtered list as a CSV download.', source: 'Generated client-side from rendered rows', values: 'Filename: "adp-{mode}-{from}-{to}.csv"', notes: 'No server round-trip — entirely in browser.' },
         ],
       },
       {
         name: 'Player Modal',
         items: [
-          { label: 'Top Bar', what: 'Modal header with PLAYER PROFILE label + cross-page xpage buttons + close.', source: 'Static markup; xpage buttons use _fptsWriteHandoff()', values: 'Open in Database / Open in Calculator / Open in My Leagues / ✕ Close', notes: 'Same pattern across all player modals on the site (visual unification).' },
-          { label: 'Articles Section', what: 'Recent FantasyPoints articles mentioning this player.', source: 'PLAYER_ARTICLES[name] (data/articles.json from sync-fp.py)', values: 'Dropdown preview of titles; "Sign in to FantasyPoints" link', notes: 'Match logic: article title contains player name OR article body has ≥2 player-name mentions.' },
-          { label: 'Pick-availability Heatmap', what: 'Probability of this player being available at each pick number, by round.', source: 'data/pick-availability.json — generated by sync-adp.py', values: '0%-100% per cell; bands of green (likely available) to red (rarely available)', notes: 'Only shown for picks mode where pick-as-asset placeholders are used.' },
+          { label: 'Modal Backdrop (.modal-backdrop)', what: 'Centered modal that overlays the page when a player card is clicked.', source: 'openModal(sleeperId) at L1850+', values: 'Closed via × button, Escape key, or click outside the modal', notes: 'Same backdrop pattern reused by trade-calculator + my-leagues modals.' },
+          { label: 'Top Bar (.pp-top-bar)', what: 'Modal header: PLAYER PROFILE label (red Kanit) + xpage action buttons + ✕ Close.', source: 'Static markup', values: 'Open in Database / Open in Calculator / Open in My Leagues / ✕ Close', notes: 'xpage buttons write _fptsWriteHandoff and open destination in new tab.' },
+          { label: 'Player Profile (.pp-profile)', what: 'Hero with 96px circular HS, position pill + NFL team, 32px Kanit name, inline stats grid, right-floating Fantasy Points value.', source: 'CURRENT_MODAL_PLAYER + inline stat lookups', values: 'Stats: Age, Pos Rank, Overall Rank, PPG, Dynasty ADP, Auction', notes: 'Visual contract identical to DB + Calc + My Leagues modals.' },
+          { label: 'Articles Section (.pp-articles-section)', what: 'Recent FantasyPoints articles mentioning this player.', source: 'PLAYER_ARTICLES[name] from data/articles.json', values: 'Dropdown preview of titles; click "Show N more" to expand; "Sign in to FantasyPoints" link', notes: 'Match logic in sync-fp.py build_articles_map(): title match OR ≥2 body mentions.' },
+          { label: 'Pick-Availability Heatmap', what: 'Probability cells showing the chance this player is still available at each pick slot, by round.', source: 'data/pick-availability.json — generated by sync-adp.py', values: 'Cells 0%-100%, color band from green (likely available) to red (rarely)', notes: 'Only shown for "picks" mode where pick-as-asset placeholders exist. heatmap section ID #pp-heatmap-section.' },
+          { label: 'Compare Mode (compare-grid)', what: 'Add up to 3 other players via the search input on the modal to compare side-by-side.', source: 'compareState + compare-grid rendering', values: 'Each column: stats, value, trend, articles', notes: 'Stripped down to ADP-relevant comparison; reuses .pp-stat / .pp-fp visual style.' },
+        ],
+      },
+      {
+        name: 'URL Hash Persistence',
+        items: [
+          { label: 'Shareable URL (?mode=...&qb=...&view=...)', what: 'Selected mode + QB format + view + filters round-trip through URL hash params so views can be bookmarked or shared.', source: 'buildHashString() at L1398; loadStateFromHash() at L1418', values: 'mode (non-default), qb (1qb if non-default), view (list if non-default), from/to, q, pos, tc, rd', notes: 'Defaults are omitted from the URL to keep it short. Settings drawer values also serialize.' },
+          { label: 'localStorage Settings', what: 'Persistent settings: theme, snake, qbFormat, etc. survive page refresh independent of URL.', source: 'loadSettings() / saveSettings() at L1380+', values: 'fpts-theme / fpts-adp-format / fpts-team-count / fpts-rounds', notes: 'URL hash takes precedence over localStorage when both present.' },
         ],
       },
     ],
@@ -145,47 +226,58 @@ window.LegendContent = {
   // ════════════════════════════════════════════════════════════════════════
   'trade-calculator': {
     title: 'Trade Calculator',
-    blurb: 'Build and value dynasty trades. Pull players + picks onto Side A, B (and optional C), ' +
-           'see a real-time balance bar based on the MVS canonical values. ' +
-           'All values come from data/mvs.json (overlaid on data/values.json metadata).',
+    blurb: 'Build and value dynasty trades. Pull players + picks onto Side A, B (and optional C), see a real-time ' +
+           'balance bar based on the MVS canonical values. All values come from data/mvs.json (overlaid on ' +
+           'data/values.json metadata). Format settings (SF/1QB, PPR, TEP) apply multipliers to each asset.',
     sections: [
       {
-        name: 'Format Settings',
+        name: 'Format Settings (top of page)',
         items: [
-          { label: 'QB Format Picker (SF / 1QB)', what: 'Switch between Superflex and Single-QB value scales.', source: 'tradeState.qb → toggles which value the calc reads from FP_VALUES', values: 'SF default; Saves to localStorage fpts-adp-format (cross-page)', notes: 'Affects all values on the page, including pick values.' },
-          { label: 'TEP (Tight End Premium)', what: 'Boost TE values by 0%/25%/50%/75%/100%.', source: 'tradeState.tep → multiplied into getMultiplier(pos) for TE only', values: 'none / 0.25 / 0.5 / 0.75 / 1.0', notes: 'Multiplier formula: 1 + (tep * 0.12) for TE position.' },
-          { label: 'PPR Variant', what: 'Standard / Half / Full PPR scoring.', source: 'tradeState.ppr → getMultiplier(pos) applies position-specific multipliers', values: '0 (Standard) / 0.5 (Half) / 1.0 (Full)', notes: 'WR and RB multipliers shift based on PPR — Full PPR favors RBs slightly more than Half.' },
+          { label: 'QB Format Picker (SF / 1QB)', what: 'Switch between Superflex (2QB) and Single-QB value scales. Persists cross-page via localStorage.', source: 'tradeState.qb → toggles which value (valueSf vs value1qb) FP_VALUES asset values read', values: 'sf (default) / 1qb', notes: 'localStorage key: fpts-adp-format. Switching also re-hydrates FP_VALUES.adp + trend for the chosen format.' },
+          { label: 'TEP (Tight End Premium)', what: 'Boost TE values by an additional points-per-reception bonus. Multiplier applied per asset at render time.', source: 'tradeState.tep → getMultiplier(pos) at L2156', values: 'none / 0.25 / 0.5 / 0.75 / 1.0', notes: 'Multiplier formula: 1 + (tep × 0.12) — only applied to TE. Other positions ignore.' },
+          { label: 'PPR Variant', what: 'Standard / Half / Full PPR scoring. WR and RB values shift slightly based on PPR.', source: 'tradeState.ppr → getMultiplier(pos) at L2146-2154', values: '0 / 0.5 / 1', notes: 'WR: full PPR = 1.0×, half = 0.96×, std = 0.90×. RB: full = 1.04×, half = 1.0×, std = 0.93×.' },
+          { label: '3-Team Toggle', what: 'Add a third side (Side C) for three-way trades.', source: 'tradeState.threeTeam boolean; toggles .builder-wrap.three-sides class', values: 'On / Off', notes: 'Balance bar logic handles 3-side fairness; threshold is broader.' },
         ],
       },
       {
-        name: 'Side Cards',
+        name: 'Side Cards (A / B / C)',
         items: [
-          { label: 'Side A / Side B (/ C optional)', what: 'Each side is a card holding the trade assets going to one team.', source: 'tradeState.sideA, .sideB, .sideC arrays', values: '2-team default; 3-team available via header toggle', notes: 'Total at top of each card sums asset values + FAAB × 10.' },
-          { label: 'Asset Chip', what: 'A single player or pick on a side, shown as a colored mini-card.', source: 'Each asset has {name, pos, value, type}; visual color from position', values: 'Solid position-color bg, dark TE pill, stacked first/last name, value right, X to remove', notes: 'Click chip (not the X) opens the player modal. Asset values respect SF/1QB toggle and PPR/TEP multipliers.' },
-          { label: 'FAAB Slider', what: 'Add FAAB (waiver budget) to one side as part of the trade.', source: 'side.faab — multiplied by 10 in sideTotal()', values: '$0 to $200 (steps of $5)', notes: 'FAAB-to-value ratio (10) is heuristic; users in mixed leagues may want to ignore this.' },
+          { label: 'Side Header (.side-header)', what: 'Top of each side: label + running total. Total goes red when value exceeds the other side significantly.', source: 'sideTotal(side) at L2167', values: '"Side A" / "Side B" / "Side C" + value sum', notes: 'has-value class added when total > 0.' },
+          { label: 'Asset Chip (.asset-row)', what: 'A single player or pick on a side. Renders as a full-color position bar with stacked first/last name, MVS value, and X to remove.', source: 'renderAll() builds via template at L2208; data-pos attribute drives bg color', values: 'Solid position-color (QB red, RB green, WR blue, TE orange, K purple, PK purple). Stacked name: first 9px Mulish, last 14px Kanit ExtraBoldItalic.', notes: 'Click chip (not the X) opens the calc player modal. Asset values respect SF/1QB + PPR/TEP multipliers.' },
+          { label: 'FAAB Slider', what: 'Add FAAB (waiver budget dollars) to one side as part of the trade.', source: 'side.faab; multiplied by 10 in sideTotal()', values: '$0 to $200 (steps of $5)', notes: 'FAAB-to-value ratio of 10 is heuristic; users in mixed leagues may want to ignore.' },
+          { label: 'Asset Remove (.asset-remove)', what: '✕ button on each asset chip to remove it from the side.', source: 'Click handler on .asset-remove; calls removeAsset(side, idx)', values: '—', notes: 'Stops event propagation so chip click doesn\'t open modal.' },
         ],
       },
       {
-        name: 'Balance Bar',
+        name: 'Balance Bar / Verdict',
         items: [
-          { label: 'Verdict Bar', what: 'Visual balance indicator showing side-A vs side-B value.', source: 'sideTotal(A) vs sideTotal(B)', values: '"Fair trade" (within 5%), "Slight edge" (5-15%), "Big imbalance" (>15%)', notes: 'Color: green for fair, brand red for big imbalance.' },
-          { label: 'Side Totals', what: 'Sum of adjusted asset values per side.', source: 'sideTotal() = side.assets.reduce(s + adjVal(a)) + faab*10', values: 'Whole-number sum in MVS units', notes: 'adjVal() applies the format multiplier per asset based on tep/ppr.' },
+          { label: 'Verdict Chip', what: 'Plain-text balance assessment colored by severity.', source: 'Computed from |sideA - sideB| / max(sideA, sideB)', values: 'Fair trade (within 5%) green / Slight edge (5-15%) yellow / Big imbalance (>15%) red', notes: 'Color uses --green and --red brand tokens.' },
+          { label: 'Visual Bar', what: 'Horizontal bar showing each side\'s share of total value. Filled left from side A, right from side B.', source: 'side A% + side B% drive width of bar segments', values: 'Left = A%, right = B%; midpoint is fair', notes: 'Drag-to-imbalance is purely visual; user can\'t drag values.' },
         ],
       },
       {
-        name: 'Search + Pick Picker',
+        name: 'Search + Pick Selector',
         items: [
-          { label: 'Side Search', what: 'Type a player name to find and add to a side.', source: 'Autocomplete against FP_VALUES keys (player names)', values: 'Dropdown shows matches with HS + pos + name', notes: 'Pressing Enter or clicking a result appends to the side.' },
-          { label: 'Pick Selector', what: 'Add rookie / future picks (2026-2028) to a side.', source: 'PICK_VALUES keyed by "YYYY-R.SS" or generic "YYYY-R"', values: 'Specific slots (2026-1.01 through 2026-4.12) + generics (2027-1, 2028-1)', notes: 'Specific slot values come from CSV; generic fallback used for far-future picks.' },
+          { label: 'Side Search Input', what: 'Type a player name; autocomplete dropdown appears. Pressing Enter or clicking adds to the side.', source: 'Autocomplete against FP_VALUES keys; renders .pp-search-result rows', values: 'HS thumbnail + position pill + name per result', notes: 'Search is per-side — Side A search adds to Side A, etc.' },
+          { label: 'Pick Selector', what: 'Add rookie / future picks (2026-2028) via a dropdown of available pick keys.', source: 'PICK_VALUES keyed by "YYYY-R.SS" or generic "YYYY-R"', values: 'Specific slots (2026-1.01 through 2026-4.12) + generics (2027-1, 2028-1)', notes: 'Pick fallback to generic key when specific slot missing.' },
         ],
       },
       {
-        name: 'Player Modal (calc)',
+        name: 'Player Modal (calc-pp-...)',
         items: [
-          { label: 'Top Bar Actions', what: 'Cross-page handoff buttons.', source: '_calcXpageToDb / _calcXpageToAdp / _calcXpageToLeagues', values: 'Open in Database / ADP / My Leagues / ✕ Close', notes: 'Same pattern as other modals; uses 60-second localStorage TTL.' },
-          { label: 'MVS Extras Row', what: 'Shows OTC value, baseline delta, trade volume, contributor rankings (when present).', source: 'window.MvsExtras.buildAll(playerName) from assets/js/mvs-extras.js', values: 'Auto-fit grid 1-4 cells per row based on width', notes: 'Hidden cells when the CSV row lacks that data; modal still renders the rest.' },
-          { label: 'MVS History Sparkline', what: '14-day SVG line chart of MVS value movement.', source: 'FP_VALUES[name].history (toggle-aware)', values: 'Green = rose; Red = fell; white = flat', notes: 'No charting library — inline SVG path.' },
-          { label: 'Recent Trades', what: 'Last 3 actual trades involving this player.', source: 'FP_VALUES[name].recentTrades (from CSV recent_trades, trimmed to 3)', values: 'Each card: date, format, both sides with asset MVS', notes: 'Focus player highlighted red in each trade.' },
+          { label: 'Open Trigger', what: 'Click any asset chip (not the X) → calc-modal-backdrop opens.', source: '_openCalcPlayerModal() at L3068', values: '—', notes: 'Same backdrop component (.modal-backdrop) reused on every page.' },
+          { label: 'Top Bar Actions', what: '"Open in Database / ADP / My Leagues" buttons.', source: '_calcXpageToDb / _calcXpageToAdp / _calcXpageToLeagues at L3117+', values: '—', notes: 'Cross-page handoff via _fptsWriteHandoff (60s TTL).' },
+          { label: 'Profile + Stats', what: 'HS + name + position + stats row (same anatomy as DB and my-leagues modals).', source: 'fp = FP_VALUES[playerName]', values: 'Age, Pos Rank, Overall Rank, PPG, Dynasty ADP, Auction', notes: 'Stats hidden when value missing.' },
+          { label: 'MVS Extras (OTC + Baseline + Volume + Rankings)', what: 'Auto-fit row showing OTC value, baseline delta, 7-day trade volume, contributor rankings.', source: 'window.MvsExtras.buildAll(playerName)', values: '1-4 cells based on data availability', notes: 'Shared module assets/js/mvs-extras.js.' },
+          { label: 'History Sparkline + Recent Trades', what: 'Below extras: 14-day MVS history line + last 3 trades involving this player.', source: 'window.MvsExtras.buildSparkline / buildRecentTrades', values: 'Toggle-aware: uses history1qb when fmt=1qb', notes: 'Focus player highlighted red in each recent trade card.' },
+          { label: 'Escape Key Close', what: 'Pressing Escape closes the calc modal.', source: 'document.addEventListener("keydown") at L3136', values: '—', notes: 'Only triggers if .modal-backdrop is .open.' },
+        ],
+      },
+      {
+        name: 'Trade State Persistence',
+        items: [
+          { label: 'tradeState object', what: 'In-memory state holding sideA, sideB, sideC arrays + format settings.', source: 'Top of script', values: '{ sideA: [], sideB: [], sideC: [], qb, ppr, tep, threeTeam, ... }', notes: 'Currently not persisted to localStorage — refresh clears the trade. Cross-page handoff brings a trade in via _fptsReadHandoff.' },
+          { label: 'Cross-page Handoff', what: 'When user clicks "Open in Calculator" from another page, this page reads the handoff and populates Side A.', source: 'Listener at L3049-3065', values: 'ho.trade.sideA / sideB lists', notes: 'Re-renders via renderAll() after applying.' },
         ],
       },
     ],
@@ -194,47 +286,76 @@ window.LegendContent = {
   // ════════════════════════════════════════════════════════════════════════
   'my-leagues': {
     title: 'User Importer',
-    blurb: 'Import your Sleeper dynasty leagues and explore your rosters, exposure, ' +
-           'and trade opportunities. Player metadata + values come from FP_VALUES / MVS overlay; ' +
-           'league + roster data is pulled live from the Sleeper API on import.',
+    blurb: 'Import your Sleeper dynasty leagues and explore your rosters, exposure, trade opportunities, ' +
+           'and per-league standings. League + roster data is pulled live from the Sleeper API on import. ' +
+           'Player metadata + values come from FP_VALUES with MVS overlay applied.',
     sections: [
       {
         name: 'Sleeper Login',
         items: [
-          { label: 'Username Input', what: 'Enter your Sleeper handle to fetch all your dynasty leagues.', source: 'Sleeper /v1/user/{username} then /v1/user/{user_id}/leagues/nfl/{season}', values: 'String — case-insensitive Sleeper handle', notes: 'No password — Sleeper exposes this read-only via username lookup.' },
-          { label: 'Season Selector', what: 'Choose which NFL season to pull leagues from.', source: 'ML.selectedSeason → loops API call', values: 'Recent seasons; default = current Sleeper state.season', notes: 'Off-season uses last completed season as default.' },
+          { label: 'Username Input', what: 'Enter your Sleeper handle to fetch all your dynasty leagues for the selected season.', source: 'Sleeper /v1/user/{username} → /v1/user/{user_id}/leagues/nfl/{season}', values: 'Case-insensitive Sleeper username string', notes: 'No password — Sleeper exposes user→leagues read-only via username. Cached in localStorage as fpts-sleeper-user.' },
+          { label: 'Season Selector', what: 'Choose which NFL season to pull leagues from.', source: 'ML.selectedSeason; default = current Sleeper state.season', values: '2024 / 2025 / 2026 (rolling)', notes: 'Off-season uses last completed season as default.' },
+          { label: 'Import Button', what: 'Triggers the parallel league-data fetch for every league found.', source: 'Calls ML_BUILD_ALL_LEAGUE_DATA which Promise.all\'s per-league fetches', values: '—', notes: 'Per-league: rosters + users + traded_picks + drafts (added in commit e37ad5b for completed-draft filtering).' },
         ],
       },
       {
-        name: 'League List',
+        name: 'Leagues List',
         items: [
-          { label: 'League Cards', what: 'One card per imported league with quick stats.', source: 'ML_ALL_LEAGUE_DATA[leagueId] populated on import', values: 'Total roster value, your record, league size, scoring', notes: 'Leagues where you\'re not a roster owner are auto-skipped.' },
+          { label: 'League Card', what: 'One card per imported league with name, season, your team + record, total roster value.', source: 'ML_ALL_LEAGUE_DATA[leagueId] populated on import', values: 'Big total value (red), W-L-T record, league size', notes: 'Leagues where you\'re not a roster owner are auto-skipped (nonOwnerLeagueIds set in import logic).' },
+          { label: 'Open League Button', what: 'Click to drill into the full roster + standings + simulator for that league.', source: 'loadRoster(leagueId, season) at L5607', values: '—', notes: 'Fetches additional data: NFL state (week), drafts, projections for the current display week.' },
+          { label: 'Trade Suggestions Button', what: 'Click to surface trade suggestions across your portfolio against this league\'s rosters.', source: 'mlBuildTradeSuggestions etc.', values: '—', notes: 'Uses FP_VALUES + MVS for the matching logic.' },
         ],
       },
       {
-        name: 'Roster + Trade Sim',
+        name: 'Roster Expansion (within a league)',
         items: [
-          { label: 'Team Roster Row', what: 'A player or pick on a team\'s roster.', source: 'Sleeper roster.players (player IDs) joined to data/players cache + FP_VALUES', values: 'Avatar / pos pill / name + NFL team / age / pos rank / MVS value', notes: 'Position stripe on left edge matches QB/RB/WR/TE/K/PK color.' },
-          { label: 'Roster Expansion', what: 'Click a team to expand its full roster grouped by position + picks section.', source: 'mlBuildTeamRosterHtml(leagueId, rosterId)', values: 'QB / RB / WR / TE / Other / Draft Picks groups', notes: 'Lazy-loaded — first click triggers render, subsequent clicks toggle visibility.' },
-          { label: 'Owned Picks Logic', what: 'Computes the picks each roster currently owns.', source: 'mlGetOwnedPicks() = natural picks - traded-away + acquired-via-trade; skips completedDraftSeasons', values: 'Per-season per-round, sorted', notes: 'Filters out seasons whose Sleeper draft has status "complete" — those picks are spent.' },
-          { label: 'Trade Simulator', what: 'Drag-and-drop simulator to test trades within a league.', source: 'Reuses FP_VALUES + PICK_VALUES for valuations', values: 'Side balance bar identical to Trade Calculator', notes: 'Picks fall back to generic round key (2027-1) when no specific slot is priced.' },
+          { label: 'Position Sections (QB / RB / WR / TE / Other)', what: 'Players grouped by position with a section header showing count + total value.', source: 'mlBuildTeamRosterHtml() at L5034+ groups by position', values: 'Each section: Quarterbacks / Running Backs / Wide Receivers / Tight Ends / Other', notes: 'Other contains K/DEF/FB if rostered.' },
+          { label: 'Team Roster Row (.ml-team-roster-row)', what: 'One row per player. Avatar / pos pill / name + NFL team / age / pos rank / MVS value, plus left-edge position-color stripe.', source: 'renderPlayerRow() at L5089', values: 'Stripe colors: QB red, RB green, WR blue, TE orange, K + PK purple', notes: 'Click opens player detail modal.' },
+          { label: 'Draft Picks Section', what: 'Owned picks for current + next 2 seasons. Computed natural picks + acquired - traded-away.', source: 'mlGetOwnedPicks() at L2949', values: 'Per-season per-round with value lookup', notes: 'Filters out completedDraftSeasons (Sleeper draft status="complete") so spent picks don\'t double-show.' },
+          { label: 'Pick Value Lookup', what: 'Median value of the round, falling back to generic round key for far-future picks.', source: 'mlPickValue() at L2938 + pickValue() at L6008', values: 'Round midpoint slot value (e.g. 1.06 in a 12-team) or generic round if no slots priced', notes: 'Generic fallback ("2027-1", "2028-1") added in commit e37ad5b for years where MVS only prices generics.' },
+        ],
+      },
+      {
+        name: 'Standings + Position Rankings',
+        items: [
+          { label: 'Standings Table', what: 'All teams sorted by user-selected criterion (value / wins / max points / etc.).', source: 'Computed in mlBuildStandings; rosterValues with archetype', values: 'W-L-T, Total Value, MPX (max-point efficiency %), Average Age', notes: 'MPX = your fpts / your max possible fpts × 100. Below 75% = leaving points on the bench.' },
+          { label: 'Position Rankings (your team)', what: '"Where does YOUR team rank per position?" 4 grid cells with rank + total value at each position.', source: 'rosterValues.sort by posVals[pos]; findIndex(isMe)', values: 'Rank within the league for QB/RB/WR/TE', notes: 'Shows MPX efficiency next to your record.' },
+          { label: 'Archetype Computation', what: 'Each roster gets an "archetype" tag: rebuilding / win-now / balanced / aging-contender.', source: 'mlGetArchetype(avgAge, total, leagueAvg) — heuristic based on age + value vs median', values: 'rebuilding / contender / balanced / etc.', notes: 'Median-based; rosters compared to leagueAvg snapshot.' },
         ],
       },
       {
         name: 'Cross-League Exposure',
         items: [
-          { label: 'Exposure Row', what: 'Players you own across multiple leagues with how exposed you are.', source: 'Computed by ML_BUILD_EXPOSURE_LIST: counts of you-own / total leagues per player', values: 'Player / pos rank / shares / value / exposure %', notes: 'Helps identify which players you\'re over- or under-exposed to across portfolio.' },
-          { label: 'Position Filter', what: 'Filter exposure list by position.', source: 'STATE filter (QB/RB/WR/TE/All)', values: 'Five-position pill bar', notes: 'Independent of the per-league filter.' },
+          { label: 'Exposure List (.ml-exposure-row)', what: 'Players you own across multiple leagues, sortable by shares / value / exposure %.', source: 'ML_BUILD_EXPOSURE_LIST; counts player presence across all leagues', values: 'Each row: HS + pos rank + name + shares (count of leagues) + value + exposure %', notes: 'Pos rank colored per position; exposure % colored by threshold (50%+ green, 25%+ yellow, <25% grey).' },
+          { label: 'Search Filter', what: 'Type to filter exposure list. Players not currently owned but found via FP_VALUES also surface.', source: 'mlFilterExposureList()', values: 'Substring match on name', notes: 'Non-owned players appear with 0 shares so user can decide to trade for them.' },
+          { label: 'Position Filter Pills', what: 'QB / RB / WR / TE / All — limit exposure list to one position.', source: 'STATE.exposureFilter', values: 'Five buttons', notes: 'Independent of search filter.' },
+        ],
+      },
+      {
+        name: 'Trade Simulator (per-league)',
+        items: [
+          { label: 'Two Sides + Drag/Drop', what: 'Drag any player or pick from any team onto Side A or Side B to test a trade.', source: 'mlCalcAddAsset; drag/drop event handlers', values: '—', notes: 'Same valuation pipeline as Trade Calculator (FP_VALUES + PICK_VALUES + multipliers).' },
+          { label: 'Balance Bar', what: 'Identical to Trade Calculator — visual + verdict + side totals.', source: 'mlCalcTotal()', values: 'Fair / Slight Edge / Big Imbalance', notes: '—' },
         ],
       },
       {
         name: 'Player Detail Modal',
         items: [
-          { label: 'Hero (96px circular HS + Kanit name)', what: 'Standard PP-style header.', source: 'Sleeper player.full_name + sleeperId for CDN thumbnail', values: '96×96 circle headshot; 32px Kanit ExtraBoldItalic name', notes: 'Falls back to initials if Sleeper CDN doesn\'t have a photo.' },
-          { label: 'Stats Grid', what: 'Trade value, pos rank, age, EXP, PPG 2025, Dynasty ADP, Auction.', source: 'FP_VALUES[name] joined to Sleeper player.years_exp', values: 'EXP shows "Rookie" for yoe=0, else "Xyrs"', notes: 'Hidden cells when data missing.' },
-          { label: 'MVS Extras', what: 'OTC + Baseline + Volume + Rankings cells.', source: 'window.MvsExtras.buildAll() from assets/js/mvs-extras.js', values: 'Same row layout as DB + Calc modals', notes: 'Cell visibility per-data — auto-fit grid.' },
-          { label: 'Articles Section', what: 'FantasyPoints recent articles for the player.', source: 'PLAYER_ARTICLES[name]', values: 'Dropdown preview; click "Sign in" to read full article', notes: 'Reuses the shared mount used on DB + ADP modals.' },
-          { label: 'Status Block', what: 'Whether the player is on your roster, on another team, or available.', source: 'Cross-league lookup of player ID against ML_ALL_LEAGUE_DATA', values: '★ On Your Roster / On {team} / Available — Waivers/FA', notes: 'Different action buttons per state (Trade For / Send Offer / Claim).' },
+          { label: 'Hero (96px circular HS + 32px Kanit name)', what: 'Standard PP-style header with position badge + NFL team underneath.', source: 'openPlayerDetail(sleeperId) at L4007', values: '96×96 circle HS; 32px Kanit ExtraBoldItalic name', notes: 'Falls back to initials if Sleeper CDN 404s.' },
+          { label: 'Stats Grid (.ml-pd-stats)', what: 'Trade Value / Pos Rank / Age / EXP / PPG 2025 / Dynasty ADP / Auction.', source: 'FP_VALUES[name] joined to Sleeper player.years_exp', values: 'EXP renders "Rookie" for yoe=0, else "Xyrs"', notes: 'Each cell hidden when underlying data missing — graceful.' },
+          { label: 'MVS Extras', what: 'OTC + Baseline + Volume + Rankings (auto-fit grid).', source: 'window.MvsExtras.buildAll() from assets/js/mvs-extras.js', values: '1-4 cells based on data availability', notes: 'Same module + look as DB + Calc modals.' },
+          { label: 'History Sparkline + Recent Trades', what: '14-day MVS history line + last 3 trades involving this player.', source: 'Toggle-aware history; recentTrades trimmed to 3', values: '—', notes: 'Focus player highlighted red in each trade.' },
+          { label: 'Articles Section', what: 'FantasyPoints recent articles for this player.', source: 'PLAYER_ARTICLES[name] via mountPlayerArticles()', values: 'Dropdown preview + "Sign in" link', notes: 'Shared mount function used by all pages.' },
+          { label: 'Status Block', what: 'Cross-league status: on your roster / on another team / available.', source: 'Cross-league lookup of player ID against ML_ALL_LEAGUE_DATA', values: '★ On Your Roster (mine) / On {Team Name} (taken) / Available — Waivers/FA (free)', notes: 'Different CTAs per state: Trade For / Send Offer / Claim.' },
+          { label: 'Availability Mount', what: 'Sleeper-style "Availability in Other Leagues" panel.', source: 'mlBuildAvailabilityHtml()', values: 'Per-league row: your roster ID, FAAB history, owner', notes: 'Helps users decide which league to make the move in.' },
+          { label: 'Waiver / FAAB History', what: 'Prior FAAB claims on this player in the league: count + average $ bid.', source: 'fetchAndCacheWaivers() at L2998', values: '"X prior claims · avg $Y"', notes: 'Pulls all weekly /transactions endpoints and counts type==="waiver" + bid amount.' },
+        ],
+      },
+      {
+        name: 'Weekly Projections',
+        items: [
+          { label: 'Season Projection Column', what: 'Sleeper season-long projected points for the player.', source: 'projections[sleeperId].pts_ppr or pts_half_ppr based on league scoring', values: 'Decimal points (e.g. 245.5)', notes: 'Fetched once per league via /projections/nfl/regular/{year}.' },
+          { label: 'Weekly Projection Column', what: 'Projected points for the current NFL week.', source: 'projections[sleeperId][nflState.display_week]', values: 'Decimal', notes: 'NFL state fetched alongside roster data on league open.' },
         ],
       },
     ],
@@ -244,28 +365,46 @@ window.LegendContent = {
   'tiers': {
     title: 'Tier Sheet',
     blurb: 'Tiered rankings managed in a Google Sheet, synced via sync-tiers.py. ' +
-           'Each row is overlaid with current data from values.json + adp.json + mvs.json.',
+           'Each row is overlaid at page-load with current data from values.json + adp.json + auction.json + mvs.json. ' +
+           'The sheet is the source of truth for tier groupings + editorial notes; data overlays provide live numbers.',
     sections: [
       {
-        name: 'Tier Source',
+        name: 'Tier Source Pipeline',
         items: [
-          { label: 'TIER_PLAYERS Array', what: 'The canonical tier list — managed in a Google Sheet, synced into the page.', source: 'sync-tiers.py replaces TIER_PLAYERS block between // TIERS:START and // TIERS:END markers', values: 'Each row: tier, name, age, pos, posRank, team, ADP fields, auction, PPG, trending, buySell, priority, contender, notes', notes: 'Sheet headers map to internal fields via HEADER_ALIASES in sync-tiers.py.' },
-          { label: 'Tier Number', what: 'Bucket number — lower = more elite tier.', source: 'Sheet column "Tier"', values: 'Integer 1+', notes: 'Players within the same tier are considered roughly equivalent value.' },
+          { label: 'sync-tiers.py', what: 'Reads the Google Sheet via service account credentials, replaces the TIER_PLAYERS array in tiers.html atomically between // TIERS:START and // TIERS:END markers.', source: 'sync-tiers.py + sync-tiers.config.json (spreadsheet ID + tab name) + service-account.json', values: 'TIER_PLAYERS array of objects with all sheet columns mapped to internal fields', notes: 'Aliases in HEADER_ALIASES handle sheet variations. Runs as step [3/5] in push.bat.' },
+          { label: 'TIER_PLAYERS Array', what: 'In-memory tier list — generated by sync-tiers.py.', source: 'Inline in tiers.html, refreshed by sync', values: 'Each row: tier, name, age, pos, posRank, team, adp2026, adpPrior, adp2025, auction, ppg2025, ppg2024, trending, buySell, priority, contender, notes', notes: 'Edited in the sheet, not in code.' },
+          { label: 'Tier Number', what: 'The tier bucket. Lower = more elite.', source: 'Sheet "Tier" column', values: 'Integer 1+', notes: 'Players within the same tier are considered roughly equivalent.' },
         ],
       },
       {
-        name: 'Column Overlays (live data)',
+        name: 'Column Overlays (live data on top of sheet)',
         items: [
-          { label: 'Value Column', what: 'Player\'s current MVS value (replaces sheet-managed value).', source: 'mvs.json overlay → TIER_PLAYERS[i].value (SF or 1QB per format toggle)', values: 'Number ~1-10,500 in MVS units', notes: 'Wholesale-replaces sheet value; sheet column kept for fallback.' },
-          { label: 'ADP 2026 Column', what: 'Current dynasty startup ADP (overlays sheet value).', source: 'adp.json → startup_sf or startup_1qb based on toggle, fallback to other format', values: 'Decimal ADP (lower = drafted earlier)', notes: 'Was 1QB-only hardcoded; now respects SF/1QB toggle (commit 892b2ad).' },
-          { label: 'Auction Column', what: 'Real dynasty auction median price.', source: 'auction.json → 1QB price first, SF fallback', values: 'Dollar string like "$15+"', notes: 'Intentional 1QB-first because dynasty auctions are overwhelmingly SF — 1QB bucket is sparse.' },
-          { label: 'PPG 2025 Column', what: 'Last season\'s actual fantasy PPG.', source: 'FP_VALUES[name].ppg (from Sleeper /stats endpoint via sync-fp.py)', values: 'Decimal PPG; blank if rookie/no games', notes: 'Updated yearly post-Week-18.' },
+          { label: 'Value Column', what: 'Current MVS value, replacing any value column from the sheet. Wholesale overlay.', source: 'mvs.json overlay at L5275-5290 in tiers.html', values: 'Number ~1-10,500 in MVS units; SF or 1QB per format toggle, with fallback to other format if missing', notes: 'Toggle-aware (commit 1aaa21e applied here too).' },
+          { label: 'ADP 2026 Column', what: 'Current dynasty startup ADP, overlaying sheet value.', source: 'adp.json startup_sf or startup_1qb based on format, fallback to other', values: 'Decimal ADP', notes: 'Was 1QB-only hardcoded; now respects SF/1QB toggle (commit 892b2ad).' },
+          { label: 'ADP 2025 Column', what: 'Prior season\'s ADP — sheet-managed since pipeline doesn\'t carry historicals beyond byMonth.', source: 'Sheet column "ADP 2025"', values: 'Decimal', notes: 'Sheet is canonical for this column.' },
+          { label: 'ADP Prior Column', what: 'Earlier ADP snapshot — sheet-managed.', source: 'Sheet column "ADP Prior"', values: 'Decimal', notes: 'Sheet is canonical.' },
+          { label: 'Auction Column', what: 'Real dynasty auction median price.', source: 'auction.json — 1QB price first, SF fallback', values: 'Dollar string (e.g. "$15")', notes: 'Intentional 1QB-first because dynasty auctions are overwhelmingly SF — 1QB bucket is sparse.' },
+          { label: 'PPG 2025 Column', what: 'Last season\'s actual fantasy points-per-game.', source: 'FP_VALUES[name].ppg via values.json (from Sleeper /stats)', values: 'Decimal PPG; blank if rookie or no games played', notes: 'Updated yearly post-Week-18 by sync-fp.py.' },
+          { label: 'PPG 2024 Column', what: 'Two-seasons-ago PPG — sheet-managed.', source: 'Sheet column "PPG 2024"', values: 'Decimal', notes: 'Sheet is canonical; pipeline doesn\'t carry multi-year stats.' },
+          { label: 'Age + Team + Pos + PosRank Columns', what: 'Player attributes overlaid from FP_VALUES (which sources from Sleeper).', source: 'values.json overlay at L5219-5235', values: 'Age = decimal years; Team = NFL abbr (LAR / SF / etc.); Pos = QB/RB/WR/TE/K; PosRank = "WR12"', notes: 'Sheet values are fallbacks if values.json doesn\'t have the player.' },
         ],
       },
       {
-        name: 'Row Annotations',
+        name: 'Editorial / Annotation Columns',
         items: [
-          { label: 'Trending / Buy-Sell / Priority / Contender / Notes', what: 'Editorial commentary from the sheet.', source: 'Google Sheet columns', values: 'Free-text annotations', notes: 'Edited in the sheet; sync-tiers.py refreshes them in tiers.html.' },
+          { label: 'Trending Column', what: 'Editorial trend annotation — sheet-managed.', source: 'Sheet column "Trending"', values: 'Free-text (e.g. "↑ rising on rookie hype")', notes: 'Sheet is canonical.' },
+          { label: 'Buy / Sell Column', what: 'Editorial buy-or-sell guidance.', source: 'Sheet column "Buy / Sell"', values: 'Free-text (e.g. "BUY at this price")', notes: 'Sheet is canonical.' },
+          { label: 'Priority Column', what: 'Manager priority annotation.', source: 'Sheet column "Priority"', values: 'Free-text', notes: 'Sheet is canonical.' },
+          { label: 'Contender Column', what: 'Whether this player is a "contender add" — useful for win-now rosters.', source: 'Sheet column "Contender"', values: 'Free-text', notes: 'Sheet is canonical.' },
+          { label: 'Notes Column', what: 'Free-form editorial commentary per player.', source: 'Sheet column "Notes"', values: 'Free-text', notes: 'Sheet is canonical.' },
+        ],
+      },
+      {
+        name: 'Tier Display',
+        items: [
+          { label: 'Tier Group Header (.tier-group-letter)', what: 'Section heading per tier (e.g. "Tier 1", "Tier 2", ...).', source: 'Rendered per group from TIER_PLAYERS grouped by .tier', values: '—', notes: 'Branded with Kanit ExtraBoldItalic + red accent.' },
+          { label: 'Tier Row (.tier-row)', what: 'One row per player within a tier. Shows name, pos, team, value, ADP, auction, PPG, editorial notes.', source: 'TIER_PLAYERS array iterated', values: 'Each row clickable to open player modal (cross-page nav)', notes: 'Visual style matches the new design system (Kanit display, Mulish body, position-color stripes).' },
+          { label: 'Player Click → Database', what: 'Click any row → opens the Trade Database in a new tab with that player\'s panel pre-opened.', source: '_fptsWriteHandoff with primaryPlayer + opens index.html', values: '—', notes: 'Standard cross-page handoff pattern.' },
         ],
       },
     ],
