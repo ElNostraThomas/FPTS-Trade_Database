@@ -1171,10 +1171,15 @@
                 // apostrophe (that's only needed inside onclick string literals).
                 // Without this fix "Ja'Marr Chase" rendered as "Ja\'Marr Chase".
                 const _nameHtml = `<span class="tf-asset-name">${_fname ? `<span class="fn">${_fname}</span>` : ''}<span class="ln">${_lname}</span></span>`;
+                // Team logo (only for real-player rows; picks have no team).
+                const _fpRec = a.type === 'pick' ? null : (_fp()[a.label] || null);
+                const _team = _fpRec && _fpRec.team ? _fpRec.team : '';
+                const _teamLogoHtml = (_team && global.TeamHelpers) ? global.TeamHelpers.logoImg(_team, { size: 14 }) : '';
                 return `
                 <div class="tf-asset" data-pos="${_pos}">
                   ${a.type === 'pick' ? pickThumb(24) : _imgThumb(a.label, 24) + `<span class="pos-badge ${_pc(_pos)}" style="font-size:9px;padding:1px 5px">${_pos}</span>`}
                   ${_nameHtml}
+                  ${_teamLogoHtml}
                   <span class="tf-asset-val">${(a.value || 0).toLocaleString()}</span>
                   <span class="tf-asset-remove" onclick="tfRemove('${containerId}','${side}',${i})">✕</span>
                 </div>`;
