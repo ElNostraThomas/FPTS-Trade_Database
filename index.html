@@ -7005,14 +7005,19 @@ function openPanelContent(playerName) {
       : `<span class="trend flat">—</span> <span style="opacity:.65">(7d)</span>`;
   trendEl.className = `pp-value-trend ${trendNum>0?"up":trendNum<0?"down":""}`;
 
+  // Always render ALL seven stat cells so every player has the same modal
+  // layout. Missing values show as "—" instead of collapsing the cell, which
+  // previously made Harold Fannin (full data) and Eli Stowers (rookie) look
+  // visually inconsistent.
+  const _auctionStr = ktc.auction ? ('$' + String(ktc.auction).replace(/^\$+/, '')) : null;
   document.getElementById("pp-meta-row").innerHTML = [
-    ktc.age     ? `<div class="pp-meta-item"><div class="pp-meta-label">Age</div><div class="pp-meta-val">${ktc.age}</div></div>` : "",
+    `<div class="pp-meta-item"><div class="pp-meta-label">Age</div><div class="pp-meta-val">${ktc.age != null ? ktc.age : '—'}</div></div>`,
     `<div class="pp-meta-item" id="pp-exp-item" style="display:none"><div class="pp-meta-label">EXP</div><div class="pp-meta-val" id="pp-exp-val">—</div></div>`,
-    ktc.posRank ? `<div class="pp-meta-item"><div class="pp-meta-label">Pos Rank</div><div class="pp-meta-val">${ktc.posRank}</div></div>` : "",
-    ktc.rank    ? `<div class="pp-meta-item"><div class="pp-meta-label">Overall Rank</div><div class="pp-meta-val">#${ktc.rank}</div></div>` : "",
-    ktc.ppg     ? `<div class="pp-meta-item"><div class="pp-meta-label">PPG</div><div class="pp-meta-val">${ktc.ppg}</div></div>` : "",
-    ktc.adp     ? `<div class="pp-meta-item"><div class="pp-meta-label">Dynasty ADP</div><div class="pp-meta-val">${ktc.adp}</div></div>` : "",
-    ktc.auction ? `<div class="pp-meta-item"><div class="pp-meta-label">Auction</div><div class="pp-meta-val" style="color:var(--green)">$${String(ktc.auction).replace(/^\$+/, '')}</div></div>` : "",
+    `<div class="pp-meta-item"><div class="pp-meta-label">Pos Rank</div><div class="pp-meta-val">${ktc.posRank || '—'}</div></div>`,
+    `<div class="pp-meta-item"><div class="pp-meta-label">Overall Rank</div><div class="pp-meta-val">${ktc.rank ? '#'+ktc.rank : '—'}</div></div>`,
+    `<div class="pp-meta-item"><div class="pp-meta-label">PPG</div><div class="pp-meta-val">${ktc.ppg != null ? ktc.ppg : '—'}</div></div>`,
+    `<div class="pp-meta-item"><div class="pp-meta-label">Dynasty ADP</div><div class="pp-meta-val">${ktc.adp != null ? ktc.adp : '—'}</div></div>`,
+    `<div class="pp-meta-item"><div class="pp-meta-label">Auction</div><div class="pp-meta-val" ${_auctionStr ? 'style="color:var(--green)"' : ''}>${_auctionStr || '—'}</div></div>`,
   ].join("")
 
   // Render articles row (FantasyPoints content). Hides itself if no articles for this player.
