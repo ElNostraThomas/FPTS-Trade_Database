@@ -1354,10 +1354,25 @@ function renderBoxView(players) {
 }
 
 // ── HANDLERS ──────────────────────────────────────────────────────────────────
+// 1QB picks-as-K dynasty startups are too rare in the current scrape to render
+// a meaningful 1QB picks board for 2026 (only ~4 qualifying drafts). Until the
+// scrape grows or year-specific ADP lands, hide the 1QB toggle while the user
+// is on Picks mode and silently keep them on SF. Functionality is preserved —
+// click Simple or Rookies and the 1QB toggle reappears.
+function _applyPicksOneQbConstraint() {
+  const qb1qbBtn = document.querySelector('[data-qb="1qb"]');
+  if (qb1qbBtn) qb1qbBtn.style.display = STATE.mode === 'picks' ? 'none' : '';
+  if (STATE.mode === 'picks' && STATE.qbFormat === '1qb') {
+    STATE.qbFormat = 'sf';
+    document.querySelectorAll('[data-qb]').forEach(b => b.classList.toggle('active', b.dataset.qb === 'sf'));
+  }
+}
+
 function setMode(mode) {
   if (!VALID_MODES.has(mode)) return;
   STATE.mode = mode;
   document.querySelectorAll('[data-mode]').forEach(b => b.classList.toggle('active', b.dataset.mode === mode));
+  _applyPicksOneQbConstraint();
   rebuildTrendIndex();  // trend is mode-specific (different data source per mode)
   renderAll();
 }
@@ -1556,6 +1571,7 @@ function loadStateFromHash() {
 function applyStateToUi() {
   document.querySelectorAll('[data-mode]').forEach(b => b.classList.toggle('active', b.dataset.mode === STATE.mode));
   document.querySelectorAll('[data-qb]').forEach(b => b.classList.toggle('active', b.dataset.qb === STATE.qbFormat));
+  _applyPicksOneQbConstraint();
   document.querySelectorAll('[data-view]').forEach(b => b.classList.toggle('active', b.dataset.view === STATE.view));
   const snakeBtn = document.getElementById('snake-toggle');
   if (snakeBtn) snakeBtn.classList.toggle('active', STATE.snake);
