@@ -1492,6 +1492,8 @@
   .mvs-t-vs { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; color:var(--red); font-size:16px; align-self:center; padding-top:18px; }
 </style>
 <script src="assets/js/mvs-extras.js"></script>
+<link rel="stylesheet" href="assets/css/heatmap.css">
+<script src="assets/js/heatmap.js"></script>
 <link rel="stylesheet" href="assets/css/legend.css">
 <script src="assets/js/legend-content.js"></script>
 <script src="assets/js/legend.js"></script>
@@ -1931,6 +1933,9 @@
 
     <!-- MVS extras: OTC + rankings + sparkline + recent trades. Populated via MvsExtras.buildAll(playerName). -->
     <div id="pp-mvs-extras"></div>
+
+    <!-- Pick-availability heatmap. Populated via Heatmap.render(el, sleeperId). -->
+    <div id="pp-heatmap"></div>
 
     <div class="pp-tabs">
       <button class="pp-tab active" onclick="ppShowTab('trades')">Trades</button>
@@ -7004,42 +7009,18 @@ function openPanelContent(playerName) {
     ktc.ppg     ? `<div class="pp-meta-item"><div class="pp-meta-label">PPG</div><div class="pp-meta-val">${ktc.ppg}</div></div>` : "",
     ktc.adp     ? `<div class="pp-meta-item"><div class="pp-meta-label">Dynasty ADP</div><div class="pp-meta-val">${ktc.adp}</div></div>` : "",
     ktc.auction ? `<div class="pp-meta-item"><div class="pp-meta-label">Auction</div><div class="pp-meta-val" style="color:var(--green)">$${String(ktc.auction).replace(/^\$+/, '')}</div></div>` : "",
-    `<div class="pp-meta-item" id="pp-trending-adds"><div class="pp-meta-label">Trending Adds</div><div class="pp-meta-val" style="opacity:.4">...</div></div>`,
-    `<div class="pp-meta-item" id="pp-trending-drops"><div class="pp-meta-label">Trending Drops</div><div class="pp-meta-val" style="opacity:.4">...</div></div>`,
   ].join("")
 
   // Render articles row (FantasyPoints content). Hides itself if no articles for this player.
   renderPlayerArticles(playerName);
 
-  // Fetch Sleeper trending adds + drops for this player
-  if (sleeperId) {
-    const addUrl  = `https://api.sleeper.app/v1/players/nfl/trending/add?lookback_hours=48&limit=200`;
-    const dropUrl = `https://api.sleeper.app/v1/players/nfl/trending/drop?lookback_hours=48&limit=200`;
-    Promise.all([
-      fetch(addUrl).then(r=>r.json()).catch(()=>[]),
-      fetch(dropUrl).then(r=>r.json()).catch(()=>[]),
-    ]).then(([adds, drops]) => {
-      const addEntry  = adds.find(p  => String(p.player_id) === String(sleeperId));
-      const dropEntry = drops.find(p => String(p.player_id) === String(sleeperId));
-      const addEl  = document.getElementById('pp-trending-adds');
-      const dropEl = document.getElementById('pp-trending-drops');
-      if (addEl) {
-        const cnt = addEntry ? addEntry.count.toLocaleString() : '—';
-        addEl.querySelector('.pp-meta-val').textContent = cnt;
-        addEl.querySelector('.pp-meta-val').style.opacity = '1';
-        if (addEntry) addEl.querySelector('.pp-meta-val').style.color = 'var(--green)';
-      }
-      if (dropEl) {
-        let cnt = dropEntry ? dropEntry.count.toLocaleString() : '—';
-        dropEl.querySelector('.pp-meta-val').textContent = cnt;
-        dropEl.querySelector('.pp-meta-val').style.opacity = '1';
-        if (dropEntry) dropEl.querySelector('.pp-meta-val').style.color = 'var(--red)';
-      }
-    }).catch(() => {});
+  // (Trending Adds / Drops were removed — those Sleeper aggregates were noisy
+  // and the MVS volume signal in the new extras row covers the same need.)
 
-    // Fetch years of experience from Sleeper. The per-player endpoint doesn't exist,
-    // so we fetch the full players DB once and cache it on window (~5MB, but cached
-    // for the rest of the session).
+  // Fetch years of experience from Sleeper. The per-player endpoint doesn't exist,
+  // so we fetch the full players DB once and cache it on window (~5MB, but cached
+  // for the rest of the session).
+  if (sleeperId) {
     const setExp = (yoe) => {
       const expEl = document.getElementById('pp-exp-val');
       if (!expEl || yoe === null || yoe === undefined) return;
@@ -7065,7 +7046,7 @@ function openPanelContent(playerName) {
         if (p) setExp(p.years_exp);
       });
     }
-  };
+  }
 
   const sorted = [...playerTrades].sort((a,b)=>b.date.localeCompare(a.date));
   const pairedCount = {};
@@ -7099,6 +7080,11 @@ function openPanelContent(playerName) {
   const mvsExtrasEl = document.getElementById("pp-mvs-extras");
   if (mvsExtrasEl) {
     mvsExtrasEl.innerHTML = window.MvsExtras ? window.MvsExtras.buildAll(playerName) : '';
+  }
+  // ── Pick availability heatmap (shared helper) ──
+  const heatmapEl = document.getElementById("pp-heatmap");
+  if (heatmapEl && window.Heatmap) {
+    window.Heatmap.render(heatmapEl, sleeperId);
   }
 
   document.getElementById("pp-trades-tab").innerHTML =
@@ -7356,6 +7342,7 @@ function closePanel() {
     fetch('data/auction.json' + v).then(r => r.ok ? r.json() : Promise.reject('auction ' + r.status)).then(j => _applyAuctionPayload(j)).catch(() => { /* auction optional */ }),
     fetch('data/picks.json' + v).then(r => r.ok ? r.json() : Promise.reject('picks ' + r.status)).then(j => { if (typeof PICK_VALUES !== 'undefined' && j && j.picks) Object.assign(PICK_VALUES, j.picks); }),
     fetch('data/articles.json' + v).then(r => r.ok ? r.json() : Promise.reject('articles ' + r.status)).then(j => { if (j && j.players) window.PLAYER_ARTICLES = j.players; }).catch(() => { /* articles optional */ }),
+    fetch('data/pick-availability.json' + v).then(r => r.ok ? r.json() : null).then(j => { if (j && j.players) window.PICK_AVAILABILITY = j.players; }).catch(() => { /* heatmap optional */ }),
   ]).then(() => {
     // MVS overlay AFTER base data so it replaces the value layer wholesale.
     return fetch('data/mvs.json' + v).then(r => r.ok ? r.json() : null).then(j => { if (j) _applyMvsPayload(j); }).catch(() => { /* mvs optional during transition */ });

@@ -2007,6 +2007,8 @@
   .mvs-t-vs { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; color:var(--red); font-size:16px; align-self:center; padding-top:18px; }
 </style>
 <script src="assets/js/mvs-extras.js"></script>
+<link rel="stylesheet" href="assets/css/heatmap.css">
+<script src="assets/js/heatmap.js"></script>
 <link rel="stylesheet" href="assets/css/legend.css">
 <script src="assets/js/legend-content.js"></script>
 <script src="assets/js/legend.js"></script>
@@ -4134,6 +4136,7 @@ function openPlayerDetail(sleeperId) {
     </div>
     ${stats}
     <div id="ml-pd-mvs-extras"></div>
+    <div id="ml-pd-heatmap"></div>
     <div id="ml-pd-articles-mount"></div>
     ${statusBlock}
     <div id="ml-pd-availability-mount"></div>
@@ -4141,6 +4144,9 @@ function openPlayerDetail(sleeperId) {
   // MVS extras (OTC + rankings + sparkline + recent trades) — shared helper
   const mlMvsExtras = document.getElementById('ml-pd-mvs-extras');
   if (mlMvsExtras) mlMvsExtras.innerHTML = window.MvsExtras ? window.MvsExtras.buildAll(name) : '';
+  // Pick availability heatmap — shared helper
+  const mlHeatmap = document.getElementById('ml-pd-heatmap');
+  if (mlHeatmap && window.Heatmap) window.Heatmap.render(mlHeatmap, sid);
   // Track current player so the hide-usernames toggle can re-render
   window.ML_PD_CURRENT_SID = sid;
   // Mount the shared articles section (auto-hides if no articles)
@@ -7369,6 +7375,7 @@ function _fptsXpageMlPepToDb() {
     fetch('data/auction.json' + v).then(r => r.ok ? r.json() : Promise.reject('auction ' + r.status)).then(j => _applyAuctionPayload(j)).catch(() => { /* auction optional */ }),
     fetch('data/picks.json' + v).then(r => r.ok ? r.json() : Promise.reject('picks ' + r.status)).then(j => { if (typeof PICK_VALUES !== 'undefined' && j && j.picks) Object.assign(PICK_VALUES, j.picks); }),
     fetch('data/articles.json' + v).then(r => r.ok ? r.json() : Promise.reject('articles ' + r.status)).then(j => { if (j && j.players) window.PLAYER_ARTICLES = j.players; }).catch(() => { /* articles optional */ }),
+    fetch('data/pick-availability.json' + v).then(r => r.ok ? r.json() : null).then(j => { if (j && j.players) window.PICK_AVAILABILITY = j.players; }).catch(() => { /* heatmap optional */ }),
   ]).then(() => {
     return fetch('data/mvs.json' + v).then(r => r.ok ? r.json() : null).then(j => { if (j) _applyMvsPayload(j); }).catch(() => {});
   }).then(() => {
