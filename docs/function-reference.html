@@ -1673,6 +1673,9 @@
 
     <div class="dod-cell do"><span class="mark">✓</span>Keep asset-chip rendering aligned: Trade Calculator <span class="kbd">.asset-row</span> and Trade Finder <span class="kbd">.tf-asset</span> share the same position palette + stacked first/last name layout.</div>
     <div class="dod-cell dont"><span class="mark">✗</span>Change the chip palette or layout on one builder without mirroring on the other. Push.bat counts the data-pos rules per side and warns on drift.</div>
+
+    <div class="dod-cell do"><span class="mark">✓</span>Use the shared player-modal pattern when adding a new page: profile → MVS extras → articles → 5-tab strip → tab content. All shared modules (mvs-extras / player-articles / heatmap / legend) drop in via <span class="kbd">&lt;link&gt;</span> + <span class="kbd">&lt;script&gt;</span>.</div>
+    <div class="dod-cell dont"><span class="mark">✗</span>Hand-roll a player modal on a new page. Reuse the shared CSS + JS modules — adding a new page should be ~30 lines of HTML + a few wiring calls, not a fresh implementation.</div>
   </div>
 
   <h3 class="fn-section-head">How to update this document</h3>
@@ -1690,6 +1693,37 @@
   <h3 class="fn-section-head">Asset-chip palette sync check (automated)</h3>
 
   <p class="feature-body">Both trade-builder UIs render asset chips for the players + picks the user is staging: the <b>Trade Calculator</b> uses <span class="kbd">.asset-row[data-pos=&quot;…&quot;]</span> rules and the <b>Trade Finder</b> (inside the DB player modal) uses <span class="kbd">.tf-asset[data-pos=&quot;…&quot;]</span> rules. The palettes (QB red / RB green / WR blue / TE orange / K + PK purple) and the stacked first/last name layout must stay in sync. <span class="kbd">push.bat</span> counts the data-pos rules on each side and prints a yellow warning if they diverge. Both files carry <span class="kbd">SYNC-RULE</span> CSS comments above the palette block so developers see the rule inline.</p>
+
+  <h3 class="fn-section-head">Player-modal section sync check (automated)</h3>
+
+  <p class="feature-body">Every player modal across the 5 pages renders the same vertical structure: <b>profile → MVS extras → articles → 5-tab strip → tab content</b>. The shared modules — <span class="kbd">assets/css/mvs-extras.css</span> + <span class="kbd">assets/js/mvs-extras.js</span>, <span class="kbd">assets/js/player-articles.js</span>, <span class="kbd">assets/css/heatmap.css</span> + <span class="kbd">assets/js/heatmap.js</span> — drop in via <span class="kbd">&lt;link&gt;</span> and <span class="kbd">&lt;script&gt;</span> tags so adding a new page is mostly markup plus a few mount calls. <span class="kbd">push.bat</span> counts the <span class="kbd">pp-mvs-extras</span> and <span class="kbd">articles-mount</span> container divs per page and warns if any modal is missing the required sections.</p>
+
+  <h3 class="fn-section-head">Adding a new page with a player modal</h3>
+
+  <p class="feature-body">Drop these <span class="kbd">&lt;link&gt;</span> + <span class="kbd">&lt;script&gt;</span> tags in the page's <span class="kbd">&lt;head&gt;</span> (with the <span class="kbd">?v=</span> cache-bust tokens copied from any existing page):</p>
+
+  <pre style="background:var(--surface);border:1px solid var(--border);padding:10px 14px;font-family:'Consolas','Menlo',monospace;font-size:10pt;line-height:1.4;color:var(--ink);overflow:auto;margin:8px 0 14px;border-radius:0">&lt;link rel="stylesheet" href="assets/css/mvs-extras.css?v=..."&gt;
+&lt;script src="assets/js/mvs-extras.js?v=..."&gt;&lt;/script&gt;
+&lt;script src="assets/js/player-articles.js?v=..."&gt;&lt;/script&gt;
+&lt;link rel="stylesheet" href="assets/css/heatmap.css?v=..."&gt;
+&lt;script src="assets/js/heatmap.js?v=..."&gt;&lt;/script&gt;</pre>
+
+  <p class="feature-body">Place these container divs inside your modal in this order:</p>
+
+  <pre style="background:var(--surface);border:1px solid var(--border);padding:10px 14px;font-family:'Consolas','Menlo',monospace;font-size:10pt;line-height:1.4;color:var(--ink);overflow:auto;margin:8px 0 14px;border-radius:0">&lt;div class="pp-profile"&gt; ... &lt;/div&gt;
+&lt;div id="myPage-pp-mvs-extras"&gt;&lt;/div&gt;
+&lt;div id="myPage-pp-articles-mount"&gt;&lt;/div&gt;
+&lt;div class="pp-tabs"&gt; ...5 tab buttons... &lt;/div&gt;
+&lt;div id="myPage-pp-trades-tab"&gt;&lt;/div&gt;
+... 4 more tab content divs ...</pre>
+
+  <p class="feature-body">On modal-open, populate via:</p>
+
+  <pre style="background:var(--surface);border:1px solid var(--border);padding:10px 14px;font-family:'Consolas','Menlo',monospace;font-size:10pt;line-height:1.4;color:var(--ink);overflow:auto;margin:8px 0 14px;border-radius:0">MvsExtras.buildHeader(playerName)  →  innerHTML of pp-mvs-extras div
+PlayerArticles.mount(articlesEl, playerName)
+Heatmap.render(heatmapTabEl, sleeperId)  // on Heatmap tab activation</pre>
+
+  <p class="feature-body">That's the full pattern. Total markup + JS for a new page's modal is under ~100 lines.</p>
 
   <div class="footer-strip"><span>FPTS · FUNCTION REFERENCE</span><span class="accent">27 · CLOSING · END</span></div>
 </section>

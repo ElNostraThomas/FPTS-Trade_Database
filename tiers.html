@@ -340,6 +340,7 @@
 </style>
 <link rel="stylesheet" href="assets/css/mvs-extras.css?v=1778642255">
 <script src="assets/js/mvs-extras.js?v=1778642255"></script>
+<script src="assets/js/player-articles.js?v=1778642300"></script>
 <link rel="stylesheet" href="assets/css/heatmap.css?v=1778642255">
 <script src="assets/js/heatmap.js?v=1778642255"></script>
 <link rel="stylesheet" href="assets/css/legend.css?v=1778642255">
@@ -389,7 +390,7 @@
       <option value="adp-tool.html">ADP</option>
       <option value="https://www.fantasypoints.com/nfl/rankings/dynasty#/">Rankings</option>
     </select>
-    <span class="nav-stat">Synced <strong id="tiers-updated-stat"><!-- TIERS:SYNCED:START -->May 12, 2026 10:14 PM<!-- TIERS:SYNCED:END --></strong></span>
+    <span class="nav-stat">Synced <strong id="tiers-updated-stat"><!-- TIERS:SYNCED:START -->May 12, 2026 10:19 PM<!-- TIERS:SYNCED:END --></strong></span>
     <span class="nav-badge">SEASON 2026</span>
     <button id="theme-toggle" onclick="toggleTheme()"
       style="background:none;border:1px solid var(--border2);color:var(--white);font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:11px;padding:5px 12px;cursor:pointer;transition:all .2s;letter-spacing:.04em;display:flex;align-items:center;gap:6px"
@@ -5409,6 +5410,8 @@ window.addEventListener('DOMContentLoaded', () => {
       </div>
     </div>
     <div id="tiers-pp-mvs-extras"></div>
+    <!-- Articles section — shared player-articles.js module. -->
+    <div id="tiers-pp-articles-mount"></div>
     <!-- SYNC-RULE: keep this 5-tab strip aligned with the player modals on
          the other four pages (DB / Calc / My-Leagues / ADP-tool). push.bat
          warns on drift. -->
@@ -5520,6 +5523,12 @@ function _tiersOpenModal(name) {
   // MVS extras — header only (no recent trades; those live in the Trades tab)
   const extrasEl = document.getElementById('tiers-pp-mvs-extras');
   if (extrasEl) extrasEl.innerHTML = window.MvsExtras ? window.MvsExtras.buildHeader(name) : '';
+  // Articles — shared module
+  const articlesEl = document.getElementById('tiers-pp-articles-mount');
+  if (articlesEl && window.PlayerArticles) {
+    articlesEl.innerHTML = '';
+    window.PlayerArticles.mount(articlesEl, name);
+  }
   // Reset tabs
   ['tiers-pp-trades-tab','tiers-pp-stats-tab','tiers-pp-curve-tab','tiers-pp-finder-tab','tiers-pp-heatmap-tab'].forEach(id => {
     const el = document.getElementById(id);

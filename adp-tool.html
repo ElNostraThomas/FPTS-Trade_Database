@@ -349,7 +349,8 @@
 
   /* COMPARE MODE — overlay a multi-player grid in place of the single-player profile */
   .modal.compare-mode .pp-profile,
-  .modal.compare-mode #pp-articles-section,
+  .modal.compare-mode #adp-pp-articles-mount,
+  .modal.compare-mode #adp-pp-mvs-extras,
   .modal.compare-mode #pp-heatmap-section,
   .modal.compare-mode #pp-content-tabs,
   .modal.compare-mode #adp-pp-trades-tab,
@@ -503,6 +504,7 @@
 </style>
 <link rel="stylesheet" href="assets/css/mvs-extras.css?v=1778642255">
 <script src="assets/js/mvs-extras.js?v=1778642255"></script>
+<script src="assets/js/player-articles.js?v=1778642300"></script>
 <link rel="stylesheet" href="assets/css/legend.css?v=1778642255">
 <script src="assets/js/legend-content.js?v=1778642255"></script>
 <script src="assets/js/legend.js?v=1778642255"></script>
@@ -703,14 +705,10 @@
          player card has the same inline content above the tab strip. -->
     <div id="adp-pp-mvs-extras"></div>
 
-    <!-- ARTICLES (always above the content tabs — same pattern as DB modal) -->
-    <div class="pp-section" id="pp-articles-section">
-      <div class="pp-section-label">
-        Articles <span class="src">FantasyPoints.com · subscription required</span>
-        <a class="pp-fp-signin" href="https://www.fantasypoints.com/account/login" target="_blank" rel="noopener" title="Open FantasyPoints login in a new tab — articles open directly once you're signed in">Sign in to FantasyPoints ↗</a>
-      </div>
-      <div id="pp-articles-body"></div>
-    </div>
+    <!-- Articles section — shared player-articles.js module (replaces previous
+         inline #pp-articles-section markup so all 5 modals render articles
+         the same way). -->
+    <div id="adp-pp-articles-mount"></div>
 
     <!-- SYNC-RULE: keep this 5-tab strip aligned with the player modals on
          the other three pages (DB / Calc / My-Leagues). Add or change tabs
@@ -1589,37 +1587,12 @@ function openModal(sleeperId) {
   });
   if (typeof _adpShowTab === 'function') _adpShowTab('trades');
 
-  // Articles — empty state matches the FantasyPoints panel pattern (with browse CTA)
-  const articlesBody = document.getElementById('pp-articles-body');
-  const arts = (window.PLAYER_ARTICLES && window.PLAYER_ARTICLES[p.name]) || [];
-  if (arts && arts.length) {
-    // Most-recent article shown by default; remaining ones live inside an
-    // expandable "Show N more" dropdown. Each card links to the article on
-    // FantasyPoints rather than rendering inline (their bodies use a custom
-    // markdown with placeholder tokens that don't render cleanly).
-    const top = arts.slice(0, 5);
-    const renderCard = (a) => {
-      const dateStr = a.date ? new Date(a.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
-      return `<a class="pp-article" href="${escapeHtml(a.url)}" target="_blank" rel="noopener">
-        <div class="pp-article-title">${escapeHtml(a.title)}</div>
-        <div class="pp-article-meta">${escapeHtml(a.author || '')} ${a.author && dateStr ? '·' : ''} ${escapeHtml(dateStr)}</div>
-      </a>`;
-    };
-    const first = top[0];
-    const rest  = top.slice(1);
-    let html = `<div class="pp-articles-list">${renderCard(first)}`;
-    if (rest.length) {
-      html += `<div id="pp-articles-more" style="display:none">${rest.map(renderCard).join('')}</div>`;
-      html += `<button class="pp-articles-toggle" data-count="${rest.length}" data-expanded="false" type="button">Show ${rest.length} more article${rest.length === 1 ? '' : 's'} ↓</button>`;
-    }
-    html += `</div>`;
-    articlesBody.innerHTML = html;
-  } else {
-    const browseUrl = `https://www.fantasypoints.com/search?q=${encodeURIComponent(p.name)}`;
-    articlesBody.innerHTML = `<div class="pp-articles-empty">
-      <div class="pp-articles-empty-msg">No curated articles yet — browse FantasyPoints for ${escapeHtml(p.name)} coverage</div>
-      <a class="pp-action-btn" href="${browseUrl}" target="_blank" rel="noopener">Browse FantasyPoints ↗</a>
-    </div>`;
+  // Articles — shared player-articles.js module (replaces previous inline
+  // render so every modal renders articles the same way).
+  const adpArticles = document.getElementById('adp-pp-articles-mount');
+  if (adpArticles && window.PlayerArticles) {
+    adpArticles.innerHTML = '';
+    window.PlayerArticles.mount(adpArticles, p.name);
   }
 
   document.getElementById('modal-backdrop').classList.add('open');
@@ -2209,19 +2182,8 @@ function _bindEvents() {
   });
   // Modal close + cross-page buttons
   document.getElementById('modal-close').addEventListener('click', closeModal);
-  // "Show more articles" toggle inside the modal's article list
-  document.getElementById('pp-articles-body').addEventListener('click', e => {
-    const toggle = e.target.closest('.pp-articles-toggle');
-    if (toggle) {
-      e.preventDefault();
-      const more = document.getElementById('pp-articles-more');
-      const expanded = more.style.display !== 'none';
-      more.style.display = expanded ? 'none' : '';
-      toggle.dataset.expanded = expanded ? 'false' : 'true';
-      const n = Number(toggle.dataset.count || 0);
-      toggle.textContent = expanded ? `Show ${n} more article${n === 1 ? '' : 's'} ↓` : `Show fewer ↑`;
-    }
-  });
+  // (Articles toggle handler removed — shared PlayerArticles module owns
+  // its own dropdown handling now.)
   document.getElementById('xpage-db').addEventListener('click',      e => { e.stopPropagation(); _fptsXpageAdpToDb(); });
   document.getElementById('xpage-calc').addEventListener('click',    e => { e.stopPropagation(); _fptsXpageAdpToCalc(); });
   document.getElementById('xpage-leagues').addEventListener('click', e => { e.stopPropagation(); _fptsXpageAdpToLeagues(); });

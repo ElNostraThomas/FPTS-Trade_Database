@@ -1181,6 +1181,7 @@
 </style>
 <link rel="stylesheet" href="assets/css/mvs-extras.css?v=1778642255">
 <script src="assets/js/mvs-extras.js?v=1778642255"></script>
+<script src="assets/js/player-articles.js?v=1778642300"></script>
 <link rel="stylesheet" href="assets/css/heatmap.css?v=1778642255">
 <script src="assets/js/heatmap.js?v=1778642255"></script>
 <link rel="stylesheet" href="assets/css/legend.css?v=1778642255">
@@ -3205,6 +3206,12 @@ window._openCalcPlayerModal = function(playerName, pos, sideId, assetIdx) {
   // MVS extras (OTC + rankings + sparkline + recent trades)
   const calcExtras = document.getElementById('calc-pp-mvs-extras');
   if (calcExtras) calcExtras.innerHTML = window.MvsExtras ? window.MvsExtras.buildHeader(playerName) : '';
+  // Articles — shared player-articles.js module
+  const calcArticles = document.getElementById('calc-pp-articles-mount');
+  if (calcArticles && window.PlayerArticles) {
+    calcArticles.innerHTML = '';
+    window.PlayerArticles.mount(calcArticles, playerName);
+  }
   // Stash state for lazy tab renders + reset to Trades tab (default)
   window._calcActiveSleeperId = sleeperId || null;
   ['calc-pp-trades-tab','calc-pp-stats-tab','calc-pp-curve-tab','calc-pp-finder-tab','calc-pp-heatmap-tab'].forEach(id => {
@@ -3358,6 +3365,9 @@ function _calcRenderDbCtaTab(tabName, playerName) {
     </div>
     <!-- MVS extras: OTC + rankings + sparkline + recent trades (shared helper) -->
     <div id="calc-pp-mvs-extras"></div>
+
+    <!-- Articles section — shared player-articles.js module. -->
+    <div id="calc-pp-articles-mount"></div>
 
     <!-- SYNC-RULE: keep this 5-tab strip aligned with the player modals on
          the other three pages (DB / My-Leagues / ADP-tool). Add or change
