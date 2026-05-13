@@ -3201,7 +3201,11 @@ window._openCalcPlayerModal = function(playerName, pos, sideId, assetIdx) {
   // MVS extras (OTC + rankings + sparkline + recent trades)
   const calcExtras = document.getElementById('calc-pp-mvs-extras');
   if (calcExtras) calcExtras.innerHTML = window.MvsExtras ? window.MvsExtras.buildAll(playerName) : '';
-  // Heatmap render removed — modal stays consistent across players.
+  // Reset to Overview tab + stash sleeperId for lazy heatmap render
+  window._calcActiveSleeperId = sleeperId || null;
+  if (typeof _calcShowTab === 'function') _calcShowTab('overview');
+  const heatmapTab = document.getElementById('calc-pp-heatmap-tab');
+  if (heatmapTab) heatmapTab.innerHTML = '';  // clear stale heatmap from prior player
   // Cross-page handoff wiring
   window._calcModalPlayerName = playerName;
   // Open
@@ -3267,9 +3271,17 @@ document.addEventListener('keydown', function(e) {
     </div>
     <!-- MVS extras: OTC + rankings + sparkline + recent trades (shared helper) -->
     <div id="calc-pp-mvs-extras"></div>
-    <!-- Heatmap removed from inline render — see DB modal's ADP Heatmap tab.
-         Calc + my-leagues modals are tab-less so we keep them visually
-         consistent across every player (no full-grid vs "not tracked" split). -->
+
+    <!-- Tab strip — keeps the modal layout consistent across players by
+         hiding heatmap behind a tab (only visible after click). -->
+    <div class="pp-tabs" style="border-top:1px solid var(--border)">
+      <button class="pp-tab active" type="button" onclick="_calcShowTab('overview')">Overview</button>
+      <button class="pp-tab" type="button" onclick="_calcShowTab('heatmap')">ADP Heatmap</button>
+    </div>
+    <div id="calc-pp-overview-tab" style="padding:14px 24px;font-family:'Mulish',sans-serif;font-size:12px;color:var(--white);opacity:.85;line-height:1.55">
+      Trade context for this player. Switch to the <b>ADP Heatmap</b> tab to see pick-availability probabilities (top ~300 startup ADP coverage). Click "Open in Database" for full Player Stats / Age Curve / Trade Finder.
+    </div>
+    <div id="calc-pp-heatmap-tab" style="display:none"></div>
   </div>
 </div>
 </body>
