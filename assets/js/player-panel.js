@@ -474,6 +474,20 @@
     const FP_VALUES = _fp();
     const SLEEPER_IDS = _sleeper();
 
+    // Diagnostic: trace what we received and whether the data globals are populated.
+    // Remove once panel-render parity is confirmed across pages.
+    try {
+      console.log('[player-panel] openPanelContent', {
+        playerName,
+        fpKeys: Object.keys(FP_VALUES).length,
+        tradesCount: TRADES.length,
+        sleeperKeys: Object.keys(SLEEPER_IDS).length,
+        ktcHit: !!FP_VALUES[playerName],
+        ktcSample: FP_VALUES[playerName] ? Object.keys(FP_VALUES[playerName]).slice(0, 5) : null,
+        currentPage: global.FPTS_CURRENT_PAGE,
+      });
+    } catch (e) {}
+
     const playerTrades = TRADES.filter(t => (t.players || []).some(p => p.name === playerName));
     const playerInfo = TRADES.flatMap(t => t.players || []).find(p => p.name === playerName);
     const ktc = FP_VALUES[playerName] || {};
