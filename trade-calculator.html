@@ -2240,18 +2240,27 @@ function renderBuilder() {
         ${side.assets.length === 0
           ? `<div class="empty-hint"><span class="empty-hint-icon">＋</span>Search below to add players or picks</div>`
           : side.assets.map((a,i) => {
-              const isPick = a.pos === 'PK';
+              // Normalize position so CSS [data-pos="QB"] selector matches regardless of
+              // how the asset was added (search, handoff, legacy state). Strips trailing
+              // digits (QB4 → QB), uppercases, and falls back to FP_VALUES.pos / posRank
+              // when a.pos itself is empty.
+              let posClean = String(a.pos || '').toUpperCase().replace(/\d+/g, '').trim();
+              if (!posClean && FP_VALUES[a.name]) {
+                posClean = String(FP_VALUES[a.name].pos || (FP_VALUES[a.name].posRank || '').replace(/\d+/g, '')).toUpperCase();
+              }
+              if (!posClean) posClean = 'WR';
+              const isPick = posClean === 'PK';
               const thumbHtml = isPick
                 ? pickThumb(28)
                 : `<span style="width:28px;height:28px;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;">${SLEEPER_IDS[a.name]?`<img src="https://sleepercdn.com/content/nfl/players/thumb/${SLEEPER_IDS[a.name]}.jpg" alt="" style="width:28px;height:28px;min-width:28px;border-radius:50%;object-fit:cover;flex-shrink:0;" onerror="this.style.display='none'">`:''}</span>`;
-              const posBadgeHtml = isPick ? '' : `<span class="asset-pos pos-${a.pos}">${a.pos}</span>`;
+              const posBadgeHtml = isPick ? '' : `<span class="asset-pos pos-${posClean}">${posClean}</span>`;
               // Stacked name: split at last space (handles "Amon-Ra St. Brown" → "Amon-Ra St." / "Brown")
               const parts = String(a.name || '').trim().split(/\s+/);
               const fname = parts.length > 1 ? parts.slice(0, -1).join(' ') : '';
               const lname = parts[parts.length - 1] || a.name;
               const nameHtml = `<span class="asset-name">${fname ? `<span class="fn">${fname.replace(/'/g,"\\'")}</span>` : ''}<span class="ln">${lname.replace(/'/g,"\\'")}</span></span>`;
               return `
-            <div class="asset-row" data-pos="${a.pos}" onclick="if(event.target.closest('.asset-remove'))return; window._openCalcPlayerModal && _openCalcPlayerModal('${a.name.replace(/'/g,"\\'")}', '${a.pos}', '${side.id}', ${i})">
+            <div class="asset-row" data-pos="${posClean}" onclick="if(event.target.closest('.asset-remove'))return; window._openCalcPlayerModal && _openCalcPlayerModal('${a.name.replace(/'/g,"\\'")}', '${posClean}', '${side.id}', ${i})">
               ${posBadgeHtml}
               ${thumbHtml}${nameHtml}
               <span class="asset-val">${adjVal(a).toLocaleString()}</span>
