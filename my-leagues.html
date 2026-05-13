@@ -2025,6 +2025,14 @@
 <script src="assets/js/legend-content.js?v=1778642255"></script>
 <script src="assets/js/legend.js?v=1778642255"></script>
 <script>document.addEventListener('DOMContentLoaded', function(){ if (window.Legend) Legend.init('my-leagues'); });</script>
+<!-- Shared player panel — DB's slide-in drawer, used identically on every page -->
+<script>window.FPTS_CURRENT_PAGE = 'ml';</script>
+<link rel="stylesheet" href="assets/css/player-panel.css?v=1778651500">
+<script src="assets/js/player-panel.js?v=1778651500" defer></script>
+<style>
+  /* Hide the legacy in-page modal — its click handlers now route to the shared panel instead. */
+  #ml-pd-backdrop { display: none !important; }
+</style>
 </head>
 <body>
 <div id="_fp-loading" style="position:fixed;inset:0;background:var(--black);color:var(--white);display:flex;align-items:center;justify-content:center;font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:28px;text-transform:uppercase;letter-spacing:.06em;z-index:9999;">Loading…</div>
@@ -2652,6 +2660,14 @@ let ADP_DATA = {};
 let PICK_VALUES = {};
 
 let FP_VALUES = {};
+
+// Mirror page-local data globals to window so the shared player-panel module
+// (loaded from a separate <script src=>) can see them. Otherwise the panel
+// renders every stat as "—".
+window.FP_VALUES    = FP_VALUES;
+window.SLEEPER_IDS  = SLEEPER_IDS;
+window.PICK_VALUES  = PICK_VALUES;
+window.ADP_DATA     = ADP_DATA;
 
 // ── State ──────────────────────────────────────────────────────────────────
 const ML = {
@@ -4107,6 +4123,12 @@ window._mlOpenInDb = function () {
 };
 
 // Open the player detail modal for a Sleeper player_id (string).
+//
+// MIGRATION: this function now resolves the player name from the sid and
+// hands off to the SHARED player-panel module (window.openPanel). The
+// inline rendering pipeline below the early-return is kept dormant only
+// in case the shared module is missing — every code path through the
+// panel renders via the same module as DB / Calc / ADP / Tiers.
 function openPlayerDetail(sleeperId) {
   const sid = String(sleeperId);
 
@@ -4144,6 +4166,24 @@ function openPlayerDetail(sleeperId) {
   }
   // Final fallback for the name field
   if (!resolvedName) resolvedName = 'Unknown Player';
+
+  // ── Shared-module hand-off ──────────────────────────────────────────────
+  // Re-mirror page-local data in case late hydrations have landed since
+  // page load (FP API fetch, MVS overlay, etc.).
+  window.FP_VALUES   = FP_VALUES;
+  window.SLEEPER_IDS = SLEEPER_IDS;
+  window.PICK_VALUES = PICK_VALUES;
+  window.ADP_DATA    = ADP_DATA;
+  // Stash the active sid so the cross-league availability section + the
+  // hide-usernames toggle keep working with the legacy ML chrome.
+  window.ML_PD_CURRENT_SID = sid;
+  window._mlActiveSleeperId = sid || null;
+  window._mlActivePlayerName = resolvedName || '';
+  if (typeof window.openPanel === 'function') {
+    try { window.openPanel(resolvedName); return; } catch (e) { console.warn('[ml] shared openPanel failed:', e); }
+  }
+  // Fallback to the legacy inline render below if the shared module hasn't
+  // loaded yet for some reason.
 
   const name = resolvedName;
   const pos  = resolvedPos;
@@ -4284,7 +4324,9 @@ function openPlayerDetail(sleeperId) {
 }
 
 function closePlayerDetail() {
-  document.getElementById('ml-pd-backdrop').classList.remove('open');
+  if (typeof window.closePanel === 'function') { try { window.closePanel(); } catch (e) {} }
+  const bd = document.getElementById('ml-pd-backdrop');
+  if (bd) bd.classList.remove('open');
   window.ML_PD_CURRENT_SID = null;
 }
 
