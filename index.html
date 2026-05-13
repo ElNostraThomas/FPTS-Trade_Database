@@ -3055,7 +3055,14 @@ function toggleExpandPick(year, round, ev) {
 
 function renderTopPlayers() {
   const c={};
-  filtered.forEach(t=>t.players.forEach(p=>{if(!c[p.name])c[p.name]={name:p.name,pos:p.pos,count:0};c[p.name].count++;}));
+  // Defensive: skip entries whose name is missing — some MVS trade rows
+  // carry null asset names that would otherwise throw downstream on
+  // p.name.replace(...) when the rank card renders.
+  filtered.forEach(t=>t.players.forEach(p=>{
+    if (!p || !p.name) return;
+    if(!c[p.name])c[p.name]={name:p.name,pos:p.pos||'',count:0};
+    c[p.name].count++;
+  }));
   const all=Object.values(c).sort((a,b)=>b.count-a.count);
   const max=all[0]?.count||1;
   if(!all.length){document.getElementById("tab-top-players").innerHTML=`<div class="no-results">No players match these filters</div>`;return;}
@@ -7345,11 +7352,19 @@ function closePanel() {
         (t.sides || []).forEach((side, idx) => {
           const team = idx === 0 ? 'A' : 'B';
           (side.assets || []).forEach(a => {
-            if (a.isPick || a.position === 'PICK') {
-              const parsed = _parseMvsPickLabel(a.name);
-              picks.push(Object.assign({ to: team, from: 'TBD', label: a.name, mvs: a.mvs }, parsed || { year: null, round: null, slot: null }));
+            // Defensive: MVS trade rows occasionally carry an asset without
+            // a name (upstream scrape couldn't resolve a transferred player /
+            // pick). Skip those so downstream renderers + search helpers
+            // never see undefined .name and don't blow up on .toLowerCase()
+            // or .replace().
+            if (!a || a.name == null || String(a.name).trim() === '') return;
+            const name = String(a.name);
+            const pos  = String(a.position || '');
+            if (a.isPick || pos === 'PICK') {
+              const parsed = _parseMvsPickLabel(name);
+              picks.push(Object.assign({ to: team, from: 'TBD', label: name, mvs: a.mvs }, parsed || { year: null, round: null, slot: null }));
             } else {
-              players.push({ name: a.name, pos: a.position, to: team, mvs: a.mvs });
+              players.push({ name, pos, to: team, mvs: a.mvs });
             }
           });
         });
@@ -7546,21 +7561,23 @@ function tradeCardHtml(t) {
   function renderAssets(side) {
     const items = [];
     side.players.forEach(p => {
-      const nflTeam = FP_VALUES[p.name]?.team || "";
-      // Fall back through three layers: legacy SLEEPER_IDS map → FP_VALUES → MVS_PAYLOAD.
-      // MVS payload carries sleeper IDs for every active player (526 records), which
-      // covers names like "Jake Bobo" / "Terrell Jennings" / "Oronde Gadsden" that the
-      // hardcoded SLEEPER_IDS map never knew about.
-      const sid = SLEEPER_IDS[p.name]
-        || FP_VALUES[p.name]?.sleeperId
-        || (window.MVS_PAYLOAD?.players?.[p.name]?.sleeperId)
+      // Defensive: some MVS trade records have a null asset name (rare; happens
+      // when the upstream scrape couldn't resolve a transferred player). Skip
+      // those rows entirely so .replace doesn't throw and abort renderAssets.
+      if (!p || !p.name) return;
+      const pname = String(p.name);
+      const ppos  = String(p.pos || '');
+      const nflTeam = FP_VALUES[pname]?.team || "";
+      const sid = SLEEPER_IDS[pname]
+        || FP_VALUES[pname]?.sleeperId
+        || (window.MVS_PAYLOAD?.players?.[pname]?.sleeperId)
         || null;
       const thumbUrl = sid ? `https://sleepercdn.com/content/nfl/players/thumb/${sid}.jpg` : null;
       const thumbHtml = thumbUrl ? `<img src="${thumbUrl}" alt="" style="width:28px;height:28px;min-width:28px;border-radius:50%;object-fit:cover;flex-shrink:0;" onerror="this.style.display='none'">` : '';
       items.push(`<div class="tc-asset">
         <span style="width:28px;height:28px;flex-shrink:0;display:inline-block;">${thumbHtml}</span>
-        <span class="pos-badge ${pc(p.pos)}">${p.pos}</span>
-        <span class="tc-asset-name clickable-player" onclick="openPanel('${p.name.replace(/'/g,"\\'")}')">${p.name}</span>${nflTeam?`<span class="tc-nfl-team">${nflTeam}</span>`:""}
+        <span class="pos-badge ${pc(ppos)}">${ppos}</span>
+        <span class="tc-asset-name clickable-player" onclick="openPanel('${pname.replace(/'/g,"\\'")}')">${pname}</span>${nflTeam?`<span class="tc-nfl-team">${nflTeam}</span>`:""}
       </div>`);
     });
     side.picks.forEach(pk => {
