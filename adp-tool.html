@@ -350,7 +350,13 @@
   /* COMPARE MODE — overlay a multi-player grid in place of the single-player profile */
   .modal.compare-mode .pp-profile,
   .modal.compare-mode #pp-articles-section,
-  .modal.compare-mode #pp-heatmap-section { display:none !important; }
+  .modal.compare-mode #pp-heatmap-section,
+  .modal.compare-mode #pp-content-tabs,
+  .modal.compare-mode #adp-pp-trades-tab,
+  .modal.compare-mode #adp-pp-stats-tab,
+  .modal.compare-mode #adp-pp-curve-tab,
+  .modal.compare-mode #adp-pp-finder-tab,
+  .modal.compare-mode #adp-pp-heatmap-tab { display:none !important; }
   .compare-section { padding:24px 28px; }
   .compare-header { display:flex; align-items:center; justify-content:space-between; padding-bottom:14px; border-bottom:1px solid var(--border); margin-bottom:18px; }
   .compare-title { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:20px; text-transform:uppercase; color:var(--red); }
@@ -690,7 +696,7 @@
       <div class="compare-grid" id="compare-grid"></div>
     </div>
 
-    <!-- ARTICLES -->
+    <!-- ARTICLES (always above the content tabs — same pattern as DB modal) -->
     <div class="pp-section" id="pp-articles-section">
       <div class="pp-section-label">
         Articles <span class="src">FantasyPoints.com · subscription required</span>
@@ -699,22 +705,38 @@
       <div id="pp-articles-body"></div>
     </div>
 
-    <!-- PICK AVAILABILITY HEATMAP -->
-    <div class="pp-section" id="pp-heatmap-section">
-      <div class="pp-section-label">Pick Availability Heatmap</div>
-      <div class="hm-callout">
-        <div class="hm-co-stat"><span class="hm-co-k">Expected pick</span><span class="hm-co-v" id="hm-expected">—</span></div>
-        <div class="hm-co-stat"><span class="hm-co-k">Drafts sampled</span><span class="hm-co-v" id="hm-sampled">—</span></div>
-        <div class="hm-co-note">Each cell shows the % chance the player is still on the board at that pick. Darker orange = more likely available.</div>
+    <!-- Content tab strip — matches DB / Calc / My-Leagues player modals. -->
+    <div class="pp-tabs" id="pp-content-tabs" style="border-top:1px solid var(--border)">
+      <button class="pp-tab active" type="button" onclick="_adpShowTab('trades')">Trades</button>
+      <button class="pp-tab" type="button" onclick="_adpShowTab('stats')">Player Stats</button>
+      <button class="pp-tab" type="button" onclick="_adpShowTab('curve')">Age Curve</button>
+      <button class="pp-tab" type="button" onclick="_adpShowTab('finder')">Trade Finder</button>
+      <button class="pp-tab" type="button" onclick="_adpShowTab('heatmap')">ADP Heatmap</button>
+    </div>
+
+    <!-- Tab content -->
+    <div id="adp-pp-trades-tab"></div>
+    <div id="adp-pp-stats-tab" style="display:none"></div>
+    <div id="adp-pp-curve-tab" style="display:none"></div>
+    <div id="adp-pp-finder-tab" style="display:none"></div>
+    <div id="adp-pp-heatmap-tab" style="display:none">
+      <!-- Pick-availability heatmap section (existing adp-tool renderer targets these IDs) -->
+      <div class="pp-section" id="pp-heatmap-section">
+        <div class="pp-section-label">Pick Availability Heatmap</div>
+        <div class="hm-callout">
+          <div class="hm-co-stat"><span class="hm-co-k">Expected pick</span><span class="hm-co-v" id="hm-expected">—</span></div>
+          <div class="hm-co-stat"><span class="hm-co-k">Drafts sampled</span><span class="hm-co-v" id="hm-sampled">—</span></div>
+          <div class="hm-co-note">Each cell shows the % chance the player is still on the board at that pick. Darker orange = more likely available.</div>
+        </div>
+        <div class="hm-legend">
+          <span>Availability</span>
+          <span>0%</span>
+          <div class="hm-legend-bar"></div>
+          <span>100%</span>
+          <span class="hm-flash-label" id="hm-flash-label">—</span>
+        </div>
+        <div class="hm-grid" id="hm-grid"></div>
       </div>
-      <div class="hm-legend">
-        <span>Availability</span>
-        <span>0%</span>
-        <div class="hm-legend-bar"></div>
-        <span>100%</span>
-        <span class="hm-flash-label" id="hm-flash-label">—</span>
-      </div>
-      <div class="hm-grid" id="hm-grid"></div>
     </div>
   </div>
 </div>
@@ -1546,8 +1568,13 @@ function openModal(sleeperId) {
     fpTrend.textContent = '';
   }
 
-  // Pick Availability heatmap
-  renderHeatmap(p);
+  // Heatmap renders lazily on tab click — see _adpShowTab('heatmap').
+  // Reset all tab contents for a clean state when switching players.
+  ['adp-pp-trades-tab','adp-pp-stats-tab','adp-pp-curve-tab','adp-pp-finder-tab'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = '';
+  });
+  if (typeof _adpShowTab === 'function') _adpShowTab('trades');
 
   // Articles — empty state matches the FantasyPoints panel pattern (with browse CTA)
   const articlesBody = document.getElementById('pp-articles-body');
@@ -1819,6 +1846,90 @@ function onCompareSearch() {
     </div>`;
   }).join('');
   results.classList.add('open');
+}
+
+// Tab switcher for the ADP-tool player modal. 5 tabs match the DB / Calc /
+// My-Leagues modals — Trades + Heatmap render inline; Player Stats + Trade
+// Finder show CTAs to the DB (the heavy renderers live there). Age Curve
+// gets a lightweight inline summary.
+function _adpShowTab(name) {
+  const tabs = {
+    trades:  'adp-pp-trades-tab',
+    stats:   'adp-pp-stats-tab',
+    curve:   'adp-pp-curve-tab',
+    finder:  'adp-pp-finder-tab',
+    heatmap: 'adp-pp-heatmap-tab',
+  };
+  Object.entries(tabs).forEach(([k, id]) => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = (k === name) ? 'block' : 'none';
+  });
+  document.querySelectorAll('#pp-content-tabs .pp-tab').forEach(btn => {
+    const m = btn.getAttribute('onclick') || '';
+    btn.classList.toggle('active', m.indexOf("'" + name + "'") !== -1);
+  });
+  const p = CURRENT_MODAL_PLAYER;
+  if (!p) return;
+  if (name === 'trades') {
+    const el = document.getElementById('adp-pp-trades-tab');
+    if (el) el.innerHTML = _adpRenderTradesTab(p.name);
+  } else if (name === 'heatmap') {
+    renderHeatmap(p);
+  } else if (name === 'curve') {
+    const el = document.getElementById('adp-pp-curve-tab');
+    if (el) el.innerHTML = _adpRenderAgeCurveTab(p);
+  } else if (name === 'stats' || name === 'finder') {
+    const el = document.getElementById(tabs[name]);
+    if (el) el.innerHTML = _adpRenderDbCtaTab(name, p.name);
+  }
+}
+
+function _adpRenderTradesTab(playerName) {
+  if (!playerName || !window.MVS_PAYLOAD || !window.MVS_PAYLOAD.players) {
+    return '<div style="padding:14px 28px;font-size:12px;color:var(--white);opacity:.7;font-family:\'Mulish\',sans-serif">No recent trades available.</div>';
+  }
+  const rec = window.MVS_PAYLOAD.players[playerName];
+  const trades = (rec && rec.recentTrades) || [];
+  if (!trades.length) return '<div style="padding:14px 28px;font-size:12px;color:var(--white);opacity:.7;font-family:\'Mulish\',sans-serif">No recent trades for ' + playerName + '.</div>';
+  if (window.MvsExtras && window.MvsExtras.buildRecentTrades) {
+    return '<div style="padding:14px 28px">' + window.MvsExtras.buildRecentTrades(trades, playerName) + '</div>';
+  }
+  return '';
+}
+
+function _adpRenderAgeCurveTab(p) {
+  const fp = lookupFpValue(p.name) || {};
+  const age = fp.age != null ? fp.age : p.age;
+  const pos = posOf(p) || (fp.posRank || '').replace(/\d+/g,'') || '';
+  if (age == null) return '<div style="padding:14px 28px;font-size:12px;color:var(--white);opacity:.7;font-family:\'Mulish\',sans-serif">Age data unavailable.</div>';
+  const peaks = { QB: 28, RB: 24, WR: 26, TE: 27 };
+  const peak = peaks[pos] || 26;
+  const delta = age - peak;
+  const label = Math.abs(delta) < 1 ? 'at positional peak' : (delta < 0 ? Math.round(Math.abs(delta)) + ' yrs from peak (rising)' : Math.round(delta) + ' yrs past peak (declining)');
+  return '<div style="padding:18px 28px;font-family:\'Mulish\',sans-serif;color:var(--white)">'
+    + '<div style="font-family:\'Kanit\',sans-serif;font-weight:800;font-style:italic;font-size:14px;color:var(--red);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">Age Curve</div>'
+    + '<div style="font-size:14px;margin-bottom:6px"><b>' + age + ' yrs old</b> · ' + pos + ' positional peak ~' + peak + '</div>'
+    + '<div style="font-size:13px;opacity:.85">' + label + '</div>'
+    + '<div style="margin-top:14px;padding:10px;background:var(--surface);border:1px solid var(--border);font-size:11px;opacity:.75;line-height:1.55">For the full multi-year visualization, open this player in the Database.</div>'
+    + '</div>';
+}
+
+function _adpRenderDbCtaTab(tabName, playerName) {
+  const label = { stats: 'Player Stats', finder: 'Trade Finder' }[tabName] || tabName;
+  return '<div style="padding:28px;text-align:center;font-family:\'Mulish\',sans-serif;color:var(--white)">'
+    + '<div style="font-family:\'Kanit\',sans-serif;font-weight:800;font-style:italic;font-size:14px;color:var(--red);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">' + label + '</div>'
+    + '<div style="font-size:13px;opacity:.85;margin-bottom:14px">Full ' + label + ' is available in the Trade Database modal.</div>'
+    + '<button class="pp-action-btn" type="button" onclick="_adpOpenInDb()" style="margin:0 auto">Open in Database ↗</button>'
+    + '</div>';
+}
+
+function _adpOpenInDb() {
+  const p = CURRENT_MODAL_PLAYER;
+  if (typeof _fptsWriteHandoff === 'function' && p && p.name) {
+    _fptsWriteHandoff({ source: 'adp', primaryPlayer: p.name }, 'index.html');
+  } else {
+    window.open('index.html', '_blank', 'noopener');
+  }
 }
 
 function renderHeatmap(player) {
