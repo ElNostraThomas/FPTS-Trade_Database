@@ -1,5 +1,5 @@
 {
-  "version": "2026-05-12T21:30:42.534798+00:00",
+  "version": "2026-05-13T00:32:44.718350+00:00",
   "players": {
     "Bijan Robinson": {
       "value": 1000,
@@ -3566,7 +3566,7 @@
       "team": "MIA",
       "age": null,
       "ppg": null,
-      "injury": null,
+      "injury": "NA",
       "sleeperId": "13300",
       "trend": -1,
       "tier": null
