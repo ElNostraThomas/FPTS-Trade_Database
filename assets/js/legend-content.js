@@ -146,6 +146,18 @@ window.LegendContent = {
           { label: 'Floating Calc/ADP/Leagues buttons (panel)', what: 'Visible action bar at top of player panel. Each writes a player-name handoff and opens the destination.', source: '_fptsXpageOpenCalcFromPanel() etc. at L1991-2012', values: '—', notes: 'Trade-Finder tab has its own variant: _fptsXpageOpenCalcFromFinder pushes the full trade package.' },
         ],
       },
+      {
+        name: 'Interactions & Conventions (quick reference)',
+        items: [
+          { label: 'Position Colors', what: 'Every position has a brand color used as bar/stripe/background.', source: 'CSS vars --pos-{qb,rb,wr,te,k,pick}-bg', values: 'QB red #e05252 / RB green #4caf6e / WR blue #5b9bd5 / TE orange #e09a30 / K + PK purple #9b91d4', notes: 'Light theme variants are darker for contrast on light backgrounds.' },
+          { label: 'Brand Red (--red)', what: 'Single accent color across the whole site. Section labels, active states, important badges, sell-signal trend.', source: 'CSS var --red = #ED810C (orange-toned red despite the name)', values: 'Used for the wordmark, sticky topnav border, "PAGE LEGEND" label, etc.', notes: 'Legacy name from earlier brand spec; current spec is orange but variable stays --red.' },
+          { label: 'Keyboard: Escape', what: 'Closes any open player panel / pick panel / legend drawer / cross-page modal.', source: 'Document-level keydown listeners scattered across modules', values: '—', notes: 'Some modals also support Escape; legend drawer specifically wired in legend.js.' },
+          { label: 'Click vs Hover', what: 'Player rows are click-to-open (no hover behavior). Trade card chips are clickable: clicking a player name opens panel, clicking a pick opens pick modal.', source: 'Click handlers throughout render templates', values: '—', notes: 'No drag-and-drop on this page — drag is reserved for the Trade Simulator on my-leagues.' },
+          { label: 'Mobile View Threshold', what: 'Filters collapse behind a toggle button below 700px. Player panel becomes full-width.', source: '@media (max-width: 700px) blocks throughout CSS', values: '—', notes: 'Test in dev tools at 375×667 (iPhone SE size) for the tightest case.' },
+          { label: 'localStorage Keys Used', what: 'Persistent state keys touched by this page.', source: 'localStorage.{getItem,setItem} calls', values: 'fpts-handoff (60s TTL cross-page) / fpts-adp-format (sf|1qb) / fpts-theme (dark|light) / fpts-imported-league (read-only peek)', notes: 'Clear localStorage to reset all UI state.' },
+          { label: 'Cache-busting URL Param', what: 'Every data/*.json fetch appends ?v=<timestamp> to bypass browser cache.', source: 'window.__DATA_VERSION at bootstrap (L7144); appended in fetch() calls', values: '?v=1737485042000 (ms epoch)', notes: 'Ensures users get fresh data after each push.bat deploy.' },
+        ],
+      },
     ],
   },
 
@@ -220,6 +232,18 @@ window.LegendContent = {
           { label: 'localStorage Settings', what: 'Persistent settings: theme, snake, qbFormat, etc. survive page refresh independent of URL.', source: 'loadSettings() / saveSettings() at L1380+', values: 'fpts-theme / fpts-adp-format / fpts-team-count / fpts-rounds', notes: 'URL hash takes precedence over localStorage when both present.' },
         ],
       },
+      {
+        name: 'Interactions & Conventions (quick reference)',
+        items: [
+          { label: 'Sample Size Floor', what: 'A bucket needs at least 5 drafts to render an ADP. Players below threshold are hidden.', source: 'sync-adp.py min_drafts=5 in build_format_adp()', values: 'Min 5 drafts; sample size shown in #sample-size badge', notes: 'Narrow date windows can drop bucket sizes below threshold — widen the range.' },
+          { label: 'Pick Heatmap Color Bands', what: 'Modal heatmap cells colored by availability probability.', source: 'data/pick-availability.json + .hm-cell styling', values: 'Green ≥80% likely available / Yellow 50-80% / Orange 25-50% / Red <25%', notes: 'Only rendered for picks mode where pick-as-asset placeholders exist.' },
+          { label: 'Date Preset → Range', what: '7d / 30d / 90d / All buttons set both date inputs and trigger re-aggregate.', source: 'applyPreset() at L2936', values: '7d = today minus 7 days; "All" clears both inputs', notes: 'Active preset has .active class; auto-detected from current date range on UI restore.' },
+          { label: 'Keyboard: Escape', what: 'Closes the player modal / settings drawer.', source: 'document.keydown handlers', values: '—', notes: 'Modal also closes on backdrop click.' },
+          { label: 'Mobile Behavior', what: 'Below 700px width: box view forced to list view; settings drawer covers full screen.', source: 'enforceMobileView() L1267; @media queries in CSS', values: '—', notes: 'Box button shows as disabled with explanation tooltip on mobile.' },
+          { label: 'localStorage Keys', what: 'Persistent state keys used by adp-tool.', source: 'localStorage.{get,set}Item', values: 'fpts-adp-format / fpts-theme / fpts-team-count / fpts-rounds / fpts-handoff (transient)', notes: 'Settings drawer "Save Preset" persists named filter combinations (planned).' },
+          { label: 'CSV Export Filename', what: 'Downloaded list view filename pattern.', source: 'Built client-side in export handler', values: 'adp-{mode}-{from}-{to}.csv (e.g. adp-picks-2026-04-12-2026-05-12.csv)', notes: 'Uses ALL when date range is open-ended.' },
+        ],
+      },
     ],
   },
 
@@ -278,6 +302,18 @@ window.LegendContent = {
         items: [
           { label: 'tradeState object', what: 'In-memory state holding sideA, sideB, sideC arrays + format settings.', source: 'Top of script', values: '{ sideA: [], sideB: [], sideC: [], qb, ppr, tep, threeTeam, ... }', notes: 'Currently not persisted to localStorage — refresh clears the trade. Cross-page handoff brings a trade in via _fptsReadHandoff.' },
           { label: 'Cross-page Handoff', what: 'When user clicks "Open in Calculator" from another page, this page reads the handoff and populates Side A.', source: 'Listener at L3049-3065', values: 'ho.trade.sideA / sideB lists', notes: 'Re-renders via renderAll() after applying.' },
+        ],
+      },
+      {
+        name: 'Interactions & Conventions (quick reference)',
+        items: [
+          { label: 'Fairness Thresholds', what: 'How the balance verdict picks Fair / Slight Edge / Big Imbalance.', source: 'Computed in renderBalance from |a - b| / max(a, b)', values: '<5% diff = Fair (green) / 5-15% = Slight Edge (yellow) / >15% = Big Imbalance (red)', notes: 'Color comes from --green / --yellow / --red brand tokens.' },
+          { label: 'PPR Multiplier Table', what: 'Per-position value adjustments by PPR setting.', source: 'getMultiplier(pos) at L2146-2154', values: 'WR: Full 1.0× / Half 0.96× / Std 0.90×. RB: Full 1.04× / Half 1.0× / Std 0.93×. QB/TE: unaffected by PPR.', notes: 'TE additionally multiplied by (1 + tep × 0.12).' },
+          { label: 'FAAB-to-Value Formula', what: 'FAAB dollars added to a side\'s total at the configured ratio.', source: 'sideTotal() at L2167: side.faab × 10', values: '$1 FAAB = 10 MVS units (heuristic)', notes: 'Adjustable in code but no UI to change it.' },
+          { label: 'Click Behaviors', what: 'Asset chip body click → open modal. X button click → remove from side.', source: 'asset-row onclick + event.target.closest(.asset-remove) check', values: '—', notes: 'No drag-and-drop on this page; chips are click-only.' },
+          { label: 'Keyboard: Escape', what: 'Closes the player modal.', source: 'L3136 keydown listener', values: '—', notes: '—' },
+          { label: 'Mobile Behavior', what: 'Side cards stack vertically below 700px. Search input width fills the side card.', source: '@media (max-width: 700px) in CSS', values: '—', notes: '3-team mode adds Side C below Side B on mobile (vertically stacked).' },
+          { label: 'localStorage Keys', what: 'Persistent state used by this page.', source: 'localStorage.{get,set}Item', values: 'fpts-adp-format (sf|1qb) / fpts-theme / fpts-handoff (transient inbound trade)', notes: 'Trade state itself is not currently persisted — refresh clears the trade.' },
         ],
       },
     ],
@@ -358,6 +394,19 @@ window.LegendContent = {
           { label: 'Weekly Projection Column', what: 'Projected points for the current NFL week.', source: 'projections[sleeperId][nflState.display_week]', values: 'Decimal', notes: 'NFL state fetched alongside roster data on league open.' },
         ],
       },
+      {
+        name: 'Interactions & Conventions (quick reference)',
+        items: [
+          { label: 'Status Badge Colors', what: 'Player status block in the modal indicates ownership state in your portfolio.', source: 'ml-pd-status class variants', values: 'mine = gold/yellow border ★ / taken = neutral grey / free = green (Available — Waivers/FA)', notes: 'Different CTAs per state: Trade For / Send Offer / Claim on Sleeper.' },
+          { label: 'MPX Efficiency Thresholds', what: 'Max Point Index — your actual fpts ÷ max possible fpts. Indicates lineup management quality.', source: 'mlBuildStandings computes per-roster MPX', values: '≥90% green / ≥75% white / <75% red', notes: 'Below 75% = leaving points on the bench regularly.' },
+          { label: 'Exposure % Color Bands', what: 'How exposed you are to a player across your portfolio.', source: 'expoColor() in cross-league exposure render', values: '≥50% green (heavy exposure) / ≥25% yellow / <25% grey (light)', notes: 'Helps identify over- or under-exposure to specific players.' },
+          { label: 'Sleeper Player Cache', what: 'Sleeper /players/nfl is ~5 MB. Cached per page-load via getPlayers() promise to avoid re-fetching for each league.', source: 'getPlayers() returns a memoized Promise', values: 'Shared across all leagues in the same session', notes: 'Cleared on page refresh; not localStorage-persisted (too large).' },
+          { label: 'API Rate Limiting', what: 'apiFetch() wraps fetch with a per-second cap to be polite to Sleeper.', source: 'apiFetch() function definition near top of script', values: 'Self-throttled — large league imports may take 10-30s', notes: 'Spinners shown via showSpinner/hideSpinner during fetches.' },
+          { label: 'Keyboard: Escape', what: 'Closes any open modal (player detail / trade simulator / availability).', source: 'document.keydown handlers', values: '—', notes: '—' },
+          { label: 'Mobile Behavior', what: 'Roster columns collapse to 2-col grid; standings table horizontally scrolls.', source: '@media (max-width: 700px) blocks in CSS', values: '—', notes: 'Player detail modal becomes full-screen on phone widths.' },
+          { label: 'localStorage Keys', what: 'Persistent state used by my-leagues.', source: 'localStorage.{get,set}Item', values: 'fpts-sleeper-user (username) / fpts-imported-league (last selected) / fpts-adp-format / fpts-theme / fpts-handoff (transient)', notes: 'Username persists so you don\'t re-enter on every visit.' },
+        ],
+      },
     ],
   },
 
@@ -405,6 +454,16 @@ window.LegendContent = {
           { label: 'Tier Group Header (.tier-group-letter)', what: 'Section heading per tier (e.g. "Tier 1", "Tier 2", ...).', source: 'Rendered per group from TIER_PLAYERS grouped by .tier', values: '—', notes: 'Branded with Kanit ExtraBoldItalic + red accent.' },
           { label: 'Tier Row (.tier-row)', what: 'One row per player within a tier. Shows name, pos, team, value, ADP, auction, PPG, editorial notes.', source: 'TIER_PLAYERS array iterated', values: 'Each row clickable to open player modal (cross-page nav)', notes: 'Visual style matches the new design system (Kanit display, Mulish body, position-color stripes).' },
           { label: 'Player Click → Database', what: 'Click any row → opens the Trade Database in a new tab with that player\'s panel pre-opened.', source: '_fptsWriteHandoff with primaryPlayer + opens index.html', values: '—', notes: 'Standard cross-page handoff pattern.' },
+        ],
+      },
+      {
+        name: 'Interactions & Conventions (quick reference)',
+        items: [
+          { label: 'Editing Workflow', what: 'Tiers are managed in the Google Sheet, not in code. Edit the sheet → run push.bat → sync-tiers.py regenerates the inline TIER_PLAYERS block → git commit + push.', source: 'sync-tiers.py + sync-tiers.config.json + service-account.json', values: 'Workflow: Sheet edit → push.bat step [3/5] → GitHub Pages redeploy', notes: 'No live API call to the sheet from the browser — the array is baked into the HTML at sync time for fast page load.' },
+          { label: 'Mobile Column Behavior', what: 'On phones, low-priority columns (PPG 2024, ADP Prior, editorial notes) hide via CSS to keep tier rows readable.', source: '@media (max-width: 700px) hides .tier-col-{prior,ppg24,notes} etc.', values: '—', notes: 'Value + ADP + Auction columns always visible.' },
+          { label: 'Theme Toggle', what: 'Standard dark/light toggle on the topnav. All overlays + sheet colors honor the active theme.', source: 'Shared theme-toggle handler', values: 'dark (default) / light', notes: 'Persists in localStorage as fpts-theme.' },
+          { label: 'Position Color Stripe', what: 'Each tier row has a left-edge stripe in the player\'s position color.', source: 'CSS .tier-row.pos-{qb,rb,wr,te} { border-left: 4px solid var(--pos-X-bg) }', values: 'QB red / RB green / WR blue / TE orange', notes: 'Same convention as DB rank rows + my-leagues roster rows.' },
+          { label: 'localStorage Keys', what: 'Persistent state used by tiers.', source: 'localStorage.{get,set}Item', values: 'fpts-theme / fpts-adp-format (affects which ADP overlays) / fpts-handoff (transient outbound to DB)', notes: 'Tiers page is mostly read-only — no per-page state worth persisting.' },
         ],
       },
     ],
