@@ -4223,27 +4223,44 @@ function _mlAfterPanelOpen(name, sid, pos, team) {
   } catch (e) {}
 
   // 3. Wrap each tab body with an accordion header and apply persisted state.
+  //    Async renderers (Player Stats) overwrite el.innerHTML after their fetch
+  //    completes, wiping any header we injected. A MutationObserver per tab
+  //    re-inserts the header whenever the body's content is replaced.
   const openSet = _mlReadAccordionOpenSet();
+  function _mlMakeHeader(tabId, label) {
+    const header = document.createElement('button');
+    header.type = 'button';
+    header.className = 'pp-accordion-header';
+    header.innerHTML = `<span>${label}</span><span class="pp-acc-caret">▼</span>`;
+    header.addEventListener('click', () => {
+      const tab = document.getElementById(tabId);
+      if (!tab) return;
+      const nowCollapsed = tab.classList.toggle('pp-acc-collapsed');
+      if (nowCollapsed) openSet.delete(tabId); else openSet.add(tabId);
+      _mlWriteAccordionOpenSet(openSet);
+    });
+    return header;
+  }
+  function _mlEnsureHeader(tab, tabId, label) {
+    if (!tab.querySelector(':scope > .pp-accordion-header')) {
+      tab.insertBefore(_mlMakeHeader(tabId, label), tab.firstChild);
+    }
+  }
+  window._mlAccObservers = window._mlAccObservers || {};
   Object.entries(ML_TAB_LABELS).forEach(([tabId, label]) => {
     const tab = document.getElementById(tabId);
     if (!tab) return;
-    // Inject header if not already present
-    let header = tab.querySelector(':scope > .pp-accordion-header');
-    if (!header) {
-      header = document.createElement('button');
-      header.type = 'button';
-      header.className = 'pp-accordion-header';
-      header.innerHTML = `<span>${label}</span><span class="pp-acc-caret">▼</span>`;
-      header.addEventListener('click', () => {
-        const collapsed = tab.classList.toggle('pp-acc-collapsed');
-        if (collapsed) openSet.delete(tabId); else openSet.add(tabId);
-        _mlWriteAccordionOpenSet(openSet);
-      });
-      tab.insertBefore(header, tab.firstChild);
-    }
+    _mlEnsureHeader(tab, tabId, label);
     // Apply collapsed state
     if (openSet.has(tabId)) tab.classList.remove('pp-acc-collapsed');
     else tab.classList.add('pp-acc-collapsed');
+    // Set up (or reuse) a MutationObserver that re-injects the header if an
+    // async renderer wipes it via innerHTML reassignment.
+    if (!window._mlAccObservers[tabId]) {
+      const obs = new MutationObserver(() => _mlEnsureHeader(tab, tabId, label));
+      obs.observe(tab, { childList: true });
+      window._mlAccObservers[tabId] = obs;
+    }
   });
 }
 
