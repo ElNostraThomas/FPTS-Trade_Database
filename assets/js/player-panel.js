@@ -519,11 +519,11 @@
     const avatarEl = document.getElementById('pp-avatar');
     if (!avatarEl) return; // panel not mounted (defensive)
     const fallbackHtml = `<div style="width:80px;height:80px;background:${_posCol(pos)};display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:800;font-style:italic;color:${_posTxt(pos)}">${initials}</div>`;
-    // Team-logo badge appended to the avatar — only for real players with a
-    // current NFL team. RDP placeholders + free agents skip the badge.
-    const teamBadgeHtml = (!isRookiePick && global.TeamHelpers && ktc.team)
-      ? global.TeamHelpers.headshotBadge(ktc.team, { cls: 'player-hs-team--xl' })
-      : '';
+    // No team-logo badge on the 80px hero avatar — the team identity is now
+    // shown via the logo replacing the abbreviation in the #pp-nfl-team slot
+    // next to the player name (see _teamHtml below). Trade-history chips
+    // keep their own small badges; this is the only place the hero-avatar
+    // overlay used to sit.
     if (isRookiePick) {
       avatarEl.innerHTML = pickThumb(80);
     } else if (photoUrl) {
@@ -531,22 +531,22 @@
       img.src = photoUrl;
       img.alt = playerName;
       img.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block;';
-      img.onerror = () => { avatarEl.innerHTML = fallbackHtml + teamBadgeHtml; };
+      img.onerror = () => { avatarEl.innerHTML = fallbackHtml; };
       avatarEl.innerHTML = '';
       avatarEl.appendChild(img);
-      if (teamBadgeHtml) avatarEl.insertAdjacentHTML('beforeend', teamBadgeHtml);
     } else {
-      avatarEl.innerHTML = fallbackHtml + teamBadgeHtml;
+      avatarEl.innerHTML = fallbackHtml;
     }
 
     const _set = (id, html) => { const el = document.getElementById(id); if (el) el.innerHTML = html; };
     const _setText = (id, txt) => { const el = document.getElementById(id); if (el) el.textContent = txt; };
 
     _set('pp-pos-badge', `<span class="pos-badge ${_pc(pos)}" style="font-size:12px;padding:3px 10px">${pos}</span>`);
-    // Team display: logo + abbreviation when TeamHelpers is loaded + player has a team.
-    // Falls back to plain text on legacy pages (no TeamHelpers) or empty-team players.
+    // Team display: just the logo (no text) at a size slightly larger than
+    // adjacent body text. Falls back to plain abbreviation text on legacy
+    // pages without TeamHelpers, or empty-team players.
     const _teamHtml = (global.TeamHelpers && ktc.team)
-      ? global.TeamHelpers.logoImg(ktc.team, { withText: true })
+      ? global.TeamHelpers.logoImg(ktc.team, { size: 22 })
       : (ktc.team || '—');
     _set('pp-nfl-team', _teamHtml);
     _setText('pp-player-name', playerName);
