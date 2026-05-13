@@ -1954,14 +1954,12 @@
     <!-- MVS extras: OTC + rankings + sparkline + recent trades. Populated via MvsExtras.buildAll(playerName). -->
     <div id="pp-mvs-extras"></div>
 
-    <!-- Pick-availability heatmap. Populated via Heatmap.render(el, sleeperId). -->
-    <div id="pp-heatmap"></div>
-
     <div class="pp-tabs">
       <button class="pp-tab active" onclick="ppShowTab('trades')">Trades</button>
       <button class="pp-tab" onclick="ppShowTab('stats')">Player Stats</button>
       <button class="pp-tab" onclick="ppShowTab('curve')">Age Curve</button>
       <button class="pp-tab" onclick="ppShowTab('finder')">Trade Finder</button>
+      <button class="pp-tab" onclick="ppShowTab('heatmap')">ADP Heatmap</button>
     </div>
     <div class="pp-scroll">
       <div id="pp-age-curve-tab" style="display:none"></div>
@@ -1969,6 +1967,9 @@
       <div id="pp-stats-tab" style="display:none"></div>
       <div id="pp-curve-tab" style="display:none"></div>
       <div id="pp-finder-tab" style="display:none"></div>
+      <!-- Pick-availability heatmap as a tab so the inline layout stays
+           consistent across every player regardless of heatmap coverage. -->
+      <div id="pp-heatmap-tab" style="display:none"></div>
     </div>
   </div>
 
@@ -7141,11 +7142,13 @@ function openPanelContent(playerName) {
   if (mvsExtrasEl) {
     mvsExtrasEl.innerHTML = window.MvsExtras ? window.MvsExtras.buildAll(playerName) : '';
   }
-  // ── Pick availability heatmap (shared helper) ──
-  const heatmapEl = document.getElementById("pp-heatmap");
-  if (heatmapEl && window.Heatmap) {
-    window.Heatmap.render(heatmapEl, sleeperId);
-  }
+  // Stash sleeperId on the panel so the ADP Heatmap tab can render
+  // it lazily when the user clicks the tab (avoids the inline section
+  // looking different per player based on heatmap coverage).
+  window._ppActiveSleeperId = sleeperId || null;
+  // Clear any prior tab render so switching to Heatmap re-renders fresh
+  const heatmapTabEl = document.getElementById("pp-heatmap-tab");
+  if (heatmapTabEl) heatmapTabEl.innerHTML = "";
 
   document.getElementById("pp-trades-tab").innerHTML =
     sorted.length ? sorted.map(t => tradeCardHtml(t)).join("") : `<div style="font-size:13px;opacity:1;padding:20px 0;text-align:center;font-family:'Mulish',sans-serif">No trades found</div>`;
@@ -7685,11 +7688,11 @@ function clearMainSearch() {
 
 function ppShowTab(tabName) {
   // Map short names to full tab div ids
-  const tabMap = { 'trades':'trades', 'stats':'stats', 'curve':'age-curve', 'age-curve':'age-curve', 'finder':'finder' };
+  const tabMap = { 'trades':'trades', 'stats':'stats', 'curve':'age-curve', 'age-curve':'age-curve', 'finder':'finder', 'heatmap':'heatmap' };
   const resolved = tabMap[tabName] || tabName;
   // Remember this tab so opening another player keeps the user on the same view
   ppLastTab = resolved;
-  ['trades','stats','age-curve','finder'].forEach(t => {
+  ['trades','stats','age-curve','finder','heatmap'].forEach(t => {
     const el = document.getElementById('pp-' + t + '-tab');
     if (el) el.style.display = (t === resolved) ? 'block' : 'none';
   });
@@ -7706,6 +7709,10 @@ function ppShowTab(tabName) {
   }
   if (resolved === 'age-curve' && currentPanelPlayer) {
     renderAgeCurve('pp-age-curve-tab', currentPanelPlayer);
+  }
+  if (resolved === 'heatmap' && window.Heatmap) {
+    const tabEl = document.getElementById('pp-heatmap-tab');
+    if (tabEl) window.Heatmap.render(tabEl, window._ppActiveSleeperId || null);
   }
   if (resolved === 'finder' && currentPanelPlayer) {
     renderTradeFinder('pp-finder-tab', currentPanelPlayer);

@@ -4136,7 +4136,8 @@ function openPlayerDetail(sleeperId) {
     </div>
     ${stats}
     <div id="ml-pd-mvs-extras"></div>
-    <div id="ml-pd-heatmap"></div>
+    <!-- Heatmap removed — see DB modal's ADP Heatmap tab. Keeping this modal
+         consistent across every player avoids full-grid vs "not tracked" split. -->
     <div id="ml-pd-articles-mount"></div>
     ${statusBlock}
     <div id="ml-pd-availability-mount"></div>
@@ -4144,9 +4145,7 @@ function openPlayerDetail(sleeperId) {
   // MVS extras (OTC + rankings + sparkline + recent trades) — shared helper
   const mlMvsExtras = document.getElementById('ml-pd-mvs-extras');
   if (mlMvsExtras) mlMvsExtras.innerHTML = window.MvsExtras ? window.MvsExtras.buildAll(name) : '';
-  // Pick availability heatmap — shared helper
-  const mlHeatmap = document.getElementById('ml-pd-heatmap');
-  if (mlHeatmap && window.Heatmap) window.Heatmap.render(mlHeatmap, sid);
+  // Heatmap render removed — modal stays consistent across players.
   // Track current player so the hide-usernames toggle can re-render
   window.ML_PD_CURRENT_SID = sid;
   // Mount the shared articles section (auto-hides if no articles)

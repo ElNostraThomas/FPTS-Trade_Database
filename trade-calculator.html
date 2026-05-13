@@ -3201,9 +3201,7 @@ window._openCalcPlayerModal = function(playerName, pos, sideId, assetIdx) {
   // MVS extras (OTC + rankings + sparkline + recent trades)
   const calcExtras = document.getElementById('calc-pp-mvs-extras');
   if (calcExtras) calcExtras.innerHTML = window.MvsExtras ? window.MvsExtras.buildAll(playerName) : '';
-  // Pick availability heatmap
-  const calcHeatmap = document.getElementById('calc-pp-heatmap');
-  if (calcHeatmap && window.Heatmap) window.Heatmap.render(calcHeatmap, sleeperId);
+  // Heatmap render removed — modal stays consistent across players.
   // Cross-page handoff wiring
   window._calcModalPlayerName = playerName;
   // Open
@@ -3269,8 +3267,9 @@ document.addEventListener('keydown', function(e) {
     </div>
     <!-- MVS extras: OTC + rankings + sparkline + recent trades (shared helper) -->
     <div id="calc-pp-mvs-extras"></div>
-    <!-- Pick-availability heatmap (shared helper) -->
-    <div id="calc-pp-heatmap"></div>
+    <!-- Heatmap removed from inline render — see DB modal's ADP Heatmap tab.
+         Calc + my-leagues modals are tab-less so we keep them visually
+         consistent across every player (no full-grid vs "not tracked" split). -->
   </div>
 </div>
 </body>
