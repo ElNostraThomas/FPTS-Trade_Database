@@ -3240,6 +3240,25 @@ document.addEventListener('keydown', function(e) {
     if (bd && bd.classList.contains('open')) _closeCalcModal();
   }
 });
+
+// Tab switcher for the calc player modal. Two tabs: 'overview' (default
+// — shows MVS Extras pointer text) and 'heatmap' (renders the pick-
+// availability heatmap lazily on first activation).
+window._calcShowTab = function (name) {
+  const tabs = { overview: 'calc-pp-overview-tab', heatmap: 'calc-pp-heatmap-tab' };
+  Object.entries(tabs).forEach(([k, id]) => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = (k === name) ? 'block' : 'none';
+  });
+  document.querySelectorAll('.modal .pp-tab').forEach(btn => {
+    const m = btn.getAttribute('onclick') || '';
+    btn.classList.toggle('active', m.indexOf("'" + name + "'") !== -1);
+  });
+  if (name === 'heatmap' && window.Heatmap) {
+    const el = document.getElementById('calc-pp-heatmap-tab');
+    if (el) window.Heatmap.render(el, window._calcActiveSleeperId || null);
+  }
+};
 </script>
 
 <!-- PLAYER-DETAIL MODAL — matches adp-tool pp-modal layout for site-wide consistency -->

@@ -4016,6 +4016,25 @@ function mlPlayerName(sleeperId) {
   return p.full_name || ((p.first_name || '') + ' ' + (p.last_name || '')).trim() || null;
 }
 
+// Tab switcher for the my-leagues player detail modal. Two tabs:
+// 'overview' (default — Articles + Status + Availability) and
+// 'heatmap' (renders pick-availability lazily on tab click).
+window._mlShowTab = function (name) {
+  const tabs = { overview: 'ml-pd-overview-tab', heatmap: 'ml-pd-heatmap-tab' };
+  Object.entries(tabs).forEach(([k, id]) => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = (k === name) ? 'block' : 'none';
+  });
+  document.querySelectorAll('.ml-modal .pp-tab, #ml-pd-body .pp-tab').forEach(btn => {
+    const m = btn.getAttribute('onclick') || '';
+    btn.classList.toggle('active', m.indexOf("'" + name + "'") !== -1);
+  });
+  if (name === 'heatmap' && window.Heatmap) {
+    const el = document.getElementById('ml-pd-heatmap-tab');
+    if (el) window.Heatmap.render(el, window._mlActiveSleeperId || null);
+  }
+};
+
 // Open the player detail modal for a Sleeper player_id (string).
 function openPlayerDetail(sleeperId) {
   const sid = String(sleeperId);
@@ -4136,8 +4155,13 @@ function openPlayerDetail(sleeperId) {
     </div>
     ${stats}
     <div id="ml-pd-mvs-extras"></div>
-    <!-- Heatmap removed — see DB modal's ADP Heatmap tab. Keeping this modal
-         consistent across every player avoids full-grid vs "not tracked" split. -->
+    <!-- Tab strip — heatmap behind a tab keeps modal consistent across players. -->
+    <div class="pp-tabs" style="border-top:1px solid var(--border)">
+      <button class="pp-tab active" type="button" onclick="_mlShowTab('overview')">Overview</button>
+      <button class="pp-tab" type="button" onclick="_mlShowTab('heatmap')">ADP Heatmap</button>
+    </div>
+    <div id="ml-pd-overview-tab"></div>
+    <div id="ml-pd-heatmap-tab" style="display:none"></div>
     <div id="ml-pd-articles-mount"></div>
     ${statusBlock}
     <div id="ml-pd-availability-mount"></div>
@@ -4145,7 +4169,11 @@ function openPlayerDetail(sleeperId) {
   // MVS extras (OTC + rankings + sparkline + recent trades) — shared helper
   const mlMvsExtras = document.getElementById('ml-pd-mvs-extras');
   if (mlMvsExtras) mlMvsExtras.innerHTML = window.MvsExtras ? window.MvsExtras.buildAll(name) : '';
-  // Heatmap render removed — modal stays consistent across players.
+  // Stash sleeperId for lazy heatmap render + reset to Overview tab
+  window._mlActiveSleeperId = sid || null;
+  const mlHeatTab = document.getElementById('ml-pd-heatmap-tab');
+  if (mlHeatTab) mlHeatTab.innerHTML = '';
+  if (typeof window._mlShowTab === 'function') window._mlShowTab('overview');
   // Track current player so the hide-usernames toggle can re-render
   window.ML_PD_CURRENT_SID = sid;
   // Mount the shared articles section (auto-hides if no articles)
