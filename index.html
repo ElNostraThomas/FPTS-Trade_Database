@@ -823,12 +823,26 @@
   .tf-asset {
     display: flex; align-items: center; gap: 8px;
     background: var(--surface); border: 1px solid var(--border2);
-    padding: 6px 10px; cursor: default;
+    padding: 7px 10px; cursor: default;
+    transition: transform .12s, box-shadow .12s;
   }
-  .tf-asset-name { font-family: 'Mulish', sans-serif; font-weight: 900; font-size: 12px; color: var(--white); flex: 1; }
-  .tf-asset-val { font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 13px; color: var(--white); opacity: 1; }
-  .tf-asset-remove { cursor: pointer; color: var(--white); opacity: 1; font-size: 13px; font-weight: 900; transition: opacity .15s; }
-  .tf-asset-remove:hover { opacity: 1; color: var(--red); }
+  /* Position-colored chips — matches the Trade Calculator's .asset-row style
+     so a player added in the trade finder looks visually identical to one
+     added in the calc (SYNC-RULE: keep these palettes aligned). */
+  .tf-asset[data-pos="QB"]   { background: var(--pos-qb-bg);   color: var(--pos-qb);   border-color: rgba(0,0,0,.18); }
+  .tf-asset[data-pos="RB"]   { background: var(--pos-rb-bg);   color: var(--pos-rb);   border-color: rgba(0,0,0,.18); }
+  .tf-asset[data-pos="WR"]   { background: var(--pos-wr-bg);   color: var(--pos-wr);   border-color: rgba(0,0,0,.18); }
+  .tf-asset[data-pos="TE"]   { background: var(--pos-te-bg);   color: var(--pos-te);   border-color: rgba(0,0,0,.18); }
+  .tf-asset[data-pos="K"]    { background: var(--pos-k-bg);    color: var(--pos-k);    border-color: rgba(0,0,0,.18); }
+  .tf-asset[data-pos="PK"]   { background: var(--pos-pick-bg); color: var(--pos-pick); border-color: rgba(0,0,0,.18); }
+  .tf-asset[data-pos] .pos-badge { background: rgba(0,0,0,.22); color: inherit; }
+  /* Stacked name inside chip — first name small Mulish, last name big Kanit italic */
+  .tf-asset-name { font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 14px; color: inherit; flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1; overflow: hidden; }
+  .tf-asset-name .fn { font-family: 'Mulish', sans-serif; font-style: normal; font-weight: 800; font-size: 9px; letter-spacing: .06em; opacity: .78; text-transform: uppercase; line-height: 1; margin-bottom: 1px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .tf-asset-name .ln { font-size: 14px; line-height: 1.05; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .tf-asset-val { font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 13px; color: inherit; opacity: .92; white-space: nowrap; }
+  .tf-asset-remove { cursor: pointer; color: inherit; opacity: .55; font-size: 13px; font-weight: 900; transition: opacity .15s; }
+  .tf-asset-remove:hover { opacity: 1; }
   .tf-add-input {
     flex: 1; background: var(--surface); border: 1px solid var(--border2);
     color: var(--white); font-family: 'Mulish', sans-serif; font-size: 12px; font-weight: 700;
@@ -6865,13 +6879,23 @@ function _drawTradeFinder(containerId) {
           <div class="tf-side-label">Side ${side}</div>
           <div class="tf-side-val">${state["side"+side].reduce((s,a)=>s+a.value,0).toLocaleString()}</div>
           <div class="tf-asset-list">
-            ${state["side"+side].map((a,i) => `
-              <div class="tf-asset">
-                ${a.type==="pick"?pickThumb(24):_imgThumb(a.label,24)+`<span class="pos-badge ${pc(a.posKey)}" style="font-size:9px;padding:1px 5px">${a.posKey||""}</span>`}
-                <span class="tf-asset-name">${a.label}</span>
+            ${state["side"+side].map((a,i) => {
+              // Normalize position — uppercase, strip trailing digits, default WR.
+              // Picks get data-pos="PK" so the purple chip background applies.
+              const _pos = a.type === "pick" ? "PK" : String(a.posKey || "").toUpperCase().replace(/\d+/g,'') || "WR";
+              // Stacked name: "Bijan Robinson" → first "Bijan" (small) / last "Robinson" (big)
+              const _parts = String(a.label || "").trim().split(/\s+/);
+              const _fname = _parts.length > 1 ? _parts.slice(0, -1).join(" ") : "";
+              const _lname = _parts[_parts.length - 1] || a.label;
+              const _nameHtml = `<span class="tf-asset-name">${_fname?`<span class="fn">${_fname.replace(/'/g,"\\'")}</span>`:""}<span class="ln">${_lname.replace(/'/g,"\\'")}</span></span>`;
+              return `
+              <div class="tf-asset" data-pos="${_pos}">
+                ${a.type==="pick"?pickThumb(24):_imgThumb(a.label,24)+`<span class="pos-badge ${pc(_pos)}" style="font-size:9px;padding:1px 5px">${_pos}</span>`}
+                ${_nameHtml}
                 <span class="tf-asset-val">${a.value.toLocaleString()}</span>
                 <span class="tf-asset-remove" onclick="tfRemove('${containerId}','${side}',${i})">✕</span>
-              </div>`).join("")}
+              </div>`;
+            }).join("")}
           </div>
           ${renderAddSlot(side)}
         </div>`).join("")}
