@@ -3169,11 +3169,15 @@ function renderValueTracker() {
 }
 
 function renderAll() {
-  renderValueTracker();
-  renderRecent();
-  renderTopPlayers();
-  renderTopPicks();
-  renderPositions();
+  // Each render is wrapped so a single failure can't blank the rest of the
+  // page. Previously, if renderValueTracker threw, renderRecent never ran
+  // and the trade list stayed stale ("No trades match these filters" even
+  // though filtered was 1405).
+  try { renderValueTracker(); } catch (e) { console.error('[renderAll] renderValueTracker failed:', e); }
+  try { renderRecent();       } catch (e) { console.error('[renderAll] renderRecent failed:', e); }
+  try { renderTopPlayers();   } catch (e) { console.error('[renderAll] renderTopPlayers failed:', e); }
+  try { renderTopPicks();     } catch (e) { console.error('[renderAll] renderTopPicks failed:', e); }
+  try { renderPositions();    } catch (e) { console.error('[renderAll] renderPositions failed:', e); }
 }
 
 function showTab(name) {
@@ -6209,7 +6213,17 @@ const posTxtMap = { WR:"var(--pos-wr)",   RB:"var(--pos-rb)",   QB:"var(--pos-qb
 
 function ppSearchInput(val) {
   const results = document.getElementById("pp-search-results");
+  if(!results) return;
   if(!val.trim()) { results.classList.remove("open"); results.innerHTML=""; return; }
+  try {
+    return _ppSearchInputImpl(val, results);
+  } catch (err) {
+    console.error('[ppSearchInput] failed:', err);
+    results.innerHTML = `<div class="main-search-no-results">Search error — open DevTools console (${err.message})</div>`;
+    results.classList.add("open");
+  }
+}
+function _ppSearchInputImpl(val, results) {
   const q = val.toLowerCase();
 
   // Aggregate trade counts keyed by NORMALIZED name so variations dedupe.
@@ -6364,7 +6378,17 @@ let tradeSearch = { a: [], b: [] };
 
 function tradeSearchInput(side, val) {
   const resultsEl = document.getElementById(`search-results-${side}`);
+  if(!resultsEl) return;
   if(!val.trim()) { resultsEl.classList.remove("open"); resultsEl.innerHTML=""; return; }
+  try {
+    return _tradeSearchInputImpl(side, val, resultsEl);
+  } catch (err) {
+    console.error('[tradeSearchInput] failed:', err);
+    resultsEl.innerHTML = `<div class="main-search-no-results">Search error — open DevTools console for detail (${err.message})</div>`;
+    resultsEl.classList.add("open");
+  }
+}
+function _tradeSearchInputImpl(side, val, resultsEl) {
   const q = val.toLowerCase().trim();
   const used = [...tradeSearch.a, ...tradeSearch.b].map(x=>x.key);
   const rows = [], seen = new Set();
@@ -7382,6 +7406,17 @@ function closePanel() {
     // FP_VALUES has the MVS overlay applied, and the panel will render
     // with all its data (recent trades, MVS extras, heatmap, sparkline).
     try { if (typeof window._consumeIndexHandoff === 'function') window._consumeIndexHandoff(); } catch(e) { console.warn('[fp-bootstrap] handoff consume skipped:', e.message); }
+    // Diagnostic — confirm the data layer is healthy when the page becomes
+    // interactive. If any of these are 0 the search bars + filters will be empty;
+    // open DevTools console to see this readout.
+    try {
+      const t = (typeof TRADES !== 'undefined') ? TRADES.length : -1;
+      const fp = (typeof FP_VALUES !== 'undefined') ? Object.keys(FP_VALUES).length : -1;
+      const mvs = (typeof window.MVS_PAYLOAD !== 'undefined' && window.MVS_PAYLOAD) ? (window.MVS_PAYLOAD.playerCount || 0) : 0;
+      const pa = (typeof window.PICK_AVAILABILITY !== 'undefined' && window.PICK_AVAILABILITY) ? Object.keys(window.PICK_AVAILABILITY).length : 0;
+      console.log(`[search-check] TRADES=${t}  FP_VALUES=${fp}  MVS_PAYLOAD.players=${mvs}  PICK_AVAILABILITY=${pa}`);
+      if (t === 0 && fp === 0) console.error('[search-check] BOTH TRADES AND FP_VALUES ARE EMPTY — search bars will return zero results.');
+    } catch(e) { console.warn('[search-check] diagnostic failed:', e); }
   }).catch(fail);
 })();
 
