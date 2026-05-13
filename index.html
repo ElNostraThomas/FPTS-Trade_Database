@@ -826,9 +826,12 @@
     padding: 7px 10px; cursor: default;
     transition: transform .12s, box-shadow .12s;
   }
-  /* Position-colored chips — matches the Trade Calculator's .asset-row style
-     so a player added in the trade finder looks visually identical to one
-     added in the calc (SYNC-RULE: keep these palettes aligned). */
+  /* SYNC-RULE: Trade Finder chips (.tf-asset) and Trade Calculator chips
+     (.asset-row in trade-calculator.html) must use the same position
+     palette + stacked-name layout. If you add a new position, change a
+     color, or rework the chip layout in one place, mirror the change in
+     the other in the same commit. push.bat counts the data-pos rules on
+     each side and warns when they drift. */
   .tf-asset[data-pos="QB"]   { background: var(--pos-qb-bg);   color: var(--pos-qb);   border-color: rgba(0,0,0,.18); }
   .tf-asset[data-pos="RB"]   { background: var(--pos-rb-bg);   color: var(--pos-rb);   border-color: rgba(0,0,0,.18); }
   .tf-asset[data-pos="WR"]   { background: var(--pos-wr-bg);   color: var(--pos-wr);   border-color: rgba(0,0,0,.18); }

@@ -116,6 +116,9 @@
   /* Asset chip — solid position-colored mini card with stacked name (matches adp-tool box-card design system) */
   .asset-row { display:flex; align-items:center; gap:8px; background:var(--surface2); border:1px solid var(--border); padding:7px 10px; cursor:pointer; transition:transform .12s, box-shadow .12s; }
   .asset-row:hover { transform:translateY(-1px); box-shadow:0 2px 8px rgba(0,0,0,.35); }
+  /* SYNC-RULE: keep these asset-row position colors aligned with the
+     Trade Finder's .tf-asset chips (index.html). Same palette, same
+     stacked-name layout below. push.bat warns if the two diverge. */
   .asset-row[data-pos="QB"] { background:var(--pos-qb-bg); color:var(--pos-qb); }
   .asset-row[data-pos="RB"] { background:var(--pos-rb-bg); color:var(--pos-rb); }
   .asset-row[data-pos="WR"] { background:var(--pos-wr-bg); color:var(--pos-wr); }
