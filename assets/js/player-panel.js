@@ -574,13 +574,11 @@
 
     const sorted = playerTrades.slice().sort((a, b) => b.date.localeCompare(a.date));
 
-    // ── MVS extras row (shared widgets — OTC + Baseline + Volume + Rankings).
+    // ── MVS extras row removed per user spec (no OTC / Baseline / Volume /
+    // Rankings inline). The mount div stays in the HTML template so any
+    // future reintroduction is a one-line change; for now it renders empty.
     const mvsExtrasEl = document.getElementById('pp-mvs-extras');
-    if (mvsExtrasEl) {
-      mvsExtrasEl.innerHTML = (global.MvsExtras && typeof global.MvsExtras.buildHeader === 'function')
-        ? global.MvsExtras.buildHeader(playerName)
-        : '';
-    }
+    if (mvsExtrasEl) mvsExtrasEl.innerHTML = '';
     // Stash sleeperId for the ADP Heatmap tab.
     global._ppActiveSleeperId = sleeperId || null;
     const heatmapTabEl = document.getElementById('pp-heatmap-tab');

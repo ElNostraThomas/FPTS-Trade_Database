@@ -7143,15 +7143,11 @@ function openPanelContent(playerName) {
   const pairedCount = {};
   playerTrades.forEach(t => t.players.filter(p=>p.name!==playerName).forEach(p=>{ pairedCount[p.name]=(pairedCount[p.name]||0)+1; }));
 
-  // ── MVS extras: OTC + Baseline + Volume + Rankings (shared helper) ──
-  // Aligned across all 5 player modals. The previous 4-cell DB-only
-  // "Times Traded / Avg Pick / Avg Added Value / Avg Assets Moved" row
-  // was removed for consistency — Trade Volume (7d) in MVS extras
-  // captures the same liquidity signal at a per-modal-uniform cadence.
+  // ── MVS extras row removed per user spec (no OTC / Baseline / Volume /
+  // Rankings inline). The mount div stays in the DOM so any future
+  // reintroduction is a one-line change; for now it renders empty.
   const mvsExtrasEl = document.getElementById("pp-mvs-extras");
-  if (mvsExtrasEl) {
-    mvsExtrasEl.innerHTML = window.MvsExtras ? window.MvsExtras.buildHeader(playerName) : '';
-  }
+  if (mvsExtrasEl) mvsExtrasEl.innerHTML = '';
   // Stash sleeperId on the panel so the ADP Heatmap tab can render
   // it lazily when the user clicks the tab (avoids the inline section
   // looking different per player based on heatmap coverage).

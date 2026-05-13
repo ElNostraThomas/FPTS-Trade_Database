@@ -517,3 +517,55 @@
   /* Articles section — tighter padding on tiny screens */
   .pp-articles-section .pp-article-inline > div { padding: 6px 10px !important; }
 }
+
+/* ── Trade-card layout (lifted from index.html so the Trades tab renders
+      identically on every page, not just DB) ──────────────────────────── */
+.trade-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 14px 16px;
+  transition: border-color .15s;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.trade-card:hover { border-color: var(--border2); background: var(--surface2); }
+.tc-date { font-family: 'Mulish', sans-serif; font-size: 13px; font-weight: 700; color: var(--white); opacity: 1; text-transform: uppercase; letter-spacing: .07em; }
+.tc-body { display: grid; grid-template-columns: minmax(0,1fr) 1px minmax(0,1fr); gap: 0; margin: 8px 0; }
+.tc-side { padding: 0; display: flex; flex-direction: column; gap: 7px; min-width: 0; }
+.tc-side:first-child { padding-left: 0; }
+.tc-side:last-child  { padding-right: 0; }
+.tc-side-label { padding: 0 12px; font-family: 'Mulish', sans-serif; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--white); opacity: 1; margin-bottom: 4px; }
+.tc-divider { background: var(--border); width: 1px; margin: 0; }
+.tc-asset { display: flex; align-items: center; gap: 6px; min-width: 0; overflow: hidden; padding: 0 12px; }
+.tc-asset-name { font-family: 'Mulish', sans-serif; font-weight: 900; font-size: 13px; color: var(--white); cursor: pointer; transition: color .15s; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.tc-asset-name:hover { color: var(--red); }
+.tc-nfl-team { font-family: 'Mulish', sans-serif; font-size: 10px; font-weight: 700; color: var(--white); opacity: .7; flex-shrink: 0; white-space: nowrap; margin-left: 4px; }
+.tc-empty { color: var(--white); opacity: .5; font-style: italic; }
+.tc-chips { display: flex; gap: 5px; flex-wrap: wrap; padding-top: 6px; border-top: 1px solid var(--border); }
+.fmt-chip {
+  font-family: 'Kanit', sans-serif;
+  font-weight: 800;
+  font-style: italic;
+  font-size: 12px;
+  padding: 3px 10px;
+  border: 1px solid var(--border2);
+  color: var(--white);
+  background: transparent;
+}
+.fmt-chip.sf    { border-color: var(--border2); color: var(--white); }
+.fmt-chip.tep   { border-color: var(--border2); color: var(--white); }
+.fmt-chip.faab  { border-color: var(--border2); color: var(--white); background: transparent; }
+.faab-badge { background: transparent; border: 1px solid var(--border2); color: var(--white); font-family: 'Mulish', sans-serif; font-size: 12px; font-weight: 700; padding: 2px 7px; }
+.pick-badge { background: transparent; border: 1px solid var(--red); color: var(--white); font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 12px; padding: 3px 9px; }
+.rd1-badge  { background: transparent; border: 1px solid var(--red); color: var(--white); font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 12px; padding: 3px 9px; }
+@media (max-width: 700px) {
+  .trade-card { width: 100% !important; margin-bottom: 8px; padding: 10px 12px; }
+  .tc-date { font-size: 11px; }
+  .tc-asset-name { font-size: 13px; }
+  .tc-nfl-team { font-size: 10px; }
+  .tc-chips { gap: 3px; }
+  .fmt-chip { font-size: 10px; padding: 2px 6px; }
+  .faab-badge { font-size: 10px; padding: 2px 5px; }
+}
