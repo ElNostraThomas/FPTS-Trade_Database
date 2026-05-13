@@ -501,6 +501,8 @@
     .compare-grid { grid-template-columns: 1fr; }
   }
 </style>
+<link rel="stylesheet" href="assets/css/mvs-extras.css?v=1778642255">
+<script src="assets/js/mvs-extras.js?v=1778642255"></script>
 <link rel="stylesheet" href="assets/css/legend.css?v=1778642255">
 <script src="assets/js/legend-content.js?v=1778642255"></script>
 <script src="assets/js/legend.js?v=1778642255"></script>
@@ -695,6 +697,11 @@
     <div class="compare-section" id="modal-compare-section" style="display:none">
       <div class="compare-grid" id="compare-grid"></div>
     </div>
+
+    <!-- MVS extras (OTC + Baseline + Volume + Rankings) — shared helper.
+         Aligned with the DB / Calc / My-Leagues / Tiers modals so every
+         player card has the same inline content above the tab strip. -->
+    <div id="adp-pp-mvs-extras"></div>
 
     <!-- ARTICLES (always above the content tabs — same pattern as DB modal) -->
     <div class="pp-section" id="pp-articles-section">
@@ -1569,6 +1576,10 @@ function openModal(sleeperId) {
     fpTrend.className = '';
     fpTrend.textContent = '';
   }
+
+  // MVS extras — shared helper, aligned with the other 4 player modals.
+  const adpExtrasEl = document.getElementById('adp-pp-mvs-extras');
+  if (adpExtrasEl) adpExtrasEl.innerHTML = window.MvsExtras ? window.MvsExtras.buildHeader(p.name) : '';
 
   // Heatmap renders lazily on tab click — see _adpShowTab('heatmap').
   // Reset all tab contents for a clean state when switching players.

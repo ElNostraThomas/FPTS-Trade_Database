@@ -1962,14 +1962,11 @@
         <div class="pp-value-trend" id="pp-value-trend"></div>
       </div>
     </div>
-    <div class="pp-trade-stats" id="pp-stats-left" style="grid-template-columns:repeat(4,1fr)">
-      <div class="pp-ts"><div class="pp-ts-label">Times Traded</div><div class="pp-ts-val red" id="pp-traded">—</div></div>
-      <div class="pp-ts"><div class="pp-ts-label">Avg Pick Included</div><div class="pp-ts-val" id="pp-avg-pick">—</div></div>
-      <div class="pp-ts"><div class="pp-ts-label">Avg Added Value Needed</div><div class="pp-ts-val" id="pp-avg-value">—</div></div>
-      <div class="pp-ts"><div class="pp-ts-label">Avg Assets Moved</div><div class="pp-ts-val" id="pp-avg-assets">—</div></div>
-    </div>
-
-    <!-- MVS extras: OTC + rankings + sparkline + recent trades. Populated via MvsExtras.buildAll(playerName). -->
+    <!-- MVS extras: OTC + Baseline + Trade Volume (7d) + Contributor Rankings.
+         The 4-cell "Times Traded / Avg Pick / Avg Added Value / Avg Assets Moved"
+         row that previously lived here was removed to align with the other 4
+         player modals — Trade Volume (7d) in MVS extras covers the same
+         liquidity signal at a per-modal-consistent cadence. -->
     <div id="pp-mvs-extras"></div>
 
     <!-- SYNC-RULE: this 5-tab strip must stay aligned across every player
@@ -7145,31 +7142,11 @@ function openPanelContent(playerName) {
   const pairedCount = {};
   playerTrades.forEach(t => t.players.filter(p=>p.name!==playerName).forEach(p=>{ pairedCount[p.name]=(pairedCount[p.name]||0)+1; }));
 
-  document.getElementById("pp-traded").textContent = playerTrades.length;
-
-  // ── Cost analysis stats ──────────────────────────────
-  // Avg pick included: most common round across all trades that had picks
-  const tradesWithPicks = playerTrades.filter(t => t.picks.length > 0);
-  const pickPct = playerTrades.length ? Math.round(tradesWithPicks.length / playerTrades.length * 100) : 0;
-  const allPicks = playerTrades.flatMap(t => t.picks);
-  const avgRound = allPicks.length ? (allPicks.reduce((s,p) => s + p.round, 0) / allPicks.length).toFixed(1) : null;
-  const avgSlot  = allPicks.length ? (allPicks.reduce((s,p) => s + (p.slot||6), 0) / allPicks.length).toFixed(0) : null;
-  const pickLabel = avgRound ? ("Rd " + parseFloat(avgRound).toFixed(0) + "." + String(avgSlot).padStart(2,"0") + " (" + pickPct + "%)") : "None";
-  document.getElementById("pp-avg-pick").textContent = pickLabel;
-
-  // Avg added value: avg FC value of OTHER players in same trades
-  const otherPlayers = playerTrades.flatMap(t => t.players.filter(p => p.name !== playerName));
-  const otherValues = otherPlayers.map(p => FP_VALUES[p.name] ? FP_VALUES[p.name].value : 0).filter(v => v > 0);
-  const avgOtherVal = otherValues.length ? Math.round(otherValues.reduce((s,v) => s+v, 0) / otherValues.length) : null;
-  document.getElementById("pp-avg-value").textContent = avgOtherVal ? avgOtherVal.toLocaleString() : "—";
-
-  // Avg total assets moved per trade (players + picks, excluding the player themselves)
-  const avgAssets = playerTrades.length
-    ? (playerTrades.reduce((s,t) => s + t.players.length + t.picks.length - 1, 0) / playerTrades.length).toFixed(1)
-    : "—";
-  document.getElementById("pp-avg-assets").textContent = avgAssets;
-
-  // ── MVS extras: OTC + Rankings + Sparkline + Recent Trades (shared helper) ──
+  // ── MVS extras: OTC + Baseline + Volume + Rankings (shared helper) ──
+  // Aligned across all 5 player modals. The previous 4-cell DB-only
+  // "Times Traded / Avg Pick / Avg Added Value / Avg Assets Moved" row
+  // was removed for consistency — Trade Volume (7d) in MVS extras
+  // captures the same liquidity signal at a per-modal-uniform cadence.
   const mvsExtrasEl = document.getElementById("pp-mvs-extras");
   if (mvsExtrasEl) {
     mvsExtrasEl.innerHTML = window.MvsExtras ? window.MvsExtras.buildHeader(playerName) : '';

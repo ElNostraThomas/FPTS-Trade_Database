@@ -1557,8 +1557,18 @@
   }
   .ml-pd-info { flex: 1; min-width: 0; }
   .ml-pd-pos-team { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
-  .ml-pd-name { font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 22px; color: var(--white); }
+  .ml-pd-name { font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 22px; color: var(--white); margin-bottom: 10px; }
   .ml-pd-team { font-family: 'Mulish', sans-serif; font-size: 12px; color: var(--white); opacity: .5; }
+  /* Inline profile stats — mirrors pp-stats on the other modals so every
+     player card has identical content above the tab strip. */
+  .ml-pd-info-stats { display: flex; flex-wrap: wrap; gap: 6px 22px; font-family: 'Mulish', sans-serif; }
+  .ml-pd-info-stat { display: flex; flex-direction: column; gap: 2px; min-width: 36px; }
+  .ml-pd-info-stat-k { font-size: 9px; opacity: 1; text-transform: uppercase; letter-spacing: .07em; color: var(--white); font-weight: 800; white-space: nowrap; }
+  .ml-pd-info-stat-v { font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 14px; color: var(--white); white-space: nowrap; }
+  /* Right-floating Fantasy Points block — mirrors pp-fp on the other modals. */
+  .ml-pd-fp { text-align: right; flex-shrink: 0; }
+  .ml-pd-fp-k { font-size: 9px; opacity: 1; text-transform: uppercase; letter-spacing: .08em; color: var(--white); font-family: 'Mulish', sans-serif; margin-bottom: 4px; }
+  .ml-pd-fp-v { font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 36px; color: var(--white); line-height: 1; }
   .ml-pd-stats {
     display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;
     margin-bottom: 18px; padding: 14px; background: var(--surface2);
@@ -4203,6 +4213,19 @@ function openPlayerDetail(sleeperId) {
       </div>`;
   }
 
+  // Inline profile stats — same 7 cells as the DB / Calc / Tiers / ADP modals
+  // so every player card has identical content above the tab strip.
+  const _auctionStr = ktc.auction ? ('$' + String(ktc.auction).replace(/^\$+/, '')) : null;
+  const inlineStats = `<div class="ml-pd-info-stats">
+    <div class="ml-pd-info-stat"><div class="ml-pd-info-stat-k">Age</div><div class="ml-pd-info-stat-v">${ktc.age != null ? ktc.age : '—'}</div></div>
+    <div class="ml-pd-info-stat"><div class="ml-pd-info-stat-k">EXP</div><div class="ml-pd-info-stat-v">${expDisplay || '—'}</div></div>
+    <div class="ml-pd-info-stat"><div class="ml-pd-info-stat-k">Pos Rank</div><div class="ml-pd-info-stat-v">${ktc.posRank || '—'}</div></div>
+    <div class="ml-pd-info-stat"><div class="ml-pd-info-stat-k">Overall Rank</div><div class="ml-pd-info-stat-v">${ktc.rank ? '#'+ktc.rank : '—'}</div></div>
+    <div class="ml-pd-info-stat"><div class="ml-pd-info-stat-k">PPG</div><div class="ml-pd-info-stat-v">${ktc.ppg != null ? ktc.ppg : '—'}</div></div>
+    <div class="ml-pd-info-stat"><div class="ml-pd-info-stat-k">Dynasty ADP</div><div class="ml-pd-info-stat-v">${ktc.adp != null ? ktc.adp : '—'}</div></div>
+    <div class="ml-pd-info-stat"><div class="ml-pd-info-stat-k">Auction</div><div class="ml-pd-info-stat-v" ${_auctionStr?'style="color:var(--green)"':''}>${_auctionStr || '—'}</div></div>
+  </div>`;
+
   document.getElementById('ml-pd-body').innerHTML = `
     <div class="ml-pd-hero">
       <div class="ml-pd-avatar" id="ml-pd-avatar-wrap">
@@ -4211,9 +4234,13 @@ function openPlayerDetail(sleeperId) {
       <div class="ml-pd-info">
         <div class="ml-pd-pos-team">${pos ? posBadge(pos) : ''} <span class="ml-pd-team">${mlEscapeHTML(team || '')}</span></div>
         <div class="ml-pd-name">${mlEscapeHTML(name)}</div>
+        ${inlineStats}
+      </div>
+      <div class="ml-pd-fp">
+        <div class="ml-pd-fp-k">Fantasy Points</div>
+        <div class="ml-pd-fp-v">${ktc.value != null ? Number(ktc.value).toLocaleString() : '—'}</div>
       </div>
     </div>
-    ${stats}
     <div id="ml-pd-mvs-extras"></div>
     <!-- SYNC-RULE: keep this 5-tab strip aligned with the player modals on
          the other three pages (DB / Calc / ADP-tool). Add or change tabs in
