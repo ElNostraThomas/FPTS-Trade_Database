@@ -4792,8 +4792,8 @@ function mlSetLeagueSort(key) {
   renderLeagueRows();
 }
 
-// Fixed priority order for archetype sort
-const ML_ARCHETYPE_ORDER = { contender: 0, tweener: 1, rebuilder: 2, dynasty: 3, emergency: 4 };
+// Fixed priority order for archetype sort (Dynasty → Emergency, most valuable first)
+const ML_ARCHETYPE_ORDER = { dynasty: 0, contender: 1, tweener: 2, rebuilder: 3, emergency: 4 };
 
 function renderLeagueRows() {
   const container = document.getElementById('ml-league-rows');
@@ -5632,6 +5632,10 @@ function renderExposureList() {
   const listEl = document.getElementById('ml-exposure-list');
   const countEl = document.getElementById('ml-exposure-count');
   if (!listEl) return;
+  // Local escape — used in row title/text since some player names contain &, ', etc.
+  const htmlEscape = (s) => String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 
   const data = window.ML_EXPOSURE_DATA || [];
   const filter = window.ML_EXPOSURE_FILTER || 'ALL';
