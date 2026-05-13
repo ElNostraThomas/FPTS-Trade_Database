@@ -2025,14 +2025,6 @@
 <script src="assets/js/legend-content.js?v=1778642255"></script>
 <script src="assets/js/legend.js?v=1778642255"></script>
 <script>document.addEventListener('DOMContentLoaded', function(){ if (window.Legend) Legend.init('my-leagues'); });</script>
-<!-- Shared player panel — DB's slide-in drawer, used identically on every page -->
-<script>window.FPTS_CURRENT_PAGE = 'ml';</script>
-<link rel="stylesheet" href="assets/css/player-panel.css?v=1778652000">
-<script src="assets/js/player-panel.js?v=1778652000" defer></script>
-<style>
-  /* Hide the legacy in-page modal — its click handlers now route to the shared panel instead. */
-  #ml-pd-backdrop { display: none !important; }
-</style>
 </head>
 <body>
 <div id="_fp-loading" style="position:fixed;inset:0;background:var(--black);color:var(--white);display:flex;align-items:center;justify-content:center;font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:28px;text-transform:uppercase;letter-spacing:.06em;z-index:9999;">Loading…</div>
@@ -2660,14 +2652,6 @@ let ADP_DATA = {};
 let PICK_VALUES = {};
 
 let FP_VALUES = {};
-
-// Mirror page-local data globals to window so the shared player-panel module
-// (loaded from a separate <script src=>) can see them. Otherwise the panel
-// renders every stat as "—".
-window.FP_VALUES    = FP_VALUES;
-window.SLEEPER_IDS  = SLEEPER_IDS;
-window.PICK_VALUES  = PICK_VALUES;
-window.ADP_DATA     = ADP_DATA;
 
 // ── State ──────────────────────────────────────────────────────────────────
 const ML = {
@@ -4122,74 +4106,7 @@ window._mlOpenInDb = function () {
   }
 };
 
-// Populate the shared player-panel's #pp-league-context slot with the
-// My-Leagues-specific chrome that doesn't live anywhere else: the roster
-// status badge ('★ On Your Roster' / 'On <team>' / 'Available'), the
-// Trade For / Send Offer Sleeper-link action buttons, and the
-// cross-league availability section.
-//
-// The shared panel clears the slot on every render, so this MUST be
-// called after openPanel(name) returns. The block lives below the tabs
-// content and pins to the bottom of the panel via flex-shrink:0.
-function _mlPopulateLeagueContext(sid, p, name) {
-  const slot = document.getElementById('pp-league-context');
-  if (!slot) return;
-  const status = mlGetPlayerStatus(sid);
-  const lg = window.ML_LEAGUE;
-  const sleeperLeagueUrl = lg ? `https://sleeper.com/leagues/${lg.league_id}/team` : '#';
-
-  let statusBlock = '';
-  if (status.state === 'mine') {
-    statusBlock = `
-      <div class="ml-pd-status mine">
-        <span class="ml-pd-status-label">★ On Your Roster</span>
-        <span class="ml-pd-status-meta">You own this player</span>
-      </div>`;
-  } else if (status.state === 'taken') {
-    const faabBit = (status.avgFaab !== null && status.claims > 0)
-      ? `${status.claims} prior waiver claim${status.claims!==1?'s':''} · avg $${status.avgFaab}`
-      : '';
-    statusBlock = `
-      <div class="ml-pd-status taken">
-        <span class="ml-pd-status-label">On ${mlEscapeHTML(status.team)}</span>
-        ${faabBit ? `<span class="ml-pd-status-meta">${faabBit}</span>` : ''}
-      </div>
-      <div class="ml-pd-actions">
-        <button class="ml-pd-btn primary" onclick="openTradeSuggestModal('${sid}','${lg ? lg.league_id : ''}')">Trade For →</button>
-        <a class="ml-pd-btn" href="${sleeperLeagueUrl}" target="_blank" rel="noopener">Send Offer On Sleeper ↗</a>
-      </div>`;
-  } else {
-    const faabBit = (status.avgFaab !== null && status.claims > 0)
-      ? `Avg $${status.avgFaab} FAAB · ${status.claims} prior claim${status.claims!==1?'s':''}`
-      : 'No prior claims this season';
-    statusBlock = `
-      <div class="ml-pd-status free">
-        <span class="ml-pd-status-label">Available — Waivers / FA</span>
-        <span class="ml-pd-status-meta">${faabBit}</span>
-      </div>
-      <div class="ml-pd-actions">
-        <a class="ml-pd-btn primary" href="${sleeperLeagueUrl}" target="_blank" rel="noopener">Claim On Sleeper ↗</a>
-      </div>`;
-  }
-
-  // Render status + availability mount in one pass; renderPlayerAvailability
-  // fills the inner div after the DOM is in place.
-  slot.innerHTML = `
-    <div style="padding:14px 24px;display:flex;flex-direction:column;gap:10px">
-      ${statusBlock}
-      <div id="ml-pd-availability-mount"></div>
-    </div>
-  `;
-  try { if (typeof renderPlayerAvailability === 'function') renderPlayerAvailability(sid); } catch (e) {}
-}
-
 // Open the player detail modal for a Sleeper player_id (string).
-//
-// MIGRATION: this function now resolves the player name from the sid and
-// hands off to the SHARED player-panel module (window.openPanel). The
-// inline rendering pipeline below the early-return is kept dormant only
-// in case the shared module is missing — every code path through the
-// panel renders via the same module as DB / Calc / ADP / Tiers.
 function openPlayerDetail(sleeperId) {
   const sid = String(sleeperId);
 
@@ -4227,33 +4144,6 @@ function openPlayerDetail(sleeperId) {
   }
   // Final fallback for the name field
   if (!resolvedName) resolvedName = 'Unknown Player';
-
-  // ── Shared-module hand-off ──────────────────────────────────────────────
-  // Re-mirror page-local data in case late hydrations have landed since
-  // page load (FP API fetch, MVS overlay, etc.).
-  window.FP_VALUES   = FP_VALUES;
-  window.SLEEPER_IDS = SLEEPER_IDS;
-  window.PICK_VALUES = PICK_VALUES;
-  window.ADP_DATA    = ADP_DATA;
-  // Stash the active sid so the cross-league availability section + the
-  // hide-usernames toggle keep working.
-  window.ML_PD_CURRENT_SID = sid;
-  window._mlActiveSleeperId = sid || null;
-  window._mlActivePlayerName = resolvedName || '';
-  if (typeof window.openPanel === 'function') {
-    try {
-      window.openPanel(resolvedName);
-      // Populate the shared panel's league-context slot with My-Leagues'
-      // unique chrome: roster status badge, Trade For / Send Offer
-      // buttons, and the cross-league availability section. The slot was
-      // cleared by openPanelContent, so we write into it AFTER openPanel
-      // returns.
-      _mlPopulateLeagueContext(sid, p, resolvedName);
-      return;
-    } catch (e) { console.warn('[ml] shared openPanel failed:', e); }
-  }
-  // Fallback to the legacy inline render below if the shared module hasn't
-  // loaded yet for some reason.
 
   const name = resolvedName;
   const pos  = resolvedPos;
@@ -4394,9 +4284,7 @@ function openPlayerDetail(sleeperId) {
 }
 
 function closePlayerDetail() {
-  if (typeof window.closePanel === 'function') { try { window.closePanel(); } catch (e) {} }
-  const bd = document.getElementById('ml-pd-backdrop');
-  if (bd) bd.classList.remove('open');
+  document.getElementById('ml-pd-backdrop').classList.remove('open');
   window.ML_PD_CURRENT_SID = null;
 }
 
