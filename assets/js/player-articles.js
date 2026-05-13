@@ -121,15 +121,20 @@
 
     row.style.display = '';
     const first = articles[0];
+    // Wrap the title/date/Read row in the SAME dashed-orange banner box that
+    // the no-articles state uses — the Articles section reads as a single
+    // consistent banner regardless of whether articles exist.
     row.querySelector('.pp-article-inline').innerHTML = ''
-      + '<a href="' + escHtml(first.url || '#') + '" target="_blank" rel="noopener" '
-      +   'style="font-family:\'Mulish\',sans-serif;font-weight:900;font-size:13px;color:var(--white);text-decoration:none;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" '
-      +   'title="' + escHtml(first.title || '') + '">' + escHtml(first.title || '(untitled)') + '</a>'
-      + (first.date ? '<span style="font-family:\'Mulish\',sans-serif;font-size:10px;color:var(--white);opacity:.55;flex-shrink:0">' + escHtml(fmtArticleDate(first.date)) + '</span>' : '')
-      + '<a href="' + escHtml(first.url || '#') + '" target="_blank" rel="noopener" '
-      +   'style="font-family:\'Kanit\',sans-serif;font-weight:800;font-style:italic;font-size:10px;color:var(--red);text-decoration:none;text-transform:uppercase;letter-spacing:.06em;flex-shrink:0">'
-      +   'Read →'
-      + '</a>';
+      + '<div style="display:flex;align-items:center;gap:10px;width:100%;padding:8px 12px;background:rgba(237,129,12,0.06);border:1px dashed var(--border2)">'
+      +   '<a href="' + escHtml(first.url || '#') + '" target="_blank" rel="noopener" '
+      +     'style="font-family:\'Mulish\',sans-serif;font-weight:900;font-size:13px;color:var(--white);text-decoration:none;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" '
+      +     'title="' + escHtml(first.title || '') + '">' + escHtml(first.title || '(untitled)') + '</a>'
+      +   (first.date ? '<span style="font-family:\'Mulish\',sans-serif;font-size:10px;color:var(--white);opacity:.55;flex-shrink:0">' + escHtml(fmtArticleDate(first.date)) + '</span>' : '')
+      +   '<a href="' + escHtml(first.url || '#') + '" target="_blank" rel="noopener" '
+      +     'style="font-family:\'Kanit\',sans-serif;font-weight:800;font-style:italic;font-size:10px;color:var(--red);text-decoration:none;text-transform:uppercase;letter-spacing:.06em;flex-shrink:0;padding:5px 10px;border:1px solid var(--red)">'
+      +     'Read →'
+      +   '</a>'
+      + '</div>';
 
     const rest = articles.slice(1, 5);
     const moreWrap = row.querySelector('.pp-articles-more-wrap');
