@@ -489,7 +489,11 @@
     const trendNum = parseInt(trendVal, 10);
 
     const initials = playerName.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
-    const sleeperId = SLEEPER_IDS[playerName] || ktc.sleeper_id || null;
+    // Fall back through every known shape of the sleeper-id field. DB / Calc
+    // ship a hand-curated SLEEPER_IDS dict; ADP / Tiers don't have one but
+    // their FP_VALUES records carry the id under .sleeperId (camelCase) and
+    // some legacy MVS data stashes it under .sleeper_id (snake_case).
+    const sleeperId = SLEEPER_IDS[playerName] || ktc.sleeperId || ktc.sleeper_id || null;
     const photoUrl = sleeperId ? `https://sleepercdn.com/content/nfl/players/thumb/${sleeperId}.jpg` : null;
     const avatarEl = document.getElementById('pp-avatar');
     if (!avatarEl) return; // panel not mounted (defensive)
