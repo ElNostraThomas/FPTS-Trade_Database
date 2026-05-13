@@ -4016,11 +4016,15 @@ function mlPlayerName(sleeperId) {
   return p.full_name || ((p.first_name || '') + ' ' + (p.last_name || '')).trim() || null;
 }
 
-// Tab switcher for the my-leagues player detail modal. Two tabs:
-// 'overview' (default — Articles + Status + Availability) and
-// 'heatmap' (renders pick-availability lazily on tab click).
+// Tab switcher for the my-leagues player detail modal. 5 tabs match DB.
 window._mlShowTab = function (name) {
-  const tabs = { overview: 'ml-pd-overview-tab', heatmap: 'ml-pd-heatmap-tab' };
+  const tabs = {
+    trades:  'ml-pd-trades-tab',
+    stats:   'ml-pd-stats-tab',
+    curve:   'ml-pd-curve-tab',
+    finder:  'ml-pd-finder-tab',
+    heatmap: 'ml-pd-heatmap-tab',
+  };
   Object.entries(tabs).forEach(([k, id]) => {
     const el = document.getElementById(id);
     if (el) el.style.display = (k === name) ? 'block' : 'none';
@@ -4029,9 +4033,64 @@ window._mlShowTab = function (name) {
     const m = btn.getAttribute('onclick') || '';
     btn.classList.toggle('active', m.indexOf("'" + name + "'") !== -1);
   });
-  if (name === 'heatmap' && window.Heatmap) {
+  const playerName = window._mlActivePlayerName || '';
+  const sid = window._mlActiveSleeperId || null;
+  if (name === 'trades') {
+    const el = document.getElementById('ml-pd-trades-tab');
+    if (el) el.innerHTML = _mlRenderTradesTab(playerName);
+  } else if (name === 'heatmap' && window.Heatmap) {
     const el = document.getElementById('ml-pd-heatmap-tab');
-    if (el) window.Heatmap.render(el, window._mlActiveSleeperId || null);
+    if (el) window.Heatmap.render(el, sid);
+  } else if (name === 'curve') {
+    const el = document.getElementById('ml-pd-curve-tab');
+    if (el) el.innerHTML = _mlRenderAgeCurveTab(playerName);
+  } else if (name === 'stats' || name === 'finder') {
+    const el = document.getElementById(tabs[name]);
+    if (el) el.innerHTML = _mlRenderDbCtaTab(name, playerName);
+  }
+};
+
+function _mlRenderTradesTab(playerName) {
+  if (!playerName || !window.MVS_PAYLOAD || !window.MVS_PAYLOAD.players) {
+    return '<div style="padding:14px 24px;font-size:12px;color:var(--white);opacity:.7;font-family:\'Mulish\',sans-serif">No recent trades available.</div>';
+  }
+  const rec = window.MVS_PAYLOAD.players[playerName];
+  const trades = (rec && rec.recentTrades) || [];
+  if (!trades.length) return '<div style="padding:14px 24px;font-size:12px;color:var(--white);opacity:.7;font-family:\'Mulish\',sans-serif">No recent trades for ' + playerName + '.</div>';
+  if (window.MvsExtras && window.MvsExtras.buildRecentTrades) {
+    return '<div style="padding:14px 24px">' + window.MvsExtras.buildRecentTrades(trades, playerName) + '</div>';
+  }
+  return '';
+}
+function _mlRenderAgeCurveTab(playerName) {
+  const fp = (typeof FP_VALUES !== 'undefined' && FP_VALUES[playerName]) || {};
+  const age = fp.age, pos = (fp.posRank || '').replace(/\d+/g,'') || fp.pos || '';
+  if (age == null) return '<div style="padding:14px 24px;font-size:12px;color:var(--white);opacity:.7;font-family:\'Mulish\',sans-serif">Age data unavailable.</div>';
+  const peaks = { QB: 28, RB: 24, WR: 26, TE: 27 };
+  const peak = peaks[pos] || 26;
+  const delta = age - peak;
+  const label = Math.abs(delta) < 1 ? 'at positional peak' : (delta < 0 ? Math.round(Math.abs(delta)) + ' yrs from peak (rising)' : Math.round(delta) + ' yrs past peak (declining)');
+  return '<div style="padding:18px 24px;font-family:\'Mulish\',sans-serif;color:var(--white)">'
+    + '<div style="font-family:\'Kanit\',sans-serif;font-weight:800;font-style:italic;font-size:12px;color:var(--red);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">Age Curve</div>'
+    + '<div style="font-size:14px;margin-bottom:6px"><b>' + age + ' yrs old</b> · ' + pos + ' positional peak ~' + peak + '</div>'
+    + '<div style="font-size:13px;opacity:.85">' + label + '</div>'
+    + '<div style="margin-top:14px;padding:10px;background:var(--surface);border:1px solid var(--border);font-size:11px;opacity:.75;line-height:1.55">For the full multi-year visualization, open this player in the Database.</div>'
+    + '</div>';
+}
+function _mlRenderDbCtaTab(tabName, playerName) {
+  const label = { stats: 'Player Stats', finder: 'Trade Finder' }[tabName] || tabName;
+  return '<div style="padding:24px;text-align:center;font-family:\'Mulish\',sans-serif;color:var(--white)">'
+    + '<div style="font-family:\'Kanit\',sans-serif;font-weight:800;font-style:italic;font-size:14px;color:var(--red);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">' + label + '</div>'
+    + '<div style="font-size:13px;opacity:.85;margin-bottom:14px">Full ' + label + ' is available in the Trade Database modal.</div>'
+    + '<button class="pp-action-btn" type="button" onclick="_mlOpenInDb()" style="margin:0 auto">Open in Database ↗</button>'
+    + '</div>';
+}
+window._mlOpenInDb = function () {
+  const name = window._mlActivePlayerName;
+  if (typeof _fptsWriteHandoff === 'function' && name) {
+    _fptsWriteHandoff({ source: 'my-leagues', primaryPlayer: name }, 'index.html');
+  } else {
+    window.open('index.html', '_blank', 'noopener');
   }
 };
 
@@ -4155,12 +4214,18 @@ function openPlayerDetail(sleeperId) {
     </div>
     ${stats}
     <div id="ml-pd-mvs-extras"></div>
-    <!-- Tab strip — heatmap behind a tab keeps modal consistent across players. -->
+    <!-- Tab strip — matches the DB player panel for cross-page consistency. -->
     <div class="pp-tabs" style="border-top:1px solid var(--border)">
-      <button class="pp-tab active" type="button" onclick="_mlShowTab('overview')">Overview</button>
+      <button class="pp-tab active" type="button" onclick="_mlShowTab('trades')">Trades</button>
+      <button class="pp-tab" type="button" onclick="_mlShowTab('stats')">Player Stats</button>
+      <button class="pp-tab" type="button" onclick="_mlShowTab('curve')">Age Curve</button>
+      <button class="pp-tab" type="button" onclick="_mlShowTab('finder')">Trade Finder</button>
       <button class="pp-tab" type="button" onclick="_mlShowTab('heatmap')">ADP Heatmap</button>
     </div>
-    <div id="ml-pd-overview-tab"></div>
+    <div id="ml-pd-trades-tab"></div>
+    <div id="ml-pd-stats-tab" style="display:none"></div>
+    <div id="ml-pd-curve-tab" style="display:none"></div>
+    <div id="ml-pd-finder-tab" style="display:none"></div>
     <div id="ml-pd-heatmap-tab" style="display:none"></div>
     <div id="ml-pd-articles-mount"></div>
     ${statusBlock}
@@ -4169,11 +4234,14 @@ function openPlayerDetail(sleeperId) {
   // MVS extras (OTC + rankings + sparkline + recent trades) — shared helper
   const mlMvsExtras = document.getElementById('ml-pd-mvs-extras');
   if (mlMvsExtras) mlMvsExtras.innerHTML = window.MvsExtras ? window.MvsExtras.buildAll(name) : '';
-  // Stash sleeperId for lazy heatmap render + reset to Overview tab
+  // Stash state for lazy tab renders + reset to Trades tab (default)
   window._mlActiveSleeperId = sid || null;
-  const mlHeatTab = document.getElementById('ml-pd-heatmap-tab');
-  if (mlHeatTab) mlHeatTab.innerHTML = '';
-  if (typeof window._mlShowTab === 'function') window._mlShowTab('overview');
+  window._mlActivePlayerName = name || '';
+  ['ml-pd-trades-tab','ml-pd-stats-tab','ml-pd-curve-tab','ml-pd-finder-tab','ml-pd-heatmap-tab'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = '';
+  });
+  if (typeof window._mlShowTab === 'function') window._mlShowTab('trades');
   // Track current player so the hide-usernames toggle can re-render
   window.ML_PD_CURRENT_SID = sid;
   // Mount the shared articles section (auto-hides if no articles)

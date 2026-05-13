@@ -3201,11 +3201,13 @@ window._openCalcPlayerModal = function(playerName, pos, sideId, assetIdx) {
   // MVS extras (OTC + rankings + sparkline + recent trades)
   const calcExtras = document.getElementById('calc-pp-mvs-extras');
   if (calcExtras) calcExtras.innerHTML = window.MvsExtras ? window.MvsExtras.buildAll(playerName) : '';
-  // Reset to Overview tab + stash sleeperId for lazy heatmap render
+  // Stash state for lazy tab renders + reset to Trades tab (default)
   window._calcActiveSleeperId = sleeperId || null;
-  if (typeof _calcShowTab === 'function') _calcShowTab('overview');
-  const heatmapTab = document.getElementById('calc-pp-heatmap-tab');
-  if (heatmapTab) heatmapTab.innerHTML = '';  // clear stale heatmap from prior player
+  ['calc-pp-trades-tab','calc-pp-stats-tab','calc-pp-curve-tab','calc-pp-finder-tab','calc-pp-heatmap-tab'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = '';
+  });
+  if (typeof _calcShowTab === 'function') _calcShowTab('trades');
   // Cross-page handoff wiring
   window._calcModalPlayerName = playerName;
   // Open
@@ -3241,11 +3243,16 @@ document.addEventListener('keydown', function(e) {
   }
 });
 
-// Tab switcher for the calc player modal. Two tabs: 'overview' (default
-// — shows MVS Extras pointer text) and 'heatmap' (renders the pick-
-// availability heatmap lazily on first activation).
+// Tab switcher for the calc player modal. 5 tabs match the DB player
+// panel for cross-page consistency. Tabs render lazily on activation.
 window._calcShowTab = function (name) {
-  const tabs = { overview: 'calc-pp-overview-tab', heatmap: 'calc-pp-heatmap-tab' };
+  const tabs = {
+    trades:  'calc-pp-trades-tab',
+    stats:   'calc-pp-stats-tab',
+    curve:   'calc-pp-curve-tab',
+    finder:  'calc-pp-finder-tab',
+    heatmap: 'calc-pp-heatmap-tab',
+  };
   Object.entries(tabs).forEach(([k, id]) => {
     const el = document.getElementById(id);
     if (el) el.style.display = (k === name) ? 'block' : 'none';
@@ -3254,11 +3261,68 @@ window._calcShowTab = function (name) {
     const m = btn.getAttribute('onclick') || '';
     btn.classList.toggle('active', m.indexOf("'" + name + "'") !== -1);
   });
-  if (name === 'heatmap' && window.Heatmap) {
+  const playerName = window._calcModalPlayerName || '';
+  const sid = window._calcActiveSleeperId || null;
+
+  if (name === 'trades') {
+    const el = document.getElementById('calc-pp-trades-tab');
+    if (el) el.innerHTML = _calcRenderTradesTab(playerName);
+  } else if (name === 'heatmap' && window.Heatmap) {
     const el = document.getElementById('calc-pp-heatmap-tab');
-    if (el) window.Heatmap.render(el, window._calcActiveSleeperId || null);
+    if (el) window.Heatmap.render(el, sid);
+  } else if (name === 'curve') {
+    const el = document.getElementById('calc-pp-curve-tab');
+    if (el) el.innerHTML = _calcRenderAgeCurveTab(playerName);
+  } else if (name === 'stats' || name === 'finder') {
+    const el = document.getElementById(tabs[name]);
+    if (el) el.innerHTML = _calcRenderDbCtaTab(name, playerName);
   }
 };
+
+// Trades tab — list recent trades involving this player from MVS data.
+function _calcRenderTradesTab(playerName) {
+  if (!playerName || !window.MVS_PAYLOAD || !window.MVS_PAYLOAD.players) {
+    return '<div style="padding:14px 24px;font-size:12px;color:var(--white);opacity:.7;font-family:\'Mulish\',sans-serif">No recent trades available.</div>';
+  }
+  const rec = window.MVS_PAYLOAD.players[playerName];
+  const trades = (rec && rec.recentTrades) || [];
+  if (!trades.length) {
+    return '<div style="padding:14px 24px;font-size:12px;color:var(--white);opacity:.7;font-family:\'Mulish\',sans-serif">No recent trades for ' + playerName + '.</div>';
+  }
+  if (window.MvsExtras && window.MvsExtras.buildRecentTrades) {
+    return '<div style="padding:14px 24px">' + window.MvsExtras.buildRecentTrades(trades, playerName) + '</div>';
+  }
+  return '<div style="padding:14px 24px;font-size:12px;color:var(--white);opacity:.7;font-family:\'Mulish\',sans-serif">' + trades.length + ' recent trade(s) — open Database for full cards.</div>';
+}
+
+// Age Curve tab — light inline summary (full curve render lives on DB).
+function _calcRenderAgeCurveTab(playerName) {
+  const fp = (typeof FP_VALUES !== 'undefined' && FP_VALUES[playerName]) || {};
+  const age = fp.age, pos = (fp.posRank || '').replace(/\d+/g,'') || fp.pos || '';
+  if (age == null) {
+    return '<div style="padding:14px 24px;font-size:12px;color:var(--white);opacity:.7;font-family:\'Mulish\',sans-serif">Age data unavailable.</div>';
+  }
+  const peaks = { QB: 28, RB: 24, WR: 26, TE: 27 };
+  const peak = peaks[pos] || 26;
+  const delta = age - peak;
+  const label = Math.abs(delta) < 1 ? 'at positional peak' : (delta < 0 ? Math.round(Math.abs(delta)) + ' yrs from peak (rising)' : Math.round(delta) + ' yrs past peak (declining)');
+  return '<div style="padding:18px 24px;font-family:\'Mulish\',sans-serif;color:var(--white)">'
+    + '<div style="font-family:\'Kanit\',sans-serif;font-weight:800;font-style:italic;font-size:12px;color:var(--red);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">Age Curve</div>'
+    + '<div style="font-size:14px;margin-bottom:6px"><b>' + age + ' yrs old</b> · ' + pos + ' positional peak ~' + peak + '</div>'
+    + '<div style="font-size:13px;opacity:.85">' + label + '</div>'
+    + '<div style="margin-top:14px;padding:10px;background:var(--surface);border:1px solid var(--border);font-size:11px;opacity:.75;line-height:1.55">For full multi-year age-curve visualization, click <b>Open in Database</b> at the top of this modal.</div>'
+    + '</div>';
+}
+
+// Stats / Trade Finder — show CTA pointing to DB for the heavy renderers.
+function _calcRenderDbCtaTab(tabName, playerName) {
+  const label = { stats: 'Player Stats', finder: 'Trade Finder' }[tabName] || tabName;
+  return '<div style="padding:24px;text-align:center;font-family:\'Mulish\',sans-serif;color:var(--white)">'
+    + '<div style="font-family:\'Kanit\',sans-serif;font-weight:800;font-style:italic;font-size:14px;color:var(--red);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">' + label + '</div>'
+    + '<div style="font-size:13px;opacity:.85;margin-bottom:14px">Full ' + label + ' is available in the Trade Database modal.</div>'
+    + '<button class="pp-action-btn" type="button" onclick="_calcXpageToDb()" style="margin:0 auto">Open in Database ↗</button>'
+    + '</div>';
+}
 </script>
 
 <!-- PLAYER-DETAIL MODAL — matches adp-tool pp-modal layout for site-wide consistency -->
@@ -3291,15 +3355,22 @@ window._calcShowTab = function (name) {
     <!-- MVS extras: OTC + rankings + sparkline + recent trades (shared helper) -->
     <div id="calc-pp-mvs-extras"></div>
 
-    <!-- Tab strip — keeps the modal layout consistent across players by
-         hiding heatmap behind a tab (only visible after click). -->
+    <!-- Tab strip — matches the DB player panel for cross-page consistency.
+         Trades + ADP Heatmap render inline using MVS data + Heatmap module.
+         Player Stats / Age Curve / Trade Finder show a "View in Database"
+         CTA because those depend on large render code that lives on the
+         DB page (PLAYER_STATS_DATA + age curves + combinatorial finder). -->
     <div class="pp-tabs" style="border-top:1px solid var(--border)">
-      <button class="pp-tab active" type="button" onclick="_calcShowTab('overview')">Overview</button>
+      <button class="pp-tab active" type="button" onclick="_calcShowTab('trades')">Trades</button>
+      <button class="pp-tab" type="button" onclick="_calcShowTab('stats')">Player Stats</button>
+      <button class="pp-tab" type="button" onclick="_calcShowTab('curve')">Age Curve</button>
+      <button class="pp-tab" type="button" onclick="_calcShowTab('finder')">Trade Finder</button>
       <button class="pp-tab" type="button" onclick="_calcShowTab('heatmap')">ADP Heatmap</button>
     </div>
-    <div id="calc-pp-overview-tab" style="padding:14px 24px;font-family:'Mulish',sans-serif;font-size:12px;color:var(--white);opacity:.85;line-height:1.55">
-      Trade context for this player. Switch to the <b>ADP Heatmap</b> tab to see pick-availability probabilities (top ~300 startup ADP coverage). Click "Open in Database" for full Player Stats / Age Curve / Trade Finder.
-    </div>
+    <div id="calc-pp-trades-tab"></div>
+    <div id="calc-pp-stats-tab" style="display:none"></div>
+    <div id="calc-pp-curve-tab" style="display:none"></div>
+    <div id="calc-pp-finder-tab" style="display:none"></div>
     <div id="calc-pp-heatmap-tab" style="display:none"></div>
   </div>
 </div>
