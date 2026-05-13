@@ -848,6 +848,10 @@ function splitName(name) {
   Promise.all([
     fetch('data/values.json' + v).then(r => r.ok ? r.json() : Promise.reject('values ' + r.status)).then(j => { if (j && j.players) Object.assign(FP_VALUES, j.players); }),
     fetch('data/adp.json' + v).then(r => r.ok ? r.json() : Promise.reject('adp ' + r.status)).then(j => _applyAdpPayload(j)),
+    // adp-prev.json holds the ADP snapshot from the prior weekly scrape — used
+    // to compute the true 7-day movement arrows on the board. Falls back to
+    // monthly walkback when prev is missing.
+    fetch('data/adp-prev.json' + v).then(r => r.ok ? r.json() : null).then(j => { if (j) window.ADP_PAYLOAD_PREV = j; }).catch(() => {}),
     fetch('data/auction.json' + v).then(r => r.ok ? r.json() : Promise.reject('auction ' + r.status)).then(j => _applyAuctionPayload(j)).catch(() => { /* auction optional */ }),
     fetch('data/pick-availability.json' + v).then(r => r.ok ? r.json() : Promise.reject('pick-availability ' + r.status)).then(j => { if (j && j.players) PICK_AVAILABILITY = j.players; window.PICK_AVAILABILITY_META = j && j.meta || null; }).catch(() => { /* optional during scaffold */ }),
     fetch('data/articles.json' + v).then(r => r.ok ? r.json() : Promise.reject('articles ' + r.status)).then(j => { if (j && j.players) window.PLAYER_ARTICLES = j.players; }).catch(() => { /* articles optional */ }),
@@ -1581,18 +1585,61 @@ function lookupFpValue(name) {
   return FP_BY_NORM[key] || null;
 }
 
-// Build the trend index for the CURRENT mode. For each player who appears in
-// the most recent month bucket, find the next-most-recent bucket they also
-// appear in and store the ADP delta. Negative delta = ADP went down (player
-// is rising in drafts); positive = falling. Independent of date filter.
+// Build the trend index for the CURRENT mode.
+//
+// PRIMARY (when adp-prev.json is present): true 7-day ADP delta.
+//   delta = current.adp − previous_week.adp
+//   - Negative delta → ADP went DOWN → player is rising in drafts (▲ green)
+//   - Positive delta → ADP went UP   → player is falling (▼ red)
+//   - The previous snapshot is rotated weekly by sync-adp.py.
+//
+// FALLBACK (no adp-prev.json available): month-over-month delta from
+// byMonth buckets. For each player who appears in the most-recent month
+// bucket, find the next-most-recent bucket they also appear in and use
+// that as the prior reading. Same delta sign convention.
 function rebuildTrendIndex() {
   TREND_INDEX = Object.create(null);
   const payload = window.ADP_PAYLOAD;
   if (!payload || !payload.byMonth) return;
   const src = getSourceKey();
+
+  // Build the CURRENT ADP map (per player, in the active mode/format bucket).
+  const currentMap = Object.create(null);
+  const currentList = ((payload.byMonth && payload.byMonth.ALL) || {})[src] || [];
+  for (const p of currentList) {
+    const k = normalizePlayerName(p.name);
+    if (k && p.adp != null) currentMap[k] = p.adp;
+  }
+  if (!Object.keys(currentMap).length) return;
+
+  // Preferred path: 7-day delta vs adp-prev.json snapshot.
+  const prevPayload = window.ADP_PAYLOAD_PREV;
+  if (prevPayload && prevPayload.byMonth) {
+    const prevAll = prevPayload.byMonth.ALL || {};
+    const prevMap = Object.create(null);
+    for (const p of (prevAll[src] || [])) {
+      const k = normalizePlayerName(p.name);
+      if (k && p.adp != null) prevMap[k] = p.adp;
+    }
+    for (const k in currentMap) {
+      const prev = prevMap[k];
+      if (prev != null) {
+        TREND_INDEX[k] = {
+          delta:       currentMap[k] - prev,
+          recent:      currentMap[k],
+          prev:        prev,
+          recentMonth: 'now',
+          prevMonth:   prevPayload.asOf || '7d',
+          window:      '7d',
+        };
+      }
+    }
+    return;
+  }
+
+  // Fallback: month-over-month walkback.
   const months = Object.keys(payload.byMonth).filter(m => m !== 'ALL').sort().reverse();
   if (months.length < 2) return;
-  // Index per-month: normName → adp
   const perMonth = months.map(m => {
     const map = Object.create(null);
     const list = (payload.byMonth[m] || {})[src] || [];
@@ -1602,7 +1649,6 @@ function rebuildTrendIndex() {
     }
     return { month: m, map };
   });
-  // For each player in the most recent month, walk backward for a prior reading.
   const recent = perMonth[0];
   for (const k in recent.map) {
     for (let i = 1; i < perMonth.length; i++) {
