@@ -1015,8 +1015,8 @@
 <script>document.addEventListener('DOMContentLoaded', function(){ if (window.Legend) Legend.init('index'); });</script>
 <!-- Shared player panel — DB's slide-in drawer used identically on every page -->
 <script>window.FPTS_CURRENT_PAGE = 'db';</script>
-<link rel="stylesheet" href="assets/css/player-panel.css?v=1778649500">
-<script src="assets/js/player-panel.js?v=1778649500" defer></script>
+<link rel="stylesheet" href="assets/css/player-panel.css?v=1778650000">
+<script src="assets/js/player-panel.js?v=1778650000" defer></script>
 <style>
   /* The inline #player-panel below is now replaced by the shared module's
      injected copy. Hide the inline element so it doesn't double-render. */
@@ -1401,87 +1401,12 @@
   </div>
 </div>
 
-<!-- PLAYER PANEL OVERLAY -->
-<!-- Inline panel kept as safety net but renamed to legacy-* IDs so the shared
-     module's injected copies (same IDs as before) are the only active panel.
-     Hidden via .inline-legacy CSS in <head>. -->
-<div class="panel-overlay inline-legacy" id="legacy-panel-overlay" onclick="closePanel()"></div>
-<div class="player-panel inline-legacy" id="legacy-player-panel">
-
-  <!-- CLOSE BAR -->
-  <div class="pp-close-bar" style="justify-content:space-between;flex-shrink:0">
-    <div style="font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:13px;color:var(--red);text-transform:uppercase;letter-spacing:.06em">Player Profile</div>
-    <div style="display:flex;align-items:center;gap:10px">
-      <div class="pp-search-wrap" style="position:relative">
-        <input type="text" id="pp-search" class="pp-search-input"
-          placeholder="+ Add player to compare..."
-          oninput="ppSearchInput(this.value)"
-          onkeydown="ppSearchKey(event)"
-          autocomplete="off"
-          style="min-width:260px">
-        <div id="pp-search-results" class="pp-search-results"></div>
-      </div>
-      <div class="fpts-xpage-bar" style="margin-right:6px">
-        <button class="fpts-xpage-btn" onclick="event.stopPropagation();_fptsXpageOpenCalcFromPanel()" title="Open the trade calculator with this player on Side B">Open in Calculator ↗</button>
-        <button class="fpts-xpage-btn" onclick="event.stopPropagation();_fptsXpageOpenLeaguesFromPanel()" title="Open My Leagues with this player pinned in Player Exposure">Open in My Leagues ↗</button>
-        <button class="fpts-xpage-btn" onclick="event.stopPropagation();_fptsXpageOpenAdpFromPanel()" title="Open the ADP tool with this player's modal">Open in ADP ↗</button>
-      </div>
-      <button class="panel-close" onclick="closePanel()">✕ Close</button>
-    </div>
-  </div>
-
-  <!-- PLAYER TAB STRIP -->
-  <div id="pp-player-tabs" style="display:flex;align-items:center;gap:0;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0;overflow-x:auto;min-height:44px"></div>
-
-  <!-- SINGLE PLAYER VIEW (full width, swaps on tab click) -->
-  <div id="pp-primary" style="flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0">
-    <div class="pp-profile" id="pp-profile-left" style="padding:28px 32px">
-      <div class="pp-avatar" id="pp-avatar"></div>
-      <div class="pp-info">
-        <div class="pp-pos-team"><span id="pp-pos-badge"></span><span class="pp-team-name" id="pp-nfl-team">—</span></div>
-        <div class="pp-name" id="pp-player-name" style="font-size:32px">—</div>
-        <div class="pp-meta" id="pp-meta-row"></div>
-        <!-- ARTICLES SECTION (built by mountPlayerArticles in JS, lives in profile row's empty space) -->
-        <div id="pp-articles-mount" style="margin-top:10px"></div>
-      </div>
-      <div class="pp-ktc">
-        <div class="pp-value-label">Fantasy Points</div>
-        <div class="pp-value-val" id="pp-value-val">—</div>
-        <div class="pp-value-rank" id="pp-value-rank">—</div>
-        <div class="pp-value-trend" id="pp-value-trend"></div>
-      </div>
-    </div>
-    <!-- MVS extras: OTC + Baseline + Trade Volume (7d) + Contributor Rankings.
-         The 4-cell "Times Traded / Avg Pick / Avg Added Value / Avg Assets Moved"
-         row that previously lived here was removed to align with the other 4
-         player modals — Trade Volume (7d) in MVS extras covers the same
-         liquidity signal at a per-modal-consistent cadence. -->
-    <div id="pp-mvs-extras"></div>
-
-    <!-- SYNC-RULE: this 5-tab strip must stay aligned across every player
-         modal on the site (DB / Calc / My-Leagues / ADP-tool). When you
-         add, rename, or remove a tab here, update the other three pages
-         in the same commit. push.bat warns if they drift apart. -->
-    <div class="pp-tabs">
-      <button class="pp-tab active" onclick="ppShowTab('trades')">Trades</button>
-      <button class="pp-tab" onclick="ppShowTab('stats')">Player Stats</button>
-      <button class="pp-tab" onclick="ppShowTab('curve')">Age Curve</button>
-      <button class="pp-tab" onclick="ppShowTab('finder')">Trade Finder</button>
-      <button class="pp-tab" onclick="ppShowTab('heatmap')">ADP Heatmap</button>
-    </div>
-    <div class="pp-scroll">
-      <div id="pp-age-curve-tab" style="display:none"></div>
-  <div id="pp-trades-tab"></div>
-      <div id="pp-stats-tab" style="display:none"></div>
-      <div id="pp-curve-tab" style="display:none"></div>
-      <div id="pp-finder-tab" style="display:none"></div>
-      <!-- Pick-availability heatmap as a tab so the inline layout stays
-           consistent across every player regardless of heatmap coverage. -->
-      <div id="pp-heatmap-tab" style="display:none"></div>
-    </div>
-  </div>
-
-</div>
+<!-- PLAYER PANEL — injected at runtime by assets/js/player-panel.js.
+     The inline legacy copy that previously lived here was removed: its
+     inner #pp-avatar / #pp-player-name / #pp-value-val / #pp-meta-row
+     IDs duplicated the module-injected panel's IDs, so
+     document.getElementById was returning the hidden legacy nodes and
+     openPanelContent's DOM writes went to the wrong panel. -->
 
 <footer>
 
