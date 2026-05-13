@@ -57,13 +57,13 @@
         +   '<span class="pp-articles-source" style="font-family:\'Mulish\',sans-serif;font-size:10px;color:var(--white);opacity:.55">FantasyPoints.com</span>'
         + '</div>'
         + '<div class="pp-article-inline" style="display:flex;align-items:center;gap:10px;min-height:24px"></div>'
-        + '<div class="pp-articles-more-wrap" style="display:none;margin-top:8px">'
+        + '<div class="pp-articles-more-wrap" style="display:none;margin-top:8px;position:relative">'
         +   '<button type="button" class="pp-articles-more-btn" '
         +     'style="background:none;border:none;color:var(--white);opacity:.7;font-family:\'Kanit\',sans-serif;font-weight:800;font-style:italic;font-size:10px;text-transform:uppercase;letter-spacing:.06em;cursor:pointer;padding:0;display:flex;align-items:center;gap:4px">'
         +     '<span class="pp-articles-more-label">See more articles</span>'
         +     '<span class="pp-articles-more-arrow" style="font-size:8px;transition:transform .15s">▼</span>'
         +   '</button>'
-        +   '<div class="pp-articles-more-list" style="display:none;margin-top:8px;padding-top:8px;border-top:1px solid var(--border)"></div>'
+        +   '<div class="pp-articles-more-list" style="display:none;position:absolute;top:calc(100% + 6px);left:0;right:0;z-index:50;padding:8px 12px;background:var(--surface);border:1px solid var(--border2);box-shadow:0 6px 20px rgba(0,0,0,.5)"></div>'
         + '</div>';
       containerEl.appendChild(row);
 
