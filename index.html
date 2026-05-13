@@ -421,9 +421,18 @@
   }
   .filter-date:focus { outline: none; border-color: var(--red); }
   .filter-date.active { border-color: var(--red); }
-  /* Native calendar picker icon — invert to white on dark theme for visibility */
-  .filter-date::-webkit-calendar-picker-indicator { filter: invert(1) brightness(1.5); opacity: 0.95; cursor: pointer; }
-  .filter-date::-webkit-calendar-picker-indicator:hover { opacity: 1; }
+  /* Native calendar picker icon — force WHITE on dark theme.
+     Multiple browsers honor color-scheme + filter differently, so we
+     stack invert(1) → high opacity → background-tint to maximize the
+     odds the icon renders bright against the input bg. */
+  .filter-date::-webkit-calendar-picker-indicator {
+    filter: invert(100%) brightness(200%) contrast(110%);
+    opacity: 1;
+    cursor: pointer;
+    /* Keep the click target reasonable even when icon is small */
+    padding: 0 2px;
+  }
+  .filter-date::-webkit-calendar-picker-indicator:hover { filter: invert(100%) brightness(200%) contrast(150%); }
   [data-theme="light"] .filter-date::-webkit-calendar-picker-indicator { filter: invert(0); opacity: 0.85; }
   .date-range-row {
     background: var(--surface);
@@ -7349,6 +7358,10 @@ function closePanel() {
         seen.add(id);
         const players = [];
         const picks   = [];
+        // Track assets per-side so we can drop trades where one whole side
+        // ended up empty after filtering null-name assets — those render as
+        // useless "—" placeholder cards.
+        const sideAssetCounts = [0, 0];
         (t.sides || []).forEach((side, idx) => {
           const team = idx === 0 ? 'A' : 'B';
           (side.assets || []).forEach(a => {
@@ -7366,8 +7379,14 @@ function closePanel() {
             } else {
               players.push({ name, pos, to: team, mvs: a.mvs });
             }
+            if (idx < 2) sideAssetCounts[idx]++;
           });
         });
+        // Skip trades where one side has zero assets after filtering — those
+        // are useless empty cards. Real trades always have at least one
+        // resolved asset on each side; null-everywhere rows are upstream
+        // scraping gaps.
+        if (sideAssetCounts[0] === 0 || sideAssetCounts[1] === 0) return;
         out.push({
           id:           id,
           date:         (t.date || '').slice(0, 10),
