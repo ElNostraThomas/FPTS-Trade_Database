@@ -1135,7 +1135,7 @@
     vertical-align:middle; font-family:'Mulish',sans-serif; font-size:13px; }
   .ml-standings-table tr:last-child td { border-bottom:none; }
   .ml-standings-table .num { font-family:'Kanit',sans-serif; font-weight:800;
-    font-style:italic; font-size:14px; }
+    font-style:italic; font-size:14px; color:var(--white); }
   .ml-standings-rank { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic;
     font-size:16px; color:var(--muted); opacity:.3; width:32px; }
   /* Picks */
@@ -1176,7 +1176,7 @@
   .ml-wv-table th { padding:10px 8px; text-align:left; font-family:'Mulish',sans-serif; font-weight:700; font-size:10px; text-transform:uppercase; letter-spacing:.07em; color:var(--muted); opacity:.5; border-bottom:1px solid var(--border2); white-space:nowrap; }
   .ml-wv-table td { padding:10px 8px; border-bottom:1px solid var(--border); vertical-align:middle; }
   .ml-wv-table tr.me { background:rgba(237,129,12,0.08); }
-  .ml-wv-table .num { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; }
+  .ml-wv-table .num { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; color:var(--white); }
   .ml-wv-bar-cell { width:140px; }
   .ml-wv-bar-track { width:100%; height:6px; background:var(--surface); position:relative; overflow:hidden; }
   .ml-wv-bar-fill { height:100%; background:var(--yellow); transition:width .3s; }
@@ -2751,10 +2751,17 @@ function posColor(pos) {
 //   - Compare value vs league median (high / mid / low)
 //   - Compare age vs league median (young / mid / old)
 //   - Map the 9-cell grid into the 5 archetypes
-function mlGetArchetype(avgAge, totalValue, leagueAvg) {
+// Composite value = 60% trade-DB player value + 20% pick value + 20% season projections,
+// each normalized to its league median. Age threshold unchanged.
+function mlGetArchetype(avgAge, totalValue, pickValue, projValue, leagueAvg) {
   if (!leagueAvg || !leagueAvg.age || !leagueAvg.value) return 'tweener';
-  const valueHigh = totalValue > leagueAvg.value * 1.10;
-  const valueLow  = totalValue < leagueAvg.value * 0.90;
+  const valNorm  = (totalValue || 0) / (leagueAvg.value || 1);
+  const pickNorm = leagueAvg.pickValue ? ((pickValue || 0) / leagueAvg.pickValue) : 1;
+  const projNorm = leagueAvg.proj      ? ((projValue || 0) / leagueAvg.proj)      : 1;
+  const composite = 0.6 * valNorm + 0.2 * pickNorm + 0.2 * projNorm;
+
+  const valueHigh = composite > 1.10;
+  const valueLow  = composite < 0.90;
   const ageYoung  = avgAge < leagueAvg.age - 0.6;
   const ageOld    = avgAge > leagueAvg.age + 0.6;
 
@@ -3202,9 +3209,9 @@ function renderPlayerAvailability(sleeperId) {
     return;
   }
 
-  // Bucketize: mine first, then taken (sorted with rebuilders earliest = easier targets),
+  // Bucketize: mine first, then taken (sorted by archetype value: Dynasty → Emergency),
   // then free, then no_roster collapsed at bottom
-  const archOrder = { rebuilder: 0, emergency: 1, tweener: 2, contender: 3, dynasty: 4 };
+  const archOrder = { dynasty: 0, contender: 1, tweener: 2, rebuilder: 3, emergency: 4 };
   const mineRows = rows.filter(r => r.status === 'mine');
   const takenRows = rows.filter(r => r.status === 'taken')
     .sort((a,b) => (archOrder[a.ownerArchetype] ?? 9) - (archOrder[b.ownerArchetype] ?? 9));
@@ -4962,7 +4969,11 @@ function mlComputeLeagueValueData(leagueId) {
     });
     const avgAge = ages.length ? ages.reduce((s,a)=>s+a,0)/ages.length : 0;
     const total  = posVals.QB + posVals.RB + posVals.WR + posVals.TE;
-    return { rosterId: r.roster_id, name, avatarUrl, isMe, posVals, total, avgAge, pickValue: 0 };
+    // Sum season projections across rostered players (fallback 0 when not loaded)
+    const _seasonProj = window.ML_SEASON_PROJ || {};
+    let projTotal = 0;
+    (r.players || []).forEach(pid => { projTotal += (+_seasonProj[pid] || 0); });
+    return { rosterId: r.roster_id, name, avatarUrl, isMe, posVals, total, avgAge, projTotal, pickValue: 0 };
   });
 
   // Compute pick value for EVERY team using the full owned-picks computation.
@@ -5001,10 +5012,12 @@ function mlComputeLeagueValueData(leagueId) {
     return s.length%2 ? s[m] : (s[m-1]+s[m])/2;
   };
   const leagueAvg = {
-    age:   median(teams.filter(t => t.avgAge > 0).map(t => t.avgAge)),
-    value: median(teams.map(t => t.total)),
+    age:       median(teams.filter(t => t.avgAge > 0).map(t => t.avgAge)),
+    value:     median(teams.map(t => t.total)),
+    pickValue: median(teams.map(t => t.pickValue || 0)),
+    proj:      median(teams.map(t => t.projTotal || 0).filter(v => v > 0)),
   };
-  teams.forEach(t => { t.archetype = mlGetArchetype(t.avgAge, t.total, leagueAvg); });
+  teams.forEach(t => { t.archetype = mlGetArchetype(t.avgAge, t.total, t.pickValue, t.projTotal, leagueAvg); });
 
   return { teams, myTeam, myRanks, leagueAvg };
 }
@@ -5064,7 +5077,7 @@ function renderExpandedLeagueContent(leagueId, bodyEl) {
           <select onchange="mlSortLeagueTeams('${leagueId}', this.value)"
             style="background:var(--surface2);border:1px solid var(--border2);color:var(--white);font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:11px;padding:5px 10px;cursor:pointer;text-transform:uppercase;letter-spacing:.04em">
             <option value="value" selected>Total Value (high to low)</option>
-            <option value="archetype">Archetype (rebuilders first)</option>
+            <option value="archetype">Archetype (most valuable first)</option>
             <option value="alpha">Team Name (A-Z)</option>
           </select>
         </div>
@@ -5118,8 +5131,8 @@ function renderLeagueTeamsSection(leagueId, ld, sortKey) {
   const container = document.getElementById(`ml-teams-list-${leagueId}`);
   if (!container || !ld) return;
 
-  // Archetype rank order for sorting (rebuilders first = easier targets)
-  const archOrder = { rebuilder: 0, emergency: 1, tweener: 2, contender: 3, dynasty: 4 };
+  // Archetype rank order for sorting (Dynasty → Emergency, most valuable first)
+  const archOrder = { dynasty: 0, contender: 1, tweener: 2, rebuilder: 3, emergency: 4 };
 
   // Make a working copy so we don't mutate ld.teams
   const teams = [...ld.teams];
@@ -7025,8 +7038,21 @@ async function loadStandings(leagueId) {
       const mpxPct = (maxPts > 0 && pf > 0) ? Math.round((pf / maxPts) * 100) : null;
       const total  = Object.values(posVals).reduce((s,v)=>s+v, 0);
 
+      // Pick value + season projections for archetype scoring (pulls cached league data so this
+      // function doesn't need to re-fetch tradedPicks/draft state).
+      const _lgData = (window.ML_ALL_LEAGUE_DATA || {})[leagueId];
+      let pickValueTotal = 0;
+      if (_lgData) {
+        const _ownedPicks = mlGetOwnedPicks(r.roster_id, _lgData.tradedPicks, _lgData.draftRounds, _lgData.leagueSeason, _lgData.completedDraftSeasons);
+        pickValueTotal = _ownedPicks.reduce((sum, pk) => sum + mlPickValue(pk.season, pk.round), 0);
+      }
+      const _seasonProj = window.ML_SEASON_PROJ || {};
+      let projTotal = 0;
+      (r.players || []).forEach(pid => { projTotal += (+_seasonProj[pid] || 0); });
+
       return { roster_id: r.roster_id, name, avatar, isMe, wins, losses, ties,
-               pf, maxPts, mpxPct, total, posVals, posScore, topScoringPos, avgAge };
+               pf, maxPts, mpxPct, total, posVals, posScore, topScoringPos, avgAge,
+               pickValue: pickValueTotal, projTotal };
     });
 
     // ── Compute league medians and assign archetype ──────────────────────
@@ -7038,8 +7064,10 @@ async function loadStandings(leagueId) {
     };
     const leagueMedAge   = median(rosterValues.filter(r => r.avgAge > 0).map(r => r.avgAge));
     const leagueMedValue = median(rosterValues.map(r => r.total));
-    const leagueAvg = { age: leagueMedAge, value: leagueMedValue };
-    rosterValues.forEach(r => { r.archetype = mlGetArchetype(r.avgAge, r.total, leagueAvg); });
+    const leagueMedPick  = median(rosterValues.map(r => r.pickValue || 0));
+    const leagueMedProj  = median(rosterValues.map(r => r.projTotal || 0).filter(v => v > 0));
+    const leagueAvg = { age: leagueMedAge, value: leagueMedValue, pickValue: leagueMedPick, proj: leagueMedProj };
+    rosterValues.forEach(r => { r.archetype = mlGetArchetype(r.avgAge, r.total, r.pickValue, r.projTotal, leagueAvg); });
 
     // Stash on window for any downstream code (trade-finding logic later)
     window.ML_ROSTER_VALUES = rosterValues;
