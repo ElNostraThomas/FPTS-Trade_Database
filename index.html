@@ -551,40 +551,14 @@
   .section-num { background: var(--red); color: var(--white); font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 11px; padding: 3px 9px; }
   .section-title { font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 17px; color: var(--white); text-transform: uppercase; letter-spacing: .04em; }
 
-  /* ── TRADE CARDS ── */
+  /* ── TRADE CARDS ──
+     .trade-card / .tc-* / .fmt-chip / .pick-badge / .rd1-badge / .faab-badge
+     now live in the shared module: assets/css/player-panel.css. Removed from
+     this file. .trade-grid stays because the grid layout is a page-level
+     container, not part of the panel module. .pos-badge + .pos-{wr,rb,qb,te,
+     k,pick} also stay — they're used across the page, not just inside the
+     panel. */
   .trade-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 12px; }
-  .trade-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    padding: 14px 16px;
-    transition: border-color .15s;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
-  .trade-card:hover { border-color: var(--border2); background: var(--surface2); }
-  .tc-date { font-family: 'Mulish', sans-serif; font-size: 13px; font-weight: 700; color: var(--white); opacity: 1; text-transform: uppercase; letter-spacing: .07em; }
-  .tc-side { padding: 0; display: flex; flex-direction: column; gap: 7px; min-width: 0; }
-  .tc-side:first-child { padding-left: 0; }
-  .tc-side:last-child  { padding-right: 0; }
-  .tc-asset { display: flex; align-items: center; gap: 3px; min-width: 0; overflow: hidden; padding: 0 12px; }
-  .tc-asset-name { font-family: 'Mulish', sans-serif; font-weight: 900; font-size: 13px; color: var(--white); cursor: pointer; transition: color .15s; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
-  .tc-asset-name:hover { color: var(--red); }
-  .tc-nfl-team { font-family: 'Mulish', sans-serif; font-size: 10px; font-weight: 700; color: var(--white); opacity: 1; flex-shrink: 0; white-space: nowrap; margin-left: 2px; }
-  .tc-chips { display: flex; gap: 5px; flex-wrap: wrap; padding-top: 6px; border-top: 1px solid var(--border); }
-  .fmt-chip {
-    font-family: 'Kanit', sans-serif;
-    font-weight: 800;
-    font-style: italic;
-    font-size: 12px;
-    padding: 3px 10px;
-    border: 1px solid var(--border2);
-    color: var(--white);
-    background: transparent;
-  }
-  .fmt-chip.sf    { border-color: var(--border2); color: var(--white); }
-  .fmt-chip.tep   { border-color: var(--border2); color: var(--white); }
-  .fmt-chip.faab  { border-color: var(--border2); color: var(--white); background: transparent; }
   .pos-badge { font-family: 'Kanit', sans-serif; font-weight: 800; font-style: normal; font-size: 12px; padding: 2px 7px; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; text-align: center; }
   .pos-wr { background: var(--pos-wr-bg); color: var(--pos-wr); }
   .pos-rb { background: var(--pos-rb-bg); color: var(--pos-rb); }
@@ -593,9 +567,6 @@
   .pos-k    { background: var(--pos-k-bg);    color: var(--pos-k);    }
   .pos-pick { background: var(--pos-pick-bg); color: var(--pos-pick); }
   .arrow { color: var(--red); font-size: 10px; margin: 0 3px; }
-  .pick-badge { background: transparent; border: 1px solid var(--red); color: var(--white); font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 12px; padding: 3px 9px; }
-  .rd1-badge  { background: transparent; border: 1px solid var(--red); color: var(--white); font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 12px; padding: 3px 9px; }
-  .faab-badge { background: transparent; border: 1px solid var(--border2); color: var(--white); font-family: 'Mulish', sans-serif; font-size: 12px; font-weight: 700; padding: 2px 7px; }
 
   .rank-card { background: var(--surface); border: 1px solid var(--border); padding: 12px 16px; margin-bottom: 6px; display: flex; align-items: center; gap: 12px; transition: border-color .15s; }
   .rank-card:hover { border-color: var(--border2); }
@@ -643,245 +614,9 @@
   .divider { height: 1px; background: var(--border); margin: 20px 0; }
   .no-results { text-align: center; padding: 60px 20px; font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 18px; color: var(--white); opacity: 1; }
 
-  /* ── PLAYER PANEL ── */
-  .panel-overlay {
-    position: fixed; inset: 0;
-    background: rgba(0,0,0,0.7);
-    z-index: 200;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity .25s;
-  }
-  .panel-overlay.open { opacity: 1; pointer-events: all; }
-
-  .player-panel {
-    position: fixed;
-    top: 0; right: 0; bottom: 0;
-    width: min(1360px, 95vw);
-    background: var(--black);
-    border-left: 2px solid var(--red);
-    z-index: 201;
-    transform: translateX(100%);
-    transition: transform .3s cubic-bezier(.4,0,.2,1);
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-  }
-  .player-panel.open { transform: translateX(0); }
-
-  .pp-close-bar { background: var(--black); padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); flex-shrink: 0; gap: 12px; }
-  .pp-search-wrap { position: relative; flex: 1; max-width: 380px; }
-
-  /* Two-column card layout */
-  .pp-col { display: contents; }
-  .pp-col-left  .pp-col-header { grid-column:1; grid-row:1; border-right:1px solid var(--border); }
-  #pp-col-right-header          { grid-column:2; grid-row:1; background:var(--surface2); }
-  #pp-profile-left              { grid-column:1; grid-row:2; border-right:1px solid var(--border); }
-  #pp-profile-right             { grid-column:2; grid-row:2; background:var(--surface2); }
-  #pp-stats-left                { grid-column:1; grid-row:3; border-right:1px solid var(--border); }
-  #pp-stats-right               { grid-column:2; grid-row:3; background:var(--surface2); }
-  .pp-col-left .pp-tabs         { grid-column:1; grid-row:4; align-self:start; border-right:1px solid var(--border); }
-  #pp-right-tabs                { grid-column:2; grid-row:4; align-self:start; background:var(--surface2); }
-  .pp-col-left .pp-scroll       { grid-column:1; grid-row:5; overflow-y:auto; overflow-x:hidden; border-right:1px solid var(--border); }
-  #pp-scroll-right              { grid-column:2; grid-row:5; overflow-y:auto; background:var(--surface2); }
-  #pp-right-content             { grid-column:2; grid-row:1 / 6; background:var(--surface2); display:flex; flex-direction:column; justify-content:center; }
-  .pp-col-left { border-right: none; }
-  .pp-col-right { background: var(--surface2); }
-  .pp-col-empty {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 12px;
-    padding: 40px;
-  }
-  .pp-col-header {
-    background: var(--red);
-    padding: 4px 16px;
-    font-family: 'Kanit', sans-serif;
-    font-weight: 800;
-    font-style: italic;
-    font-size: 11px;
-    color: var(--white);
-    text-transform: uppercase;
-    letter-spacing: .06em;
-    flex-shrink: 0;
-  }
-  .pp-search-input {
-    width: 100%;
-    background: var(--surface);
-    border: 1px solid var(--border2);
-    color: var(--white);
-    font-family: 'Mulish', sans-serif;
-    font-size: 13px;
-    font-weight: 700;
-    padding: 7px 14px;
-    outline: none;
-    transition: border-color .15s;
-  }
-  .pp-search-input:focus { border-color: var(--red); }
-  .pp-search-input::placeholder { color: var(--white); opacity: 1; font-weight: 400; }
-  .pp-search-results {
-    position: absolute;
-    top: 100%;
-    left: 0; right: 0;
-    background: var(--surface);
-    border: 1px solid var(--border2);
-    border-top: none;
-    z-index: 300;
-    max-height: 220px;
-    overflow-y: auto;
-    display: none;
-  }
-  .pp-search-results.open { display: block; }
-  .pp-search-result {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 9px 14px;
-    cursor: pointer;
-    border-bottom: 1px solid var(--border);
-    transition: background .1s;
-  }
-  .pp-search-result:last-child { border-bottom: none; }
-  .pp-search-result:hover, .pp-search-result.focused { background: var(--surface2); }
-  .pp-search-result-name { font-family: 'Mulish', sans-serif; font-weight: 900; font-size: 13px; color: var(--white); flex: 1; }
-  .pp-search-result-count { font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 12px; color: var(--white); opacity: 1; }
-  .panel-close { background: none; border: 1px solid var(--border2); color: var(--white); font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 12px; padding: 5px 14px; cursor: pointer; transition: border-color .15s; }
-  .panel-close:hover { border-color: var(--red); color: var(--red); }
-
-  .pp-profile {
-    background: var(--surface);
-    border-bottom: 1px solid var(--border);
-    padding: 20px 24px;
-    display: flex;
-    gap: 20px;
-    align-items: flex-start;
-    flex-shrink: 0;
-  }
-  .pp-avatar {
-    width: 80px; height: 80px;
-    flex-shrink: 0;
-    display: flex; align-items: center; justify-content: center;
-    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
-    font-size: 22px; color: var(--white);
-    overflow: hidden;
-    border-radius:3px;
-  }
-  .pp-avatar img {
-    width: 100%; height: 100%;
-    object-fit: cover;
-    object-position: top center;
-  }
-  .pp-info { flex: 1; min-width: 0; }
-  .pp-name { font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 26px; color: var(--white); text-transform: uppercase; line-height: 1; margin-bottom: 8px; }
-  .pp-meta { display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 10px; align-items: flex-start; }
-  .pp-meta-item { display: flex; flex-direction: column; gap: 2px; align-items: center; min-width: 36px; text-align: center; }
-  .pp-meta-label { font-size: 9px; color: var(--white); opacity: 1; text-transform: uppercase; letter-spacing: .08em; font-family: 'Mulish', sans-serif; white-space: nowrap; }
-  .pp-meta-val { font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 14px; color: var(--white); white-space: nowrap; line-height: 1.2; }
-  .pp-pos-team { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
-  .pp-team-name { font-family: 'Mulish', sans-serif; font-size: 12px; font-weight: 700; color: var(--white); opacity: 1; text-transform: uppercase; letter-spacing: .06em; }
-
-  .pp-ktc { text-align: right; flex-shrink: 0; }
-  .pp-value-label { font-size: 9px; color: var(--white); opacity: 1; text-transform: uppercase; letter-spacing: .08em; font-family: 'Mulish', sans-serif; margin-bottom: 4px; }
-  .pp-value-val { font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 36px; color: var(--white); line-height: 1; }
-  .pp-value-rank { font-family: 'Mulish', sans-serif; font-size: 12px; color: var(--white); opacity: 1; margin-top: 4px; }
-  .pp-value-trend { font-size: 12px; font-weight: 700; font-family: 'Mulish', sans-serif; margin-top: 2px; color: var(--white); opacity: .55; }
-  .pp-value-trend.up { color: #5dcaa5; opacity: 1; }
-  .pp-value-trend.down { color: var(--red); opacity: 1; }
-
-  .pp-trade-stats {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    border-bottom: 1px solid var(--border);
-    flex-shrink: 0;
-    min-height: 80px;
-  }
-  .pp-ts { padding: 12px 16px; border-right: 1px solid var(--border); }
-  .pp-ts:last-child { border-right: none; }
-  .pp-ts-label { font-size: 9px; color: var(--white); opacity: 1; text-transform: uppercase; letter-spacing: .07em; margin-bottom: 4px; font-family: 'Mulish', sans-serif; }
-  .pp-ts-val { font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 20px; color: var(--white); }
-  .pp-ts-val.red { color: var(--red); }
-
-  .pp-tabs { display: flex; border-bottom: 1px solid var(--border); flex-shrink: 0; }
-  .pp-tab { font-family: 'Mulish', sans-serif; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--white); opacity: 1; padding: 10px 18px; cursor: pointer; border: none; background: none; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: opacity .15s; }
-  .pp-tab.active { opacity: 1; border-bottom-color: var(--red); }
-
-  .pp-scroll { flex: 1; overflow-y: auto; padding: 18px 20px; }
-  .pp-also-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border); }
-  .pp-also-row:last-child { border-bottom: none; }
-
-  /* ── TRADE FINDER ── */
-  .tf-wrap { padding: 16px 0; }
-  .tf-section-title { font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 11px; color: var(--red); text-transform: uppercase; letter-spacing: .07em; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
-  .tf-sides { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
-  .tf-side { background: var(--surface); border: 1px solid var(--border); padding: 12px; }
-  .tf-side-label { font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 11px; color: var(--white); opacity: 1; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 8px; }
-  .tf-side-val { font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 26px; color: var(--white); line-height: 1; }
-  .tf-asset-list { display: flex; flex-direction: column; gap: 5px; margin-top: 8px; }
-  .tf-asset {
-    display: flex; align-items: center; gap: 8px;
-    background: var(--surface); border: 1px solid var(--border2);
-    padding: 7px 10px; cursor: default;
-    transition: transform .12s, box-shadow .12s;
-  }
-  /* SYNC-RULE: Trade Finder chips (.tf-asset) and Trade Calculator chips
-     (.asset-row in trade-calculator.html) must use the same position
-     palette + stacked-name layout. If you add a new position, change a
-     color, or rework the chip layout in one place, mirror the change in
-     the other in the same commit. push.bat counts the data-pos rules on
-     each side and warns when they drift. */
-  .tf-asset[data-pos="QB"]   { background: var(--pos-qb-bg);   color: var(--pos-qb);   border-color: rgba(0,0,0,.18); }
-  .tf-asset[data-pos="RB"]   { background: var(--pos-rb-bg);   color: var(--pos-rb);   border-color: rgba(0,0,0,.18); }
-  .tf-asset[data-pos="WR"]   { background: var(--pos-wr-bg);   color: var(--pos-wr);   border-color: rgba(0,0,0,.18); }
-  .tf-asset[data-pos="TE"]   { background: var(--pos-te-bg);   color: var(--pos-te);   border-color: rgba(0,0,0,.18); }
-  .tf-asset[data-pos="K"]    { background: var(--pos-k-bg);    color: var(--pos-k);    border-color: rgba(0,0,0,.18); }
-  .tf-asset[data-pos="PK"]   { background: var(--pos-pick-bg); color: var(--pos-pick); border-color: rgba(0,0,0,.18); }
-  .tf-asset[data-pos] .pos-badge { background: rgba(0,0,0,.22); color: inherit; }
-  /* Stacked name inside chip — first name small Mulish, last name big Kanit italic */
-  .tf-asset-name { font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 14px; color: inherit; flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1; overflow: hidden; }
-  .tf-asset-name .fn { font-family: 'Mulish', sans-serif; font-style: normal; font-weight: 800; font-size: 9px; letter-spacing: .06em; opacity: .78; text-transform: uppercase; line-height: 1; margin-bottom: 1px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .tf-asset-name .ln { font-size: 14px; line-height: 1.05; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .tf-asset-val { font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 13px; color: inherit; opacity: .92; white-space: nowrap; }
-  .tf-asset-remove { cursor: pointer; color: inherit; opacity: .55; font-size: 13px; font-weight: 900; transition: opacity .15s; }
-  .tf-asset-remove:hover { opacity: 1; }
-  .tf-add-input {
-    flex: 1; background: var(--surface); border: 1px solid var(--border2);
-    color: var(--white); font-family: 'Mulish', sans-serif; font-size: 12px; font-weight: 700;
-    padding: 7px 10px; outline: none; transition: border-color .15s;
-  }
-  .tf-add-input:focus { border-color: var(--red); }
-  .tf-add-input::placeholder { opacity: 1; font-weight: 400; }
-  .tf-add-dropdown {
-    position: absolute; top: 100%; left: 0; right: 0;
-    background: var(--surface); border: 1px solid var(--border2); border-top: none;
-    z-index: 400; max-height: 180px; overflow-y: auto; display: none;
-  }
-  .tf-add-dropdown.open { display: block; }
-  .tf-add-option {
-    display: flex; align-items: center; gap: 8px; padding: 8px 12px;
-    cursor: pointer; border-bottom: 1px solid var(--border); font-size: 12px;
-    transition: background .1s;
-  }
-  .tf-add-option:last-child { border-bottom: none; }
-  .tf-add-option:hover, .tf-add-option.focused { background: var(--surface2); }
-  .tf-add-option-name { font-family: 'Mulish', sans-serif; font-weight: 900; color: var(--white); flex: 1; }
-  .tf-add-option-val { font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 12px; color: var(--white); opacity: 1; }
-  .tf-balance-bar {
-    background: var(--surface); border: 1px solid var(--border);
-    padding: 14px 16px; margin-bottom: 14px;
-  }
-  .tf-balance-track { background: var(--border); height: 6px; position: relative; margin-bottom: 8px; }
-  .tf-balance-fill { height: 6px; position: absolute; top: 0; transition: all .3s; }
-  .tf-balance-mid { position: absolute; top: -4px; left: 50%; width: 2px; height: 14px; background: var(--white); opacity: 1; }
-  .tf-balance-summary { font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 14px; color: var(--white); }
-  .tf-suggest-item {
-    display: flex; align-items: center; gap: 10px; padding: 9px 12px;
-    background: var(--surface); border: 1px solid var(--border);
-    margin-bottom: 5px; cursor: pointer; transition: border-color .15s;
-  }
-  .tf-suggest-item:hover { border-color: var(--red); }
+  /* ── PLAYER PANEL ──
+     All .player-panel / .panel-overlay / .pp-* / .tf-* rules now live in the
+     shared module: assets/css/player-panel.css. Removed from this file. */
 
   .clickable-player { cursor: pointer; transition: color .15s; }
   .clickable-player:hover { text-decoration-color: var(--red); color: var(--white); }
@@ -1014,13 +749,6 @@
 
     /* ── TRADE GRID ── */
     .trade-grid { display: block !important; }
-    .trade-card { width: 100% !important; margin-bottom: 8px; padding: 10px 12px; }
-    .tc-date { font-size: 11px; }
-    .tc-asset-name { font-size: 13px; }
-    .tc-nfl-team { font-size: 10px; }
-    .tc-chips { gap: 3px; }
-    .fmt-chip { font-size: 10px; padding: 2px 6px; }
-    .faab-badge { font-size: 10px; padding: 2px 5px; }
 
     /* ── RANK CARDS ── */
     .rank-card { padding: 8px 10px; gap: 8px; }
@@ -1037,58 +765,11 @@
     .section-title { font-size: 13px; }
     .section-num { font-size: 9px; padding: 2px 6px; }
 
-    /* ── PLAYER PANEL ── */
-    .player-panel {
-      width: 100vw !important;
-      max-width: 100vw !important;
-      right: 0 !important;
-      left: 0 !important;
-      border-left: none !important;
-      border-top: 2px solid var(--red);
-    }
-    .pp-close-bar { padding: 8px 12px; gap: 8px; flex-wrap: wrap; }
-    /* PP Close bar with new fpts buttons — let bar wrap to 2 rows on mobile */
-    .pp-close-bar { flex-wrap: wrap !important; gap: 6px !important; padding: 8px 10px !important; }
-    .pp-close-bar > div:first-child { font-size: 11px !important; }
-    .pp-search-wrap { order: 99; flex-basis: 100% !important; max-width: 100% !important; }
-    /* Move fpts bar between the title and Close — keep it on row 1 */
-    .pp-close-bar .fpts-xpage-bar { order: 50; }
-    .pp-close-bar .panel-close { order: 51; flex-shrink: 0; }
-
-    .pp-search-input { min-width: 0 !important; width: 100% !important; font-size: 12px; }
-    .pp-search-wrap { max-width: 100% !important; width: 100% !important; }
-    .panel-close { font-size: 11px; padding: 4px 10px; }
-    #pp-player-tabs { min-height: 36px; }
-    .pp-profile { padding: 14px !important; flex-wrap: wrap; gap: 12px; }
-    .pp-avatar { width: 56px !important; height: 56px !important; }
-    .pp-name { font-size: 20px !important; }
-    .pp-value-val { font-size: 28px !important; }
-    .pp-value-rank { font-size: 11px; }
-    .pp-trade-stats { grid-template-columns: 1fr 1fr !important; }
-    .pp-ts { padding: 8px 12px; }
-    .pp-ts-val { font-size: 16px; }
-    .pp-ts-label { font-size: 8px; }
-    .pp-tabs { flex-wrap: nowrap; overflow-x: auto; }
-    .pp-scroll { padding: 10px; overflow-x: hidden; }
-    #pp-stats-tab { overflow-x: auto !important; -webkit-overflow-scrolling: touch; }
-    .pp-meta { flex-wrap: wrap !important; gap: 10px 14px !important; }
-    .pp-meta-item { min-width: 40px; }
-    .pp-meta-label { font-size: 8px; }
-    .pp-meta-val { font-size: 12px; }
-    .pp-name { font-size: 18px !important; }
-    .pp-avatar { width: 48px !important; height: 48px !important; }
-    .pp-tab { font-size: 10px; padding: 8px 10px; white-space: nowrap; }
-
     /* ── PICK PANEL ── */
     #pick-panel { width: 100vw !important; max-width: 100vw !important; }
 
-    /* ── TRADE FINDER ── */
-    .tf-sides { display: block !important; }
-    .tf-side { width: 100% !important; margin-bottom: 8px; }
-    .tf-balance-bar { padding: 10px 12px; }
-    .tf-section-title { font-size: 10px; }
-    .tf-side-val { font-size: 20px; }
-    .tf-asset-name { font-size: 11px; }
+    /* Player panel + trade-card + trade-finder responsive rules removed —
+       all now in assets/css/player-panel.css (shared module). */
 
     /* ── FOOTER ── */
     footer { flex-direction: column; gap: 6px; padding: 12px 10px; text-align: center; }
@@ -1099,15 +780,13 @@
     .page-title { font-size: 18px !important; }
     .topnav { height: 44px; }
     .wordmark svg { height: 18px; }
-    .pp-close-bar { justify-content: space-between; }
-    .pp-search-wrap { order: 3; width: 100% !important; }
   }
 
 
   /* ── Trade Card Layout ── */
-  .tc-body { display: grid; grid-template-columns: minmax(0,1fr) 1px minmax(0,1fr); gap: 0; margin: 8px 0; }
-  .tc-side-label { padding: 0 12px; font-family: 'Mulish', sans-serif; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--white); opacity: 1; margin-bottom: 4px; }
-  .tc-divider { background: var(--border); width: 1px; margin: 0; }
+  /* .tc-body / .tc-side-label / .tc-divider rules moved to
+     assets/css/player-panel.css (shared module). .pos-pick stays — it's
+     used on rank cards across the page, not just inside trade cards. */
   .pos-pick { background: #9b91d4; color: var(--black); }
   @media (max-width: 768px) {
   }
@@ -1189,33 +868,10 @@
 
   /* ════════════════════════════════════════════════════════════════════════
      MOBILE PASS v11.5 — bleed prevention, tap targets, safe-area
-     This block runs AFTER all earlier mobile rules and takes precedence.
-     Targets 5 problem categories:
-     1. Bottom-tap dead zone (iOS gestures steal taps near screen bottom)
-     2. Horizontal page bleed
-     3. Modal/panel overflow
-     4. Content overflow within containers
-     5. Tap target sizes
+     Page-level rules only. All .player-panel / .pp-* / .tc-* / .tf-* mobile
+     rules moved to assets/css/player-panel.css (shared module).
      ════════════════════════════════════════════════════════════════════════ */
   @media (max-width: 768px) {
-
-    /* ─── 1. Bottom safe-area for tap dead zone ─── */
-    /* iOS Safari and Android Chrome reserve ~20-34px at viewport bottom for system gestures.
-       Anything in this zone becomes effectively untappable. Add safe-area padding. */
-    .player-panel,
-    #pick-panel {
-      padding-bottom: max(20px, env(safe-area-inset-bottom)) !important;
-    }
-    .pp-scroll {
-      padding-bottom: max(40px, calc(env(safe-area-inset-bottom) + 30px)) !important;
-    }
-    /* Tabs sit just above scroll area — also need safety */
-    .pp-tabs {
-      position: sticky;
-      bottom: env(safe-area-inset-bottom);
-      background: var(--black);
-      z-index: 5;
-    }
 
     /* ─── 2. Horizontal bleed prevention (defensive) ─── */
     html, body {
@@ -1226,46 +882,31 @@
     .page,
     .content-grid,
     .filter-area,
-    .trade-card,
     .rank-row-wrap {
       max-width: 100% !important;
       overflow-x: hidden !important;
     }
     /* Allow horizontal scroll only on tables that explicitly need it */
-    .pp-tabs,
-    .tabs,
-    #pp-stats-tab {
+    .tabs {
       overflow-x: auto !important;
       max-width: 100% !important;
     }
 
-    /* ─── 3. Modal/panel overflow ─── */
-    .player-panel,
-    #pick-panel {
-      width: 100vw !important;
-      max-width: 100vw !important;
-      left: 0 !important;
-      right: 0 !important;
-    }
     /* Lightboxes stay within viewport */
     .lightbox-content {
       max-width: calc(100vw - 16px) !important;
       max-height: calc(100vh - 40px) !important;
     }
 
-    /* ─── 4. Content overflow within containers ─── */
+    /* ─── Content overflow within containers ─── */
     /* Long player names truncate gracefully */
-    .tc-asset-name,
     .rank-name,
-    .pp-name,
     .main-search-result-name {
       max-width: 100%;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
     }
-    /* Trade cards ensure children can shrink */
-    .tc-side, .tc-asset { min-width: 0; }
     /* Filter chips wrap cleanly */
     .filter-chip, .filter-chip-muted {
       max-width: 100%;
@@ -1273,172 +914,19 @@
       word-break: break-word;
     }
 
-    /* ─── 5. Tap targets — minimum 36px height for clickables ─── */
-    .pp-tab,
+    /* ─── Tap targets — minimum 36px height for clickables ─── */
     .tab,
-    .panel-close,
     .btn-preset,
     .btn-reset,
     .nav-link,
     .filter-toggle-btn,
-    .fpts-xpage-btn,
-    .pp-player-tab {
+    .fpts-xpage-btn {
       min-height: 36px !important;
-    }
-    /* Player tabs need extra hit area on mobile (was the worst offender) */
-    .pp-tab {
-      padding: 12px 14px !important;
-      min-height: 44px !important;
-      font-size: 11px !important;
-    }
-    /* Asset name in trade card — make tap target larger */
-    .tc-asset-name {
-      padding: 6px 0;
-      min-height: 32px;
-      display: inline-flex;
-      align-items: center;
     }
     /* Rank cards (Most Traded sections) */
     .rank-card {
       min-height: 44px !important;
     }
-  }
-
-  /* Extra-narrow phones (≤480px) — additional tightening */
-  @media (max-width: 480px) {
-    .pp-tab { font-size: 10px !important; padding: 12px 10px !important; }
-    /* Ensure player panel header doesn't waste vertical space */
-    .pp-close-bar { padding: 6px 10px !important; }
-  }
-
-  /* ════════════════════════════════════════════════════════════════════════
-     PLAYER CARD MOBILE FIXES v11.5.1
-     Targeted fixes for the player panel internal layout on mobile.
-     The general mobile pass handled safe-area and global bleed, but the
-     player panel's internal sections (close bar, articles, tabs) needed
-     their own treatment.
-     ════════════════════════════════════════════════════════════════════════ */
-  @media (max-width: 768px) {
-
-    /* ─── FIX 1: Close bar layout — stack into 2 rows cleanly ─── */
-    /* The close bar has 4 competing children on mobile:
-       "PLAYER PROFILE" label, search wrap, xpage buttons, close button.
-       Force them to wrap into orderly rows. */
-    .pp-close-bar {
-      flex-wrap: wrap !important;
-      gap: 8px 6px !important;
-      padding: 8px 10px !important;
-      align-items: stretch !important;
-    }
-    /* Label takes its space, doesn't fight for width */
-    .pp-close-bar > div:first-child {
-      flex: 0 0 auto !important;
-      font-size: 11px !important;
-      align-self: center;
-    }
-    /* Search input wrap — let it shrink, drop to its own row if needed */
-    .pp-search-wrap {
-      flex: 1 1 100% !important;
-      max-width: 100% !important;
-      min-width: 0 !important;
-      order: 99 !important; /* push to last row */
-    }
-    .pp-search-input {
-      width: 100% !important;
-      max-width: 100% !important;
-      box-sizing: border-box !important;
-      font-size: 14px !important; /* prevent iOS zoom */
-    }
-    /* Cross-page bar takes whatever it needs */
-    .pp-close-bar .fpts-xpage-bar {
-      flex: 1 1 auto !important;
-      justify-content: flex-start;
-    }
-    /* Close button stays compact on the right */
-    .pp-close-bar .panel-close {
-      flex: 0 0 auto !important;
-      align-self: center;
-    }
-
-    /* ─── FIX 2: Articles empty state — stack vertically ─── */
-    /* The "No curated articles" empty state is a flex row with text + button.
-       On narrow screens, the text wraps one-word-per-line and the button
-       overlaps the text. Force stack-vertical layout. */
-    .pp-articles-section .pp-article-inline > div {
-      flex-direction: column !important;
-      align-items: flex-start !important;
-      gap: 8px !important;
-    }
-    .pp-articles-section .pp-article-inline > div > span {
-      width: 100% !important;
-      white-space: normal !important;
-    }
-    .pp-articles-section .pp-article-inline > div > a {
-      align-self: flex-start;
-      flex-shrink: 0;
-    }
-
-    /* ─── FIX 3: Articles populated state — also stack ─── */
-    /* Same flex-row → column treatment when articles ARE present.
-       The first article's title link + meta were also competing for width. */
-    .pp-articles-section .pp-article-inline {
-      flex-direction: column !important;
-      align-items: flex-start !important;
-      gap: 6px !important;
-    }
-    .pp-articles-section .pp-article-inline > a {
-      width: 100% !important;
-      max-width: 100% !important;
-    }
-
-    /* ─── FIX 4: Player tabs — full-width tappable strip ─── */
-    /* "TRADES | PLAYER STATS | AGE CURVE | TRADE FINDER" was cramped.
-       Give each tab room and a real tap target. */
-    .pp-tabs {
-      flex-wrap: nowrap !important;
-      overflow-x: auto !important;
-      -webkit-overflow-scrolling: touch;
-      gap: 0 !important;
-    }
-    .pp-tab {
-      flex: 1 1 auto !important;
-      min-width: max-content !important;
-      padding: 12px 14px !important;
-      font-size: 11px !important;
-      white-space: nowrap !important;
-    }
-
-    /* ─── FIX 5: Tab content overflow — content doesn't bleed below tabs ─── */
-    /* Each tab body needs to scroll INSIDE its container, not spill onto
-       the page below the tabs. */
-    .pp-scroll {
-      overflow-y: auto !important;
-      max-height: calc(100vh - 280px) !important;
-      -webkit-overflow-scrolling: touch;
-    }
-    /* Trade stats grid (Times Traded / Avg Pick Included etc.) was wrapping
-       awkwardly with content cut off. Make it a clean 2-column grid. */
-    .pp-trade-stats {
-      grid-template-columns: 1fr 1fr !important;
-      gap: 1px !important;
-    }
-    .pp-trade-stats > div {
-      padding: 8px 12px !important;
-      min-width: 0 !important;
-    }
-    .pp-trade-stats .pp-stat-num {
-      font-size: 22px !important;
-    }
-  }
-
-  /* Extra-narrow phones (≤480px) — additional tightening for player card */
-  @media (max-width: 480px) {
-    .pp-close-bar > div:first-child { font-size: 10px !important; }
-    .pp-tab { font-size: 10px !important; padding: 10px 10px !important; }
-    .pp-scroll { max-height: calc(100vh - 260px) !important; }
-    .pp-trade-stats .pp-stat-num { font-size: 18px !important; }
-    /* Articles section — tighter padding on tiny screens */
-    .pp-articles-section .pp-article-inline > div { padding: 6px 10px !important; }
   }
 
   /* ============================================================
@@ -1474,20 +962,8 @@
   .value-row.pos-te { border-left: 3px solid var(--pos-te-bg); }
   .value-row.pos-k  { border-left: 3px solid var(--pos-k-bg);  }
 
-  /* ============================================================
-     Phase 3: player-panel retheme to match adp-tool pp-modal pattern
-     (CSS-only — JS untouched. Overrides via .player-panel ancestor.)
-     ============================================================ */
-  .player-panel .pp-close-bar { background: var(--surface); border-bottom: 1px solid var(--border); padding: 12px 24px; }
-  .player-panel .pp-close-bar > div:first-child { font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 13px; color: var(--red); text-transform: uppercase; letter-spacing: .06em; }
-  .player-panel .pp-profile { padding: 24px 28px 18px; gap: 24px; align-items: center; }
-  .player-panel .pp-avatar { width: 96px; height: 96px; border-radius: 50%; box-shadow: 0 0 0 2px var(--border2); }
-  .player-panel .pp-name { font-size: 32px; letter-spacing: .02em; }
-  .player-panel .pp-pos-team { margin-bottom: 10px; }
-  .player-panel .pp-team-name { font-family: 'Mulish', sans-serif; font-size: 13px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
-  .player-panel .pp-tab { font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 12px; letter-spacing: .06em; }
-  .player-panel .pp-tab.active { color: var(--red); border-bottom-color: var(--red); }
-  .player-panel .pp-value-val { font-size: 40px; }
+  /* Phase 3 player-panel retheme rules (.player-panel .pp-*) moved to
+     assets/css/player-panel.css (shared module). */
 
   /* ── MVS extras widgets (OTC, rankings, sparkline, recent trades) ─────── */
   .mvs-section { padding: 16px 24px; border-top: 1px solid var(--border); }
@@ -1537,6 +1013,15 @@
 <script src="assets/js/legend-content.js?v=1778642255"></script>
 <script src="assets/js/legend.js?v=1778642255"></script>
 <script>document.addEventListener('DOMContentLoaded', function(){ if (window.Legend) Legend.init('index'); });</script>
+<!-- Shared player panel — DB's slide-in drawer used identically on every page -->
+<script>window.FPTS_CURRENT_PAGE = 'db';</script>
+<link rel="stylesheet" href="assets/css/player-panel.css?v=1778646000">
+<script src="assets/js/player-panel.js?v=1778646000" defer></script>
+<style>
+  /* The inline #player-panel below is now replaced by the shared module's
+     injected copy. Hide the inline element so it doesn't double-render. */
+  body > #legacy-player-panel, body > #legacy-panel-overlay { display: none !important; }
+</style>
 </head>
 <body>
 
@@ -1917,8 +1402,11 @@
 </div>
 
 <!-- PLAYER PANEL OVERLAY -->
-<div class="panel-overlay" id="panel-overlay" onclick="closePanel()"></div>
-<div class="player-panel" id="player-panel">
+<!-- Inline panel kept as safety net but renamed to legacy-* IDs so the shared
+     module's injected copies (same IDs as before) are the only active panel.
+     Hidden via .inline-legacy CSS in <head>. -->
+<div class="panel-overlay inline-legacy" id="legacy-panel-overlay" onclick="closePanel()"></div>
+<div class="player-panel inline-legacy" id="legacy-player-panel">
 
   <!-- CLOSE BAR -->
   <div class="pp-close-bar" style="justify-content:space-between;flex-shrink:0">
@@ -2033,46 +1521,9 @@ window._fptsReadHandoff = function() {
   } catch(e) { return null; }
 };
 
-// Cross-page handoff helpers for the database (index.html)
-function _fptsXpageOpenCalcFromPanel() {
-  const name = (typeof ppActivePlayer !== 'undefined' && ppActivePlayer) ? ppActivePlayer : null;
-  if (!name) { window.open('trade-calculator.html', '_blank', 'noopener'); return; }
-  const ktc = (typeof FP_VALUES !== 'undefined' ? FP_VALUES[name] : null) || {};
-  const pos = (ktc.posRank || 'WR').replace(/\d+$/, '') || 'WR';
-  _fptsWriteHandoff({
-    source: 'db',
-    primaryPlayer: name,
-    trade: { sideA: [], sideB: [{ name, pos, value: ktc.value || 0, type: 'player' }] }
-  }, 'trade-calculator.html');
-}
-function _fptsXpageOpenLeaguesFromPanel() {
-  const name = (typeof ppActivePlayer !== 'undefined' && ppActivePlayer) ? ppActivePlayer : null;
-  _fptsWriteHandoff({
-    source: 'db',
-    primaryPlayer: name,
-    players: name ? [{ name }] : [],
-  }, 'my-leagues.html');
-}
-function _fptsXpageOpenAdpFromPanel() {
-  const name = (typeof ppActivePlayer !== 'undefined' && ppActivePlayer) ? ppActivePlayer : null;
-  _fptsWriteHandoff({ source: 'db', primaryPlayer: name }, 'adp-tool.html');
-}
-function _fptsXpageOpenCalcFromFinder() {
-  // Trade Finder inside player panel — collect all sides if active
-  let payload = { source: 'db', trade: { sideA: [], sideB: [] } };
-  try {
-    if (typeof tfState !== 'undefined' && tfState) {
-      const containerId = Object.keys(tfState)[0];
-      if (containerId && tfState[containerId]) {
-        const st = tfState[containerId];
-        const map = (a) => ({ name: a.label || a.name, pos: a.posKey || a.pos || 'WR', value: a.value || 0, type: a.type || 'player' });
-        payload.trade.sideA = (st.sideA || []).map(map);
-        payload.trade.sideB = (st.sideB || []).map(map);
-      }
-    }
-  } catch(e) {}
-  _fptsWriteHandoff(payload, 'trade-calculator.html');
-}
+// Cross-page handoff helpers (_fptsXpageOpenCalcFromPanel etc.) now live in
+// assets/js/player-panel.js (shared module) and are exposed on window for the
+// inline onclick attributes injected by the module.
 
 
 // Universal player thumbnail helper. Uses Sleeper CDN with normalized-name fallback;
@@ -6269,168 +5720,11 @@ const KNOWN_PLAYERS = [];
 const posColMap = { WR:"var(--pos-wr-bg)",RB:"var(--pos-rb-bg)",QB:"var(--pos-qb-bg)",TE:"var(--pos-te-bg)",K:"var(--pos-k-bg)" };
 const posTxtMap = { WR:"var(--pos-wr)",   RB:"var(--pos-rb)",   QB:"var(--pos-qb)",   TE:"var(--pos-te)",   K:"var(--pos-k)"   };
 
-function ppSearchInput(val) {
-  const results = document.getElementById("pp-search-results");
-  if(!results) return;
-  if(!val.trim()) { results.classList.remove("open"); results.innerHTML=""; return; }
-  try {
-    return _ppSearchInputImpl(val, results);
-  } catch (err) {
-    console.error('[ppSearchInput] failed:', err);
-    results.innerHTML = `<div class="main-search-no-results">Search error — open DevTools console (${err.message})</div>`;
-    results.classList.add("open");
-  }
-}
-function _ppSearchInputImpl(val, results) {
-  const q = val.toLowerCase();
-
-  // Aggregate trade counts keyed by NORMALIZED name so variations dedupe.
-  // Stores: { normKey: {name (best display), pos, count} }
-  const all = {};
-  TRADES.forEach(t => t.players.forEach(p => {
-    const key = normalizePlayerName(p.name);
-    if (!all[key]) all[key] = { name: p.name, pos: p.pos, count: 0 };
-    all[key].count++;
-    // Prefer the display name from data tables if available (richer punctuation)
-    // — checked at render time below
-  }));
-
-  // Build matches from trade records first
-  let matches = Object.values(all)
-    .filter(p => p.name.toLowerCase().includes(q))
-    .sort((a,b) => b.count - a.count)
-    .slice(0, 8);
-
-  // FP_VALUES fallback — skip players whose normalized key already exists in trade matches
-  if(matches.length < 8) {
-    const haveKeys = new Set(Object.keys(all));
-    Object.entries(FP_VALUES).filter(([n]) => {
-      if (haveKeys.has(normalizePlayerName(n))) return false;
-      return n.toLowerCase().includes(q);
-    })
-    .slice(0, 8-matches.length).forEach(([n,d])=>{
-      const pos = (d.posRank || "").replace(/\d+$/,"") || "?";
-      matches.push({name:n, pos, count:0});
-    });
-  }
-  // KNOWN_PLAYERS fallback — same dedupe by normalized key
-  if(matches.length < 8) {
-    const haveKeys = new Set([
-      ...Object.keys(all),
-      ...Object.keys(FP_VALUES).map(normalizePlayerName),
-      ...matches.map(m => normalizePlayerName(m.name)),
-    ]);
-    KNOWN_PLAYERS.filter(p => !haveKeys.has(normalizePlayerName(p.name)) && p.name.toLowerCase().includes(q))
-      .slice(0, 8-matches.length).forEach(p => matches.push({name:p.name, pos:p.pos, count:0}));
-  }
-
-  // For each match, prefer the canonical name from FP_VALUES / SLEEPER_IDS if it exists
-  // (so "Marvin Harrison Jr." display wins even if trade record had it differently).
-  matches = matches.map(m => {
-    const key = normalizePlayerName(m.name);
-    const canonical = Object.keys(FP_VALUES).find(n => normalizePlayerName(n) === key);
-    return canonical ? { ...m, name: canonical } : m;
-  });
-
-  if(!matches.length) { results.innerHTML=`<div class="main-search-no-results">No players found matching "${val}"</div>`; results.classList.add("open"); return; }
-  results.innerHTML = matches.map((p,i) => {
-    // Look up SLEEPER_IDS by normalized key (defensive)
-    const sid = SLEEPER_IDS[p.name] || (() => {
-      const key = normalizePlayerName(p.name);
-      const match = Object.keys(SLEEPER_IDS).find(n => normalizePlayerName(n) === key);
-      return match ? SLEEPER_IDS[match] : null;
-    })();
-    const thumbHtml = sid
-      ? `<img src="https://sleepercdn.com/content/nfl/players/thumb/${sid}.jpg" style="width:28px;height:28px;border-radius:50%;object-fit:cover;flex-shrink:0;background:var(--surface2);" onerror="this.style.visibility='hidden'">`
-      : `<span style="width:28px;height:28px;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;border-radius:50%;background:var(--surface2);border:1px solid var(--border);color:var(--muted);opacity:.5;font-family:'Mulish',sans-serif;font-weight:700;font-size:11px;">${(p.name||'').split(' ').map(s=>s[0]).join('').slice(0,2).toUpperCase()}</span>`;
-    return `<div class="pp-search-result${i===0?" focused":""}" 
-      onclick="ppSearchSelect('${p.name.replace(/'/g,"\\'")}')"
-      onmouseover="ppFocusResult(this)">
-      ${thumbHtml}
-      <span class="pos-badge ${pc(p.pos)}">${p.pos}</span>
-      <span class="pp-search-result-name">${p.name}</span>
-      <span class="pp-search-result-count">${p.count > 0 ? p.count+" trade"+(p.count!==1?"s":"") : "No trades yet"}</span>
-    </div>`;
-  }).join("");
-  results.classList.add("open");
-}
-
-function ppFocusResult(el) {
-  document.querySelectorAll(".pp-search-result").forEach(r=>r.classList.remove("focused"));
-  el.classList.add("focused");
-}
-
-function ppSearchKey(e) {
-  const results = document.getElementById("pp-search-results");
-  const items = [...results.querySelectorAll(".pp-search-result")];
-  const focused = results.querySelector(".pp-search-result.focused");
-  const idx = items.indexOf(focused);
-  if(e.key === "ArrowDown") {
-    e.preventDefault();
-    const next = items[idx+1] || items[0];
-    items.forEach(r=>r.classList.remove("focused"));
-    if(next) next.classList.add("focused");
-  } else if(e.key === "ArrowUp") {
-    e.preventDefault();
-    const prev = items[idx-1] || items[items.length-1];
-    items.forEach(r=>r.classList.remove("focused"));
-    if(prev) prev.classList.add("focused");
-  } else if(e.key === "Enter") {
-    let focused = results.querySelector(".pp-search-result.focused");
-    if(focused) { const name = focused.querySelector(".pp-search-result-name").textContent; ppSearchSelect(name); }
-  } else if(e.key === "Escape") {
-    results.classList.remove("open");
-    results.innerHTML="";
-  }
-}
-
-// ppPlayers: array of player names in the panel tab strip
-let ppPlayers = [];
-let ppActivePlayer = null;
-
-function ppSearchSelect(name) {
-  document.getElementById("pp-search").value = "";
-  document.getElementById("pp-search-results").classList.remove("open");
-  document.getElementById("pp-search-results").innerHTML = "";
-  if(!ppPlayers.includes(name)) ppPlayers.push(name);
-  ppSwitchTo(name);
-}
-
-function ppSwitchTo(name) {
-  ppActivePlayer = name;
-  ppRenderTabStrip();
-  openPanelContent(name);
-}
-
-function ppRemovePlayer(name) {
-  ppPlayers = ppPlayers.filter(p => p !== name);
-  if(ppPlayers.length === 0) { closePanel(); return; }
-  if(ppActivePlayer === name) ppSwitchTo(ppPlayers[ppPlayers.length - 1]);
-  else ppRenderTabStrip();
-}
-
-function ppRenderTabStrip() {
-  const strip = document.getElementById("pp-player-tabs");
-  if(!strip) return;
-  strip.innerHTML = ppPlayers.map(name => {
-    const isActive = name === ppActivePlayer;
-    const info = TRADES.flatMap(t=>t.players).find(p=>p.name===name);
-    const ktcRank = FP_VALUES[name]?.posRank || "";
-    const pos = (ktcRank.replace(/\d+$/,"")) || info?.pos || "?";
-    const ktcPos = pos;
-    return `<div onclick="ppSwitchTo('${name.replace(/'/g,"\\'")}')"
-      style="display:flex;align-items:center;gap:8px;padding:0 16px;height:44px;cursor:pointer;border-bottom:2px solid ${isActive?"var(--red)":"transparent"};background:${isActive?"var(--surface)":"transparent"};flex-shrink:0;transition:all .15s;white-space:nowrap">
-      ${_imgThumb(name,24)}
-      <span class="pos-badge ${pc(ktcPos)}" style="font-size:10px;padding:2px 6px">${ktcPos}</span>
-      <span style="font-family:'Mulish',sans-serif;font-weight:900;font-size:13px;color:var(--white);opacity:${isActive?1:0.6}">${name}</span>
-      <span onclick="event.stopPropagation();ppRemovePlayer('${name.replace(/'/g,"\\'")}')"
-        style="color:var(--white);opacity:1;font-size:12px;cursor:pointer;margin-left:4px;line-height:1"
-        onmouseover="this.style.opacity=1;this.style.color='var(--red)'" onmouseout="this.style.opacity=0.3;this.style.color='var(--white)'">✕</span>
-    </div>`;
-  }).join("");
-}
-
-
+// ppSearchInput / ppSearchKey / ppSearchSelect / ppFocusResult / ppSwitchTo /
+// ppRemovePlayer / ppRenderTabStrip and the global ppPlayers / ppActivePlayer
+// state previously lived here. All moved to assets/js/player-panel.js (shared
+// module). The module re-publishes them on window so existing inline onclick
+// markup keeps working.
 
 let tradeSearch = { a: [], b: [] };
 
@@ -6567,630 +5861,24 @@ function highlightMatch(name, query) {
 function addAssetFilter(){}
 function renderAssetFilterTags(){renderTradeSideTags("a");renderTradeSideTags("b");}
 
-function pkpShowTab(name) {
-  document.getElementById("pick-panel-body").style.display   = name==="trades"?"block":"none";
-  document.getElementById("pick-panel-finder").style.display = name==="finder"?"block":"none";
-  document.querySelectorAll("#pick-panel .pp-tab").forEach((el,i)=>{
-    el.classList.toggle("active",["trades","finder"][i]===name);
-  });
-  if(name==="finder") renderTradeFinder("pick-panel-finder", currentPanelPick);
-}
-
-let currentPanelPlayer = null;
-let ppLastTab = "trades"; // Remembered tab so switching between players keeps the same view
-let currentPanelPick   = null;
-
-// Trade Finder state — keyed by containerId
-const tfState = {};
-
-function tfGetState(id) {
-  if(!tfState[id]) tfState[id] = { sideA: [], sideB: [] };
-  return tfState[id];
-}
-
-// All tradeable assets: players from FP_VALUES + common picks
-function getAllAssets() {
-  const assets = [];
-  Object.entries(FP_VALUES).forEach(([name, d]) => {
-    const posKey = (d.posRank || "").replace(/\d+$/,"") || Object.values(TRADES).flatMap(t=>t.players).find(p=>p.name===name)?.pos || "?";
-    assets.push({ label: name, value: d.value, pos: null, type: "player", posKey });
-  });
-
-  // Slot-specific pick values — approximated from FP dynasty rankings
-  // Format: [year, round, slot] → value
-  let PICK_VALUES = {};
-
-  Object.entries(PICK_VALUES).forEach(([key, value]) => {
-    const [year, slot] = key.split("-");
-    assets.push({ label: `${year} ${slot}`, value, type: "pick", posKey: "PK" });
-  });
-
-  return assets.sort((a,b) => b.value - a.value);
-}
-
-function renderAgeCurve(containerId, player) {
-  const el = document.getElementById(containerId);
-  if(!el || !player) return;
-
-  const pos = player.posKey;
-  const ktc = FP_VALUES[player.label] || {};
-  const adpData = ADP_DATA[player.label] || null;
-  const playerAge = ktc.age || 25;
-  const playerVal = ktc.value || 0;
-
-  // ADP-implied value: convert ADP rank to approximate dynasty value
-  // Lower ADP = higher value. Scale: ADP 1 ≈ top value, ADP 50 ≈ mid, ADP 100+ ≈ low
-  function adpToValue(adp) {
-    if(!adp || adp <= 0) return null;
-    const maxVal = 10000;
-    return Math.round(maxVal * Math.pow(0.93, adp - 1));
-  }
-
-  // Honor user's ADP-format choice from adp-tool (defaults to SF).
-  let _adpFmt = 'sf';
-  try { const v = localStorage.getItem('fpts-adp-format'); if (v === '1qb' || v === 'sf') _adpFmt = v; } catch (e) {}
-  const _adpSlot = _adpFmt === '1qb' ? adpData?.oneqb : adpData?.sf;
-  const adpOverall = (_adpSlot && _adpSlot.overall) ?? (ktc.adp || null);
-  const adpImpliedVal = adpToValue(adpOverall);
-
-  // Age/value curves by position
-  const curves = {
-    QB: { peak: 28, peakVal: 9000, start: 22, end: 38, rampUp: 1.8, decayRate: 0.88 },
-    RB: { peak: 24, peakVal: 8500, start: 21, end: 32, rampUp: 2.5, decayRate: 0.78 },
-    WR: { peak: 26, peakVal: 9000, start: 21, end: 35, rampUp: 1.6, decayRate: 0.84 },
-    TE: { peak: 27, peakVal: 7500, start: 22, end: 35, rampUp: 1.4, decayRate: 0.83 },
-  };
-  const curve = curves[pos] || curves.WR;
-
-  function posValue(age) {
-    if(age < curve.start || age > curve.end) return 0;
-    if(age <= curve.peak) {
-      const t = (age - curve.start) / (curve.peak - curve.start);
-      return Math.round(curve.peakVal * Math.pow(t, 1/curve.rampUp));
-    } else {
-      return Math.round(curve.peakVal * Math.pow(curve.decayRate, age - curve.peak));
-    }
-  }
-
-  const scaleFactor = playerVal > 0 && posValue(playerAge) > 0 ? playerVal / posValue(playerAge) : 1;
-  function playerValue(age) { return Math.max(0, Math.round(posValue(age) * scaleFactor)); }
-
-  const ages = [];
-  for(let a = curve.start; a <= curve.end; a++) ages.push(a);
-
-  const posVals    = ages.map(a => posValue(a));
-  const playerVals = ages.map(a => playerValue(a));
-  let maxVal = Math.max(...posVals, ...playerVals, adpImpliedVal || 0, 1000);
-
-  const W = 560, H = 260, PAD = { top: 24, right: 20, bottom: 40, left: 56 };
-  const cW = W - PAD.left - PAD.right;
-  const cH = H - PAD.top - PAD.bottom;
-
-  function xPos(age) { return PAD.left + ((age - curve.start) / (curve.end - curve.start)) * cW; }
-  function yPos(val) { return PAD.top + cH - (val / maxVal) * cH; }
-
-  function makePath(vals) {
-    return ages.map((a,i) => `${i===0?'M':'L'}${xPos(a).toFixed(1)},${yPos(vals[i]).toFixed(1)}`).join(' ');
-  }
-  function makeArea(vals, color) {
-    const line = ages.map((a,i) => `${i===0?'M':'L'}${xPos(a).toFixed(1)},${yPos(vals[i]).toFixed(1)}`).join(' ');
-    return `${line} L${xPos(curve.end).toFixed(1)},${(PAD.top+cH).toFixed(1)} L${xPos(curve.start).toFixed(1)},${(PAD.top+cH).toFixed(1)} Z`;
-  }
-
-  const posColorMap = { WR:'#5b9bd5', RB:'var(--green)', QB:'#e05252', TE:'#e09a30' };
-  const posCol = posColorMap[pos] || '#9b91d4';
-  const adpCol = 'var(--red)';
-
-  const gridLines = [0, 2500, 5000, 7500, 10000].filter(v => v <= maxVal * 1.1);
-  const ageLabels = ages.filter(a => a % 2 === 0);
-  const dotX = xPos(playerAge);
-  const dotY = yPos(playerVal);
-
-  // Value gap signal
-  let signal = '', signalColor = 'var(--white)';
-  if(adpImpliedVal && playerVal) {
-    const gap = playerVal - adpImpliedVal;
-    const pct = Math.round(Math.abs(gap) / Math.max(playerVal, adpImpliedVal) * 100);
-    if(gap > 500) { signal = `▲ Buy-low signal — FC value ${pct}% above ADP cost`; signalColor = 'var(--green)'; }
-    else if(gap < -500) { signal = `▼ Sell-high signal — ADP cost ${pct}% above FC value`; signalColor = '#e05252'; }
-    else { signal = `≈ Fairly priced — FC value and ADP within range`; signalColor = 'var(--yellow)'; }
-  }
-
-  const svg = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;overflow:visible">
-    <defs>
-      <linearGradient id="ag-playerGrad" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stop-color="${posCol}" stop-opacity="0.2"/>
-        <stop offset="100%" stop-color="${posCol}" stop-opacity="0.01"/>
-      </linearGradient>
-      <linearGradient id="ag-posGrad" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stop-color="var(--white)" stop-opacity="0.05"/>
-        <stop offset="100%" stop-color="var(--white)" stop-opacity="0"/>
-      </linearGradient>
-    </defs>
-
-    ${gridLines.map(v => `
-      <line x1="${PAD.left}" y1="${yPos(v).toFixed(1)}" x2="${W-PAD.right}" y2="${yPos(v).toFixed(1)}"
-        stroke="var(--border)" stroke-width="1"/>
-      <text x="${PAD.left-6}" y="${(yPos(v)+4).toFixed(1)}"
-        text-anchor="end" font-family="Mulish" font-size="9" fill="var(--white)" opacity="0.45">
-        ${v>=1000?(v/1000).toFixed(1)+'k':v}
-      </text>`).join('')}
-
-    <line x1="${xPos(playerAge).toFixed(1)}" y1="${PAD.top}" x2="${xPos(playerAge).toFixed(1)}" y2="${PAD.top+cH}"
-      stroke="${posCol}" stroke-width="1" stroke-dasharray="4,3" opacity="0.4"/>
-    <line x1="${xPos(curve.peak).toFixed(1)}" y1="${PAD.top}" x2="${xPos(curve.peak).toFixed(1)}" y2="${PAD.top+cH}"
-      stroke="var(--white)" stroke-width="1" stroke-dasharray="2,4" opacity="0.15"/>
-    <text x="${xPos(curve.peak).toFixed(1)}" y="${(PAD.top-8).toFixed(1)}"
-      text-anchor="middle" font-family="Kanit" font-weight="800" font-size="9" fill="var(--white)" opacity="0.25">PEAK ${curve.peak}</text>
-
-    <!-- Position avg area + line -->
-    <path d="${makeArea(posVals)}" fill="url(#ag-posGrad)"/>
-    <path d="${makePath(posVals)}" fill="none" stroke="var(--white)" stroke-width="1.5" stroke-dasharray="5,3" opacity="0.3"/>
-
-    <!-- Player FC value area + line -->
-    <path d="${makeArea(playerVals)}" fill="url(#ag-playerGrad)"/>
-    <path d="${makePath(playerVals)}" fill="none" stroke="${posCol}" stroke-width="2.5" stroke-linejoin="round"/>
-
-    <!-- ADP implied value horizontal line at current age -->
-    ${adpImpliedVal ? `
-      <line x1="${PAD.left}" y1="${yPos(adpImpliedVal).toFixed(1)}" x2="${W-PAD.right}" y2="${yPos(adpImpliedVal).toFixed(1)}"
-        stroke="${adpCol}" stroke-width="1.5" stroke-dasharray="6,3" opacity="0.7"/>
-      <circle cx="${dotX.toFixed(1)}" cy="${yPos(adpImpliedVal).toFixed(1)}" r="4" fill="${adpCol}" stroke="var(--black)" stroke-width="2"/>
-      <circle cx="${dotX.toFixed(1)}" cy="${yPos(adpImpliedVal).toFixed(1)}" r="8" fill="${adpCol}" opacity="0.15"/>
-      <!-- Gap indicator line between FC value and ADP -->
-      <line x1="${dotX.toFixed(1)}" y1="${dotY.toFixed(1)}" x2="${dotX.toFixed(1)}" y2="${yPos(adpImpliedVal).toFixed(1)}"
-        stroke="var(--white)" stroke-width="1" stroke-dasharray="2,2" opacity="0.3"/>
-    ` : ''}
-
-    <!-- FC value dot -->
-    <circle cx="${dotX.toFixed(1)}" cy="${dotY.toFixed(1)}" r="5" fill="${posCol}" stroke="var(--black)" stroke-width="2"/>
-    <circle cx="${dotX.toFixed(1)}" cy="${dotY.toFixed(1)}" r="9" fill="${posCol}" opacity="0.2"/>
-
-    ${ageLabels.map(a => `
-      <text x="${xPos(a).toFixed(1)}" y="${(PAD.top+cH+16).toFixed(1)}"
-        text-anchor="middle" font-family="Mulish" font-size="9" fill="var(--white)" opacity="0.45">${a}</text>`).join('')}
-    <text x="${(PAD.left+cW/2).toFixed(1)}" y="${(H-2).toFixed(1)}"
-      text-anchor="middle" font-family="Mulish" font-size="10" fill="var(--white)" opacity="0.35">AGE</text>
-  </svg>`;
-
-  const legend = `<div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:14px;padding:0 2px">
-    <div style="display:flex;align-items:center;gap:6px">
-      <div style="width:18px;height:3px;background:${posCol};border-radius:2px"></div>
-      <span style="font-family:'Mulish',sans-serif;font-size:11px;color:var(--white)">${player.label} — FC Value</span>
-    </div>
-    <div style="display:flex;align-items:center;gap:6px">
-      <div style="width:18px;height:2px;border-top:2px dashed var(--white);opacity:0.35"></div>
-      <span style="font-family:'Mulish',sans-serif;font-size:11px;color:var(--white);opacity:0.5">${pos} Position Avg</span>
-    </div>
-    ${adpImpliedVal ? `<div style="display:flex;align-items:center;gap:6px">
-      <div style="width:18px;height:2px;border-top:2px dashed ${adpCol};opacity:0.8"></div>
-      <span style="font-family:'Mulish',sans-serif;font-size:11px;color:var(--red)">ADP-Implied Value</span>
-    </div>` : ''}
-  </div>`;
-
-  const yearsTopeak = curve.peak - playerAge;
-  const peakLabel = yearsTopeak > 0
-    ? `<span style="color:var(--green);font-size:11px;font-family:'Mulish',sans-serif">▲ ${yearsTopeak}yr to peak</span>`
-    : yearsTopeak === 0 ? `<span style="color:var(--red);font-size:11px;font-family:'Mulish',sans-serif">★ At peak</span>`
-    : `<span style="color:var(--red);font-size:11px;font-family:'Mulish',sans-serif">▼ ${Math.abs(yearsTopeak)}yr past peak</span>`;
-
-  const projVal5 = playerValue(playerAge + 5);
-  const adpRank = adpOverall ? `SF: ${adpOverall.toFixed(1)}` : '—';
-
-  const stats = `<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);border:1px solid var(--border);margin-top:14px">
-    <div style="background:var(--surface);padding:10px 12px">
-      <div style="font-family:'Mulish',sans-serif;font-size:9px;color:var(--white);opacity:0.5;text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px">Age / Peak</div>
-      <div style="font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:18px;color:var(--white)">${playerAge} <span style="font-size:12px;opacity:0.4">/ ${curve.peak}</span></div>
-      <div style="margin-top:2px">${peakLabel}</div>
-    </div>
-    <div style="background:var(--surface);padding:10px 12px">
-      <div style="font-family:'Mulish',sans-serif;font-size:9px;color:var(--white);opacity:0.5;text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px">FC Value</div>
-      <div style="font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:18px;color:var(--white)">${playerVal.toLocaleString()}</div>
-    </div>
-    <div style="background:var(--surface);padding:10px 12px">
-      <div style="font-family:'Mulish',sans-serif;font-size:9px;color:var(--white);opacity:0.5;text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px">ADP (SF)</div>
-      <div style="font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:18px;color:var(--red)">${adpRank}</div>
-    </div>
-    <div style="background:var(--surface);padding:10px 12px">
-      <div style="font-family:'Mulish',sans-serif;font-size:9px;color:var(--white);opacity:0.5;text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px">Proj +5yr</div>
-      <div style="font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:18px;color:var(--white)">${projVal5.toLocaleString()}</div>
-    </div>
-  </div>
-  ${signal ? `<div style="margin-top:10px;padding:8px 12px;background:var(--surface);border:1px solid var(--border);border-left:3px solid ${signalColor}">
-    <span style="font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:12px;color:${signalColor}">${signal}</span>
-  </div>` : ''}`;
-
-  el.innerHTML = `<div style="padding:16px 4px 20px">
-    <div style="font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:11px;color:var(--red);text-transform:uppercase;letter-spacing:.07em;margin-bottom:14px;padding-bottom:6px;border-bottom:1px solid var(--border)">Age / Value Curve — ${pos} Position</div>
-    ${legend}
-    <div style="width:100%;overflow:hidden">${svg}</div>
-    ${stats}
-    <div style="font-family:'Mulish',sans-serif;font-size:10px;color:var(--white);opacity:0.25;margin-top:10px;text-align:center">Curve based on historical dynasty positional aging · FC value scaled to current rating · ADP reflects SF market cost</div>
-  </div>`;
-}
-
-
-function renderTradeFinder(containerId, seedAsset) {
-  const state = tfGetState(containerId);
-  // Seed side A with the current player/pick if not already there
-  if(seedAsset && !state.sideA.length) state.sideA.push(seedAsset);
-  _drawTradeFinder(containerId);
-}
-
-function _drawTradeFinder(containerId) {
-  const state = tfGetState(containerId);
-  const totalA = state.sideA.reduce((s,a)=>s+a.value,0);
-  const totalB = state.sideB.reduce((s,a)=>s+a.value,0);
-  const diff   = totalA - totalB;
-  const absDiff = Math.abs(diff);
-  const maxSide = Math.max(totalA, totalB, 1);
-  const pct = Math.min(Math.round(absDiff / maxSide * 100), 100);
-
-  let balanceColor, balanceText, suggestionSide;
-  if(absDiff < 300) {
-    balanceColor = "var(--green)"; balanceText = "✓ Fair trade"; suggestionSide = null;
-  } else if(diff > 0) {
-    balanceColor = "#e05252"; balanceText = `Side A is ${absDiff.toLocaleString()} pts over`; suggestionSide = "B";
-  } else {
-    balanceColor = "#e05252"; balanceText = `Side B is ${absDiff.toLocaleString()} pts over`; suggestionSide = "A";
-  }
-
-  const suggestions = suggestionSide ? getSuggestions(absDiff, state[`side${suggestionSide==="A"?"B":"A"}`], containerId) : [];
-
-  function renderAddSlot(side) {
-    const activeSlot = window._tfActiveSlot;
-    const isActive = activeSlot && activeSlot.id === containerId && activeSlot.side === side;
-    const used = [...state.sideA, ...state.sideB].map(a=>a.label);
-    const gap = side === "A" ? Math.abs(totalA - totalB) : Math.abs(totalB - totalA);
-    const allAssets = getAllAssets().filter(a => !used.includes(a.label));
-    const query = (window._tfQuery && window._tfQuery.id === containerId && window._tfQuery.side === side) ? window._tfQuery.val : "";
-    const opts = query
-      ? allAssets.filter(a => a.label.toLowerCase().includes(query.toLowerCase())).slice(0,8)
-      : gap > 100
-        ? allAssets.map(a=>({...a,cl:Math.abs(a.value-gap)})).sort((a,b)=>a.cl-b.cl).slice(0,8)
-        : allAssets.slice(0,8);
-    const inputId = "tf-search-" + containerId.replace(/[^a-z0-9]/gi,"-") + "-" + side;
-    const slotHtml = isActive
-      ? `<div style="margin-top:6px;border:1px solid var(--red)">
-          <input id="${inputId}" type="text" value="${query}"
-            placeholder="Search player or pick..."
-            style="width:100%;background:var(--surface);border:none;outline:none;color:var(--white);font-family:'Mulish',sans-serif;font-size:12px;font-weight:700;padding:8px 10px"
-            oninput="tfQuerySlot('${containerId}','${side}',this.value)"
-            onkeydown="if(event.key==='Escape'){tfDeactivateSlot('${containerId}','${side}')}"
-            autocomplete="off">
-        </div>`
-      : `<div onclick="tfActivateSlot('${containerId}','${side}')"
-          style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--surface);border:1px dashed var(--border2);cursor:pointer;margin-top:6px;transition:border-color .15s"
-          onmouseover="this.style.borderColor='var(--red)'" onmouseout="this.style.borderColor='var(--border2)'">
-          <span style="font-family:'Mulish',sans-serif;font-size:12px;color:var(--white);opacity:1">+ Add player or pick...</span>
-        </div>`;
-    const listHtml = isActive ? `<div style="border:1px solid var(--border2);border-top:none;max-height:220px;overflow-y:auto">
-      ${opts.length ? opts.map(a=>`
-        <div class="tf-add-option"
-          onclick="tfAddFromSearch('${containerId}','${side}','${a.label.replace(/'/g,"\\'")}',${a.value},'${a.posKey}','${a.type}')"
-          onmouseover="this.parentNode.querySelectorAll('.tf-add-option').forEach(e=>e.classList.remove('focused'));this.classList.add('focused')">
-          ${a.type==="pick"?pickThumb(24):_imgThumb(a.label,24)+`<span class="pos-badge ${pc(a.posKey)}" style="font-size:9px;padding:1px 5px">${a.posKey||""}</span>`}
-          <span class="tf-add-option-name">${a.label}</span>
-          <span class="tf-add-option-val">${a.value.toLocaleString()}</span>
-        </div>`).join("") : `<div style="padding:12px;font-family:'Mulish',sans-serif;font-size:12px;color:var(--white);opacity:1">No results</div>`}
-    </div>` : "";
-    // Auto-focus the input after render
-    if(isActive) setTimeout(() => { const el = document.getElementById(inputId); if(el) { el.focus(); el.setSelectionRange(el.value.length, el.value.length); } }, 10);
-    return slotHtml + listHtml;
-  }
-
-  const html = `<div class="tf-wrap">
-    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border)">
-      <div style="font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:11px;color:var(--red);text-transform:uppercase;letter-spacing:.07em">Build Your Trade</div>
-      <button class="fpts-xpage-btn" onclick="event.stopPropagation();_fptsXpageOpenCalcFromFinder()" title="Open in the standalone trade calculator with this trade pre-loaded">Open in Calculator ↗</button>
-    </div>
-
-    <div class="tf-sides">
-      ${["A","B"].map(side => `
-        <div class="tf-side">
-          <div class="tf-side-label">Side ${side}</div>
-          <div class="tf-side-val">${state["side"+side].reduce((s,a)=>s+a.value,0).toLocaleString()}</div>
-          <div class="tf-asset-list">
-            ${state["side"+side].map((a,i) => {
-              // Normalize position — uppercase, strip trailing digits, default WR.
-              // Picks get data-pos="PK" so the purple chip background applies.
-              const _pos = a.type === "pick" ? "PK" : String(a.posKey || "").toUpperCase().replace(/\d+/g,'') || "WR";
-              // Stacked name: "Bijan Robinson" → first "Bijan" (small) / last "Robinson" (big)
-              const _parts = String(a.label || "").trim().split(/\s+/);
-              const _fname = _parts.length > 1 ? _parts.slice(0, -1).join(" ") : "";
-              const _lname = _parts[_parts.length - 1] || a.label;
-              const _nameHtml = `<span class="tf-asset-name">${_fname?`<span class="fn">${_fname.replace(/'/g,"\\'")}</span>`:""}<span class="ln">${_lname.replace(/'/g,"\\'")}</span></span>`;
-              return `
-              <div class="tf-asset" data-pos="${_pos}">
-                ${a.type==="pick"?pickThumb(24):_imgThumb(a.label,24)+`<span class="pos-badge ${pc(_pos)}" style="font-size:9px;padding:1px 5px">${_pos}</span>`}
-                ${_nameHtml}
-                <span class="tf-asset-val">${a.value.toLocaleString()}</span>
-                <span class="tf-asset-remove" onclick="tfRemove('${containerId}','${side}',${i})">✕</span>
-              </div>`;
-            }).join("")}
-          </div>
-          ${renderAddSlot(side)}
-        </div>`).join("")}
-    </div>
-
-    <div class="tf-balance-bar">
-      <div class="tf-balance-track" style="margin-bottom:10px">
-        <div class="tf-balance-mid"></div>
-        <div class="tf-balance-fill" style="
-          background:${balanceColor};
-          width:${pct/2}%;
-          left:${diff>0?50:50-pct/2}%">
-        </div>
-      </div>
-      <div style="display:flex;justify-content:space-between;align-items:center">
-        <div style="font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:20px;color:var(--white)">${totalA.toLocaleString()}<span style="font-size:10px;opacity:1;margin-left:4px;font-family:'Mulish',sans-serif;font-style:normal">SIDE A</span></div>
-        <div style="text-align:center">
-          <div class="tf-balance-summary" style="color:${balanceColor}">${balanceText}</div>
-        </div>
-        <div style="font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:20px;color:var(--white);text-align:right">${totalB.toLocaleString()}<span style="font-size:10px;opacity:1;margin-left:4px;font-family:'Mulish',sans-serif;font-style:normal">SIDE B</span></div>
-      </div>
-    </div>
-
-
-  </div>`;
-
-  document.getElementById(containerId).innerHTML = html;
-}
-
-function tfQuerySlot(containerId, side, val) {
-  window._tfQuery = { id: containerId, side, val };
-  // Update only the results list without re-rendering the whole finder
-  const state = tfGetState(containerId);
-  const totalA = state.sideA.reduce((s,a)=>s+a.value,0);
-  const totalB = state.sideB.reduce((s,a)=>s+a.value,0);
-  const gap = side === "A" ? Math.abs(totalA - totalB) : Math.abs(totalB - totalA);
-  const used = [...state.sideA, ...state.sideB].map(a=>a.label);
-  const allAssets = getAllAssets().filter(a => !used.includes(a.label));
-  const opts = val
-    ? allAssets.filter(a => a.label.toLowerCase().includes(val.toLowerCase())).slice(0,8)
-    : gap > 100
-      ? allAssets.map(a=>({...a,cl:Math.abs(a.value-gap)})).sort((a,b)=>a.cl-b.cl).slice(0,8)
-      : allAssets.slice(0,8);
-  const inputId = "tf-search-" + containerId.replace(/[^a-z0-9]/gi,"-") + "-" + side;
-  const input = document.getElementById(inputId);
-  if(!input) { _drawTradeFinder(containerId); return; }
-  const listEl = input.parentNode.nextElementSibling;
-  if(!listEl) { _drawTradeFinder(containerId); return; }
-  listEl.innerHTML = opts.length ? opts.map(a=>`
-    <div class="tf-add-option"
-      onclick="tfAddFromSearch('${containerId}','${side}','${a.label.replace(/'/g,"\\'")}',${a.value},'${a.posKey}','${a.type}')"
-      onmouseover="this.parentNode.querySelectorAll('.tf-add-option').forEach(e=>e.classList.remove('focused'));this.classList.add('focused')">
-      ${a.type==="pick"?pickThumb(24):_imgThumb(a.label,24)+`<span class="pos-badge ${pc(a.posKey)}" style="font-size:9px;padding:1px 5px">${a.posKey||""}</span>`}
-      <span class="tf-add-option-name">${a.label}</span>
-      <span class="tf-add-option-val">${a.value.toLocaleString()}</span>
-    </div>`).join("") : `<div style="padding:12px;font-family:'Mulish',sans-serif;font-size:12px;color:var(--white)">No results</div>`;
-}
-
-function tfDeactivateSlot(containerId, side) {
-  window._tfActiveSlot = null;
-  window._tfQuery = null;
-  _drawTradeFinder(containerId);
-}
-
-function tfActivateSlot(containerId, side) {
-  if(window._tfActiveSlot && window._tfActiveSlot.id === containerId && window._tfActiveSlot.side === side) {
-    window._tfActiveSlot = null;
-    window._tfQuery = null;
-  } else {
-    window._tfActiveSlot = { id: containerId, side };
-    window._tfQuery = null;
-  }
-  _drawTradeFinder(containerId);
-}
-
-function getSuggestions(targetGap, existingSide, containerId) {
-  const state = tfGetState(containerId);
-  const allUsed = [...state.sideA, ...state.sideB].map(a=>a.label);
-  return getAllAssets()
-    .filter(a => !allUsed.includes(a.label))
-    .map(a => ({ ...a, closeness: Math.abs(a.value - targetGap) }))
-    .sort((a,b) => a.closeness - b.closeness)
-    .slice(0, 6);
-}
-
-
-function tfShowSuggestions(containerId, side) {
-  const drop = document.getElementById(`tf-drop-${containerId}-${side}`);
-  const state = tfGetState(containerId);
-  const used = [...state.sideA, ...state.sideB].map(a=>a.label);
-  // Show closest-value suggestions based on current imbalance
-  const totalA = state.sideA.reduce((s,a)=>s+a.value,0);
-  const totalB = state.sideB.reduce((s,a)=>s+a.value,0);
-  const targetSide = side === 'A' ? 'A' : 'B';
-  const otherTotal = targetSide === 'A' ? totalB : totalA;
-  const thisTotal  = targetSide === 'A' ? totalA : totalB;
-  const gap = Math.abs(otherTotal - thisTotal);
-  const allAssets = getAllAssets().filter(a => !used.includes(a.label));
-  let suggestions;
-  if(gap > 0) {
-    // Show closest to gap value
-    suggestions = allAssets
-      .map(a => ({...a, closeness: Math.abs(a.value - gap)}))
-      .sort((a,b) => a.closeness - b.closeness)
-      .slice(0, 8);
-  } else {
-    // No imbalance yet — show top 8 by value
-    suggestions = allAssets.slice(0, 8);
-  }
-  if(!suggestions.length) return;
-  drop.innerHTML = suggestions.map((a,i) => `
-    <div class="tf-add-option${i===0?" focused":""}"
-      onmousedown="tfAddFromSearch('${containerId}','${side}','${a.label.replace(/'/g,"\\'")}',${a.value},'${a.posKey}','${a.type}')"
-      onmouseover="this.parentNode.querySelectorAll('.tf-add-option').forEach(e=>e.classList.remove('focused'));this.classList.add('focused')">
-      ${a.type==="pick"?pickThumb(24):_imgThumb(a.label,24)+`<span class="pos-badge ${pc(a.posKey)}" style="font-size:9px;padding:1px 5px">${a.posKey||""}</span>`}
-      <span class="tf-add-option-name">${a.label}</span>
-      <span class="tf-add-option-val">${a.value.toLocaleString()}</span>
-    </div>`).join('');
-  drop.classList.add('open');
-}
-
-
-
-function tfAddFromSearch(containerId, side, label, value, posKey, type) {
-  const state = tfGetState(containerId);
-  state["side"+side].push({ label, value, posKey, type });
-  window._tfActiveSlot = null;
-  window._tfQuery = null;
-  _drawTradeFinder(containerId);
-}
-
-
-function tfRemove(containerId, side, idx) {
-  const state = tfGetState(containerId);
-  state["side"+side].splice(idx, 1);
-  _drawTradeFinder(containerId);
-}
-
-function openPanel(playerName) {
-  if(!ppPlayers.includes(playerName)) ppPlayers.push(playerName);
-  ppActivePlayer = playerName;
-  ppRenderTabStrip();
-  openPanelContent(playerName);
-  document.getElementById("player-panel").classList.add("open");
-  document.getElementById("panel-overlay").classList.add("open");
-  document.body.style.overflow = "hidden";
-}
-
-function openPanelContent(playerName) {
-  const playerTrades = TRADES.filter(t => t.players.some(p => p.name === playerName));
-  const playerInfo = TRADES.flatMap(t=>t.players).find(p=>p.name===playerName);
-  const ktc  = FP_VALUES[playerName] || {};
-  const pos  = playerInfo?.pos || (ktc.posRank ? ktc.posRank.replace(/\d+/g,'') : null) || "WR";
-  const trendVal = ktc.trend || "0";
-  const trendNum = parseInt(trendVal);
-
-  const initials = playerName.split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase();
-  const sleeperId = SLEEPER_IDS[playerName] || ktc.sleeper_id || null;
-  const photoUrl = sleeperId ? `https://sleepercdn.com/content/nfl/players/thumb/${sleeperId}.jpg` : null;
-  const avatarEl = document.getElementById("pp-avatar");
-  const fallbackHtml = `<div style="width:80px;height:80px;background:${posColMap[pos]||'#2a2a2a'};display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:800;font-style:italic;color:${posTxtMap[pos]||'var(--white)'}">${initials}</div>`;
-  if (photoUrl) {
-    const img = document.createElement('img');
-    img.src = photoUrl;
-    img.alt = playerName;
-    img.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block;';
-    img.onerror = () => { avatarEl.innerHTML = fallbackHtml; };
-    avatarEl.innerHTML = '';
-    avatarEl.appendChild(img);
-  } else {
-    avatarEl.innerHTML = fallbackHtml;
-  }
-  document.getElementById("pp-pos-badge").innerHTML = `<span class="pos-badge ${pc(pos)}" style="font-size:12px;padding:3px 10px">${pos}</span>`;
-  document.getElementById("pp-nfl-team").textContent = ktc.team || "—";
-  document.getElementById("pp-player-name").textContent = playerName;
-  document.getElementById("pp-value-val").textContent = ktc.value ? ktc.value.toLocaleString() : "N/A";
-  // Overall rank now lives in the meta row chip — clear this line
-  document.getElementById("pp-value-rank").textContent = "";
-  const trendEl = document.getElementById("pp-value-trend");
-  // Wrap the arrow+number in a .trend span so it picks up the canonical
-  // text-stroke outline (shared utility from adp-tool). The outer
-  // .pp-value-trend keeps its own font/colour/margin for the "(7d)" suffix.
-  trendEl.innerHTML = trendNum > 0
-    ? `<span class="trend up">▲ +${trendNum}</span> <span style="opacity:.65">(7d)</span>`
-    : trendNum < 0
-      ? `<span class="trend down">▼ ${trendNum}</span> <span style="opacity:.65">(7d)</span>`
-      : `<span class="trend flat">—</span> <span style="opacity:.65">(7d)</span>`;
-  trendEl.className = `pp-value-trend ${trendNum>0?"up":trendNum<0?"down":""}`;
-
-  // Always render ALL seven stat cells so every player has the same modal
-  // layout. Missing values show as "—" instead of collapsing the cell, which
-  // previously made Harold Fannin (full data) and Eli Stowers (rookie) look
-  // visually inconsistent.
-  const _auctionStr = ktc.auction ? ('$' + String(ktc.auction).replace(/^\$+/, '')) : null;
-  document.getElementById("pp-meta-row").innerHTML = [
-    `<div class="pp-meta-item"><div class="pp-meta-label">Age</div><div class="pp-meta-val">${ktc.age != null ? ktc.age : '—'}</div></div>`,
-    `<div class="pp-meta-item" id="pp-exp-item" style="display:none"><div class="pp-meta-label">EXP</div><div class="pp-meta-val" id="pp-exp-val">—</div></div>`,
-    `<div class="pp-meta-item"><div class="pp-meta-label">Pos Rank</div><div class="pp-meta-val">${ktc.posRank || '—'}</div></div>`,
-    `<div class="pp-meta-item"><div class="pp-meta-label">Overall Rank</div><div class="pp-meta-val">${ktc.rank ? '#'+ktc.rank : '—'}</div></div>`,
-    `<div class="pp-meta-item"><div class="pp-meta-label">PPG</div><div class="pp-meta-val">${ktc.ppg != null ? ktc.ppg : '—'}</div></div>`,
-    `<div class="pp-meta-item"><div class="pp-meta-label">Dynasty ADP</div><div class="pp-meta-val">${ktc.adp != null ? ktc.adp : '—'}</div></div>`,
-    `<div class="pp-meta-item"><div class="pp-meta-label">Auction</div><div class="pp-meta-val" ${_auctionStr ? 'style="color:var(--green)"' : ''}>${_auctionStr || '—'}</div></div>`,
-  ].join("")
-
-  // Render articles row (FantasyPoints content). Hides itself if no articles for this player.
-  renderPlayerArticles(playerName);
-
-  // (Trending Adds / Drops were removed — those Sleeper aggregates were noisy
-  // and the MVS volume signal in the new extras row covers the same need.)
-
-  // Fetch years of experience from Sleeper. The per-player endpoint doesn't exist,
-  // so we fetch the full players DB once and cache it on window (~5MB, but cached
-  // for the rest of the session).
-  if (sleeperId) {
-    const setExp = (yoe) => {
-      const expEl = document.getElementById('pp-exp-val');
-      if (!expEl || yoe === null || yoe === undefined) return;
-      expEl.textContent = yoe === 0 ? 'Rookie' : `${yoe} yr${yoe !== 1 ? 's' : ''}`;
-      expEl.closest('.pp-meta-item').style.display = '';
-    };
-    if (window.SLEEPER_PLAYERS_DB) {
-      const p = window.SLEEPER_PLAYERS_DB[sleeperId];
-      if (p) setExp(p.years_exp);
-    } else if (!window.SLEEPER_PLAYERS_DB_LOADING) {
-      window.SLEEPER_PLAYERS_DB_LOADING = fetch('https://api.sleeper.app/v1/players/nfl')
-        .then(r => r.ok ? r.json() : null)
-        .then(db => {
-          if (!db) return;
-          window.SLEEPER_PLAYERS_DB = db;
-          const p = db[sleeperId];
-          if (p) setExp(p.years_exp);
-        }).catch(() => {});
-    } else {
-      // Already loading — wait for it
-      window.SLEEPER_PLAYERS_DB_LOADING.then(() => {
-        const p = window.SLEEPER_PLAYERS_DB?.[sleeperId];
-        if (p) setExp(p.years_exp);
-      });
-    }
-  }
-
-  const sorted = [...playerTrades].sort((a,b)=>b.date.localeCompare(a.date));
-  const pairedCount = {};
-  playerTrades.forEach(t => t.players.filter(p=>p.name!==playerName).forEach(p=>{ pairedCount[p.name]=(pairedCount[p.name]||0)+1; }));
-
-  // ── MVS extras row removed per user spec (no OTC / Baseline / Volume /
-  // Rankings inline). The mount div stays in the DOM so any future
-  // reintroduction is a one-line change; for now it renders empty.
-  const mvsExtrasEl = document.getElementById("pp-mvs-extras");
-  if (mvsExtrasEl) mvsExtrasEl.innerHTML = '';
-  // Stash sleeperId on the panel so the ADP Heatmap tab can render
-  // it lazily when the user clicks the tab (avoids the inline section
-  // looking different per player based on heatmap coverage).
-  window._ppActiveSleeperId = sleeperId || null;
-  // Clear any prior tab render so switching to Heatmap re-renders fresh
-  const heatmapTabEl = document.getElementById("pp-heatmap-tab");
-  if (heatmapTabEl) heatmapTabEl.innerHTML = "";
-
-  document.getElementById("pp-trades-tab").innerHTML =
-    sorted.length ? sorted.map(t => tradeCardHtml(t)).join("") : `<div style="font-size:13px;opacity:1;padding:20px 0;text-align:center;font-family:'Mulish',sans-serif">No trades found</div>`;
-
-  const ktcVal = ktc.value || 0;
-  currentPanelPlayer = { label: playerName, value: ktcVal, posKey: pos, type: "player" };
-  // Do NOT delete tfState here — preserve trade finder state when switching between players
-  // Restore the user's last-used tab so they don't have to re-click Stats/Curve/Finder every time they switch players
-  ppShowTab(ppLastTab || "trades");
-}
-
-
-function closePanel() {
-  document.getElementById("player-panel").classList.remove("open");
-  document.getElementById("panel-overlay").classList.remove("open");
-  document.body.style.overflow = "";
-  document.getElementById("pp-search").value = "";
-  document.getElementById("pp-search-results").classList.remove("open");
-  document.getElementById("pp-search-results").innerHTML = "";
-  document.getElementById("pp-player-tabs").innerHTML = "";
-  ppPlayers = [];
-  ppActivePlayer = null;
-  currentPanelPlayer = null;
-  ppLastTab = "trades"; // Reset so reopening the panel starts on Trades
-  delete tfState["pp-finder-tab"];
-}
+// pkpShowTab / ppLastTab / tfState / tfGetState / getAllAssets / renderAgeCurve
+// previously lived here. Now provided by assets/js/player-panel.js (shared
+// module). The module exposes ppLastTab, tfState, tfGetState, getAllAssets,
+// renderAgeCurve, currentPanelPlayer, and currentPanelPick on window. Inline
+// openPickPage / closePickPanel write to window.currentPanelPick so the
+// module's pkpShowTab picks up the seed when the Trade Finder tab renders.
+
+
+// _drawTradeFinder / renderTradeFinder / tfQuerySlot / tfDeactivateSlot /
+// tfActivateSlot / tfAddFromSearch / tfRemove / getSuggestions /
+// tfShowSuggestions previously lived here. All moved to
+// assets/js/player-panel.js (shared module). The module re-publishes them on
+// window so the rendered inline onclick attributes keep resolving.
+
+// openPanel / openPanelContent / closePanel previously lived here. All moved
+// to assets/js/player-panel.js (shared module). The module re-publishes them
+// on window so existing inline onclick="openPanel('Name')" markup keeps
+// working.
 
 // Read-only restore of any league import made on the User Importer page.
 // This page no longer has its own importer UI — but if my-leagues.html has
@@ -7551,7 +6239,10 @@ function openPickPage(year, round) {
 
   const allPickAssets = getAllAssets().filter(a=>a.type==="pick");
   const seedPick = allPickAssets.find(a=>a.label===`${year} ${round}.01`) || { label:`${year} Rd${round}`, value: 5000 };
-  currentPanelPick = { label: seedPick.label, value: seedPick.value, posKey: "PK", type: "pick" };
+  // Write to window.currentPanelPick so the shared module's pkpShowTab —
+  // which reads global.currentPanelPick — picks up this seed when the Trade
+  // Finder tab renders.
+  window.currentPanelPick = { label: seedPick.label, value: seedPick.value, posKey: "PK", type: "pick" };
   delete tfState["pick-panel-finder"];
   pkpShowTab("trades");
 
@@ -7564,7 +6255,7 @@ function closePickPanel() {
   document.getElementById("pick-panel").classList.remove("open");
   document.getElementById("pick-overlay").classList.remove("open");
   document.body.style.overflow = "";
-  currentPanelPick = null;
+  window.currentPanelPick = null;
   delete tfState["pick-panel-finder"];
 }
 
@@ -7702,178 +6393,9 @@ function clearMainSearch() {
 }
 
 
-function ppShowTab(tabName) {
-  // Map short names to full tab div ids
-  const tabMap = { 'trades':'trades', 'stats':'stats', 'curve':'age-curve', 'age-curve':'age-curve', 'finder':'finder', 'heatmap':'heatmap' };
-  const resolved = tabMap[tabName] || tabName;
-  // Remember this tab so opening another player keeps the user on the same view
-  ppLastTab = resolved;
-  ['trades','stats','age-curve','finder','heatmap'].forEach(t => {
-    const el = document.getElementById('pp-' + t + '-tab');
-    if (el) el.style.display = (t === resolved) ? 'block' : 'none';
-  });
-  // Update active state on tab buttons
-  document.querySelectorAll('.pp-tab').forEach(btn => {
-    const btnTab = btn.getAttribute('onclick').match(/ppShowTab\('([^']+)'\)/)?.[1];
-    if (btnTab) {
-      const btnResolved = tabMap[btnTab] || btnTab;
-      btn.classList.toggle('active', btnResolved === resolved);
-    }
-  });
-  if (resolved === 'stats' && currentPanelPlayer) {
-    renderPlayerStats('pp-stats-tab', currentPanelPlayer);
-  }
-  if (resolved === 'age-curve' && currentPanelPlayer) {
-    renderAgeCurve('pp-age-curve-tab', currentPanelPlayer);
-  }
-  if (resolved === 'heatmap' && window.Heatmap) {
-    const tabEl = document.getElementById('pp-heatmap-tab');
-    if (tabEl) window.Heatmap.render(tabEl, window._ppActiveSleeperId || null);
-  }
-  if (resolved === 'finder' && currentPanelPlayer) {
-    renderTradeFinder('pp-finder-tab', currentPanelPlayer);
-  }
-}
-
-
-// ── Player Stats Tab ──────────────────────────────────────────────────────────
-function renderPlayerStats(containerId, player) {
-  const el = document.getElementById(containerId);
-  if (!el || !player) return;
-
-  const pos     = player.posKey || 'WR';
-  const posName = {WR:'Wide Receiver',RB:'Running Back',QB:'Quarterback',TE:'Tight End'}[pos] || pos;
-  const name    = player.label;
-  const sleeperId = SLEEPER_IDS[name] || null;
-
-  if (!sleeperId) {
-    el.innerHTML = `<div style="padding:24px;text-align:center;font-family:'Mulish',sans-serif;font-size:13px;color:var(--muted);opacity:.5">No Sleeper ID found for ${name}</div>`;
-    return;
-  }
-
-  // Show loading
-  el.innerHTML = `<div style="display:flex;align-items:center;gap:10px;padding:24px;font-family:'Mulish',sans-serif;font-size:12px;color:var(--muted);opacity:.4">
-    <div style="width:8px;height:8px;border-radius:50%;background:var(--red);animation:ml-pulse 1.2s ease-in-out infinite"></div>
-    <div style="width:8px;height:8px;border-radius:50%;background:var(--red);animation:ml-pulse 1.2s ease-in-out .2s infinite"></div>
-    <div style="width:8px;height:8px;border-radius:50%;background:var(--red);animation:ml-pulse 1.2s ease-in-out .4s infinite"></div>
-    Loading stats from Sleeper...
-  </div>`;
-
-  // Fetch stats for all seasons 2020-2025
-  // NOTE: Sleeper deprecated api.sleeper.app/v1/stats/nfl/player/{id} (per-player season grouping).
-  // The current endpoint lives on api.sleeper.com (no /v1/). We try the new host first,
-  // then fall back to the old one for older seasons that may still resolve there.
-  const seasons = ['2025','2024','2023','2022','2021','2020'];
-  const tryFetch = (url) => fetch(url).then(r => r.ok ? r.json() : null).catch(() => null);
-  const fetches = seasons.map(yr =>
-    tryFetch(`https://api.sleeper.com/stats/nfl/player/${sleeperId}?season=${yr}&season_type=regular&grouping=season`)
-      .then(d => d || tryFetch(`https://api.sleeper.app/v1/stats/nfl/player/${sleeperId}?season_type=regular&season=${yr}&grouping=season`))
-  );
-
-  Promise.all(fetches).then(results => {
-    // Build year -> stats map
-    const yearStats = {};
-    results.forEach((data, i) => {
-      if (!data) return;
-      const yr = seasons[i];
-      // Sleeper returns {stats:{...}, season:...} or flat {pts_ppr:..., gp:...}
-      const s = data.stats || data;
-      if (!s || !s.gp || s.gp === 0) return;
-      yearStats[yr] = s;
-    });
-
-    if (!Object.keys(yearStats).length) {
-      el.innerHTML = `<div style="padding:24px;text-align:center;font-family:'Mulish',sans-serif;font-size:13px;color:var(--muted);opacity:.5">No stats available</div>`;
-      return;
-    }
-
-    // Define columns by position
-    const colDefs = {
-      QB: [
-        {key:'pts_ppr',   label:'FPTS',    fmt: v => v ? (+v).toFixed(1) : '—'},
-        {key:'gp',        label:'GP',      fmt: v => v || '—'},
-        {key:'pass_yd',   label:'Pass Yds',fmt: v => v ? (+v).toLocaleString() : '—'},
-        {key:'pass_td',   label:'Pass TD', fmt: v => v || '—'},
-        {key:'pass_int',  label:'INT',     fmt: v => v ?? '—'},
-        {key:'pass_cmp_pct', label:'Cmp%', fmt: v => v ? (+(v)*100).toFixed(1)+'%' : '—'},
-        {key:'pass_att',  label:'Att',     fmt: v => v || '—'},
-        {key:'rush_yd',   label:'Rush Yds',fmt: v => v || '—'},
-        {key:'rush_td',   label:'Rush TD', fmt: v => v ?? '—'},
-        {key:'pts_ppr',   label:'PPG',     fmt: (v,s) => s.gp && v ? (+v/+s.gp).toFixed(1) : '—', useRow:true},
-      ],
-      RB: [
-        {key:'pts_ppr',   label:'FPTS',    fmt: v => v ? (+v).toFixed(1) : '—'},
-        {key:'gp',        label:'GP',      fmt: v => v || '—'},
-        {key:'rush_yd',   label:'Rush Yds',fmt: v => v ? (+v).toLocaleString() : '—'},
-        {key:'rush_att',  label:'Rush Att',fmt: v => v || '—'},
-        {key:'rush_td',   label:'Rush TD', fmt: v => v ?? '—'},
-        {key:'rush_yd_per_att', label:'YPC', fmt: v => v ? (+v).toFixed(1) : '—'},
-        {key:'rec',       label:'Rec',     fmt: v => v || '—'},
-        {key:'rec_yd',    label:'Rec Yds', fmt: v => v || '—'},
-        {key:'rec_td',    label:'Rec TD',  fmt: v => v ?? '—'},
-        {key:'pts_ppr',   label:'PPG',     fmt: (v,s) => s.gp && v ? (+v/+s.gp).toFixed(1) : '—', useRow:true},
-      ],
-      WR: [
-        {key:'pts_ppr',   label:'FPTS',    fmt: v => v ? (+v).toFixed(1) : '—'},
-        {key:'gp',        label:'GP',      fmt: v => v || '—'},
-        {key:'rec_tgt',   label:'TGT',     fmt: v => v || '—'},
-        {key:'rec',       label:'Rec',     fmt: v => v || '—'},
-        {key:'rec_yd',    label:'Rec Yds', fmt: v => v ? (+v).toLocaleString() : '—'},
-        {key:'rec_td',    label:'Rec TD',  fmt: v => v ?? '—'},
-        {key:'rec_yd_per_rec', label:'YPR',fmt: v => v ? (+v).toFixed(1) : '—'},
-        {key:'rec_tgt',   label:'TGT/G',   fmt: (v,s) => s.gp && v ? (+v/+s.gp).toFixed(1) : '—', useRow:true},
-        {key:'pts_ppr',   label:'PPG',     fmt: (v,s) => s.gp && v ? (+v/+s.gp).toFixed(1) : '—', useRow:true},
-      ],
-      TE: [
-        {key:'pts_ppr',   label:'FPTS',    fmt: v => v ? (+v).toFixed(1) : '—'},
-        {key:'gp',        label:'GP',      fmt: v => v || '—'},
-        {key:'rec_tgt',   label:'TGT',     fmt: v => v || '—'},
-        {key:'rec',       label:'Rec',     fmt: v => v || '—'},
-        {key:'rec_yd',    label:'Rec Yds', fmt: v => v ? (+v).toLocaleString() : '—'},
-        {key:'rec_td',    label:'Rec TD',  fmt: v => v ?? '—'},
-        {key:'rec_yd_per_rec', label:'YPR',fmt: v => v ? (+v).toFixed(1) : '—'},
-        {key:'pts_ppr',   label:'PPG',     fmt: (v,s) => s.gp && v ? (+v/+s.gp).toFixed(1) : '—', useRow:true},
-      ],
-    };
-
-    const cols = colDefs[pos] || colDefs.WR;
-
-    // Table styles
-    const thStyle = `padding:6px 12px 8px 0;font-family:'Mulish',sans-serif;font-weight:700;font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);opacity:.45;border-bottom:1px solid var(--border2);text-align:left;white-space:nowrap;`;
-    const tdStyle = `padding:10px 12px 10px 0;font-family:'Mulish',sans-serif;font-size:13px;border-bottom:1px solid var(--border);vertical-align:middle;`;
-    const tdNum   = `${tdStyle}font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:14px;`;
-
-    const headers = ['Year', ...cols.map(c => c.label)].map(h =>
-      `<th style="${thStyle}">${h}</th>`
-    ).join('');
-
-    const rows = Object.entries(yearStats)
-      .sort((a,b) => b[0].localeCompare(a[0]))
-      .map(([yr, s]) => {
-        const cells = cols.map(c => {
-          const raw = c.useRow ? s[c.key] : s[c.key];
-          const val = c.useRow ? c.fmt(raw, s) : c.fmt(raw);
-          return `<td style="${tdNum}color:var(--white)">${val}</td>`;
-        }).join('');
-        return `<tr>
-          <td style="${tdStyle}font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:14px;color:var(--red)">${yr}</td>
-          ${cells}
-        </tr>`;
-      }).join('');
-
-    el.innerHTML = `
-      <div style="font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:11px;color:var(--red);text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px">${posName} Season Stats</div>
-      <div style="font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);opacity:.4;margin-bottom:10px">Source: Sleeper · Full PPR scoring</div>
-      <div style="overflow-x:auto;-webkit-overflow-scrolling:touch">
-        <table style="width:100%;border-collapse:collapse;min-width:400px">
-          <thead><tr>${headers}</tr></thead>
-          <tbody>${rows}</tbody>
-        </table>
-      </div>`;
-  }).catch(err => {
-    el.innerHTML = `<div style="padding:24px;text-align:center;font-family:'Mulish',sans-serif;font-size:13px;color:var(--muted);opacity:.5">Error loading stats</div>`;
-  });
-}
+// ppShowTab and renderPlayerStats previously lived here. Both moved to
+// assets/js/player-panel.js (shared module). The module re-publishes them on
+// window so the rendered inline onclick attributes keep resolving.
 
 
 // Apply cross-page handoff AFTER data has loaded.
