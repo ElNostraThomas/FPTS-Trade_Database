@@ -421,19 +421,26 @@
   }
   .filter-date:focus { outline: none; border-color: var(--red); }
   .filter-date.active { border-color: var(--red); }
-  /* Native calendar picker icon — force WHITE on dark theme.
-     Multiple browsers honor color-scheme + filter differently, so we
-     stack invert(1) → high opacity → background-tint to maximize the
-     odds the icon renders bright against the input bg. */
-  .filter-date::-webkit-calendar-picker-indicator {
-    filter: invert(100%) brightness(200%) contrast(110%);
-    opacity: 1;
-    cursor: pointer;
-    /* Keep the click target reasonable even when icon is small */
-    padding: 0 2px;
+  /* Custom calendar icon — hide the browser's native indicator (its color
+     varies by OS/browser/theme and CSS filters are inconsistent across
+     versions) and paint our own inline SVG. White on dark, dark on light.
+     The native indicator stays clickable via opacity:0 so date picker still opens. */
+  .filter-date {
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ffffff'><path d='M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zM9 14H7v-2h2v2zm4 0h-2v-2h2v2zm4 0h-2v-2h2v2zM9 18H7v-2h2v2zm4 0h-2v-2h2v2zm4 0h-2v-2h2v2z'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 16px 16px;
+    padding-right: 34px;
   }
-  .filter-date::-webkit-calendar-picker-indicator:hover { filter: invert(100%) brightness(200%) contrast(150%); }
-  [data-theme="light"] .filter-date::-webkit-calendar-picker-indicator { filter: invert(0); opacity: 0.85; }
+  .filter-date::-webkit-calendar-picker-indicator {
+    opacity: 0;
+    cursor: pointer;
+    width: 18px;
+    height: 18px;
+  }
+  [data-theme="light"] .filter-date {
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23111111'><path d='M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zM9 14H7v-2h2v2zm4 0h-2v-2h2v2zm4 0h-2v-2h2v2zM9 18H7v-2h2v2zm4 0h-2v-2h2v2zm4 0h-2v-2h2v2z'/></svg>");
+  }
   .date-range-row {
     background: var(--surface);
     border: 1px solid var(--border);
