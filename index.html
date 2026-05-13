@@ -2996,10 +2996,14 @@ function resetFilters() {
 
 function renderRecent() {
   if(!filtered.length){document.getElementById("tab-recent").innerHTML=`<div class="no-results">No trades match these filters</div>`;return;}
+  // _buildTradesFromMvs() already sorts newest-first by date. Sort defensively
+  // here too (in case applyFilters() ever reorders) so the rendered list is
+  // guaranteed newest → oldest regardless of upstream order.
+  const sorted = [...filtered].sort((a, b) => (b.date || '').localeCompare(a.date || ''));
   document.getElementById("tab-recent").innerHTML=
     `<div class="section-hdr"><span class="section-num">01</span><span class="section-title">Recent Trades</span></div>
      <div class="trade-grid">`+
-    [...filtered].reverse().map(t => tradeCardHtml(t)).join("")+
+    sorted.map(t => tradeCardHtml(t)).join("")+
     `</div>`;
 }
 
