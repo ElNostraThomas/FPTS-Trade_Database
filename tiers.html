@@ -297,7 +297,50 @@
     .page-title { font-size: 18px !important; }
     .tier-group-letter { padding: 2px 6px; font-size: 12px; }
   }
+
+  /* ═══════════════════════════════════════════════════════════════════════
+     PLAYER MODAL — opened when a tier-row name is clicked.
+     Mirrors the pp-modal pattern from trade-calculator / my-leagues /
+     adp-tool so the user gets the same modal experience as on other pages.
+     SYNC-RULE: keep the 5-tab strip aligned with the other pages
+     (Trades / Player Stats / Age Curve / Trade Finder / ADP Heatmap).
+     ═══════════════════════════════════════════════════════════════════════ */
+  .modal-backdrop { position:fixed; inset:0; background:rgba(0,0,0,.75); z-index:300; display:none; align-items:center; justify-content:center; padding:20px; }
+  .modal-backdrop.open { display:flex; }
+  .modal-backdrop .modal { background:var(--surface); border:1px solid var(--border); border-top:3px solid var(--red); max-width:1100px; width:100%; max-height:92vh; overflow-y:auto; padding:0; position:relative; }
+  .pp-top-bar { display:flex; align-items:center; justify-content:space-between; padding:14px 24px; background:var(--surface); border-bottom:1px solid var(--border); flex-wrap:wrap; gap:12px; }
+  .pp-top-title { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:13px; color:var(--red); text-transform:uppercase; letter-spacing:.06em; }
+  .pp-top-actions { display:flex; gap:6px; flex-wrap:wrap; }
+  .pp-action-btn { background:none; border:1px solid var(--border2); color:var(--white); font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:11px; padding:6px 14px; cursor:pointer; letter-spacing:.04em; transition:border-color .15s, color .15s; }
+  .pp-action-btn:hover { border-color:var(--red); color:var(--red); }
+  .pp-profile { display:flex; align-items:center; gap:24px; padding:24px 28px 18px; border-bottom:1px solid var(--border); }
+  .pp-hs { width:96px; height:96px; border-radius:50%; overflow:hidden; box-shadow:0 0 0 2px var(--border2); flex-shrink:0; background:var(--surface2); }
+  .pp-hs img { width:100%; height:100%; object-fit:cover; object-position:top; display:block; }
+  .pp-hs-fallback { width:100%; height:100%; display:flex; align-items:center; justify-content:center; font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:32px; color:var(--white); background:var(--surface2); }
+  .pp-info { flex:1; min-width:0; }
+  .pp-id { display:flex; align-items:center; gap:10px; margin-bottom:8px; }
+  .pos-pill { display:inline-block; padding:3px 9px; font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:11px; letter-spacing:.04em; }
+  .pos-pill.QB { background:var(--pos-qb-bg); color:#111; }
+  .pos-pill.RB { background:var(--pos-rb-bg); color:#111; }
+  .pos-pill.WR { background:var(--pos-wr-bg); color:#111; }
+  .pos-pill.TE { background:var(--pos-te-bg); color:#111; }
+  .pos-pill.K  { background:var(--pos-k-bg);  color:#111; }
+  .pp-team-label { font-family:'Mulish',sans-serif; font-size:13px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; color:var(--white); }
+  .pp-name { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:32px; color:var(--white); text-transform:uppercase; letter-spacing:.02em; line-height:1; margin-bottom:12px; }
+  .pp-stats { display:flex; flex-wrap:wrap; gap:6px 22px; font-family:'Mulish',sans-serif; }
+  .pp-stat { display:flex; flex-direction:column; gap:2px; }
+  .pp-stat .k { font-size:9px; opacity:1; text-transform:uppercase; letter-spacing:.07em; color:var(--white); font-weight:800; }
+  .pp-stat .v { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:14px; color:var(--white); }
+  .pp-fp { text-align:right; flex-shrink:0; }
+  .pp-fp .k { font-size:9px; opacity:1; text-transform:uppercase; letter-spacing:.08em; color:var(--white); font-family:'Mulish',sans-serif; margin-bottom:4px; }
+  .pp-fp .v { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:40px; color:var(--white); line-height:1; }
+  .pp-tabs { display:flex; border-bottom:1px solid var(--border); flex-shrink:0; overflow-x:auto; }
+  .pp-tab { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:12px; letter-spacing:.06em; color:var(--white); padding:10px 18px; cursor:pointer; border:none; background:none; border-bottom:2px solid transparent; margin-bottom:-1px; text-transform:uppercase; transition:color .15s, border-color .15s; }
+  .pp-tab.active { color:var(--red); border-bottom-color:var(--red); }
 </style>
+<script src="assets/js/mvs-extras.js"></script>
+<link rel="stylesheet" href="assets/css/heatmap.css">
+<script src="assets/js/heatmap.js"></script>
 <link rel="stylesheet" href="assets/css/legend.css">
 <script src="assets/js/legend-content.js"></script>
 <script src="assets/js/legend.js"></script>
@@ -345,7 +388,7 @@
       <option value="adp-tool.html">ADP</option>
       <option value="https://www.fantasypoints.com/nfl/rankings/dynasty#/">Rankings</option>
     </select>
-    <span class="nav-stat">Synced <strong id="tiers-updated-stat"><!-- TIERS:SYNCED:START -->May 12, 2026 9:08 PM<!-- TIERS:SYNCED:END --></strong></span>
+    <span class="nav-stat">Synced <strong id="tiers-updated-stat"><!-- TIERS:SYNCED:START -->May 12, 2026 9:34 PM<!-- TIERS:SYNCED:END --></strong></span>
     <span class="nav-badge">SEASON 2026</span>
     <button id="theme-toggle" onclick="toggleTheme()"
       style="background:none;border:1px solid var(--border2);color:var(--white);font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:11px;padding:5px 12px;cursor:pointer;transition:all .2s;letter-spacing:.04em;display:flex;align-items:center;gap:6px"
@@ -5333,6 +5376,254 @@ window.addEventListener('DOMContentLoaded', () => {
   // the Sleeper overlay lands so the page is never blank.
   renderTiers();
   applySleeperOverlay().then(() => renderTiers());
+});
+</script>
+
+<!-- PLAYER MODAL — opened inline when a tier-row name is clicked. -->
+<div class="modal-backdrop" id="tiers-modal-backdrop" onclick="if(event.target===this)_tiersCloseModal()">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="tiers-pp-name">
+    <div class="pp-top-bar">
+      <div class="pp-top-title">Player Profile</div>
+      <div class="pp-top-actions">
+        <button class="pp-action-btn" type="button" onclick="_tiersXpageToDb()">Open in Database ↗</button>
+        <button class="pp-action-btn" type="button" onclick="_tiersXpageToCalc()">Open in Calculator ↗</button>
+        <button class="pp-action-btn" type="button" onclick="_tiersXpageToAdp()">Open in ADP ↗</button>
+        <button class="pp-action-btn" type="button" onclick="_tiersXpageToLeagues()">Open in My Leagues ↗</button>
+        <button class="pp-action-btn" type="button" onclick="_tiersCloseModal()">✕ Close</button>
+      </div>
+    </div>
+    <div class="pp-profile">
+      <div class="pp-hs" id="tiers-pp-hs"></div>
+      <div class="pp-info">
+        <div class="pp-id">
+          <span class="pos-pill" id="tiers-pp-pos"></span>
+          <span class="pp-team-label" id="tiers-pp-team"></span>
+        </div>
+        <div class="pp-name" id="tiers-pp-name">—</div>
+        <div class="pp-stats" id="tiers-pp-stats"></div>
+      </div>
+      <div class="pp-fp">
+        <div class="k">Fantasy Points</div>
+        <div class="v" id="tiers-pp-fpv">—</div>
+      </div>
+    </div>
+    <div id="tiers-pp-mvs-extras"></div>
+    <!-- SYNC-RULE: keep this 5-tab strip aligned with the player modals on
+         the other four pages (DB / Calc / My-Leagues / ADP-tool). push.bat
+         warns on drift. -->
+    <div class="pp-tabs">
+      <button class="pp-tab active" type="button" onclick="_tiersShowTab('trades')">Trades</button>
+      <button class="pp-tab" type="button" onclick="_tiersShowTab('stats')">Player Stats</button>
+      <button class="pp-tab" type="button" onclick="_tiersShowTab('curve')">Age Curve</button>
+      <button class="pp-tab" type="button" onclick="_tiersShowTab('finder')">Trade Finder</button>
+      <button class="pp-tab" type="button" onclick="_tiersShowTab('heatmap')">ADP Heatmap</button>
+    </div>
+    <div id="tiers-pp-trades-tab"></div>
+    <div id="tiers-pp-stats-tab" style="display:none"></div>
+    <div id="tiers-pp-curve-tab" style="display:none"></div>
+    <div id="tiers-pp-finder-tab" style="display:none"></div>
+    <div id="tiers-pp-heatmap-tab" style="display:none"></div>
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════════════════════════════════════════════
+//  PLAYER MODAL — tiers-local, inline (no longer cross-page hands off to DB)
+// ════════════════════════════════════════════════════════════════════════
+window.FP_VALUES = window.FP_VALUES || {};
+window._tiersActivePlayerName = null;
+window._tiersActiveSleeperId  = null;
+
+// Hydrate FP_VALUES + MVS_PAYLOAD + PICK_AVAILABILITY so the shared
+// MvsExtras + Heatmap modules have everything they need.
+(function _tiersHydrateExtras(){
+  const v = '?v=' + (window.__DATA_VERSION || Date.now());
+  Promise.all([
+    fetch('data/values.json' + v).then(r => r.ok ? r.json() : null).catch(() => null),
+    fetch('data/mvs.json'    + v).then(r => r.ok ? r.json() : null).catch(() => null),
+    fetch('data/pick-availability.json' + v).then(r => r.ok ? r.json() : null).catch(() => null),
+    fetch('data/articles.json' + v).then(r => r.ok ? r.json() : null).catch(() => null),
+  ]).then(([vJ, mJ, pJ, aJ]) => {
+    if (vJ && vJ.players) Object.assign(window.FP_VALUES, vJ.players);
+    if (mJ) {
+      window.MVS_PAYLOAD = mJ;
+      // Overlay MVS data onto FP_VALUES so MvsExtras can read .recentTrades / .history / etc.
+      let _fmt = 'sf';
+      try { const x = localStorage.getItem('fpts-adp-format'); if (x === '1qb' || x === 'sf') _fmt = x; } catch (e) {}
+      Object.entries(mJ.players || {}).forEach(([name, mvs]) => {
+        const target = window.FP_VALUES[name] || (window.FP_VALUES[name] = { sleeperId: mvs.sleeperId, pos: mvs.position });
+        target.valueSf  = mvs.valueSf;
+        target.value1qb = mvs.value1qb;
+        target.value    = (_fmt === '1qb') ? mvs.value1qb : mvs.valueSf;
+        target.baselineSf  = mvs.baseline;
+        target.baseline1qb = mvs.baseline1qb;
+        target.baseline    = (_fmt === '1qb') ? mvs.baseline1qb : mvs.baseline;
+        target.trend = (_fmt === '1qb') ? mvs.trend1qb : mvs.trend;
+        target.tradesLastWeek = (_fmt === '1qb') ? mvs.tradesLastWeek1qb : mvs.tradesLastWeek;
+        target.historySf  = mvs.history;
+        target.history1qb = mvs.history1qb;
+        target.history    = (_fmt === '1qb') ? mvs.history1qb : mvs.history;
+        target.otcValue       = mvs.otcValue;
+        target.otcDiff        = mvs.otcDiff;
+        target.rankings       = mvs.rankings;
+        target.recentTrades   = mvs.recentTrades;
+        target.lastUpdated    = mvs.lastUpdated;
+        if (!target.sleeperId && mvs.sleeperId) target.sleeperId = mvs.sleeperId;
+      });
+    }
+    if (pJ && pJ.players) window.PICK_AVAILABILITY = pJ.players;
+    if (aJ && aJ.players) window.PLAYER_ARTICLES   = aJ.players;
+  });
+})();
+
+// Replace cross-page handoff with local modal open.
+window._fptsTiersOpenPlayer = function (name) {
+  if (!name || name.toLowerCase().includes('rookie pick')) return;
+  _tiersOpenModal(name);
+};
+
+function _tiersOpenModal(name) {
+  const backdrop = document.getElementById('tiers-modal-backdrop');
+  if (!backdrop) return;
+  const fp = (window.FP_VALUES && window.FP_VALUES[name]) || {};
+  const sid = fp.sleeperId || null;
+  const posRaw = String(fp.pos || (fp.posRank || '').replace(/\d+/g, '') || '').toUpperCase();
+  const pos = ['QB','RB','WR','TE','K'].includes(posRaw) ? posRaw : 'WR';
+  window._tiersActivePlayerName = name;
+  window._tiersActiveSleeperId  = sid;
+  // HS
+  const hsEl = document.getElementById('tiers-pp-hs');
+  const initial = (name || '?').slice(0, 1).toUpperCase();
+  if (sid) {
+    hsEl.innerHTML = '<img src="https://sleepercdn.com/content/nfl/players/thumb/' + sid + '.jpg" alt="" referrerpolicy="no-referrer" onerror="this.replaceWith(Object.assign(document.createElement(\'span\'),{className:\'pp-hs-fallback\',textContent:\'' + initial + '\'}))">';
+  } else {
+    hsEl.innerHTML = '<span class="pp-hs-fallback">' + initial + '</span>';
+  }
+  // Identity row
+  const posPill = document.getElementById('tiers-pp-pos');
+  posPill.className = 'pos-pill ' + pos;
+  posPill.textContent = fp.posRank || pos;
+  document.getElementById('tiers-pp-team').textContent = fp.team || '';
+  document.getElementById('tiers-pp-name').textContent = name;
+  // Inline stats
+  const stats = [
+    ['Age',          fp.age != null ? String(fp.age) : '—'],
+    ['Pos Rank',     fp.posRank || '—'],
+    ['Overall Rank', fp.rank ? '#' + fp.rank : '—'],
+    ['PPG',          fp.ppg != null ? String(fp.ppg) : '—'],
+  ];
+  document.getElementById('tiers-pp-stats').innerHTML = stats.map(([k, v]) =>
+    '<div class="pp-stat"><div class="k">' + k + '</div><div class="v">' + v + '</div></div>').join('');
+  // FP value
+  document.getElementById('tiers-pp-fpv').textContent = (fp.value != null) ? Number(fp.value).toLocaleString() : '—';
+  // MVS extras
+  const extrasEl = document.getElementById('tiers-pp-mvs-extras');
+  if (extrasEl) extrasEl.innerHTML = window.MvsExtras ? window.MvsExtras.buildAll(name) : '';
+  // Reset tabs
+  ['tiers-pp-trades-tab','tiers-pp-stats-tab','tiers-pp-curve-tab','tiers-pp-finder-tab','tiers-pp-heatmap-tab'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = '';
+  });
+  _tiersShowTab('trades');
+  backdrop.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+window._tiersCloseModal = function () {
+  const backdrop = document.getElementById('tiers-modal-backdrop');
+  if (backdrop) backdrop.classList.remove('open');
+  document.body.style.overflow = '';
+};
+
+window._tiersShowTab = function (name) {
+  const tabs = {
+    trades:  'tiers-pp-trades-tab',
+    stats:   'tiers-pp-stats-tab',
+    curve:   'tiers-pp-curve-tab',
+    finder:  'tiers-pp-finder-tab',
+    heatmap: 'tiers-pp-heatmap-tab',
+  };
+  Object.entries(tabs).forEach(([k, id]) => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = (k === name) ? 'block' : 'none';
+  });
+  document.querySelectorAll('#tiers-modal-backdrop .pp-tab').forEach(btn => {
+    const m = btn.getAttribute('onclick') || '';
+    btn.classList.toggle('active', m.indexOf("'" + name + "'") !== -1);
+  });
+  const playerName = window._tiersActivePlayerName || '';
+  const sid = window._tiersActiveSleeperId || null;
+  if (name === 'trades') {
+    const el = document.getElementById('tiers-pp-trades-tab');
+    if (el) el.innerHTML = _tiersRenderTradesTab(playerName);
+  } else if (name === 'heatmap' && window.Heatmap) {
+    const el = document.getElementById('tiers-pp-heatmap-tab');
+    if (el) window.Heatmap.render(el, sid);
+  } else if (name === 'curve') {
+    const el = document.getElementById('tiers-pp-curve-tab');
+    if (el) el.innerHTML = _tiersRenderAgeCurveTab(playerName);
+  } else if (name === 'stats' || name === 'finder') {
+    const el = document.getElementById(tabs[name]);
+    if (el) el.innerHTML = _tiersRenderDbCtaTab(name, playerName);
+  }
+};
+
+function _tiersRenderTradesTab(name) {
+  if (!name || !window.MVS_PAYLOAD || !window.MVS_PAYLOAD.players) {
+    return '<div style="padding:14px 24px;font-size:12px;color:var(--white);opacity:.7;font-family:\'Mulish\',sans-serif">No recent trades available.</div>';
+  }
+  const rec = window.MVS_PAYLOAD.players[name];
+  const trades = (rec && rec.recentTrades) || [];
+  if (!trades.length) return '<div style="padding:14px 24px;font-size:12px;color:var(--white);opacity:.7;font-family:\'Mulish\',sans-serif">No recent trades for ' + name + '.</div>';
+  if (window.MvsExtras && window.MvsExtras.buildRecentTrades) {
+    return '<div style="padding:14px 24px">' + window.MvsExtras.buildRecentTrades(trades, name) + '</div>';
+  }
+  return '';
+}
+function _tiersRenderAgeCurveTab(name) {
+  const fp = (window.FP_VALUES && window.FP_VALUES[name]) || {};
+  const age = fp.age, pos = (fp.posRank || '').replace(/\d+/g, '') || fp.pos || '';
+  if (age == null) return '<div style="padding:14px 24px;font-size:12px;color:var(--white);opacity:.7;font-family:\'Mulish\',sans-serif">Age data unavailable.</div>';
+  const peaks = { QB: 28, RB: 24, WR: 26, TE: 27 };
+  const peak = peaks[pos] || 26;
+  const delta = age - peak;
+  const label = Math.abs(delta) < 1 ? 'at positional peak' : (delta < 0 ? Math.round(Math.abs(delta)) + ' yrs from peak (rising)' : Math.round(delta) + ' yrs past peak (declining)');
+  return '<div style="padding:18px 24px;font-family:\'Mulish\',sans-serif;color:var(--white)">'
+    + '<div style="font-family:\'Kanit\',sans-serif;font-weight:800;font-style:italic;font-size:14px;color:var(--red);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">Age Curve</div>'
+    + '<div style="font-size:14px;margin-bottom:6px"><b>' + age + ' yrs old</b> · ' + pos + ' positional peak ~' + peak + '</div>'
+    + '<div style="font-size:13px;opacity:.85">' + label + '</div>'
+    + '<div style="margin-top:14px;padding:10px;background:var(--surface);border:1px solid var(--border);font-size:11px;opacity:.75;line-height:1.55">For full multi-year curve, open this player in the Database.</div>'
+    + '</div>';
+}
+function _tiersRenderDbCtaTab(tabName, name) {
+  const label = { stats: 'Player Stats', finder: 'Trade Finder' }[tabName] || tabName;
+  return '<div style="padding:24px;text-align:center;font-family:\'Mulish\',sans-serif;color:var(--white)">'
+    + '<div style="font-family:\'Kanit\',sans-serif;font-weight:800;font-style:italic;font-size:14px;color:var(--red);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">' + label + '</div>'
+    + '<div style="font-size:13px;opacity:.85;margin-bottom:14px">Full ' + label + ' is available in the Trade Database modal.</div>'
+    + '<button class="pp-action-btn" type="button" onclick="_tiersXpageToDb()" style="margin:0 auto">Open in Database ↗</button>'
+    + '</div>';
+}
+
+// Cross-page handoff helpers (modal action bar)
+window._tiersXpageToDb      = function () { _tiersHandoff('index.html'); };
+window._tiersXpageToCalc    = function () { _tiersHandoff('trade-calculator.html'); };
+window._tiersXpageToAdp     = function () { _tiersHandoff('adp-tool.html'); };
+window._tiersXpageToLeagues = function () { _tiersHandoff('my-leagues.html'); };
+function _tiersHandoff(destUrl) {
+  const name = window._tiersActivePlayerName;
+  if (typeof _fptsWriteHandoff === 'function' && name) {
+    _fptsWriteHandoff({ source: 'tiers', primaryPlayer: name }, destUrl);
+  } else {
+    window.open(destUrl, '_blank', 'noopener');
+  }
+}
+
+// Escape closes modal
+document.addEventListener('keydown', function (e) {
+  if (e.key === 'Escape') {
+    const bd = document.getElementById('tiers-modal-backdrop');
+    if (bd && bd.classList.contains('open')) _tiersCloseModal();
+  }
 });
 </script>
 </body>
