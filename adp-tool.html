@@ -220,15 +220,15 @@
   .box-card .card-fname { font-size:9px; line-height:1; opacity:.8; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   /* Last name forced to a single line so card heights stay uniform across the board */
   .box-card .card-lname { font-size:12px; line-height:1.1; margin-top:1px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-  .box-card .card-meta { display:flex; align-items:center; gap:4px; font-family:'Mulish',sans-serif; font-size:9px; font-weight:800; letter-spacing:.04em; margin-top:auto; opacity:.85; padding-top:2px; padding-right:34px; }
+  .box-card .card-meta { display:flex; align-items:center; gap:4px; font-family:'Mulish',sans-serif; font-size:9px; font-weight:800; letter-spacing:.04em; margin-top:auto; opacity:.85; padding-top:2px; padding-right:34px; padding-left:34px; }
   /* Small circular headshot pinned to the bottom-right corner — matches the reference layout */
   .box-card .card-hs { position:absolute; bottom:4px; right:4px; width:32px; height:32px; border-radius:50%; object-fit:cover; object-position:top; border:1px solid rgba(0,0,0,.18); background:rgba(0,0,0,.1); }
   .box-card .card-hs-fallback { position:absolute; bottom:4px; right:4px; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:14px; color:inherit; opacity:.55; background:rgba(0,0,0,.12); border:1px solid rgba(0,0,0,.18); }
   /* Team logo circle — mirrors .card-hs at the bottom-left of each card.
      Dark-surface backdrop matches the badge halo style; logo PNG fills the
      center with a small padding so it doesn't touch the circle edge. */
-  .box-card .card-team-logo { position:absolute; bottom:4px; left:4px; width:32px; height:32px; border-radius:50%; background:rgba(0,0,0,.1); border:1px solid rgba(0,0,0,.18); display:flex; align-items:center; justify-content:center; overflow:hidden; z-index:1; }
-  .box-card .card-team-logo img { width:22px; height:22px; object-fit:contain; display:block; }
+  .box-card .card-team-logo { position:absolute; bottom:4px; left:4px; width:22px; height:22px; border-radius:50%; background:rgba(0,0,0,.1); border:1px solid rgba(0,0,0,.18); display:flex; align-items:center; justify-content:center; overflow:hidden; z-index:1; }
+  .box-card .card-team-logo img { width:16px; height:16px; object-fit:contain; display:block; }
   .box-card.QB { background:var(--pos-qb-bg); color:var(--pos-qb); }
   .box-card.RB { background:var(--pos-rb-bg); color:var(--pos-rb); }
   .box-card.WR { background:var(--pos-wr-bg); color:var(--pos-wr); }
