@@ -218,14 +218,26 @@
     return String(name || '').toLowerCase().replace(/[^a-z0-9 ]+/g, '').replace(/\s+/g, ' ').trim();
   }
 
-  // Universal player thumbnail helper. Mirrors the global _imgThumb from index.html.
+  // Universal player thumbnail helper. Mirrors the global _imgThumb from
+  // index.html. Falls back through every known shape of the sleeper-id field
+  // so the thumbnail resolves whether the page populated SLEEPER_IDS (DB /
+  // Calc) or only carries the id inside FP_VALUES[name].sleeperId (ADP /
+  // Tiers).
   function _imgThumb(name, size) {
     const ids = _sleeper();
+    const fps = _fp();
     const looked = ids[name];
     const sid = looked || (() => {
+      // Fall back to FP_VALUES[name].sleeperId.
+      const rec = fps[name];
+      if (rec && (rec.sleeperId || rec.sleeper_id)) return rec.sleeperId || rec.sleeper_id;
+      // Otherwise normalize the name and try both dicts again.
       const k = _normName(name);
       const m = Object.keys(ids).find(n => _normName(n) === k);
-      return m ? ids[m] : null;
+      if (m) return ids[m];
+      const fn = Object.keys(fps).find(n => _normName(n) === k);
+      if (fn && fps[fn] && (fps[fn].sleeperId || fps[fn].sleeper_id)) return fps[fn].sleeperId || fps[fn].sleeper_id;
+      return null;
     })();
     const initials = (name || '').split(' ').map(t => t[0]).join('').slice(0, 2).toUpperCase();
     const fontSize = Math.max(8, size - 15);
@@ -1133,7 +1145,10 @@
                 const _parts = String(a.label || '').trim().split(/\s+/);
                 const _fname = _parts.length > 1 ? _parts.slice(0, -1).join(' ') : '';
                 const _lname = _parts[_parts.length - 1] || a.label;
-                const _nameHtml = `<span class="tf-asset-name">${_fname ? `<span class="fn">${_fname.replace(/'/g, "\\'")}</span>` : ''}<span class="ln">${_lname.replace(/'/g, "\\'")}</span></span>`;
+                // Display name lives in text content — do NOT JS-escape the
+                // apostrophe (that's only needed inside onclick string literals).
+                // Without this fix "Ja'Marr Chase" rendered as "Ja\'Marr Chase".
+                const _nameHtml = `<span class="tf-asset-name">${_fname ? `<span class="fn">${_fname}</span>` : ''}<span class="ln">${_lname}</span></span>`;
                 return `
                 <div class="tf-asset" data-pos="${_pos}">
                   ${a.type === 'pick' ? pickThumb(24) : _imgThumb(a.label, 24) + `<span class="pos-badge ${_pc(_pos)}" style="font-size:9px;padding:1px 5px">${_pos}</span>`}
