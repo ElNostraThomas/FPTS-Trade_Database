@@ -6150,8 +6150,8 @@ function renderRoster(playerIds, players, starters, myPicks, rosterToTeam, proje
 
         </div>
       </td>
-      <td style="${numS}color:var(--muted);opacity:.5">${r.age}</td>
-      <td style="${numS}color:var(--muted);opacity:.5;font-size:12px">${r.exp === null ? '—' : r.exp === 0 ? 'R' : r.exp+'y'}</td>
+      <td style="${numS}color:var(--white)">${r.age}</td>
+      <td style="${numS}color:var(--white);font-size:12px">${r.exp === null ? '—' : r.exp === 0 ? 'R' : r.exp+'y'}</td>
       <td style="${numS}color:${valColor(r.value)}">${r.value ? r.value.toLocaleString() : '—'}</td>
       <td style="${numS}color:var(--white);font-size:12px">${r.posRank}</td>
       <td style="${numS}color:${r.seasonProj ? 'var(--white)' : 'var(--muted)'};opacity:${r.seasonProj ? '1' : '.3'}" title="Season-long projected points">${r.seasonProj ? r.seasonProj.toFixed(1) : '—'}</td>
