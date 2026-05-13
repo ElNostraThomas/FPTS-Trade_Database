@@ -511,8 +511,8 @@
 <script>document.addEventListener('DOMContentLoaded', function(){ if (window.Legend) Legend.init('adp-tool'); });</script>
 <!-- Shared player panel — DB's slide-in drawer, used identically on every page -->
 <script>window.FPTS_CURRENT_PAGE = 'adp';</script>
-<link rel="stylesheet" href="assets/css/player-panel.css?v=1778653500">
-<script src="assets/js/player-panel.js?v=1778653500" defer></script>
+<link rel="stylesheet" href="assets/css/player-panel.css?v=1778654000">
+<script src="assets/js/player-panel.js?v=1778654000" defer></script>
 <style>
   /* Hide the legacy in-page modal — openModal now routes to the shared panel. */
   #modal-backdrop { display: none !important; }
@@ -908,6 +908,20 @@ function splitName(name) {
     fetch('data/auction.json' + v).then(r => r.ok ? r.json() : Promise.reject('auction ' + r.status)).then(j => _applyAuctionPayload(j)).catch(() => { /* auction optional */ }),
     fetch('data/pick-availability.json' + v).then(r => r.ok ? r.json() : Promise.reject('pick-availability ' + r.status)).then(j => { if (j && j.players) PICK_AVAILABILITY = j.players; window.PICK_AVAILABILITY_META = j && j.meta || null; }).catch(() => { /* optional during scaffold */ }),
     fetch('data/articles.json' + v).then(r => r.ok ? r.json() : Promise.reject('articles ' + r.status)).then(j => { if (j && j.players) window.PLAYER_ARTICLES = j.players; }).catch(() => { /* articles optional */ }),
+    // MVS payload — needed by the shared player-panel module so the Trades
+    // tab can build a player's recent-trade list, and so the panel can
+    // resolve a Sleeper headshot from rec.sleeperId. Overlays sleeperId onto
+    // FP_VALUES once both payloads have loaded.
+    fetch('data/mvs.json' + v).then(r => r.ok ? r.json() : Promise.reject('mvs ' + r.status)).then(j => {
+      if (!j) return;
+      window.MVS_PAYLOAD = j;
+      if (j.players && typeof FP_VALUES === 'object') {
+        Object.entries(j.players).forEach(([name, mvs]) => {
+          const rec = FP_VALUES[name];
+          if (rec && mvs && mvs.sleeperId && !rec.sleeperId) rec.sleeperId = mvs.sleeperId;
+        });
+      }
+    }).catch(() => { /* mvs optional */ }),
   ]).then(() => {
     rebuildFpIndex();    // index AFTER both values.json + auction.json overlay
     rebuildTrendIndex(); // initial trend for the default mode
@@ -1537,6 +1551,13 @@ function openModal(sleeperId) {
   window.FP_VALUES = FP_VALUES;
   window.ADP_DATA  = ADP_DATA;
   window.PICK_AVAILABILITY = PICK_AVAILABILITY;
+  // Build a SLEEPER_IDS map (name -> sleeperId) from the active bucket so
+  // the shared module can resolve a Sleeper headshot for every player on
+  // this page. The bucket records always carry .sleeperId; FP_VALUES may
+  // or may not (depends on whether MVS overlay has run yet).
+  if (!window.SLEEPER_IDS || typeof window.SLEEPER_IDS !== 'object') window.SLEEPER_IDS = {};
+  list.forEach(x => { if (x && x.name && x.sleeperId) window.SLEEPER_IDS[x.name] = String(x.sleeperId); });
+  if (p && p.sleeperId) window.SLEEPER_IDS[p.name] = String(p.sleeperId);
   if (typeof window.openPanel === 'function' && p.name) {
     try { window.openPanel(p.name); return; } catch (e) { console.warn('[adp] shared openPanel failed:', e); }
   }
