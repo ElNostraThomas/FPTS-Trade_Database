@@ -2031,6 +2031,12 @@
      Hide legacy modal + horizontal tab strip; show all five tab bodies stacked. */
   #ml-pd-backdrop { display: none !important; }
   body.fpts-ml-page .pp-tabs { display: none !important; }
+  /* Move the league-context slot ABOVE the accordion sections (default position
+     in the shared template is pinned to the bottom). Flex order on #pp-primary's
+     children — profile/mvs stay at the top, slot inserts between mvs and scroll. */
+  body.fpts-ml-page #pp-primary > .pp-profile     { order: -3; }
+  body.fpts-ml-page #pp-primary > #pp-mvs-extras  { order: -2; }
+  body.fpts-ml-page #pp-primary > #pp-league-context { order: -1; }
   body.fpts-ml-page #pp-trades-tab,
   body.fpts-ml-page #pp-stats-tab,
   body.fpts-ml-page #pp-curve-tab,
@@ -2051,6 +2057,9 @@
   body.fpts-ml-page .pp-accordion-header .pp-acc-caret { font-size: 11px; opacity: .7; transition: transform .15s ease; }
   body.fpts-ml-page .pp-acc-collapsed > .pp-accordion-header .pp-acc-caret { transform: rotate(-90deg); }
   body.fpts-ml-page .pp-acc-collapsed > *:not(.pp-accordion-header) { display: none !important; }
+  /* Don't let the scroll area grow to fill the panel when all sections are
+     collapsed — that creates the big empty gap visible in the screenshot. */
+  body.fpts-ml-page #pp-primary > .pp-scroll { flex: 0 0 auto; }
 </style>
 <script>document.addEventListener('DOMContentLoaded', function(){ if (window.Legend) Legend.init('my-leagues'); document.body.classList.add('fpts-ml-page'); window.FPTS_CURRENT_PAGE = 'ml'; });</script>
 </head>
@@ -4199,6 +4208,50 @@ function _mlBuildStatusBlock(sid) {
   </div>`;
 }
 
+function _mlMakeAccordionHeader(tabId, label, openSet) {
+  const header = document.createElement('button');
+  header.type = 'button';
+  header.className = 'pp-accordion-header';
+  header.innerHTML = `<span>${label}</span><span class="pp-acc-caret">▼</span>`;
+  header.addEventListener('click', () => {
+    const tab = document.getElementById(tabId);
+    if (!tab) return;
+    const nowCollapsed = tab.classList.toggle('pp-acc-collapsed');
+    if (nowCollapsed) openSet.delete(tabId); else openSet.add(tabId);
+    _mlWriteAccordionOpenSet(openSet);
+  });
+  return header;
+}
+
+function _mlEnsureAccordionHeader(tabId, label, openSet) {
+  const tab = document.getElementById(tabId);
+  if (!tab) return;
+  if (!tab.querySelector(':scope > .pp-accordion-header')) {
+    tab.insertBefore(_mlMakeAccordionHeader(tabId, label, openSet), tab.firstChild);
+  }
+  // Apply collapsed state every pass (idempotent — won't disturb expanded user choice
+  // because openSet is the source of truth).
+  if (openSet.has(tabId)) tab.classList.remove('pp-acc-collapsed');
+  else tab.classList.add('pp-acc-collapsed');
+}
+
+function _mlApplyAccordion() {
+  const openSet = _mlReadAccordionOpenSet();
+  Object.entries(ML_TAB_LABELS).forEach(([tabId, label]) => {
+    _mlEnsureAccordionHeader(tabId, label, openSet);
+    // Set up (or reuse) a MutationObserver that re-injects the header if an
+    // async renderer wipes it via innerHTML reassignment.
+    if (!window._mlAccObservers) window._mlAccObservers = {};
+    if (!window._mlAccObservers[tabId]) {
+      const tab = document.getElementById(tabId);
+      if (!tab) return;
+      const obs = new MutationObserver(() => _mlEnsureAccordionHeader(tabId, label, openSet));
+      obs.observe(tab, { childList: true });
+      window._mlAccObservers[tabId] = obs;
+    }
+  });
+}
+
 function _mlAfterPanelOpen(name, sid, pos, team) {
   // 1. Populate the league-context slot with status badge + availability section.
   const slot = document.getElementById('pp-league-context');
@@ -4222,46 +4275,13 @@ function _mlAfterPanelOpen(name, sid, pos, team) {
     }
   } catch (e) {}
 
-  // 3. Wrap each tab body with an accordion header and apply persisted state.
-  //    Async renderers (Player Stats) overwrite el.innerHTML after their fetch
-  //    completes, wiping any header we injected. A MutationObserver per tab
-  //    re-inserts the header whenever the body's content is replaced.
-  const openSet = _mlReadAccordionOpenSet();
-  function _mlMakeHeader(tabId, label) {
-    const header = document.createElement('button');
-    header.type = 'button';
-    header.className = 'pp-accordion-header';
-    header.innerHTML = `<span>${label}</span><span class="pp-acc-caret">▼</span>`;
-    header.addEventListener('click', () => {
-      const tab = document.getElementById(tabId);
-      if (!tab) return;
-      const nowCollapsed = tab.classList.toggle('pp-acc-collapsed');
-      if (nowCollapsed) openSet.delete(tabId); else openSet.add(tabId);
-      _mlWriteAccordionOpenSet(openSet);
-    });
-    return header;
-  }
-  function _mlEnsureHeader(tab, tabId, label) {
-    if (!tab.querySelector(':scope > .pp-accordion-header')) {
-      tab.insertBefore(_mlMakeHeader(tabId, label), tab.firstChild);
-    }
-  }
-  window._mlAccObservers = window._mlAccObservers || {};
-  Object.entries(ML_TAB_LABELS).forEach(([tabId, label]) => {
-    const tab = document.getElementById(tabId);
-    if (!tab) return;
-    _mlEnsureHeader(tab, tabId, label);
-    // Apply collapsed state
-    if (openSet.has(tabId)) tab.classList.remove('pp-acc-collapsed');
-    else tab.classList.add('pp-acc-collapsed');
-    // Set up (or reuse) a MutationObserver that re-injects the header if an
-    // async renderer wipes it via innerHTML reassignment.
-    if (!window._mlAccObservers[tabId]) {
-      const obs = new MutationObserver(() => _mlEnsureHeader(tab, tabId, label));
-      obs.observe(tab, { childList: true });
-      window._mlAccObservers[tabId] = obs;
-    }
-  });
+  // 3. Inject accordion headers. We do this immediately, then again on a short
+  //    delay to defend against any async render that lands after our first pass
+  //    (the MutationObserver should catch most cases — these timers are belt-
+  //    and-suspenders for the rare race where the observer misses).
+  _mlApplyAccordion();
+  setTimeout(_mlApplyAccordion, 300);
+  setTimeout(_mlApplyAccordion, 1500);
 }
 
 // ── CALCULATOR MODAL ──────────────────────────────────────────────────────
