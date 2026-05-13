@@ -216,17 +216,19 @@
   .box-card .card-pick { font-weight:800; }
   .box-card .card-posrank { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:9px; padding:1px 5px; letter-spacing:.04em; background:rgba(0,0,0,.22); color:inherit; }
   .box-card .card-adp { font-weight:700; opacity:.78; font-size:9px; }
-  .box-card .card-name { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; line-height:1; overflow:hidden; margin-top:1px; padding-right:34px; }
+  .box-card .card-name { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; line-height:1; overflow:hidden; margin-top:1px; padding-right:34px; padding-left:34px; }
   .box-card .card-fname { font-size:9px; line-height:1; opacity:.8; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   /* Last name forced to a single line so card heights stay uniform across the board */
   .box-card .card-lname { font-size:12px; line-height:1.1; margin-top:1px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-  .box-card .card-meta { display:flex; align-items:center; gap:4px; font-family:'Mulish',sans-serif; font-size:9px; font-weight:800; letter-spacing:.04em; margin-top:auto; opacity:.85; padding-top:2px; padding-right:34px; }
+  .box-card .card-meta { display:flex; align-items:center; gap:4px; font-family:'Mulish',sans-serif; font-size:9px; font-weight:800; letter-spacing:.04em; margin-top:auto; opacity:.85; padding-top:2px; padding-right:34px; padding-left:34px; }
   /* Small circular headshot pinned to the bottom-right corner — matches the reference layout */
   .box-card .card-hs { position:absolute; bottom:4px; right:4px; width:32px; height:32px; border-radius:50%; object-fit:cover; object-position:top; border:1px solid rgba(0,0,0,.18); background:rgba(0,0,0,.1); }
   .box-card .card-hs-fallback { position:absolute; bottom:4px; right:4px; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:14px; color:inherit; opacity:.55; background:rgba(0,0,0,.12); border:1px solid rgba(0,0,0,.18); }
-  /* Team-logo badge in the bottom-right corner of .card-hs. Anchored to the
-     same corner as .card-hs so it overlaps the headshot edge. */
-  .box-card .player-hs-team { bottom:2px; right:2px; }
+  /* Team logo circle — mirrors .card-hs at the bottom-left of each card.
+     Dark-surface backdrop matches the badge halo style; logo PNG fills the
+     center with a small padding so it doesn't touch the circle edge. */
+  .box-card .card-team-logo { position:absolute; bottom:4px; left:4px; width:32px; height:32px; border-radius:50%; background:rgba(0,0,0,.7); border:1px solid rgba(0,0,0,.18); display:flex; align-items:center; justify-content:center; overflow:hidden; z-index:1; }
+  .box-card .card-team-logo img { width:22px; height:22px; object-fit:contain; display:block; }
   .box-card.QB { background:var(--pos-qb-bg); color:var(--pos-qb); }
   .box-card.RB { background:var(--pos-rb-bg); color:var(--pos-rb); }
   .box-card.WR { background:var(--pos-wr-bg); color:var(--pos-wr); }
@@ -1346,26 +1348,24 @@ function renderBoxView(players) {
         : (hs
             ? `<img class="card-hs" src="${hs}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'card-hs-fallback',textContent:'${initial}'}))">`
             : `<span class="card-hs-fallback">${initial}</span>`);
-      // .card-hs is absolute-positioned at bottom:4 right:4 inside .box-card.
-      // The badge gets a scoped CSS rule (.box-card .player-hs-team) in
-      // adp-tool's <style> block that anchors it to the same corner so it
-      // overlaps the bottom-right of the headshot.
-      const hsBadge = (!isRookiePick(p) && p.team && window.TeamHelpers)
-        ? window.TeamHelpers.headshotBadge(p.team, { cls: 'player-hs-team--md' })
+      const hsHtml = rawHs;
+      // Team logo: 32px circle anchored to the bottom-LEFT of the card,
+      // mirroring the player headshot in the bottom-right. Dark-surface
+      // backdrop matches the badge halo style used elsewhere. RDP rows have
+      // no team, so this slot stays empty for them.
+      const teamLogoCircle = (!isRookiePick(p) && p.team && window.TeamHelpers)
+        ? `<div class="card-team-logo" data-team="${escapeHtml(p.team)}"><img src="${window.TeamHelpers.logoUrl(p.team)}" alt="${escapeHtml(p.team)}" title="${escapeHtml(p.team)}" loading="lazy" onerror="this.style.display='none'"></div>`
         : '';
-      const hsHtml = rawHs + hsBadge;
       // Dim a card if it fails ANY active soft filter: position/search, round, or team.
       const matchesPosSearch = isSoftMatch(p);
       const matchesRound     = !roundFilter.size || roundFilter.has(r + 1);
       const matchesTeam      = !teamFilter.size  || teamFilter.has(t + 1);
       const dimCls = (matchesPosSearch && matchesRound && matchesTeam) ? '' : ' dim';
       const trendHtml = trendBadge(p.name);
-      // Team logo replaces the 3-letter text in the card-meta line.
-      const teamLogoHtml = (p.team && window.TeamHelpers)
-        ? window.TeamHelpers.logoImg(p.team, { size: 14 })
-        : escapeHtml(p.team || '');
-      const metaHtml  = (p.team || trendHtml)
-        ? `<div class="card-meta">${teamLogoHtml}${trendHtml}</div>`
+      // The team identity now lives in the bottom-left circle (teamLogoCircle
+      // above), so card-meta is trend-only.
+      const metaHtml  = trendHtml
+        ? `<div class="card-meta">${trendHtml}</div>`
         : '';
       parts.push(`<div class="box-card ${pos}${dimCls}" data-id="${escapeHtml(p.sleeperId)}">
         <div class="card-content">
@@ -1380,6 +1380,7 @@ function renderBoxView(players) {
           </div>
           ${metaHtml}
         </div>
+        ${teamLogoCircle}
         ${hsHtml}
       </div>`);
     }
