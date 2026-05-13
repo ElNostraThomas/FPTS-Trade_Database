@@ -496,7 +496,11 @@
     const playerTrades = TRADES.filter(t => (t.players || []).some(p => p.name === playerName));
     const playerInfo = TRADES.flatMap(t => t.players || []).find(p => p.name === playerName);
     const ktc = FP_VALUES[playerName] || {};
-    const pos = (playerInfo && playerInfo.pos) || (ktc.posRank ? ktc.posRank.replace(/\d+/g, '') : null) || 'WR';
+    // Rookie pick? Detect from name pattern — sleeperId lookup happens lower
+    // down but pos resolution needs the flag earlier.
+    const _isRdpName = /^Rookie Pick \d+\.\d+$/.test(playerName);
+    const pos = _isRdpName ? 'RDP'
+      : (playerInfo && playerInfo.pos) || (ktc.posRank ? ktc.posRank.replace(/\d+/g, '') : null) || 'WR';
     const trendVal = ktc.trend || '0';
     const trendNum = parseInt(trendVal, 10);
 
@@ -506,11 +510,18 @@
     // their FP_VALUES records carry the id under .sleeperId (camelCase) and
     // some legacy MVS data stashes it under .sleeper_id (snake_case).
     const sleeperId = SLEEPER_IDS[playerName] || ktc.sleeperId || ktc.sleeper_id || null;
-    const photoUrl = sleeperId ? `https://sleepercdn.com/content/nfl/players/thumb/${sleeperId}.jpg` : null;
+    // Rookie pick placeholders carry a synthetic ROOKIE_PICK_X.YY id. Sleeper's
+    // CDN has no headshot for them, so we render the flame thumbnail used for
+    // pick assets elsewhere on the site instead of the initials fallback.
+    const isRookiePick = (sleeperId && String(sleeperId).startsWith('ROOKIE_PICK_'))
+      || /^Rookie Pick \d+\.\d+$/.test(playerName);
+    const photoUrl = (sleeperId && !isRookiePick) ? `https://sleepercdn.com/content/nfl/players/thumb/${sleeperId}.jpg` : null;
     const avatarEl = document.getElementById('pp-avatar');
     if (!avatarEl) return; // panel not mounted (defensive)
     const fallbackHtml = `<div style="width:80px;height:80px;background:${_posCol(pos)};display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:800;font-style:italic;color:${_posTxt(pos)}">${initials}</div>`;
-    if (photoUrl) {
+    if (isRookiePick) {
+      avatarEl.innerHTML = pickThumb(80);
+    } else if (photoUrl) {
       const img = document.createElement('img');
       img.src = photoUrl;
       img.alt = playerName;

@@ -55,7 +55,7 @@ sleeper_dynasty_adp/  (separate desktop folder — your data factory)
   data/adp.json   data/auction.json   data/pick-availability.json
 
 FantasyPoints API → sync-fp.py → data/values.json + data/articles.json +
-                                  data/rank-history.json + data/projections.json
+                                  data/picks.json + data/rank-history.json (internal)
 
 CSV (player_market_mvs.csv) → sync-mvs.py → data/mvs.json
 

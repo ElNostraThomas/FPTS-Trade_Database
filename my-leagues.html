@@ -2025,7 +2025,7 @@
 <script src="assets/js/legend-content.js?v=1778642255"></script>
 <script src="assets/js/legend.js?v=1778642255"></script>
 <link rel="stylesheet" href="assets/css/player-panel.css?v=1778645000">
-<script src="assets/js/player-panel.js?v=1778645000"></script>
+<script src="assets/js/player-panel.js?v=1778660000"></script>
 <style>
   /* ML uses the shared slide-out panel as an accordion (not horizontal tabs).
      Hide legacy modal + horizontal tab strip; show all five tab bodies stacked. */
@@ -2060,6 +2060,13 @@
   /* Don't let the scroll area grow to fill the panel when all sections are
      collapsed — that creates the big empty gap visible in the screenshot. */
   body.fpts-ml-page #pp-primary > .pp-scroll { flex: 0 0 auto; }
+  /* With .pp-scroll shrunk to content, the scroll container has to move up to
+     #pp-primary — otherwise wheel events bubble to the body and scroll the
+     page underneath instead of the panel. !important overrides the inline
+     overflow:hidden set on #pp-primary by player-panel.js. */
+  body.fpts-ml-page #pp-primary { overflow-y: auto !important; overflow-x: hidden; }
+  /* Smooth iOS touch scrolling + prevent scroll-chaining back to the page. */
+  body.fpts-ml-page #pp-primary { overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
 </style>
 <script>document.addEventListener('DOMContentLoaded', function(){ if (window.Legend) Legend.init('my-leagues'); document.body.classList.add('fpts-ml-page'); window.FPTS_CURRENT_PAGE = 'ml'; });</script>
 </head>

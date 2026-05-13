@@ -33,9 +33,6 @@
    data/articles.json       FantasyPoints recent articles         sync-fp.py
      → PLAYER_ARTICLES[name] = [{ title, url, snippet, image }]
 
-   data/projections.json    Sleeper season + weekly proj          sync-fp.py
-     → window.PROJECTIONS keyed by sleeper_id
-
    data/pick-availability.json   Heatmap data (adp-tool only)     sync-adp.py
      → loaded lazily for the player modal heatmap
    ──────────────────────────────────────────────────────────────────────

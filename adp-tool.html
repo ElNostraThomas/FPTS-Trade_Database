@@ -514,7 +514,7 @@
 <!-- Shared player panel — DB's slide-in drawer, used identically on every page -->
 <script>window.FPTS_CURRENT_PAGE = 'adp';</script>
 <link rel="stylesheet" href="assets/css/player-panel.css?v=1778655500">
-<script src="assets/js/player-panel.js?v=1778655500" defer></script>
+<script src="assets/js/player-panel.js?v=1778660000" defer></script>
 <style>
   /* Hide the legacy in-page modal — openModal now routes to the shared panel. */
   #modal-backdrop { display: none !important; }
@@ -800,7 +800,31 @@ function escapeHtml(s) {
 }
 
 function posOf(p) { return String(p && p.position || '').toUpperCase(); }
-function thumbUrl(p) { return p && p.sleeperId ? `https://sleepercdn.com/content/nfl/players/thumb/${p.sleeperId}.jpg` : ''; }
+// Rookie pick placeholders use a synthetic sleeperId ("ROOKIE_PICK_X.YY") and
+// position "RDP" so the headshot fallback can show the flame thumbnail used
+// for pick assets elsewhere on the site (instead of trying Sleeper's CDN and
+// falling back to a "R" initial).
+function isRookiePick(p) {
+  if (!p) return false;
+  if (posOf(p) === 'RDP') return true;
+  return String(p.sleeperId || '').startsWith('ROOKIE_PICK_');
+}
+function thumbUrl(p) {
+  if (!p || isRookiePick(p)) return '';
+  return p.sleeperId ? `https://sleepercdn.com/content/nfl/players/thumb/${p.sleeperId}.jpg` : '';
+}
+// Inline flame SVG keyed to --red; size is the outer diameter. Used for the
+// rookie-pick row/card avatars on this page; player-panel.js has its own copy
+// for the slide-out drawer.
+function flameThumb(cls, size) {
+  const s = size || 34;
+  const icon = Math.round(s * 0.62);
+  return `<span class="${cls}" style="display:inline-flex;align-items:center;justify-content:center;background:var(--surface2);border:1px solid var(--border)">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="413 0 95 90" width="${icon}" height="${icon}" style="display:block">
+      <path d="M508.084,47.801l-8.983,41.534c0,0 -75.276,-0.036 -85.237,-0.002l0.015,-0.067c0,0 2.533,-17.352 5.641,-25.475c3.708,-9.689 16.604,-32.658 16.604,-32.658c12.902,8.212 8.658,21.025 7.099,27.21c11.719,-8.962 11.012,-17.186 11.003,-28.608c-0.006,-7.356 4.797,-23.375 17.858,-28.257c-4.305,14.678 3.971,24.95 7.333,30.494c6.362,10.492 1.397,21.17 1.397,21.17c0,0 9.268,-3.36 8.863,-15.254c-0.117,-3.424 -1.714,-14.283 8.012,-18.422c-0.754,9.397 5.495,18.682 10.395,28.336Z" fill="var(--red)"/>
+    </svg>
+  </span>`;
+}
 
 // Compact NFL Draft display: "2023 R1 #7" → year + round + overall pick when
 // available, gracefully degrades to whatever subset is known.
@@ -1179,8 +1203,13 @@ function renderListView(players) {
   body.innerHTML = sorted.map(p => {
     const pos = posOf(p);
     const hs = thumbUrl(p);
+    const thumbHtml = isRookiePick(p)
+      ? flameThumb('hs', 34)
+      : (hs
+          ? `<img class="hs" src="${hs}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'hs hs-fallback',textContent:'${escapeHtml((p.name||'?').slice(0,1).toUpperCase())}'}))">`
+          : `<span class="hs hs-fallback">${escapeHtml((p.name||'?').slice(0,1).toUpperCase())}</span>`);
     return `<tr class="${pos}" data-id="${escapeHtml(p.sleeperId)}">
-      <td>${hs ? `<img class="hs" src="${hs}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'hs hs-fallback',textContent:'${escapeHtml((p.name||'?').slice(0,1).toUpperCase())}'}))">` : `<span class="hs hs-fallback">${escapeHtml((p.name||'?').slice(0,1).toUpperCase())}</span>`}</td>
+      <td>${thumbHtml}</td>
       <td><span class="player-name name-color ${pos}">${escapeHtml(p.name)}</span></td>
       <td><span class="stat-pill">${p.adp != null ? p.adp.toFixed(1) : '—'}</span>${trendBadge(p.name)}</td>
       <td><span class="stat-pill">${p.rank ?? '—'}</span></td>
@@ -1289,9 +1318,11 @@ function renderBoxView(players) {
       const nm = splitName(p.name);
       const posRank = p.posRank || (pos || '');
       const overallPick = cell.pickOverall;
-      const hsHtml = hs
-        ? `<img class="card-hs" src="${hs}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'card-hs-fallback',textContent:'${initial}'}))">`
-        : `<span class="card-hs-fallback">${initial}</span>`;
+      const hsHtml = isRookiePick(p)
+        ? flameThumb('card-hs', 32)
+        : (hs
+            ? `<img class="card-hs" src="${hs}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'card-hs-fallback',textContent:'${initial}'}))">`
+            : `<span class="card-hs-fallback">${initial}</span>`);
       // Dim a card if it fails ANY active soft filter: position/search, round, or team.
       const matchesPosSearch = isSoftMatch(p);
       const matchesRound     = !roundFilter.size || roundFilter.has(r + 1);
