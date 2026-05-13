@@ -2333,10 +2333,20 @@ function mountPlayerArticles(parentEl, playerName, opts) {
 }
 
 // Backward-compatible wrapper — the trade DB player panel calls this.
-// Mounts into the dedicated #pp-articles-mount div between stats and tabs.
+// Routes through the SHARED assets/js/player-articles.js module so DB,
+// Calc, My-Leagues, ADP and Tiers all render identical article rows.
+// The inline mountPlayerArticles above is retained only for any legacy
+// caller that passes a non-default parent element + chrome opts; the
+// player panel itself now uses PlayerArticles.mount exclusively.
 function renderPlayerArticles(playerName) {
   const mount = document.getElementById('pp-articles-mount');
-  if (mount) mountPlayerArticles(mount, playerName);
+  if (!mount) return;
+  if (window.PlayerArticles && typeof window.PlayerArticles.mount === 'function') {
+    mount.innerHTML = '';
+    window.PlayerArticles.mount(mount, playerName);
+  } else {
+    mountPlayerArticles(mount, playerName);
+  }
 }
 
 // Kick off the loader at script init
