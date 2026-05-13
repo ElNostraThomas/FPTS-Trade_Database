@@ -2998,13 +2998,14 @@ if (document.readyState !== 'loading') mlApplyExposureCollapsed();
 //      MVS feed provides for years where no specific slots have been priced yet.
 //   3) Returns a record { value, valueSf, value1qb } or 0 if nothing found.
 function mlPickValue(season, round) {
+  const _num = v => (v && typeof v === 'object') ? (Number(v.value) || 0) : (Number(v) || 0);
   const specific = Object.keys(PICK_VALUES || {}).filter(k => k.startsWith(`${season}-${round}.`));
   if (specific.length) {
     specific.sort();
-    return PICK_VALUES[specific[Math.floor(specific.length / 2)]] || 0;
+    return _num(PICK_VALUES[specific[Math.floor(specific.length / 2)]]);
   }
   // Fallback: generic round key from MVS picks ("2027-1", "2028-1", etc.)
-  return PICK_VALUES[`${season}-${round}`] || 0;
+  return _num(PICK_VALUES[`${season}-${round}`]);
 }
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -6188,13 +6189,14 @@ function renderRoster(playerIds, players, starters, myPicks, rosterToTeam, proje
   // Falls back to the generic round key ("2027-1") when no specific slots exist
   // — MVS feed only prices generic rounds for future-future seasons.
   function pickValue(season, round) {
+    const _num = v => (v && typeof v === 'object') ? (Number(v.value) || 0) : (Number(v) || 0);
     const seasonKeys = Object.keys(PICK_VALUES || {}).filter(k => k.startsWith(`${season}-${round}.`));
     if (seasonKeys.length) {
       seasonKeys.sort();
       const mid = seasonKeys[Math.floor(seasonKeys.length / 2)];
-      return PICK_VALUES[mid] || 0;
+      return _num(PICK_VALUES[mid]);
     }
-    return PICK_VALUES[`${season}-${round}`] || 0;
+    return _num(PICK_VALUES[`${season}-${round}`]);
   }
 
   // ── Draft Picks section ────────────────────────────────────────────────
@@ -6877,7 +6879,8 @@ async function renderTradeYear(leagueId, idx, allTradesByYear, players, leagueCh
         if (dp.owner_id !== rid) return;
         const label   = `${dp.season} Rd${dp.round}`;
         const origOwner = rosterToTeam[dp.roster_id] || `Team ${dp.roster_id}`;
-        const val     = PICK_VALUES?.[label] || 0;
+        const _pv     = PICK_VALUES?.[label];
+        const val     = (_pv && typeof _pv === 'object') ? (Number(_pv.value) || 0) : (Number(_pv) || 0);
         assets.push({ type:'pick', label, origOwner, value: val });
       });
 
