@@ -41,12 +41,16 @@
   function mount(containerEl, playerName) {
     if (!containerEl) return;
 
-    // Find or create the section root inside the container
+    // Find or create the section root inside the container.
+    // Section wrapper carries no chrome (no padding / border / background) —
+    // mirrors DB's inline mountPlayerArticles so the article row sits flush
+    // inside .pp-info on every page. The visual prominence on the empty
+    // state comes from the dashed-orange inner box, not from this wrapper.
     let row = containerEl.querySelector(':scope > .pp-articles-section');
     if (!row) {
       row = document.createElement('div');
       row.className = 'pp-articles-section';
-      row.style.cssText = 'display:none;padding:12px 24px;border-top:1px solid var(--border);background:var(--surface);flex-shrink:0';
+      row.style.cssText = 'display:none';
       row.innerHTML = ''
         + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">'
         +   '<span style="font-family:\'Kanit\',sans-serif;font-weight:800;font-style:italic;font-size:11px;color:var(--red);text-transform:uppercase;letter-spacing:.06em">Articles</span>'
