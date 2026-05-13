@@ -522,6 +522,28 @@
    it doesn't show a hairline border on pages that never populate it. */
 #pp-league-context:empty { display: none !important; }
 
+/* ── Position-color pills (shared so every page that loads the panel
+      CSS gets consistent colors; DB / Calc also define these inline for
+      their non-panel rank rows but the inline copies are kept). ───── */
+.pos-badge {
+  font-family: 'Kanit', sans-serif;
+  font-weight: 800;
+  font-style: normal;
+  font-size: 12px;
+  padding: 2px 7px;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+.pos-wr   { background: var(--pos-wr-bg);   color: var(--pos-wr); }
+.pos-rb   { background: var(--pos-rb-bg);   color: var(--pos-rb); }
+.pos-qb   { background: var(--pos-qb-bg);   color: var(--pos-qb); }
+.pos-te   { background: var(--pos-te-bg);   color: var(--pos-te); }
+.pos-k    { background: var(--pos-k-bg);    color: var(--pos-k);    }
+.pos-pick { background: var(--pos-pick-bg); color: var(--pos-pick); }
+
 /* ── Trade-card layout (lifted from index.html so the Trades tab renders
       identically on every page, not just DB) ──────────────────────────── */
 .trade-card {
