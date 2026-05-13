@@ -347,6 +347,14 @@
 <script src="assets/js/legend-content.js?v=1778642255"></script>
 <script src="assets/js/legend.js?v=1778642255"></script>
 <script>document.addEventListener('DOMContentLoaded', function(){ if (window.Legend) Legend.init('tiers'); });</script>
+<!-- Shared player panel — DB's slide-in drawer, used identically on every page -->
+<script>window.FPTS_CURRENT_PAGE = 'tiers';</script>
+<link rel="stylesheet" href="assets/css/player-panel.css?v=1778655000">
+<script src="assets/js/player-panel.js?v=1778655000" defer></script>
+<style>
+  /* Hide the legacy in-page modal — _tiersOpenModal now routes to the shared panel. */
+  #tiers-modal-backdrop { display: none !important; }
+</style>
 </head>
 <body>
 
@@ -390,7 +398,7 @@
       <option value="adp-tool.html">ADP</option>
       <option value="https://www.fantasypoints.com/nfl/rankings/dynasty#/">Rankings</option>
     </select>
-    <span class="nav-stat">Synced <strong id="tiers-updated-stat"><!-- TIERS:SYNCED:START -->May 12, 2026 11:09 PM<!-- TIERS:SYNCED:END --></strong></span>
+    <span class="nav-stat">Synced <strong id="tiers-updated-stat"><!-- TIERS:SYNCED:START -->May 13, 2026 12:49 AM<!-- TIERS:SYNCED:END --></strong></span>
     <span class="nav-badge">SEASON 2026</span>
     <button id="theme-toggle" onclick="toggleTheme()"
       style="background:none;border:1px solid var(--border2);color:var(--white);font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:11px;padding:5px 12px;cursor:pointer;transition:all .2s;letter-spacing:.04em;display:flex;align-items:center;gap:6px"
@@ -5487,14 +5495,22 @@ window._fptsTiersOpenPlayer = function (name) {
 };
 
 function _tiersOpenModal(name) {
-  const backdrop = document.getElementById('tiers-modal-backdrop');
-  if (!backdrop) return;
+  // ── Shared-module hand-off ──────────────────────────────────────────────
+  // Route through the shared player-panel so the Tiers card matches DB /
+  // Calc / ADP exactly. The inline pipeline below the early-return is
+  // kept dormant only in case the shared module hasn't loaded yet.
   const fp = (window.FP_VALUES && window.FP_VALUES[name]) || {};
   const sid = fp.sleeperId || null;
-  const posRaw = String(fp.pos || (fp.posRank || '').replace(/\d+/g, '') || '').toUpperCase();
-  const pos = ['QB','RB','WR','TE','K'].includes(posRaw) ? posRaw : 'WR';
   window._tiersActivePlayerName = name;
   window._tiersActiveSleeperId  = sid;
+  if (typeof window.openPanel === 'function' && name) {
+    try { window.openPanel(name); return; } catch (e) { console.warn('[tiers] shared openPanel failed:', e); }
+  }
+
+  const backdrop = document.getElementById('tiers-modal-backdrop');
+  if (!backdrop) return;
+  const posRaw = String(fp.pos || (fp.posRank || '').replace(/\d+/g, '') || '').toUpperCase();
+  const pos = ['QB','RB','WR','TE','K'].includes(posRaw) ? posRaw : 'WR';
   // HS
   const hsEl = document.getElementById('tiers-pp-hs');
   const initial = (name || '?').slice(0, 1).toUpperCase();
@@ -5540,6 +5556,7 @@ function _tiersOpenModal(name) {
 }
 
 window._tiersCloseModal = function () {
+  if (typeof window.closePanel === 'function') { try { window.closePanel(); } catch (e) {} }
   const backdrop = document.getElementById('tiers-modal-backdrop');
   if (backdrop) backdrop.classList.remove('open');
   document.body.style.overflow = '';
