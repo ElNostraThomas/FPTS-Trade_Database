@@ -1,0 +1,73 @@
+/* Player-panel slide-in pattern — shared across the 4 secondary pages
+   so every player modal matches the Trade Database's .player-panel UX:
+   slides in from the right edge, full height, dim overlay over the page.
+
+   Scoped to specific modal IDs (NOT the generic .modal-backdrop /
+   .ml-modal-backdrop selectors) so other unrelated popups on the same
+   page (like my-leagues' pick-exposure picker, calculator's pick picker
+   if any) keep their existing centered layout.
+
+   Toggled via the existing .open class — no JS changes required. */
+
+#calc-modal-backdrop,
+#modal-backdrop,           /* adp-tool */
+#tiers-modal-backdrop,
+#ml-pd-backdrop {          /* my-leagues player detail */
+  position: fixed !important;
+  inset: 0 !important;
+  background: rgba(0, 0, 0, 0.7) !important;
+  z-index: 200 !important;
+  display: flex !important;
+  align-items: stretch !important;
+  justify-content: flex-end !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .25s;
+}
+
+#calc-modal-backdrop.open,
+#modal-backdrop.open,
+#tiers-modal-backdrop.open,
+#ml-pd-backdrop.open {
+  opacity: 1;
+  pointer-events: all;
+}
+
+/* Inner modal slides in from the right. Same width + chrome as DB's
+   .player-panel (min(1360px, 95vw), 2px red left border, no top border). */
+#calc-modal-backdrop > .modal,
+#modal-backdrop > .modal,
+#tiers-modal-backdrop > .modal,
+#ml-pd-backdrop > .ml-modal {
+  width: min(1360px, 95vw) !important;
+  max-width: none !important;
+  height: 100vh !important;
+  max-height: 100vh !important;
+  margin: 0 !important;
+  border-left: 2px solid var(--red) !important;
+  border-top: none !important;
+  border-right: none !important;
+  border-bottom: none !important;
+  transform: translateX(100%);
+  transition: transform .3s cubic-bezier(.4, 0, .2, 1);
+  overflow-y: auto;
+}
+
+#calc-modal-backdrop.open > .modal,
+#modal-backdrop.open > .modal,
+#tiers-modal-backdrop.open > .modal,
+#ml-pd-backdrop.open > .ml-modal {
+  transform: translateX(0);
+}
+
+/* Phone: full-screen slide (no edge gap) */
+@media (max-width: 700px) {
+  #calc-modal-backdrop > .modal,
+  #modal-backdrop > .modal,
+  #tiers-modal-backdrop > .modal,
+  #ml-pd-backdrop > .ml-modal {
+    width: 100% !important;
+  }
+}
