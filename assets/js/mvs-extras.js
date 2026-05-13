@@ -143,16 +143,17 @@
     return '<div class="mvs-foot">MVS data refreshed ' + _escHtml(short) + '</div>';
   }
 
-  // Header composite: OTC+Rankings + Sparkline + Footer.
-  // Recent Trades intentionally NOT included — those live inside the
-  // Trades tab on every modal to avoid duplicating content above + inside
-  // the tab strip.
+  // Header composite: OTC + Rankings + Baseline + Volume cells + Last Updated footer.
+  // Recent Trades live inside the Trades tab on every modal (no duplication).
+  // MVS History sparkline removed from inline header per user feedback — the
+  // chart wasn't part of the player-card visual spec. The buildSparkline
+  // helper stays exposed in case any future caller wants to render it inside
+  // a tab; the default inline header no longer includes it.
   function buildHeaderExtrasHtml(playerName) {
     if (typeof window.FP_VALUES === 'undefined') return '';
     const rec = window.FP_VALUES[playerName];
     if (!rec) return '';
     return buildOtcRankingsHtml(rec)
-         + buildSparklineHtml(rec.history)
          + buildLastUpdatedHtml(rec.lastUpdated);
   }
 
