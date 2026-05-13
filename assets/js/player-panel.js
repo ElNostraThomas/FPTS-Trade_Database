@@ -531,9 +531,14 @@
       `<div class="pp-meta-item"><div class="pp-meta-label">Auction</div><div class="pp-meta-val" ${_auctionStr ? 'style="color:var(--green)"' : ''}>${_auctionStr || '—'}</div></div>`
     ].join(''));
 
-    // Render articles row if helper is available.
+    // Render articles row if any of the known helpers is available.
+    // DB defines an inline renderPlayerArticles. Other pages load the shared
+    // assets/js/player-articles.js module which exposes PlayerArticles.mount.
     if (typeof global.renderPlayerArticles === 'function') {
       try { global.renderPlayerArticles(playerName); } catch (e) {}
+    } else if (global.PlayerArticles && typeof global.PlayerArticles.mount === 'function') {
+      const mount = document.getElementById('pp-articles-mount');
+      if (mount) { mount.innerHTML = ''; try { global.PlayerArticles.mount(mount, playerName); } catch (e) {} }
     } else if (typeof global.mountPlayerArticles === 'function') {
       const mount = document.getElementById('pp-articles-mount');
       if (mount) { try { global.mountPlayerArticles(mount, playerName); } catch (e) {} }

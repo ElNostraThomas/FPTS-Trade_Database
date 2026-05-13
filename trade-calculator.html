@@ -3175,7 +3175,20 @@ window.addEventListener('DOMContentLoaded', () => {
 // modal markup is hidden via display:none. The shim here intercepts every
 // call and forwards to the shared `openPanel` so Calc uses the same drawer
 // UX as DB / My-Leagues / ADP / Tiers.
+//
+// Calc's FP_VALUES / SLEEPER_IDS / KNOWN_PLAYERS are declared as page-local
+// `let`/`const`, so the shared module (loaded from a separate <script src=>)
+// can't see them. We mirror them to window here — both initial refs and on
+// every call so any late-arriving data lands on window too.
+window.FP_VALUES    = FP_VALUES;
+window.SLEEPER_IDS  = SLEEPER_IDS;
+window.KNOWN_PLAYERS = KNOWN_PLAYERS;
+
 window._openCalcPlayerModal = function(playerName /*, pos, sideId, assetIdx */) {
+  // Re-mirror page-local globals so late hydrations (MVS / FP API) are visible.
+  window.FP_VALUES    = FP_VALUES;
+  window.SLEEPER_IDS  = SLEEPER_IDS;
+  window.KNOWN_PLAYERS = KNOWN_PLAYERS;
   if (typeof window.openPanel === 'function') {
     window._calcModalPlayerName = playerName;
     window.openPanel(playerName);
