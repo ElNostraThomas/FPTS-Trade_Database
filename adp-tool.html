@@ -9,7 +9,7 @@
      sizing). Loaded BEFORE this page's inline <style> so existing per-page
      overrides still win on duplicate selectors; the new .team-logo /
      .player-hs-team rules add cleanly. -->
-<link rel="stylesheet" href="assets/css/brand.css?v=1778680007">
+<link rel="stylesheet" href="assets/css/brand.css?v=1778680008">
 <style>
   /* Brand fonts (local TTFs from Fantasy-Design-Prompt kit) override Google Fonts
      for the canonical brand weights so on-page text matches the wordmark exactly. */
@@ -65,6 +65,10 @@
 
   html { background: var(--page-bg); transition: background .3s; overflow-y: scroll; }
   body { color-scheme: var(--color-scheme); color: var(--white); font-family: 'Mulish', sans-serif; min-height: 100vh; background: var(--page-bg); }
+  /* Site-wide 1.25x layout zoom — see brand.css for the full comment. */
+  body { zoom: 1.25; }
+  @media print { body { zoom: 1; } }
+  @media (max-width: 700px) { body { zoom: 1; } }
   html, body { overflow-x: hidden !important; }
 
   /* NAV */

@@ -84,6 +84,15 @@ html { background: var(--page-bg); transition: background .3s; overflow-y: scrol
 body { color-scheme: var(--color-scheme); color: var(--white); font-family: 'Mulish', sans-serif; min-height: 100vh; background: var(--page-bg); }
 html, body { overflow-x: hidden !important; }
 
+/* Site-wide 1.25x layout zoom — every page renders as if the browser were
+   at 125% by default. Native browser zoom: text + images + spacing scale
+   together and interactions (click/drag/scroll) work normally. Skip on
+   print (function-reference PDF) and on mobile widths (the existing
+   <700px layout was already designed for small screens). */
+body { zoom: 1.25; }
+@media print { body { zoom: 1; } }
+@media (max-width: 700px) { body { zoom: 1; } }
+
 /* ── NAV ──────────────────────────────────────────────────────────────── */
 .topnav { max-width:1440px; margin:0 auto; padding:0 16px; display:flex; align-items:center; gap:20px; height:60px; }
 .wordmark { display:flex; align-items:center; flex-shrink:0; }

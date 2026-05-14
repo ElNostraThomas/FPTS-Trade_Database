@@ -6,7 +6,7 @@
 <title>Fantasy Points Front Office — Tiers</title>
 
 <!-- Brand-level shared styles (loaded BEFORE inline <style> so page overrides win). -->
-<link rel="stylesheet" href="assets/css/brand.css?v=1778680007">
+<link rel="stylesheet" href="assets/css/brand.css?v=1778680008">
 
 <style>
   :root {
@@ -51,6 +51,10 @@
   html { background: var(--page-bg); transition: background .3s; overflow-y: scroll; }
   body { color-scheme: var(--color-scheme); color: var(--white); font-family: 'Mulish', sans-serif; min-height: 100vh; background: var(--page-bg); }
   html, body { overflow-x: hidden !important; }
+  /* Site-wide 1.25x layout zoom — see brand.css for the full comment. */
+  body { zoom: 1.25; }
+  @media print { body { zoom: 1; } }
+  @media (max-width: 700px) { body { zoom: 1; } }
 
   @import url('https://fonts.googleapis.com/css2?family=Kanit:ital,wght@1,800&family=Mulish:wght@400;700;900&display=swap');
   /* Brand fonts (local TTFs) override the Google Fonts version for the canonical
@@ -403,7 +407,7 @@
       <option value="adp-tool.html">ADP</option>
       <option value="https://www.fantasypoints.com/nfl/rankings/dynasty#/">Rankings</option>
     </select>
-    <span class="nav-stat">Synced <strong id="tiers-updated-stat"><!-- TIERS:SYNCED:START -->May 13, 2026 8:41 PM<!-- TIERS:SYNCED:END --></strong></span>
+    <span class="nav-stat">Synced <strong id="tiers-updated-stat"><!-- TIERS:SYNCED:START -->May 13, 2026 9:07 PM<!-- TIERS:SYNCED:END --></strong></span>
     <span class="nav-badge">SEASON 2026</span>
     <button id="theme-toggle" onclick="toggleTheme()"
       style="background:none;border:1px solid var(--border2);color:var(--white);font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:11px;padding:5px 12px;cursor:pointer;transition:all .2s;letter-spacing:.04em;display:flex;align-items:center;gap:6px"
