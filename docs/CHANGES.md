@@ -6,6 +6,86 @@ the operator manual see [`WORKFLOW.md`](WORKFLOW.md).
 
 ---
 
+## 2026-05-13 (late) — Dynasty Rookie ADP tab
+
+### What landed
+- **New top-level tabs** in the ADP Tool page-header: **Dynasty Startup ADP 2026**
+  (the existing view) and **Dynasty Rookie ADP 2026** (new, rookie-only drafts).
+  Underline-style, bold Kanit italic, orange `--red` underline on active.
+  Year suffix is pulled dynamically from `ADP_PAYLOAD.season` so the label
+  auto-rolls each season.
+- **Sub-mode descriptor**: the prior big `.page-title` shrunk to a smaller
+  descriptor line below the tab strip (e.g. "Sub-view: Picks-as-assets
+  startups" / "Rookie-only drafts (≤6 rounds)"). Subtitles rewritten per
+  (source, variant) combo.
+- **"Rookies" variant renamed to "With Rookies"** to disambiguate from the
+  new Rookie tab. The underlying data key (`rookies_sf` / `rookies_1qb`)
+  stays the same — other pages read it untouched.
+
+### Data plumbing
+- **`sync-adp.py` second pass** in `build_adp` (line 145): duplicates rows
+  with `dynasty_class == 'rookie'` and re-tags them with a SF/1QB-split
+  view key. The legacy `rookie` key (no SF/1QB split) is preserved for
+  backward compat — `my-leagues` / DB / etc still read it.
+- **New keys in `data/adp.json`**: `rookie_draft_sf` (420 records) and
+  `rookie_draft_1qb` (114 records). Top picks match the actual 2026 rookie
+  class (Jeremiyah Love, Carnell Tate, Fernando Mendoza, Jordyn Tyson).
+  `min_drafts = 5` unchanged.
+
+### State + UX
+- **Per-tab state isolation**: each tab (`startup` / `rookie`) keeps its
+  own qbFormat, date range, view, snake, search, filters, sort, rounds,
+  team count. STATE has a `source` field + a private `_cache` that swaps
+  on tab change. Two localStorage keys: `fpts-adp-startup-state`,
+  `fpts-adp-rookie-state`, plus `fpts-adp-active-source`.
+- **URL hash gains `source=`** param so a shared `#source=rookie&qb=1qb`
+  link opens directly on the rookie tab in the right format.
+- **Rookie tab defaults**: SF forced on first load, snake on, rounds=5
+  (vs 20 on startup). Variant button row (Picks/Simple/With Rookies) is
+  hidden on the rookie tab.
+- **Trend arrows** (▲/▼ MoM) work on the rookie tab — `rebuildTrendIndex`
+  was already keyed by `getSourceKey()`, which now resolves to
+  `rookie_draft_{qb}` when source=rookie.
+- **Player drawer** opens identically from rookie cards (shared
+  `window.openPanel`). All 5 panel tabs are usable; the heatmap tab will
+  show "no data" for rookie picks (rookie-draft pick-availability heatmap
+  is deferred — `_availability_matrix_from_picks` supports it, separate
+  ticket).
+
+### Rookie-draft pick-availability heatmap (added late in session)
+- **`sync-adp.py` new `build_rookie_draft_pick_availability`** filters
+  the draft catalog to `dynasty_class=='rookie'` drafts at the configured
+  team count (12), feeds every player who appears in ≥`min_drafts`
+  rookie drafts through the existing `_availability_matrix_from_picks`
+  kernel, and emits a 6-round × 12-slot matrix per rookie. 9,070 rookie
+  drafts feed 470 rookie heatmap entries for 2026.
+- **New `rookiePlayers` section** in `data/pick-availability.json`
+  (separate from `players` so the same sleeperId can have distinct
+  startup vs rookie-draft heatmaps — Jeremiyah Love is 100% available
+  at 1.01 in rookie drafts, but never appears in the startup heatmap
+  because his startup ADP is ~60-70 and below the top-300 budget).
+- **`assets/js/heatmap.js`** now picks the map at render time via a
+  `window.PICK_AVAILABILITY_SOURCE` flag (`'rookie'` vs default
+  `'startup'`). All 5 pages (`adp-tool.html`, `index.html`,
+  `my-leagues.html`, `trade-calculator.html`, `tiers.html`) plus
+  `assets/js/data-bootstrap.js` were updated to also stash
+  `j.rookiePlayers` into `window.PICK_AVAILABILITY_ROOKIE` on load.
+- **`adp-tool.html` flips the flag** on init + on every `setSource()`,
+  so opening the player drawer from the Rookie tab now renders the
+  rookie-draft heatmap (Jeremiyah Love → R1 row [100,5,2,2,2,2,2,2,2,2,2,2]).
+- Empty-state message in `heatmap.js` adapts: "Rookie-draft
+  pick-availability isn't tracked for this player — coverage requires
+  at least 5 completed rookie drafts." when in rookie context.
+
+### Out of scope this session
+- Scrape expansion for 1QB rookie data (114 records is already healthier
+  than the picks-1QB 4-draft hole).
+- Rookie-specific scouting content in the player drawer.
+- SF/1QB split of the rookie-draft heatmap (currently mixed; SF
+  dominates the sample anyway).
+
+---
+
 ## 2026-05-13 (evening) — Team logos everywhere + softer palette + 125% body zoom
 
 ### Team logos site-wide

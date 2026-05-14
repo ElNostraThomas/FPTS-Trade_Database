@@ -407,7 +407,7 @@
       <option value="adp-tool.html">ADP</option>
       <option value="https://www.fantasypoints.com/nfl/rankings/dynasty#/">Rankings</option>
     </select>
-    <span class="nav-stat">Synced <strong id="tiers-updated-stat"><!-- TIERS:SYNCED:START -->May 13, 2026 10:17 PM<!-- TIERS:SYNCED:END --></strong></span>
+    <span class="nav-stat">Synced <strong id="tiers-updated-stat"><!-- TIERS:SYNCED:START -->May 13, 2026 11:31 PM<!-- TIERS:SYNCED:END --></strong></span>
     <span class="nav-badge">SEASON 2026</span>
     <button id="theme-toggle" onclick="toggleTheme()"
       style="background:none;border:1px solid var(--border2);color:var(--white);font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:11px;padding:5px 12px;cursor:pointer;transition:all .2s;letter-spacing:.04em;display:flex;align-items:center;gap:6px"
@@ -5493,6 +5493,7 @@ window._tiersActiveSleeperId  = null;
       });
     }
     if (pJ && pJ.players) window.PICK_AVAILABILITY = pJ.players;
+    if (pJ && pJ.rookiePlayers) window.PICK_AVAILABILITY_ROOKIE = pJ.rookiePlayers;
     if (pJ) window.PICK_AVAILABILITY_META = { version: pJ.version, season: pJ.season, teamCount: pJ.teamCount, topN: pJ.topN };
     if (aJ && aJ.players) window.PLAYER_ARTICLES   = aJ.players;
   });

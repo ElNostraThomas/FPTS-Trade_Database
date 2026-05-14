@@ -3,15 +3,19 @@
    board at each pick slot) into a caller-provided container element.
 
    Usage:
-     1. Each page must fetch data/pick-availability.json into a global, e.g.:
-          window.PICK_AVAILABILITY = json.players;
+     1. Each page must fetch data/pick-availability.json into globals, e.g.:
+          window.PICK_AVAILABILITY        = json.players;       // startup heatmaps
+          window.PICK_AVAILABILITY_ROOKIE = json.rookiePlayers; // rookie-draft heatmaps
      2. Then call:
           Heatmap.render(containerEl, sleeperId);
 
+   Which map gets queried is decided by `window.PICK_AVAILABILITY_SOURCE`:
+     'rookie' → PICK_AVAILABILITY_ROOKIE  (rookie-only-draft context)
+     anything else (default) → PICK_AVAILABILITY (startup context)
+
    The container will get filled with the heatmap section markup. If the
-   player isn't in the heatmap dataset (coverage is top 300 startup ADP),
-   a placeholder is rendered instead of nothing — so the modal layout is
-   stable across players. */
+   player isn't in the active heatmap dataset, a placeholder is rendered
+   instead of nothing — so the modal layout is stable across players. */
 
 (function () {
   'use strict';
@@ -22,18 +26,33 @@
     });
   }
 
+  // Choose which heatmap dataset to query. Pages that show the rookie-only
+  // ADP context (currently just adp-tool.html when STATE.source === 'rookie')
+  // set `window.PICK_AVAILABILITY_SOURCE = 'rookie'` before opening the
+  // panel; the rookie heatmaps live in `window.PICK_AVAILABILITY_ROOKIE`
+  // (loaded from pick-availability.json's `rookiePlayers` section).
+  function _activeMap() {
+    if (window.PICK_AVAILABILITY_SOURCE === 'rookie' && window.PICK_AVAILABILITY_ROOKIE) {
+      return window.PICK_AVAILABILITY_ROOKIE;
+    }
+    return window.PICK_AVAILABILITY;
+  }
+
   function renderInto(containerEl, sleeperId) {
     if (!containerEl) return;
-    const heatmap = (window.PICK_AVAILABILITY && sleeperId)
-      ? window.PICK_AVAILABILITY[String(sleeperId)]
-      : null;
+    const map = _activeMap();
+    const heatmap = (map && sleeperId) ? map[String(sleeperId)] : null;
 
     // Always render the section frame so the modal layout is consistent.
     if (!heatmap || !heatmap.matrix || !heatmap.matrix.length) {
+      const isRookieCtx = window.PICK_AVAILABILITY_SOURCE === 'rookie';
+      const emptyMsg = isRookieCtx
+        ? 'Rookie-draft pick-availability isn\'t tracked for this player — coverage requires at least 5 completed rookie drafts.'
+        : 'Pick-availability isn\'t tracked for this player — coverage is limited to the top ~300 startup ADP.';
       containerEl.innerHTML = ''
         + '<div class="mvs-section">'
         +   '<div class="mvs-section-label">Pick Availability Heatmap</div>'
-        +   '<div class="hm-empty">Pick-availability isn\'t tracked for this player — coverage is limited to the top ~300 startup ADP.</div>'
+        +   '<div class="hm-empty">' + emptyMsg + '</div>'
         + '</div>';
       return;
     }

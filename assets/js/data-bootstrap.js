@@ -268,6 +268,7 @@
     if (mvs)                       _applyMvsPayload(mvs);
     if (articles && articles.players) global.PLAYER_ARTICLES = articles.players;
     if (pa && pa.players)          global.PICK_AVAILABILITY = pa.players;
+    if (pa && pa.rookiePlayers)    global.PICK_AVAILABILITY_ROOKIE = pa.rookiePlayers;
     if (pa) global.PICK_AVAILABILITY_META = {
       version:    pa.version,
       season:     pa.season,

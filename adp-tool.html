@@ -92,9 +92,16 @@
   /* PAGE */
   .page { max-width:1440px; margin:0 auto; padding:0 16px 60px; }
   .page-header { padding:32px 0 18px; display:flex; align-items:flex-end; justify-content:space-between; gap:16px; flex-wrap:wrap; }
-  .page-title { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:36px; color:var(--white); text-transform:uppercase; line-height:1; }
+  .page-title { font-family:'Kanit',sans-serif; font-weight:700; font-style:italic; font-size:20px; color:var(--white); opacity:.85; text-transform:uppercase; line-height:1.1; letter-spacing:.02em; }
   .page-title span { color:var(--red); }
   .page-subtitle { font-family:'Mulish',sans-serif; font-size:13px; color:var(--white); opacity:.7; margin-top:6px; }
+
+  /* SOURCE TABS — Dynasty Startup vs Dynasty Rookie ADP */
+  .adp-source-tabs { display:flex; gap:28px; align-items:flex-end; margin-bottom:8px; }
+  .adp-tab { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:26px; color:var(--white); opacity:.45; text-transform:uppercase; letter-spacing:.02em; line-height:1; background:none; border:none; border-bottom:3px solid transparent; padding:0 0 6px; cursor:pointer; transition:opacity .15s, border-color .15s, color .15s; }
+  .adp-tab:hover { opacity:.75; }
+  .adp-tab.active { opacity:1; border-bottom-color:var(--red); }
+  .adp-tab .adp-tab-year { color:var(--red); margin-left:6px; }
 
   /* CONTROLS BAR */
   .controls-bar { display:flex; align-items:center; gap:10px; flex-wrap:wrap; padding:14px 0 18px; border-bottom:1px solid var(--border); margin-bottom:18px; }
@@ -404,8 +411,10 @@
     #theme-toggle { padding: 6px 10px !important; font-size: 10px !important; min-height: 36px; }
     .page { padding: 0 10px 40px; }
     .page-header { flex-direction: column; align-items: flex-start; padding: 14px 0 12px; gap: 4px; }
-    .page-title { font-size: 22px !important; }
+    .page-title { font-size: 14px !important; }
     .page-subtitle { font-size: 11px; }
+    .adp-source-tabs { gap: 16px; margin-bottom: 4px; }
+    .adp-tab { font-size: 18px !important; }
 
     /* Controls bar: wrap tightly, ensure touch targets ≥36px tall */
     .controls-bar { gap: 6px; padding: 10px 0 14px; }
@@ -480,8 +489,10 @@
     .topnav { gap: 6px; height: 44px; }
     .wordmark svg { height: 18px; }
     .wordmark-tag { display: none !important; }
-    .page-title { font-size: 18px !important; }
+    .page-title { font-size: 12px !important; }
     .page-subtitle { font-size: 10px; }
+    .adp-tab { font-size: 15px !important; }
+    .adp-source-tabs { gap: 12px; }
 
     /* Date range presets fit one-per-half-width */
     .date-presets button { padding: 8px 6px; font-size: 10px; }
@@ -595,16 +606,20 @@
 
   <div class="page-header">
     <div>
-      <div class="page-title" id="page-title">ADP <span>Startup</span></div>
+      <div class="adp-source-tabs" role="tablist" aria-label="ADP source">
+        <button class="adp-tab active" data-source="startup" role="tab" aria-selected="true">Dynasty Startup ADP<span class="adp-tab-year" id="adp-year-startup">2026</span></button>
+        <button class="adp-tab"        data-source="rookie"  role="tab" aria-selected="false">Dynasty Rookie ADP<span class="adp-tab-year" id="adp-year-rookie">2026</span></button>
+      </div>
+      <div class="page-title" id="page-title">Sub-view: Picks-as-assets startups</div>
       <div class="page-subtitle" id="page-subtitle">Real Sleeper dynasty draft positions — 12-team Superflex startups with picks-as-assets.</div>
     </div>
   </div>
 
   <div class="controls-bar">
-    <div class="controls-group" role="tablist" aria-label="ADP mode">
+    <div class="controls-group" role="tablist" aria-label="ADP mode" id="variant-group">
       <button class="controls-btn active" data-mode="picks">Picks</button>
       <button class="controls-btn"        data-mode="simple">Simple</button>
-      <button class="controls-btn"        data-mode="rookies">Rookies</button>
+      <button class="controls-btn"        data-mode="rookies">With Rookies</button>
     </div>
     <div class="controls-group" role="tablist" aria-label="QB format">
       <button class="controls-btn active" data-qb="sf"  title="Superflex / 2QB">SF</button>
@@ -949,7 +964,7 @@ function splitName(name) {
     // monthly walkback when prev is missing.
     fetch('data/adp-prev.json' + v).then(r => r.ok ? r.json() : null).then(j => { if (j) window.ADP_PAYLOAD_PREV = j; }).catch(() => {}),
     fetch('data/auction.json' + v).then(r => r.ok ? r.json() : Promise.reject('auction ' + r.status)).then(j => _applyAuctionPayload(j)).catch(() => { /* auction optional */ }),
-    fetch('data/pick-availability.json' + v).then(r => r.ok ? r.json() : Promise.reject('pick-availability ' + r.status)).then(j => { if (j && j.players) PICK_AVAILABILITY = j.players; if (j) window.PICK_AVAILABILITY_META = { version: j.version, season: j.season, teamCount: j.teamCount, topN: j.topN }; }).catch(() => { /* optional during scaffold */ }),
+    fetch('data/pick-availability.json' + v).then(r => r.ok ? r.json() : Promise.reject('pick-availability ' + r.status)).then(j => { if (j && j.players) PICK_AVAILABILITY = j.players; if (j && j.rookiePlayers) window.PICK_AVAILABILITY_ROOKIE = j.rookiePlayers; if (j) window.PICK_AVAILABILITY_META = { version: j.version, season: j.season, teamCount: j.teamCount, topN: j.topN }; }).catch(() => { /* optional during scaffold */ }),
     fetch('data/articles.json' + v).then(r => r.ok ? r.json() : Promise.reject('articles ' + r.status)).then(j => { if (j && j.players) window.PLAYER_ARTICLES = j.players; }).catch(() => { /* articles optional */ }),
     // MVS payload — needed by the shared player-panel module so the Trades
     // tab can build a player's recent-trade list, and so the panel can
@@ -974,11 +989,16 @@ function splitName(name) {
 })();
 
 // ── STATE ─────────────────────────────────────────────────────────────────────
+// STATE holds the LIVE values for whichever tab (source) is active. The
+// inactive tab's state is parked in STATE._cache[source] and swapped back in
+// by setSource(). This avoids touching the hundreds of STATE.mode / STATE.qbFormat
+// references scattered through the file.
 const STATE = {
-  mode: 'picks',
-  qbFormat: 'sf',  // 'sf' (Superflex / 2QB) or '1qb' (single-QB)
+  source: 'startup', // 'startup' (Picks/Simple/With Rookies) or 'rookie' (Rookie draft only)
+  mode: 'picks',     // variant under source='startup'; ignored when source='rookie'
+  qbFormat: 'sf',    // 'sf' (Superflex / 2QB) or '1qb' (single-QB)
   view: 'box',
-  dateFrom: null,  // 'yyyy-mm-dd' string, null = use byMonth.ALL
+  dateFrom: null,    // 'yyyy-mm-dd' string, null = use byMonth.ALL
   dateTo:   null,
   teamCount: 12,
   rounds: 20,
@@ -990,19 +1010,28 @@ const STATE = {
     teams:     new Set(),  // 1-indexed; empty = no team filter (all)
   },
   sort: { col: 'rank', dir: 'asc' },
+  _cache: { startup: null, rookie: null },
 };
 
-// Each mode draws from a per-format-bucket aggregate written by sync-adp.py.
-// Drafts are classified by examining their picks list:
+// Source = which top-level tab. 'startup' = the current Picks/Simple/With-Rookies
+// dynasty startup boards. 'rookie' = the rookie-draft-only board (dynasty_class=rookie
+// in sync-adp.py, split by is_superflex into rookie_draft_sf / rookie_draft_1qb).
+const VALID_SOURCES = new Set(['startup', 'rookie']);
+
+// Each variant under source='startup' draws from a per-format-bucket aggregate
+// written by sync-adp.py. Drafts are classified by examining their picks list:
 //   picks_{qb}   → startups where K's appear as pick-as-asset placeholders
 //   simple_{qb}  → startups with no K, no incoming rookies (vet-only)
 //   rookies_{qb} → startups that include the current rookie class in the pool
+//                  (UI label: "With Rookies"; the key name stays 'rookies' for
+//                   backward compat with shared data files)
 // {qb} = 'sf' (Superflex/2QB) or '1qb'. ADP values shift per mode AND per qb format.
 const VALID_MODES = new Set(['picks', 'simple', 'rookies']);
 const VALID_QB    = new Set(['sf', '1qb']);
-function getSourceKey(mode = STATE.mode, qb = STATE.qbFormat) {
-  if (!VALID_MODES.has(mode)) mode = 'picks';
+function getSourceKey(mode = STATE.mode, qb = STATE.qbFormat, source = STATE.source) {
   if (!VALID_QB.has(qb)) qb = 'sf';
+  if (source === 'rookie') return `rookie_draft_${qb}`;
+  if (!VALID_MODES.has(mode)) mode = 'picks';
   return `${mode}_${qb}`;
 }
 const MOBILE_BREAKPOINT_PX = 700;
@@ -1012,13 +1041,27 @@ function isMobileWidth() { return window.innerWidth < MOBILE_BREAKPOINT_PX; }
 // (Mason Crosby = "the 5.01 pick", etc.), not as real draftable kickers.
 const EXCLUDED_POSITIONS = new Set(['K', 'DEF', 'P', 'FB']);
 function isDisplayablePosition(p) { return !EXCLUDED_POSITIONS.has(posOf(p)); }
-// Labels reflect both the mode (picks/simple/rookies) and the QB format (SF/1QB).
+// Labels reflect both the variant (picks/simple/rookies) and the QB format (SF/1QB).
 const MODE_TO_LABEL  = {
-  picks:   { title: 'ADP <span>Picks</span>',   subTpl: (fmt) => `Real Sleeper dynasty draft positions — 12-team ${fmt} startups with picks-as-assets.` },
-  simple:  { title: 'ADP <span>Simple</span>',  subTpl: (fmt) => `Real Sleeper dynasty draft positions — 12-team ${fmt} vet-only startups (no rookies, no picks).` },
-  rookies: { title: 'ADP <span>Rookies</span>', subTpl: (fmt) => `Real Sleeper dynasty draft positions — 12-team ${fmt} startups with the 2026 rookie class in the pool.` },
+  picks:   { title: 'Sub-view: Picks-as-assets startups',          subTpl: (fmt) => `Real Sleeper dynasty draft positions — 12-team ${fmt} startups with picks-as-assets.` },
+  simple:  { title: 'Sub-view: Vet-only startups (simple)',        subTpl: (fmt) => `Real Sleeper dynasty draft positions — 12-team ${fmt} vet-only startups (no rookies, no picks).` },
+  rookies: { title: 'Sub-view: Startups including incoming class', subTpl: (fmt) => `Real Sleeper dynasty draft positions — 12-team ${fmt} startups with the 2026 rookie class in the pool.` },
+};
+const ROOKIE_LABEL = {
+  title:  'Sub-view: Rookie-only drafts (≤6 rounds)',
+  subTpl: (fmt) => `Real Sleeper rookie-draft positions — ${fmt} rookie drafts, incoming class only.`,
 };
 function qbFormatLabel(qb = STATE.qbFormat) { return qb === '1qb' ? '1QB' : 'Superflex / 2QB'; }
+
+// Pull the season number from the ADP payload (sync-adp.py writes it) and
+// update the year span on each tab so the labels auto-roll each season.
+function applyAdpYearLabel() {
+  const yr = (window.ADP_PAYLOAD && window.ADP_PAYLOAD.season) ? window.ADP_PAYLOAD.season : (new Date()).getFullYear();
+  const a = document.getElementById('adp-year-startup');
+  const b = document.getElementById('adp-year-rookie');
+  if (a) a.textContent = ' ' + yr;
+  if (b) b.textContent = ' ' + yr;
+}
 
 // ── DATA ACCESS ───────────────────────────────────────────────────────────────
 function getActiveBucket() {
@@ -1158,8 +1201,10 @@ function renderPosBreakdown(players) {
 
 // ── RENDER ────────────────────────────────────────────────────────────────────
 function renderAll() {
-  // Title/subtitle reflect mode + qb format
-  const lbl = MODE_TO_LABEL[STATE.mode] || MODE_TO_LABEL.picks;
+  // Title/subtitle reflect source + variant + qb format
+  const lbl = (STATE.source === 'rookie')
+    ? ROOKIE_LABEL
+    : (MODE_TO_LABEL[STATE.mode] || MODE_TO_LABEL.picks);
   document.getElementById('page-title').innerHTML = lbl.title;
   document.getElementById('page-subtitle').textContent = lbl.subTpl(qbFormatLabel());
   // hardList = universe after hard filters; softList = also matches position/search
@@ -1396,14 +1441,115 @@ function renderBoxView(players) {
 // a meaningful 1QB picks board for 2026 (only ~4 qualifying drafts). Until the
 // scrape grows or year-specific ADP lands, hide the 1QB toggle while the user
 // is on Picks mode and silently keep them on SF. Functionality is preserved —
-// click Simple or Rookies and the 1QB toggle reappears.
+// click Simple or With Rookies and the 1QB toggle reappears. Only applies
+// while source='startup' — the Rookie tab always offers both QB formats.
 function _applyPicksOneQbConstraint() {
   const qb1qbBtn = document.querySelector('[data-qb="1qb"]');
-  if (qb1qbBtn) qb1qbBtn.style.display = STATE.mode === 'picks' ? 'none' : '';
-  if (STATE.mode === 'picks' && STATE.qbFormat === '1qb') {
+  const constrainNow = STATE.source === 'startup' && STATE.mode === 'picks';
+  if (qb1qbBtn) qb1qbBtn.style.display = constrainNow ? 'none' : '';
+  if (constrainNow && STATE.qbFormat === '1qb') {
     STATE.qbFormat = 'sf';
     document.querySelectorAll('[data-qb]').forEach(b => b.classList.toggle('active', b.dataset.qb === 'sf'));
   }
+}
+
+// Show/hide the Picks/Simple/With-Rookies variant button row based on source.
+// On the Rookie tab there is only one variant (rookie-only drafts), so the row
+// is hidden to avoid implying any sub-selection. The snake toggle is also
+// hidden on the rookie tab — rookie drafts are conventionally linear.
+function _applySourceUiConstraints() {
+  const isRookie = STATE.source === 'rookie';
+  const vg = document.getElementById('variant-group');
+  if (vg) vg.style.display = isRookie ? 'none' : '';
+  const snk = document.getElementById('snake-toggle');
+  if (snk) snk.style.display = isRookie ? 'none' : '';
+  document.querySelectorAll('[data-source]').forEach(b => {
+    const on = b.dataset.source === STATE.source;
+    b.classList.toggle('active', on);
+    b.setAttribute('aria-selected', String(on));
+  });
+}
+
+// Snapshot the active tab's STATE so we can park it before switching tabs.
+function _snapshotTabState() {
+  return {
+    mode: STATE.mode,
+    qbFormat: STATE.qbFormat,
+    view: STATE.view,
+    dateFrom: STATE.dateFrom,
+    dateTo: STATE.dateTo,
+    snake: STATE.snake,
+    search: STATE.search,
+    rounds: STATE.rounds,
+    teamCount: STATE.teamCount,
+    filters: {
+      positions: [...STATE.filters.positions],
+      rounds:    [...STATE.filters.rounds],
+      teams:     [...STATE.filters.teams],
+    },
+    sort: { ...STATE.sort },
+  };
+}
+
+// Apply a previously-snapshotted tab state into the live STATE.
+function _applyTabState(snap) {
+  if (!snap) return;
+  if (snap.mode && VALID_MODES.has(snap.mode)) STATE.mode = snap.mode;
+  if (snap.qbFormat && VALID_QB.has(snap.qbFormat)) STATE.qbFormat = snap.qbFormat;
+  if (snap.view === 'box' || snap.view === 'list') STATE.view = snap.view;
+  STATE.dateFrom = snap.dateFrom || null;
+  STATE.dateTo   = snap.dateTo   || null;
+  STATE.snake    = snap.snake !== false;
+  STATE.search   = snap.search || '';
+  if (Number.isInteger(snap.rounds)    && snap.rounds    >= 1 && snap.rounds    <= 30) STATE.rounds    = snap.rounds;
+  if (Number.isInteger(snap.teamCount) && [8,10,12,14].includes(snap.teamCount))       STATE.teamCount = snap.teamCount;
+  STATE.filters.positions = new Set(snap.filters && snap.filters.positions || []);
+  STATE.filters.rounds    = new Set(snap.filters && snap.filters.rounds    || []);
+  STATE.filters.teams     = new Set(snap.filters && snap.filters.teams     || []);
+  STATE.sort = snap.sort ? { ...snap.sort } : { col: 'rank', dir: 'asc' };
+}
+
+function _defaultsForSource(source) {
+  if (source === 'rookie') {
+    return {
+      mode: 'picks',     // unused on rookie tab; default kept harmless
+      qbFormat: 'sf',    // forced default on first load
+      view: 'box',
+      dateFrom: null, dateTo: null,
+      snake: false, search: '',   // rookie drafts are conventionally linear
+      rounds: 5, teamCount: 12,
+      filters: { positions: [], rounds: [], teams: [] },
+      sort: { col: 'rank', dir: 'asc' },
+    };
+  }
+  return {
+    mode: 'picks',
+    qbFormat: 'sf', view: 'box',
+    dateFrom: null, dateTo: null,
+    snake: true, search: '',
+    rounds: 20, teamCount: 12,
+    filters: { positions: [], rounds: [], teams: [] },
+    sort: { col: 'rank', dir: 'asc' },
+  };
+}
+
+function setSource(source) {
+  if (!VALID_SOURCES.has(source) || source === STATE.source) return;
+  // Park the active tab's state, then swap in the other tab's saved state
+  // (falling back to source defaults on first switch).
+  STATE._cache[STATE.source] = _snapshotTabState();
+  saveTabState(STATE.source, STATE._cache[STATE.source]);
+  STATE.source = source;
+  const saved = STATE._cache[source] || loadTabState(source) || _defaultsForSource(source);
+  STATE._cache[source] = saved;
+  _applyTabState(saved);
+  _applySourceUiConstraints();
+  _applyPicksOneQbConstraint();
+  // Tell the shared Heatmap module which pick-availability map to query.
+  window.PICK_AVAILABILITY_SOURCE = (STATE.source === 'rookie') ? 'rookie' : 'startup';
+  applyStateToUi();
+  rebuildTrendIndex();
+  renderAll();
 }
 
 function setMode(mode) {
@@ -1419,7 +1565,7 @@ function setQbFormat(qb) {
   STATE.qbFormat = qb;
   try { localStorage.setItem('fpts-adp-format', qb); } catch (e) {}
   document.querySelectorAll('[data-qb]').forEach(b => b.classList.toggle('active', b.dataset.qb === qb));
-  rebuildTrendIndex();  // trend is per (mode, qbFormat) bucket
+  rebuildTrendIndex();  // trend is per (source, mode, qbFormat) bucket
   renderAll();
 }
 function setView(view) {
@@ -1530,6 +1676,36 @@ function saveSettings() {
     }));
   } catch (e) { /* ignore */ }
 }
+
+// ── PER-TAB STATE PERSISTENCE ─────────────────────────────────────────────────
+// Each tab (startup / rookie) keeps its own qbFormat, dates, view, snake,
+// search, filters, sort, rounds, teamCount, mode. Two localStorage keys.
+const TAB_STATE_KEYS = {
+  startup: 'fpts-adp-startup-state',
+  rookie:  'fpts-adp-rookie-state',
+};
+const ACTIVE_SOURCE_KEY = 'fpts-adp-active-source';
+
+function loadTabState(source) {
+  try {
+    const raw = localStorage.getItem(TAB_STATE_KEYS[source]);
+    if (!raw) return null;
+    const obj = JSON.parse(raw);
+    return obj && typeof obj === 'object' ? obj : null;
+  } catch (e) { return null; }
+}
+function saveTabState(source, snap) {
+  try {
+    if (!snap) snap = _snapshotTabState();
+    localStorage.setItem(TAB_STATE_KEYS[source], JSON.stringify(snap));
+  } catch (e) { /* ignore */ }
+}
+function persistActiveTab() {
+  try {
+    localStorage.setItem(ACTIVE_SOURCE_KEY, STATE.source);
+    saveTabState(STATE.source);
+  } catch (e) {}
+}
 function syncSettingsUi() {
   document.querySelectorAll('[data-teams]').forEach(b => b.classList.toggle('active', Number(b.dataset.teams) === STATE.teamCount));
   const rndEl = document.getElementById('rounds-input');
@@ -1568,7 +1744,8 @@ function resetSettings() {
 // the URL stays compact. Used by both writeHashFromState and the presets save.
 function buildHashString() {
   const p = new URLSearchParams();
-  if (STATE.mode !== 'picks') p.set('mode', STATE.mode);
+  if (STATE.source !== 'startup') p.set('source', STATE.source);
+  if (STATE.source === 'startup' && STATE.mode !== 'picks') p.set('mode', STATE.mode);
   if (STATE.qbFormat !== 'sf') p.set('qb', STATE.qbFormat);
   if (STATE.view !== 'box')   p.set('view', STATE.view);
   if (STATE.dateFrom)         p.set('from', STATE.dateFrom);
@@ -1577,7 +1754,8 @@ function buildHashString() {
   if (STATE.search)           p.set('q',     STATE.search);
   if (STATE.filters.positions.size) p.set('pos', [...STATE.filters.positions].join(','));
   if (STATE.teamCount !== 12) p.set('tc', String(STATE.teamCount));
-  if (STATE.rounds    !== 20) p.set('rd', String(STATE.rounds));
+  const defaultRounds = STATE.source === 'rookie' ? 5 : 20;
+  if (STATE.rounds    !== defaultRounds) p.set('rd', String(STATE.rounds));
   return p.toString();
 }
 
@@ -1585,12 +1763,15 @@ function buildHashString() {
 function writeHashFromState() {
   const s = buildHashString();
   try { history.replaceState(null, '', s ? '#' + s : location.pathname + location.search); } catch (e) {}
+  // Persist after every state-touching render so a refresh restores faithfully.
+  persistActiveTab();
 }
 
 function loadStateFromHash() {
   const raw = (location.hash || '').replace(/^#/, '');
   if (!raw) return;
   const p = new URLSearchParams(raw);
+  if (p.has('source') && VALID_SOURCES.has(p.get('source'))) STATE.source = p.get('source');
   if (p.has('mode') && VALID_MODES.has(p.get('mode'))) STATE.mode = p.get('mode');
   if (p.has('qb')   && VALID_QB.has(p.get('qb')))      STATE.qbFormat = p.get('qb');
   if (p.has('view') && (p.get('view') === 'list' || p.get('view') === 'box')) STATE.view = p.get('view');
@@ -1607,6 +1788,7 @@ function loadStateFromHash() {
 // Sync visible UI to the current STATE — used after hash load so toggles /
 // chips / inputs reflect the loaded values without a full re-bind.
 function applyStateToUi() {
+  _applySourceUiConstraints();
   document.querySelectorAll('[data-mode]').forEach(b => b.classList.toggle('active', b.dataset.mode === STATE.mode));
   document.querySelectorAll('[data-qb]').forEach(b => b.classList.toggle('active', b.dataset.qb === STATE.qbFormat));
   _applyPicksOneQbConstraint();
@@ -1769,12 +1951,15 @@ function rebuildTrendIndex() {
   }
   if (!Object.keys(currentMap).length) return;
 
-  // Preferred path: 7-day delta vs adp-prev.json snapshot.
+  // Preferred path: 7-day delta vs adp-prev.json snapshot. Only commit to
+  // this path when the prev snapshot actually has records for the active
+  // source key — otherwise (e.g. newly-added view keys not yet rotated into
+  // adp-prev) fall through to month-over-month walkback.
   const prevPayload = window.ADP_PAYLOAD_PREV;
-  if (prevPayload && prevPayload.byMonth) {
-    const prevAll = prevPayload.byMonth.ALL || {};
+  const prevList    = (prevPayload && prevPayload.byMonth && prevPayload.byMonth.ALL && prevPayload.byMonth.ALL[src]) || null;
+  if (prevList && prevList.length) {
     const prevMap = Object.create(null);
-    for (const p of (prevAll[src] || [])) {
+    for (const p of prevList) {
       const k = normalizePlayerName(p.name);
       if (k && p.adp != null) prevMap[k] = p.adp;
     }
@@ -2155,7 +2340,8 @@ function downloadCsv() {
   const a = document.createElement('a');
   a.href = url;
   const tag = (STATE.dateFrom && STATE.dateTo) ? `${STATE.dateFrom}_${STATE.dateTo}` : 'all';
-  a.download = `adp-${STATE.mode}-${tag}.csv`;
+  const slug = STATE.source === 'rookie' ? `rookie-${STATE.qbFormat}` : STATE.mode;
+  a.download = `adp-${slug}-${tag}.csv`;
   document.body.appendChild(a);
   a.click();
   setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 500);
@@ -2196,6 +2382,10 @@ function isoDate(d) {
 }
 
 function _bindEvents() {
+  // Source tabs (Dynasty Startup ADP / Dynasty Rookie ADP)
+  document.querySelectorAll('[data-source]').forEach(b => {
+    b.addEventListener('click', () => setSource(b.dataset.source));
+  });
   // Mode buttons
   document.querySelectorAll('[data-mode]').forEach(b => {
     b.addEventListener('click', () => setMode(b.dataset.mode));
@@ -2366,11 +2556,35 @@ function _bindEvents() {
 
 function _adpInit() {
   loadSettings();
-  // Restore saved QB-format preference (overridden by URL hash if present below).
-  try { const saved = localStorage.getItem('fpts-adp-format'); if (saved && VALID_QB.has(saved)) STATE.qbFormat = saved; } catch (e) {}
+  applyAdpYearLabel();    // {Year} suffix in tab text — driven by ADP_PAYLOAD.season
+  // Restore saved active source (defaults to 'startup' on first load).
+  try {
+    const savedSrc = localStorage.getItem(ACTIVE_SOURCE_KEY);
+    if (savedSrc && VALID_SOURCES.has(savedSrc)) STATE.source = savedSrc;
+  } catch (e) {}
+  // Restore saved per-tab state for whichever source is active. The inactive
+  // tab's state stays parked in STATE._cache and is loaded lazily on setSource.
+  const savedActive = loadTabState(STATE.source);
+  if (savedActive) {
+    _applyTabState(savedActive);
+    STATE._cache[STATE.source] = savedActive;
+  } else if (STATE.source === 'rookie') {
+    // First-ever load of the rookie tab — apply rookie defaults (forces SF).
+    _applyTabState(_defaultsForSource('rookie'));
+  }
+  // Legacy single QB-format key — only honored when no per-tab state exists.
+  try {
+    if (!savedActive) {
+      const saved = localStorage.getItem('fpts-adp-format');
+      if (saved && VALID_QB.has(saved) && STATE.source !== 'rookie') STATE.qbFormat = saved;
+    }
+  } catch (e) {}
   initDateRange();        // populates default dates first
   loadStateFromHash();    // ...then overrides from URL hash if present
   _bindEvents();
+  // Tell the shared Heatmap module which pick-availability map to query
+  // based on the active tab. consumeHandoff() / setSource() update this too.
+  window.PICK_AVAILABILITY_SOURCE = (STATE.source === 'rookie') ? 'rookie' : 'startup';
   applyStateToUi();       // reflect STATE into inputs/toggles
   enforceMobileView();    // collapse to list on narrow screens
   renderAll();
@@ -2398,12 +2612,30 @@ function consumeHandoff() {
       const list = bucket[src] || [];
       const p = list.find(x => String(x.name || '').toLowerCase() === target);
       if (p && p.sleeperId) {
-        // Switch to the source that contains them so the modal pulls from the
-        // same data path the rest of the page is showing. Parse src as `${mode}_${qb}`.
-        const [srcMode, srcQb] = src.split('_');
+        // Switch to the source/tab that contains them.
+        // rookie_draft_{qb} -> source='rookie', qb=...
+        // {mode}_{qb} -> source='startup', mode=..., qb=...
+        let needSource = STATE.source, needMode = STATE.mode, needQb = STATE.qbFormat;
+        const rk = src.match(/^rookie_draft_(sf|1qb)$/);
+        if (rk) {
+          needSource = 'rookie';
+          needQb = rk[1];
+        } else {
+          const parts = src.split('_');
+          if (parts.length === 2 && VALID_MODES.has(parts[0]) && VALID_QB.has(parts[1])) {
+            needSource = 'startup';
+            needMode = parts[0];
+            needQb   = parts[1];
+          }
+        }
+        if (needSource !== STATE.source) {
+          // setSource preserves the inactive tab's state, then we set the
+          // discovered (mode, qbFormat) on the destination tab.
+          setSource(needSource);
+        }
         let changed = false;
-        if (VALID_MODES.has(srcMode) && srcMode !== STATE.mode)         { STATE.mode = srcMode;         changed = true; }
-        if (VALID_QB.has(srcQb)     && srcQb     !== STATE.qbFormat)    { STATE.qbFormat = srcQb;       changed = true; }
+        if (needSource === 'startup' && VALID_MODES.has(needMode) && needMode !== STATE.mode) { STATE.mode = needMode; changed = true; }
+        if (VALID_QB.has(needQb) && needQb !== STATE.qbFormat) { STATE.qbFormat = needQb; changed = true; }
         if (changed) { applyStateToUi(); rebuildTrendIndex(); renderAll(); }
         setTimeout(() => openModal(p.sleeperId), 60);
         return;

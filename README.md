@@ -17,6 +17,29 @@ My-Leagues uses an accordion variant of that same drawer, and **future
 pages can now inherit every shared pattern via the scaffold** (one HTML
 template + one bootstrap module — no more per-page boilerplate).
 
+### What changed in 2026-05-13 (late session)
+
+- **Dynasty Rookie ADP tab** added to `adp-tool.html`. Two tabs in the
+  page-header: **Dynasty Startup ADP 2026** (the existing view) and
+  **Dynasty Rookie ADP 2026** (new). Underline-style, bold Kanit italic,
+  orange underline on active. Year auto-rolls from `ADP_PAYLOAD.season`.
+- **`sync-adp.py` `build_adp`** emits two new view-keys
+  (`rookie_draft_sf`, `rookie_draft_1qb`) by duplicating
+  `dynasty_class=='rookie'` rows and re-tagging by `is_superflex`. Legacy
+  `rookie` view-key preserved for backward compat. Records in `data/adp.json`:
+  420 (SF) + 114 (1QB) for 2026. Top-1 for both: Jeremiyah Love.
+- **STATE refactor**: added `STATE.source` (`startup` | `rookie`) + a
+  private `_cache` that parks the inactive tab's state. Two localStorage
+  keys (`fpts-adp-startup-state`, `fpts-adp-rookie-state`) + URL hash
+  gains `source=` param for sharing. Each tab keeps its own qbFormat,
+  dates, view, snake, search, filters, sort, rounds, teamCount.
+- **"Rookies" variant renamed to "With Rookies"** in the controls bar to
+  disambiguate from the new tab. Data key (`rookies_*`) unchanged.
+- **`.page-title` repurposed** as a smaller sub-mode descriptor below the
+  tab strip (e.g. "Sub-view: Rookie-only drafts (≤6 rounds)").
+- **Rookie tab defaults**: SF forced on first load, snake on, rounds=5.
+  Picks/Simple/With-Rookies variant button row hidden on the rookie tab.
+
 ### What changed in 2026-05-13 (evening session)
 
 - **NFL team logos everywhere a team is referenced.** New shared module
@@ -228,11 +251,16 @@ for the `fpts:data-ready` event.
 
 Nothing structural. Polish / nice-to-haves only:
 
-- [ ] **Rookie-draft-only ADP** — fourth bucket on the ADP Tool alongside
-  Picks/Simple/Rookies. Data is half-built: `build_adp` already emits a
-  legacy `rookie` view_key from drafts where `dynasty_class == 'rookie'`
-  (≤6 rounds). Wiring it to a 4th mode button + `getActiveBucket` branch
-  is the remaining work.
+- [x] ~~**Rookie-draft-only ADP**~~ — shipped 2026-05-13 (late). The ADP
+  Tool now has two top-level tabs (Dynasty Startup ADP / Dynasty Rookie
+  ADP), with SF/1QB-split rookie data via `rookie_draft_{sf|1qb}` keys.
+  Per-tab state + URL hash `source=` param. Variant button "Rookies" was
+  renamed to "With Rookies" to avoid clash with the new tab.
+- [x] ~~**Rookie-draft pick-availability heatmap**~~ — shipped same day.
+  `sync-adp.py` `build_rookie_draft_pick_availability` writes a new
+  `rookiePlayers` section to `data/pick-availability.json`; `heatmap.js`
+  picks the map via `window.PICK_AVAILABILITY_SOURCE` flag set by
+  `adp-tool.html` on `setSource()`.
 - [ ] **Expand the scrape's 1QB coverage.** 33 1QB startups in 2026 vs
   1,614 SF; need 1QB-active seed users in
   `sleeper_dynasty_adp/scripts_or_notebooks/01_ingest_historical.py`
@@ -261,19 +289,20 @@ Nothing structural. Polish / nice-to-haves only:
 Paste this as the first message:
 
 ```
-Read README.md for current state. We're at end-of-2026-05-13 evening,
-with: team logos site-wide via assets/js/team-helpers.js (replaces ATL/
-BUF/etc. text with Sleeper-CDN logos in every chip/list/row that shows
-a player image), softened position palette (deeper backgrounds + white
-text), site-wide 125% body zoom, and the rule that any new trade-chip
-surface uses TeamHelpers.logoImg(team, { size: 18 }) right of the name.
-Earlier in the day we shipped the Picks bucket (real players + RDP
-placeholders intermixed), the RDP heatmap entries in pick-availability.json,
-and the page scaffold (data-bootstrap.js + brand.css + page-template.html).
-Confirm by running `git log --oneline -15`.
+Read README.md for current state. We're at end-of-2026-05-13 (late),
+with: the Dynasty Rookie ADP tab now live on adp-tool.html — two
+top-level tabs in the page-header (Dynasty Startup ADP / Dynasty
+Rookie ADP). STATE has a `source` field (startup|rookie) + per-tab
+_cache, two localStorage keys (fpts-adp-{startup,rookie}-state), and
+URL hash gains `source=` for shareable links. sync-adp.py emits
+rookie_draft_{sf,1qb} via a duplicate-and-retag second pass in
+build_adp. "Rookies" variant renamed "With Rookies" to disambiguate
+from the new tab. Earlier in the day we shipped team logos site-wide
+via assets/js/team-helpers.js, softened position palette, 125% body
+zoom, and the trade-chip rule. Confirm by running `git log --oneline -15`.
 
-Punch list is in README under "What's still on the punch list" — top of
-the list is rookie-draft-only ADP as a filter on the existing ADP tool.
+Punch list top: rookie-draft pick-availability heatmap (deferred), and
+1QB scrape expansion.
 ```
 
 If `data/*.json` is stale: run `push.bat` (handles all five sync steps +
