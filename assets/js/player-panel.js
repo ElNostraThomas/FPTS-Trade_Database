@@ -1170,7 +1170,11 @@
                 // Display name lives in text content — do NOT JS-escape the
                 // apostrophe (that's only needed inside onclick string literals).
                 // Without this fix "Ja'Marr Chase" rendered as "Ja\'Marr Chase".
-                const _nameHtml = `<span class="tf-asset-name">${_fname ? `<span class="fn">${_fname}</span>` : ''}<span class="ln">${_lname}</span></span>`;
+                // tf-asset-name has flex:1 in CSS which pushes content following
+                // it to the right edge. Override to flex:0 1 auto so the name
+                // sizes to its content; the wrapper below takes the flex:1 slot
+                // and holds name+logo as a left-anchored pair.
+                const _nameHtml = `<span class="tf-asset-name" style="flex:0 1 auto">${_fname ? `<span class="fn">${_fname}</span>` : ''}<span class="ln">${_lname}</span></span>`;
                 // Team logo (only for real-player rows; picks have no team).
                 const _fpRec = a.type === 'pick' ? null : (_fp()[a.label] || null);
                 const _team = _fpRec && _fpRec.team ? _fpRec.team : '';
@@ -1178,8 +1182,7 @@
                 return `
                 <div class="tf-asset" data-pos="${_pos}">
                   ${a.type === 'pick' ? pickThumb(24) : _imgThumb(a.label, 24) + `<span class="pos-badge ${_pc(_pos)}" style="font-size:9px;padding:1px 5px">${_pos}</span>`}
-                  ${_nameHtml}
-                  ${_teamLogoHtml}
+                  <span style="display:inline-flex;align-items:center;gap:6px;flex:1;min-width:0;overflow:hidden">${_nameHtml}${_teamLogoHtml}</span>
                   <span class="tf-asset-val">${(a.value || 0).toLocaleString()}</span>
                   <span class="tf-asset-remove" onclick="tfRemove('${containerId}','${side}',${i})">✕</span>
                 </div>`;
