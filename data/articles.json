@@ -1,6 +1,848 @@
 {
-  "version": "2026-05-14T05:33:23.942012+00:00",
+  "version": "2026-05-14T15:15:35.899271+00:00",
   "players": {
+    "Jaxon Smith-Njigba": [
+      {
+        "title": "Finding the Next Jaxon Smith-Njigba: Playcaller Tendencies",
+        "url": "https://www.fantasypoints.com/nfl/articles/finding-the-next-jaxon-smith-njigba-playcaller-tendencies",
+        "date": "2026-05-14T15:00:00.000Z",
+        "author": "Ryan Heath"
+      },
+      {
+        "title": "2025 Ceiling-Adjusted FPG: Wide Receivers",
+        "url": "https://www.fantasypoints.com/nfl/articles/2025-ceiling-adjusted-fpg-wide-receivers",
+        "date": "2026-04-28T16:30:00.000Z",
+        "author": "Kyle Menton"
+      },
+      {
+        "title": "Ryan Heath's 2026 Rookie WR Rankings",
+        "url": "https://www.fantasypoints.com/nfl/articles/ryan-heaths-rookie-wr-rankings",
+        "date": "2026-04-06T12:01:57.820Z",
+        "author": "Ryan Heath"
+      }
+    ],
+    "Olamide Zaccheaus": [
+      {
+        "title": "Finding the Next Jaxon Smith-Njigba: Playcaller Tendencies",
+        "url": "https://www.fantasypoints.com/nfl/articles/finding-the-next-jaxon-smith-njigba-playcaller-tendencies",
+        "date": "2026-05-14T15:00:00.000Z",
+        "author": "Ryan Heath"
+      },
+      {
+        "title": "2026 NFL Power Rankings: Post Draft",
+        "url": "https://www.fantasypoints.com/nfl/articles/nfl-power-rankings-post-draft",
+        "date": "2026-05-05T14:00:00.000Z",
+        "author": "Tom Brolley"
+      },
+      {
+        "title": "2025 Ceiling-Adjusted FPG: Wide Receivers",
+        "url": "https://www.fantasypoints.com/nfl/articles/2025-ceiling-adjusted-fpg-wide-receivers",
+        "date": "2026-04-28T16:30:00.000Z",
+        "author": "Kyle Menton"
+      }
+    ],
+    "Terrance Ferguson": [
+      {
+        "title": "Finding the Next Jaxon Smith-Njigba: Playcaller Tendencies",
+        "url": "https://www.fantasypoints.com/nfl/articles/finding-the-next-jaxon-smith-njigba-playcaller-tendencies",
+        "date": "2026-05-14T15:00:00.000Z",
+        "author": "Ryan Heath"
+      }
+    ],
+    "Christian Watson": [
+      {
+        "title": "Finding the Next Jaxon Smith-Njigba: Playcaller Tendencies",
+        "url": "https://www.fantasypoints.com/nfl/articles/finding-the-next-jaxon-smith-njigba-playcaller-tendencies",
+        "date": "2026-05-14T15:00:00.000Z",
+        "author": "Ryan Heath"
+      },
+      {
+        "title": "2025 Ceiling-Adjusted FPG: Wide Receivers",
+        "url": "https://www.fantasypoints.com/nfl/articles/2025-ceiling-adjusted-fpg-wide-receivers",
+        "date": "2026-04-28T16:30:00.000Z",
+        "author": "Kyle Menton"
+      },
+      {
+        "title": "Ryan Heath's 2026 Rookie WR Rankings",
+        "url": "https://www.fantasypoints.com/nfl/articles/ryan-heaths-rookie-wr-rankings",
+        "date": "2026-04-06T12:01:57.820Z",
+        "author": "Ryan Heath"
+      }
+    ],
+    "Colston Loveland": [
+      {
+        "title": "Finding the Next Jaxon Smith-Njigba: Playcaller Tendencies",
+        "url": "https://www.fantasypoints.com/nfl/articles/finding-the-next-jaxon-smith-njigba-playcaller-tendencies",
+        "date": "2026-05-14T15:00:00.000Z",
+        "author": "Ryan Heath"
+      },
+      {
+        "title": "Ryan Heath's 2026 Rookie TE Rankings",
+        "url": "https://www.fantasypoints.com/nfl/articles/ryan-heaths-rookie-te-rankings",
+        "date": "2026-03-26T14:00:00.000Z",
+        "author": "Ryan Heath"
+      }
+    ],
+    "Zachariah Branch": [
+      {
+        "title": "Finding the Next Jaxon Smith-Njigba: Playcaller Tendencies",
+        "url": "https://www.fantasypoints.com/nfl/articles/finding-the-next-jaxon-smith-njigba-playcaller-tendencies",
+        "date": "2026-05-14T15:00:00.000Z",
+        "author": "Ryan Heath"
+      },
+      {
+        "title": "Scott Barrett's 2026 Dynasty Rookie Rankings",
+        "url": "https://www.fantasypoints.com/nfl/articles/scott-barretts-dynasty-rookie-rankings",
+        "date": "2026-04-27T13:59:36.453Z",
+        "author": "Scott Barrett"
+      },
+      {
+        "title": "Barrett's Pre-Draft Top 50 Rookie Rankings",
+        "url": "https://www.fantasypoints.com/nfl/articles/barretts-pre-draft-top-50-rookie-rankings",
+        "date": "2026-04-09T18:18:19.531Z",
+        "author": "Scott Barrett"
+      },
+      {
+        "title": "Ryan Heath's 2026 Rookie WR Rankings",
+        "url": "https://www.fantasypoints.com/nfl/articles/ryan-heaths-rookie-wr-rankings",
+        "date": "2026-04-06T12:01:57.820Z",
+        "author": "Ryan Heath"
+      }
+    ],
+    "Kendrick Bourne": [
+      {
+        "title": "Finding the Next Jaxon Smith-Njigba: Playcaller Tendencies",
+        "url": "https://www.fantasypoints.com/nfl/articles/finding-the-next-jaxon-smith-njigba-playcaller-tendencies",
+        "date": "2026-05-14T15:00:00.000Z",
+        "author": "Ryan Heath"
+      },
+      {
+        "title": "2026 NFL Power Rankings: Post Draft",
+        "url": "https://www.fantasypoints.com/nfl/articles/nfl-power-rankings-post-draft",
+        "date": "2026-05-05T14:00:00.000Z",
+        "author": "Tom Brolley"
+      }
+    ],
+    "Marvin Harrison": [
+      {
+        "title": "Finding the Next Jaxon Smith-Njigba: Playcaller Tendencies",
+        "url": "https://www.fantasypoints.com/nfl/articles/finding-the-next-jaxon-smith-njigba-playcaller-tendencies",
+        "date": "2026-05-14T15:00:00.000Z",
+        "author": "Ryan Heath"
+      },
+      {
+        "title": "2025 Ceiling-Adjusted FPG: Wide Receivers",
+        "url": "https://www.fantasypoints.com/nfl/articles/2025-ceiling-adjusted-fpg-wide-receivers",
+        "date": "2026-04-28T16:30:00.000Z",
+        "author": "Kyle Menton"
+      },
+      {
+        "title": "Ryan Heath's 2026 Rookie WR Rankings",
+        "url": "https://www.fantasypoints.com/nfl/articles/ryan-heaths-rookie-wr-rankings",
+        "date": "2026-04-06T12:01:57.820Z",
+        "author": "Ryan Heath"
+      }
+    ],
+    "Michael Pittman": [
+      {
+        "title": "Finding the Next Jaxon Smith-Njigba: Playcaller Tendencies",
+        "url": "https://www.fantasypoints.com/nfl/articles/finding-the-next-jaxon-smith-njigba-playcaller-tendencies",
+        "date": "2026-05-14T15:00:00.000Z",
+        "author": "Ryan Heath"
+      },
+      {
+        "title": "2026 NFL Power Rankings: Post Draft",
+        "url": "https://www.fantasypoints.com/nfl/articles/nfl-power-rankings-post-draft",
+        "date": "2026-05-05T14:00:00.000Z",
+        "author": "Tom Brolley"
+      }
+    ],
+    "Christian Kirk": [
+      {
+        "title": "Finding the Next Jaxon Smith-Njigba: Playcaller Tendencies",
+        "url": "https://www.fantasypoints.com/nfl/articles/finding-the-next-jaxon-smith-njigba-playcaller-tendencies",
+        "date": "2026-05-14T15:00:00.000Z",
+        "author": "Ryan Heath"
+      },
+      {
+        "title": "2026 NFL Power Rankings: Post Draft",
+        "url": "https://www.fantasypoints.com/nfl/articles/nfl-power-rankings-post-draft",
+        "date": "2026-05-05T14:00:00.000Z",
+        "author": "Tom Brolley"
+      },
+      {
+        "title": "Ryan Heath's 2026 Rookie WR Rankings",
+        "url": "https://www.fantasypoints.com/nfl/articles/ryan-heaths-rookie-wr-rankings",
+        "date": "2026-04-06T12:01:57.820Z",
+        "author": "Ryan Heath"
+      }
+    ],
+    "Germie Bernard": [
+      {
+        "title": "Finding the Next Jaxon Smith-Njigba: Playcaller Tendencies",
+        "url": "https://www.fantasypoints.com/nfl/articles/finding-the-next-jaxon-smith-njigba-playcaller-tendencies",
+        "date": "2026-05-14T15:00:00.000Z",
+        "author": "Ryan Heath"
+      },
+      {
+        "title": "Scott Barrett's 2026 Dynasty Rookie Rankings",
+        "url": "https://www.fantasypoints.com/nfl/articles/scott-barretts-dynasty-rookie-rankings",
+        "date": "2026-04-27T13:59:36.453Z",
+        "author": "Scott Barrett"
+      },
+      {
+        "title": "Ryan Heath's 2026 Rookie WR Rankings",
+        "url": "https://www.fantasypoints.com/nfl/articles/ryan-heaths-rookie-wr-rankings",
+        "date": "2026-04-06T12:01:57.820Z",
+        "author": "Ryan Heath"
+      }
+    ],
+    "Jauan Jennings": [
+      {
+        "title": "Finding the Next Jaxon Smith-Njigba: Playcaller Tendencies",
+        "url": "https://www.fantasypoints.com/nfl/articles/finding-the-next-jaxon-smith-njigba-playcaller-tendencies",
+        "date": "2026-05-14T15:00:00.000Z",
+        "author": "Ryan Heath"
+      }
+    ],
+    "Matthew Golden": [
+      {
+        "title": "Finding the Next Jaxon Smith-Njigba: Playcaller Tendencies",
+        "url": "https://www.fantasypoints.com/nfl/articles/finding-the-next-jaxon-smith-njigba-playcaller-tendencies",
+        "date": "2026-05-14T15:00:00.000Z",
+        "author": "Ryan Heath"
+      },
+      {
+        "title": "Ryan Heath's 2026 Rookie WR Rankings",
+        "url": "https://www.fantasypoints.com/nfl/articles/ryan-heaths-rookie-wr-rankings",
+        "date": "2026-04-06T12:01:57.820Z",
+        "author": "Ryan Heath"
+      }
+    ],
+    "Michael Wilson": [
+      {
+        "title": "Finding the Next Jaxon Smith-Njigba: Playcaller Tendencies",
+        "url": "https://www.fantasypoints.com/nfl/articles/finding-the-next-jaxon-smith-njigba-playcaller-tendencies",
+        "date": "2026-05-14T15:00:00.000Z",
+        "author": "Ryan Heath"
+      },
+      {
+        "title": "2025 Ceiling-Adjusted FPG: Wide Receivers",
+        "url": "https://www.fantasypoints.com/nfl/articles/2025-ceiling-adjusted-fpg-wide-receivers",
+        "date": "2026-04-28T16:30:00.000Z",
+        "author": "Kyle Menton"
+      }
+    ],
+    "Rashid Shaheed": [
+      {
+        "title": "Finding the Next Jaxon Smith-Njigba: Playcaller Tendencies",
+        "url": "https://www.fantasypoints.com/nfl/articles/finding-the-next-jaxon-smith-njigba-playcaller-tendencies",
+        "date": "2026-05-14T15:00:00.000Z",
+        "author": "Ryan Heath"
+      },
+      {
+        "title": "Brain Trust: 2026 Favorite Rookie Landing Spots",
+        "url": "https://www.fantasypoints.com/nfl/articles/brain-trust-2026-favorite-rookie-landing-spots",
+        "date": "2026-05-12T19:32:18.886Z",
+        "author": "FPTS Staff"
+      }
+    ],
+    "Calvin Ridley": [
+      {
+        "title": "Finding the Next Jaxon Smith-Njigba: Playcaller Tendencies",
+        "url": "https://www.fantasypoints.com/nfl/articles/finding-the-next-jaxon-smith-njigba-playcaller-tendencies",
+        "date": "2026-05-14T15:00:00.000Z",
+        "author": "Ryan Heath"
+      },
+      {
+        "title": "Ryan Heath's 2026 Rookie WR Rankings",
+        "url": "https://www.fantasypoints.com/nfl/articles/ryan-heaths-rookie-wr-rankings",
+        "date": "2026-04-06T12:01:57.820Z",
+        "author": "Ryan Heath"
+      }
+    ],
+    "Davante Adams": [
+      {
+        "title": "Finding the Next Jaxon Smith-Njigba: Playcaller Tendencies",
+        "url": "https://www.fantasypoints.com/nfl/articles/finding-the-next-jaxon-smith-njigba-playcaller-tendencies",
+        "date": "2026-05-14T15:00:00.000Z",
+        "author": "Ryan Heath"
+      }
+    ],
+    "Devaughn Vele": [
+      {
+        "title": "Finding the Next Jaxon Smith-Njigba: Playcaller Tendencies",
+        "url": "https://www.fantasypoints.com/nfl/articles/finding-the-next-jaxon-smith-njigba-playcaller-tendencies",
+        "date": "2026-05-14T15:00:00.000Z",
+        "author": "Ryan Heath"
+      }
+    ],
+    "Harold Fannin": [
+      {
+        "title": "Finding the Next Jaxon Smith-Njigba: Playcaller Tendencies",
+        "url": "https://www.fantasypoints.com/nfl/articles/finding-the-next-jaxon-smith-njigba-playcaller-tendencies",
+        "date": "2026-05-14T15:00:00.000Z",
+        "author": "Ryan Heath"
+      },
+      {
+        "title": "Heath's 2026 NFL Draft Fantasy Takeaways",
+        "url": "https://www.fantasypoints.com/nfl/articles/heaths-nfl-draft-fantasy-takeaways",
+        "date": "2026-04-24T12:30:00.000Z",
+        "author": "Ryan Heath"
+      },
+      {
+        "title": "Ryan Heath's 2026 Rookie TE Rankings",
+        "url": "https://www.fantasypoints.com/nfl/articles/ryan-heaths-rookie-te-rankings",
+        "date": "2026-03-26T14:00:00.000Z",
+        "author": "Ryan Heath"
+      }
+    ],
+    "Jaylen Waddle": [
+      {
+        "title": "Finding the Next Jaxon Smith-Njigba: Playcaller Tendencies",
+        "url": "https://www.fantasypoints.com/nfl/articles/finding-the-next-jaxon-smith-njigba-playcaller-tendencies",
+        "date": "2026-05-14T15:00:00.000Z",
+        "author": "Ryan Heath"
+      },
+      {
+        "title": "2026 NFL Power Rankings: Post Draft",
+        "url": "https://www.fantasypoints.com/nfl/articles/nfl-power-rankings-post-draft",
+        "date": "2026-05-05T14:00:00.000Z",
+        "author": "Tom Brolley"
+      },
+      {
+        "title": "Ryan Heath's 2026 Rookie WR Rankings",
+        "url": "https://www.fantasypoints.com/nfl/articles/ryan-heaths-rookie-wr-rankings",
+        "date": "2026-04-06T12:01:57.820Z",
+        "author": "Ryan Heath"
+      }
+    ],
+    "Ladd McConkey": [
+      {
+        "title": "Finding the Next Jaxon Smith-Njigba: Playcaller Tendencies",
+        "url": "https://www.fantasypoints.com/nfl/articles/finding-the-next-jaxon-smith-njigba-playcaller-tendencies",
+        "date": "2026-05-14T15:00:00.000Z",
+        "author": "Ryan Heath"
+      }
+    ],
+    "Luther Burden": [
+      {
+        "title": "Finding the Next Jaxon Smith-Njigba: Playcaller Tendencies",
+        "url": "https://www.fantasypoints.com/nfl/articles/finding-the-next-jaxon-smith-njigba-playcaller-tendencies",
+        "date": "2026-05-14T15:00:00.000Z",
+        "author": "Ryan Heath"
+      },
+      {
+        "title": "2025 Ceiling-Adjusted FPG: Wide Receivers",
+        "url": "https://www.fantasypoints.com/nfl/articles/2025-ceiling-adjusted-fpg-wide-receivers",
+        "date": "2026-04-28T16:30:00.000Z",
+        "author": "Kyle Menton"
+      },
+      {
+        "title": "Ryan Heath's 2026 Rookie WR Rankings",
+        "url": "https://www.fantasypoints.com/nfl/articles/ryan-heaths-rookie-wr-rankings",
+        "date": "2026-04-06T12:01:57.820Z",
+        "author": "Ryan Heath"
+      }
+    ],
+    "Michael Mayer": [
+      {
+        "title": "Finding the Next Jaxon Smith-Njigba: Playcaller Tendencies",
+        "url": "https://www.fantasypoints.com/nfl/articles/finding-the-next-jaxon-smith-njigba-playcaller-tendencies",
+        "date": "2026-05-14T15:00:00.000Z",
+        "author": "Ryan Heath"
+      },
+      {
+        "title": "Ryan Heath's 2026 Rookie TE Rankings",
+        "url": "https://www.fantasypoints.com/nfl/articles/ryan-heaths-rookie-te-rankings",
+        "date": "2026-03-26T14:00:00.000Z",
+        "author": "Ryan Heath"
+      }
+    ],
+    "Tyler Conklin": [
+      {
+        "title": "Finding the Next Jaxon Smith-Njigba: Playcaller Tendencies",
+        "url": "https://www.fantasypoints.com/nfl/articles/finding-the-next-jaxon-smith-njigba-playcaller-tendencies",
+        "date": "2026-05-14T15:00:00.000Z",
+        "author": "Ryan Heath"
+      }
+    ],
+    "Brian Thomas": [
+      {
+        "title": "Finding the Next Jaxon Smith-Njigba: Playcaller Tendencies",
+        "url": "https://www.fantasypoints.com/nfl/articles/finding-the-next-jaxon-smith-njigba-playcaller-tendencies",
+        "date": "2026-05-14T15:00:00.000Z",
+        "author": "Ryan Heath"
+      },
+      {
+        "title": "2025 Ceiling-Adjusted FPG: Wide Receivers",
+        "url": "https://www.fantasypoints.com/nfl/articles/2025-ceiling-adjusted-fpg-wide-receivers",
+        "date": "2026-04-28T16:30:00.000Z",
+        "author": "Kyle Menton"
+      },
+      {
+        "title": "Ryan Heath's 2026 Rookie WR Rankings",
+        "url": "https://www.fantasypoints.com/nfl/articles/ryan-heaths-rookie-wr-rankings",
+        "date": "2026-04-06T12:01:57.820Z",
+        "author": "Ryan Heath"
+      }
+    ],
+    "Brock Bowers": [
+      {
+        "title": "Finding the Next Jaxon Smith-Njigba: Playcaller Tendencies",
+        "url": "https://www.fantasypoints.com/nfl/articles/finding-the-next-jaxon-smith-njigba-playcaller-tendencies",
+        "date": "2026-05-14T15:00:00.000Z",
+        "author": "Ryan Heath"
+      },
+      {
+        "title": "Heath's 2026 NFL Draft Fantasy Takeaways",
+        "url": "https://www.fantasypoints.com/nfl/articles/heaths-nfl-draft-fantasy-takeaways",
+        "date": "2026-04-24T12:30:00.000Z",
+        "author": "Ryan Heath"
+      },
+      {
+        "title": "Ryan Heath's 2026 Rookie TE Rankings",
+        "url": "https://www.fantasypoints.com/nfl/articles/ryan-heaths-rookie-te-rankings",
+        "date": "2026-03-26T14:00:00.000Z",
+        "author": "Ryan Heath"
+      }
+    ],
+    "Chris Godwin": [
+      {
+        "title": "Finding the Next Jaxon Smith-Njigba: Playcaller Tendencies",
+        "url": "https://www.fantasypoints.com/nfl/articles/finding-the-next-jaxon-smith-njigba-playcaller-tendencies",
+        "date": "2026-05-14T15:00:00.000Z",
+        "author": "Ryan Heath"
+      }
+    ],
+    "Drake London": [
+      {
+        "title": "Finding the Next Jaxon Smith-Njigba: Playcaller Tendencies",
+        "url": "https://www.fantasypoints.com/nfl/articles/finding-the-next-jaxon-smith-njigba-playcaller-tendencies",
+        "date": "2026-05-14T15:00:00.000Z",
+        "author": "Ryan Heath"
+      },
+      {
+        "title": "Brain Trust: 2026 Favorite Rookie Landing Spots",
+        "url": "https://www.fantasypoints.com/nfl/articles/brain-trust-2026-favorite-rookie-landing-spots",
+        "date": "2026-05-12T19:32:18.886Z",
+        "author": "FPTS Staff"
+      },
+      {
+        "title": "2025 Ceiling-Adjusted FPG: Wide Receivers",
+        "url": "https://www.fantasypoints.com/nfl/articles/2025-ceiling-adjusted-fpg-wide-receivers",
+        "date": "2026-04-28T16:30:00.000Z",
+        "author": "Kyle Menton"
+      },
+      {
+        "title": "Ryan Heath's 2026 Rookie WR Rankings",
+        "url": "https://www.fantasypoints.com/nfl/articles/ryan-heaths-rookie-wr-rankings",
+        "date": "2026-04-06T12:01:57.820Z",
+        "author": "Ryan Heath"
+      }
+    ],
+    "Emeka Egbuka": [
+      {
+        "title": "Finding the Next Jaxon Smith-Njigba: Playcaller Tendencies",
+        "url": "https://www.fantasypoints.com/nfl/articles/finding-the-next-jaxon-smith-njigba-playcaller-tendencies",
+        "date": "2026-05-14T15:00:00.000Z",
+        "author": "Ryan Heath"
+      },
+      {
+        "title": "2025 Ceiling-Adjusted FPG: Wide Receivers",
+        "url": "https://www.fantasypoints.com/nfl/articles/2025-ceiling-adjusted-fpg-wide-receivers",
+        "date": "2026-04-28T16:30:00.000Z",
+        "author": "Kyle Menton"
+      },
+      {
+        "title": "Ryan Heath's 2026 Rookie WR Rankings",
+        "url": "https://www.fantasypoints.com/nfl/articles/ryan-heaths-rookie-wr-rankings",
+        "date": "2026-04-06T12:01:57.820Z",
+        "author": "Ryan Heath"
+      }
+    ],
+    "Isaac TeSlaa": [
+      {
+        "title": "Finding the Next Jaxon Smith-Njigba: Playcaller Tendencies",
+        "url": "https://www.fantasypoints.com/nfl/articles/finding-the-next-jaxon-smith-njigba-playcaller-tendencies",
+        "date": "2026-05-14T15:00:00.000Z",
+        "author": "Ryan Heath"
+      }
+    ],
+    "Jahan Dotson": [
+      {
+        "title": "Finding the Next Jaxon Smith-Njigba: Playcaller Tendencies",
+        "url": "https://www.fantasypoints.com/nfl/articles/finding-the-next-jaxon-smith-njigba-playcaller-tendencies",
+        "date": "2026-05-14T15:00:00.000Z",
+        "author": "Ryan Heath"
+      },
+      {
+        "title": "2026 NFL Power Rankings: Post Draft",
+        "url": "https://www.fantasypoints.com/nfl/articles/nfl-power-rankings-post-draft",
+        "date": "2026-05-05T14:00:00.000Z",
+        "author": "Tom Brolley"
+      }
+    ],
+    "Jordyn Tyson": [
+      {
+        "title": "Finding the Next Jaxon Smith-Njigba: Playcaller Tendencies",
+        "url": "https://www.fantasypoints.com/nfl/articles/finding-the-next-jaxon-smith-njigba-playcaller-tendencies",
+        "date": "2026-05-14T15:00:00.000Z",
+        "author": "Ryan Heath"
+      },
+      {
+        "title": "Brain Trust: 2026 Favorite Rookie Landing Spots",
+        "url": "https://www.fantasypoints.com/nfl/articles/brain-trust-2026-favorite-rookie-landing-spots",
+        "date": "2026-05-12T19:32:18.886Z",
+        "author": "FPTS Staff"
+      },
+      {
+        "title": "2026 NFL Rookie of the Year Awards",
+        "url": "https://www.fantasypoints.com/nfl/articles/nfl-rookie-of-the-year-awards",
+        "date": "2026-04-28T17:00:00.000Z",
+        "author": "Tom Brolley"
+      },
+      {
+        "title": "Scott Barrett's 2026 Dynasty Rookie Rankings",
+        "url": "https://www.fantasypoints.com/nfl/articles/scott-barretts-dynasty-rookie-rankings",
+        "date": "2026-04-27T13:59:36.453Z",
+        "author": "Scott Barrett"
+      },
+      {
+        "title": "Ryan Heath's 2026 Rookie WR Rankings",
+        "url": "https://www.fantasypoints.com/nfl/articles/ryan-heaths-rookie-wr-rankings",
+        "date": "2026-04-06T12:01:57.820Z",
+        "author": "Ryan Heath"
+      }
+    ],
+    "Malik Nabers": [
+      {
+        "title": "Finding the Next Jaxon Smith-Njigba: Playcaller Tendencies",
+        "url": "https://www.fantasypoints.com/nfl/articles/finding-the-next-jaxon-smith-njigba-playcaller-tendencies",
+        "date": "2026-05-14T15:00:00.000Z",
+        "author": "Ryan Heath"
+      },
+      {
+        "title": "Ryan Heath's 2026 Rookie WR Rankings",
+        "url": "https://www.fantasypoints.com/nfl/articles/ryan-heaths-rookie-wr-rankings",
+        "date": "2026-04-06T12:01:57.820Z",
+        "author": "Ryan Heath"
+      }
+    ],
+    "Trey McBride": [
+      {
+        "title": "Finding the Next Jaxon Smith-Njigba: Playcaller Tendencies",
+        "url": "https://www.fantasypoints.com/nfl/articles/finding-the-next-jaxon-smith-njigba-playcaller-tendencies",
+        "date": "2026-05-14T15:00:00.000Z",
+        "author": "Ryan Heath"
+      },
+      {
+        "title": "Ryan Heath's 2026 Rookie TE Rankings",
+        "url": "https://www.fantasypoints.com/nfl/articles/ryan-heaths-rookie-te-rankings",
+        "date": "2026-03-26T14:00:00.000Z",
+        "author": "Ryan Heath"
+      }
+    ],
+    "Tucker Kraft": [
+      {
+        "title": "Finding the Next Jaxon Smith-Njigba: Playcaller Tendencies",
+        "url": "https://www.fantasypoints.com/nfl/articles/finding-the-next-jaxon-smith-njigba-playcaller-tendencies",
+        "date": "2026-05-14T15:00:00.000Z",
+        "author": "Ryan Heath"
+      }
+    ],
+    "CeeDee Lamb": [
+      {
+        "title": "Finding the Next Jaxon Smith-Njigba: Playcaller Tendencies",
+        "url": "https://www.fantasypoints.com/nfl/articles/finding-the-next-jaxon-smith-njigba-playcaller-tendencies",
+        "date": "2026-05-14T15:00:00.000Z",
+        "author": "Ryan Heath"
+      },
+      {
+        "title": "Ryan Heath's 2026 Rookie WR Rankings",
+        "url": "https://www.fantasypoints.com/nfl/articles/ryan-heaths-rookie-wr-rankings",
+        "date": "2026-04-06T12:01:57.820Z",
+        "author": "Ryan Heath"
+      }
+    ],
+    "Chris Olave": [
+      {
+        "title": "Finding the Next Jaxon Smith-Njigba: Playcaller Tendencies",
+        "url": "https://www.fantasypoints.com/nfl/articles/finding-the-next-jaxon-smith-njigba-playcaller-tendencies",
+        "date": "2026-05-14T15:00:00.000Z",
+        "author": "Ryan Heath"
+      },
+      {
+        "title": "Brain Trust: 2026 Favorite Rookie Landing Spots",
+        "url": "https://www.fantasypoints.com/nfl/articles/brain-trust-2026-favorite-rookie-landing-spots",
+        "date": "2026-05-12T19:32:18.886Z",
+        "author": "FPTS Staff"
+      },
+      {
+        "title": "Heath's 2026 NFL Draft Fantasy Takeaways",
+        "url": "https://www.fantasypoints.com/nfl/articles/heaths-nfl-draft-fantasy-takeaways",
+        "date": "2026-04-24T12:30:00.000Z",
+        "author": "Ryan Heath"
+      },
+      {
+        "title": "Ryan Heath's 2026 Rookie WR Rankings",
+        "url": "https://www.fantasypoints.com/nfl/articles/ryan-heaths-rookie-wr-rankings",
+        "date": "2026-04-06T12:01:57.820Z",
+        "author": "Ryan Heath"
+      }
+    ],
+    "Jayden Reed": [
+      {
+        "title": "Finding the Next Jaxon Smith-Njigba: Playcaller Tendencies",
+        "url": "https://www.fantasypoints.com/nfl/articles/finding-the-next-jaxon-smith-njigba-playcaller-tendencies",
+        "date": "2026-05-14T15:00:00.000Z",
+        "author": "Ryan Heath"
+      },
+      {
+        "title": "Ryan Heath's 2026 Rookie WR Rankings",
+        "url": "https://www.fantasypoints.com/nfl/articles/ryan-heaths-rookie-wr-rankings",
+        "date": "2026-04-06T12:01:57.820Z",
+        "author": "Ryan Heath"
+      }
+    ],
+    "Jerry Jeudy": [
+      {
+        "title": "Finding the Next Jaxon Smith-Njigba: Playcaller Tendencies",
+        "url": "https://www.fantasypoints.com/nfl/articles/finding-the-next-jaxon-smith-njigba-playcaller-tendencies",
+        "date": "2026-05-14T15:00:00.000Z",
+        "author": "Ryan Heath"
+      },
+      {
+        "title": "Heath's 2026 NFL Draft Fantasy Takeaways",
+        "url": "https://www.fantasypoints.com/nfl/articles/heaths-nfl-draft-fantasy-takeaways",
+        "date": "2026-04-24T12:30:00.000Z",
+        "author": "Ryan Heath"
+      },
+      {
+        "title": "Ryan Heath's 2026 Rookie WR Rankings",
+        "url": "https://www.fantasypoints.com/nfl/articles/ryan-heaths-rookie-wr-rankings",
+        "date": "2026-04-06T12:01:57.820Z",
+        "author": "Ryan Heath"
+      }
+    ],
+    "Rome Odunze": [
+      {
+        "title": "Finding the Next Jaxon Smith-Njigba: Playcaller Tendencies",
+        "url": "https://www.fantasypoints.com/nfl/articles/finding-the-next-jaxon-smith-njigba-playcaller-tendencies",
+        "date": "2026-05-14T15:00:00.000Z",
+        "author": "Ryan Heath"
+      },
+      {
+        "title": "2025 Ceiling-Adjusted FPG: Wide Receivers",
+        "url": "https://www.fantasypoints.com/nfl/articles/2025-ceiling-adjusted-fpg-wide-receivers",
+        "date": "2026-04-28T16:30:00.000Z",
+        "author": "Kyle Menton"
+      },
+      {
+        "title": "Ryan Heath's 2026 Rookie WR Rankings",
+        "url": "https://www.fantasypoints.com/nfl/articles/ryan-heaths-rookie-wr-rankings",
+        "date": "2026-04-06T12:01:57.820Z",
+        "author": "Ryan Heath"
+      }
+    ],
+    "Romeo Doubs": [
+      {
+        "title": "Finding the Next Jaxon Smith-Njigba: Playcaller Tendencies",
+        "url": "https://www.fantasypoints.com/nfl/articles/finding-the-next-jaxon-smith-njigba-playcaller-tendencies",
+        "date": "2026-05-14T15:00:00.000Z",
+        "author": "Ryan Heath"
+      },
+      {
+        "title": "2026 NFL Power Rankings: Post Draft",
+        "url": "https://www.fantasypoints.com/nfl/articles/nfl-power-rankings-post-draft",
+        "date": "2026-05-05T14:00:00.000Z",
+        "author": "Tom Brolley"
+      }
+    ],
+    "Sam LaPorta": [
+      {
+        "title": "Finding the Next Jaxon Smith-Njigba: Playcaller Tendencies",
+        "url": "https://www.fantasypoints.com/nfl/articles/finding-the-next-jaxon-smith-njigba-playcaller-tendencies",
+        "date": "2026-05-14T15:00:00.000Z",
+        "author": "Ryan Heath"
+      },
+      {
+        "title": "Ryan Heath's 2026 Rookie TE Rankings",
+        "url": "https://www.fantasypoints.com/nfl/articles/ryan-heaths-rookie-te-rankings",
+        "date": "2026-03-26T14:00:00.000Z",
+        "author": "Ryan Heath"
+      }
+    ],
+    "Zay Flowers": [
+      {
+        "title": "Finding the Next Jaxon Smith-Njigba: Playcaller Tendencies",
+        "url": "https://www.fantasypoints.com/nfl/articles/finding-the-next-jaxon-smith-njigba-playcaller-tendencies",
+        "date": "2026-05-14T15:00:00.000Z",
+        "author": "Ryan Heath"
+      },
+      {
+        "title": "Scott Barrett's 2026 Dynasty Rookie Rankings",
+        "url": "https://www.fantasypoints.com/nfl/articles/scott-barretts-dynasty-rookie-rankings",
+        "date": "2026-04-27T13:59:36.453Z",
+        "author": "Scott Barrett"
+      },
+      {
+        "title": "2025 Ceiling-Adjusted FPG: Running Backs",
+        "url": "https://www.fantasypoints.com/nfl/articles/2025-ceiling-adjusted-fpg-running-backs",
+        "date": "2026-04-13T18:30:00.000Z",
+        "author": "Kyle Menton"
+      },
+      {
+        "title": "Ryan Heath's 2026 Rookie WR Rankings",
+        "url": "https://www.fantasypoints.com/nfl/articles/ryan-heaths-rookie-wr-rankings",
+        "date": "2026-04-06T12:01:57.820Z",
+        "author": "Ryan Heath"
+      }
+    ],
+    "DK Metcalf": [
+      {
+        "title": "Finding the Next Jaxon Smith-Njigba: Playcaller Tendencies",
+        "url": "https://www.fantasypoints.com/nfl/articles/finding-the-next-jaxon-smith-njigba-playcaller-tendencies",
+        "date": "2026-05-14T15:00:00.000Z",
+        "author": "Ryan Heath"
+      }
+    ],
+    "Kyle Pitts": [
+      {
+        "title": "Finding the Next Jaxon Smith-Njigba: Playcaller Tendencies",
+        "url": "https://www.fantasypoints.com/nfl/articles/finding-the-next-jaxon-smith-njigba-playcaller-tendencies",
+        "date": "2026-05-14T15:00:00.000Z",
+        "author": "Ryan Heath"
+      },
+      {
+        "title": "Ryan Heath's 2026 Rookie TE Rankings",
+        "url": "https://www.fantasypoints.com/nfl/articles/ryan-heaths-rookie-te-rankings",
+        "date": "2026-03-26T14:00:00.000Z",
+        "author": "Ryan Heath"
+      }
+    ],
+    "Mike Evans": [
+      {
+        "title": "Finding the Next Jaxon Smith-Njigba: Playcaller Tendencies",
+        "url": "https://www.fantasypoints.com/nfl/articles/finding-the-next-jaxon-smith-njigba-playcaller-tendencies",
+        "date": "2026-05-14T15:00:00.000Z",
+        "author": "Ryan Heath"
+      },
+      {
+        "title": "2026 NFL Power Rankings: Post Draft",
+        "url": "https://www.fantasypoints.com/nfl/articles/nfl-power-rankings-post-draft",
+        "date": "2026-05-05T14:00:00.000Z",
+        "author": "Tom Brolley"
+      }
+    ],
+    "Puka Nacua": [
+      {
+        "title": "Finding the Next Jaxon Smith-Njigba: Playcaller Tendencies",
+        "url": "https://www.fantasypoints.com/nfl/articles/finding-the-next-jaxon-smith-njigba-playcaller-tendencies",
+        "date": "2026-05-14T15:00:00.000Z",
+        "author": "Ryan Heath"
+      },
+      {
+        "title": "2025 Ceiling-Adjusted FPG: Wide Receivers",
+        "url": "https://www.fantasypoints.com/nfl/articles/2025-ceiling-adjusted-fpg-wide-receivers",
+        "date": "2026-04-28T16:30:00.000Z",
+        "author": "Kyle Menton"
+      },
+      {
+        "title": "Ryan Heath's 2026 Rookie WR Rankings",
+        "url": "https://www.fantasypoints.com/nfl/articles/ryan-heaths-rookie-wr-rankings",
+        "date": "2026-04-06T12:01:57.820Z",
+        "author": "Ryan Heath"
+      }
+    ],
+    "Max Klare": [
+      {
+        "title": "Finding the Next Jaxon Smith-Njigba: Playcaller Tendencies",
+        "url": "https://www.fantasypoints.com/nfl/articles/finding-the-next-jaxon-smith-njigba-playcaller-tendencies",
+        "date": "2026-05-14T15:00:00.000Z",
+        "author": "Ryan Heath"
+      },
+      {
+        "title": "Scott Barrett's 2026 Dynasty Rookie Rankings",
+        "url": "https://www.fantasypoints.com/nfl/articles/scott-barretts-dynasty-rookie-rankings",
+        "date": "2026-04-27T13:59:36.453Z",
+        "author": "Scott Barrett"
+      },
+      {
+        "title": "Ryan Heath's 2026 Rookie TE Rankings",
+        "url": "https://www.fantasypoints.com/nfl/articles/ryan-heaths-rookie-te-rankings",
+        "date": "2026-03-26T14:00:00.000Z",
+        "author": "Ryan Heath"
+      }
+    ],
+    "Sam Roush": [
+      {
+        "title": "Finding the Next Jaxon Smith-Njigba: Playcaller Tendencies",
+        "url": "https://www.fantasypoints.com/nfl/articles/finding-the-next-jaxon-smith-njigba-playcaller-tendencies",
+        "date": "2026-05-14T15:00:00.000Z",
+        "author": "Ryan Heath"
+      },
+      {
+        "title": "Scott Barrett's 2026 Dynasty Rookie Rankings",
+        "url": "https://www.fantasypoints.com/nfl/articles/scott-barretts-dynasty-rookie-rankings",
+        "date": "2026-04-27T13:59:36.453Z",
+        "author": "Scott Barrett"
+      },
+      {
+        "title": "Ryan Heath's 2026 Rookie TE Rankings",
+        "url": "https://www.fantasypoints.com/nfl/articles/ryan-heaths-rookie-te-rankings",
+        "date": "2026-03-26T14:00:00.000Z",
+        "author": "Ryan Heath"
+      }
+    ],
+    "Ted Hurst": [
+      {
+        "title": "Finding the Next Jaxon Smith-Njigba: Playcaller Tendencies",
+        "url": "https://www.fantasypoints.com/nfl/articles/finding-the-next-jaxon-smith-njigba-playcaller-tendencies",
+        "date": "2026-05-14T15:00:00.000Z",
+        "author": "Ryan Heath"
+      },
+      {
+        "title": "Scott Barrett's 2026 Dynasty Rookie Rankings",
+        "url": "https://www.fantasypoints.com/nfl/articles/scott-barretts-dynasty-rookie-rankings",
+        "date": "2026-04-27T13:59:36.453Z",
+        "author": "Scott Barrett"
+      }
+    ],
+    "Tyler Shough": [
+      {
+        "title": "2026 NFL Division Odds",
+        "url": "https://www.fantasypoints.com/nfl/articles/nfl-division-odds",
+        "date": "2026-05-13T19:30:00.000Z",
+        "author": "Tom Brolley"
+      },
+      {
+        "title": "2026 NFL Rookie of the Year Awards",
+        "url": "https://www.fantasypoints.com/nfl/articles/nfl-rookie-of-the-year-awards",
+        "date": "2026-04-28T17:00:00.000Z",
+        "author": "Tom Brolley"
+      },
+      {
+        "title": "Heath's 2026 NFL Draft Fantasy Takeaways",
+        "url": "https://www.fantasypoints.com/nfl/articles/heaths-nfl-draft-fantasy-takeaways",
+        "date": "2026-04-24T12:30:00.000Z",
+        "author": "Ryan Heath"
+      }
+    ],
+    "A.J. Brown": [
+      {
+        "title": "2026 NFL Division Odds",
+        "url": "https://www.fantasypoints.com/nfl/articles/nfl-division-odds",
+        "date": "2026-05-13T19:30:00.000Z",
+        "author": "Tom Brolley"
+      },
+      {
+        "title": "2026 NFL Draft Market Report: Veterans",
+        "url": "https://www.fantasypoints.com/nfl/articles/nfl-draft-market-report-veterans",
+        "date": "2026-04-25T20:00:00.000Z",
+        "author": "Tom Brolley"
+      }
+    ],
     "Antonio Williams": [
       {
         "title": "Brain Trust: 2026 Favorite Rookie Landing Spots",
@@ -77,14 +919,6 @@
         "author": "Ryan Heath"
       }
     ],
-    "Rashid Shaheed": [
-      {
-        "title": "Brain Trust: 2026 Favorite Rookie Landing Spots",
-        "url": "https://www.fantasypoints.com/nfl/articles/brain-trust-2026-favorite-rookie-landing-spots",
-        "date": "2026-05-12T19:32:18.886Z",
-        "author": "FPTS Staff"
-      }
-    ],
     "Tua Tagovailoa": [
       {
         "title": "Brain Trust: 2026 Favorite Rookie Landing Spots",
@@ -107,92 +941,12 @@
         "author": "FPTS Staff"
       }
     ],
-    "Drake London": [
-      {
-        "title": "Brain Trust: 2026 Favorite Rookie Landing Spots",
-        "url": "https://www.fantasypoints.com/nfl/articles/brain-trust-2026-favorite-rookie-landing-spots",
-        "date": "2026-05-12T19:32:18.886Z",
-        "author": "FPTS Staff"
-      },
-      {
-        "title": "2025 Ceiling-Adjusted FPG: Wide Receivers",
-        "url": "https://www.fantasypoints.com/nfl/articles/2025-ceiling-adjusted-fpg-wide-receivers",
-        "date": "2026-04-28T16:30:00.000Z",
-        "author": "Kyle Menton"
-      },
-      {
-        "title": "Ryan Heath's 2026 Rookie WR Rankings",
-        "url": "https://www.fantasypoints.com/nfl/articles/ryan-heaths-rookie-wr-rankings",
-        "date": "2026-04-06T12:01:57.820Z",
-        "author": "Ryan Heath"
-      }
-    ],
-    "Jordyn Tyson": [
-      {
-        "title": "Brain Trust: 2026 Favorite Rookie Landing Spots",
-        "url": "https://www.fantasypoints.com/nfl/articles/brain-trust-2026-favorite-rookie-landing-spots",
-        "date": "2026-05-12T19:32:18.886Z",
-        "author": "FPTS Staff"
-      },
-      {
-        "title": "2026 NFL Rookie of the Year Awards",
-        "url": "https://www.fantasypoints.com/nfl/articles/nfl-rookie-of-the-year-awards",
-        "date": "2026-04-28T17:00:00.000Z",
-        "author": "Tom Brolley"
-      },
-      {
-        "title": "Scott Barrett's 2026 Dynasty Rookie Rankings",
-        "url": "https://www.fantasypoints.com/nfl/articles/scott-barretts-dynasty-rookie-rankings",
-        "date": "2026-04-27T13:59:36.453Z",
-        "author": "Scott Barrett"
-      },
-      {
-        "title": "Ryan Heath's 2026 Rookie WR Rankings",
-        "url": "https://www.fantasypoints.com/nfl/articles/ryan-heaths-rookie-wr-rankings",
-        "date": "2026-04-06T12:01:57.820Z",
-        "author": "Ryan Heath"
-      }
-    ],
-    "Chris Olave": [
-      {
-        "title": "Brain Trust: 2026 Favorite Rookie Landing Spots",
-        "url": "https://www.fantasypoints.com/nfl/articles/brain-trust-2026-favorite-rookie-landing-spots",
-        "date": "2026-05-12T19:32:18.886Z",
-        "author": "FPTS Staff"
-      },
-      {
-        "title": "Heath's 2026 NFL Draft Fantasy Takeaways",
-        "url": "https://www.fantasypoints.com/nfl/articles/heaths-nfl-draft-fantasy-takeaways",
-        "date": "2026-04-24T12:30:00.000Z",
-        "author": "Ryan Heath"
-      },
-      {
-        "title": "Ryan Heath's 2026 Rookie WR Rankings",
-        "url": "https://www.fantasypoints.com/nfl/articles/ryan-heaths-rookie-wr-rankings",
-        "date": "2026-04-06T12:01:57.820Z",
-        "author": "Ryan Heath"
-      }
-    ],
     "Nick Westbrook-Ikhine": [
       {
         "title": "2026 NFL Power Rankings: Post Draft",
         "url": "https://www.fantasypoints.com/nfl/articles/nfl-power-rankings-post-draft",
         "date": "2026-05-05T14:00:00.000Z",
         "author": "Tom Brolley"
-      }
-    ],
-    "Olamide Zaccheaus": [
-      {
-        "title": "2026 NFL Power Rankings: Post Draft",
-        "url": "https://www.fantasypoints.com/nfl/articles/nfl-power-rankings-post-draft",
-        "date": "2026-05-05T14:00:00.000Z",
-        "author": "Tom Brolley"
-      },
-      {
-        "title": "2025 Ceiling-Adjusted FPG: Wide Receivers",
-        "url": "https://www.fantasypoints.com/nfl/articles/2025-ceiling-adjusted-fpg-wide-receivers",
-        "date": "2026-04-28T16:30:00.000Z",
-        "author": "Kyle Menton"
       }
     ],
     "Teddy Bridgewater": [
@@ -265,22 +1019,6 @@
         "author": "Tom Brolley"
       }
     ],
-    "Kendrick Bourne": [
-      {
-        "title": "2026 NFL Power Rankings: Post Draft",
-        "url": "https://www.fantasypoints.com/nfl/articles/nfl-power-rankings-post-draft",
-        "date": "2026-05-05T14:00:00.000Z",
-        "author": "Tom Brolley"
-      }
-    ],
-    "Michael Pittman": [
-      {
-        "title": "2026 NFL Power Rankings: Post Draft",
-        "url": "https://www.fantasypoints.com/nfl/articles/nfl-power-rankings-post-draft",
-        "date": "2026-05-05T14:00:00.000Z",
-        "author": "Tom Brolley"
-      }
-    ],
     "Brian Robinson": [
       {
         "title": "2026 NFL Power Rankings: Post Draft",
@@ -292,20 +1030,6 @@
         "title": "Ryan Heath's 2026 Rookie RB Rankings",
         "url": "https://www.fantasypoints.com/nfl/articles/ryan-heaths-rookie-rb-rankings",
         "date": "2026-04-15T19:00:00.000Z",
-        "author": "Ryan Heath"
-      }
-    ],
-    "Christian Kirk": [
-      {
-        "title": "2026 NFL Power Rankings: Post Draft",
-        "url": "https://www.fantasypoints.com/nfl/articles/nfl-power-rankings-post-draft",
-        "date": "2026-05-05T14:00:00.000Z",
-        "author": "Tom Brolley"
-      },
-      {
-        "title": "Ryan Heath's 2026 Rookie WR Rankings",
-        "url": "https://www.fantasypoints.com/nfl/articles/ryan-heaths-rookie-wr-rankings",
-        "date": "2026-04-06T12:01:57.820Z",
         "author": "Ryan Heath"
       }
     ],
@@ -409,20 +1133,6 @@
         "author": "Ryan Heath"
       }
     ],
-    "Jaylen Waddle": [
-      {
-        "title": "2026 NFL Power Rankings: Post Draft",
-        "url": "https://www.fantasypoints.com/nfl/articles/nfl-power-rankings-post-draft",
-        "date": "2026-05-05T14:00:00.000Z",
-        "author": "Tom Brolley"
-      },
-      {
-        "title": "Ryan Heath's 2026 Rookie WR Rankings",
-        "url": "https://www.fantasypoints.com/nfl/articles/ryan-heaths-rookie-wr-rankings",
-        "date": "2026-04-06T12:01:57.820Z",
-        "author": "Ryan Heath"
-      }
-    ],
     "Justin Fields": [
       {
         "title": "2026 NFL Power Rankings: Post Draft",
@@ -473,14 +1183,6 @@
         "url": "https://www.fantasypoints.com/nfl/articles/ryan-heaths-rookie-wr-rankings",
         "date": "2026-04-06T12:01:57.820Z",
         "author": "Ryan Heath"
-      }
-    ],
-    "Jahan Dotson": [
-      {
-        "title": "2026 NFL Power Rankings: Post Draft",
-        "url": "https://www.fantasypoints.com/nfl/articles/nfl-power-rankings-post-draft",
-        "date": "2026-05-05T14:00:00.000Z",
-        "author": "Tom Brolley"
       }
     ],
     "Jalen Nailor": [
@@ -559,14 +1261,6 @@
         "author": "Kyle Menton"
       }
     ],
-    "Romeo Doubs": [
-      {
-        "title": "2026 NFL Power Rankings: Post Draft",
-        "url": "https://www.fantasypoints.com/nfl/articles/nfl-power-rankings-post-draft",
-        "date": "2026-05-05T14:00:00.000Z",
-        "author": "Tom Brolley"
-      }
-    ],
     "Tutu Atwell": [
       {
         "title": "2026 NFL Power Rankings: Post Draft",
@@ -590,14 +1284,6 @@
       }
     ],
     "Geno Smith": [
-      {
-        "title": "2026 NFL Power Rankings: Post Draft",
-        "url": "https://www.fantasypoints.com/nfl/articles/nfl-power-rankings-post-draft",
-        "date": "2026-05-05T14:00:00.000Z",
-        "author": "Tom Brolley"
-      }
-    ],
-    "Mike Evans": [
       {
         "title": "2026 NFL Power Rankings: Post Draft",
         "url": "https://www.fantasypoints.com/nfl/articles/nfl-power-rankings-post-draft",
@@ -635,20 +1321,6 @@
         "url": "https://www.fantasypoints.com/nfl/articles/barretts-pre-draft-top-50-rookie-rankings",
         "date": "2026-04-09T18:18:19.531Z",
         "author": "Scott Barrett"
-      }
-    ],
-    "A.J. Brown": [
-      {
-        "title": "2026 NFL Division Odds",
-        "url": "https://www.fantasypoints.com/nfl/articles/nfl-division-odds",
-        "date": "2026-05-13T19:30:00.000Z",
-        "author": "Tom Brolley"
-      },
-      {
-        "title": "2026 NFL Draft Market Report: Veterans",
-        "url": "https://www.fantasypoints.com/nfl/articles/nfl-draft-market-report-veterans",
-        "date": "2026-04-25T20:00:00.000Z",
-        "author": "Tom Brolley"
       }
     ],
     "Fernando Mendoza": [
@@ -731,26 +1403,6 @@
         "author": "Ryan Heath"
       }
     ],
-    "Tyler Shough": [
-      {
-        "title": "2026 NFL Division Odds",
-        "url": "https://www.fantasypoints.com/nfl/articles/nfl-division-odds",
-        "date": "2026-05-13T19:30:00.000Z",
-        "author": "Tom Brolley"
-      },
-      {
-        "title": "2026 NFL Rookie of the Year Awards",
-        "url": "https://www.fantasypoints.com/nfl/articles/nfl-rookie-of-the-year-awards",
-        "date": "2026-04-28T17:00:00.000Z",
-        "author": "Tom Brolley"
-      },
-      {
-        "title": "Heath's 2026 NFL Draft Fantasy Takeaways",
-        "url": "https://www.fantasypoints.com/nfl/articles/heaths-nfl-draft-fantasy-takeaways",
-        "date": "2026-04-24T12:30:00.000Z",
-        "author": "Ryan Heath"
-      }
-    ],
     "Kenyon Sadiq": [
       {
         "title": "2026 NFL Rookie Player Props",
@@ -796,26 +1448,6 @@
         "title": "Ryan Heath's 2026 Rookie RB Rankings",
         "url": "https://www.fantasypoints.com/nfl/articles/ryan-heaths-rookie-rb-rankings",
         "date": "2026-04-15T19:00:00.000Z",
-        "author": "Ryan Heath"
-      }
-    ],
-    "Zachariah Branch": [
-      {
-        "title": "Scott Barrett's 2026 Dynasty Rookie Rankings",
-        "url": "https://www.fantasypoints.com/nfl/articles/scott-barretts-dynasty-rookie-rankings",
-        "date": "2026-04-27T13:59:36.453Z",
-        "author": "Scott Barrett"
-      },
-      {
-        "title": "Barrett's Pre-Draft Top 50 Rookie Rankings",
-        "url": "https://www.fantasypoints.com/nfl/articles/barretts-pre-draft-top-50-rookie-rankings",
-        "date": "2026-04-09T18:18:19.531Z",
-        "author": "Scott Barrett"
-      },
-      {
-        "title": "Ryan Heath's 2026 Rookie WR Rankings",
-        "url": "https://www.fantasypoints.com/nfl/articles/ryan-heaths-rookie-wr-rankings",
-        "date": "2026-04-06T12:01:57.820Z",
         "author": "Ryan Heath"
       }
     ],
@@ -894,20 +1526,6 @@
         "title": "Ryan Heath's 2026 Rookie RB Rankings",
         "url": "https://www.fantasypoints.com/nfl/articles/ryan-heaths-rookie-rb-rankings",
         "date": "2026-04-15T19:00:00.000Z",
-        "author": "Ryan Heath"
-      }
-    ],
-    "Germie Bernard": [
-      {
-        "title": "Scott Barrett's 2026 Dynasty Rookie Rankings",
-        "url": "https://www.fantasypoints.com/nfl/articles/scott-barretts-dynasty-rookie-rankings",
-        "date": "2026-04-27T13:59:36.453Z",
-        "author": "Scott Barrett"
-      },
-      {
-        "title": "Ryan Heath's 2026 Rookie WR Rankings",
-        "url": "https://www.fantasypoints.com/nfl/articles/ryan-heaths-rookie-wr-rankings",
-        "date": "2026-04-06T12:01:57.820Z",
         "author": "Ryan Heath"
       }
     ],
@@ -1215,26 +1833,6 @@
         "author": "Ryan Heath"
       }
     ],
-    "Zay Flowers": [
-      {
-        "title": "Scott Barrett's 2026 Dynasty Rookie Rankings",
-        "url": "https://www.fantasypoints.com/nfl/articles/scott-barretts-dynasty-rookie-rankings",
-        "date": "2026-04-27T13:59:36.453Z",
-        "author": "Scott Barrett"
-      },
-      {
-        "title": "2025 Ceiling-Adjusted FPG: Running Backs",
-        "url": "https://www.fantasypoints.com/nfl/articles/2025-ceiling-adjusted-fpg-running-backs",
-        "date": "2026-04-13T18:30:00.000Z",
-        "author": "Kyle Menton"
-      },
-      {
-        "title": "Ryan Heath's 2026 Rookie WR Rankings",
-        "url": "https://www.fantasypoints.com/nfl/articles/ryan-heaths-rookie-wr-rankings",
-        "date": "2026-04-06T12:01:57.820Z",
-        "author": "Ryan Heath"
-      }
-    ],
     "Chris Bell": [
       {
         "title": "Scott Barrett's 2026 Dynasty Rookie Rankings",
@@ -1294,42 +1892,6 @@
         "title": "Barrett's Pre-Draft Top 50 Rookie Rankings",
         "url": "https://www.fantasypoints.com/nfl/articles/barretts-pre-draft-top-50-rookie-rankings",
         "date": "2026-04-09T18:18:19.531Z",
-        "author": "Scott Barrett"
-      }
-    ],
-    "Max Klare": [
-      {
-        "title": "Scott Barrett's 2026 Dynasty Rookie Rankings",
-        "url": "https://www.fantasypoints.com/nfl/articles/scott-barretts-dynasty-rookie-rankings",
-        "date": "2026-04-27T13:59:36.453Z",
-        "author": "Scott Barrett"
-      },
-      {
-        "title": "Ryan Heath's 2026 Rookie TE Rankings",
-        "url": "https://www.fantasypoints.com/nfl/articles/ryan-heaths-rookie-te-rankings",
-        "date": "2026-03-26T14:00:00.000Z",
-        "author": "Ryan Heath"
-      }
-    ],
-    "Sam Roush": [
-      {
-        "title": "Scott Barrett's 2026 Dynasty Rookie Rankings",
-        "url": "https://www.fantasypoints.com/nfl/articles/scott-barretts-dynasty-rookie-rankings",
-        "date": "2026-04-27T13:59:36.453Z",
-        "author": "Scott Barrett"
-      },
-      {
-        "title": "Ryan Heath's 2026 Rookie TE Rankings",
-        "url": "https://www.fantasypoints.com/nfl/articles/ryan-heaths-rookie-te-rankings",
-        "date": "2026-03-26T14:00:00.000Z",
-        "author": "Ryan Heath"
-      }
-    ],
-    "Ted Hurst": [
-      {
-        "title": "Scott Barrett's 2026 Dynasty Rookie Rankings",
-        "url": "https://www.fantasypoints.com/nfl/articles/scott-barretts-dynasty-rookie-rankings",
-        "date": "2026-04-27T13:59:36.453Z",
         "author": "Scott Barrett"
       }
     ],
@@ -1621,20 +2183,6 @@
         "author": "Ryan Heath"
       }
     ],
-    "Jaxon Smith-Njigba": [
-      {
-        "title": "2025 Ceiling-Adjusted FPG: Wide Receivers",
-        "url": "https://www.fantasypoints.com/nfl/articles/2025-ceiling-adjusted-fpg-wide-receivers",
-        "date": "2026-04-28T16:30:00.000Z",
-        "author": "Kyle Menton"
-      },
-      {
-        "title": "Ryan Heath's 2026 Rookie WR Rankings",
-        "url": "https://www.fantasypoints.com/nfl/articles/ryan-heaths-rookie-wr-rankings",
-        "date": "2026-04-06T12:01:57.820Z",
-        "author": "Ryan Heath"
-      }
-    ],
     "Parker Washington": [
       {
         "title": "2025 Ceiling-Adjusted FPG: Wide Receivers",
@@ -1643,85 +2191,7 @@
         "author": "Kyle Menton"
       }
     ],
-    "Christian Watson": [
-      {
-        "title": "2025 Ceiling-Adjusted FPG: Wide Receivers",
-        "url": "https://www.fantasypoints.com/nfl/articles/2025-ceiling-adjusted-fpg-wide-receivers",
-        "date": "2026-04-28T16:30:00.000Z",
-        "author": "Kyle Menton"
-      },
-      {
-        "title": "Ryan Heath's 2026 Rookie WR Rankings",
-        "url": "https://www.fantasypoints.com/nfl/articles/ryan-heaths-rookie-wr-rankings",
-        "date": "2026-04-06T12:01:57.820Z",
-        "author": "Ryan Heath"
-      }
-    ],
     "Justin Jefferson": [
-      {
-        "title": "2025 Ceiling-Adjusted FPG: Wide Receivers",
-        "url": "https://www.fantasypoints.com/nfl/articles/2025-ceiling-adjusted-fpg-wide-receivers",
-        "date": "2026-04-28T16:30:00.000Z",
-        "author": "Kyle Menton"
-      },
-      {
-        "title": "Ryan Heath's 2026 Rookie WR Rankings",
-        "url": "https://www.fantasypoints.com/nfl/articles/ryan-heaths-rookie-wr-rankings",
-        "date": "2026-04-06T12:01:57.820Z",
-        "author": "Ryan Heath"
-      }
-    ],
-    "Marvin Harrison": [
-      {
-        "title": "2025 Ceiling-Adjusted FPG: Wide Receivers",
-        "url": "https://www.fantasypoints.com/nfl/articles/2025-ceiling-adjusted-fpg-wide-receivers",
-        "date": "2026-04-28T16:30:00.000Z",
-        "author": "Kyle Menton"
-      },
-      {
-        "title": "Ryan Heath's 2026 Rookie WR Rankings",
-        "url": "https://www.fantasypoints.com/nfl/articles/ryan-heaths-rookie-wr-rankings",
-        "date": "2026-04-06T12:01:57.820Z",
-        "author": "Ryan Heath"
-      }
-    ],
-    "Michael Wilson": [
-      {
-        "title": "2025 Ceiling-Adjusted FPG: Wide Receivers",
-        "url": "https://www.fantasypoints.com/nfl/articles/2025-ceiling-adjusted-fpg-wide-receivers",
-        "date": "2026-04-28T16:30:00.000Z",
-        "author": "Kyle Menton"
-      }
-    ],
-    "Luther Burden": [
-      {
-        "title": "2025 Ceiling-Adjusted FPG: Wide Receivers",
-        "url": "https://www.fantasypoints.com/nfl/articles/2025-ceiling-adjusted-fpg-wide-receivers",
-        "date": "2026-04-28T16:30:00.000Z",
-        "author": "Kyle Menton"
-      },
-      {
-        "title": "Ryan Heath's 2026 Rookie WR Rankings",
-        "url": "https://www.fantasypoints.com/nfl/articles/ryan-heaths-rookie-wr-rankings",
-        "date": "2026-04-06T12:01:57.820Z",
-        "author": "Ryan Heath"
-      }
-    ],
-    "Brian Thomas": [
-      {
-        "title": "2025 Ceiling-Adjusted FPG: Wide Receivers",
-        "url": "https://www.fantasypoints.com/nfl/articles/2025-ceiling-adjusted-fpg-wide-receivers",
-        "date": "2026-04-28T16:30:00.000Z",
-        "author": "Kyle Menton"
-      },
-      {
-        "title": "Ryan Heath's 2026 Rookie WR Rankings",
-        "url": "https://www.fantasypoints.com/nfl/articles/ryan-heaths-rookie-wr-rankings",
-        "date": "2026-04-06T12:01:57.820Z",
-        "author": "Ryan Heath"
-      }
-    ],
-    "Emeka Egbuka": [
       {
         "title": "2025 Ceiling-Adjusted FPG: Wide Receivers",
         "url": "https://www.fantasypoints.com/nfl/articles/2025-ceiling-adjusted-fpg-wide-receivers",
@@ -1741,34 +2211,6 @@
         "url": "https://www.fantasypoints.com/nfl/articles/2025-ceiling-adjusted-fpg-wide-receivers",
         "date": "2026-04-28T16:30:00.000Z",
         "author": "Kyle Menton"
-      }
-    ],
-    "Rome Odunze": [
-      {
-        "title": "2025 Ceiling-Adjusted FPG: Wide Receivers",
-        "url": "https://www.fantasypoints.com/nfl/articles/2025-ceiling-adjusted-fpg-wide-receivers",
-        "date": "2026-04-28T16:30:00.000Z",
-        "author": "Kyle Menton"
-      },
-      {
-        "title": "Ryan Heath's 2026 Rookie WR Rankings",
-        "url": "https://www.fantasypoints.com/nfl/articles/ryan-heaths-rookie-wr-rankings",
-        "date": "2026-04-06T12:01:57.820Z",
-        "author": "Ryan Heath"
-      }
-    ],
-    "Puka Nacua": [
-      {
-        "title": "2025 Ceiling-Adjusted FPG: Wide Receivers",
-        "url": "https://www.fantasypoints.com/nfl/articles/2025-ceiling-adjusted-fpg-wide-receivers",
-        "date": "2026-04-28T16:30:00.000Z",
-        "author": "Kyle Menton"
-      },
-      {
-        "title": "Ryan Heath's 2026 Rookie WR Rankings",
-        "url": "https://www.fantasypoints.com/nfl/articles/ryan-heaths-rookie-wr-rankings",
-        "date": "2026-04-06T12:01:57.820Z",
-        "author": "Ryan Heath"
       }
     ],
     "Blake Whiteheart": [
@@ -1792,48 +2234,6 @@
         "title": "Heath's 2026 NFL Draft Fantasy Takeaways",
         "url": "https://www.fantasypoints.com/nfl/articles/heaths-nfl-draft-fantasy-takeaways",
         "date": "2026-04-24T12:30:00.000Z",
-        "author": "Ryan Heath"
-      }
-    ],
-    "Harold Fannin": [
-      {
-        "title": "Heath's 2026 NFL Draft Fantasy Takeaways",
-        "url": "https://www.fantasypoints.com/nfl/articles/heaths-nfl-draft-fantasy-takeaways",
-        "date": "2026-04-24T12:30:00.000Z",
-        "author": "Ryan Heath"
-      },
-      {
-        "title": "Ryan Heath's 2026 Rookie TE Rankings",
-        "url": "https://www.fantasypoints.com/nfl/articles/ryan-heaths-rookie-te-rankings",
-        "date": "2026-03-26T14:00:00.000Z",
-        "author": "Ryan Heath"
-      }
-    ],
-    "Brock Bowers": [
-      {
-        "title": "Heath's 2026 NFL Draft Fantasy Takeaways",
-        "url": "https://www.fantasypoints.com/nfl/articles/heaths-nfl-draft-fantasy-takeaways",
-        "date": "2026-04-24T12:30:00.000Z",
-        "author": "Ryan Heath"
-      },
-      {
-        "title": "Ryan Heath's 2026 Rookie TE Rankings",
-        "url": "https://www.fantasypoints.com/nfl/articles/ryan-heaths-rookie-te-rankings",
-        "date": "2026-03-26T14:00:00.000Z",
-        "author": "Ryan Heath"
-      }
-    ],
-    "Jerry Jeudy": [
-      {
-        "title": "Heath's 2026 NFL Draft Fantasy Takeaways",
-        "url": "https://www.fantasypoints.com/nfl/articles/heaths-nfl-draft-fantasy-takeaways",
-        "date": "2026-04-24T12:30:00.000Z",
-        "author": "Ryan Heath"
-      },
-      {
-        "title": "Ryan Heath's 2026 Rookie WR Rankings",
-        "url": "https://www.fantasypoints.com/nfl/articles/ryan-heaths-rookie-wr-rankings",
-        "date": "2026-04-06T12:01:57.820Z",
         "author": "Ryan Heath"
       }
     ],
@@ -1963,14 +2363,6 @@
         "author": "Ryan Heath"
       }
     ],
-    "Matthew Golden": [
-      {
-        "title": "Ryan Heath's 2026 Rookie WR Rankings",
-        "url": "https://www.fantasypoints.com/nfl/articles/ryan-heaths-rookie-wr-rankings",
-        "date": "2026-04-06T12:01:57.820Z",
-        "author": "Ryan Heath"
-      }
-    ],
     "Mecole Hardman": [
       {
         "title": "Ryan Heath's 2026 Rookie WR Rankings",
@@ -1988,14 +2380,6 @@
       }
     ],
     "Xavier Legette": [
-      {
-        "title": "Ryan Heath's 2026 Rookie WR Rankings",
-        "url": "https://www.fantasypoints.com/nfl/articles/ryan-heaths-rookie-wr-rankings",
-        "date": "2026-04-06T12:01:57.820Z",
-        "author": "Ryan Heath"
-      }
-    ],
-    "Calvin Ridley": [
       {
         "title": "Ryan Heath's 2026 Rookie WR Rankings",
         "url": "https://www.fantasypoints.com/nfl/articles/ryan-heaths-rookie-wr-rankings",
@@ -2051,31 +2435,7 @@
         "author": "Ryan Heath"
       }
     ],
-    "Malik Nabers": [
-      {
-        "title": "Ryan Heath's 2026 Rookie WR Rankings",
-        "url": "https://www.fantasypoints.com/nfl/articles/ryan-heaths-rookie-wr-rankings",
-        "date": "2026-04-06T12:01:57.820Z",
-        "author": "Ryan Heath"
-      }
-    ],
     "Alec Pierce": [
-      {
-        "title": "Ryan Heath's 2026 Rookie WR Rankings",
-        "url": "https://www.fantasypoints.com/nfl/articles/ryan-heaths-rookie-wr-rankings",
-        "date": "2026-04-06T12:01:57.820Z",
-        "author": "Ryan Heath"
-      }
-    ],
-    "CeeDee Lamb": [
-      {
-        "title": "Ryan Heath's 2026 Rookie WR Rankings",
-        "url": "https://www.fantasypoints.com/nfl/articles/ryan-heaths-rookie-wr-rankings",
-        "date": "2026-04-06T12:01:57.820Z",
-        "author": "Ryan Heath"
-      }
-    ],
-    "Jayden Reed": [
       {
         "title": "Ryan Heath's 2026 Rookie WR Rankings",
         "url": "https://www.fantasypoints.com/nfl/articles/ryan-heaths-rookie-wr-rankings",
@@ -2120,14 +2480,6 @@
         "title": "Ryan Heath's 2026 Rookie WR Rankings",
         "url": "https://www.fantasypoints.com/nfl/articles/ryan-heaths-rookie-wr-rankings",
         "date": "2026-04-06T12:01:57.820Z",
-        "author": "Ryan Heath"
-      }
-    ],
-    "Colston Loveland": [
-      {
-        "title": "Ryan Heath's 2026 Rookie TE Rankings",
-        "url": "https://www.fantasypoints.com/nfl/articles/ryan-heaths-rookie-te-rankings",
-        "date": "2026-03-26T14:00:00.000Z",
         "author": "Ryan Heath"
       }
     ],
@@ -2179,14 +2531,6 @@
         "author": "Ryan Heath"
       }
     ],
-    "Michael Mayer": [
-      {
-        "title": "Ryan Heath's 2026 Rookie TE Rankings",
-        "url": "https://www.fantasypoints.com/nfl/articles/ryan-heaths-rookie-te-rankings",
-        "date": "2026-03-26T14:00:00.000Z",
-        "author": "Ryan Heath"
-      }
-    ],
     "Michael Trigg": [
       {
         "title": "Ryan Heath's 2026 Rookie TE Rankings",
@@ -2204,14 +2548,6 @@
       }
     ],
     "Mark Andrews": [
-      {
-        "title": "Ryan Heath's 2026 Rookie TE Rankings",
-        "url": "https://www.fantasypoints.com/nfl/articles/ryan-heaths-rookie-te-rankings",
-        "date": "2026-03-26T14:00:00.000Z",
-        "author": "Ryan Heath"
-      }
-    ],
-    "Trey McBride": [
       {
         "title": "Ryan Heath's 2026 Rookie TE Rankings",
         "url": "https://www.fantasypoints.com/nfl/articles/ryan-heaths-rookie-te-rankings",
@@ -2243,23 +2579,7 @@
         "author": "Ryan Heath"
       }
     ],
-    "Sam LaPorta": [
-      {
-        "title": "Ryan Heath's 2026 Rookie TE Rankings",
-        "url": "https://www.fantasypoints.com/nfl/articles/ryan-heaths-rookie-te-rankings",
-        "date": "2026-03-26T14:00:00.000Z",
-        "author": "Ryan Heath"
-      }
-    ],
     "Cade Otton": [
-      {
-        "title": "Ryan Heath's 2026 Rookie TE Rankings",
-        "url": "https://www.fantasypoints.com/nfl/articles/ryan-heaths-rookie-te-rankings",
-        "date": "2026-03-26T14:00:00.000Z",
-        "author": "Ryan Heath"
-      }
-    ],
-    "Kyle Pitts": [
       {
         "title": "Ryan Heath's 2026 Rookie TE Rankings",
         "url": "https://www.fantasypoints.com/nfl/articles/ryan-heaths-rookie-te-rankings",

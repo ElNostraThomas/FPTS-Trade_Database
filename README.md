@@ -80,15 +80,19 @@ template + one bootstrap module — no more per-page boilerplate).
   bottom-right), card-meta line, player-panel #pp-nfl-team slot, every
   trade-chip surface (DB recent trades, drawer Trades tab, drawer Trade
   Finder tab, Trade Calculator main asset-row chips), Tiers table team
-  column, My-Leagues roster rows. Every site emits
-  `logoImg(team, { size: 18 })` in chip contexts and falls back to plain
-  text if `window.TeamHelpers` isn't loaded.
+  column, My-Leagues roster rows. Chip contexts now emit
+  `logoImg(team, { size: 22, coin: true })` — the `coin: true` wraps the
+  logo in a small white circular backdrop so team colors never clash
+  with the pos-pill behind them. Falls back to plain text if
+  `window.TeamHelpers` isn't loaded.
 - **The "trade-chip rule":** any future surface that renders a player
   image next to their name MUST emit the team logo directly to the right
-  of the name span at size 18 (`TeamHelpers.logoImg(team, { size: 18 })`).
+  of the name span via `TeamHelpers.logoImg(team, { size: 22, coin: true })`.
   Parent flex container uses `align-items: center` for vertical baseline.
-  Documented in `assets/js/team-helpers.js` header. Exempted: My-Leagues
-  league-importer (user explicitly excluded for now).
+  Tighter rows (My-Leagues) drop to `size: 16-18`. ADP-tool excludes the
+  coin (its box-card uses `.card-team-logo`, its list-view uses
+  `.team-pill`). Documented in `assets/js/team-helpers.js` header.
+  Exempted: My-Leagues league-importer (user explicitly excluded for now).
 - **Softened position palette** for less eye strain. Dark theme position
   backgrounds dropped from saturated brights (e.g. RB #4caf6e neon green)
   to deeper, muted tones (#2f6d44 forest). Position text flipped from
@@ -336,7 +340,10 @@ Read README.md for current state. End-of-2026-05-14:
 - "Rookies" startup variant renamed to "With Rookies" to disambiguate
   from the new top-level tab.
 - Trade-chip rule still applies: any new player-image surface uses
-  TeamHelpers.logoImg(team, { size: 18 }) right of the name.
+  TeamHelpers.logoImg(team, { size: 22, coin: true }) right of the name.
+  The coin opt wraps the logo in a light circular backdrop so team
+  colors can't clash with the pos-pill behind them. ADP-tool excludes
+  the coin (its own box-card and list-view already provide separation).
 
 Confirm by running `git log --oneline -20`.
 
@@ -377,12 +384,12 @@ Full reference: `docs/WORKFLOW.md`.
 ### Shared modules (under `assets/`)
 - **`assets/css/brand.css`** — canonical brand variables, fonts, top nav, position pills, page chrome, **125% body zoom**. Source of truth for new pages via the scaffold; 5 existing pages still inline-duplicate this CSS until migrated.
 - **`assets/js/data-bootstrap.js`** — shared data layer. Fetches `data/*.json` + populates `window.*` globals + fires `fpts:data-ready`. Used by future pages; 5 existing pages still hand-roll their bootstrap until migrated.
-- **`assets/js/team-helpers.js`** — NFL team logo helpers (`logoUrl`, `logoImg`, `headshotBadge`, `wrapWithBadge`). Sleeper-CDN-backed PNGs at `sleepercdn.com/images/team_logos/nfl/{team}.png`. Standard chip-context call is `TeamHelpers.logoImg(team, { size: 18 })`. Loaded by all 5 pages + the template.
+- **`assets/js/team-helpers.js`** — NFL team logo helpers (`logoUrl`, `logoImg`, `headshotBadge`, `wrapWithBadge`). Sleeper-CDN-backed PNGs at `sleepercdn.com/images/team_logos/nfl/{team}.png`. Standard chip-context call is `TeamHelpers.logoImg(team, { size: 22, coin: true })` — the `coin: true` opt wraps the logo in a `.team-logo--coin` light circular backdrop (defined in `brand.css`) so the logo never blends with the pos-pill color behind it. ADP-tool's two callsites omit the coin (box-card has `.card-team-logo`, list-view has `.team-pill`). Loaded by all 5 pages + the template.
 - **`assets/css/player-panel.css`** + **`assets/js/player-panel.js`** — shared right-edge slide-out drawer (used by all 5 pages)
 - **`assets/css/mvs-extras.css`** + **`assets/js/mvs-extras.js`** — MVS header (OTC, baseline, trade volume, contributor rankings, recent trades helpers)
 - **`assets/js/player-articles.js`** — shared articles section (banner-style)
 - **`assets/css/heatmap.css`** + **`assets/js/heatmap.js`** — ADP pick-availability heatmap (now with "Data refreshed" stamp)
-- **`assets/css/legend.css`** + **`assets/js/legend.js`** + **`legend-content.js`** — in-app developer legend drawer
+- **`assets/css/legend.css`** + **`assets/js/legend.js`** + **`legend-content.js`** — in-app developer legend drawer. The header comment block of `legend-content.js` is the canonical **design vocabulary** glossary — what "pill", "coin", "chip", "card", "row", "badge", "thumb", "flame" each mean, plus the design tokens. Read it before invents-new-classes.
 
 ### Scaffold for new pages
 - **`templates/page-template.html`** — copy-this-to-start scaffold. See `docs/WORKFLOW.md` § "2b. Add a new page or tool" for the flow.

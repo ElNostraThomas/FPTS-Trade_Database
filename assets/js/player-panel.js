@@ -549,7 +549,7 @@
     // adjacent body text. Falls back to plain abbreviation text on legacy
     // pages without TeamHelpers, or empty-team players.
     const _teamHtml = (global.TeamHelpers && ktc.team)
-      ? global.TeamHelpers.logoImg(ktc.team, { size: 22 })
+      ? global.TeamHelpers.logoImg(ktc.team, { size: 26, coin: true })
       : (ktc.team || '—');
     _set('pp-nfl-team', _teamHtml);
     _setText('pp-player-name', playerName);
@@ -756,7 +756,7 @@
         items.push(`<div class="tc-asset">
           <span style="width:28px;height:28px;flex-shrink:0;display:inline-block;">${thumbHtml}</span>
           <span class="pos-badge ${_pc(ppos)}">${ppos}</span>
-          <span class="tc-asset-name clickable-player" onclick="openPanel('${pname.replace(/'/g, "\\'")}')">${pname}</span>${nflTeam && global.TeamHelpers ? `<span class="tc-nfl-team">${global.TeamHelpers.logoImg(nflTeam, { size: 18 })}</span>` : (nflTeam ? `<span class="tc-nfl-team">${nflTeam}</span>` : '')}
+          <span class="tc-asset-name clickable-player" onclick="openPanel('${pname.replace(/'/g, "\\'")}')">${pname}</span>${nflTeam && global.TeamHelpers ? `<span class="tc-nfl-team">${global.TeamHelpers.logoImg(nflTeam, { size: 22, coin: true })}</span>` : (nflTeam ? `<span class="tc-nfl-team">${nflTeam}</span>` : '')}
         </div>`);
       });
       side.picks.forEach(pk => {
@@ -1181,7 +1181,7 @@
                 // Team logo (only for real-player rows; picks have no team).
                 const _fpRec = a.type === 'pick' ? null : (_fp()[a.label] || null);
                 const _team = _fpRec && _fpRec.team ? _fpRec.team : '';
-                const _teamLogoHtml = (_team && global.TeamHelpers) ? global.TeamHelpers.logoImg(_team, { size: 18 }) : '';
+                const _teamLogoHtml = (_team && global.TeamHelpers) ? global.TeamHelpers.logoImg(_team, { size: 22, coin: true }) : '';
                 return `
                 <div class="tf-asset" data-pos="${_pos}">
                   ${a.type === 'pick' ? pickThumb(24) : _imgThumb(a.label, 24) + `<span class="pos-badge ${_pc(_pos)}" style="font-size:9px;padding:1px 5px">${_pos}</span>`}

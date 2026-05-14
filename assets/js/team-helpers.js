@@ -68,13 +68,16 @@
   //
   //   opts.size      px height (default 14)
   //   opts.cls       extra classes (default 'team-logo')
+  //   opts.coin      if true, append 'team-logo--coin' for a circular light backdrop
+  //                  that isolates the logo from any colored pill behind it
   //   opts.withText  if true, render '<img> <span>ATL</span>' for accessibility
   function logoImg(team, opts) {
     opts = opts || {};
     const t = _norm(team);
     if (!t) return '';
     const size = opts.size || 14;
-    const cls  = opts.cls  || 'team-logo';
+    let cls = opts.cls || 'team-logo';
+    if (opts.coin) cls += ' team-logo--coin';
     const url  = logoUrl(t);
     const alt  = _esc(t);
     const onerr = 'this.replaceWith(Object.assign(document.createElement(\'span\'),{className:\'team-logo-fallback\',textContent:\'' + alt + '\'}))';

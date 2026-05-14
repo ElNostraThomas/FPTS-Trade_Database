@@ -207,6 +207,12 @@
 .tf-asset[data-pos="K"]    { background: var(--pos-k-bg);    color: var(--pos-k);    border-color: rgba(0,0,0,.18); }
 .tf-asset[data-pos="PK"]   { background: var(--pos-pick-bg); color: var(--pos-pick); border-color: rgba(0,0,0,.18); }
 .tf-asset[data-pos] .pos-badge { background: rgba(0,0,0,.22); color: inherit; }
+/* Uniform pos-badge width across trade-builder rows and the add-search dropdown.
+   30px is the smallest min-width that fits all 2-letter position labels
+   (QB/WR/RB/TE/K/PK) at the row's 9px Kanit ExtraBold Italic + 1px 5px padding
+   without truncation, so TE/K stop reading visually narrower than QB/WR. */
+.tf-asset .pos-badge,
+.tf-add-option .pos-badge { min-width: 30px; }
 /* Stacked name inside chip — first name small Mulish, last name big Kanit italic */
 .tf-asset-name { font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 14px; color: inherit; flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1; overflow: hidden; }
 .tf-asset-name .fn { font-family: 'Mulish', sans-serif; font-style: normal; font-weight: 800; font-size: 9px; letter-spacing: .06em; opacity: .78; text-transform: uppercase; line-height: 1; margin-bottom: 1px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

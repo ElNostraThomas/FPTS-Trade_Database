@@ -110,6 +110,103 @@
    See docs/WORKFLOW.md § "2b. Add a new page or tool" for the full flow.
    The existing 5 pages still inline their own bootstrap (pre-scaffold);
    they migrate when next touched.
+
+   ──────────────────────────────────────────────────────────────────────
+   DESIGN VOCABULARY  —  what we mean when we say "pill", "coin", "chip"…
+   ──────────────────────────────────────────────────────────────────────
+   pill  /  pos-pill  /  pos-badge
+     The small colored rectangle showing a player's position (QB/RB/WR/
+     TE/K/Pick). Classes: .pos-pill, .pos-badge, plus position variants
+     .pos-qb / .pos-rb / .pos-wr / .pos-te / .pos-k / .pos-pick. Background
+     comes from --pos-XX-bg vars; text color from --pos-XX vars. Trade-
+     builder rows carry a min-width:30px override (.tf-asset .pos-badge in
+     player-panel.css) so all letter combos render at uniform width.
+
+   coin  /  team-logo coin
+     Small circular backdrop wrapping an NFL team logo so the team color
+     never clashes with the surface (pos-pill, drawer chrome) behind it.
+     CSS: .team-logo--coin (translucent rgba(0,0,0,.22) dark wash, soft
+     drop shadow, no border). Emit via TeamHelpers.logoImg(team,
+     { size, coin: true }). Other coin variants in the codebase:
+       .card-team-logo  (26px box-card coin, defined in adp-tool.html)
+       .player-hs-team  (badge coin over a headshot's bottom-right,
+                         uses var(--surface) — see team-helpers.js)
+
+   chip
+     Horizontal row laying out [thumbnail] [pos-pill] [name] [team-logo
+     coin] [value] [...]. Used for trade-builder, recent trades, asset
+     rows. Class families:
+       .tc-asset       Trade Calculator main asset rows
+       .tf-asset       Trade Finder rows (in drawer)
+       .tc-nfl-team    name-adjacent team-logo holder span
+       .ml-tc-team     My-Leagues trade-corpus chips
+     The "trade-chip rule": every chip MUST emit the team-logo coin to the
+     right of the player name via TeamHelpers.logoImg.
+
+   card
+     Larger rectangular surface with internal layout. Variants:
+       .box-card       ADP Box view (player headshot bottom-right +
+                       team coin bottom-left, mirrored 32px / 26px)
+       .rank-card      MVS Most Traded Players row (with rank num + bar)
+       .card-team-logo The 26px coin inside a .box-card
+
+   row
+     Taller-than-chip horizontal layout, typically with stacked text.
+       .value-row              MVS Top Risers / Top Fallers
+       .ml-team-roster-row     My-Leagues roster
+       .rank-row-wrap          MVS Most Traded outer wrapper
+
+   badge
+     Small overlay/accent. Variants:
+       .nav-badge         "SEASON 2026" topnav badge (brand orange bg)
+       .player-hs-team    team logo overlaid on a player headshot
+       .pos-badge         alias for pill in some contexts
+
+   thumb  /  headshot
+     Circular player photo from Sleeper CDN. Standard sizes by surface:
+       22px  MVS Risers/Fallers row
+       24px  Trade Finder add-search dropdown
+       28px  MVS Most Traded Players
+       32px  box-card mirrored bottom-right
+       40px  list-view row
+       80px  drawer player-panel hero
+       96px  full-screen modal hero
+     Generic CDN-miss fallback class: .fpts-hs-fallback (see Headshot
+     Fallback Rule section above).
+
+   flame  /  RDP thumb
+     The Rookie Draft Pick placeholder thumbnail — brand-orange flame
+     icon used wherever a player headshot would otherwise sit for a
+     synthetic ROOKIE_PICK_X.YY entity. Defined via pickThumb() in
+     player-panel.js + an inline SVG path.
+
+   page-title  /  section-hdr  /  sub-hdr
+     Three levels of in-page heading typography (Kanit ExtraBold Italic,
+     descending size). page-title is the top-of-page descriptor,
+     section-hdr divides tabs/areas (e.g. "Most Traded Players"),
+     sub-hdr labels groupings within a section.
+
+   ── DESIGN TOKENS  (canonical CSS variables in assets/css/brand.css) ──
+
+   --red          #ED810C  brand orange — wordmark, nav-badge, icon-btn
+                           active, trend-down, section labels. The single
+                           accent color across the site; do not invent
+                           new accents.
+   --surface      page chrome bg          (#1a1a1a dark / #e8e8e8 light)
+   --surface2     elevated chrome bg      (#222 dark / #dedede light)
+   --border       subtle dividers         (#2a2a2a dark / #cccccc light)
+   --border2      component outlines      (#333 dark / #bbb light)
+   --black        baseline ink            (#111 dark / #f0f0f0 light — inverts)
+   --white        baseline paper          (#fff dark / #111 light — inverts)
+   --pos-XX-bg    position pill background (see "pill" above)
+   --pos-XX       position pill text color
+   --green        positive trend / value-up (#4caf6e)
+   --yellow       neutral / caution (#f0c040)
+
+   RULE OF REUSE: when adding a new UI element, pick whichever class
+   family above matches its role and reuse the tokens — don't invent new
+   colors, sizes, or class names. New conventions get an entry here
+   FIRST, then the code follows.
    ──────────────────────────────────────────────────────────────────────
 */
 
