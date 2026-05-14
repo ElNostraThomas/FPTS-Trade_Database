@@ -148,4 +148,13 @@
     headshotBadge:  headshotBadge,
     wrapWithBadge:  wrapWithBadge,
   };
+
+  // Update the topnav "SEASON 2026" badge from the active payload's season
+  // number. Called by each page's adp.json handler so the rollover happens
+  // wherever sync-adp.py writes a new season into adp.json (auto-detected
+  // year-month >= April; see sync-adp.py main()).
+  global.applySeasonBadge = function (season) {
+    const el = document.getElementById('nav-season-badge');
+    if (el && season) el.textContent = 'SEASON ' + season;
+  };
 })(typeof window !== 'undefined' ? window : globalThis);

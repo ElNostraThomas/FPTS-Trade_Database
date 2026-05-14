@@ -99,6 +99,7 @@
   function _applyAdpPayload(j) {
     if (!j || !j.byMonth) return;
     global.ADP_PAYLOAD = j;
+    if (global.applySeasonBadge) global.applySeasonBadge(j.season);
     const all = j.byMonth.ALL || {};
     const sfByKey  = _indexByNorm(all.startup_sf);
     const oneByKey = _indexByNorm(all.startup_1qb);

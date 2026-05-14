@@ -1075,7 +1075,7 @@
       <option value="https://www.fantasypoints.com/nfl/rankings/dynasty#/">Rankings</option>
     </select>
     <span class="nav-stat">Updated <strong>Apr 2026</strong></span>
-    <span class="nav-badge">SEASON 2026</span>
+    <span class="nav-badge" id="nav-season-badge">SEASON 2026</span>
     <button id="theme-toggle" onclick="toggleTheme()"
       style="background:none;border:1px solid var(--border2);color:var(--white);font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:11px;padding:5px 12px;cursor:pointer;transition:all .2s;letter-spacing:.04em;display:flex;align-items:center;gap:6px"
       onmouseover="this.style.borderColor='var(--red)';this.style.color='var(--red)'"
@@ -5868,6 +5868,7 @@ function renderAssetFilterTags(){renderTradeSideTags("a");renderTradeSideTags("b
   function _applyAdpPayload(j) {
     if (!j || !j.byMonth) return;
     window.ADP_PAYLOAD = j;
+    if (window.applySeasonBadge) window.applySeasonBadge(j.season);
     const all = j.byMonth.ALL || {};
     const sfByKey  = _indexByNorm(all.startup_sf);
     const oneByKey = _indexByNorm(all.startup_1qb);
