@@ -6,7 +6,7 @@
 <title>Fantasy Points Front Office — Tiers</title>
 
 <!-- Brand-level shared styles (loaded BEFORE inline <style> so page overrides win). -->
-<link rel="stylesheet" href="assets/css/brand.css?v=1778680001">
+<link rel="stylesheet" href="assets/css/brand.css?v=1778680007">
 
 <style>
   :root {
@@ -22,12 +22,12 @@
     --border: #333;
     --border2: #444;
     --muted: var(--white);
-    --pos-qb-bg: #c33;
-    --pos-rb-bg: #2c8a2c;
-    --pos-wr-bg: #5b9bd5;
-    --pos-te-bg: #d4a017;
-    --pos-pick-bg: #c33;
-    --pos-k-bg: #9b91d4;
+    --pos-qb-bg: #963a3a;
+    --pos-rb-bg: #2f6d44;
+    --pos-wr-bg: #3c6788;
+    --pos-te-bg: #8c601a;
+    --pos-pick-bg: #963a3a;
+    --pos-k-bg: #5a5290;
     --page-bg: var(--black);
     --nav-bg: var(--surface);
     --color-scheme: dark;
@@ -323,11 +323,11 @@
   .pp-info { flex:1; min-width:0; }
   .pp-id { display:flex; align-items:center; gap:10px; margin-bottom:8px; }
   .pos-pill { display:inline-block; padding:3px 9px; font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:11px; letter-spacing:.04em; }
-  .pos-pill.QB { background:var(--pos-qb-bg); color:#111; }
-  .pos-pill.RB { background:var(--pos-rb-bg); color:#111; }
-  .pos-pill.WR { background:var(--pos-wr-bg); color:#111; }
-  .pos-pill.TE { background:var(--pos-te-bg); color:#111; }
-  .pos-pill.K  { background:var(--pos-k-bg);  color:#111; }
+  .pos-pill.QB { background:var(--pos-qb-bg); color:#f0f0f0; }
+  .pos-pill.RB { background:var(--pos-rb-bg); color:#f0f0f0; }
+  .pos-pill.WR { background:var(--pos-wr-bg); color:#f0f0f0; }
+  .pos-pill.TE { background:var(--pos-te-bg); color:#f0f0f0; }
+  .pos-pill.K  { background:var(--pos-k-bg);  color:#f0f0f0; }
   .pp-team-label { font-family:'Mulish',sans-serif; font-size:13px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; color:var(--white); }
   .pp-name { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:32px; color:var(--white); text-transform:uppercase; letter-spacing:.02em; line-height:1; margin-bottom:12px; }
   .pp-stats { display:flex; flex-wrap:wrap; gap:6px 22px; font-family:'Mulish',sans-serif; }
@@ -403,7 +403,7 @@
       <option value="adp-tool.html">ADP</option>
       <option value="https://www.fantasypoints.com/nfl/rankings/dynasty#/">Rankings</option>
     </select>
-    <span class="nav-stat">Synced <strong id="tiers-updated-stat"><!-- TIERS:SYNCED:START -->May 13, 2026 7:52 PM<!-- TIERS:SYNCED:END --></strong></span>
+    <span class="nav-stat">Synced <strong id="tiers-updated-stat"><!-- TIERS:SYNCED:START -->May 13, 2026 8:41 PM<!-- TIERS:SYNCED:END --></strong></span>
     <span class="nav-badge">SEASON 2026</span>
     <button id="theme-toggle" onclick="toggleTheme()"
       style="background:none;border:1px solid var(--border2);color:var(--white);font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:11px;padding:5px 12px;cursor:pointer;transition:all .2s;letter-spacing:.04em;display:flex;align-items:center;gap:6px"
