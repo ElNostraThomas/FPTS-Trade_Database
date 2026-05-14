@@ -407,7 +407,7 @@
       <option value="adp-tool.html">ADP</option>
       <option value="https://www.fantasypoints.com/nfl/rankings/dynasty#/">Rankings</option>
     </select>
-    <span class="nav-stat">Synced <strong id="tiers-updated-stat"><!-- TIERS:SYNCED:START -->May 14, 2026 10:15 AM<!-- TIERS:SYNCED:END --></strong></span>
+    <span class="nav-stat">Synced <strong id="tiers-updated-stat"><!-- TIERS:SYNCED:START -->May 14, 2026 10:30 AM<!-- TIERS:SYNCED:END --></strong></span>
     <span class="nav-badge" id="nav-season-badge">SEASON 2026</span>
     <button id="theme-toggle" onclick="toggleTheme()"
       style="background:none;border:1px solid var(--border2);color:var(--white);font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:11px;padding:5px 12px;cursor:pointer;transition:all .2s;letter-spacing:.04em;display:flex;align-items:center;gap:6px"
@@ -5345,6 +5345,11 @@ async function applySleeperOverlay() {
     // saved SF/1QB format preference.
     if (mvsRes && mvsRes.ok) {
       const j = await mvsRes.json();
+      // Stash for the Sleeper-API age fallback below — lets that function
+      // resolve sleeperIds for players who aren't in FP's values.json yet
+      // (typically fresh rookies between Sleeper-recognizing them and FP
+      // adding their KTC record).
+      window.__TIERS_MVS_PLAYERS = j.players || {};
       let _fmt = 'sf';
       try { const _v = localStorage.getItem('fpts-adp-format'); if (_v === '1qb' || _v === 'sf') _fmt = _v; } catch (e) {}
       const mvsByKey = {};
@@ -5359,6 +5364,67 @@ async function applySleeperOverlay() {
     }
   } catch (e) {
     console.warn('[tiers] sleeper overlay skipped:', e && e.message);
+  }
+}
+
+// ════════════════════════════════════════════════════════════════════════
+//  Sleeper-API AGE FALLBACK
+// ════════════════════════════════════════════════════════════════════════
+//  For tier players whose age is still missing after applySleeperOverlay()
+//  (i.e. they're not in FP's data/values.json yet — typically fresh
+//  rookies). Looks up sleeperId from data/mvs.json, then fetches the
+//  Sleeper bulk player metadata endpoint (~5MB, cached on window for the
+//  session AND in the browser's HTTP cache for subsequent visits) and
+//  pulls `age` (or computes it from `birth_date` if Sleeper only carries
+//  the latter for that player).
+//
+//  Returns true if at least one player got an age — signalling the caller
+//  to re-render. Silent failures (network, etc.) return false; existing
+//  empty-age cells just stay empty.
+// ════════════════════════════════════════════════════════════════════════
+async function applySleeperApiAgeFallback() {
+  const missing = TIER_PLAYERS.filter(p => (p.age == null || p.age === '') && p.name);
+  if (!missing.length) return false;
+
+  const mvsPlayers = window.__TIERS_MVS_PLAYERS || {};
+  const mvsByKey = {};
+  Object.entries(mvsPlayers).forEach(([name, rec]) => { mvsByKey[_normNameTiers(name)] = rec; });
+
+  const targets = missing
+    .map(p => ({ p, sid: mvsByKey[_normNameTiers(p.name)]?.sleeperId }))
+    .filter(x => x.sid);
+  if (!targets.length) return false;
+
+  try {
+    if (!window.__SLEEPER_PLAYERS_NFL) {
+      const r = await fetch('https://api.sleeper.app/v1/players/nfl', { cache: 'default' });
+      if (!r.ok) return false;
+      window.__SLEEPER_PLAYERS_NFL = await r.json();
+    }
+    const cache = window.__SLEEPER_PLAYERS_NFL || {};
+    let filled = 0;
+    targets.forEach(({ p, sid }) => {
+      const rec = cache[sid];
+      if (!rec) return;
+      if (rec.age != null) {
+        p.age = String(rec.age);
+        filled++;
+      } else if (rec.birth_date) {
+        const birth = new Date(rec.birth_date);
+        if (!isNaN(birth)) {
+          const today = new Date();
+          let age = today.getFullYear() - birth.getFullYear();
+          const m = today.getMonth() - birth.getMonth();
+          if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
+          p.age = String(age);
+          filled++;
+        }
+      }
+    });
+    return filled > 0;
+  } catch (e) {
+    console.warn('[tiers] sleeper age fallback skipped:', e && e.message);
+    return false;
   }
 }
 
@@ -5393,9 +5459,15 @@ window.addEventListener('DOMContentLoaded', () => {
   document.getElementById('tiers-updated-stat').textContent = TIER_UPDATED;
 
   // First paint immediately (Google-Sheet values), then re-render once
-  // the Sleeper overlay lands so the page is never blank.
+  // the Sleeper overlay lands so the page is never blank. After the
+  // local overlays complete, optionally hit the Sleeper API to backfill
+  // ages for any players FP doesn't have yet — re-render only if at
+  // least one age came back.
   renderTiers();
-  applySleeperOverlay().then(() => renderTiers());
+  applySleeperOverlay()
+    .then(() => renderTiers())
+    .then(() => applySleeperApiAgeFallback())
+    .then(filled => { if (filled) renderTiers(); });
 });
 </script>
 
