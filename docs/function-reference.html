@@ -1631,6 +1631,21 @@
   </div>
 
   <div class="feature-block">
+    <h3 class="feature-title"><span class="num">A4</span>team-helpers.js (NFL team logos)</h3>
+    <p class="feature-body"><span class="kbd">assets/js/team-helpers.js</span> exposes <span class="kbd">window.TeamHelpers</span> with <span class="kbd">logoUrl(team)</span>, <span class="kbd">logoImg(team, opts)</span>, <span class="kbd">headshotBadge(team, opts)</span>, and <span class="kbd">wrapWithBadge(headshotHtml, team, opts)</span>. Backed by Sleeper's CDN at <span class="kbd">sleepercdn.com/images/team_logos/nfl/{team.toLowerCase()}.png</span> — same origin as player headshots, no auth, transparent-background PNGs. The site-wide convention for every trade-chip / player-list surface is to emit <span class="kbd">logoImg(team, { size: 18 })</span> directly to the right of the player name span; parent flex container uses <span class="kbd">align-items: center</span> for baseline. Plain-text fallback when <span class="kbd">window.TeamHelpers</span> isn't loaded. RDP placeholders skip the logo (flame thumbnail instead).</p>
+  </div>
+
+  <div class="feature-block">
+    <h3 class="feature-title"><span class="num">A5</span>125% body zoom (brand.css)</h3>
+    <p class="feature-body">As of the 2026-05-13 evening session, every desktop page renders at 125% via <span class="kbd">body { zoom: 1.25 }</span> in <span class="kbd">brand.css</span> + each page's inline <span class="kbd">&lt;style&gt;</span> block. Mobile (<span class="kbd">@media (max-width: 700px)</span>) and print (<span class="kbd">@media print</span>) explicitly reset to 100%, so the function-reference PDF renders at native size. Browser zoom is transparent to JS — interactions work normally. Known caveat: monitors narrower than ~1700px see horizontal scroll on the ADP Box view (its <span class="kbd">min-width:1500px</span> becomes ~1875px effective).</p>
+  </div>
+
+  <div class="feature-block">
+    <h3 class="feature-title"><span class="num">A6</span>Softened position palette</h3>
+    <p class="feature-body">Dark-theme position backgrounds shifted from saturated brights to deeper muted tones: WR <span class="kbd">#3c6788</span>, RB <span class="kbd">#2f6d44</span>, QB <span class="kbd">#963a3a</span>, TE <span class="kbd">#8c601a</span>, K / RDP / Pick <span class="kbd">#5a5290</span>. Position text colors flipped from dark <span class="kbd">#111</span> to light <span class="kbd">#f0f0f0</span> to maintain contrast on the darker surfaces. Brand orange <span class="kbd">--red: #ED810C</span> stays untouched everywhere it appears (wordmark, RDP flame, trend-down arrow, section labels). The <span class="kbd">--green</span> trend-up accent stays vibrant for positive-signal visibility.</p>
+  </div>
+
+  <div class="feature-block">
     <h3 class="feature-title"><span class="num">B</span>MvsExtras module</h3>
     <p class="feature-body"><span class="kbd">assets/js/mvs-extras.js</span> exposes <span class="kbd">window.MvsExtras</span> with helpers <span class="kbd">buildOtcRankings</span>, <span class="kbd">buildSparkline</span>, <span class="kbd">buildRecentTrades</span>, <span class="kbd">buildLastUpdated</span>, and <span class="kbd">buildAll</span>. Player modals on the DB, Calc, and My-Leagues pages call <span class="kbd">MvsExtras.buildAll(playerName)</span> and inject the returned HTML into a designated container — one source of truth for the per-modal MVS section.</p>
   </div>

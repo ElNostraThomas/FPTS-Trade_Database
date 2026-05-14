@@ -5293,11 +5293,9 @@ function mlBuildTeamRosterHtml(leagueId, rosterId) {
     const ageStr = p.age ? `${p.age}y` : '—';
     const valStr = p.value ? p.value.toLocaleString() : '—';
     const sidEsc = String(p.sid);
-    // Wrap headshot with a team-logo badge for players with a current NFL team.
-    const rawThumb = playerThumb(p.sid);
-    const thumbHtml = (p.team && window.TeamHelpers)
-      ? window.TeamHelpers.wrapWithBadge(rawThumb, p.team, { badgeCls: 'player-hs-team--md' })
-      : rawThumb;
+    // No badge on the headshot — the team identity is shown once via the
+    // inline logo right of the player name (teamHtml below).
+    const thumbHtml = playerThumb(p.sid);
     // Team logo in place of the abbreviation text.
     const teamHtml = (p.team && window.TeamHelpers)
       ? window.TeamHelpers.logoImg(p.team, { size: 12 })

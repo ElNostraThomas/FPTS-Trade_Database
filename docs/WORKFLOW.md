@@ -210,8 +210,9 @@ If FP adds new endpoints you want to use, or you want to add a new data input:
 | `assets/js/player-articles.js` | Shared articles section (banner-style) used in every player drawer |
 | `assets/css/heatmap.css` + `assets/js/heatmap.js` | Pick-availability heatmap component |
 | `assets/css/legend.css` + `assets/js/legend.js` + `legend-content.js` | In-app developer legend drawer |
-| `assets/css/brand.css` | Canonical brand variables, fonts, top-nav, position pills, page chrome. Used by new pages via the scaffold; the 5 original pages still carry inline copies (pre-scaffold). |
+| `assets/css/brand.css` | Canonical brand variables, fonts, top-nav, position pills, page chrome, **softened position palette** (deeper backgrounds + white text), **site-wide 125% body zoom** (mobile + print exempt). Used by new pages via the scaffold; the 5 original pages still carry inline copies (pre-scaffold). |
 | `assets/js/data-bootstrap.js` | Shared data layer: fetches every `data/*.json`, populates `window.FP_VALUES` / `PICK_VALUES` / `SLEEPER_IDS` / `ADP_PAYLOAD` / `AUCTION_PAYLOAD` / `MVS_PAYLOAD` / `PLAYER_ARTICLES` / `PICK_AVAILABILITY` / `PICK_AVAILABILITY_META`, fires `fpts:data-ready`. Used by new pages via the scaffold. |
+| `assets/js/team-helpers.js` | NFL team logo helpers exposed on `window.TeamHelpers` — `logoUrl(team)`, `logoImg(team, opts)`, `headshotBadge(team, opts)`, `wrapWithBadge(html, team, opts)`. Sleeper-CDN-backed. **Convention:** chip contexts emit `logoImg(team, { size: 18 })` right of the player name. |
 | `templates/page-template.html` | Starter HTML for new pages. Copy + edit three TODO markers — see "Add a new page or tool" workflow above. |
 | `docs/function-reference.html` | Source of the function reference (hand-edited) |
 | `docs/function-reference.pdf` | Generated from the HTML by `make-pdf.ps1` |

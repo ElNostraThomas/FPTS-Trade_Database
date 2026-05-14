@@ -17,6 +17,55 @@ My-Leagues uses an accordion variant of that same drawer, and **future
 pages can now inherit every shared pattern via the scaffold** (one HTML
 template + one bootstrap module — no more per-page boilerplate).
 
+### What changed in 2026-05-13 (evening session)
+
+- **NFL team logos everywhere a team is referenced.** New shared module
+  `assets/js/team-helpers.js` exposes `TeamHelpers.{logoUrl, logoImg,
+  headshotBadge, wrapWithBadge}` — pulled from Sleeper's CDN
+  (`sleepercdn.com/images/team_logos/nfl/{team}.png`, same origin as
+  player headshots). Replaces 3-letter team text (`ATL`, `PHI`, etc.)
+  with logos in: ADP list-view team-pill column, box-card mirrored
+  bottom-left circle (matches the 32px player headshot in the
+  bottom-right), card-meta line, player-panel #pp-nfl-team slot, every
+  trade-chip surface (DB recent trades, drawer Trades tab, drawer Trade
+  Finder tab, Trade Calculator main asset-row chips), Tiers table team
+  column, My-Leagues roster rows. Every site emits
+  `logoImg(team, { size: 18 })` in chip contexts and falls back to plain
+  text if `window.TeamHelpers` isn't loaded.
+- **The "trade-chip rule":** any future surface that renders a player
+  image next to their name MUST emit the team logo directly to the right
+  of the name span at size 18 (`TeamHelpers.logoImg(team, { size: 18 })`).
+  Parent flex container uses `align-items: center` for vertical baseline.
+  Documented in `assets/js/team-helpers.js` header. Exempted: My-Leagues
+  league-importer (user explicitly excluded for now).
+- **Softened position palette** for less eye strain. Dark theme position
+  backgrounds dropped from saturated brights (e.g. RB #4caf6e neon green)
+  to deeper, muted tones (#2f6d44 forest). Position text flipped from
+  dark `#111` to light `#f0f0f0` to maintain contrast on the darker
+  backgrounds. Affected: WR `#3c6788`, RB `#2f6d44`, QB `#963a3a`, TE
+  `#8c601a`, K/RDP/Pick `#5a5290`. Brand orange `--red: #ED810C` is
+  untouched everywhere — wordmark, RDP flame, trend-down arrow all
+  continue to pop.
+- **Site-wide 125% layout zoom.** Added `body { zoom: 1.25 }` to
+  `assets/css/brand.css` + the 5 pages' inline `<style>` blocks. Every
+  page renders ~25% larger by default — names, headshots, chips,
+  spacing all scale together; user interactions (click, drag, scroll)
+  work normally because zoom integrates with browser hit-testing.
+  Mobile (`<700px`) and print (`@media print`) are explicitly exempt so
+  the existing mobile layout and the function-reference PDF render at
+  100%. Known caveat: monitors narrower than ~1700px may see horizontal
+  scroll on the ADP Box view (its `min-width:1500px` becomes ~1875px
+  effective after the zoom).
+- **Box-card team-logo + name layout iterated** to its final clean
+  state: 26px team-logo circle in the bottom-left with `rgba(0,0,0,.1)`
+  backdrop (matches the player-headshot circle exactly), 32px player
+  headshot in the bottom-right, names flow left-to-right with right
+  padding only (no truncation), trend chip centered in the meta row
+  via symmetric padding. No element touches another.
+- **Modal-hero badge removed** from the 80px player avatar in the panel
+  hero. The team identity now lives only in the `#pp-nfl-team` slot
+  next to the player name (with a 22px logo). The avatar reads cleaner.
+
 ### What changed in 2026-05-13 (afternoon session)
 
 - **Picks-bucket ADP fix.** The ADP Tool's Picks tab now shows real players
@@ -154,9 +203,16 @@ for the `fpts:data-ready` event.
 - **`data/picks.json` keys** can be either specific slot (`"2025-1.01"`)
   or generic round (`"2027-1"`). `mlPickValue` searches specific first,
   falls back to generic.
-- **Cache-bust tokens** on shared asset URLs (`?v=1778670000` is the
-  current generation) — bump when shared modules change so users get fresh
-  JS/CSS. Each module has its own token (heatmap.js, player-panel.js, etc.)
+- **Cache-bust tokens** on shared asset URLs (`?v=1778680008` is the
+  current generation for `brand.css`, `1778680005` for `player-panel.js`,
+  `1778680001` for `team-helpers.js`) — bump when shared modules change
+  so users get fresh JS/CSS. Each module has its own token.
+- **125% body zoom** is the new default. Browser zoom is transparent to
+  most things, but two surfaces feel its effects: ADP Box view may need
+  horizontal scroll on monitors narrower than ~1700px, and the slide-out
+  drawer (1360px max-width) feels larger on small laptops. Rollback is
+  a one-line CSS delete — see `assets/css/brand.css` "Site-wide 1.25x
+  layout zoom" comment.
 - **1QB Picks bucket is genuinely sparse** — only 4 qualifying 2026 drafts
   used K-as-pick placeholders in 1QB leagues. The toggle is hidden on
   Picks mode until the scrape grows or year-specific ADP lands. Toggle
@@ -205,18 +261,19 @@ Nothing structural. Polish / nice-to-haves only:
 Paste this as the first message:
 
 ```
-Read README.md for current state. We're at end-of-2026-05-13 with the
-Picks bucket showing real players + RDP placeholders intermixed, an RDP
-heatmap shipping in pick-availability.json with a "Data refreshed" stamp
-on every heatmap, and a new page scaffold (assets/js/data-bootstrap.js +
-assets/css/brand.css + templates/page-template.html) so future pages
-inherit everything automatically. Confirm by running
-`git log --oneline -10` — most recent commits should be the picks-bucket
-fix + RDP heatmap entries + data-bootstrap scaffold.
+Read README.md for current state. We're at end-of-2026-05-13 evening,
+with: team logos site-wide via assets/js/team-helpers.js (replaces ATL/
+BUF/etc. text with Sleeper-CDN logos in every chip/list/row that shows
+a player image), softened position palette (deeper backgrounds + white
+text), site-wide 125% body zoom, and the rule that any new trade-chip
+surface uses TeamHelpers.logoImg(team, { size: 18 }) right of the name.
+Earlier in the day we shipped the Picks bucket (real players + RDP
+placeholders intermixed), the RDP heatmap entries in pick-availability.json,
+and the page scaffold (data-bootstrap.js + brand.css + page-template.html).
+Confirm by running `git log --oneline -15`.
 
-Punch list is in README under "What's still on the punch list" — pick
-one of those (rookie-draft-only ADP is the next obvious feature), or
-surface a new issue you've noticed.
+Punch list is in README under "What's still on the punch list" — top of
+the list is rookie-draft-only ADP as a filter on the existing ADP tool.
 ```
 
 If `data/*.json` is stale: run `push.bat` (handles all five sync steps +
@@ -250,8 +307,9 @@ Full reference: `docs/WORKFLOW.md`.
 - **`my-leagues.html`** — Sleeper user/league importer (accordion player drawer)
 
 ### Shared modules (under `assets/`)
-- **`assets/css/brand.css`** — canonical brand variables, fonts, top nav, position pills, page chrome. Source of truth for new pages via the scaffold; 5 existing pages still inline-duplicate this CSS until migrated.
+- **`assets/css/brand.css`** — canonical brand variables, fonts, top nav, position pills, page chrome, **125% body zoom**. Source of truth for new pages via the scaffold; 5 existing pages still inline-duplicate this CSS until migrated.
 - **`assets/js/data-bootstrap.js`** — shared data layer. Fetches `data/*.json` + populates `window.*` globals + fires `fpts:data-ready`. Used by future pages; 5 existing pages still hand-roll their bootstrap until migrated.
+- **`assets/js/team-helpers.js`** — NFL team logo helpers (`logoUrl`, `logoImg`, `headshotBadge`, `wrapWithBadge`). Sleeper-CDN-backed PNGs at `sleepercdn.com/images/team_logos/nfl/{team}.png`. Standard chip-context call is `TeamHelpers.logoImg(team, { size: 18 })`. Loaded by all 5 pages + the template.
 - **`assets/css/player-panel.css`** + **`assets/js/player-panel.js`** — shared right-edge slide-out drawer (used by all 5 pages)
 - **`assets/css/mvs-extras.css`** + **`assets/js/mvs-extras.js`** — MVS header (OTC, baseline, trade volume, contributor rankings, recent trades helpers)
 - **`assets/js/player-articles.js`** — shared articles section (banner-style)

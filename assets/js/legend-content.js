@@ -45,6 +45,25 @@
    Heatmap and ADP always reflect the same data snapshot.
 
    ──────────────────────────────────────────────────────────────────────
+   TEAM LOGOS (assets/js/team-helpers.js)
+   ──────────────────────────────────────────────────────────────────────
+   Every surface that renders a player name next to a player image emits
+   the NFL team logo to the right of the name. Standard chip-context call:
+     window.TeamHelpers.logoImg(team, { size: 18 })
+   Sleeper CDN backs the PNGs at sleepercdn.com/images/team_logos/nfl/.
+   Parent flex container should use `align-items: center` for baseline.
+   See team-helpers.js header for the full convention + fallback chain
+   (plain text on no-helper-loaded; flame thumbnail for RDP placeholders).
+
+   ──────────────────────────────────────────────────────────────────────
+   125% LAYOUT ZOOM (assets/css/brand.css)
+   ──────────────────────────────────────────────────────────────────────
+   body { zoom: 1.25 } on every page (desktop). Mobile (<700px) + print
+   render at 100%. Browser-native zoom — interactions work normally,
+   getBoundingClientRect coordinates are unzoomed in Chrome. If anything
+   feels mis-positioned, that's the first thing to check.
+
+   ──────────────────────────────────────────────────────────────────────
    PAGE SCAFFOLD (assets/js/data-bootstrap.js + brand.css + page-template.html)
    ──────────────────────────────────────────────────────────────────────
    New pages don't hand-roll the bootstrap above. They include

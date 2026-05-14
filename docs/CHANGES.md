@@ -6,6 +6,88 @@ the operator manual see [`WORKFLOW.md`](WORKFLOW.md).
 
 ---
 
+## 2026-05-13 (evening) — Team logos everywhere + softer palette + 125% body zoom
+
+### Team logos site-wide
+
+- **New shared module `assets/js/team-helpers.js`** with helpers:
+  `logoUrl(team)`, `logoImg(team, opts)`, `headshotBadge(team, opts)`,
+  `wrapWithBadge(headshotHtml, team, opts)`. Sleeper's CDN serves the
+  PNGs at `sleepercdn.com/images/team_logos/nfl/{team.toLowerCase()}.png` —
+  same origin we already use for player headshots, no auth, transparent
+  backgrounds (work on dark + light themes).
+- **Inline team-text → logo** in every place a player name appears next
+  to a player image: ADP list-view `.team-pill`, ADP box-card bottom-left
+  mirrored circle, ADP card-meta line, DB recent-trades chips (line
+  6267 of `index.html` `tradeCardHtml`), drawer Trades tab (line 756 of
+  `player-panel.js` `tradeCardHtml`), drawer Trade Finder tab (line 1181
+  of `player-panel.js`), Trade Calculator main asset-row chips (line
+  2299 of `trade-calculator.html`), Tiers table team column, My-Leagues
+  league-detail roster sub-tables + trade-history cards.
+- **The unified "trade-chip rule":** any future surface that renders a
+  player image next to their name MUST emit the team logo right after
+  the name span via `TeamHelpers.logoImg(team, { size: 18 })`. Parent
+  flex container uses `align-items: center` for baseline. Plain-text
+  fallback when `window.TeamHelpers` isn't loaded. Documented in the
+  `team-helpers.js` header.
+- **ADP Box-view layout refined:** team logo lives in the bottom-LEFT
+  of each box card (26px circle, `rgba(0,0,0,.1)` backdrop matching the
+  player headshot's halo), player headshot in the bottom-RIGHT (32px).
+  Player name flows left-to-right with right-padding only (no truncation).
+  Trend chip centered in the meta row via symmetric 34px padding. No
+  element touches another.
+- **Modal-hero badge removed** from the 80px `.pp-avatar`. Team identity
+  shows once via the `#pp-nfl-team` slot next to the player name (22px
+  logo, no text).
+
+### Softened position palette
+
+- **Position background colors** dropped a noticeable saturation/lightness
+  step. Dark theme:
+  - WR `#5b9bd5` → `#3c6788` (deeper slate-blue)
+  - RB `#4caf6e` → `#2f6d44` (deep forest)
+  - QB `#e05252` → `#963a3a` (muted brick)
+  - TE `#e09a30` → `#8c601a` (deep amber)
+  - K / RDP / Pick `#9b91d4` → `#5a5290` (deep plum)
+- **Position text flipped from `#111` (dark) to `#f0f0f0` (light)** so
+  contrast on the darker backgrounds reads cleanly.
+- **Brand orange `--red: #ED810C` untouched** (wordmark, RDP flame,
+  trend-down indicator, section labels). `--green` for trend-up accents
+  untouched.
+- Tiers.html's separate per-page palette + `.pos-pill` text rules also
+  updated to match.
+
+### Site-wide 125% body zoom
+
+- **`body { zoom: 1.25 }`** added to `assets/css/brand.css` and mirrored
+  into each of the 5 pages' inline `<style>` blocks so the inline copy
+  doesn't override brand.css. Every page renders 25% larger by default
+  — text, headshots, chips, spacing all scale together. User interactions
+  (click/scroll/drag) work normally because zoom integrates with the
+  browser's hit-testing.
+- **Mobile (`<700px`) and print explicitly exempt** so the existing
+  mobile layout and the function-reference PDF stay at 100%.
+- Known caveat: monitors narrower than ~1700px may see horizontal scroll
+  on the ADP Box view (its `min-width:1500px` becomes ~1875px effective
+  after the zoom).
+
+### Cache-bust generation
+
+- `brand.css?v=1778680008`
+- `team-helpers.js?v=1778680001`
+- `player-panel.js?v=1778680005`
+- All bumped on the 5 pages + template where applicable.
+
+### Commit highlights
+
+- (multiple) Trade-chip team-logo wiring across drawer + DB + Calc + ML
+- (multiple) Softened palette + flipped text color
+- 125% body zoom site-wide
+- ADP Box-view layout polish (bottom-left team circle mirroring bottom-right headshot)
+- Modal-hero badge removed; `#pp-nfl-team` now logo-only at 22px
+
+---
+
 ## 2026-05-13 (afternoon) — Picks bucket fix + RDP heatmap + scaffold for new pages
 
 ### ADP Tool: Picks bucket
