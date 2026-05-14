@@ -10,12 +10,40 @@ This file is the **resume-where-we-left-off** doc.
 
 ---
 
-## Where we are (end of 2026-05-13 session)
+## Where we are (end of 2026-05-14 session)
 
 **All five pages are wired to a shared player-panel slide-out drawer**,
 My-Leagues uses an accordion variant of that same drawer, and **future
 pages can now inherit every shared pattern via the scaffold** (one HTML
 template + one bootstrap module — no more per-page boilerplate).
+
+### What changed in 2026-05-14 (session close)
+
+- **Site-wide headshot-fallback rule.** New canonical CSS rule in
+  `assets/css/brand.css` covers every legacy fallback class
+  (`.hs-fallback`, `.card-hs-fallback`, `.pp-hs-fallback`,
+  `.cc-hs-fallback`, `.ml-pd-avatar-initials`) plus the new generic
+  `.fpts-hs-fallback`. When a Sleeper headshot returns 403/404 (common
+  for rookies whose photos haven't been uploaded yet), the page renders
+  a neutral silhouette via SVG `background-image` and hides the initials
+  text. **The convention going forward: every new headshot surface
+  MUST emit `class="fpts-hs-fallback"` on its fallback element.**
+  Existing JS callers in `index.html`, `trade-calculator.html`,
+  `my-leagues.html`, and `assets/js/player-panel.js` have been opted in.
+- **Season rollover trigger.** `sync-adp.py` auto-detects the season
+  number (`year if today.month >= 4 else year - 1`) so the pipeline
+  rolls over with the NFL Draft each April with no config edit. All
+  year-bearing labels — tab titles, "With Rookies" subtitle, "SEASON
+  {year}" nav badge across all 5 pages — drive from
+  `ADP_PAYLOAD.season` via a shared `window.applySeasonBadge()` helper
+  in `team-helpers.js`. The `sync-adp.config.json` `"season"` field is
+  optional now and only honored as a manual override (for testing past
+  seasons).
+- **Rookie ADP filtered to incoming class only.** Both rookie ADP
+  records (`rookie_draft_sf` / `_1qb`) and the rookie-draft heatmap now
+  filter to players with `yearsExp == 0` and a real fantasy position,
+  dropping veterans (Josh Allen, Tannehill, Watson, etc.) who
+  occasionally appear in rookie drafts. 420 → 185 records SF.
 
 ### What changed in 2026-05-13 (late session)
 
@@ -289,20 +317,31 @@ Nothing structural. Polish / nice-to-haves only:
 Paste this as the first message:
 
 ```
-Read README.md for current state. We're at end-of-2026-05-13 (late),
-with: the Dynasty Rookie ADP tab now live on adp-tool.html — two
-top-level tabs in the page-header (Dynasty Startup ADP / Dynasty
-Rookie ADP). STATE has a `source` field (startup|rookie) + per-tab
-_cache, two localStorage keys (fpts-adp-{startup,rookie}-state), and
-URL hash gains `source=` for shareable links. sync-adp.py emits
-rookie_draft_{sf,1qb} via a duplicate-and-retag second pass in
-build_adp. "Rookies" variant renamed "With Rookies" to disambiguate
-from the new tab. Earlier in the day we shipped team logos site-wide
-via assets/js/team-helpers.js, softened position palette, 125% body
-zoom, and the trade-chip rule. Confirm by running `git log --oneline -15`.
+Read README.md for current state. End-of-2026-05-14:
+- ADP Tool has two top-level tabs (Dynasty Startup ADP / Dynasty Rookie
+  ADP). STATE.source ('startup'|'rookie') + per-tab _cache + two
+  localStorage blobs (fpts-adp-{startup,rookie}-state) + URL hash
+  `source=` param. setSource() flips PICK_AVAILABILITY_SOURCE so the
+  shared heatmap module reads the right map.
+- sync-adp.py emits rookie_draft_{sf,1qb} via duplicate-and-retag pass
+  in build_adp, AND a separate rookie-draft pick-availability heatmap
+  (rookiePlayers map in pick-availability.json) via
+  build_rookie_draft_pick_availability. Both are filtered to incoming
+  rookies only (yearsExp==0 + real position).
+- Season is now auto-detected (year if month>=4 else year-1). All year
+  labels drive from ADP_PAYLOAD.season via window.applySeasonBadge().
+  Next April rolls automatically.
+- Site-wide headshot-fallback rule lives in brand.css — emit
+  class="fpts-hs-fallback" on any new headshot fallback element.
+- "Rookies" startup variant renamed to "With Rookies" to disambiguate
+  from the new top-level tab.
+- Trade-chip rule still applies: any new player-image surface uses
+  TeamHelpers.logoImg(team, { size: 18 }) right of the name.
 
-Punch list top: rookie-draft pick-availability heatmap (deferred), and
-1QB scrape expansion.
+Confirm by running `git log --oneline -20`.
+
+Punch list top: 1QB scrape expansion + per-tab SF/1QB split of the
+rookie heatmap (currently mixed; SF dominates anyway).
 ```
 
 If `data/*.json` is stale: run `push.bat` (handles all five sync steps +

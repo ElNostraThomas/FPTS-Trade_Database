@@ -518,7 +518,10 @@
     const photoUrl = (sleeperId && !isRookiePick) ? `https://sleepercdn.com/content/nfl/players/thumb/${sleeperId}.jpg` : null;
     const avatarEl = document.getElementById('pp-avatar');
     if (!avatarEl) return; // panel not mounted (defensive)
-    const fallbackHtml = `<div style="width:80px;height:80px;background:${_posCol(pos)};display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:800;font-style:italic;color:${_posTxt(pos)}">${initials}</div>`;
+    // Headshot fallback follows the site-wide silhouette rule (brand.css):
+    // .fpts-hs-fallback hides the initials text and paints a neutral
+    // silhouette so we never show "JL" or "C" instead of a player's face.
+    const fallbackHtml = `<div class="fpts-hs-fallback" style="width:80px;height:80px;background:${_posCol(pos)};">${initials}</div>`;
     // No team-logo badge on the 80px hero avatar — the team identity is now
     // shown via the logo replacing the abbreviation in the #pp-nfl-team slot
     // next to the player name (see _teamHtml below). Trade-history chips

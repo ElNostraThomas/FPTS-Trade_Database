@@ -189,3 +189,35 @@ body { zoom: 1.25; }
 .player-hs-team--md { width:18px; height:18px; }   /* for 34-40px headshots */
 .player-hs-team--lg { width:24px; height:24px; }   /* for 60-80px headshots */
 .player-hs-team--xl { width:28px; height:28px; bottom:0; right:0; }  /* for 96px modal hero */
+
+/* ────────────────────────────────────────────────────────────────────────
+   SITE-WIDE HEADSHOT-FALLBACK RULE
+   ────────────────────────────────────────────────────────────────────────
+   Whenever a player headshot can't be rendered (Sleeper's CDN returns
+   403/404 for unphotographed rookies, no sleeperId is resolvable, etc.),
+   the page MUST show a neutral silhouette — NEVER the player's name
+   initials. This rule covers every legacy fallback class that already
+   exists across the 5 pages, plus the canonical `.fpts-hs-fallback`
+   class for any new surface.
+
+   How it works: the markup may include initial-letter text inside the
+   span (for accessibility / DOM introspection / legacy code), but we
+   hide it visually with `color:transparent` + `font-size:0` and paint
+   a generic silhouette as the background image.
+
+   New surfaces: add `class="fpts-hs-fallback"` to your fallback span/div
+   and this rule applies automatically. `!important` flags are present
+   so per-page inline styles can't accidentally re-enable initials. */
+.hs-fallback,
+.card-hs-fallback,
+.pp-hs-fallback,
+.cc-hs-fallback,
+.ml-pd-avatar-initials,
+.fpts-hs-fallback {
+  color: transparent !important;
+  font-size: 0 !important;
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><circle cx="32" cy="22" r="10" fill="%23ffffff" opacity=".5"/><path d="M14 60 Q14 36 32 36 Q50 36 50 60 L14 60 Z" fill="%23ffffff" opacity=".5"/></svg>') !important;
+  background-size: 75% 75% !important;
+  background-position: center 60% !important;
+  background-repeat: no-repeat !important;
+}

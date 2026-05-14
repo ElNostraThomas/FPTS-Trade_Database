@@ -202,7 +202,12 @@
   .list-table tbody tr.DEF td:first-child, .list-table tbody tr.PICK td:first-child, .list-table tbody tr.RDP td:first-child { border-left-color:var(--pos-pick-bg); }
   .list-table .player-name { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:15px; letter-spacing:.01em; }
   .hs { width:34px; height:34px; border-radius:50%; background:var(--surface2); border:2px solid var(--border2); object-fit:cover; display:inline-block; vertical-align:middle; }
-  .hs-fallback { display:inline-flex; align-items:center; justify-content:center; font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:13px; color:var(--white); }
+  /* Headshot fallbacks: when Sleeper's CDN has no image (common for new
+     rookies for weeks-to-months after the NFL Draft), show a generic
+     silhouette via SVG background instead of the player's name initial.
+     The initial text is still rendered into the span (kept for a11y / DOM
+     introspection) but hidden visually via color:transparent + font-size:0. */
+  .hs-fallback { display:inline-flex; align-items:center; justify-content:center; color:transparent; font-size:0; background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><circle cx="32" cy="22" r="10" fill="%23ffffff" opacity=".55"/><path d="M14 60 Q14 36 32 36 Q50 36 50 60 L14 60 Z" fill="%23ffffff" opacity=".55"/></svg>'); background-size:75% 75%; background-position:center 60%; background-repeat:no-repeat; }
   .hs-mini { width:22px; height:22px; border-radius:50%; background:var(--surface2); border:1px solid var(--border2); object-fit:cover; display:inline-block; vertical-align:middle; flex-shrink:0; }
   .hs-mini.hs-fallback { font-size:10px; }
 
@@ -234,7 +239,7 @@
   .box-card .card-meta { display:flex; align-items:center; gap:4px; font-family:'Mulish',sans-serif; font-size:9px; font-weight:800; letter-spacing:.04em; margin-top:auto; opacity:.85; padding-top:2px; padding-left:34px; padding-right:38px; justify-content:center; }
   /* Small circular headshot pinned to the bottom-right corner — matches the reference layout */
   .box-card .card-hs { position:absolute; bottom:4px; right:4px; width:32px; height:32px; border-radius:50%; object-fit:cover; object-position:top; border:1px solid rgba(0,0,0,.18); background:rgba(0,0,0,.1); }
-  .box-card .card-hs-fallback { position:absolute; bottom:4px; right:4px; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:14px; color:inherit; opacity:.55; background:rgba(0,0,0,.12); border:1px solid rgba(0,0,0,.18); }
+  .box-card .card-hs-fallback { position:absolute; bottom:4px; right:4px; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:transparent; font-size:0; background:rgba(0,0,0,.12); border:1px solid rgba(0,0,0,.18); background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><circle cx="32" cy="22" r="10" fill="%23ffffff" opacity=".55"/><path d="M14 60 Q14 36 32 36 Q50 36 50 60 L14 60 Z" fill="%23ffffff" opacity=".55"/></svg>'); background-size:75% 75%; background-position:center 60%; background-repeat:no-repeat; }
   /* Team logo circle — mirrors .card-hs at the bottom-left of each card.
      Dark-surface backdrop matches the badge halo style; logo PNG fills the
      center with a small padding so it doesn't touch the circle edge. */
@@ -310,7 +315,7 @@
   .pp-profile { display:flex; gap:24px; align-items:flex-start; padding:24px 28px 18px; border-bottom:1px solid var(--border); }
   .pp-hs { width:96px; height:96px; border-radius:50%; background:var(--surface2); border:2px solid var(--border2); overflow:hidden; flex-shrink:0; display:flex; align-items:center; justify-content:center; }
   .pp-hs img { width:100%; height:100%; object-fit:cover; object-position:top; }
-  .pp-hs-fallback { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:34px; color:var(--white); opacity:.5; }
+  .pp-hs-fallback { display:flex; align-items:center; justify-content:center; width:100%; height:100%; color:transparent; font-size:0; background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><circle cx="32" cy="22" r="10" fill="%23ffffff" opacity=".5"/><path d="M14 60 Q14 36 32 36 Q50 36 50 60 L14 60 Z" fill="%23ffffff" opacity=".5"/></svg>'); background-size:75% 75%; background-position:center 60%; background-repeat:no-repeat; }
   .pp-info { flex:1; min-width:0; }
   .pp-id { display:flex; align-items:center; gap:10px; margin-bottom:4px; }
   .pp-id .pos-pill { font-size:11px; padding:3px 10px; }

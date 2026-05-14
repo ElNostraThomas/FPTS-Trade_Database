@@ -1462,11 +1462,15 @@ window._fptsReadHandoff = function() {
 // Universal player thumbnail helper. Uses Sleeper CDN with normalized-name fallback;
 // initials placeholder when no Sleeper ID can be resolved.
 
-// Swap an <img> element to an initials placeholder (used by _imgThumb onerror)
+// Swap an <img> element to a silhouette placeholder (used by _imgThumb onerror).
+// Follows the site-wide headshot-fallback rule (brand.css .fpts-hs-fallback) —
+// the initials are kept in textContent for accessibility but visually hidden,
+// and a neutral silhouette is painted as the background. We never display the
+// player's name initials in the UI.
 window._imgThumbFallback = function(img, size, initials) {
-  const fontSize = Math.max(8, size - 15);
   const span = document.createElement('span');
-  span.style.cssText = `width:${size}px;height:${size}px;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;border-radius:50%;background:var(--surface2);border:1px solid var(--border);color:var(--muted);font-family:'Mulish',sans-serif;font-weight:700;font-size:${fontSize}px`;
+  span.className = 'fpts-hs-fallback';
+  span.style.cssText = `width:${size}px;height:${size}px;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;border-radius:50%;background:var(--surface2);border:1px solid var(--border);`;
   span.textContent = initials;
   if (img && img.parentNode) img.parentNode.replaceChild(span, img);
 };
@@ -1479,10 +1483,9 @@ function _imgThumb(name, size) {
     return m ? SLEEPER_IDS[m] : null;
   })();
   const initials = (name||'').split(' ').map(t=>t[0]).join('').slice(0,2).toUpperCase();
-  const fontSize = Math.max(8, size - 15);
   return sid
     ? `<img src="https://sleepercdn.com/content/nfl/players/thumb/${sid}.jpg" style="width:${size}px;height:${size}px;border-radius:50%;object-fit:cover;flex-shrink:0;background:var(--surface2);" onerror="_imgThumbFallback(this,${size},'${initials}')">`
-    : `<span style="width:${size}px;height:${size}px;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;border-radius:50%;background:var(--surface2);border:1px solid var(--border);color:var(--muted);font-family:'Mulish',sans-serif;font-weight:700;font-size:${fontSize}px;">${initials}</span>`;
+    : `<span class="fpts-hs-fallback" style="width:${size}px;height:${size}px;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;border-radius:50%;background:var(--surface2);border:1px solid var(--border);">${initials}</span>`;
 }
 
 // ────────────────────────────────────────────────────────────────────────────

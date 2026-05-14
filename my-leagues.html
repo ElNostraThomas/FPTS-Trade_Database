@@ -5773,7 +5773,7 @@ function renderExposureList() {
     const photo = p.sleeperId ? `https://sleepercdn.com/content/nfl/players/thumb/${p.sleeperId}.jpg` : '';
     const initials = (p.name || '').split(' ').map(s=>s[0]).join('').slice(0,2).toUpperCase();
     return `<div class="ml-exposure-row pos-${(p.position || '').toUpperCase()}" onclick="openPlayerDetail('${p.sleeperId}')">
-      ${photo ? `<img class="ml-exposure-row-img" src="${photo}" onerror="this.style.visibility='hidden'">` : `<div class="ml-exposure-row-img fallback">${initials}</div>`}
+      ${photo ? `<img class="ml-exposure-row-img" src="${photo}" onerror="this.style.visibility='hidden'">` : `<div class="ml-exposure-row-img fallback fpts-hs-fallback">${initials}</div>`}
       <span class="ml-exposure-row-name" title="${htmlEscape(p.name)}">${htmlEscape(p.name)}</span>
       <span class="ml-exposure-row-posr" style="color:${posColor(p.position)}">${p.posR || ''}</span>
       <span class="ml-exposure-row-shares">${p.shares}</span>

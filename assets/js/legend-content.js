@@ -56,6 +56,38 @@
    (plain text on no-helper-loaded; flame thumbnail for RDP placeholders).
 
    ──────────────────────────────────────────────────────────────────────
+   HEADSHOT FALLBACK RULE (assets/css/brand.css)
+   ──────────────────────────────────────────────────────────────────────
+   When Sleeper's CDN returns 403/404 for a player thumbnail (common for
+   incoming rookies whose photos haven't been uploaded yet), the page
+   MUST show a neutral silhouette — NEVER the player's name initials.
+   A canonical rule in brand.css covers every legacy fallback class
+   (.hs-fallback, .card-hs-fallback, .pp-hs-fallback, .cc-hs-fallback,
+   .ml-pd-avatar-initials) plus the generic .fpts-hs-fallback. The
+   initials text stays in textContent (for screen readers / DOM
+   introspection) but is hidden with color:transparent + font-size:0,
+   and an inline SVG silhouette is painted as background. Any new
+   headshot surface MUST emit class="fpts-hs-fallback" on its fallback
+   element to opt into the rule.
+
+   ──────────────────────────────────────────────────────────────────────
+   SEASON ROLLOVER TRIGGER (sync-adp.py + team-helpers.js)
+   ──────────────────────────────────────────────────────────────────────
+   sync-adp.py auto-detects the season number: year if today.month >= 4
+   else year - 1 (so the rollover happens with the NFL Draft each
+   April). The config.json `season` field is optional — set explicitly
+   only to test past seasons.
+
+   All year-bearing labels drive from ADP_PAYLOAD.season:
+     - ADP Tool tab titles (Dynasty Startup ADP {year} / Dynasty Rookie
+       ADP {year}) via applyAdpYearLabel()
+     - "With Rookies" startup subtitle (..."with the {year} rookie
+       class in the pool") via _adpSeason() in adp-tool.html
+     - "SEASON {year}" topnav badge across all 5 pages via
+       window.applySeasonBadge(season) helper in team-helpers.js,
+       called from each page's _applyAdpPayload()
+
+   ──────────────────────────────────────────────────────────────────────
    125% LAYOUT ZOOM (assets/css/brand.css)
    ──────────────────────────────────────────────────────────────────────
    body { zoom: 1.25 } on every page (desktop). Mobile (<700px) + print

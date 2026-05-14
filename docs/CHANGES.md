@@ -6,6 +6,28 @@ the operator manual see [`WORKFLOW.md`](WORKFLOW.md).
 
 ---
 
+## 2026-05-14 — Silhouette fallback rule + season rollover trigger
+
+### Site-wide headshot-fallback rule
+- **Problem**: Sleeper's CDN returns 403/404 on `sleepercdn.com/content/nfl/players/thumb/{id}.jpg` for many incoming rookies (their player record exists, but no photo has been uploaded yet — typically lags weeks-to-months after the NFL Draft). The pre-existing fallback rendered the player's first letter ("M", "H", "J") in a circle, which looked broken when a row had a mix of real headshots and floating initials.
+- **Fix**: a new canonical CSS rule in `assets/css/brand.css` (already loaded by every page) covers every legacy fallback class — `.hs-fallback`, `.card-hs-fallback`, `.pp-hs-fallback`, `.cc-hs-fallback`, `.ml-pd-avatar-initials` — plus a new generic `.fpts-hs-fallback`. The rule hides any initials text with `color:transparent; font-size:0` and paints a neutral SVG silhouette as `background-image`. `!important` flags ensure no per-page inline style accidentally re-enables the letter.
+- **Coverage**: JS callers in `index.html` (`_imgThumb` / `_imgThumbFallback`), `trade-calculator.html` (same), `assets/js/player-panel.js` (drawer hero avatar), and `my-leagues.html` (exposure-row fallback) were updated to opt their fallback spans into the rule via `class="fpts-hs-fallback"`. The initials text is preserved in `textContent` for screen readers / DOM introspection but never displayed.
+- **The new convention**: any new headshot surface across the site MUST emit `class="fpts-hs-fallback"` on its fallback element. Documented in the brand.css header block.
+
+### Season rollover trigger
+- **`sync-adp.py` auto-detects season** from today's date: `year if month >= 4 else year - 1` (rolls over with the NFL Draft). Config override via `sync-adp.config.json` `"season"` still wins when set. Default is auto.
+- **All year displays now drive from `ADP_PAYLOAD.season`**:
+  - Dynasty Startup ADP {year} / Dynasty Rookie ADP {year} tabs (already dynamic via `applyAdpYearLabel`)
+  - "With Rookies" subtitle "...startups with the {year} rookie class in the pool" (new `_adpSeason()` helper)
+  - "SEASON {year}" topnav badge across all 5 pages + the page-template scaffold — new shared helper `window.applySeasonBadge(season)` in `team-helpers.js`, called from each `_applyAdpPayload`
+- **Result**: next April, when `sync-adp.py` runs after `today.month >= 4`, every label rolls to 2027 automatically. Zero code edits.
+
+### Rookie data filtering
+- Veterans who occasionally show up in rookie drafts (Josh Allen, Tannehill, Watson, Mark Ingram, etc.) are now filtered out of both the rookie ADP records and the rookie-draft heatmap. Filter applied at the `dynasty_class=='rookie'` duplication step in `build_adp` and at the `entity_ids` step in `build_rookie_draft_pick_availability`: `yearsExp == 0` AND position in `{QB,RB,WR,TE,K}`. Drops Sleeper duplicate/garbage rows too (e.g. "Jadyn Ott DUPLICATE" with empty position).
+- 2026 numbers: `rookie_draft_sf` 420 → 185 records, `rookie_draft_1qb` 114 → 92, heatmap entries 470 → 189.
+
+---
+
 ## 2026-05-13 (late) — Dynasty Rookie ADP tab
 
 ### What landed
