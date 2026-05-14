@@ -1020,7 +1020,7 @@
 <link rel="stylesheet" href="assets/css/player-panel.css?v=1778655500">
 <!-- Team logo helpers — load BEFORE player-panel.js so modal-hero badge works. -->
 <script src="assets/js/team-helpers.js?v=1778680001"></script>
-<script src="assets/js/player-panel.js?v=1778680004" defer></script>
+<script src="assets/js/player-panel.js?v=1778680005" defer></script>
 <style>
   /* The inline #player-panel below is now replaced by the shared module's
      injected copy. Hide the inline element so it doesn't double-render. */
@@ -6265,7 +6265,7 @@ function tradeCardHtml(t) {
       // shown via the inline logo next to the player name (teamHtml below).
       // Replace plain team text with the logo (text kept as alt/title).
       const teamHtml = (nflTeam && window.TeamHelpers)
-        ? `<span class="tc-nfl-team">${window.TeamHelpers.logoImg(nflTeam, { size: 14 })}</span>`
+        ? `<span class="tc-nfl-team">${window.TeamHelpers.logoImg(nflTeam, { size: 18 })}</span>`
         : (nflTeam ? `<span class="tc-nfl-team">${nflTeam}</span>` : '');
       items.push(`<div class="tc-asset">
         <span style="width:28px;height:28px;flex-shrink:0;display:inline-block;">${thumbHtml}</span>

@@ -1195,7 +1195,7 @@
 <link rel="stylesheet" href="assets/css/player-panel.css?v=1778655500">
 <!-- Team logo helpers — load BEFORE player-panel.js so modal-hero badge works. -->
 <script src="assets/js/team-helpers.js?v=1778680001"></script>
-<script src="assets/js/player-panel.js?v=1778680004" defer></script>
+<script src="assets/js/player-panel.js?v=1778680005" defer></script>
 <style>
   /* Hide the legacy in-page modal — its click handlers now route to the shared panel instead. */
   #calc-modal-backdrop { display: none !important; }
@@ -2296,7 +2296,7 @@ function renderBuilder() {
               const nameHtml = `<span class="asset-name" style="flex:0 1 auto">${fname ? `<span class="fn">${fname.replace(/'/g,"\\'")}</span>` : ''}<span class="ln">${lname.replace(/'/g,"\\'")}</span></span>`;
               // Team logo right next to the name (real players only — picks have no team).
               const _calcTeam = isPick ? '' : (FP_VALUES[a.name]?.team || '');
-              const _calcTeamLogoHtml = (_calcTeam && window.TeamHelpers) ? window.TeamHelpers.logoImg(_calcTeam, { size: 14 }) : '';
+              const _calcTeamLogoHtml = (_calcTeam && window.TeamHelpers) ? window.TeamHelpers.logoImg(_calcTeam, { size: 18 }) : '';
               return `
             <div class="asset-row" data-pos="${posClean}" onclick="if(event.target.closest('.asset-remove'))return; window._openCalcPlayerModal && _openCalcPlayerModal('${a.name.replace(/'/g,"\\'")}', '${posClean}', '${side.id}', ${i})">
               ${posBadgeHtml}
