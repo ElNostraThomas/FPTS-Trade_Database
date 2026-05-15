@@ -9,7 +9,7 @@
      sizing). Loaded BEFORE this page's inline <style> so existing per-page
      overrides still win on duplicate selectors; the new .team-logo /
      .player-hs-team rules add cleanly. -->
-<link rel="stylesheet" href="assets/css/brand.css?v=1778680020">
+<link rel="stylesheet" href="assets/css/brand.css?v=1778680021">
 <style>
   /* Brand fonts (local TTFs from Fantasy-Design-Prompt kit) override Google Fonts
      for the canonical brand weights so on-page text matches the wordmark exactly. */
@@ -232,7 +232,12 @@
   .box-row-head.active { background:var(--red); color:#111; }
   .box-row-head .bc-arrow { font-family:'Mulish',sans-serif; font-size:11px; font-weight:800; font-style:normal; color:var(--white); opacity:.55; line-height:1; }
   .box-row-head.active .bc-arrow { color:#111; opacity:.85; }
-  .box-card { position:relative; display:flex; flex-direction:column; min-height:60px; cursor:pointer; overflow:hidden; padding:5px 7px; transition:transform .12s, box-shadow .12s; }
+  /* Fixed height — every card is exactly 78px regardless of which year's
+     data it carries or whether it has a trend chip in .card-meta. Without
+     this, rookie/historical cards (often lacking current trend data)
+     collapse to a smaller min-height and look 'scrunched' compared to
+     2026 cards that grow to fit their trend chip content. */
+  .box-card { position:relative; display:flex; flex-direction:column; height:78px; cursor:pointer; overflow:hidden; padding:5px 7px; transition:transform .12s, box-shadow .12s; }
   .box-card:hover { transform:translateY(-1px); box-shadow:0 3px 8px rgba(0,0,0,.35); }
   .box-card .card-content { display:flex; flex-direction:column; gap:2px; position:relative; z-index:1; min-width:0; }
   .box-card .card-top { display:flex; align-items:center; gap:4px; justify-content:space-between; font-family:'Mulish',sans-serif; font-size:8px; font-weight:800; letter-spacing:.03em; }
