@@ -1464,17 +1464,15 @@ function renderBoxView(players) {
       const hsHtml = rawHs;
       // Team logo: 26px circle anchored to the bottom-LEFT of the card,
       // mirroring the player headshot in the bottom-right. Dark-surface
-      // backdrop matches the badge halo style used elsewhere. RDP rows have
-      // no team, so this slot stays fully omitted for them. For real players
-      // with a missing team field (retired/historical-only records), the
-      // coin renders as an empty circle to preserve the card's visual
-      // balance — without this fallback, the bottom-left collapses and the
-      // headshot shifts on past-year cards.
-      const teamLogoCircle = isRookiePick(p)
-        ? ''
-        : (p.team && window.TeamHelpers
-            ? `<div class="card-team-logo" data-team="${escapeHtml(p.team)}"><img src="${window.TeamHelpers.logoUrl(p.team)}" alt="${escapeHtml(p.team)}" title="${escapeHtml(p.team)}" loading="lazy" onerror="this.style.display='none'"></div>`
-            : `<div class="card-team-logo card-team-logo--empty" aria-hidden="true"></div>`);
+      // backdrop matches the badge halo style used elsewhere. RDP rows
+      // have no team, so this slot stays empty for them. Past-year
+      // records of retired players also have no team — we leave that
+      // slot empty rather than rendering a placeholder coin, since
+      // .card-team-logo is position:absolute and omitting it doesn't
+      // shift other card content.
+      const teamLogoCircle = (!isRookiePick(p) && p.team && window.TeamHelpers)
+        ? `<div class="card-team-logo" data-team="${escapeHtml(p.team)}"><img src="${window.TeamHelpers.logoUrl(p.team)}" alt="${escapeHtml(p.team)}" title="${escapeHtml(p.team)}" loading="lazy" onerror="this.style.display='none'"></div>`
+        : '';
       // Dim a card if it fails ANY active soft filter: position/search, round, or team.
       const matchesPosSearch = isSoftMatch(p);
       const matchesRound     = !roundFilter.size || roundFilter.has(r + 1);
