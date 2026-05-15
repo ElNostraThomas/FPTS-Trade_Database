@@ -360,6 +360,9 @@
 <!-- Team logo helpers — load BEFORE player-panel.js so modal-hero badge works. -->
 <script src="assets/js/team-helpers.js?v=1778680002"></script>
 <script src="assets/js/player-panel.js?v=1778680005" defer></script>
+<!-- Data bootstrap — fetches every data/*.json, populates window globals,
+     fires 'fpts:data-ready' when done. First live page on the scaffold. -->
+<script src="assets/js/data-bootstrap.js?v=1778680020"></script>
 <style>
   /* Hide the legacy in-page modal — _tiersOpenModal now routes to the shared panel. */
   #tiers-modal-backdrop { display: none !important; }
@@ -5271,23 +5274,21 @@ function _normNameTiers(name) {
     .replace(/[^a-z0-9]/g, '');                            // drop punct/space
 }
 
-async function applySleeperOverlay() {
+function applySleeperOverlay() {
+  // Reads from window globals populated by assets/js/data-bootstrap.js
+  // (which has already fetched values.json / adp.json / auction.json /
+  // mvs.json by the time fpts:data-ready fires). The tier-specific work
+  // here is overlaying that data onto TIER_PLAYERS — synchronous now.
   try {
-    const v = '?v=' + (window.__DATA_VERSION || Date.now());
+    const values  = window.FP_VALUES       || {};
+    const adp     = window.ADP_PAYLOAD;
+    const auction = window.AUCTION_PAYLOAD;
+    const mvs     = window.MVS_PAYLOAD;
 
-    // Fetch values (age/team/pos/ppg/injury), adp/auction, AND mvs (canonical values).
-    const [valuesRes, adpRes, auctionRes, mvsRes] = await Promise.all([
-      fetch('data/values.json'  + v, { cache: 'no-cache' }).catch(() => null),
-      fetch('data/adp.json'     + v, { cache: 'no-cache' }).catch(() => null),
-      fetch('data/auction.json' + v, { cache: 'no-cache' }).catch(() => null),
-      fetch('data/mvs.json'     + v, { cache: 'no-cache' }).catch(() => null),
-    ]);
-
-    // ── values.json overlay (Sleeper-sourced attributes) ─────────────────
-    if (valuesRes && valuesRes.ok) {
-      const j = await valuesRes.json();
+    // ── values overlay (Sleeper-sourced attributes) ──────────────────────
+    if (Object.keys(values).length) {
       const byKey = {};
-      Object.entries(j.players || {}).forEach(([name, rec]) => {
+      Object.entries(values).forEach(([name, rec]) => {
         byKey[_normNameTiers(name)] = rec;
       });
       TIER_PLAYERS.forEach(p => {
@@ -5302,17 +5303,16 @@ async function applySleeperOverlay() {
       });
     }
 
-    // ── adp.json overlay (sleeper_dynasty_adp pipeline) ──────────────────
+    // ── ADP overlay (sleeper_dynasty_adp pipeline) ───────────────────────
     // Overwrites the sheet's adp2026 column with dynasty ADP from the user's
     // saved format preference (SF or 1QB), with the other format as fallback.
-    // adp2025 stays sheet-managed (we don't have last-season data in this pipeline).
-    if (adpRes && adpRes.ok) {
-      const j = await adpRes.json();
-      if (window.applySeasonBadge) window.applySeasonBadge(j.season);
+    // adp2025 stays sheet-managed (we don't have last-season data here).
+    if (adp && adp.byMonth) {
+      if (window.applySeasonBadge) window.applySeasonBadge(adp.season);
       let _fmt = 'sf';
       try { const _v = localStorage.getItem('fpts-adp-format'); if (_v === '1qb' || _v === 'sf') _fmt = _v; } catch (e) {}
-      const canonList = j.byMonth?.ALL?.[_fmt === '1qb' ? 'startup_1qb' : 'startup_sf'] || [];
-      const fallList  = j.byMonth?.ALL?.[_fmt === '1qb' ? 'startup_sf'  : 'startup_1qb'] || [];
+      const canonList = adp.byMonth?.ALL?.[_fmt === '1qb' ? 'startup_1qb' : 'startup_sf'] || [];
+      const fallList  = adp.byMonth?.ALL?.[_fmt === '1qb' ? 'startup_sf'  : 'startup_1qb'] || [];
       const canonByKey = {}, fallByKey = {};
       canonList.forEach(p => { if (p.name) canonByKey[_normNameTiers(p.name)] = p; });
       fallList .forEach(p => { if (p.name) fallByKey [_normNameTiers(p.name)] = p; });
@@ -5323,15 +5323,14 @@ async function applySleeperOverlay() {
       });
     }
 
-    // ── auction.json overlay (real dynasty auction prices) ───────────────
-    // Overwrites sheet's auction column with the median price from real auctions.
-    // Dynasty auctions are overwhelmingly SF (essentially zero 1QB auctions in
+    // ── auction overlay (real dynasty auction prices) ────────────────────
+    // Overwrites sheet's auction column with the median price from real
+    // auctions. Dynasty auctions are overwhelmingly SF (~0 1QB auctions in
     // the dataset), so try 1QB first then fall back to SF.
-    if (auctionRes && auctionRes.ok) {
-      const j = await auctionRes.json();
+    if (auction && auction.byMonth) {
       const oneByKey = {}, sfByKey = {};
-      (j.byMonth?.ALL?.startup_1qb || []).forEach(p => { if (p.name) oneByKey[_normNameTiers(p.name)] = p; });
-      (j.byMonth?.ALL?.startup_sf  || []).forEach(p => { if (p.name) sfByKey [_normNameTiers(p.name)] = p; });
+      (auction.byMonth?.ALL?.startup_1qb || []).forEach(p => { if (p.name) oneByKey[_normNameTiers(p.name)] = p; });
+      (auction.byMonth?.ALL?.startup_sf  || []).forEach(p => { if (p.name) sfByKey [_normNameTiers(p.name)] = p; });
       TIER_PLAYERS.forEach(p => {
         const key = _normNameTiers(p.name);
         const rec = oneByKey[key] || sfByKey[key];
@@ -5340,20 +5339,16 @@ async function applySleeperOverlay() {
       });
     }
 
-    // ── mvs.json overlay (canonical player VALUE) ────────────────────────
+    // ── MVS overlay (canonical player VALUE) ─────────────────────────────
     // Wholesale-replaces the value column with MVS, honoring the user's
-    // saved SF/1QB format preference.
-    if (mvsRes && mvsRes.ok) {
-      const j = await mvsRes.json();
-      // Stash for the Sleeper-API age fallback below — lets that function
-      // resolve sleeperIds for players who aren't in FP's values.json yet
-      // (typically fresh rookies between Sleeper-recognizing them and FP
-      // adding their KTC record).
-      window.__TIERS_MVS_PLAYERS = j.players || {};
+    // saved SF/1QB format preference. data-bootstrap.js already did its
+    // own overlay onto FP_VALUES — we re-derive here directly onto
+    // TIER_PLAYERS so the tier table renders without going through FP.
+    if (mvs && mvs.players) {
       let _fmt = 'sf';
       try { const _v = localStorage.getItem('fpts-adp-format'); if (_v === '1qb' || _v === 'sf') _fmt = _v; } catch (e) {}
       const mvsByKey = {};
-      Object.entries(j.players || {}).forEach(([name, rec]) => { mvsByKey[_normNameTiers(name)] = rec; });
+      Object.entries(mvs.players).forEach(([name, rec]) => { mvsByKey[_normNameTiers(name)] = rec; });
       TIER_PLAYERS.forEach(p => {
         const rec = mvsByKey[_normNameTiers(p.name)];
         if (!rec) { p.value = 0; return; }
@@ -5363,7 +5358,7 @@ async function applySleeperOverlay() {
       });
     }
   } catch (e) {
-    console.warn('[tiers] sleeper overlay skipped:', e && e.message);
+    console.warn('[tiers] sleeper overlay failed:', e && e.message);
   }
 }
 
@@ -5386,7 +5381,7 @@ async function applySleeperApiAgeFallback() {
   const missing = TIER_PLAYERS.filter(p => (p.age == null || p.age === '') && p.name);
   if (!missing.length) return false;
 
-  const mvsPlayers = window.__TIERS_MVS_PLAYERS || {};
+  const mvsPlayers = (window.MVS_PAYLOAD && window.MVS_PAYLOAD.players) || {};
   const mvsByKey = {};
   Object.entries(mvsPlayers).forEach(([name, rec]) => { mvsByKey[_normNameTiers(name)] = rec; });
 
@@ -5458,16 +5453,22 @@ window.addEventListener('DOMContentLoaded', () => {
   document.getElementById('tiers-updated').textContent = TIER_UPDATED;
   document.getElementById('tiers-updated-stat').textContent = TIER_UPDATED;
 
-  // First paint immediately (Google-Sheet values), then re-render once
-  // the Sleeper overlay lands so the page is never blank. After the
-  // local overlays complete, optionally hit the Sleeper API to backfill
-  // ages for any players FP doesn't have yet — re-render only if at
-  // least one age came back.
+  // First paint immediately (Google-Sheet values, raw) so the page is
+  // never blank. The Sleeper overlay applies after data-bootstrap.js
+  // finishes hydrating window globals — listen for 'fpts:data-ready'.
+  // Then the optional Sleeper-API age fallback for players FP doesn't
+  // have yet (fresh rookies) — re-render only if at least one age
+  // came back.
   renderTiers();
-  applySleeperOverlay()
-    .then(() => renderTiers())
-    .then(() => applySleeperApiAgeFallback())
-    .then(filled => { if (filled) renderTiers(); });
+});
+
+// Wait for data-bootstrap.js to populate window.FP_VALUES /
+// ADP_PAYLOAD / AUCTION_PAYLOAD / MVS_PAYLOAD, then run the tier-
+// specific overlay onto TIER_PLAYERS and repaint.
+document.addEventListener('fpts:data-ready', () => {
+  applySleeperOverlay();
+  renderTiers();
+  applySleeperApiAgeFallback().then(filled => { if (filled) renderTiers(); });
 });
 </script>
 
@@ -5524,53 +5525,14 @@ window.addEventListener('DOMContentLoaded', () => {
 // ════════════════════════════════════════════════════════════════════════
 //  PLAYER MODAL — tiers-local, inline (no longer cross-page hands off to DB)
 // ════════════════════════════════════════════════════════════════════════
-window.FP_VALUES = window.FP_VALUES || {};
+// Data hydration is handled by assets/js/data-bootstrap.js — it fetches
+// every data/*.json in lockstep and populates window.FP_VALUES /
+// MVS_PAYLOAD / PICK_AVAILABILITY / PLAYER_ARTICLES / ADP_PAYLOAD /
+// AUCTION_PAYLOAD / PICK_VALUES / SLEEPER_IDS, then fires 'fpts:data-ready'.
+// The tier-page-specific TIER_PLAYERS overlay runs in the
+// 'fpts:data-ready' listener at the bottom of this file.
 window._tiersActivePlayerName = null;
 window._tiersActiveSleeperId  = null;
-
-// Hydrate FP_VALUES + MVS_PAYLOAD + PICK_AVAILABILITY so the shared
-// MvsExtras + Heatmap modules have everything they need.
-(function _tiersHydrateExtras(){
-  const v = '?v=' + (window.__DATA_VERSION || Date.now());
-  Promise.all([
-    fetch('data/values.json' + v).then(r => r.ok ? r.json() : null).catch(() => null),
-    fetch('data/mvs.json'    + v).then(r => r.ok ? r.json() : null).catch(() => null),
-    fetch('data/pick-availability.json' + v).then(r => r.ok ? r.json() : null).catch(() => null),
-    fetch('data/articles.json' + v).then(r => r.ok ? r.json() : null).catch(() => null),
-  ]).then(([vJ, mJ, pJ, aJ]) => {
-    if (vJ && vJ.players) Object.assign(window.FP_VALUES, vJ.players);
-    if (mJ) {
-      window.MVS_PAYLOAD = mJ;
-      // Overlay MVS data onto FP_VALUES so MvsExtras can read .recentTrades / .history / etc.
-      let _fmt = 'sf';
-      try { const x = localStorage.getItem('fpts-adp-format'); if (x === '1qb' || x === 'sf') _fmt = x; } catch (e) {}
-      Object.entries(mJ.players || {}).forEach(([name, mvs]) => {
-        const target = window.FP_VALUES[name] || (window.FP_VALUES[name] = { sleeperId: mvs.sleeperId, pos: mvs.position });
-        target.valueSf  = mvs.valueSf;
-        target.value1qb = mvs.value1qb;
-        target.value    = (_fmt === '1qb') ? mvs.value1qb : mvs.valueSf;
-        target.baselineSf  = mvs.baseline;
-        target.baseline1qb = mvs.baseline1qb;
-        target.baseline    = (_fmt === '1qb') ? mvs.baseline1qb : mvs.baseline;
-        target.trend = (_fmt === '1qb') ? mvs.trend1qb : mvs.trend;
-        target.tradesLastWeek = (_fmt === '1qb') ? mvs.tradesLastWeek1qb : mvs.tradesLastWeek;
-        target.historySf  = mvs.history;
-        target.history1qb = mvs.history1qb;
-        target.history    = (_fmt === '1qb') ? mvs.history1qb : mvs.history;
-        target.otcValue       = mvs.otcValue;
-        target.otcDiff        = mvs.otcDiff;
-        target.rankings       = mvs.rankings;
-        target.recentTrades   = mvs.recentTrades;
-        target.lastUpdated    = mvs.lastUpdated;
-        if (!target.sleeperId && mvs.sleeperId) target.sleeperId = mvs.sleeperId;
-      });
-    }
-    if (pJ && pJ.players) window.PICK_AVAILABILITY = pJ.players;
-    if (pJ && pJ.rookiePlayers) window.PICK_AVAILABILITY_ROOKIE = pJ.rookiePlayers;
-    if (pJ) window.PICK_AVAILABILITY_META = { version: pJ.version, season: pJ.season, teamCount: pJ.teamCount, topN: pJ.topN };
-    if (aJ && aJ.players) window.PLAYER_ARTICLES   = aJ.players;
-  });
-})();
 
 // Replace cross-page handoff with local modal open.
 window._fptsTiersOpenPlayer = function (name) {
