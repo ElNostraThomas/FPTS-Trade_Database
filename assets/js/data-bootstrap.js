@@ -121,38 +121,15 @@
 
     const canonByKey = _fmt === '1qb' ? oneByKey : sfByKey;
     const fallByKey  = _fmt === '1qb' ? sfByKey  : oneByKey;
-    const _monthlyKey = _fmt === '1qb' ? 'startup_1qb' : 'startup_sf';
 
+    // ADP overlay writes only .adp. Trend is owned by MVS (overwrites in
+    // _applyMvsPayload below); for players MVS doesn't cover, the FP-API
+    // trend from values.json stays in place as a fallback.
     Object.entries(FP).forEach(([fpName, rec]) => {
       const key = normalizePlayerName(fpName);
       const p = canonByKey[key] || fallByKey[key];
       if (p) rec.adp = p.adp;
     });
-
-    // ADP-derived trend: positive = player rising (ADP improved month-over-month).
-    const months = Object.keys(j.byMonth).filter(m => m !== 'ALL').sort().reverse();
-    if (months.length >= 2) {
-      const perMonth = months.map(m => {
-        const map = {};
-        ((j.byMonth[m] || {})[_monthlyKey] || []).forEach(p => {
-          if (p.name && p.adp != null) map[normalizePlayerName(p.name)] = p.adp;
-        });
-        return map;
-      });
-      const normToFp = {};
-      Object.keys(FP).forEach(fpName => { normToFp[normalizePlayerName(fpName)] = fpName; });
-      const recent = perMonth[0];
-      for (const k in recent) {
-        for (let i = 1; i < perMonth.length; i++) {
-          const prev = perMonth[i][k];
-          if (prev != null) {
-            const fpName = normToFp[k];
-            if (fpName && FP[fpName]) FP[fpName].trend = Math.round(prev - recent[k]);
-            break;
-          }
-        }
-      }
-    }
   }
 
   function _applyAuctionPayload(j) {
