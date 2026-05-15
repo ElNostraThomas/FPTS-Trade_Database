@@ -9,7 +9,7 @@
      sizing). Loaded BEFORE this page's inline <style> so existing per-page
      overrides still win on duplicate selectors; the new .team-logo /
      .player-hs-team rules add cleanly. -->
-<link rel="stylesheet" href="assets/css/brand.css?v=1778680019">
+<link rel="stylesheet" href="assets/css/brand.css?v=1778680020">
 <style>
   /* Brand fonts (local TTFs from Fantasy-Design-Prompt kit) override Google Fonts
      for the canonical brand weights so on-page text matches the wordmark exactly. */
@@ -1507,10 +1507,12 @@ function renderBoxView(players) {
       // consistent with 2026; accept the slight data-recency mismatch.
       const trendHtml = trendBadge(p.name);
       // The team identity now lives in the bottom-left circle (teamLogoCircle
-      // above), so card-meta is trend-only.
-      const metaHtml  = trendHtml
-        ? `<div class="card-meta">${trendHtml}</div>`
-        : '';
+      // above), so card-meta is trend-only. ALWAYS render the meta div even
+      // when there's no trend (common for rookie players not yet in FP's
+      // current-week trend snapshot) so card heights stay uniform across
+      // every year and tab. Without this, rookie cards collapse to the
+      // min-height floor and look ~12px shorter than startup cards.
+      const metaHtml  = `<div class="card-meta">${trendHtml || '&nbsp;'}</div>`;
       parts.push(`<div class="box-card ${pos}${dimCls}" data-id="${escapeHtml(p.sleeperId)}">
         <div class="card-content">
           <div class="card-top">
