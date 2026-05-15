@@ -132,6 +132,13 @@
   .date-presets button + button { border-left:1px solid var(--border2); }
   .date-presets button:hover { background:var(--surface2); }
   .date-presets button.active { background:var(--red); color:#111; }
+  /* Year dropdown — pick which season's ADP to view. Sits next to date presets
+     in the controls bar. Defaults to current season; preserves selected date-
+     preset across year switches via STATE.datePreset re-application. */
+  .year-select-wrap { display:inline-flex; align-items:center; gap:6px; border:1px solid var(--border2); background:var(--surface); padding:0 8px 0 10px; }
+  .year-select-label { font-family:'Mulish',sans-serif; font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:.06em; color:var(--white); opacity:.6; }
+  .year-select { background:var(--surface); color:var(--white); border:none; font-family:'Mulish',sans-serif; font-size:11px; font-weight:800; padding:7px 4px; cursor:pointer; outline:none; min-width:54px; }
+  .year-select:focus { outline:1px solid var(--red); outline-offset:-1px; }
   .sample-badge { display:inline-flex; align-items:center; gap:8px; padding:7px 12px; border:1px solid var(--border2); background:var(--surface); }
   .search-box { display:inline-flex; align-items:center; gap:6px; padding:6px 10px; border:1px solid var(--border2); background:var(--surface); transition:border-color .12s; }
   .search-box:focus-within { border-color:var(--red); }
@@ -641,6 +648,10 @@
       <button type="button" data-preset="90">90d</button>
       <button type="button" data-preset="all" class="active">All</button>
     </div>
+    <div class="year-select-wrap" aria-label="ADP year">
+      <label for="year-select" class="year-select-label">YEAR</label>
+      <select id="year-select" class="year-select" onchange="setYear(this.value)" aria-label="Select ADP year"></select>
+    </div>
     <div class="sample-badge">
       <span class="dot"></span>
       <span class="label">Sample</span>
@@ -1004,6 +1015,9 @@ const STATE = {
   mode: 'picks',     // variant under source='startup'; ignored when source='rookie'
   qbFormat: 'sf',    // 'sf' (Superflex / 2QB) or '1qb' (single-QB)
   view: 'box',
+  year: null,        // selected season; null = use ADP_PAYLOAD.season (current). Set by setYear().
+  datePreset: 'all', // tracks active date-range preset ('7'/'30'/'90'/'all'). Preserved
+                     // across year switches; re-applied against new year's data-max-date.
   dateFrom: null,    // 'yyyy-mm-dd' string, null = use byMonth.ALL
   dateTo:   null,
   teamCount: 12,
@@ -1017,6 +1031,7 @@ const STATE = {
   },
   sort: { col: 'rank', dir: 'asc' },
   _cache: { startup: null, rookie: null },
+  _yearCache: {},    // year (int) → { adp, auction, pa }; lazy-loaded by setYear()
 };
 
 // Source = which top-level tab. 'startup' = the current Picks/Simple/With-Rookies
@@ -1073,6 +1088,21 @@ function applyAdpYearLabel() {
 }
 
 // ── DATA ACCESS ───────────────────────────────────────────────────────────────
+
+// For historical years sync-adp.py only emits legacy view_keys (startup_sf /
+// startup_1qb / rookie) — the per-format buckets (picks_sf / simple_sf /
+// rookies_sf etc.) require a per-season picks_{year}.parquet which past years
+// may not have. When the requested format-bucket key returns no data, fall
+// back to its legacy equivalent so the year is still browsable (variant
+// toggles become aesthetic-only for those years).
+function _legacyFallbackKey(src) {
+  if (!src) return null;
+  if (src.startsWith('rookie_draft_')) return 'rookie';
+  if (src.endsWith('_sf'))  return 'startup_sf';
+  if (src.endsWith('_1qb')) return 'startup_1qb';
+  return null;
+}
+
 function getActiveBucket() {
   const payload = window.ADP_PAYLOAD;
   if (!payload || !payload.byMonth) return [];
@@ -1082,6 +1112,15 @@ function getActiveBucket() {
     list = (payload.byMonth.ALL || {})[src] || [];
   } else {
     list = aggregateBuckets(payload, STATE.dateFrom, STATE.dateTo, src);
+  }
+  // Legacy-fallback for years without per-format-bucket data.
+  if (!list.length) {
+    const legacy = _legacyFallbackKey(src);
+    if (legacy) {
+      list = (!STATE.dateFrom || !STATE.dateTo)
+        ? ((payload.byMonth.ALL || {})[legacy] || [])
+        : aggregateBuckets(payload, STATE.dateFrom, STATE.dateTo, legacy);
+    }
   }
   // Bucketing is handled upstream in sync-adp.py — each mode's source already
   // contains the right players for that format. Just drop the global excludes.
@@ -1610,11 +1649,28 @@ function setDates(fromISO, toISO) {
   renderAll();
 }
 
-// Date presets — "7d/30d/90d" sets a range ending today minus N days; "all"
-// clears the range so getActiveBucket falls back to byMonth.ALL.
+// Returns the most-recent draft date in the loaded ADP payload — used as the
+// anchor for "7d/30d/90d" presets so they work correctly for both current and
+// historical years. For 2026 (current), this is ≈ today. For 2024 (historical),
+// this is the last day of the latest month with data (e.g. 2024-12-31).
+function _datasetMaxDate(payload) {
+  if (!payload || !payload.byMonth) return new Date();
+  const months = Object.keys(payload.byMonth).filter(k => k !== 'ALL').sort();
+  if (!months.length) return new Date();
+  const last = months[months.length - 1]; // 'YYYY-MM'
+  const [y, m] = last.split('-').map(Number);
+  // Day 0 of next month = last day of current month
+  return new Date(y, m, 0);
+}
+
+// Date presets — "7d/30d/90d" sets a range ending at the dataset's max date
+// minus N days; "all" clears the range so getActiveBucket falls back to
+// byMonth.ALL. The anchor was historically `today`; switching to dataset-max
+// means the same preset works whether the active year is current or historical.
 function applyDatePreset(preset) {
   const fromEl = document.getElementById('date-from');
   const toEl   = document.getElementById('date-to');
+  STATE.datePreset = String(preset);
   if (preset === 'all') {
     STATE.dateFrom = null;
     STATE.dateTo   = null;
@@ -1623,11 +1679,11 @@ function applyDatePreset(preset) {
   } else {
     const n = Number(preset);
     if (!Number.isFinite(n) || n <= 0) return;
-    const today = new Date();
-    const from  = new Date(today);
+    const anchor = _datasetMaxDate(window.ADP_PAYLOAD);
+    const from   = new Date(anchor);
     from.setDate(from.getDate() - n);
     const fromISO = isoDate(from);
-    const toISO   = isoDate(today);
+    const toISO   = isoDate(anchor);
     // Clamp to available data range if the input has min/max attributes set.
     const minA = fromEl.min || '';
     const maxA = toEl.max   || '';
@@ -1638,6 +1694,93 @@ function applyDatePreset(preset) {
   }
   document.querySelectorAll('[data-preset]').forEach(b => b.classList.toggle('active', b.dataset.preset === String(preset)));
   renderAll();
+}
+
+// ── YEAR PICKER ───────────────────────────────────────────────────────────────
+// Swap ADP_PAYLOAD / AUCTION_PAYLOAD / PICK_AVAILABILITY to the requested year's
+// payloads, re-apply the active date-preset against the new year's max-date, and
+// re-render. Year payloads are lazy-loaded and cached in STATE._yearCache so
+// flipping back to a previously-viewed year is instant.
+async function setYear(year) {
+  const y = parseInt(year, 10);
+  if (!Number.isFinite(y) || y === STATE.year) return;
+
+  let payloads = STATE._yearCache[y];
+  if (!payloads) {
+    try {
+      const v = '?v=' + (window.__DATA_VERSION || Date.now());
+      const [adpRes, aucRes, paRes] = await Promise.all([
+        fetch(`data/adp-${y}.json` + v),
+        fetch(`data/auction-${y}.json` + v).catch(() => null),
+        fetch(`data/pick-availability-${y}.json` + v).catch(() => null),
+      ]);
+      if (!adpRes || !adpRes.ok) {
+        console.warn(`[adp] no data for year ${y}`);
+        // Revert dropdown to current STATE.year
+        const sel = document.getElementById('year-select');
+        if (sel && STATE.year) sel.value = String(STATE.year);
+        return;
+      }
+      const adp     = await adpRes.json();
+      const auction = (aucRes && aucRes.ok) ? await aucRes.json() : null;
+      const pa      = (paRes  && paRes.ok)  ? await paRes.json()  : null;
+      payloads = { adp, auction, pa };
+      STATE._yearCache[y] = payloads;
+    } catch (e) {
+      console.warn('[adp] failed to load year', y, e);
+      return;
+    }
+  }
+
+  STATE.year = y;
+  window.ADP_PAYLOAD = payloads.adp;
+  if (payloads.auction) window.AUCTION_PAYLOAD = payloads.auction;
+  if (payloads.pa) {
+    window.PICK_AVAILABILITY        = payloads.pa.players       || {};
+    window.PICK_AVAILABILITY_ROOKIE = payloads.pa.rookiePlayers || {};
+    window.PICK_AVAILABILITY_META   = {
+      version: payloads.pa.version, season: payloads.pa.season,
+      teamCount: payloads.pa.teamCount, topN: payloads.pa.topN,
+    };
+  }
+  _applyAdpPayload(payloads.adp);
+  if (payloads.auction && typeof _applyAuctionPayload === 'function') {
+    _applyAuctionPayload(payloads.auction);
+  }
+
+  // Re-apply the active date-preset against the new year's data-max-date.
+  // 'all' just stays cleared; '7'/'30'/'90' recompute against new anchor.
+  if (STATE.datePreset && STATE.datePreset !== 'all') {
+    applyDatePreset(STATE.datePreset);
+  }
+
+  // Update topnav badge + ADP-Tool tab labels to the new year.
+  if (window.applySeasonBadge) window.applySeasonBadge(y);
+  applyAdpYearLabel();
+
+  // Reflect in URL hash so the view is shareable / reload-restorable.
+  try {
+    const p = new URLSearchParams((location.hash || '').replace(/^#/, ''));
+    p.set('year', String(y));
+    location.hash = p.toString();
+  } catch (e) {}
+
+  rebuildTrendIndex();
+  renderAll();
+}
+
+// Populate the <select> with years from ADP_PAYLOAD.availableYears (written by
+// sync-adp.py). Falls back to current-year only if the field is missing (e.g.
+// running against an older data snapshot).
+function populateYearSelect(activeYear) {
+  const sel = document.getElementById('year-select');
+  if (!sel) return;
+  const fromPayload = (window.ADP_PAYLOAD && window.ADP_PAYLOAD.availableYears) || [];
+  const years = fromPayload.length ? fromPayload : [activeYear];
+  const sorted = [...new Set(years)].sort((a, b) => b - a); // descending: most recent first
+  sel.innerHTML = sorted.map(y =>
+    `<option value="${y}"${y === activeYear ? ' selected' : ''}>${y}</option>`
+  ).join('');
 }
 
 // Detect which preset (if any) the current dateFrom/dateTo matches.
@@ -1784,6 +1927,14 @@ function loadStateFromHash() {
   if (p.has('mode') && VALID_MODES.has(p.get('mode'))) STATE.mode = p.get('mode');
   if (p.has('qb')   && VALID_QB.has(p.get('qb')))      STATE.qbFormat = p.get('qb');
   if (p.has('view') && (p.get('view') === 'list' || p.get('view') === 'box')) STATE.view = p.get('view');
+  if (p.has('year')) {
+    const _y = parseInt(p.get('year'), 10);
+    if (Number.isFinite(_y)) STATE.year = _y;
+  }
+  if (p.has('preset')) {
+    const _pre = p.get('preset');
+    if (_pre === '7' || _pre === '30' || _pre === '90' || _pre === 'all') STATE.datePreset = _pre;
+  }
   if (p.has('from')) STATE.dateFrom = p.get('from');
   if (p.has('to'))   STATE.dateTo   = p.get('to');
   if (p.has('snake')) STATE.snake = p.get('snake') !== '0';
@@ -1810,6 +1961,8 @@ function applyStateToUi() {
   document.querySelectorAll('[data-preset]').forEach(b => b.classList.toggle('active', activePreset && b.dataset.preset === activePreset));
   const srch  = document.getElementById('search-input'); if (srch) srch.value = STATE.search || '';
   const sClr  = document.getElementById('search-clear'); if (sClr) sClr.classList.toggle('hidden', !STATE.search);
+  const ySel  = document.getElementById('year-select');
+  if (ySel && STATE.year) ySel.value = String(STATE.year);
   syncSettingsUi();
 }
 
@@ -2594,9 +2747,21 @@ function _adpInit() {
   // Tell the shared Heatmap module which pick-availability map to query
   // based on the active tab. consumeHandoff() / setSource() update this too.
   window.PICK_AVAILABILITY_SOURCE = (STATE.source === 'rookie') ? 'rookie' : 'startup';
+  // Year dropdown — populate with seasons published by sync-adp.py
+  // (ADP_PAYLOAD.availableYears) and seed the active selection.
+  const _currentYr = (window.ADP_PAYLOAD && window.ADP_PAYLOAD.season) || (new Date()).getFullYear();
+  populateYearSelect(STATE.year || _currentYr);
   applyStateToUi();       // reflect STATE into inputs/toggles
   enforceMobileView();    // collapse to list on narrow screens
   renderAll();
+  // If the URL hash requested a non-current year, swap to that year's payload
+  // now (async fetch + re-render). First paint above showed current-year so
+  // the page isn't blank during the swap.
+  if (STATE.year && STATE.year !== _currentYr) {
+    setYear(STATE.year);
+  } else {
+    STATE.year = _currentYr;
+  }
   consumeHandoff();
   // Re-check on resize (debounced) so users switching orientation are handled.
   let _rt = null;

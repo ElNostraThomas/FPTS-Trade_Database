@@ -207,6 +207,57 @@
    family above matches its role and reuse the tokens — don't invent new
    colors, sizes, or class names. New conventions get an entry here
    FIRST, then the code follows.
+
+   ──────────────────────────────────────────────────────────────────────
+   ADP SCRAPE-COUPLING RULE  (UI filters ↔ scrape dimensions)
+   ──────────────────────────────────────────────────────────────────────
+   Every filter dimension exposed in the ADP Tool (adp-tool.html STATE.*
+   + STATE.filters.*) MUST have a corresponding aggregation dimension in
+   the data-factory scrape pipeline at
+     C:\Users\deons\Desktop\sleeper_dynasty_adp\scripts_or_notebooks\01_ingest_historical.py
+   Without that, the filter has nothing to slice and the UI silently
+   shows empty results for any year/combo where the dimension isn't
+   captured. Coupling is BIDIRECTIONAL — if a Sleeper API change ever
+   drops a column a UI filter depends on, the filter MUST be deprecated
+   in the UI before shipping. Silent "no results" is worse than a
+   missing toggle.
+
+   Current bidirectional mapping (UI filter → scrape column):
+
+     STATE.source            ←→  dynasty_class          (01_ingest_historical.py:49, KEEP_DYNASTY_CLASSES)
+     STATE.mode              ←→  bucket classifier      (sync-adp.py classify_startup_drafts())
+     STATE.qbFormat          ←→  is_superflex           (01_ingest_historical.py groupby)
+     STATE.year              ←→  season                 (01_ingest_historical.py SEASONS list)
+     STATE.teamCount         ←→  st_teams               (01_ingest_historical.py)
+     STATE.rounds            ←→  st_rounds              (01_ingest_historical.py)
+     STATE.filters.positions ←→  md_pos                 (per-pick column)
+     STATE.filters.rounds    ←→  round                  (per-pick column)
+     STATE.filters.teams     ←→  draft_slot             (per-pick column)
+     date range              ←→  start_month            (per-draft column)
+
+   When adding a NEW filter to adp-tool.html, you MUST also:
+     1. Add the dimension to compute_adp_time_series() groupby in
+        01_ingest_historical.py (~line 466) AND the analogous groupby
+        in build_adp / build_format_adp in sync-adp.py.
+     2. Surface the dimension on the per-draft / per-pick parquet
+        records so the existing aggregators can pick it up.
+     3. Re-run 01_ingest_historical.py to rescrape with the new
+        dimension captured (~30 min × seasons in SEASONS).
+     4. Then re-run sync-adp.py to regenerate the year-stamped JSONs.
+
+   Highest-ROI dimensions NOT yet scraped (candidates for expansion):
+     - PPR / Half-PPR / Non-PPR scoring  (md_scoring_type currently
+                                          captured as raw string;
+                                          needs a parser)
+     - TE Premium / IDP                  (also embedded in md_scoring_type)
+     - Injury status at draft time       (would require external
+                                          player-health snapshot +
+                                          merge by date)
+     - Post-draft trade liquidity        (requires /league/{lid}/traded_picks
+                                          endpoint, not currently called)
+
+   See docs/WORKFLOW.md § "Adding a new ADP filter" for the operator
+   checklist.
    ──────────────────────────────────────────────────────────────────────
 */
 

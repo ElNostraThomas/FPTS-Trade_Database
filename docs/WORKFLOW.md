@@ -184,6 +184,23 @@ If FP adds new endpoints you want to use, or you want to add a new data input:
 3. Open each HTML file that needs the new data, add a `fetch('data/your-new-data.json' + v)` line inside the existing `_fpBootstrap` block.
 4. Reference the loaded data anywhere downstream.
 
+### 11. Adding a new ADP filter (UI ↔ scrape coupling)
+
+Driven by the **ADP scrape-coupling rule** in `assets/js/legend-content.js` header. The short version: any new filter on `adp-tool.html` needs the scrape pipeline to capture that dimension, or the filter silently returns empty results.
+
+If you want to add a filter (e.g. PPR vs Half-PPR vs Non-PPR, or 10-team vs 12-team-only):
+
+1. **Check the scrape captures it.** Look at `C:\Users\deons\Desktop\sleeper_dynasty_adp\scripts_or_notebooks\01_ingest_historical.py` — the per-draft / per-pick columns and the `compute_adp_time_series()` groupby (~line 466). If your dimension isn't there, add it:
+   - To `draft_to_row()` / `picks_to_rows()` so it lands on the parquet rows.
+   - To the groupby tuple so aggregated stats split on it.
+2. **Re-run the ingest.** `cd` to the data factory, `python 01_ingest_historical.py`. ~30 min per season.
+3. **Extend `sync-adp.py`'s build functions** (`build_adp`, `build_format_adp`, `build_auction`, etc.) so the new dimension shows up as a `view_key` in `adp.json` / `auction.json`.
+4. **Re-run `sync-adp.py`** to regenerate year-stamped JSON files.
+5. **Add the filter button(s)** to `adp-tool.html` controls bar; wire to `STATE.<newDim>`; teach `getSourceKey()` / `getActiveBucket()` to use the new dimension.
+6. **Add the mapping** to the coupling-rule table in `legend-content.js` header so the next person sees it.
+
+If a Sleeper API change removes a column a filter depends on, deprecate the filter in the UI before the next push — silent "no results" is worse than a missing toggle.
+
 ---
 
 ## File inventory — what every file is for
