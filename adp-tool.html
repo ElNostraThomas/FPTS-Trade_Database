@@ -92,9 +92,6 @@
   /* PAGE */
   .page { max-width:1440px; margin:0 auto; padding:0 16px 60px; }
   .page-header { padding:32px 0 18px; display:flex; align-items:flex-end; justify-content:space-between; gap:16px; flex-wrap:wrap; }
-  .page-title { font-family:'Kanit',sans-serif; font-weight:700; font-style:italic; font-size:20px; color:var(--white); opacity:.85; text-transform:uppercase; line-height:1.1; letter-spacing:.02em; }
-  .page-title span { color:var(--red); }
-  .page-subtitle { font-family:'Mulish',sans-serif; font-size:13px; color:var(--white); opacity:.7; margin-top:6px; }
 
   /* SOURCE TABS — Dynasty Startup vs Dynasty Rookie ADP */
   .adp-source-tabs { display:flex; gap:28px; align-items:flex-end; margin-bottom:8px; }
@@ -436,8 +433,6 @@
     #theme-toggle { padding: 6px 10px !important; font-size: 10px !important; min-height: 36px; }
     .page { padding: 0 10px 40px; }
     .page-header { flex-direction: column; align-items: flex-start; padding: 14px 0 12px; gap: 4px; }
-    .page-title { font-size: 14px !important; }
-    .page-subtitle { font-size: 11px; }
     .adp-source-tabs { gap: 16px; margin-bottom: 4px; }
     .adp-tab { font-size: 18px !important; }
 
@@ -514,8 +509,6 @@
     .topnav { gap: 6px; height: 44px; }
     .wordmark svg { height: 18px; }
     .wordmark-tag { display: none !important; }
-    .page-title { font-size: 12px !important; }
-    .page-subtitle { font-size: 10px; }
     .adp-tab { font-size: 15px !important; }
     .adp-source-tabs { gap: 12px; }
 
@@ -635,8 +628,6 @@
         <button class="adp-tab active" data-source="startup" role="tab" aria-selected="true">Dynasty Startup ADP<span class="adp-tab-year" id="adp-year-startup">2026</span></button>
         <button class="adp-tab"        data-source="rookie"  role="tab" aria-selected="false">Dynasty Rookie ADP<span class="adp-tab-year" id="adp-year-rookie">2026</span></button>
       </div>
-      <div class="page-title" id="page-title">Sub-view: Picks-as-assets startups</div>
-      <div class="page-subtitle" id="page-subtitle">Real Sleeper dynasty draft positions — 12-team Superflex startups with picks-as-assets.</div>
     </div>
   </div>
 
@@ -1095,21 +1086,6 @@ const EXCLUDED_POSITIONS = new Set([
   'IDP',
 ]);
 function isDisplayablePosition(p) { return !EXCLUDED_POSITIONS.has(posOf(p)); }
-// Labels reflect both the variant (picks/simple/rookies) and the QB format (SF/1QB).
-function _adpSeason() {
-  return (window.ADP_PAYLOAD && window.ADP_PAYLOAD.season) ? window.ADP_PAYLOAD.season : (new Date()).getFullYear();
-}
-const MODE_TO_LABEL  = {
-  picks:   { title: 'Sub-view: Picks-as-assets startups',          subTpl: (fmt) => `Real Sleeper dynasty draft positions — 12-team ${fmt} startups with picks-as-assets.` },
-  simple:  { title: 'Sub-view: Vet-only startups (simple)',        subTpl: (fmt) => `Real Sleeper dynasty draft positions — 12-team ${fmt} vet-only startups (no rookies, no picks).` },
-  rookies: { title: 'Sub-view: Startups including incoming class', subTpl: (fmt) => `Real Sleeper dynasty draft positions — 12-team ${fmt} startups with the ${_adpSeason()} rookie class in the pool.` },
-};
-const ROOKIE_LABEL = {
-  title:  'Sub-view: Rookie-only drafts (≤6 rounds)',
-  subTpl: (fmt) => `Real Sleeper rookie-draft positions — ${fmt} rookie drafts, incoming class only.`,
-};
-function qbFormatLabel(qb = STATE.qbFormat) { return qb === '1qb' ? '1QB' : 'Superflex / 2QB'; }
-
 // Pull the season number from the ADP payload (sync-adp.py writes it) and
 // update the year span on each tab so the labels auto-roll each season.
 function applyAdpYearLabel() {
@@ -1282,23 +1258,6 @@ function renderPosBreakdown(players) {
 
 // ── RENDER ────────────────────────────────────────────────────────────────────
 function renderAll() {
-  // Title/subtitle reflect source + variant + qb format. For older years
-  // without format-bucket data (variant toggle hidden), show an aggregate
-  // label since the variant distinction is meaningless.
-  let lbl;
-  if (STATE.source === 'rookie') {
-    lbl = ROOKIE_LABEL;
-  } else if (!_hasFormatBuckets()) {
-    const _yr = (window.ADP_PAYLOAD && window.ADP_PAYLOAD.season) || STATE.year || _adpSeason();
-    lbl = {
-      title: `Sub-view: Dynasty Startup ADP — aggregate (${_yr})`,
-      subTpl: (fmt) => `Real Sleeper dynasty draft positions — 12-team ${fmt} startups (aggregate; draft-type variants not available for this season).`,
-    };
-  } else {
-    lbl = MODE_TO_LABEL[STATE.mode] || MODE_TO_LABEL.picks;
-  }
-  document.getElementById('page-title').innerHTML = lbl.title;
-  document.getElementById('page-subtitle').textContent = lbl.subTpl(qbFormatLabel());
   // hardList = universe after hard filters; softList = also matches position/search
   const hardList = getHardFilteredPlayers();
   const softList = hardList.filter(isSoftMatch);
