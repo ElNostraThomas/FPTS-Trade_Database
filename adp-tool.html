@@ -9,7 +9,7 @@
      sizing). Loaded BEFORE this page's inline <style> so existing per-page
      overrides still win on duplicate selectors; the new .team-logo /
      .player-hs-team rules add cleanly. -->
-<link rel="stylesheet" href="assets/css/brand.css?v=1778680018">
+<link rel="stylesheet" href="assets/css/brand.css?v=1778680019">
 <style>
   /* Brand fonts (local TTFs from Fantasy-Design-Prompt kit) override Google Fonts
      for the canonical brand weights so on-page text matches the wordmark exactly. */
@@ -1277,10 +1277,21 @@ function renderPosBreakdown(players) {
 
 // ── RENDER ────────────────────────────────────────────────────────────────────
 function renderAll() {
-  // Title/subtitle reflect source + variant + qb format
-  const lbl = (STATE.source === 'rookie')
-    ? ROOKIE_LABEL
-    : (MODE_TO_LABEL[STATE.mode] || MODE_TO_LABEL.picks);
+  // Title/subtitle reflect source + variant + qb format. For older years
+  // without format-bucket data (variant toggle hidden), show an aggregate
+  // label since the variant distinction is meaningless.
+  let lbl;
+  if (STATE.source === 'rookie') {
+    lbl = ROOKIE_LABEL;
+  } else if (!_hasFormatBuckets()) {
+    const _yr = (window.ADP_PAYLOAD && window.ADP_PAYLOAD.season) || STATE.year || _adpSeason();
+    lbl = {
+      title: `Sub-view: Dynasty Startup ADP — aggregate (${_yr})`,
+      subTpl: (fmt) => `Real Sleeper dynasty draft positions — 12-team ${fmt} startups (aggregate; draft-type variants not available for this season).`,
+    };
+  } else {
+    lbl = MODE_TO_LABEL[STATE.mode] || MODE_TO_LABEL.picks;
+  }
   document.getElementById('page-title').innerHTML = lbl.title;
   document.getElementById('page-subtitle').textContent = lbl.subTpl(qbFormatLabel());
   // hardList = universe after hard filters; softList = also matches position/search
@@ -1543,10 +1554,25 @@ function _applyPicksOneQbConstraint() {
 // On the Rookie tab there is only one variant (rookie-only drafts), so the row
 // is hidden to avoid implying any sub-selection. The snake toggle is also
 // hidden on the rookie tab — rookie drafts are conventionally linear.
+// Returns true if the active year's ADP_PAYLOAD has at least one populated
+// format-bucket view-key (picks/simple/rookies × sf/1qb). Older years
+// (pre-2022) often have all format-buckets empty because picks-as-K leagues
+// weren't a common Sleeper convention then — for those years the variant
+// toggle is hidden since every variant would fall back to the same
+// startup_sf legacy view.
+function _hasFormatBuckets() {
+  const all = (window.ADP_PAYLOAD && window.ADP_PAYLOAD.byMonth && window.ADP_PAYLOAD.byMonth.ALL) || {};
+  return ['picks_sf','picks_1qb','simple_sf','simple_1qb','rookies_sf','rookies_1qb']
+    .some(k => Array.isArray(all[k]) && all[k].length > 0);
+}
+
 function _applySourceUiConstraints() {
   const isRookie = STATE.source === 'rookie';
+  const hasFmt = _hasFormatBuckets();
   const vg = document.getElementById('variant-group');
-  if (vg) vg.style.display = isRookie ? 'none' : '';
+  // Hide variant toggle when in rookie tab OR when active year has no
+  // format-bucket data (every variant would alias to the same aggregate).
+  if (vg) vg.style.display = (isRookie || !hasFmt) ? 'none' : '';
   const snk = document.getElementById('snake-toggle');
   if (snk) snk.style.display = isRookie ? 'none' : '';
   document.querySelectorAll('[data-source]').forEach(b => {
@@ -1805,6 +1831,9 @@ async function setYear(year) {
     location.hash = p.toString();
   } catch (e) {}
 
+  // Re-check format-bucket availability for the new year; hides the variant
+  // toggle on years that don't have picks/simple/rookies data.
+  _applySourceUiConstraints();
   rebuildTrendIndex();
   renderAll();
 }
