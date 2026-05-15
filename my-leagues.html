@@ -1038,7 +1038,11 @@
   .ml-exposure-col-sort.active { opacity:1; color:var(--red); }
   .ml-exposure-sort-arrow { display:inline-block; margin-left:3px; font-size:8px; opacity:0; transition:opacity .15s; }
   .ml-exposure-col-sort.active .ml-exposure-sort-arrow { opacity:1; }
-  .ml-exposure-list { overflow-y:auto; flex:1; }
+  /* min-height:0 overrides the flex default min-height:auto so the list can
+     actually clamp to the parent's max-height and trigger its own overflow
+     scrolling. Without this, large lists push past the parent's bounds and
+     the wheel event has nowhere to go. */
+  .ml-exposure-list { overflow-y:auto; flex:1; min-height:0; }
   .ml-exposure-row { display:flex; align-items:center; gap:8px; padding:7px 14px; cursor:pointer;
     border-bottom:1px solid var(--border); transition:background .12s; }
   .ml-exposure-row:hover { background:var(--surface2); }
