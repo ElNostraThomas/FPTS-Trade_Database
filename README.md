@@ -10,14 +10,91 @@ This file is the **resume-where-we-left-off** doc.
 
 ---
 
-## Where we are (end of 2026-05-14 session)
+## Where we are (end of 2026-05-14 evening session)
 
-**All five pages are wired to a shared player-panel slide-out drawer**,
-My-Leagues uses an accordion variant of that same drawer, and **future
-pages can now inherit every shared pattern via the scaffold** (one HTML
-template + one bootstrap module — no more per-page boilerplate).
+**ADP Tool now has a year picker** (`2022 / 2023 / 2024 / 2025 / 2026`) —
+historical years use the same rendering shell as the current year, with
+season-aware rookie filtering and identical visual treatment. Years
+2019-2021 were intentionally dropped because Sleeper's dynasty corpus
+pre-2022 lacked format-bucket data (picks/simple/rookies variants) and
+the boards looked structurally different.
 
-### What changed in 2026-05-14 (session close)
+**Team logos got a "coin" treatment** — every chip-context logo sits in
+a circular translucent dark backdrop so team colors never clash with
+position-pill colors. Trade Finder pos-pills have uniform `min-width: 30px`.
+MVS Top Players / Risers / Fallers rows finally show team logos.
+
+**tiers.html + trade-calculator.html migrated to `data-bootstrap.js`** —
+2 of 5 pages now use the shared data layer; per-page bootstrap removed
+(~180 lines combined). Tiers also got a Sleeper-API age fallback for
+players who aren't in FP's `values.json` yet (fresh rookies).
+
+**Design vocabulary glossary** added to `legend-content.js` header.
+Documents what "pill / coin / chip / card / row / badge / thumb / flame"
+each mean, plus the design tokens. Plus an "ADP scrape-coupling rule"
+documenting that UI filters must have matching scrape dimensions.
+
+### What changed in 2026-05-14 (evening session)
+
+- **ADP year picker shipped.** `setYear()` swaps `ADP_PAYLOAD` /
+  `AUCTION_PAYLOAD` / `PICK_AVAILABILITY` to the year's payload,
+  re-applies the active date-preset against the new year's max-date
+  anchor, updates topnav badge + tab labels, writes the year into the
+  URL hash, re-renders. Year payloads are lazy-loaded and cached in
+  `STATE._yearCache`. Year list lives in `availableYears` written by
+  `sync-adp.py` to canonical `adp.json`.
+- **Restricted to 2022-2026.** Older years had no format-bucket data
+  (`picks_sf` / `simple_sf` / `rookies_sf` all empty) so they looked
+  structurally different from 2026 — no Rookie Pick flame placeholders,
+  no variant separation. `sync-adp.py` `seasons_to_export` defaults to
+  `range(2022, current_season + 1)`. 9 stale year-stamped JSONs deleted.
+- **Season-aware rookie filter.** `build_adp` / `build_format_adp` /
+  `build_rookie_draft_pick_availability` now take `current_season` and
+  `season` params and target `yearsExp == (current_season - season)` so
+  past-year rookie tabs show that year's actual rookie class (Bijan in
+  2023, Breece in 2022, etc.) instead of being filtered out because
+  current Sleeper data shows them as 2-3 year vets.
+- **Backend offense-only filter.** `_OFFENSIVE_POSITIONS = {QB,RB,WR,TE,K}`
+  + `_filter_offense_inplace()` in `sync-adp.py`. Drops IDP / DST / P / FB
+  records at write time so every year's JSON matches 2026's contract.
+- **Team-logo coin** (`assets/css/brand.css`). `TeamHelpers.logoImg(team, { size, coin: true })`
+  wraps the logo in a `.team-logo--coin` translucent dark circle so the
+  logo never blends with the pos-pill behind it. Applied to every chip
+  context (Trade Calc, Trade Finder, drawer hero, DB recent trades,
+  Tiers table, My-Leagues roster). Box-card uses its own coin
+  (`.card-team-logo` 26px); ADP-tool's list-view stays bare (its
+  `.team-pill` provides separation).
+- **MVS team-logo emit.** `renderTopPlayers()` (DB Most Traded Players +
+  By Position) and `renderValueTracker()` (Top Risers / Top Fallers) now
+  emit `TeamHelpers.logoImg` right of every player name — closing the
+  trade-chip rule across these surfaces.
+- **Uniform Trade-Finder pos-pills.** `.tf-asset .pos-badge` +
+  `.tf-add-option .pos-badge` get `min-width: 30px` so QB / RB / WR / TE
+  all sit at the same width despite Kanit's variable glyph widths.
+- **My-Leagues exposure scroll fixed.** 200-player render cap lifted +
+  `min-height: 0` added to `.ml-exposure-list` (classic flex-column
+  scroll-fix idiom). User can hover the box and scroll all players.
+- **Push.bat sync-check cleanup.** Stale `tab-sync` + `chip-sync`
+  detectors removed (post-shared-panel refactor); `modal-sections` /
+  `panel-css` / `legend-sync` kept.
+- **Tiers Sleeper-API age fallback** (`tiers.html`). When `values.json`
+  doesn't have a player's age (typically fresh rookies FP hasn't added
+  yet like Eli Stowers), fetch `https://api.sleeper.app/v1/players/nfl`
+  once per session, look up by sleeperId from `MVS_PAYLOAD.players`,
+  compute age from `birth_date` if needed, re-render.
+- **Tiers hot-fix entries in `tiers.html`.** Added Jayden Daniels to S+
+  (manually); fixed `Coltson` → `Colston Loveland` and `Nick` → `Nicholas Singleton`
+  spellings. ⚠️ These get wiped on next `sync-tiers.py` unless the
+  Google Sheet is updated to match.
+- **Page migrations.** `tiers.html` (-38 lines) and `trade-calculator.html`
+  (-139 lines) migrated to `data-bootstrap.js` — first two of the 5
+  existing pages on the scaffold. Pattern is now battle-tested for the
+  remaining 3 (adp-tool, my-leagues, index).
+- **Legend updates.** Design-vocabulary glossary + ADP scrape-coupling
+  rule + IDP-exclusion convention all added to `legend-content.js`
+  header. `docs/WORKFLOW.md` gained §11 "Adding a new ADP filter."
+
+### What changed in 2026-05-14 (morning session — see CHANGES.md for full detail)
 
 - **Site-wide headshot-fallback rule.** New canonical CSS rule in
   `assets/css/brand.css` covers every legacy fallback class
@@ -297,16 +374,22 @@ Nothing structural. Polish / nice-to-haves only:
   1,614 SF; need 1QB-active seed users in
   `sleeper_dynasty_adp/scripts_or_notebooks/01_ingest_historical.py`
   (line 30 `SEED_USERS`). Until then, the 1QB Picks toggle stays hidden.
-- [ ] **Year-specific ADP** — keep current adp.json as "current year only"
-  and add archival files like `data/adp-2025.json`, `data/adp-2024.json`
-  for cross-year comparison without smearing player ADPs across career stages.
-- [ ] **Migrate existing 5 pages to `data-bootstrap.js`**. They work as-is
-  but each carries ~40 lines of inline bootstrap that could be replaced
-  with a single `<script>` include. Do it page-by-page as you touch each one.
+- [x] ~~**Year-specific ADP**~~ — shipped 2026-05-14 (evening). ADP Tool
+  has a year-picker dropdown (2022-2026). Per-year files under
+  `data/adp-{year}.json`, `data/auction-{year}.json`,
+  `data/pick-availability-{year}.json`. Backend filters offense-only
+  and uses season-aware rookie classification. Years 2019-2021 dropped
+  because their data shape differs from 2026.
+- [ ] **Migrate remaining 3 pages to `data-bootstrap.js`** —
+  `tiers.html` and `trade-calculator.html` are done (2026-05-14 evening,
+  -177 lines combined). Still to migrate: `adp-tool.html`, `my-leagues.html`,
+  `index.html`. Pattern is proven; each is a near-mechanical repeat.
 - [ ] `my-leagues.html` inline-style cleanup (~361 occurrences of
   `style="…"` could move to CSS classes). Pure refactor, deferred.
-- [ ] Audit `push.bat` sync-check warnings — three currently fire
-  (`tab-sync`, `chip-sync`, `legend-sync`) because their drift detectors
+- [x] ~~Audit `push.bat` sync-check warnings~~ — done 2026-05-14
+  (evening). Stale `tab-sync` + `chip-sync` detectors removed (their
+  regex matched against retired per-page tab functions). The other
+  three checks (`modal-sections` / `panel-css` / `legend-sync`) stay.
   were written for the old per-page tab functions which the shared-panel
   refactor retired. Either update the detectors or remove them.
 - [ ] Trade corpus is now sourced from `data/mvs.json` (real

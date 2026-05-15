@@ -6,6 +6,51 @@ the operator manual see [`WORKFLOW.md`](WORKFLOW.md).
 
 ---
 
+## 2026-05-14 (evening) — ADP year picker + team-logo coin + many polishes
+
+### ADP year picker (2022-2026)
+- **`sync-adp.py` refactored** to loop seasons via `_build_one_season()` helper. Default `seasons_to_export = range(2022, current_season + 1)`. Writes per-year JSONs: `data/adp-{year}.json`, `data/auction-{year}.json`, `data/pick-availability-{year}.json`. Current-season payload also writes to canonical filenames + injects `availableYears: [...]` for the frontend dropdown.
+- **`adp-tool.html` year dropdown** in the controls bar (`<select id="year-select">`). New `STATE.year` + `STATE.datePreset` + `STATE._yearCache`. `setYear()` lazy-fetches the target year's three JSONs, repoints `window.ADP_PAYLOAD` / `AUCTION_PAYLOAD` / `PICK_AVAILABILITY`, calls `_applyAdpPayload` (exposed to `window` for cross-IIFE access), re-applies the date-preset against new year's max-date, updates topnav badge + tab labels, writes year into URL hash, re-renders.
+- **`applyDatePreset()` refactored** — anchor changed from `today` to `_datasetMaxDate(window.ADP_PAYLOAD)`. For 2026 this is ≈ today (no behavior change). For 2024 it's that season's last draft date, so "30d" means "last 30 days of 2024 drafts."
+- **2019-2021 intentionally dropped.** Sleeper's dynasty corpus pre-2022 lacked format-bucket data — `picks_sf` / `simple_sf` / `rookies_sf` all empty, no RDP placeholders, no rookie drafts. Boards rendered structurally different from 2026. Restricting the year picker to 2022-2026 ensures every selectable year has the same data shape.
+
+### Backend filters (sync-adp.py)
+- **Season-aware rookie filter.** `build_adp` / `classify_startup_drafts` / `build_rookie_draft_pick_availability` take `season` + `current_season` params. Rookie filter is now `years_exp == (current_season - season)` instead of global `== 0`. Sleeper's `years_exp` is current-as-of-today; a 2024 rookie now has years_exp=2, so the old filter dropped them. Verified: 2025 filter targets yearsExp=1 (223 entities), 2026 targets 0 (212).
+- **Offense-only filter.** New `_OFFENSIVE_POSITIONS = {QB, RB, WR, TE, K}` + `_is_offensive` + `_filter_offense_inplace(by_month_dict)` helpers. Applied to every list emission in `build_adp` / `build_format_adp` / `build_auction`. JSONs no longer contain IDP / DST / P / FB records.
+
+### Team-logo coin treatment
+- **`.team-logo--coin` CSS rule** (`assets/css/brand.css`). Translucent dark backdrop (`rgba(0,0,0,.22)`) + soft drop shadow. No border. `TeamHelpers.logoImg(team, { size, coin: true })` opts in.
+- **9 chip-context callsites updated**: `player-panel.js:552/759/1184` (drawer hero / Trade Calc chips / Trade Finder rows), `index.html:6276`, `trade-calculator.html:2303`, `tiers.html:5108`, `my-leagues.html:5301/6164/6945`. ADP-tool callsites kept bare (per user direction).
+- **Iterated several times** through palette options — final settle was rgba dark wash, no border, no orange ring.
+
+### Visual polishes
+- **Palette revert.** Bright pre-softening pos-pill colors restored across `brand.css` + 5 HTML page inline duplicates. WR `#5b9bd5`, RB `#4caf6e`, QB `#e05252`, TE `#e09a30`, K/Pick `#9b91d4`. Position text reverted to `#111`.
+- **Uniform Trade-Finder pos-pills.** `.tf-asset .pos-badge` + `.tf-add-option .pos-badge` get `min-width: 30px` so QB / RB / WR / TE / K / PK all sit at uniform width despite Kanit's variable glyph widths.
+- **MVS team-logo emit.** `renderTopPlayers()` main row + "By Position" rows + `renderValueTracker()` rows (Top Risers / Top Fallers) now emit `TeamHelpers.logoImg(team, { size: 22, coin: true })` right of every player name. Closes trade-chip rule across MVS surfaces.
+- **My-Leagues exposure scroll fix.** Lifted the `.slice(0, 200)` cap so the full filtered list renders; added `min-height: 0` to `.ml-exposure-list` (classic flex-column scroll idiom — without it, content overflows the parent's `max-height` and the wheel falls through to the page).
+- **Box-card sizing fixes.** Top-row font-sizes 9px → 8px with `justify-content: space-between`. `.card-meta` padding 34/38 → 30/36 to center trend chip in the actual coin gap. Headshot fallback opacity .55 → .95 + bg-size 75% → 85% so silhouette matches photo weight.
+
+### Page migrations
+- **`tiers.html` migrated to `data-bootstrap.js`** (-38 lines). Two duplicate inline fetch blocks (`applySleeperOverlay`'s Promise.all + `_tiersHydrateExtras` IIFE) collapsed to a single bootstrap script + `fpts:data-ready` listener.
+- **`trade-calculator.html` migrated to `data-bootstrap.js`** (-139 lines). 167-line `_fpBootstrap` IIFE removed (3 duplicate payload-apply functions + Promise.all chain).
+
+### Tiers data fixes
+- **Sleeper-API age fallback.** New `applySleeperApiAgeFallback()` for players who aren't in FP's `values.json` yet (e.g. Eli Stowers — fresh rookies between Sleeper-recognizing them and FP adding their KTC record). Fetches `https://api.sleeper.app/v1/players/nfl` once per session (cached on window + browser HTTP cache), looks up by sleeperId from `MVS_PAYLOAD.players`, computes age from `birth_date` if Sleeper only carries that.
+- **Hot-fix entries** in `tiers.html`: added `Jayden Daniels` to S+ tier; fixed `Coltson` → `Colston Loveland` and `Nick` → `Nicholas Singleton` typo spellings. ⚠️ These get wiped on next `sync-tiers.py` unless the Google Sheet is updated to match.
+
+### Cleanup
+- **`push.bat` stale sync-checks removed.** `tab-sync` (looked for retired per-page tab fns like `_calcShowTab`) and `chip-sync` (looked for `.tf-asset[data-pos=]` in `index.html`, but that palette migrated to `player-panel.css`). The other three checks (`modal-sections` / `panel-css` / `legend-sync`) stay.
+
+### Documentation
+- **Design vocabulary glossary** in `legend-content.js` header: pill, coin, chip, card, row, badge, thumb/headshot, flame, page-title/section-hdr/sub-hdr, plus design tokens (`--red`, `--surface`, etc.).
+- **ADP scrape-coupling rule** added to `legend-content.js` header. Documents UI filter ↔ scrape dimension mapping. Lists candidates for future scrape expansion (PPR / IDP / scoring-format / injury / post-draft-trades).
+- **`docs/WORKFLOW.md` §11** "Adding a new ADP filter" — operator checklist for the coupling rule.
+
+### Historical scrape backfill
+- **`01_ingest_historical.py` SEASONS** bumped from `[2026]` to `[2020..2026]` (then user added 2019 making it `[2019..2026]`). User ran the full historical ingest (~3-4 hours). Parquets refreshed for 2020-2026; 2019 added separately. The app's `sync-adp.py` then processed only 2022-2026 from these (post-restriction).
+
+---
+
 ## 2026-05-14 — Silhouette fallback rule + season rollover trigger
 
 ### Site-wide headshot-fallback rule
