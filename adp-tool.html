@@ -235,15 +235,15 @@
   .box-card { position:relative; display:flex; flex-direction:column; min-height:60px; cursor:pointer; overflow:hidden; padding:5px 7px; transition:transform .12s, box-shadow .12s; }
   .box-card:hover { transform:translateY(-1px); box-shadow:0 3px 8px rgba(0,0,0,.35); }
   .box-card .card-content { display:flex; flex-direction:column; gap:2px; position:relative; z-index:1; min-width:0; }
-  .box-card .card-top { display:flex; align-items:center; gap:5px; font-family:'Mulish',sans-serif; font-size:9px; font-weight:800; letter-spacing:.03em; }
+  .box-card .card-top { display:flex; align-items:center; gap:4px; font-family:'Mulish',sans-serif; font-size:8px; font-weight:800; letter-spacing:.03em; }
   .box-card .card-pick { font-weight:800; }
-  .box-card .card-posrank { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:9px; padding:1px 5px; letter-spacing:.04em; background:rgba(0,0,0,.22); color:inherit; }
-  .box-card .card-adp { font-weight:700; opacity:.78; font-size:9px; }
+  .box-card .card-posrank { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:8px; padding:1px 4px; letter-spacing:.04em; background:rgba(0,0,0,.22); color:inherit; }
+  .box-card .card-adp { font-weight:700; opacity:.78; font-size:8px; }
   .box-card .card-name { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; line-height:1; overflow:hidden; margin-top:1px; padding-right:34px; }
   .box-card .card-fname { font-size:9px; line-height:1; opacity:.8; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   /* Last name forced to a single line so card heights stay uniform across the board */
   .box-card .card-lname { font-size:12px; line-height:1.1; margin-top:1px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-  .box-card .card-meta { display:flex; align-items:center; gap:4px; font-family:'Mulish',sans-serif; font-size:9px; font-weight:800; letter-spacing:.04em; margin-top:auto; opacity:.85; padding-top:2px; padding-left:34px; padding-right:38px; justify-content:center; }
+  .box-card .card-meta { display:flex; align-items:center; gap:3px; font-family:'Mulish',sans-serif; font-size:8px; font-weight:800; letter-spacing:.04em; margin-top:auto; opacity:.85; padding-top:2px; padding-left:34px; padding-right:38px; justify-content:center; }
   /* Small circular headshot pinned to the bottom-right corner — matches the reference layout */
   .box-card .card-hs { position:absolute; bottom:4px; right:4px; width:32px; height:32px; border-radius:50%; object-fit:cover; object-position:top; border:1px solid rgba(0,0,0,.18); background:rgba(0,0,0,.1); }
   /* Fallback silhouette when Sleeper CDN has no headshot (common for
@@ -1076,8 +1076,14 @@ function isMobileWidth() { return window.innerWidth < MOBILE_BREAKPOINT_PX; }
 // corpus, and those defensive players would otherwise leak into past-
 // year ADP boards (which are meant to be offense-only).
 const EXCLUDED_POSITIONS = new Set([
-  'K', 'DEF', 'P', 'FB',
-  'LB', 'DE', 'DT', 'S', 'CB', 'DB', 'DL', 'EDGE', 'NT', 'IDP',
+  'K', 'DEF', 'DST', 'P', 'FB',
+  // IDP variants — covers every historical Sleeper spelling (generic
+  // group labels + directional specifics) so past-year boards stay
+  // offense-only.
+  'LB', 'OLB', 'ILB', 'MLB',
+  'DE', 'DT', 'DL', 'EDGE', 'NT',
+  'S', 'FS', 'SS', 'CB', 'DB', 'NB',
+  'IDP',
 ]);
 function isDisplayablePosition(p) { return !EXCLUDED_POSITIONS.has(posOf(p)); }
 // Labels reflect both the variant (picks/simple/rookies) and the QB format (SF/1QB).
