@@ -1016,11 +1016,15 @@
 <link rel="stylesheet" href="assets/css/heatmap.css?v=1778642255">
 <script src="assets/js/heatmap.js?v=1778670000"></script>
 <link rel="stylesheet" href="assets/css/legend.css?v=1778642255">
-<script src="assets/js/legend-content.js?v=1778680025"></script>
+<script src="assets/js/legend-content.js?v=1778680026"></script>
 <script src="assets/js/legend.js?v=1778642255"></script>
 <script>document.addEventListener('DOMContentLoaded', function(){ if (window.Legend) Legend.init('index'); });</script>
 <!-- Shared player panel — DB's slide-in drawer used identically on every page -->
 <script>window.FPTS_CURRENT_PAGE = 'db';</script>
+<!-- Shared data layer: fetches data/*.json, populates FP_VALUES / PICK_VALUES /
+     ADP_PAYLOAD / AUCTION_PAYLOAD / MVS_PAYLOAD / PLAYER_ARTICLES /
+     PICK_AVAILABILITY, then fires 'fpts:data-ready'. -->
+<script src="assets/js/data-bootstrap.js?v=1778680020"></script>
 <link rel="stylesheet" href="assets/css/player-panel.css?v=1778655501">
 <!-- Team logo helpers — load BEFORE player-panel.js so modal-hero badge works. -->
 <script src="assets/js/team-helpers.js?v=1778680002"></script>
@@ -5846,160 +5850,18 @@ function renderAssetFilterTags(){renderTradeSideTags("a");renderTradeSideTags("b
 })();
 
 
-// ── DATA BOOTSTRAP: fetch FP API data from data/*.json, then run initial render ──
+// ── DATA BOOTSTRAP ────────────────────────────────────────────────────────────
+// Data fetching + payload application is owned by assets/js/data-bootstrap.js
+// (shared across all pages). Index-specific work happens in the
+// 'fpts:data-ready' listener below: hydrating SLEEPER_IDS, building the
+// global TRADES array from MVS recent_trades, running initial render, and
+// consuming any cross-page handoff stashed in localStorage.
 (function _fpBootstrap(){
-  const v = '?v=' + (window.__DATA_VERSION || Date.now());
   function hideLoader(){ const el = document.getElementById('_fp-loading'); if (el) el.style.display = 'none'; }
   function fail(msg){
     const el = document.getElementById('_fp-loading');
     if (el) { el.style.background = '#7a1a1a'; el.textContent = 'Data load failed — ' + msg; }
     console.error('[fp-bootstrap]', msg);
-  }
-  // Shared shape converter: new sync-adp.py shape
-  //   { byMonth: { ALL: { startup_sf: [...], startup_1qb: [...], rookie: [...] } } }
-  // -> legacy ADP_DATA shape ({name: {sf, oneqb}}) + FP_VALUES .adp / .auction overlays.
-  // Uses normalizePlayerName so "DJ Moore" / "D.J. Moore" / "Ja'Marr Chase" join cleanly.
-  function _indexByNorm(list) {
-    const out = {};
-    (list || []).forEach(p => {
-      if (!p || !p.name) return;
-      const key = normalizePlayerName(p.name);
-      if (key) out[key] = p;
-    });
-    return out;
-  }
-  function _applyAdpPayload(j) {
-    if (!j || !j.byMonth) return;
-    window.ADP_PAYLOAD = j;
-    if (window.applySeasonBadge) window.applySeasonBadge(j.season);
-    const all = j.byMonth.ALL || {};
-    const sfByKey  = _indexByNorm(all.startup_sf);
-    const oneByKey = _indexByNorm(all.startup_1qb);
-    if (typeof ADP_DATA !== 'undefined') {
-      Object.values(sfByKey).forEach(p => {
-        ADP_DATA[p.name] = ADP_DATA[p.name] || {};
-        ADP_DATA[p.name].sf    = { overall: p.adp, posRank: p.posRank };
-      });
-      Object.values(oneByKey).forEach(p => {
-        ADP_DATA[p.name] = ADP_DATA[p.name] || {};
-        ADP_DATA[p.name].oneqb = { overall: p.adp, posRank: p.posRank };
-      });
-    }
-    if (typeof FP_VALUES !== 'undefined') {
-      // User's saved format preference picks which bucket is canonical for headline ADP + trend.
-      let _fmt = 'sf';
-      try { const _v = localStorage.getItem('fpts-adp-format'); if (_v === '1qb' || _v === 'sf') _fmt = _v; } catch (e) {}
-      const canonByKey = _fmt === '1qb' ? oneByKey : sfByKey;
-      const fallByKey  = _fmt === '1qb' ? sfByKey  : oneByKey;
-      const _monthlyKey = _fmt === '1qb' ? 'startup_1qb' : 'startup_sf';
-      // Bake canonical ADP (preferred format first, other as fallback for missing players)
-      Object.entries(FP_VALUES).forEach(([fpName, rec]) => {
-        const key = normalizePlayerName(fpName);
-        const p = canonByKey[key] || fallByKey[key];
-        if (p) rec.adp = p.adp;
-      });
-      // Replace FP-API trend with ADP-derived month-over-month delta.
-      // Convention: positive = ADP improved (player rising) — matches existing p.trend>0 → up.
-      const months = Object.keys(j.byMonth).filter(m => m !== 'ALL').sort().reverse();
-      if (months.length >= 2) {
-        const perMonth = months.map(m => {
-          const map = {};
-          ((j.byMonth[m] || {})[_monthlyKey] || []).forEach(p => { if (p.name && p.adp != null) map[normalizePlayerName(p.name)] = p.adp; });
-          return map;
-        });
-        const normToFp = {};
-        Object.keys(FP_VALUES).forEach(fpName => { normToFp[normalizePlayerName(fpName)] = fpName; });
-        const recent = perMonth[0];
-        for (const k in recent) {
-          for (let i = 1; i < perMonth.length; i++) {
-            const prev = perMonth[i][k];
-            if (prev != null) {
-              const fpName = normToFp[k];
-              if (fpName && FP_VALUES[fpName]) FP_VALUES[fpName].trend = Math.round(prev - recent[k]);
-              break;
-            }
-          }
-        }
-      }
-    }
-  }
-  function _applyAuctionPayload(j) {
-    if (!j || !j.byMonth) return;
-    window.AUCTION_PAYLOAD = j;
-    const all = j.byMonth.ALL || {};
-    const sfByKey  = _indexByNorm(all.startup_sf);
-    const oneByKey = _indexByNorm(all.startup_1qb);
-    function fmt(p) { return (p && p.med != null) ? ('$' + Math.round(p.med)) : null; }
-    if (typeof FP_VALUES !== 'undefined') {
-      Object.entries(FP_VALUES).forEach(([fpName, rec]) => {
-        const key = normalizePlayerName(fpName);
-        const one = oneByKey[key];
-        const sf  = sfByKey[key];
-        // Headline auction = 1QB if available, else fall back to SF.
-        // Dynasty auction data is overwhelmingly SF, so this fallback is the
-        // expected path for most players.
-        rec.auction   = fmt(one) || fmt(sf) || rec.auction || null;
-        rec.auctionSf = fmt(sf)              || rec.auctionSf || null;
-      });
-    }
-  }
-  // MVS overlay — canonical source of player + pick VALUES. Applied AFTER values.json
-  // and picks.json so the FP-API metadata layer (age, team, ppg, posRank, injury) stays
-  // intact while value/trend/etc. are wholesale-replaced from the MVS formula.
-  function _applyMvsPayload(j) {
-    if (!j || !j.players) return;
-    window.MVS_PAYLOAD = j;
-    let _fmt = 'sf';
-    try { const _v = localStorage.getItem('fpts-adp-format'); if (_v === '1qb' || _v === 'sf') _fmt = _v; } catch (e) {}
-    if (typeof FP_VALUES !== 'undefined') {
-      // Build normalized lookup once for fuzzy name match
-      const fpByNorm = {};
-      Object.keys(FP_VALUES).forEach(n => { fpByNorm[normalizePlayerName(n)] = n; });
-      const overlaid = new Set();
-      Object.entries(j.players).forEach(([name, mvs]) => {
-        const fpName = FP_VALUES[name] ? name : fpByNorm[normalizePlayerName(name)];
-        const target = fpName ? FP_VALUES[fpName] : (FP_VALUES[name] = { sleeperId: mvs.sleeperId, pos: mvs.position });
-        target.valueSf  = mvs.valueSf;
-        target.value1qb = mvs.value1qb;
-        target.value    = (_fmt === '1qb') ? mvs.value1qb : mvs.valueSf;
-        // Per-format baseline + trend + trade volume + history. The toggle-
-        // aware aliases (target.baseline / .tradesLastWeek / .history /
-        // .trend) point at whichever bucket matches the saved SF/1QB pref so
-        // the shared helpers in mvs-extras.js never need to recheck the toggle.
-        target.baselineSf  = mvs.baseline;
-        target.baseline1qb = mvs.baseline1qb;
-        target.baseline    = (_fmt === '1qb') ? mvs.baseline1qb : mvs.baseline;
-        target.trend       = (_fmt === '1qb') ? mvs.trend1qb : mvs.trend;
-        target.tradesLastWeekSf  = mvs.tradesLastWeek;
-        target.tradesLastWeek1qb = mvs.tradesLastWeek1qb;
-        target.tradesLastWeek    = (_fmt === '1qb') ? mvs.tradesLastWeek1qb : mvs.tradesLastWeek;
-        target.historySf  = mvs.history;
-        target.history1qb = mvs.history1qb;
-        target.history    = (_fmt === '1qb') ? mvs.history1qb : mvs.history;
-        target.otcValue       = mvs.otcValue;
-        target.otcDiff        = mvs.otcDiff;
-        target.rankings       = mvs.rankings;
-        target.recentTrades   = mvs.recentTrades;
-        target.lastUpdated    = mvs.lastUpdated;
-        overlaid.add(target);
-      });
-      // Wholesale replacement: zero out value for FP players that MVS doesn't cover.
-      Object.values(FP_VALUES).forEach(rec => {
-        if (overlaid.has(rec)) return;
-        rec.value = 0; rec.valueSf = 0; rec.value1qb = 0;
-      });
-    }
-    if (typeof PICK_VALUES !== 'undefined' && j.picks) {
-      Object.entries(j.picks).forEach(([key, rec]) => {
-        PICK_VALUES[key] = {
-          value:    (_fmt === '1qb') ? rec.value1qb : rec.valueSf,
-          valueSf:  rec.valueSf,
-          value1qb: rec.value1qb,
-          valueTep: rec.valueSf,  // backward-compat alias
-          label:    rec.label,
-        };
-      });
-    }
   }
 
   // Build the global TRADES array from MVS recent_trades. Deduplicates by
@@ -6076,21 +5938,11 @@ function renderAssetFilterTags(){renderTradeSideTags("a");renderTradeSideTags("b
     return out;
   }
 
-  Promise.all([
-    fetch('data/values.json' + v).then(r => r.ok ? r.json() : Promise.reject('values ' + r.status)).then(j => { if (typeof FP_VALUES !== 'undefined' && j && j.players) Object.assign(FP_VALUES, j.players); }),
-    fetch('data/adp.json' + v).then(r => r.ok ? r.json() : Promise.reject('adp ' + r.status)).then(j => _applyAdpPayload(j)),
-    fetch('data/auction.json' + v).then(r => r.ok ? r.json() : Promise.reject('auction ' + r.status)).then(j => _applyAuctionPayload(j)).catch(() => { /* auction optional */ }),
-    fetch('data/picks.json' + v).then(r => r.ok ? r.json() : Promise.reject('picks ' + r.status)).then(j => { if (typeof PICK_VALUES !== 'undefined' && j && j.picks) Object.assign(PICK_VALUES, j.picks); }),
-    fetch('data/articles.json' + v).then(r => r.ok ? r.json() : Promise.reject('articles ' + r.status)).then(j => { if (j && j.players) window.PLAYER_ARTICLES = j.players; }).catch(() => { /* articles optional */ }),
-    fetch('data/pick-availability.json' + v).then(r => r.ok ? r.json() : null).then(j => { if (j && j.players) window.PICK_AVAILABILITY = j.players; if (j && j.rookiePlayers) window.PICK_AVAILABILITY_ROOKIE = j.rookiePlayers; if (j) window.PICK_AVAILABILITY_META = { version: j.version, season: j.season, teamCount: j.teamCount, topN: j.topN }; }).catch(() => { /* heatmap optional */ }),
-  ]).then(() => {
-    // MVS overlay AFTER base data so it replaces the value layer wholesale.
-    return fetch('data/mvs.json' + v).then(r => r.ok ? r.json() : null).then(j => { if (j) _applyMvsPayload(j); }).catch(() => { /* mvs optional during transition */ });
-  }).then(() => {
+  document.addEventListener('fpts:data-ready', () => {
     // Fill in the legacy SLEEPER_IDS map from FP_VALUES so every name with a
-    // known Sleeper ID (now sourced via MVS overlay) gets a CDN thumbnail.
-    // The hardcoded SLEEPER_IDS list only knew ~750 players; MVS covers 526
-    // active names including newer guys like Jake Bobo, Oronde Gadsden, etc.
+    // known Sleeper ID gets a CDN thumbnail. The hardcoded list only knew
+    // ~750 players; the data layer covers more active names (Jake Bobo,
+    // Oronde Gadsden, etc.) via MVS + values.json.
     if (typeof SLEEPER_IDS !== 'undefined' && typeof FP_VALUES !== 'undefined') {
       try {
         Object.entries(FP_VALUES).forEach(([name, rec]) => {
@@ -6101,21 +5953,20 @@ function renderAssetFilterTags(){renderTradeSideTags("a");renderTradeSideTags("b
     // Now that MVS is loaded, build the global TRADES array from real trade
     // observations (replaces the retired hardcoded sample data).
     try { TRADES = _buildTradesFromMvs(); filtered = [...TRADES]; window.TRADES = TRADES; } catch (e) { console.warn('[fp-bootstrap] _buildTradesFromMvs skipped:', e.message); }
-    // Each init function may not exist on every page, and some may throw on
-    // pages where their DOM elements aren't present. Catch each individually
-    // so a single broken init doesn't block the loader from hiding.
+    // Each init may not exist on every page, and some may throw on pages
+    // where their DOM elements aren't present. Catch individually so one
+    // broken init doesn't block the loader from hiding.
     try { if (typeof applyFilters === 'function') applyFilters(); } catch(e) { console.warn('[fp-bootstrap] applyFilters skipped:', e.message); }
     try { if (typeof buildPickSlots === 'function') buildPickSlots(); } catch(e) { console.warn('[fp-bootstrap] buildPickSlots skipped:', e.message); }
     try { if (typeof renderAll === 'function') renderAll(); } catch(e) { console.warn('[fp-bootstrap] renderAll skipped:', e.message); }
     try { if (typeof renderTiers === 'function') renderTiers(); } catch(e) { console.warn('[fp-bootstrap] renderTiers skipped:', e.message); }
     hideLoader();
     // Now safe to consume the cross-page handoff — TRADES is populated,
-    // FP_VALUES has the MVS overlay applied, and the panel will render
-    // with all its data (recent trades, MVS extras, heatmap, sparkline).
+    // FP_VALUES has the MVS overlay applied, and the panel will render with
+    // all its data (recent trades, MVS extras, heatmap, sparkline).
     try { if (typeof window._consumeIndexHandoff === 'function') window._consumeIndexHandoff(); } catch(e) { console.warn('[fp-bootstrap] handoff consume skipped:', e.message); }
     // Diagnostic — confirm the data layer is healthy when the page becomes
-    // interactive. If any of these are 0 the search bars + filters will be empty;
-    // open DevTools console to see this readout.
+    // interactive. If any of these are 0 the search bars + filters will be empty.
     try {
       const t = (typeof TRADES !== 'undefined') ? TRADES.length : -1;
       const fp = (typeof FP_VALUES !== 'undefined') ? Object.keys(FP_VALUES).length : -1;
@@ -6124,7 +5975,11 @@ function renderAssetFilterTags(){renderTradeSideTags("a");renderTradeSideTags("b
       console.log(`[search-check] TRADES=${t}  FP_VALUES=${fp}  MVS_PAYLOAD.players=${mvs}  PICK_AVAILABILITY=${pa}`);
       if (t === 0 && fp === 0) console.error('[search-check] BOTH TRADES AND FP_VALUES ARE EMPTY — search bars will return zero results.');
     } catch(e) { console.warn('[search-check] diagnostic failed:', e); }
-  }).catch(fail);
+  });
+
+  if (window.FPTS_DATA && window.FPTS_DATA.ready) {
+    window.FPTS_DATA.ready.catch(e => fail(e && e.message ? e.message : String(e)));
+  }
 })();
 
 // ── THEME TOGGLE ──────────────────────────────────────────────

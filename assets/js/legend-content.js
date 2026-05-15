@@ -112,7 +112,7 @@
 
      .panel { position:sticky; top:96px; max-height:calc(100vh - 110px);
               display:flex; flex-direction:column; overflow:hidden; }
-     .panel-header { /* content-sized */ }
+     .panel-header { (content-sized — no flex needed) }
      .panel-body   { display:flex; flex-direction:column; flex:1;
                      min-height:0; overflow:hidden; }
      .panel-list   { overflow-y:auto; flex:1; min-height:0; }

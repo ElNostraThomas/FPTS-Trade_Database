@@ -551,11 +551,16 @@
 <link rel="stylesheet" href="assets/css/heatmap.css?v=1778642255">
 <script src="assets/js/heatmap.js?v=1778670000"></script>
 <link rel="stylesheet" href="assets/css/legend.css?v=1778642255">
-<script src="assets/js/legend-content.js?v=1778680025"></script>
+<script src="assets/js/legend-content.js?v=1778680026"></script>
 <script src="assets/js/legend.js?v=1778642255"></script>
 <script>document.addEventListener('DOMContentLoaded', function(){ if (window.Legend) Legend.init('adp-tool'); });</script>
 <!-- Shared player panel — DB's slide-in drawer, used identically on every page -->
 <script>window.FPTS_CURRENT_PAGE = 'adp';</script>
+<!-- Shared data layer: fetches data/*.json, populates FP_VALUES / ADP_PAYLOAD /
+     AUCTION_PAYLOAD / MVS_PAYLOAD / PLAYER_ARTICLES / PICK_AVAILABILITY, then
+     fires 'fpts:data-ready'. The small inline bootstrap below adds adp-prev
+     (not loaded by data-bootstrap) and runs the page-specific init. -->
+<script src="assets/js/data-bootstrap.js?v=1778680020"></script>
 <link rel="stylesheet" href="assets/css/player-panel.css?v=1778655501">
 <!-- Team logo helpers — must load BEFORE player-panel.js so the modal-hero
      badge wiring finds window.TeamHelpers. -->
@@ -923,97 +928,43 @@ function splitName(name) {
 }
 
 // ── BOOTSTRAP ─────────────────────────────────────────────────────────────────
+// Data fetching + payload application is owned by assets/js/data-bootstrap.js
+// (shared across all pages). Two adp-tool-specific bits live here:
+//   1. data/adp-prev.json — not loaded by data-bootstrap; powers the 7-day
+//      trend arrows on the ADP board (window.ADP_PAYLOAD_PREV).
+//   2. Alias FPTS_DATA._apply* helpers onto window so setYear() can re-apply
+//      year-specific payloads when the user switches years in the year-picker.
 (function fpBootstrap() {
-  const v = '?v=' + Date.now();
-  function hideLoader(){ const el = document.getElementById('_fp-loading'); if (el) el.style.display = 'none'; }
-  function fail(msg){
+  function hideLoader() {
+    const el = document.getElementById('_fp-loading');
+    if (el) el.style.display = 'none';
+  }
+  function fail(msg) {
     const el = document.getElementById('_fp-loading');
     if (el) { el.style.background = '#7a1a1a'; el.textContent = 'Data load failed — ' + msg; }
     console.error('[fp-bootstrap]', msg);
   }
-  function _indexByNorm(list) {
-    const out = {};
-    (list || []).forEach(p => {
-      if (!p || !p.name) return;
-      const key = normalizePlayerName(p.name);
-      if (key) out[key] = p;
-    });
-    return out;
-  }
-  function _applyAdpPayload(j) {
-    if (!j || !j.byMonth) return;
-    window.ADP_PAYLOAD = j;
-    if (window.applySeasonBadge) window.applySeasonBadge(j.season);
-    const all = j.byMonth.ALL || {};
-    const sfByKey  = _indexByNorm(all.startup_sf);
-    const oneByKey = _indexByNorm(all.startup_1qb);
-    Object.values(sfByKey).forEach(p => {
-      ADP_DATA[p.name] = ADP_DATA[p.name] || {};
-      ADP_DATA[p.name].sf    = { overall: p.adp, posRank: p.posRank };
-    });
-    Object.values(oneByKey).forEach(p => {
-      ADP_DATA[p.name] = ADP_DATA[p.name] || {};
-      ADP_DATA[p.name].oneqb = { overall: p.adp, posRank: p.posRank };
-    });
-    Object.entries(FP_VALUES).forEach(([fpName, rec]) => {
-      const key = normalizePlayerName(fpName);
-      const p = oneByKey[key] || sfByKey[key];
-      if (p) rec.adp = p.adp;
-    });
-  }
-  function _applyAuctionPayload(j) {
-    if (!j || !j.byMonth) return;
-    window.AUCTION_PAYLOAD = j;
-    const all = j.byMonth.ALL || {};
-    const sfByKey  = _indexByNorm(all.startup_sf);
-    const oneByKey = _indexByNorm(all.startup_1qb);
-    const fmt = (p) => (p && p.med != null) ? ('$' + Math.round(p.med)) : null;
-    Object.entries(FP_VALUES).forEach(([fpName, rec]) => {
-      const key = normalizePlayerName(fpName);
-      const one = oneByKey[key];
-      const sf  = sfByKey[key];
-      rec.auction   = fmt(one) || fmt(sf) || rec.auction || null;
-      rec.auctionSf = fmt(sf)              || rec.auctionSf || null;
-    });
-  }
+  const v = '?v=' + (window.__DATA_VERSION || Date.now());
 
-  // Expose the payload-apply helpers so the year picker (setYear, defined
-  // outside this IIFE) can re-apply payloads when the user switches years.
-  // Without this, setYear() throws ReferenceError on _applyAdpPayload and
-  // the board never re-renders.
-  window._applyAdpPayload     = _applyAdpPayload;
-  window._applyAuctionPayload = _applyAuctionPayload;
+  fetch('data/adp-prev.json' + v)
+    .then(r => r.ok ? r.json() : null)
+    .then(j => { if (j) window.ADP_PAYLOAD_PREV = j; })
+    .catch(() => {});
 
-  Promise.all([
-    fetch('data/values.json' + v).then(r => r.ok ? r.json() : Promise.reject('values ' + r.status)).then(j => { if (j && j.players) Object.assign(FP_VALUES, j.players); }),
-    fetch('data/adp.json' + v).then(r => r.ok ? r.json() : Promise.reject('adp ' + r.status)).then(j => _applyAdpPayload(j)),
-    // adp-prev.json holds the ADP snapshot from the prior weekly scrape — used
-    // to compute the true 7-day movement arrows on the board. Falls back to
-    // monthly walkback when prev is missing.
-    fetch('data/adp-prev.json' + v).then(r => r.ok ? r.json() : null).then(j => { if (j) window.ADP_PAYLOAD_PREV = j; }).catch(() => {}),
-    fetch('data/auction.json' + v).then(r => r.ok ? r.json() : Promise.reject('auction ' + r.status)).then(j => _applyAuctionPayload(j)).catch(() => { /* auction optional */ }),
-    fetch('data/pick-availability.json' + v).then(r => r.ok ? r.json() : Promise.reject('pick-availability ' + r.status)).then(j => { if (j && j.players) PICK_AVAILABILITY = j.players; if (j && j.rookiePlayers) window.PICK_AVAILABILITY_ROOKIE = j.rookiePlayers; if (j) window.PICK_AVAILABILITY_META = { version: j.version, season: j.season, teamCount: j.teamCount, topN: j.topN }; }).catch(() => { /* optional during scaffold */ }),
-    fetch('data/articles.json' + v).then(r => r.ok ? r.json() : Promise.reject('articles ' + r.status)).then(j => { if (j && j.players) window.PLAYER_ARTICLES = j.players; }).catch(() => { /* articles optional */ }),
-    // MVS payload — needed by the shared player-panel module so the Trades
-    // tab can build a player's recent-trade list, and so the panel can
-    // resolve a Sleeper headshot from rec.sleeperId. Overlays sleeperId onto
-    // FP_VALUES once both payloads have loaded.
-    fetch('data/mvs.json' + v).then(r => r.ok ? r.json() : Promise.reject('mvs ' + r.status)).then(j => {
-      if (!j) return;
-      window.MVS_PAYLOAD = j;
-      if (j.players && typeof FP_VALUES === 'object') {
-        Object.entries(j.players).forEach(([name, mvs]) => {
-          const rec = FP_VALUES[name];
-          if (rec && mvs && mvs.sleeperId && !rec.sleeperId) rec.sleeperId = mvs.sleeperId;
-        });
-      }
-    }).catch(() => { /* mvs optional */ }),
-  ]).then(() => {
-    rebuildFpIndex();    // index AFTER both values.json + auction.json overlay
+  document.addEventListener('fpts:data-ready', () => {
+    if (window.FPTS_DATA) {
+      window._applyAdpPayload     = window.FPTS_DATA._applyAdpPayload;
+      window._applyAuctionPayload = window.FPTS_DATA._applyAuctionPayload;
+    }
+    rebuildFpIndex();    // index AFTER values + adp + auction + mvs overlays
     rebuildTrendIndex(); // initial trend for the default mode
-    try { _adpInit(); } catch(e) { console.warn('[fp-bootstrap] _adpInit failed:', e.message); }
+    try { _adpInit(); } catch (e) { console.warn('[fp-bootstrap] _adpInit failed:', e.message); }
     hideLoader();
-  }).catch(fail);
+  });
+
+  if (window.FPTS_DATA && window.FPTS_DATA.ready) {
+    window.FPTS_DATA.ready.catch(e => fail(e && e.message ? e.message : String(e)));
+  }
 })();
 
 // ── STATE ─────────────────────────────────────────────────────────────────────
