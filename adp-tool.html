@@ -246,7 +246,11 @@
   .box-card .card-meta { display:flex; align-items:center; gap:4px; font-family:'Mulish',sans-serif; font-size:9px; font-weight:800; letter-spacing:.04em; margin-top:auto; opacity:.85; padding-top:2px; padding-left:34px; padding-right:38px; justify-content:center; }
   /* Small circular headshot pinned to the bottom-right corner — matches the reference layout */
   .box-card .card-hs { position:absolute; bottom:4px; right:4px; width:32px; height:32px; border-radius:50%; object-fit:cover; object-position:top; border:1px solid rgba(0,0,0,.18); background:rgba(0,0,0,.1); }
-  .box-card .card-hs-fallback { position:absolute; bottom:4px; right:4px; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:transparent; font-size:0; background:rgba(0,0,0,.12); border:1px solid rgba(0,0,0,.18); background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><circle cx="32" cy="22" r="10" fill="%23ffffff" opacity=".55"/><path d="M14 60 Q14 36 32 36 Q50 36 50 60 L14 60 Z" fill="%23ffffff" opacity=".55"/></svg>'); background-size:75% 75%; background-position:center 60%; background-repeat:no-repeat; }
+  /* Fallback silhouette when Sleeper CDN has no headshot (common for
+     retired players in past-year boards). Filled at opacity=.95 + 85%
+     size so it reads with the same visual weight as an actual photo —
+     matches the 2026 board's "solid presence" look for past years too. */
+  .box-card .card-hs-fallback { position:absolute; bottom:4px; right:4px; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:transparent; font-size:0; background:rgba(0,0,0,.12); border:1px solid rgba(0,0,0,.18); background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><circle cx="32" cy="22" r="10" fill="%23ffffff" opacity=".95"/><path d="M14 60 Q14 36 32 36 Q50 36 50 60 L14 60 Z" fill="%23ffffff" opacity=".95"/></svg>'); background-size:85% 85%; background-position:center 60%; background-repeat:no-repeat; }
   /* Team logo circle — mirrors .card-hs at the bottom-left of each card.
      Dark-surface backdrop matches the badge halo style; logo PNG fills the
      center with a small padding so it doesn't touch the circle edge. */
@@ -1064,10 +1068,17 @@ function getSourceKey(mode = STATE.mode, qb = STATE.qbFormat, source = STATE.sou
 }
 const MOBILE_BREAKPOINT_PX = 700;
 function isMobileWidth() { return window.innerWidth < MOBILE_BREAKPOINT_PX; }
-// Positions excluded from display everywhere. K is included here because in
-// the picks bucket Sleeper-K player_ids are used as pick-as-asset placeholders
-// (Mason Crosby = "the 5.01 pick", etc.), not as real draftable kickers.
-const EXCLUDED_POSITIONS = new Set(['K', 'DEF', 'P', 'FB']);
+// Positions excluded from display everywhere. K is in here because the
+// picks bucket uses Sleeper-K player_ids as pick-as-asset placeholders
+// (Mason Crosby = "the 5.01 pick"), not as real draftable kickers. The
+// IDP positions (LB/DE/DT/S/CB/DB/DL/EDGE/NT/IDP) are excluded because
+// older seasons (pre-2023) had more IDP-league drafts in the Sleeper
+// corpus, and those defensive players would otherwise leak into past-
+// year ADP boards (which are meant to be offense-only).
+const EXCLUDED_POSITIONS = new Set([
+  'K', 'DEF', 'P', 'FB',
+  'LB', 'DE', 'DT', 'S', 'CB', 'DB', 'DL', 'EDGE', 'NT', 'IDP',
+]);
 function isDisplayablePosition(p) { return !EXCLUDED_POSITIONS.has(posOf(p)); }
 // Labels reflect both the variant (picks/simple/rookies) and the QB format (SF/1QB).
 function _adpSeason() {
@@ -1451,13 +1462,19 @@ function renderBoxView(players) {
             ? `<img class="card-hs" src="${hs}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'card-hs-fallback',textContent:'${initial}'}))">`
             : `<span class="card-hs-fallback">${initial}</span>`);
       const hsHtml = rawHs;
-      // Team logo: 32px circle anchored to the bottom-LEFT of the card,
+      // Team logo: 26px circle anchored to the bottom-LEFT of the card,
       // mirroring the player headshot in the bottom-right. Dark-surface
       // backdrop matches the badge halo style used elsewhere. RDP rows have
-      // no team, so this slot stays empty for them.
-      const teamLogoCircle = (!isRookiePick(p) && p.team && window.TeamHelpers)
-        ? `<div class="card-team-logo" data-team="${escapeHtml(p.team)}"><img src="${window.TeamHelpers.logoUrl(p.team)}" alt="${escapeHtml(p.team)}" title="${escapeHtml(p.team)}" loading="lazy" onerror="this.style.display='none'"></div>`
-        : '';
+      // no team, so this slot stays fully omitted for them. For real players
+      // with a missing team field (retired/historical-only records), the
+      // coin renders as an empty circle to preserve the card's visual
+      // balance — without this fallback, the bottom-left collapses and the
+      // headshot shifts on past-year cards.
+      const teamLogoCircle = isRookiePick(p)
+        ? ''
+        : (p.team && window.TeamHelpers
+            ? `<div class="card-team-logo" data-team="${escapeHtml(p.team)}"><img src="${window.TeamHelpers.logoUrl(p.team)}" alt="${escapeHtml(p.team)}" title="${escapeHtml(p.team)}" loading="lazy" onerror="this.style.display='none'"></div>`
+            : `<div class="card-team-logo card-team-logo--empty" aria-hidden="true"></div>`);
       // Dim a card if it fails ANY active soft filter: position/search, round, or team.
       const matchesPosSearch = isSoftMatch(p);
       const matchesRound     = !roundFilter.size || roundFilter.has(r + 1);

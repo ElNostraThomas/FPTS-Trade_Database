@@ -245,6 +245,17 @@
         dimension captured (~30 min × seasons in SEASONS).
      4. Then re-run sync-adp.py to regenerate the year-stamped JSONs.
 
+   POSITION EXCLUSION (frontend-side filter, all pages)
+     EXCLUDED_POSITIONS in adp-tool.html drops the following from the
+     board: K (used as pick-as-asset placeholders in picks bucket), DEF /
+     P / FB (not really playable in dynasty), and the IDP positions
+     LB / DE / DT / S / CB / DB / DL / EDGE / NT / IDP (only show up in
+     pre-2023 datasets where IDP-league drafts were more common in the
+     corpus — excluded so past-year boards stay offense-only matching
+     2026's convention). If you ever surface IDP intentionally (e.g. as
+     a separate "IDP ADP" tab), remove the relevant positions from this
+     set rather than working around it.
+
    Highest-ROI dimensions NOT yet scraped (candidates for expansion):
      - PPR / Half-PPR / Non-PPR scoring  (md_scoring_type currently
                                           captured as raw string;
