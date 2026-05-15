@@ -9,7 +9,7 @@
      sizing). Loaded BEFORE this page's inline <style> so existing per-page
      overrides still win on duplicate selectors; the new .team-logo /
      .player-hs-team rules add cleanly. -->
-<link rel="stylesheet" href="assets/css/brand.css?v=1778680017">
+<link rel="stylesheet" href="assets/css/brand.css?v=1778680018">
 <style>
   /* Brand fonts (local TTFs from Fantasy-Design-Prompt kit) override Google Fonts
      for the canonical brand weights so on-page text matches the wordmark exactly. */
@@ -1488,12 +1488,13 @@ function renderBoxView(players) {
       const matchesRound     = !roundFilter.size || roundFilter.has(r + 1);
       const matchesTeam      = !teamFilter.size  || teamFilter.has(t + 1);
       const dimCls = (matchesPosSearch && matchesRound && matchesTeam) ? '' : ' dim';
-      // Trend arrows are computed from current-year ADP-vs-prior-week
-      // snapshot, so they're only meaningful on the current season. Hide on
-      // historical years to avoid showing 2026-relative trends on 2024
-      // cards (which would confuse the reader).
-      const _curSeason = (new Date()).getMonth() >= 3 ? (new Date()).getFullYear() : (new Date()).getFullYear() - 1;
-      const trendHtml = (!STATE.year || STATE.year === _curSeason) ? trendBadge(p.name) : '';
+      // Trend chip — always rendered so card layouts stay identical across
+      // years (the empty .card-meta on historical years was making 2019
+      // cards look gutted vs 2026). Note: trendBadge() reads current-year
+      // FP_VALUES.trend; on historical years, players who are still active
+      // show their CURRENT trend overlaid on the historical card. Visually
+      // consistent with 2026; accept the slight data-recency mismatch.
+      const trendHtml = trendBadge(p.name);
       // The team identity now lives in the bottom-left circle (teamLogoCircle
       // above), so card-meta is trend-only.
       const metaHtml  = trendHtml
