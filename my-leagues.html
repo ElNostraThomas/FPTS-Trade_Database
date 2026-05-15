@@ -1038,6 +1038,13 @@
   .ml-exposure-col-sort.active { opacity:1; color:var(--red); }
   .ml-exposure-sort-arrow { display:inline-block; margin-left:3px; font-size:8px; opacity:0; transition:opacity .15s; }
   .ml-exposure-col-sort.active .ml-exposure-sort-arrow { opacity:1; }
+  /* The body wraps the search-input + filter chips + table head + scroll
+     list. Without this rule it defaults to display:block, breaking the
+     flex chain between .ml-exposure (the sticky parent) and
+     .ml-exposure-list — and the list's `flex:1; min-height:0;` becomes a
+     no-op since its parent isn't flex. Making the body itself a bounded
+     flex column lets the list's overflow:auto actually fire. */
+  .ml-exposure-body { display:flex; flex-direction:column; flex:1; min-height:0; overflow:hidden; }
   /* min-height:0 overrides the flex default min-height:auto so the list can
      actually clamp to the parent's max-height and trigger its own overflow
      scrolling. Without this, large lists push past the parent's bounds and
