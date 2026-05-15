@@ -973,6 +973,13 @@ function splitName(name) {
     });
   }
 
+  // Expose the payload-apply helpers so the year picker (setYear, defined
+  // outside this IIFE) can re-apply payloads when the user switches years.
+  // Without this, setYear() throws ReferenceError on _applyAdpPayload and
+  // the board never re-renders.
+  window._applyAdpPayload     = _applyAdpPayload;
+  window._applyAuctionPayload = _applyAuctionPayload;
+
   Promise.all([
     fetch('data/values.json' + v).then(r => r.ok ? r.json() : Promise.reject('values ' + r.status)).then(j => { if (j && j.players) Object.assign(FP_VALUES, j.players); }),
     fetch('data/adp.json' + v).then(r => r.ok ? r.json() : Promise.reject('adp ' + r.status)).then(j => _applyAdpPayload(j)),
@@ -1743,9 +1750,11 @@ async function setYear(year) {
       teamCount: payloads.pa.teamCount, topN: payloads.pa.topN,
     };
   }
-  _applyAdpPayload(payloads.adp);
-  if (payloads.auction && typeof _applyAuctionPayload === 'function') {
-    _applyAuctionPayload(payloads.auction);
+  if (typeof window._applyAdpPayload === 'function') {
+    window._applyAdpPayload(payloads.adp);
+  }
+  if (payloads.auction && typeof window._applyAuctionPayload === 'function') {
+    window._applyAuctionPayload(payloads.auction);
   }
 
   // Re-apply the active date-preset against the new year's data-max-date.
