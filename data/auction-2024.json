@@ -1,5 +1,5 @@
 {
-  "version": "2026-05-15T02:11:54.221758+00:00",
+  "version": "2026-05-15T02:40:24.037219+00:00",
   "season": 2024,
   "teamCount": 12,
   "minDrafts": 5,
@@ -48636,17 +48636,6 @@
           "drafts": 376
         },
         {
-          "sleeperId": "1379",
-          "name": "Kyle Juszczyk",
-          "position": "FB",
-          "avg": 9.8,
-          "med": 9.8,
-          "min": 1.0,
-          "max": 36.0,
-          "sales": 5,
-          "drafts": 5
-        },
-        {
           "sleeperId": "8148",
           "name": "Jameson Williams",
           "position": "WR",
@@ -49296,17 +49285,6 @@
           "drafts": 43
         },
         {
-          "sleeperId": "DAL",
-          "name": "Dallas Cowboys",
-          "position": "DEF",
-          "avg": 5.0,
-          "med": 5.0,
-          "min": 1.0,
-          "max": 9.0,
-          "sales": 5,
-          "drafts": 5
-        },
-        {
           "sleeperId": "1348",
           "name": "Dustin Hopkins",
           "position": "K",
@@ -49327,28 +49305,6 @@
           "max": 51.0,
           "sales": 374,
           "drafts": 374
-        },
-        {
-          "sleeperId": "NYJ",
-          "name": "New York Jets",
-          "position": "DEF",
-          "avg": 4.8,
-          "med": 4.8,
-          "min": 1.0,
-          "max": 13.0,
-          "sales": 5,
-          "drafts": 5
-        },
-        {
-          "sleeperId": "SF",
-          "name": "San Francisco 49ers",
-          "position": "DEF",
-          "avg": 4.8,
-          "med": 4.8,
-          "min": 3.0,
-          "max": 12.0,
-          "sales": 5,
-          "drafts": 5
         },
         {
           "sleeperId": "3678",
@@ -50594,17 +50550,6 @@
           "drafts": 352
         },
         {
-          "sleeperId": "KC",
-          "name": "Kansas City Chiefs",
-          "position": "DEF",
-          "avg": 1.6,
-          "med": 1.6,
-          "min": 1.0,
-          "max": 4.0,
-          "sales": 5,
-          "drafts": 5
-        },
-        {
           "sleeperId": "11256",
           "name": "Tyson Bagent",
           "position": "QB",
@@ -51582,28 +51527,6 @@
           "max": 10.0,
           "sales": 275,
           "drafts": 275
-        },
-        {
-          "sleeperId": "PHI",
-          "name": "Philadelphia Eagles",
-          "position": "DEF",
-          "avg": 1.2,
-          "med": 1.2,
-          "min": 1.0,
-          "max": 2.0,
-          "sales": 5,
-          "drafts": 5
-        },
-        {
-          "sleeperId": "PIT",
-          "name": "Pittsburgh Steelers",
-          "position": "DEF",
-          "avg": 1.2,
-          "med": 1.2,
-          "min": 1.0,
-          "max": 2.0,
-          "sales": 5,
-          "drafts": 5
         },
         {
           "sleeperId": "10223",

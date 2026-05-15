@@ -1,5 +1,5 @@
 {
-  "version": "2026-05-15T02:11:54.221758+00:00",
+  "version": "2026-05-15T02:40:24.037219+00:00",
   "season": 2025,
   "teamCount": 12,
   "minDrafts": 5,
@@ -52581,17 +52581,6 @@
           "max": 1.0,
           "sales": 17,
           "drafts": 17
-        },
-        {
-          "sleeperId": "1379",
-          "name": "Kyle Juszczyk",
-          "position": "FB",
-          "avg": 1.0,
-          "med": 1.0,
-          "min": 1.0,
-          "max": 1.0,
-          "sales": 5,
-          "drafts": 5
         },
         {
           "sleeperId": "2078",

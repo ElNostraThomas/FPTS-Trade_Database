@@ -1,5 +1,5 @@
 {
-  "version": "2026-05-15T02:11:54.221758+00:00",
+  "version": "2026-05-15T02:40:24.037219+00:00",
   "season": 2021,
   "teamCount": 12,
   "minDrafts": 5,
@@ -3747,17 +3747,6 @@
           "drafts": 14
         },
         {
-          "sleeperId": "3509",
-          "name": "Glenn Gronkowski",
-          "position": "FB",
-          "avg": 1.0,
-          "med": 1.0,
-          "min": 1.0,
-          "max": 1.0,
-          "sales": 13,
-          "drafts": 13
-        },
-        {
           "sleeperId": "3895",
           "name": "Marvin Hall",
           "position": "WR",
@@ -4152,17 +4141,6 @@
           "max": 1.0,
           "sales": 29,
           "drafts": 29
-        },
-        {
-          "sleeperId": "6379",
-          "name": "Khari Blasingame",
-          "position": "FB",
-          "avg": 1.0,
-          "med": 1.0,
-          "min": 1.0,
-          "max": 1.0,
-          "sales": 26,
-          "drafts": 26
         },
         {
           "sleeperId": "642",
@@ -29865,17 +29843,6 @@
           "drafts": 208
         },
         {
-          "sleeperId": "WAS",
-          "name": "Washington Commanders",
-          "position": "DEF",
-          "avg": 4.8,
-          "med": 5.1,
-          "min": 1.0,
-          "max": 25.0,
-          "sales": 10,
-          "drafts": 10
-        },
-        {
           "sleeperId": "4381",
           "name": "Taysom Hill",
           "position": "TE",
@@ -30173,17 +30140,6 @@
           "drafts": 208
         },
         {
-          "sleeperId": "TB",
-          "name": "Tampa Bay Buccaneers",
-          "position": "DEF",
-          "avg": 2.8,
-          "med": 2.9,
-          "min": 1.0,
-          "max": 8.0,
-          "sales": 10,
-          "drafts": 10
-        },
-        {
           "sleeperId": "4571",
           "name": "Blake Jarwin",
           "position": "TE",
@@ -30261,17 +30217,6 @@
           "drafts": 202
         },
         {
-          "sleeperId": "PIT",
-          "name": "Pittsburgh Steelers",
-          "position": "DEF",
-          "avg": 2.5,
-          "med": 2.6,
-          "min": 1.0,
-          "max": 5.0,
-          "sales": 10,
-          "drafts": 10
-        },
-        {
           "sleeperId": "5026",
           "name": "Tre'Quan Smith",
           "position": "WR",
@@ -30292,17 +30237,6 @@
           "max": 41.0,
           "sales": 201,
           "drafts": 201
-        },
-        {
-          "sleeperId": "BAL",
-          "name": "Baltimore Ravens",
-          "position": "DEF",
-          "avg": 2.4,
-          "med": 2.7,
-          "min": 1.0,
-          "max": 6.0,
-          "sales": 7,
-          "drafts": 7
         },
         {
           "sleeperId": "367",
@@ -30349,17 +30283,6 @@
           "drafts": 186
         },
         {
-          "sleeperId": "LAR",
-          "name": "Los Angeles Rams",
-          "position": "DEF",
-          "avg": 2.3,
-          "med": 2.5,
-          "min": 1.0,
-          "max": 5.0,
-          "sales": 9,
-          "drafts": 9
-        },
-        {
           "sleeperId": "1476",
           "name": "Latavius Murray",
           "position": "RB",
@@ -30391,17 +30314,6 @@
           "max": 10.0,
           "sales": 43,
           "drafts": 43
-        },
-        {
-          "sleeperId": "SF",
-          "name": "San Francisco 49ers",
-          "position": "DEF",
-          "avg": 2.2,
-          "med": 2.2,
-          "min": 1.0,
-          "max": 4.0,
-          "sales": 9,
-          "drafts": 9
         },
         {
           "sleeperId": "2711",
@@ -30468,17 +30380,6 @@
           "max": 45.0,
           "sales": 182,
           "drafts": 182
-        },
-        {
-          "sleeperId": "MIA",
-          "name": "Miami Dolphins",
-          "position": "DEF",
-          "avg": 2.0,
-          "med": 2.0,
-          "min": 1.0,
-          "max": 7.0,
-          "sales": 6,
-          "drafts": 6
         },
         {
           "sleeperId": "7563",
@@ -30743,17 +30644,6 @@
           "max": 18.0,
           "sales": 201,
           "drafts": 201
-        },
-        {
-          "sleeperId": "BUF",
-          "name": "Buffalo Bills",
-          "position": "DEF",
-          "avg": 1.6,
-          "med": 1.7,
-          "min": 1.0,
-          "max": 5.0,
-          "sales": 7,
-          "drafts": 7
         },
         {
           "sleeperId": "1244",
@@ -31062,17 +30952,6 @@
           "max": 15.0,
           "sales": 133,
           "drafts": 133
-        },
-        {
-          "sleeperId": "IND",
-          "name": "Indianapolis Colts",
-          "position": "DEF",
-          "avg": 1.4,
-          "med": 1.4,
-          "min": 1.0,
-          "max": 3.0,
-          "sales": 8,
-          "drafts": 8
         },
         {
           "sleeperId": "1535",
@@ -31436,17 +31315,6 @@
           "max": 2.0,
           "sales": 6,
           "drafts": 6
-        },
-        {
-          "sleeperId": "NE",
-          "name": "New England Patriots",
-          "position": "DEF",
-          "avg": 1.2,
-          "med": 1.2,
-          "min": 1.0,
-          "max": 2.0,
-          "sales": 8,
-          "drafts": 8
         },
         {
           "sleeperId": "1388",
@@ -32098,17 +31966,6 @@
           "drafts": 5
         },
         {
-          "sleeperId": "1379",
-          "name": "Kyle Juszczyk",
-          "position": "FB",
-          "avg": 1.0,
-          "med": 1.0,
-          "min": 1.0,
-          "max": 1.0,
-          "sales": 6,
-          "drafts": 6
-        },
-        {
           "sleeperId": "1387",
           "name": "Rex Burkhead",
           "position": "RB",
@@ -32404,17 +32261,6 @@
           "max": 1.0,
           "sales": 11,
           "drafts": 11
-        },
-        {
-          "sleeperId": "3509",
-          "name": "Glenn Gronkowski",
-          "position": "FB",
-          "avg": 1.0,
-          "med": 1.0,
-          "min": 1.0,
-          "max": 1.0,
-          "sales": 22,
-          "drafts": 22
         },
         {
           "sleeperId": "3634",
@@ -32921,17 +32767,6 @@
           "max": 1.0,
           "sales": 32,
           "drafts": 32
-        },
-        {
-          "sleeperId": "6379",
-          "name": "Khari Blasingame",
-          "position": "FB",
-          "avg": 1.0,
-          "med": 1.0,
-          "min": 1.0,
-          "max": 1.0,
-          "sales": 29,
-          "drafts": 29
         },
         {
           "sleeperId": "642",
@@ -33751,28 +33586,6 @@
           "sleeperId": "973",
           "name": "Anthony Sherman",
           "position": "RB",
-          "avg": 1.0,
-          "med": 1.0,
-          "min": 1.0,
-          "max": 1.0,
-          "sales": 5,
-          "drafts": 5
-        },
-        {
-          "sleeperId": "CLE",
-          "name": "Cleveland Browns",
-          "position": "DEF",
-          "avg": 1.0,
-          "med": 1.0,
-          "min": 1.0,
-          "max": 1.0,
-          "sales": 10,
-          "drafts": 10
-        },
-        {
-          "sleeperId": "DEN",
-          "name": "Denver Broncos",
-          "position": "DEF",
           "avg": 1.0,
           "med": 1.0,
           "min": 1.0,

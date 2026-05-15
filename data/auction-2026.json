@@ -1,5 +1,5 @@
 {
-  "version": "2026-05-15T02:11:54.221758+00:00",
+  "version": "2026-05-15T02:40:24.037219+00:00",
   "season": 2026,
   "teamCount": 12,
   "minDrafts": 5,
@@ -4185,17 +4185,6 @@
           "max": 1.0,
           "sales": 11,
           "drafts": 11
-        },
-        {
-          "sleeperId": "982",
-          "name": "Bruce Miller",
-          "position": "FB",
-          "avg": 1.0,
-          "med": 1.0,
-          "min": 1.0,
-          "max": 1.0,
-          "sales": 13,
-          "drafts": 13
         }
       ]
     },
@@ -8140,17 +8129,6 @@
           "drafts": 7
         },
         {
-          "sleeperId": "7296",
-          "name": "Brandon Wright",
-          "position": "P",
-          "avg": 1.1,
-          "med": 1.0,
-          "min": 1.0,
-          "max": 2.0,
-          "sales": 7,
-          "drafts": 7
-        },
-        {
           "sleeperId": "7571",
           "name": "Rashod Bateman",
           "position": "WR",
@@ -8237,17 +8215,6 @@
           "max": 2.0,
           "sales": 30,
           "drafts": 30
-        },
-        {
-          "sleeperId": "982",
-          "name": "Bruce Miller",
-          "position": "FB",
-          "avg": 1.1,
-          "med": 1.1,
-          "min": 1.0,
-          "max": 2.0,
-          "sales": 29,
-          "drafts": 29
         },
         {
           "sleeperId": "10226",
@@ -12786,17 +12753,6 @@
           "drafts": 16
         },
         {
-          "sleeperId": "7296",
-          "name": "Brandon Wright",
-          "position": "P",
-          "avg": 1.2,
-          "med": 1.2,
-          "min": 1.0,
-          "max": 3.0,
-          "sales": 9,
-          "drafts": 9
-        },
-        {
           "sleeperId": "9494",
           "name": "Marvin Mims",
           "position": "WR",
@@ -14742,17 +14698,6 @@
           "max": 2.0,
           "sales": 40,
           "drafts": 40
-        },
-        {
-          "sleeperId": "982",
-          "name": "Bruce Miller",
-          "position": "FB",
-          "avg": 1.0,
-          "med": 1.1,
-          "min": 1.0,
-          "max": 2.0,
-          "sales": 43,
-          "drafts": 43
         },
         {
           "sleeperId": "9999",
@@ -19247,17 +19192,6 @@
           "drafts": 36
         },
         {
-          "sleeperId": "7296",
-          "name": "Brandon Wright",
-          "position": "P",
-          "avg": 1.0,
-          "med": 1.0,
-          "min": 1.0,
-          "max": 1.0,
-          "sales": 8,
-          "drafts": 8
-        },
-        {
           "sleeperId": "7562",
           "name": "Tutu Atwell",
           "position": "WR",
@@ -20138,17 +20072,6 @@
           "drafts": 17
         },
         {
-          "sleeperId": "8934",
-          "name": "Clint Ratkovich",
-          "position": "FB",
-          "avg": 1.0,
-          "med": 1.0,
-          "min": 1.0,
-          "max": 1.0,
-          "sales": 14,
-          "drafts": 14
-        },
-        {
           "sleeperId": "8938",
           "name": "Nathan Rourke",
           "position": "QB",
@@ -20521,17 +20444,6 @@
           "max": 1.0,
           "sales": 21,
           "drafts": 21
-        },
-        {
-          "sleeperId": "982",
-          "name": "Bruce Miller",
-          "position": "FB",
-          "avg": 1.0,
-          "med": 1.0,
-          "min": 1.0,
-          "max": 1.0,
-          "sales": 20,
-          "drafts": 20
         },
         {
           "sleeperId": "9998",
@@ -29067,17 +28979,6 @@
           "drafts": 34
         },
         {
-          "sleeperId": "7296",
-          "name": "Brandon Wright",
-          "position": "P",
-          "avg": 1.1,
-          "med": 1.1,
-          "min": 1.0,
-          "max": 3.0,
-          "sales": 25,
-          "drafts": 25
-        },
-        {
           "sleeperId": "7571",
           "name": "Rashod Bateman",
           "position": "WR",
@@ -31751,17 +31652,6 @@
           "drafts": 25
         },
         {
-          "sleeperId": "8934",
-          "name": "Clint Ratkovich",
-          "position": "FB",
-          "avg": 1.0,
-          "med": 1.0,
-          "min": 1.0,
-          "max": 1.0,
-          "sales": 22,
-          "drafts": 22
-        },
-        {
           "sleeperId": "8938",
           "name": "Nathan Rourke",
           "position": "QB",
@@ -32101,17 +31991,6 @@
           "max": 2.0,
           "sales": 101,
           "drafts": 101
-        },
-        {
-          "sleeperId": "982",
-          "name": "Bruce Miller",
-          "position": "FB",
-          "avg": 1.0,
-          "med": 1.1,
-          "min": 1.0,
-          "max": 2.0,
-          "sales": 105,
-          "drafts": 105
         },
         {
           "sleeperId": "9998",

@@ -1,5 +1,5 @@
 {
-  "version": "2026-05-15T02:11:54.221758+00:00",
+  "version": "2026-05-15T02:40:24.037219+00:00",
   "season": 2022,
   "teamCount": 12,
   "minDrafts": 5,
@@ -12907,17 +12907,6 @@
           "drafts": 7
         },
         {
-          "sleeperId": "815",
-          "name": "Nick Bellore",
-          "position": "LB",
-          "avg": 1.0,
-          "med": 1.0,
-          "min": 1.0,
-          "max": 1.0,
-          "sales": 5,
-          "drafts": 5
-        },
-        {
           "sleeperId": "8152",
           "name": "Kennedy Brooks",
           "position": "RB",
@@ -13169,17 +13158,6 @@
           "max": 1.0,
           "sales": 5,
           "drafts": 5
-        },
-        {
-          "sleeperId": "982",
-          "name": "Bruce Miller",
-          "position": "FB",
-          "avg": 1.0,
-          "med": 1.0,
-          "min": 1.0,
-          "max": 1.0,
-          "sales": 11,
-          "drafts": 11
         }
       ]
     },
@@ -55301,17 +55279,6 @@
           "drafts": 15
         },
         {
-          "sleeperId": "7296",
-          "name": "Brandon Wright",
-          "position": "P",
-          "avg": 3.7,
-          "med": 3.7,
-          "min": 1.0,
-          "max": 17.0,
-          "sales": 6,
-          "drafts": 6
-        },
-        {
           "sleeperId": "7569",
           "name": "Nico Collins",
           "position": "WR",
@@ -59239,17 +59206,6 @@
           "drafts": 165
         },
         {
-          "sleeperId": "815",
-          "name": "Nick Bellore",
-          "position": "LB",
-          "avg": 1.0,
-          "med": 1.0,
-          "min": 1.0,
-          "max": 1.0,
-          "sales": 5,
-          "drafts": 5
-        },
-        {
           "sleeperId": "8152",
           "name": "Kennedy Brooks",
           "position": "RB",
@@ -59688,17 +59644,6 @@
           "max": 1.0,
           "sales": 5,
           "drafts": 5
-        },
-        {
-          "sleeperId": "982",
-          "name": "Bruce Miller",
-          "position": "FB",
-          "avg": 1.0,
-          "med": 1.0,
-          "min": 1.0,
-          "max": 1.0,
-          "sales": 13,
-          "drafts": 13
         }
       ]
     }
