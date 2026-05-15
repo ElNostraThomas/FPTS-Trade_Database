@@ -96,6 +96,31 @@
    feels mis-positioned, that's the first thing to check.
 
    ──────────────────────────────────────────────────────────────────────
+   FLEX-COLUMN SCROLL CHAIN RULE  (overflow-scroll inside a sticky panel)
+   ──────────────────────────────────────────────────────────────────────
+   When a child element uses `flex:1; overflow-y:auto; min-height:0;` to
+   scroll internally — common for sidebars / drawers / sticky aside
+   panels — EVERY ancestor between the bounded outer container and the
+   scrolling child MUST also be a flex container with `flex:1;
+   min-height:0;`. A single intermediate `div` with no CSS (defaulting
+   to display:block) breaks the chain: `flex:1` on the child becomes a
+   no-op, the child's height resolves to its content height, and
+   `overflow:auto` never fires because there's no overflow to trigger.
+   The wheel event falls through to the page.
+
+   Canonical pattern (used by My-Leagues Player Exposure aside):
+
+     .panel { position:sticky; top:96px; max-height:calc(100vh - 110px);
+              display:flex; flex-direction:column; overflow:hidden; }
+     .panel-header { /* content-sized */ }
+     .panel-body   { display:flex; flex-direction:column; flex:1;
+                     min-height:0; overflow:hidden; }
+     .panel-list   { overflow-y:auto; flex:1; min-height:0; }
+
+   Note both .panel-body AND .panel-list have flex:1 + min-height:0.
+   That's the chain. Skip either and scroll silently breaks.
+
+   ──────────────────────────────────────────────────────────────────────
    PAGE SCAFFOLD (assets/js/data-bootstrap.js + brand.css + page-template.html)
    ──────────────────────────────────────────────────────────────────────
    New pages don't hand-roll the bootstrap above. They include

@@ -34,6 +34,17 @@ Documents what "pill / coin / chip / card / row / badge / thumb / flame"
 each mean, plus the design tokens. Plus an "ADP scrape-coupling rule"
 documenting that UI filters must have matching scrape dimensions.
 
+**Final-polish round (after the initial doc commit)**: every ADP
+`.box-card` is now a fixed `height: 78px` instead of `min-height: 60px`
+so card heights stay uniform across years and tabs (rookie cards no
+longer collapse below startup cards because of missing trend data).
+`.card-meta` always renders (even with `&nbsp;` placeholder) to reserve
+its row height. **My-Leagues player exposure scroll** got its real
+fix — earlier I'd added `min-height: 0` to the list but the parent
+`.ml-exposure-body` had no CSS at all so the flex chain was broken at
+the middle node. Added `.ml-exposure-body { display: flex; flex:1;
+min-height: 0; overflow: hidden }` and now scroll-on-hover works.
+
 ### What changed in 2026-05-14 (evening session)
 
 - **ADP year picker shipped.** `setYear()` swaps `ADP_PAYLOAD` /
@@ -323,6 +334,15 @@ for the `fpts:data-ready` event.
 
 ### Sticky known quirks
 
+- **Flex-column scroll chain must be unbroken.** When a child element uses
+  `flex: 1; overflow-y: auto; min-height: 0;` to scroll internally, EVERY
+  ancestor in the chain back to the bounded parent must ALSO be a flex
+  container with `flex: 1; min-height: 0;`. A single intermediate `div`
+  with no CSS (defaults to `display: block`) breaks the chain — `flex: 1`
+  on the child becomes a no-op, the child's height resolves to its content
+  height, and `overflow: auto` never fires because there's nothing to
+  overflow against. The wheel event falls through to the page. This bit
+  My-Leagues' Player Exposure twice: `.ml-exposure-body` had no CSS at all.
 - **`ppShowTab('curve')` ID-resolution bug** in the shared panel: it
   resolves `'curve'` to `'age-curve'` and reads a non-existent
   `#pp-age-curve-tab`. My-Leagues bypasses this by calling

@@ -49,6 +49,11 @@ the operator manual see [`WORKFLOW.md`](WORKFLOW.md).
 ### Historical scrape backfill
 - **`01_ingest_historical.py` SEASONS** bumped from `[2026]` to `[2020..2026]` (then user added 2019 making it `[2019..2026]`). User ran the full historical ingest (~3-4 hours). Parquets refreshed for 2020-2026; 2019 added separately. The app's `sync-adp.py` then processed only 2022-2026 from these (post-restriction).
 
+### Post-doc-update polish
+After the initial doc commit (`46b0459`) shipped, a few more bugs surfaced in the year picker:
+- **Uniform ADP card heights** (`adp-tool.html`). On historical year boards (2022-2025) some cards were collapsing to the `min-height: 60px` floor while 2026 cards grew to ~75px because their trend chip was filling `.card-meta`. Two-stage fix: (a) `metaHtml` always renders `<div class="card-meta">` even when `trendBadge` returns empty, using `&nbsp;` as the placeholder; (b) `.box-card` switched from `min-height: 60px` to a fixed `height: 78px` so every card across every year and tab is exactly the same size regardless of content variation. Box-card overflow is already hidden, so long player names still truncate cleanly.
+- **My-Leagues exposure scroll — real fix.** Earlier I'd added `min-height: 0` to `.ml-exposure-list` thinking that completed the flex-column scroll idiom, but I never verified the actual chain. The parent `.ml-exposure-body` (between the sticky aside and the list) had NO CSS at all — default `display: block` — which broke the flex chain at the middle node. Result: `.ml-exposure-list { flex: 1 }` was a no-op, list height resolved to content height (~11,000px for 365 players), `overflow: auto` never fired, wheel events fell through to the page. Added `.ml-exposure-body { display: flex; flex-direction: column; flex: 1; min-height: 0; overflow: hidden; }`. Now the chain is complete and scroll-on-hover actually works. Documented in README "Sticky known quirks" as a general rule: every ancestor in a flex-scroll chain must be flex.
+
 ---
 
 ## 2026-05-14 — Silhouette fallback rule + season rollover trigger
