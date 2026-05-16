@@ -2139,6 +2139,29 @@
     font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
     font-size: 13px;
   }
+
+  /* ── Utility classes (Phase A.2 of inline-style cleanup) ──
+     Each replaces a single repeated inline style="..." attribute
+     (4-6 occurrences in my-leagues.html). The class name reflects
+     the visual intent so future reuse is intuitive. */
+  body.fpts-ml-page .ml-tar             { text-align: right; }
+  body.fpts-ml-page .ml-clickable       { cursor: pointer; }
+  body.fpts-ml-page .ml-flex1           { flex: 1; min-width: 0; }
+  body.fpts-ml-page .ml-section-head    {
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 11px; color: var(--red);
+    text-transform: uppercase; letter-spacing: .06em;
+  }
+  body.fpts-ml-page .ml-flex-wrap-row   {
+    display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+  }
+  body.fpts-ml-page .ml-mulish-mute-10  {
+    font-family: 'Mulish', sans-serif; font-size: 10px;
+    color: var(--muted); opacity: .4;
+  }
+  body.fpts-ml-page .ml-mute-half       {
+    color: var(--muted); opacity: .5;
+  }
 </style>
 <script>document.addEventListener('DOMContentLoaded', function(){ if (window.Legend) Legend.init('my-leagues'); document.body.classList.add('fpts-ml-page'); });</script>
 </head>
@@ -2252,7 +2275,7 @@
 
       <!-- RIGHT: player exposure sidebar -->
       <aside class="ml-exposure" id="ml-exposure">
-        <div class="ml-exposure-header" onclick="mlToggleExposure()" style="cursor:pointer" title="Click to collapse/expand the exposure sidebar">
+        <div class="ml-exposure-header" onclick="mlToggleExposure()" class="ml-clickable" title="Click to collapse/expand the exposure sidebar">
           <span style="display:flex;align-items:center;gap:8px">
             <span id="ml-exposure-caret" style="font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);width:12px;text-align:center;flex-shrink:0;transition:transform .15s">▼</span>
             <span class="ml-exposure-title">Player Exposure</span>
@@ -3021,7 +3044,7 @@ function mountPlayerArticles(parentEl, playerName, opts) {
       : 'display:none';
     row.innerHTML = `
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
-        <span style="font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:11px;color:var(--red);text-transform:uppercase;letter-spacing:.06em">Articles</span>
+        <span class="ml-section-head">Articles</span>
         <span class="pp-articles-source" style="font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);opacity:.5">FantasyPoints.com</span>
       </div>
       <div class="pp-article-inline" style="display:flex;align-items:center;gap:10px;min-height:24px"></div>
@@ -3407,7 +3430,7 @@ function renderPlayerAvailability(sleeperId) {
       <div class="ml-pd-avail-row" ${rowClickAttr} ${rowHoverIn} ${rowHoverOut}
         style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-bottom:1px solid var(--border);cursor:${rowCursor};border-radius:3px;transition:background .12s">
         ${av}
-        <div class="ml-pd-avail-info" style="flex:1;min-width:0">
+        <div class="ml-pd-avail-info" class="ml-flex1">
           <div style="font-family:'Mulish',sans-serif;font-weight:800;font-size:12px;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r.leagueName}</div>
           <div style="font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);opacity:.6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r.format}</div>
         </div>
@@ -3435,12 +3458,12 @@ function renderPlayerAvailability(sleeperId) {
         onmouseover="this.style.opacity=.85" onmouseout="this.style.opacity=1">
         <div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0">
           <span id="ml-pd-avail-caret" style="font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);width:14px;text-align:center;flex-shrink:0;transition:transform .15s;${caretRotation}">▶</span>
-          <span style="font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:11px;color:var(--red);text-transform:uppercase;letter-spacing:.06em">Availability Across Your Leagues</span>
+          <span class="ml-section-head">Availability Across Your Leagues</span>
           <span style="font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);opacity:.7">${totalActive} of ${totalAll}</span>
         </div>
         <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);user-select:none;flex-shrink:0"
           onclick="event.stopPropagation()">
-          <input type="checkbox" ${hideNames ? 'checked' : ''} onchange="mlSetHideUsernames(this.checked)" style="cursor:pointer">
+          <input type="checkbox" ${hideNames ? 'checked' : ''} onchange="mlSetHideUsernames(this.checked)" class="ml-clickable">
           <span>Hide usernames</span>
         </label>
       </div>
@@ -3917,7 +3940,7 @@ function mltbRender() {
     <div style="padding:14px 20px;border-bottom:1px solid var(--border);background:var(--surface2)">
       <div style="display:flex;align-items:center;gap:12px">
         ${targetSid ? `<img src="https://sleepercdn.com/content/nfl/players/thumb/${targetSid}.jpg" style="width:48px;height:48px;border-radius:3px;object-fit:cover;background:var(--surface)" onerror="this.style.visibility='hidden'">` : ''}
-        <div style="flex:1;min-width:0">
+        <div class="ml-flex1">
           <div style="font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:18px;color:var(--white);text-transform:uppercase;line-height:1.1">${targetPlayer ? targetPlayer.name : 'Unknown'}</div>
           <div style="font-family:'Mulish',sans-serif;font-size:11px;color:var(--muted);margin-top:2px">${targetPlayer ? (targetPlayer.pos + ' · Value ' + targetPlayer.value.toLocaleString()) : ''} · in ${leagueName}</div>
           ${ownerName ? `<div style="font-family:'Mulish',sans-serif;font-size:11px;color:var(--white);opacity:.8;margin-top:2px">Owner: <span class="ml-pd-owner-name">${displayedOwnerName}</span>${archChip}</div>` : ''}
@@ -4015,7 +4038,7 @@ function mltbRender() {
   body.innerHTML = headerStrip + `
     <div style="padding:14px 18px">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-        <span style="font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:11px;color:var(--red);text-transform:uppercase;letter-spacing:.06em">Suggestion ${counterPos} — ${t.label}</span>
+        <span class="ml-section-head">Suggestion ${counterPos} — ${t.label}</span>
         <span style="font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted)">${balanceLabel}</span>
       </div>
 
@@ -5268,8 +5291,8 @@ function renderLeagueTeamsSection(leagueId, ld, sortKey) {
             ? `<img src="${t.avatarUrl}" style="width:28px;height:28px;border-radius:3px;object-fit:cover;background:var(--surface2);flex-shrink:0" onerror="_avatarFallback(this,'${ownerInitial}')">`
             : `<span style="width:28px;height:28px;border-radius:3px;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:13px;color:var(--white);flex-shrink:0">${ownerInitial}</span>`
           }
-          <div style="flex:1;min-width:0">
-            <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+          <div class="ml-flex1">
+            <div class="ml-flex-wrap-row">
               <span style="font-family:'Mulish',sans-serif;font-weight:800;font-size:13px;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${t.name || `Team ${t.rosterId}`}</span>
               ${meBadge}
               ${archChip}
@@ -5408,7 +5431,7 @@ function mlBuildTeamRosterHtml(leagueId, rosterId) {
     sections.push(`
       <div style="margin-bottom:10px">
         <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 4px;border-bottom:1px solid var(--border2);margin-bottom:2px">
-          <span style="font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:11px;color:var(--red);text-transform:uppercase;letter-spacing:.06em">${pos === 'QB' ? 'Quarterbacks' : pos === 'RB' ? 'Running Backs' : pos === 'WR' ? 'Wide Receivers' : 'Tight Ends'} <span style="color:var(--muted);font-weight:700;margin-left:4px">${groups[pos].length}</span></span>
+          <span class="ml-section-head">${pos === 'QB' ? 'Quarterbacks' : pos === 'RB' ? 'Running Backs' : pos === 'WR' ? 'Wide Receivers' : 'Tight Ends'} <span style="color:var(--muted);font-weight:700;margin-left:4px">${groups[pos].length}</span></span>
           <span style="font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);font-weight:700">${total.toLocaleString()}</span>
         </div>
         ${groups[pos].map(renderPlayerRow).join('')}
@@ -5569,7 +5592,7 @@ function openPickExposurePicker(season, round) {
       const av = leagueObj && leagueObj.avatar ? `${CDN}/avatars/thumbs/${leagueObj.avatar}` : '';
       return `<div onclick="_mlPepGoToCalc('${data.season}',${data.round},'${lg.leagueId}')" style="display:flex;align-items:center;gap:12px;padding:11px 12px;background:var(--surface);border:1px solid var(--border);margin-bottom:6px;cursor:pointer" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='var(--surface)'">
         ${av ? `<img src="${av}" style="width:30px;height:30px;border-radius:2px;flex-shrink:0" onerror="this.style.visibility='hidden'">` : `<div style="width:30px;height:30px;background:var(--surface2);border-radius:2px;flex-shrink:0"></div>`}
-        <div style="flex:1;min-width:0">
+        <div class="ml-flex1">
           <div style="font-family:'Mulish',sans-serif;font-weight:900;font-size:13px;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${lg.leagueName}</div>
           <div style="font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);opacity:.7;margin-top:1px">${lg.isNatural ? 'Your natural pick' : 'Acquired via trade'}</div>
         </div>
@@ -6216,13 +6239,13 @@ function renderRoster(playerIds, players, starters, myPicks, rosterToTeam, proje
   }
 
   function playerRow(r) {
-    return `<tr style="cursor:pointer" onclick="openPlayerDetail('${r.sid || ''}')" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background=''">
+    return `<tr class="ml-clickable" onclick="openPlayerDetail('${r.sid || ''}')" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background=''">
       <td class="ml-tbl-td" style="width:36px;padding-right:8px">${playerThumb(r.sid)}</td>
       <td class="ml-tbl-td">
-        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+        <div class="ml-flex-wrap-row">
           ${(r.shouldStart && !r.isStart) ? FLAME_ICON : ''}
           <span style="font-family:'Mulish',sans-serif;font-weight:900;font-size:14px;color:var(--white)">${r.name}</span>
-          <span style="display:inline-flex;align-items:center">${(r.team && window.TeamHelpers) ? window.TeamHelpers.logoImg(r.team, { size: 18, coin: true }) : `<span style="font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);opacity:.4">${r.team || ''}</span>`}</span>
+          <span style="display:inline-flex;align-items:center">${(r.team && window.TeamHelpers) ? window.TeamHelpers.logoImg(r.team, { size: 18, coin: true }) : `<span class="ml-mulish-mute-10">${r.team || ''}</span>`}</span>
 
         </div>
       </td>
@@ -6322,12 +6345,12 @@ function renderRoster(playerIds, players, starters, myPicks, rosterToTeam, proje
         return `<tr style="border-bottom:1px solid var(--border)">
           <td class="ml-tbl-td" style="width:36px;padding-right:8px">${pickThumb()}</td>
           <td class="ml-tbl-td">
-            <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+            <div class="ml-flex-wrap-row">
               <span style="font-family:'Mulish',sans-serif;font-weight:900;font-size:14px;color:var(--white)">${p.season} ${ordinal(p.round)}</span>
               <span style="font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);opacity:.5">${sourceLabel}</span>
             </div>
           </td>
-          <td class="ml-tbl-num" style="color:var(--muted);opacity:.5">${p.season}</td>
+          <td class="ml-tbl-num" class="ml-mute-half">${p.season}</td>
           <td class="ml-tbl-num" style="color:${val > 3000 ? 'var(--green)' : val > 1000 ? 'var(--white)' : 'var(--muted)'}">${val ? val.toLocaleString() : '—'}</td>
           <td class="ml-tbl-num" style="color:var(--muted);opacity:.4;font-size:11px">Rd ${p.round}</td>
         </tr>`;
@@ -6650,16 +6673,16 @@ function renderWaiversLeaderboard(el, leagueId, data) {
           <th class="ml-wv-bar-cell">&nbsp;</th>
           <th class="num">Left</th>
           <th class="ml-wv-bar-cell">&nbsp;</th>
-          <th class="num" style="text-align:right">Won</th>
-          <th class="num" style="text-align:right">Tried</th>
-          <th class="num" style="text-align:right">Win%</th>
-          <th class="num" style="text-align:right">Max</th>
+          <th class="num" class="ml-tar">Won</th>
+          <th class="num" class="ml-tar">Tried</th>
+          <th class="num" class="ml-tar">Win%</th>
+          <th class="num" class="ml-tar">Max</th>
         </tr>
       </thead>
       <tbody>
         ${rows.map((r, i) => `
           <tr class="${r.isMe ? 'me' : ''}">
-            <td class="num" style="color:var(--muted);opacity:.5">${i+1}</td>
+            <td class="num" class="ml-mute-half">${i+1}</td>
             <td>
               <div class="ml-wv-team-cell">
                 ${r.avatar ? `<img class="ml-wv-team-avatar" src="${r.avatar}" onerror="this.style.visibility='hidden'">` : `<div class="ml-wv-team-avatar"></div>`}
@@ -6673,9 +6696,9 @@ function renderWaiversLeaderboard(el, leagueId, data) {
             <td class="ml-wv-bar-cell"><div class="ml-wv-bar-track"><div class="ml-wv-bar-fill" style="width:${maxSpent ? (r.spent/maxSpent*100).toFixed(0) : 0}%"></div></div></td>
             <td class="num" style="color:var(--green)">$${r.left}</td>
             <td class="ml-wv-bar-cell"><div class="ml-wv-bar-track"><div class="ml-wv-bar-fill" style="width:${budget ? (r.left/budget*100).toFixed(0) : 0}%"></div></div></td>
-            <td class="num" style="text-align:right">${r.won}</td>
+            <td class="num" class="ml-tar">${r.won}</td>
             <td class="num" style="text-align:right;color:var(--muted)">${r.tried}</td>
-            <td class="num" style="text-align:right">${r.winPct}%</td>
+            <td class="num" class="ml-tar">${r.winPct}%</td>
             <td class="num" style="text-align:right;color:var(--yellow)">$${r.max}</td>
           </tr>
         `).join('')}
@@ -6731,7 +6754,7 @@ function renderWaiversTopBids(el, leagueId, data) {
           }).join(', ') : '';
           return `
             <tr class="${isMe ? 'me' : ''}">
-              <td class="num" style="color:var(--muted);opacity:.5">${i+1}</td>
+              <td class="num" class="ml-mute-half">${i+1}</td>
               <td>
                 <div class="ml-wv-bid">$${b.bid}</div>
                 <div class="ml-wv-bid-week">Wk ${b.week}</div>
@@ -6986,14 +7009,14 @@ async function renderTradeYear(leagueId, idx, allTradesByYear, players, leagueCh
     return `<div class="ml-trade-card">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
         <div class="ml-tc-date" style="margin-bottom:0">${date} · Week ${t.leg||'?'}</div>
-        ${creatorName ? `<div style="font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);opacity:.4">Initiated by ${creatorName}</div>` : ''}
+        ${creatorName ? `<div class="ml-mulish-mute-10">Initiated by ${creatorName}</div>` : ''}
       </div>
       <div class="ml-tc-body">
         ${sides.map((s,i) => `
           <div class="ml-tc-side">
             <div class="ml-tc-side-label" style="${s.isMe ? 'color:var(--red)' : ''}">${s.sideLabel} — ${s.teamName}${s.isMe ? ' 🫵' : ''}</div>
             ${s.assets.map(a => a.type === 'player'
-              ? `<div class="ml-tc-asset" ${SLEEPER_IDS[a.name] ? `onclick="openPlayerDetail('${SLEEPER_IDS[a.name]}')" style="cursor:pointer"` : ''}>
+              ? `<div class="ml-tc-asset" ${SLEEPER_IDS[a.name] ? `onclick="openPlayerDetail('${SLEEPER_IDS[a.name]}')" class="ml-clickable"` : ''}>
                    <span style="width:28px;height:28px;flex-shrink:0;display:inline-flex;align-items:center;">
                      ${SLEEPER_IDS[a.name]
                        ? `<img src="${CDN}/content/nfl/players/thumb/${SLEEPER_IDS[a.name]}.jpg" style="width:28px;height:28px;border-radius:50%;object-fit:cover;" onerror="this.style.display='none'">`
@@ -7007,8 +7030,8 @@ async function renderTradeYear(leagueId, idx, allTradesByYear, players, leagueCh
                      </div>
                      ${(a.value || a.adp) ? `<div style="display:flex;gap:8px;margin-top:2px">
                        ${a.value ? `<span style="font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:11px;color:var(--muted);opacity:.6">${a.value.toLocaleString()}</span>` : ''}
-                       ${a.adp ? `<span style="font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);opacity:.4">ADP ${a.adp}</span>` : ''}
-                       ${a.posRank ? `<span style="font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);opacity:.4">${a.posRank}</span>` : ''}
+                       ${a.adp ? `<span class="ml-mulish-mute-10">ADP ${a.adp}</span>` : ''}
+                       ${a.posRank ? `<span class="ml-mulish-mute-10">${a.posRank}</span>` : ''}
                      </div>` : ''}
                    </div>
                  </div>`
@@ -7269,7 +7292,7 @@ function renderStandingsTable() {
     return `<tr style="${rowBg}">
       <td class="ml-tbl-num-tight" style="color:var(--muted);opacity:.3;width:28px">${i+1}</td>
       <td class="ml-tbl-td-tight">
-        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+        <div class="ml-flex-wrap-row">
           ${avHtml}
           <span style="font-family:'Mulish',sans-serif;font-weight:900;font-size:13px;${r.isMe?'color:var(--red)':''}">${r.name}</span>
           ${r.isMe ? `<span style="font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:9px;color:var(--red);border:1px solid var(--red);padding:0 4px">YOU</span>` : ''}
@@ -7281,7 +7304,7 @@ function renderStandingsTable() {
         </div>
       </td>
       <td class="ml-tbl-num-tight" style="color:var(--white)">${r.total.toLocaleString()}</td>
-      <td class="ml-tbl-num-tight" style="color:var(--muted);opacity:.5">${r.avgAge ? r.avgAge.toFixed(1) : '—'}</td>
+      <td class="ml-tbl-num-tight" class="ml-mute-half">${r.avgAge ? r.avgAge.toFixed(1) : '—'}</td>
       <td class="ml-tbl-num-tight" style="color:${posColors.QB}">${r.posVals.QB.toLocaleString()}</td>
       <td class="ml-tbl-num-tight" style="color:${posColors.RB}">${r.posVals.RB.toLocaleString()}</td>
       <td class="ml-tbl-num-tight" style="color:${posColors.WR}">${r.posVals.WR.toLocaleString()}</td>

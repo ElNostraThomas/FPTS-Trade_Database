@@ -1,7 +1,7 @@
 # my-leagues.html inline-style inventory
 
-Generated from `my-leagues.html` (7563 lines).
-Total `style="..."` occurrences: **354**.
+Generated from `my-leagues.html` (7586 lines).
+Total `style="..."` occurrences: **325**.
 
 This is a read-only audit. No code was changed. The goal is to make the
 refactor safe to execute supervised by giving every occurrence a category,
@@ -13,12 +13,12 @@ a section assignment, and an actionability verdict.
 
 | Mode | Count | % | Refactorable to CSS class? |
 |---|---|---|---|
-| `dynamic` | 171 | 48.3% | Conditional - if the interpolated value is a discrete enum, use a modifier class (e.g. `.is-active`); otherwise leave inline |
-| `static` | 156 | 44.1% | Yes - pure HTML attribute, drop into a class |
-| `dynamic-context` | 18 | 5.1% | Conditional - inside a JS-built HTML string; refactor only if the declaration set is static |
-| `js-composed` | 9 | 2.5% | No - imperatively set at runtime; leave as-is |
+| `dynamic` | 157 | 48.3% | Conditional - if the interpolated value is a discrete enum, use a modifier class (e.g. `.is-active`); otherwise leave inline |
+| `static` | 142 | 43.7% | Yes - pure HTML attribute, drop into a class |
+| `dynamic-context` | 18 | 5.5% | Conditional - inside a JS-built HTML string; refactor only if the declaration set is static |
+| `js-composed` | 8 | 2.5% | No - imperatively set at runtime; leave as-is |
 
-**Headline:** ~156 are directly refactorable, ~189 require case-by-case judgement, ~9 must stay inline (JS-set).
+**Headline:** ~142 are directly refactorable, ~175 require case-by-case judgement, ~8 must stay inline (JS-set).
 
 ---
 
@@ -28,31 +28,31 @@ Which CSS properties carry most of the inline styling. Where one property domina
 
 | Property | Count |
 |---|---|
-| `color` | 175 |
-| `font-size` | 134 |
-| `font-family` | 125 |
-| `font-weight` | 80 |
-| `display` | 74 |
-| `font-style` | 66 |
-| `align-items` | 52 |
+| `color` | 163 |
+| `font-size` | 126 |
+| `font-family` | 117 |
+| `font-weight` | 76 |
+| `display` | 70 |
+| `font-style` | 62 |
 | `padding` | 50 |
-| `opacity` | 49 |
 | `background` | 48 |
-| `text-transform` | 44 |
-| `letter-spacing` | 41 |
-| `gap` | 39 |
+| `align-items` | 48 |
+| `opacity` | 41 |
+| `text-transform` | 40 |
 | `width` | 39 |
 | `flex-shrink` | 38 |
+| `letter-spacing` | 37 |
 | `margin-bottom` | 36 |
+| `gap` | 35 |
 | `border-radius` | 32 |
 | `border` | 25 |
 | `height` | 20 |
 | `justify-content` | 18 |
 | `margin-top` | 17 |
-| `cursor` | 16 |
-| `text-align` | 16 |
-| `flex` | 16 |
 | `fill-rule` | 15 |
+| `fill` | 14 |
+| `cursor` | 12 |
+| `flex` | 12 |
 
 ---
 
@@ -63,14 +63,7 @@ Each row below is a strong refactor candidate: same declaration set appearing N 
 | Count | Normalized declaration set |
 |---|---|
 | 13 | `fill-rule:nonzero; fill:var(--black)` |
-| 6 | `flex:1; min-width:0` |
-| 6 | `text-align:right` |
 | 4 | `display:none` |
-| 4 | `cursor:pointer` |
-| 4 | `color:var(--red); font-family:'Kanit',sans-serif; font-size:11px; font-style:italic; font-weight:800; letter-spacing:.06em; text-transform:uppercase` |
-| 4 | `align-items:center; display:flex; flex-wrap:wrap; gap:6px` |
-| 4 | `color:var(--muted); font-family:'Mulish',sans-serif; font-size:10px; opacity:.4` |
-| 4 | `color:var(--muted); opacity:.5` |
 | 3 | `display:block` |
 | 3 | `align-items:center; display:flex; justify-content:space-between; margin-bottom:10px` |
 | 3 | `color:var(--muted); font-size:11px; font-style:italic; padding:8px` |
@@ -83,6 +76,7 @@ Each row below is a strong refactor candidate: same declaration set appearing N 
 | 3 | `color:var(--green)` |
 | 3 | `color:var(--muted); font-size:10px; opacity:.5` |
 | 3 | `color:var(--muted); font-family:'Kanit',sans-serif; font-size:11px; font-style:italic; font-weight:800; opacity:.6` |
+| 2 | `...` |
 | 2 | `align-items:center; display:flex; gap:8px` |
 | 2 | `flex:1` |
 | 2 | `color:var(--muted); font-family:'Mulish',sans-serif; font-size:10px; opacity:.5` |
@@ -102,6 +96,12 @@ Each row below is a strong refactor candidate: same declaration set appearing N 
 | 2 | `padding-right:8px; width:36px` |
 | 2 | `color:var(--white); font-size:12px` |
 | 2 | `align-items:center; display:flex; gap:10px` |
+| 2 | `color:var(--muted); font-family:'Mulish',sans-serif; font-size:11px; opacity:.4` |
+| 2 | `-webkit-overflow-scrolling:touch; overflow-x:auto` |
+| 2 | `width:36px` |
+| 2 | `background:var(--pos-pick-bg); flex-shrink:0; height:20px; width:4px` |
+| 2 | `align-items:center; display:flex; gap:8px; margin-bottom:2px` |
+| 2 | `color:var(--white); font-family:'Kanit',sans-serif; font-size:22px; font-style:italic; font-weight:800` |
 
 ---
 
@@ -111,22 +111,22 @@ Sorted by count - the busiest regions are the highest-leverage refactor batches.
 
 | Count | Region (nearest banner-comment heading above the hit) |
 |---|---|
-| 36 | Save current scoped IDs so the existing loadRoster / loadAllTrades can target them |
-| 30 | Render the current suggestion as a single card |
-| 30 | Sort rosters by chosen key |
-| 26 | Helpers |
-| 24 | Aggregate per-roster |
-| 23 | Render an archetype chip |
-| 23 | Archetype lookup for the owning team |
-| 23 | Renders draft picks in the same visual layout as a position section so the |
-| 22 | RIGHT: player exposure sidebar |
-| 19 | Picks this roster RECEIVED |
+| 33 | Save current scoped IDs so the existing loadRoster / loadAllTrades can target them |
+| 29 | Render the current suggestion as a single card |
+| 28 | Sort rosters by chosen key |
+| 23 | Helpers |
+| 22 | Render an archetype chip |
+| 21 | RIGHT: player exposure sidebar |
+| 21 | Renders draft picks in the same visual layout as a position section so the |
+| 20 | Archetype lookup for the owning team |
 | 18 | Stash render context on window so the sort buttons can re-render |
-| 14 | Temporarily assign global IDs so existing loadRoster can find them |
-| 13 | Render the current state of the suggestion pre-screener |
+| 16 | Aggregate per-roster |
+| 15 | Picks this roster RECEIVED |
+| 13 | Temporarily assign global IDs so existing loadRoster can find them |
+| 12 | Render the current state of the suggestion pre-screener |
 | 10 | Ensure roster/users/players are loaded and stashed on window for the modal layer |
 | 10 | Total roster value |
-| 7 | Team logo helpers — load BEFORE player-panel.js so modal-hero badge works. |
+| 8 | Team logo helpers — load BEFORE player-panel.js so modal-hero badge works. |
 | 5 | Close player-detail modal if open |
 | 5 | Trade Builder Modal — opens over the player detail modal (z-index 250) |
 | 4 | PICKS BRANCH |
@@ -168,481 +168,452 @@ Each phase is one short, supervised session. Verify in-browser between phases.
 
 Every hit, grouped under the nearest banner-comment heading above it. Use this to find specific lines while refactoring.
 
-### Save current scoped IDs so the existing loadRoster / loadAllTrades can target them (36)
+### Save current scoped IDs so the existing loadRoster / loadAllTrades can target them (33)
 
 | Line | Mode | Declaration |
 |---|---|---|
-| 5240 | dynamic | `font-family:'Mulish',sans-serif;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;padding:2px 6px;bor...` |
-| 5249 | dynamic-context | `display:inline-flex;align-items:center;gap:3px;padding:2px 6px;background:var(--surface2);border:1px solid var(--border);border...` |
-| 5250 | dynamic | `color:${color};letter-spacing:.04em` |
-| 5251 | dynamic | `color:${rankColor}` |
-| 5256 | dynamic-context | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:9px;color:var(--white);background:var(--red);padding...` |
-| 5262 | dynamic | `border:1px solid var(--border);background:var(--surface);margin-bottom:6px` |
-| 5264 | static | `display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;user-select:none` |
-| 5266 | static | `font-family:'Mulish',sans-serif;font-size:9px;color:var(--muted);width:14px;text-align:center;flex-shrink:0;transition:transfor...` |
-| 5268 | dynamic | `width:28px;height:28px;border-radius:3px;object-fit:cover;background:var(--surface2);flex-shrink:0` |
-| 5269 | dynamic | `width:28px;height:28px;border-radius:3px;background:var(--surface2);display:flex;align-items:center;justify-content:center;font...` |
-| 5271 | static | `flex:1;min-width:0` |
-| 5272 | static | `display:flex;align-items:center;gap:6px;flex-wrap:wrap` |
-| 5273 | dynamic | `font-family:'Mulish',sans-serif;font-weight:800;font-size:13px;color:var(--white);white-space:nowrap;overflow:hidden;text-overf...` |
-| 5277 | static | `display:flex;align-items:center;gap:4px;flex-wrap:wrap;margin-top:5px` |
-| 5281 | static | `text-align:right;flex-shrink:0` |
-| 5282 | dynamic | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:14px;color:var(--white)` |
-| 5283 | static | `font-family:'Mulish',sans-serif;font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em` |
-| 5286 | dynamic | `display:none;border-top:1px solid var(--border);background:var(--surface2);padding:10px 14px` |
-| 5319 | dynamic-context | `color:var(--muted);font-size:11px;padding:8px;font-style:italic` |
-| 5323 | dynamic-context | `color:var(--muted);font-size:11px;padding:8px;font-style:italic` |
-| 5409 | static | `margin-bottom:10px` |
-| 5410 | static | `display:flex;align-items:center;justify-content:space-between;padding:6px 4px;border-bottom:1px solid var(--border2);margin-bot...` |
-| 5411 | dynamic | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:11px;color:var(--red);text-transform:uppercase;lette...` |
-| 5411 | dynamic | `color:var(--muted);font-weight:700;margin-left:4px` |
-| 5412 | dynamic | `font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);font-weight:700` |
-| 5422 | static | `margin-bottom:10px` |
-| 5423 | static | `display:flex;align-items:center;padding:6px 4px;border-bottom:1px solid var(--border2);margin-bottom:2px` |
-| 5424 | dynamic | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:11px;color:var(--muted);text-transform:uppercase;let...` |
-| 5424 | dynamic | `margin-left:4px` |
-| 5435 | static | `margin-bottom:10px` |
-| 5436 | static | `display:flex;align-items:center;justify-content:space-between;padding:6px 4px;border-bottom:1px solid var(--border2);margin-bot...` |
-| 5437 | dynamic | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:11px;color:var(--pos-pick-bg,#9b91d4);text-transform...` |
-| 5437 | dynamic | `color:var(--muted);font-weight:700;margin-left:4px` |
-| 5438 | dynamic | `font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);font-weight:700` |
-| 5446 | dynamic-context | `color:var(--muted);font-size:11px;padding:8px;font-style:italic` |
-| 5448 | dynamic | `font-family:'Mulish',sans-serif` |
+| 5263 | dynamic | `font-family:'Mulish',sans-serif;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;padding:2px 6px;bor...` |
+| 5272 | dynamic-context | `display:inline-flex;align-items:center;gap:3px;padding:2px 6px;background:var(--surface2);border:1px solid var(--border);border...` |
+| 5273 | dynamic | `color:${color};letter-spacing:.04em` |
+| 5274 | dynamic | `color:${rankColor}` |
+| 5279 | dynamic-context | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:9px;color:var(--white);background:var(--red);padding...` |
+| 5285 | dynamic | `border:1px solid var(--border);background:var(--surface);margin-bottom:6px` |
+| 5287 | static | `display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;user-select:none` |
+| 5289 | static | `font-family:'Mulish',sans-serif;font-size:9px;color:var(--muted);width:14px;text-align:center;flex-shrink:0;transition:transfor...` |
+| 5291 | dynamic | `width:28px;height:28px;border-radius:3px;object-fit:cover;background:var(--surface2);flex-shrink:0` |
+| 5292 | dynamic | `width:28px;height:28px;border-radius:3px;background:var(--surface2);display:flex;align-items:center;justify-content:center;font...` |
+| 5296 | dynamic | `font-family:'Mulish',sans-serif;font-weight:800;font-size:13px;color:var(--white);white-space:nowrap;overflow:hidden;text-overf...` |
+| 5300 | static | `display:flex;align-items:center;gap:4px;flex-wrap:wrap;margin-top:5px` |
+| 5304 | static | `text-align:right;flex-shrink:0` |
+| 5305 | dynamic | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:14px;color:var(--white)` |
+| 5306 | static | `font-family:'Mulish',sans-serif;font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em` |
+| 5309 | dynamic | `display:none;border-top:1px solid var(--border);background:var(--surface2);padding:10px 14px` |
+| 5342 | dynamic-context | `color:var(--muted);font-size:11px;padding:8px;font-style:italic` |
+| 5346 | dynamic-context | `color:var(--muted);font-size:11px;padding:8px;font-style:italic` |
+| 5432 | static | `margin-bottom:10px` |
+| 5433 | static | `display:flex;align-items:center;justify-content:space-between;padding:6px 4px;border-bottom:1px solid var(--border2);margin-bot...` |
+| 5434 | dynamic | `color:var(--muted);font-weight:700;margin-left:4px` |
+| 5435 | dynamic | `font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);font-weight:700` |
+| 5445 | static | `margin-bottom:10px` |
+| 5446 | static | `display:flex;align-items:center;padding:6px 4px;border-bottom:1px solid var(--border2);margin-bottom:2px` |
+| 5447 | dynamic | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:11px;color:var(--muted);text-transform:uppercase;let...` |
+| 5447 | dynamic | `margin-left:4px` |
+| 5458 | static | `margin-bottom:10px` |
+| 5459 | static | `display:flex;align-items:center;justify-content:space-between;padding:6px 4px;border-bottom:1px solid var(--border2);margin-bot...` |
+| 5460 | dynamic | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:11px;color:var(--pos-pick-bg,#9b91d4);text-transform...` |
+| 5460 | dynamic | `color:var(--muted);font-weight:700;margin-left:4px` |
+| 5461 | dynamic | `font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);font-weight:700` |
+| 5469 | dynamic-context | `color:var(--muted);font-size:11px;padding:8px;font-style:italic` |
+| 5471 | dynamic | `font-family:'Mulish',sans-serif` |
 
-### Render the current suggestion as a single card (30)
+### Render the current suggestion as a single card (29)
 
 | Line | Mode | Declaration |
 |---|---|---|
-| 3992 | static | `display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)` |
-| 3993 | dynamic | `font-family:'Mulish',sans-serif;font-size:9px;font-weight:800;text-transform:uppercase;padding:2px 5px;border-radius:2px;${posS...` |
-| 3994 | dynamic | `font-family:'Mulish',sans-serif;font-size:12px;font-weight:700;color:var(--white);flex:1;min-width:0;overflow:hidden;text-overf...` |
-| 3995 | dynamic | `font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);flex-shrink:0` |
-| 4002 | static | `display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)` |
-| 4003 | dynamic | `font-family:'Mulish',sans-serif;font-size:9px;font-weight:800;text-transform:uppercase;padding:2px 5px;border-radius:2px;backgr...` |
-| 4004 | dynamic | `font-family:'Mulish',sans-serif;font-size:12px;font-weight:700;color:var(--white);flex:1;min-width:0;overflow:hidden;text-overf...` |
-| 4005 | dynamic | `font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);flex-shrink:0` |
-| 4016 | static | `padding:14px 18px` |
-| 4017 | static | `display:flex;align-items:center;justify-content:space-between;margin-bottom:10px` |
-| 4018 | dynamic | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:11px;color:var(--red);text-transform:uppercase;lette...` |
-| 4019 | dynamic | `font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted)` |
-| 4022 | static | `border:1px solid var(--border2);background:var(--surface2);padding:12px 14px;margin-bottom:14px` |
-| 4023 | static | `margin-bottom:8px` |
-| 4024 | static | `font-family:'Mulish',sans-serif;font-size:9px;font-weight:700;text-transform:uppercase;color:var(--muted);letter-spacing:.06em;...` |
-| 4026 | static | `display:flex;justify-content:space-between;padding-top:6px;font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted)` |
-| 4027 | dynamic | `color:var(--white);font-weight:700` |
-| 4030 | static | `border-top:1px solid var(--border);padding-top:8px;margin-top:6px` |
-| 4031 | static | `font-family:'Mulish',sans-serif;font-size:9px;font-weight:700;text-transform:uppercase;color:var(--muted);letter-spacing:.06em;...` |
-| 4033 | static | `display:flex;justify-content:space-between;padding-top:6px;font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted)` |
-| 4034 | dynamic | `color:var(--white);font-weight:700` |
-| 4037 | dynamic | `margin-top:10px;padding-top:8px;border-top:1px solid var(--border);font-family:'Mulish',sans-serif;font-size:11px;color:${balan...` |
-| 4040 | static | `display:flex;gap:10px;margin-bottom:10px` |
-| 4042 | static | `flex:1;background:transparent;border:2px solid var(--red);color:var(--red);font-family:'Kanit',sans-serif;font-weight:800;font-...` |
-| 4046 | static | `flex:1;background:var(--green);border:2px solid var(--green);color:var(--black);font-family:'Kanit',sans-serif;font-weight:800;...` |
-| 4050 | static | `text-align:center;font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);font-style:italic` |
-| 4060 | static | `padding:24px 20px;text-align:center` |
-| 4061 | dynamic | `font-family:'Mulish',sans-serif;font-size:13px;color:var(--white);margin-bottom:6px;line-height:1.5` |
-| 4062 | dynamic | `font-family:'Mulish',sans-serif;font-size:11px;color:var(--muted);margin-bottom:18px;line-height:1.5` |
-| 4064 | static | `background:var(--red);border:none;color:var(--white);font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size...` |
+| 4015 | static | `display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)` |
+| 4016 | dynamic | `font-family:'Mulish',sans-serif;font-size:9px;font-weight:800;text-transform:uppercase;padding:2px 5px;border-radius:2px;${posS...` |
+| 4017 | dynamic | `font-family:'Mulish',sans-serif;font-size:12px;font-weight:700;color:var(--white);flex:1;min-width:0;overflow:hidden;text-overf...` |
+| 4018 | dynamic | `font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);flex-shrink:0` |
+| 4025 | static | `display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)` |
+| 4026 | dynamic | `font-family:'Mulish',sans-serif;font-size:9px;font-weight:800;text-transform:uppercase;padding:2px 5px;border-radius:2px;backgr...` |
+| 4027 | dynamic | `font-family:'Mulish',sans-serif;font-size:12px;font-weight:700;color:var(--white);flex:1;min-width:0;overflow:hidden;text-overf...` |
+| 4028 | dynamic | `font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);flex-shrink:0` |
+| 4039 | static | `padding:14px 18px` |
+| 4040 | static | `display:flex;align-items:center;justify-content:space-between;margin-bottom:10px` |
+| 4042 | dynamic | `font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted)` |
+| 4045 | static | `border:1px solid var(--border2);background:var(--surface2);padding:12px 14px;margin-bottom:14px` |
+| 4046 | static | `margin-bottom:8px` |
+| 4047 | static | `font-family:'Mulish',sans-serif;font-size:9px;font-weight:700;text-transform:uppercase;color:var(--muted);letter-spacing:.06em;...` |
+| 4049 | static | `display:flex;justify-content:space-between;padding-top:6px;font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted)` |
+| 4050 | dynamic | `color:var(--white);font-weight:700` |
+| 4053 | static | `border-top:1px solid var(--border);padding-top:8px;margin-top:6px` |
+| 4054 | static | `font-family:'Mulish',sans-serif;font-size:9px;font-weight:700;text-transform:uppercase;color:var(--muted);letter-spacing:.06em;...` |
+| 4056 | static | `display:flex;justify-content:space-between;padding-top:6px;font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted)` |
+| 4057 | dynamic | `color:var(--white);font-weight:700` |
+| 4060 | dynamic | `margin-top:10px;padding-top:8px;border-top:1px solid var(--border);font-family:'Mulish',sans-serif;font-size:11px;color:${balan...` |
+| 4063 | static | `display:flex;gap:10px;margin-bottom:10px` |
+| 4065 | static | `flex:1;background:transparent;border:2px solid var(--red);color:var(--red);font-family:'Kanit',sans-serif;font-weight:800;font-...` |
+| 4069 | static | `flex:1;background:var(--green);border:2px solid var(--green);color:var(--black);font-family:'Kanit',sans-serif;font-weight:800;...` |
+| 4073 | static | `text-align:center;font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);font-style:italic` |
+| 4083 | static | `padding:24px 20px;text-align:center` |
+| 4084 | dynamic | `font-family:'Mulish',sans-serif;font-size:13px;color:var(--white);margin-bottom:6px;line-height:1.5` |
+| 4085 | dynamic | `font-family:'Mulish',sans-serif;font-size:11px;color:var(--muted);margin-bottom:18px;line-height:1.5` |
+| 4087 | static | `background:var(--red);border:none;color:var(--white);font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size...` |
 
-### Sort rosters by chosen key (30)
-
-| Line | Mode | Declaration |
-|---|---|---|
-| 7260 | js-composed | `width:26px;height:26px;border-radius:50%;object-fit:cover;margin-right:8px;flex-shrink:0;` |
-| 7261 | dynamic-context | `width:26px;height:26px;border-radius:50%;background:var(--border2);margin-right:8px;flex-shrink:0;` |
-| 7266 | dynamic | `height:100%;width:${w}%;background:${posColors[pos]};flex-shrink:0;` |
-| 7269 | dynamic | `${rowBg}` |
-| 7270 | dynamic | `color:var(--muted);opacity:.3;width:28px` |
-| 7272 | static | `display:flex;align-items:center;gap:6px;flex-wrap:wrap` |
-| 7274 | dynamic | `font-family:'Mulish',sans-serif;font-weight:900;font-size:13px;${r.isMe?'color:var(--red)':''}` |
-| 7275 | dynamic | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:9px;color:var(--red);border:1px solid var(--red);pad...` |
-| 7277 | dynamic | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:9px;color:${posColors[r.topScoringPos]};border:1px s...` |
-| 7279 | static | `height:4px;background:var(--border);margin-top:5px;border-radius:2px;overflow:hidden;display:flex` |
-| 7283 | dynamic | `color:var(--white)` |
-| 7284 | dynamic | `color:var(--muted);opacity:.5` |
-| 7285 | dynamic | `color:${posColors.QB}` |
-| 7286 | dynamic | `color:${posColors.RB}` |
-| 7287 | dynamic | `color:${posColors.WR}` |
-| 7288 | dynamic | `color:${posColors.TE}` |
-| 7289 | dynamic | `color:var(--green)` |
-| 7290 | dynamic | `color:var(--white);opacity:.5` |
-| 7291 | dynamic | `color:${r.mpxPct >= 90 ? 'var(--green)' : r.mpxPct >= 75 ? 'var(--white)' : r.mpxPct ? 'var(--red)' : 'var(--muted)'}` |
-| 7297 | static | `overflow-x:auto;-webkit-overflow-scrolling:touch` |
-| 7298 | static | `width:100%;border-collapse:collapse;min-width:560px` |
-| 7300 | static | `width:28px` |
-| 7304 | dynamic | `color:${posColors.QB}` |
-| 7305 | dynamic | `color:${posColors.RB}` |
-| 7306 | dynamic | `color:${posColors.WR}` |
-| 7307 | dynamic | `color:${posColors.TE}` |
-| 7360 | dynamic | `margin-top:20px` |
-| 7366 | dynamic | `border-left-color:var(--red)` |
-| 7368 | dynamic | `color:var(--white);opacity:.7` |
-| 7369 | dynamic | `${isMyPick?'color:var(--red)':''}` |
-
-### Helpers (26)
+### Sort rosters by chosen key (28)
 
 | Line | Mode | Declaration |
 |---|---|---|
-| 6213 | dynamic | `color:var(--green);font-family:'Kanit',sans-serif;font-weight:800;font-style:italic` |
-| 6214 | dynamic | `color:var(--red);font-family:'Kanit',sans-serif;font-weight:800;font-style:italic` |
-| 6215 | dynamic-context | `opacity:.3` |
-| 6219 | js-composed | `cursor:pointer` |
-| 6220 | dynamic | `width:36px;padding-right:8px` |
-| 6222 | static | `display:flex;align-items:center;gap:6px;flex-wrap:wrap` |
-| 6224 | dynamic | `font-family:'Mulish',sans-serif;font-weight:900;font-size:14px;color:var(--white)` |
-| 6225 | dynamic | `display:inline-flex;align-items:center` |
-| 6225 | dynamic | `font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);opacity:.4` |
-| 6229 | dynamic | `color:var(--white)` |
-| 6230 | dynamic | `color:var(--white);font-size:12px` |
-| 6231 | dynamic | `color:${valColor(r.value)}` |
-| 6232 | dynamic | `color:var(--white);font-size:12px` |
-| 6233 | dynamic | `color:${r.seasonProj ? 'var(--white)' : 'var(--muted)'};opacity:${r.seasonProj ? '1' : '.3'}` |
-| 6234 | dynamic | `color:${r.proj ? (r.proj >= 20 ? 'var(--green)' : r.proj >= 12 ? 'var(--white)' : 'var(--muted)') : 'var(--muted)'};opacity:${r...` |
-| 6237 | dynamic | `color:var(--white)` |
-| 6248 | static | `margin-bottom:28px` |
-| 6249 | static | `display:flex;align-items:center;justify-content:space-between;margin-bottom:10px` |
-| 6250 | static | `display:flex;align-items:center;gap:10px` |
-| 6251 | dynamic | `width:4px;height:20px;background:${posColors[pos]};flex-shrink:0` |
-| 6252 | dynamic | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:14px;color:var(--white);text-transform:uppercase` |
-| 6253 | dynamic | `font-family:'Mulish',sans-serif;font-size:11px;color:var(--muted);opacity:.4` |
-| 6255 | dynamic | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:13px;color:${posColors[pos]}` |
-| 6257 | static | `overflow-x:auto;-webkit-overflow-scrolling:touch` |
-| 6258 | static | `width:100%;border-collapse:collapse;min-width:430px` |
-| 6260 | static | `width:36px` |
+| 7283 | js-composed | `width:26px;height:26px;border-radius:50%;object-fit:cover;margin-right:8px;flex-shrink:0;` |
+| 7284 | dynamic-context | `width:26px;height:26px;border-radius:50%;background:var(--border2);margin-right:8px;flex-shrink:0;` |
+| 7289 | dynamic | `height:100%;width:${w}%;background:${posColors[pos]};flex-shrink:0;` |
+| 7292 | dynamic | `${rowBg}` |
+| 7293 | dynamic | `color:var(--muted);opacity:.3;width:28px` |
+| 7297 | dynamic | `font-family:'Mulish',sans-serif;font-weight:900;font-size:13px;${r.isMe?'color:var(--red)':''}` |
+| 7298 | dynamic | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:9px;color:var(--red);border:1px solid var(--red);pad...` |
+| 7300 | dynamic | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:9px;color:${posColors[r.topScoringPos]};border:1px s...` |
+| 7302 | static | `height:4px;background:var(--border);margin-top:5px;border-radius:2px;overflow:hidden;display:flex` |
+| 7306 | dynamic | `color:var(--white)` |
+| 7308 | dynamic | `color:${posColors.QB}` |
+| 7309 | dynamic | `color:${posColors.RB}` |
+| 7310 | dynamic | `color:${posColors.WR}` |
+| 7311 | dynamic | `color:${posColors.TE}` |
+| 7312 | dynamic | `color:var(--green)` |
+| 7313 | dynamic | `color:var(--white);opacity:.5` |
+| 7314 | dynamic | `color:${r.mpxPct >= 90 ? 'var(--green)' : r.mpxPct >= 75 ? 'var(--white)' : r.mpxPct ? 'var(--red)' : 'var(--muted)'}` |
+| 7320 | static | `overflow-x:auto;-webkit-overflow-scrolling:touch` |
+| 7321 | static | `width:100%;border-collapse:collapse;min-width:560px` |
+| 7323 | static | `width:28px` |
+| 7327 | dynamic | `color:${posColors.QB}` |
+| 7328 | dynamic | `color:${posColors.RB}` |
+| 7329 | dynamic | `color:${posColors.WR}` |
+| 7330 | dynamic | `color:${posColors.TE}` |
+| 7383 | dynamic | `margin-top:20px` |
+| 7389 | dynamic | `border-left-color:var(--red)` |
+| 7391 | dynamic | `color:var(--white);opacity:.7` |
+| 7392 | dynamic | `${isMyPick?'color:var(--red)':''}` |
 
-### Aggregate per-roster (24)
-
-| Line | Mode | Declaration |
-|---|---|---|
-| 6647 | static | `width:30px` |
-| 6653 | static | `text-align:right` |
-| 6654 | static | `text-align:right` |
-| 6655 | static | `text-align:right` |
-| 6656 | static | `text-align:right` |
-| 6662 | dynamic | `color:var(--muted);opacity:.5` |
-| 6667 | dynamic | `color:var(--red);font-size:10px;font-style:italic` |
-| 6672 | dynamic | `color:var(--yellow)` |
-| 6673 | dynamic | `width:${maxSpent ? (r.spent/maxSpent*100).toFixed(0) : 0}%` |
-| 6674 | dynamic | `color:var(--green)` |
-| 6675 | dynamic | `width:${budget ? (r.left/budget*100).toFixed(0) : 0}%` |
-| 6676 | dynamic | `text-align:right` |
-| 6677 | dynamic | `text-align:right;color:var(--muted)` |
-| 6678 | dynamic | `text-align:right` |
-| 6679 | dynamic | `text-align:right;color:var(--yellow)` |
-| 6717 | static | `width:30px` |
-| 6734 | dynamic | `color:var(--muted);opacity:.5` |
-| 6743 | dynamic | `color:var(--muted);opacity:.5;font-size:10px` |
-| 6752 | dynamic | `font-size:12px` |
-| 6752 | dynamic | `color:var(--red);font-style:italic` |
-| 6796 | dynamic | `color:var(--muted);opacity:.5;font-size:10px` |
-| 6800 | dynamic | `color:var(--muted);opacity:.4;font-size:10px` |
-| 6803 | dynamic | `background:rgba(237,129,12,0.05)` |
-| 6807 | dynamic | `opacity:.4` |
-
-### Render an archetype chip (23)
+### Helpers (23)
 
 | Line | Mode | Declaration |
 |---|---|---|
-| 2925 | dynamic | `display:inline-flex;align-items:center;justify-content:center;font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;...` |
-| 2928 | dynamic | `display:inline-flex;align-items:center;justify-content:center;background:${c};color:var(--black);font-family:'Kanit',sans-serif...` |
-| 2932 | dynamic-context | `width:32px;height:32px;flex-shrink:0;display:inline-block;` |
-| 2933 | js-composed | `width:32px;height:32px;border-radius:50%;object-fit:cover;flex-shrink:0;` |
-| 2938 | dynamic-context | `width:32px;height:32px;border-radius:50%;background:var(--surface2);display:inline-flex;align-items:center;justify-content:cent...` |
-| 2939 | static | `display:block` |
-| 3023 | static | `display:flex;align-items:center;gap:8px;margin-bottom:6px` |
-| 3024 | static | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:11px;color:var(--red);text-transform:uppercase;lette...` |
-| 3025 | static | `font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);opacity:.5` |
-| 3027 | static | `display:flex;align-items:center;gap:10px;min-height:24px` |
-| 3028 | static | `display:none;margin-top:8px` |
-| 3030 | static | `background:none;border:none;color:var(--muted);font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:10px;...` |
-| 3034 | static | `font-size:8px;transition:transform .15s` |
-| 3036 | static | `display:none;margin-top:8px;padding-top:8px;border-top:1px solid var(--border)` |
-| 3070 | static | `display:flex;align-items:center;gap:10px;width:100%;padding:8px 12px;background:rgba(237,129,12,0.06);border:1px dashed var(--b...` |
-| 3071 | dynamic | `font-family:'Mulish',sans-serif;font-size:12px;color:var(--muted);font-style:italic;flex:1;min-width:0` |
-| 3073 | static | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:10px;color:var(--red);text-decoration:none;text-tran...` |
-| 3088 | static | `font-family:'Mulish',sans-serif;font-weight:900;font-size:13px;color:var(--white);text-decoration:none;flex:1;min-width:0;overf...` |
-| 3092 | dynamic | `font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);opacity:.5;flex-shrink:0` |
-| 3094 | static | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:10px;color:var(--red);text-decoration:none;text-tran...` |
-| 3104 | static | `display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--border)` |
-| 3106 | static | `font-family:'Mulish',sans-serif;font-weight:700;font-size:12px;color:var(--white);text-decoration:none;flex:1;min-width:0;overf...` |
-| 3110 | dynamic | `font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);opacity:.5;flex-shrink:0` |
+| 6236 | dynamic | `color:var(--green);font-family:'Kanit',sans-serif;font-weight:800;font-style:italic` |
+| 6237 | dynamic | `color:var(--red);font-family:'Kanit',sans-serif;font-weight:800;font-style:italic` |
+| 6238 | dynamic-context | `opacity:.3` |
+| 6243 | dynamic | `width:36px;padding-right:8px` |
+| 6247 | dynamic | `font-family:'Mulish',sans-serif;font-weight:900;font-size:14px;color:var(--white)` |
+| 6248 | dynamic | `display:inline-flex;align-items:center` |
+| 6252 | dynamic | `color:var(--white)` |
+| 6253 | dynamic | `color:var(--white);font-size:12px` |
+| 6254 | dynamic | `color:${valColor(r.value)}` |
+| 6255 | dynamic | `color:var(--white);font-size:12px` |
+| 6256 | dynamic | `color:${r.seasonProj ? 'var(--white)' : 'var(--muted)'};opacity:${r.seasonProj ? '1' : '.3'}` |
+| 6257 | dynamic | `color:${r.proj ? (r.proj >= 20 ? 'var(--green)' : r.proj >= 12 ? 'var(--white)' : 'var(--muted)') : 'var(--muted)'};opacity:${r...` |
+| 6260 | dynamic | `color:var(--white)` |
+| 6271 | static | `margin-bottom:28px` |
+| 6272 | static | `display:flex;align-items:center;justify-content:space-between;margin-bottom:10px` |
+| 6273 | static | `display:flex;align-items:center;gap:10px` |
+| 6274 | dynamic | `width:4px;height:20px;background:${posColors[pos]};flex-shrink:0` |
+| 6275 | dynamic | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:14px;color:var(--white);text-transform:uppercase` |
+| 6276 | dynamic | `font-family:'Mulish',sans-serif;font-size:11px;color:var(--muted);opacity:.4` |
+| 6278 | dynamic | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:13px;color:${posColors[pos]}` |
+| 6280 | static | `overflow-x:auto;-webkit-overflow-scrolling:touch` |
+| 6281 | static | `width:100%;border-collapse:collapse;min-width:430px` |
+| 6283 | static | `width:36px` |
 
-### Archetype lookup for the owning team (23)
-
-| Line | Mode | Declaration |
-|---|---|---|
-| 3363 | js-composed | `width:24px;height:24px;border-radius:3px;flex-shrink:0;background:var(--surface2)` |
-| 3364 | dynamic-context | `width:24px;height:24px;border-radius:3px;flex-shrink:0;background:var(--surface2);display:inline-block` |
-| 3378 | dynamic-context | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:11px;color:var(--green);text-transform:uppercase;let...` |
-| 3384 | dynamic | `font-family:'Mulish',sans-serif;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;padding:1px 5px;bor...` |
-| 3386 | dynamic | `font-family:'Mulish',sans-serif;font-size:11px;color:var(--white);opacity:.85` |
-| 3390 | static | `background:var(--red);border:none;font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:10px;color:var(--w...` |
-| 3399 | dynamic-context | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:11px;color:#5b9bd5;text-transform:uppercase;letter-s...` |
-| 3401 | static | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:10px;color:var(--red);text-decoration:none;text-tran...` |
-| 3408 | dynamic | `display:flex;align-items:center;gap:10px;padding:8px 10px;border-bottom:1px solid var(--border);cursor:${rowCursor};border-radi...` |
-| 3410 | static | `flex:1;min-width:0` |
-| 3411 | dynamic | `font-family:'Mulish',sans-serif;font-weight:800;font-size:12px;color:var(--white);white-space:nowrap;overflow:hidden;text-overf...` |
-| 3412 | dynamic | `font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);opacity:.6;white-space:nowrap;overflow:hidden;text-overflow:e...` |
-| 3414 | static | `display:flex;align-items:center;gap:8px;flex-shrink:0` |
-| 3423 | dynamic | `margin-top:8px;font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);opacity:.5;font-style:italic` |
-| 3432 | static | `padding:0 18px;border-top:1px solid var(--border);background:var(--surface)` |
-| 3434 | static | `display:flex;align-items:center;justify-content:space-between;padding:14px 0;cursor:pointer;user-select:none;gap:10px` |
-| 3436 | static | `display:flex;align-items:center;gap:10px;flex:1;min-width:0` |
-| 3437 | dynamic | `font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);width:14px;text-align:center;flex-shrink:0;transition:transfo...` |
-| 3438 | static | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:11px;color:var(--red);text-transform:uppercase;lette...` |
-| 3439 | dynamic | `font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);opacity:.7` |
-| 3441 | static | `display:flex;align-items:center;gap:6px;cursor:pointer;font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);user-s...` |
-| 3443 | dynamic | `cursor:pointer` |
-| 3447 | dynamic | `${contentDisplay};padding-bottom:14px` |
-
-### Renders draft picks in the same visual layout as a position section so the (23)
+### Render an archetype chip (22)
 
 | Line | Mode | Declaration |
 |---|---|---|
-| 6296 | static | `margin-bottom:28px` |
-| 6297 | static | `display:flex;align-items:center;gap:10px;margin-bottom:10px` |
-| 6298 | static | `width:4px;height:20px;background:var(--pos-pick-bg);flex-shrink:0` |
-| 6299 | static | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:14px;color:var(--white);text-transform:uppercase` |
-| 6301 | static | `font-size:13px;opacity:.4;padding:12px 0;font-family:'Mulish',sans-serif` |
-| 6322 | dynamic-context | `border-bottom:1px solid var(--border)` |
-| 6323 | dynamic | `width:36px;padding-right:8px` |
-| 6325 | static | `display:flex;align-items:center;gap:6px;flex-wrap:wrap` |
-| 6326 | dynamic | `font-family:'Mulish',sans-serif;font-weight:900;font-size:14px;color:var(--white)` |
-| 6327 | dynamic | `font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);opacity:.5` |
-| 6330 | dynamic | `color:var(--muted);opacity:.5` |
-| 6331 | dynamic | `color:${val > 3000 ? 'var(--green)' : val > 1000 ? 'var(--white)' : 'var(--muted)'}` |
-| 6332 | dynamic | `color:var(--muted);opacity:.4;font-size:11px` |
-| 6338 | static | `margin-bottom:28px` |
-| 6339 | static | `display:flex;align-items:center;justify-content:space-between;margin-bottom:10px` |
-| 6340 | static | `display:flex;align-items:center;gap:10px` |
-| 6341 | static | `width:4px;height:20px;background:var(--pos-pick-bg);flex-shrink:0` |
-| 6342 | static | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:14px;color:var(--white);text-transform:uppercase` |
-| 6343 | dynamic | `font-family:'Mulish',sans-serif;font-size:11px;color:var(--muted);opacity:.4` |
-| 6345 | dynamic | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:13px;color:var(--pos-pick-bg)` |
-| 6347 | static | `overflow-x:auto` |
-| 6348 | static | `width:100%;border-collapse:collapse;min-width:520px` |
-| 6350 | static | `width:36px` |
+| 2948 | dynamic | `display:inline-flex;align-items:center;justify-content:center;font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;...` |
+| 2951 | dynamic | `display:inline-flex;align-items:center;justify-content:center;background:${c};color:var(--black);font-family:'Kanit',sans-serif...` |
+| 2955 | dynamic-context | `width:32px;height:32px;flex-shrink:0;display:inline-block;` |
+| 2956 | js-composed | `width:32px;height:32px;border-radius:50%;object-fit:cover;flex-shrink:0;` |
+| 2961 | dynamic-context | `width:32px;height:32px;border-radius:50%;background:var(--surface2);display:inline-flex;align-items:center;justify-content:cent...` |
+| 2962 | static | `display:block` |
+| 3046 | static | `display:flex;align-items:center;gap:8px;margin-bottom:6px` |
+| 3048 | static | `font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);opacity:.5` |
+| 3050 | static | `display:flex;align-items:center;gap:10px;min-height:24px` |
+| 3051 | static | `display:none;margin-top:8px` |
+| 3053 | static | `background:none;border:none;color:var(--muted);font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:10px;...` |
+| 3057 | static | `font-size:8px;transition:transform .15s` |
+| 3059 | static | `display:none;margin-top:8px;padding-top:8px;border-top:1px solid var(--border)` |
+| 3093 | static | `display:flex;align-items:center;gap:10px;width:100%;padding:8px 12px;background:rgba(237,129,12,0.06);border:1px dashed var(--b...` |
+| 3094 | dynamic | `font-family:'Mulish',sans-serif;font-size:12px;color:var(--muted);font-style:italic;flex:1;min-width:0` |
+| 3096 | static | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:10px;color:var(--red);text-decoration:none;text-tran...` |
+| 3111 | static | `font-family:'Mulish',sans-serif;font-weight:900;font-size:13px;color:var(--white);text-decoration:none;flex:1;min-width:0;overf...` |
+| 3115 | dynamic | `font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);opacity:.5;flex-shrink:0` |
+| 3117 | static | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:10px;color:var(--red);text-decoration:none;text-tran...` |
+| 3127 | static | `display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--border)` |
+| 3129 | static | `font-family:'Mulish',sans-serif;font-weight:700;font-size:12px;color:var(--white);text-decoration:none;flex:1;min-width:0;overf...` |
+| 3133 | dynamic | `font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);opacity:.5;flex-shrink:0` |
 
-### RIGHT: player exposure sidebar (22)
-
-| Line | Mode | Declaration |
-|---|---|---|
-| 2255 | static | `cursor:pointer` |
-| 2256 | static | `display:flex;align-items:center;gap:8px` |
-| 2257 | static | `font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);width:12px;text-align:center;flex-shrink:0;transition:transfo...` |
-| 2263 | static | `display:none` |
-| 2281 | static | `width:24px;flex-shrink:0` |
-| 2282 | static | `flex:1` |
-| 2297 | static | `fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;` |
-| 2297 | static | `fill:#c33;` |
-| 2297 | static | `fill:var(--black);fill-rule:nonzero;` |
-| 2297 | static | `fill:var(--black);fill-rule:nonzero;` |
-| 2297 | static | `fill:var(--black);fill-rule:nonzero;` |
-| 2297 | static | `fill:var(--black);fill-rule:nonzero;` |
-| 2297 | static | `fill:var(--black);fill-rule:nonzero;` |
-| 2297 | static | `fill:var(--black);fill-rule:nonzero;` |
-| 2297 | static | `fill:var(--black);fill-rule:nonzero;` |
-| 2297 | static | `fill:var(--black);fill-rule:nonzero;` |
-| 2297 | static | `fill:var(--black);fill-rule:nonzero;` |
-| 2297 | static | `fill:var(--black);fill-rule:nonzero;` |
-| 2297 | static | `fill:var(--black);fill-rule:nonzero;` |
-| 2297 | static | `fill:var(--black);fill-rule:nonzero;` |
-| 2297 | static | `fill:var(--black);fill-rule:nonzero;` |
-| 2299 | dynamic-context | `flex-shrink:0;vertical-align:middle;margin-right:4px` |
-
-### Picks this roster RECEIVED (19)
+### RIGHT: player exposure sidebar (21)
 
 | Line | Mode | Declaration |
 |---|---|---|
-| 6987 | static | `display:flex;justify-content:space-between;align-items:center;margin-bottom:8px` |
-| 6988 | dynamic | `margin-bottom:0` |
-| 6989 | dynamic | `font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);opacity:.4` |
-| 6994 | dynamic | `${s.isMe ? 'color:var(--red)' : ''}` |
-| 6996 | dynamic | `cursor:pointer` |
-| 6997 | static | `width:28px;height:28px;flex-shrink:0;display:inline-flex;align-items:center;` |
-| 6999 | js-composed | `width:28px;height:28px;border-radius:50%;object-fit:cover;` |
-| 7003 | static | `min-width:0;flex:1` |
-| 7004 | static | `display:flex;align-items:center;gap:4px;flex-wrap:wrap` |
-| 7008 | dynamic | `display:flex;gap:8px;margin-top:2px` |
-| 7009 | dynamic | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:11px;color:var(--muted);opacity:.6` |
-| 7010 | dynamic | `font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);opacity:.4` |
-| 7011 | dynamic | `font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);opacity:.4` |
-| 7017 | static | `min-width:0;flex:1` |
-| 7019 | dynamic | `font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);opacity:.35;margin-left:4px` |
-| 7020 | dynamic | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:11px;color:var(--pos-pick-bg);margin-top:2px` |
-| 7024 | dynamic | `margin-top:4px` |
-| 7025 | static | `width:28px;flex-shrink:0;` |
-| 7026 | dynamic | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:12px;color:var(--green)` |
+| 2279 | static | `display:flex;align-items:center;gap:8px` |
+| 2280 | static | `font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);width:12px;text-align:center;flex-shrink:0;transition:transfo...` |
+| 2286 | static | `display:none` |
+| 2304 | static | `width:24px;flex-shrink:0` |
+| 2305 | static | `flex:1` |
+| 2320 | static | `fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;` |
+| 2320 | static | `fill:#c33;` |
+| 2320 | static | `fill:var(--black);fill-rule:nonzero;` |
+| 2320 | static | `fill:var(--black);fill-rule:nonzero;` |
+| 2320 | static | `fill:var(--black);fill-rule:nonzero;` |
+| 2320 | static | `fill:var(--black);fill-rule:nonzero;` |
+| 2320 | static | `fill:var(--black);fill-rule:nonzero;` |
+| 2320 | static | `fill:var(--black);fill-rule:nonzero;` |
+| 2320 | static | `fill:var(--black);fill-rule:nonzero;` |
+| 2320 | static | `fill:var(--black);fill-rule:nonzero;` |
+| 2320 | static | `fill:var(--black);fill-rule:nonzero;` |
+| 2320 | static | `fill:var(--black);fill-rule:nonzero;` |
+| 2320 | static | `fill:var(--black);fill-rule:nonzero;` |
+| 2320 | static | `fill:var(--black);fill-rule:nonzero;` |
+| 2320 | static | `fill:var(--black);fill-rule:nonzero;` |
+| 2322 | dynamic-context | `flex-shrink:0;vertical-align:middle;margin-right:4px` |
+
+### Renders draft picks in the same visual layout as a position section so the (21)
+
+| Line | Mode | Declaration |
+|---|---|---|
+| 6319 | static | `margin-bottom:28px` |
+| 6320 | static | `display:flex;align-items:center;gap:10px;margin-bottom:10px` |
+| 6321 | static | `width:4px;height:20px;background:var(--pos-pick-bg);flex-shrink:0` |
+| 6322 | static | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:14px;color:var(--white);text-transform:uppercase` |
+| 6324 | static | `font-size:13px;opacity:.4;padding:12px 0;font-family:'Mulish',sans-serif` |
+| 6345 | dynamic-context | `border-bottom:1px solid var(--border)` |
+| 6346 | dynamic | `width:36px;padding-right:8px` |
+| 6349 | dynamic | `font-family:'Mulish',sans-serif;font-weight:900;font-size:14px;color:var(--white)` |
+| 6350 | dynamic | `font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);opacity:.5` |
+| 6354 | dynamic | `color:${val > 3000 ? 'var(--green)' : val > 1000 ? 'var(--white)' : 'var(--muted)'}` |
+| 6355 | dynamic | `color:var(--muted);opacity:.4;font-size:11px` |
+| 6361 | static | `margin-bottom:28px` |
+| 6362 | static | `display:flex;align-items:center;justify-content:space-between;margin-bottom:10px` |
+| 6363 | static | `display:flex;align-items:center;gap:10px` |
+| 6364 | static | `width:4px;height:20px;background:var(--pos-pick-bg);flex-shrink:0` |
+| 6365 | static | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:14px;color:var(--white);text-transform:uppercase` |
+| 6366 | dynamic | `font-family:'Mulish',sans-serif;font-size:11px;color:var(--muted);opacity:.4` |
+| 6368 | dynamic | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:13px;color:var(--pos-pick-bg)` |
+| 6370 | static | `overflow-x:auto` |
+| 6371 | static | `width:100%;border-collapse:collapse;min-width:520px` |
+| 6373 | static | `width:36px` |
+
+### Archetype lookup for the owning team (20)
+
+| Line | Mode | Declaration |
+|---|---|---|
+| 3386 | js-composed | `width:24px;height:24px;border-radius:3px;flex-shrink:0;background:var(--surface2)` |
+| 3387 | dynamic-context | `width:24px;height:24px;border-radius:3px;flex-shrink:0;background:var(--surface2);display:inline-block` |
+| 3401 | dynamic-context | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:11px;color:var(--green);text-transform:uppercase;let...` |
+| 3407 | dynamic | `font-family:'Mulish',sans-serif;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;padding:1px 5px;bor...` |
+| 3409 | dynamic | `font-family:'Mulish',sans-serif;font-size:11px;color:var(--white);opacity:.85` |
+| 3413 | static | `background:var(--red);border:none;font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:10px;color:var(--w...` |
+| 3422 | dynamic-context | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:11px;color:#5b9bd5;text-transform:uppercase;letter-s...` |
+| 3424 | static | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:10px;color:var(--red);text-decoration:none;text-tran...` |
+| 3431 | dynamic | `display:flex;align-items:center;gap:10px;padding:8px 10px;border-bottom:1px solid var(--border);cursor:${rowCursor};border-radi...` |
+| 3434 | dynamic | `font-family:'Mulish',sans-serif;font-weight:800;font-size:12px;color:var(--white);white-space:nowrap;overflow:hidden;text-overf...` |
+| 3435 | dynamic | `font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);opacity:.6;white-space:nowrap;overflow:hidden;text-overflow:e...` |
+| 3437 | static | `display:flex;align-items:center;gap:8px;flex-shrink:0` |
+| 3446 | dynamic | `margin-top:8px;font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);opacity:.5;font-style:italic` |
+| 3455 | static | `padding:0 18px;border-top:1px solid var(--border);background:var(--surface)` |
+| 3457 | static | `display:flex;align-items:center;justify-content:space-between;padding:14px 0;cursor:pointer;user-select:none;gap:10px` |
+| 3459 | static | `display:flex;align-items:center;gap:10px;flex:1;min-width:0` |
+| 3460 | dynamic | `font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);width:14px;text-align:center;flex-shrink:0;transition:transfo...` |
+| 3462 | dynamic | `font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);opacity:.7` |
+| 3464 | static | `display:flex;align-items:center;gap:6px;cursor:pointer;font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);user-s...` |
+| 3470 | dynamic | `${contentDisplay};padding-bottom:14px` |
 
 ### Stash render context on window so the sort buttons can re-render (18)
 
 | Line | Mode | Declaration |
 |---|---|---|
-| 7167 | static | `margin-bottom:24px` |
-| 7168 | static | `display:flex;align-items:center;justify-content:space-between;margin-bottom:12px` |
-| 7169 | static | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:11px;color:var(--red);text-transform:uppercase;lette...` |
-| 7170 | dynamic | `font-family:'Mulish',sans-serif;font-size:12px;color:var(--muted)` |
-| 7170 | dynamic | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;color:${+myTeam.mpxPct>=90?'var(--green)':+myTeam.mpxPct>=75?'...` |
-| 7170 | dynamic | `opacity:.5` |
-| 7172 | static | `display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px` |
-| 7183 | dynamic | `background:var(--surface2);border:1px solid var(--border);padding:12px 14px;border-left:3px solid ${posColors[pos]}` |
-| 7184 | dynamic | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:11px;color:${posColors[pos]};text-transform:uppercas...` |
-| 7185 | static | `display:flex;gap:12px;align-items:flex-end` |
-| 7187 | static | `font-family:'Mulish',sans-serif;font-size:9px;color:var(--muted);opacity:.4;text-transform:uppercase;letter-spacing:.06em` |
-| 7188 | dynamic | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:22px;color:${color}` |
-| 7189 | dynamic | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:11px;color:var(--muted);opacity:.6` |
-| 7191 | dynamic | `border-left:1px solid var(--border2);padding-left:12px` |
-| 7192 | static | `font-family:'Mulish',sans-serif;font-size:9px;color:var(--muted);opacity:.4;text-transform:uppercase;letter-spacing:.06em` |
-| 7193 | dynamic | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:22px;color:${scoreColor}` |
-| 7194 | dynamic | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:11px;color:var(--muted);opacity:.6` |
-| 7197 | dynamic | `font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);opacity:.35;margin-top:4px` |
+| 7190 | static | `margin-bottom:24px` |
+| 7191 | static | `display:flex;align-items:center;justify-content:space-between;margin-bottom:12px` |
+| 7192 | static | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:11px;color:var(--red);text-transform:uppercase;lette...` |
+| 7193 | dynamic | `font-family:'Mulish',sans-serif;font-size:12px;color:var(--muted)` |
+| 7193 | dynamic | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;color:${+myTeam.mpxPct>=90?'var(--green)':+myTeam.mpxPct>=75?'...` |
+| 7193 | dynamic | `opacity:.5` |
+| 7195 | static | `display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px` |
+| 7206 | dynamic | `background:var(--surface2);border:1px solid var(--border);padding:12px 14px;border-left:3px solid ${posColors[pos]}` |
+| 7207 | dynamic | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:11px;color:${posColors[pos]};text-transform:uppercas...` |
+| 7208 | static | `display:flex;gap:12px;align-items:flex-end` |
+| 7210 | static | `font-family:'Mulish',sans-serif;font-size:9px;color:var(--muted);opacity:.4;text-transform:uppercase;letter-spacing:.06em` |
+| 7211 | dynamic | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:22px;color:${color}` |
+| 7212 | dynamic | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:11px;color:var(--muted);opacity:.6` |
+| 7214 | dynamic | `border-left:1px solid var(--border2);padding-left:12px` |
+| 7215 | static | `font-family:'Mulish',sans-serif;font-size:9px;color:var(--muted);opacity:.4;text-transform:uppercase;letter-spacing:.06em` |
+| 7216 | dynamic | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:22px;color:${scoreColor}` |
+| 7217 | dynamic | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:11px;color:var(--muted);opacity:.6` |
+| 7220 | dynamic | `font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);opacity:.35;margin-top:4px` |
 
-### Temporarily assign global IDs so existing loadRoster can find them (14)
-
-| Line | Mode | Declaration |
-|---|---|---|
-| 5559 | static | `display:flex;align-items:center;gap:14px;padding:14px 16px;background:var(--surface);border:1px solid var(--border);margin-bott...` |
-| 5560 | static | `display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;flex-shrink:0;background:var(--surface2);b...` |
-| 5560 | static | `display:block` |
-| 5561 | static | `flex:1` |
-| 5562 | dynamic | `font-family:'Mulish',sans-serif;font-weight:900;font-size:14px;color:var(--white)` |
-| 5563 | dynamic | `font-family:'Mulish',sans-serif;font-size:11px;color:var(--muted);margin-top:3px` |
-| 5566 | static | `font-family:'Mulish',sans-serif;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px` |
-| 5570 | js-composed | `display:flex;align-items:center;gap:12px;padding:11px 12px;background:var(--surface);border:1px solid var(--border);margin-bott...` |
-| 5571 | js-composed | `width:30px;height:30px;border-radius:2px;flex-shrink:0` |
-| 5571 | js-composed | `width:30px;height:30px;background:var(--surface2);border-radius:2px;flex-shrink:0` |
-| 5572 | static | `flex:1;min-width:0` |
-| 5573 | dynamic | `font-family:'Mulish',sans-serif;font-weight:900;font-size:13px;color:var(--white);white-space:nowrap;overflow:hidden;text-overf...` |
-| 5574 | dynamic | `font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);opacity:.7;margin-top:1px` |
-| 5576 | static | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:11px;color:var(--red);text-transform:uppercase;lette...` |
-
-### Render the current state of the suggestion pre-screener (13)
+### Aggregate per-roster (16)
 
 | Line | Mode | Declaration |
 |---|---|---|
-| 3914 | dynamic | `font-family:'Mulish',sans-serif;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;padding:2px 6px;bor...` |
-| 3917 | static | `padding:14px 20px;border-bottom:1px solid var(--border);background:var(--surface2)` |
-| 3918 | static | `display:flex;align-items:center;gap:12px` |
-| 3919 | js-composed | `width:48px;height:48px;border-radius:3px;object-fit:cover;background:var(--surface)` |
-| 3920 | static | `flex:1;min-width:0` |
-| 3921 | dynamic | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:18px;color:var(--white);text-transform:uppercase;lin...` |
-| 3922 | dynamic | `font-family:'Mulish',sans-serif;font-size:11px;color:var(--muted);margin-top:2px` |
-| 3923 | dynamic | `font-family:'Mulish',sans-serif;font-size:11px;color:var(--white);opacity:.8;margin-top:2px` |
-| 3936 | static | `padding:20px` |
-| 3937 | static | `font-family:'Mulish',sans-serif;font-size:13px;color:var(--white);margin-bottom:8px` |
-| 3938 | static | `font-family:'Mulish',sans-serif;font-size:12px;color:var(--muted);margin-bottom:16px` |
-| 3940 | static | `display:inline-block;font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:11px;color:var(--white);backgro...` |
-| 3946 | dynamic-context | `padding:24px;text-align:center;color:var(--muted);font-size:13px` |
+| 6670 | static | `width:30px` |
+| 6690 | dynamic | `color:var(--red);font-size:10px;font-style:italic` |
+| 6695 | dynamic | `color:var(--yellow)` |
+| 6696 | dynamic | `width:${maxSpent ? (r.spent/maxSpent*100).toFixed(0) : 0}%` |
+| 6697 | dynamic | `color:var(--green)` |
+| 6698 | dynamic | `width:${budget ? (r.left/budget*100).toFixed(0) : 0}%` |
+| 6700 | dynamic | `text-align:right;color:var(--muted)` |
+| 6702 | dynamic | `text-align:right;color:var(--yellow)` |
+| 6740 | static | `width:30px` |
+| 6766 | dynamic | `color:var(--muted);opacity:.5;font-size:10px` |
+| 6775 | dynamic | `font-size:12px` |
+| 6775 | dynamic | `color:var(--red);font-style:italic` |
+| 6819 | dynamic | `color:var(--muted);opacity:.5;font-size:10px` |
+| 6823 | dynamic | `color:var(--muted);opacity:.4;font-size:10px` |
+| 6826 | dynamic | `background:rgba(237,129,12,0.05)` |
+| 6830 | dynamic | `opacity:.4` |
+
+### Picks this roster RECEIVED (15)
+
+| Line | Mode | Declaration |
+|---|---|---|
+| 7010 | static | `display:flex;justify-content:space-between;align-items:center;margin-bottom:8px` |
+| 7011 | dynamic | `margin-bottom:0` |
+| 7017 | dynamic | `${s.isMe ? 'color:var(--red)' : ''}` |
+| 7020 | static | `width:28px;height:28px;flex-shrink:0;display:inline-flex;align-items:center;` |
+| 7022 | js-composed | `width:28px;height:28px;border-radius:50%;object-fit:cover;` |
+| 7026 | static | `min-width:0;flex:1` |
+| 7027 | static | `display:flex;align-items:center;gap:4px;flex-wrap:wrap` |
+| 7031 | dynamic | `display:flex;gap:8px;margin-top:2px` |
+| 7032 | dynamic | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:11px;color:var(--muted);opacity:.6` |
+| 7040 | static | `min-width:0;flex:1` |
+| 7042 | dynamic | `font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);opacity:.35;margin-left:4px` |
+| 7043 | dynamic | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:11px;color:var(--pos-pick-bg);margin-top:2px` |
+| 7047 | dynamic | `margin-top:4px` |
+| 7048 | static | `width:28px;flex-shrink:0;` |
+| 7049 | dynamic | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:12px;color:var(--green)` |
+
+### Temporarily assign global IDs so existing loadRoster can find them (13)
+
+| Line | Mode | Declaration |
+|---|---|---|
+| 5582 | static | `display:flex;align-items:center;gap:14px;padding:14px 16px;background:var(--surface);border:1px solid var(--border);margin-bott...` |
+| 5583 | static | `display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;flex-shrink:0;background:var(--surface2);b...` |
+| 5583 | static | `display:block` |
+| 5584 | static | `flex:1` |
+| 5585 | dynamic | `font-family:'Mulish',sans-serif;font-weight:900;font-size:14px;color:var(--white)` |
+| 5586 | dynamic | `font-family:'Mulish',sans-serif;font-size:11px;color:var(--muted);margin-top:3px` |
+| 5589 | static | `font-family:'Mulish',sans-serif;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px` |
+| 5593 | js-composed | `display:flex;align-items:center;gap:12px;padding:11px 12px;background:var(--surface);border:1px solid var(--border);margin-bott...` |
+| 5594 | js-composed | `width:30px;height:30px;border-radius:2px;flex-shrink:0` |
+| 5594 | js-composed | `width:30px;height:30px;background:var(--surface2);border-radius:2px;flex-shrink:0` |
+| 5596 | dynamic | `font-family:'Mulish',sans-serif;font-weight:900;font-size:13px;color:var(--white);white-space:nowrap;overflow:hidden;text-overf...` |
+| 5597 | dynamic | `font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);opacity:.7;margin-top:1px` |
+| 5599 | static | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:11px;color:var(--red);text-transform:uppercase;lette...` |
+
+### Render the current state of the suggestion pre-screener (12)
+
+| Line | Mode | Declaration |
+|---|---|---|
+| 3937 | dynamic | `font-family:'Mulish',sans-serif;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;padding:2px 6px;bor...` |
+| 3940 | static | `padding:14px 20px;border-bottom:1px solid var(--border);background:var(--surface2)` |
+| 3941 | static | `display:flex;align-items:center;gap:12px` |
+| 3942 | js-composed | `width:48px;height:48px;border-radius:3px;object-fit:cover;background:var(--surface)` |
+| 3944 | dynamic | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:18px;color:var(--white);text-transform:uppercase;lin...` |
+| 3945 | dynamic | `font-family:'Mulish',sans-serif;font-size:11px;color:var(--muted);margin-top:2px` |
+| 3946 | dynamic | `font-family:'Mulish',sans-serif;font-size:11px;color:var(--white);opacity:.8;margin-top:2px` |
+| 3959 | static | `padding:20px` |
+| 3960 | static | `font-family:'Mulish',sans-serif;font-size:13px;color:var(--white);margin-bottom:8px` |
+| 3961 | static | `font-family:'Mulish',sans-serif;font-size:12px;color:var(--muted);margin-bottom:16px` |
+| 3963 | static | `display:inline-block;font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:11px;color:var(--white);backgro...` |
+| 3969 | dynamic-context | `padding:24px;text-align:center;color:var(--muted);font-size:13px` |
 
 ### Ensure roster/users/players are loaded and stashed on window for the modal layer (10)
 
 | Line | Mode | Declaration |
 |---|---|---|
-| 5115 | dynamic | `display:inline-flex;align-items:center;gap:6px;padding:6px 10px;background:var(--surface2);border:1px solid var(--border);borde...` |
-| 5116 | dynamic | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:11px;color:${color};text-transform:uppercase;letter-...` |
-| 5117 | dynamic | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:14px;color:${rankColor}` |
-| 5118 | dynamic | `font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);opacity:.6` |
-| 5128 | dynamic | `display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px` |
-| 5140 | static | `display:flex;align-items:center;justify-content:space-between` |
-| 5142 | static | `display:flex;align-items:center;gap:8px` |
-| 5143 | static | `font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em` |
-| 5145 | static | `background:var(--surface2);border:1px solid var(--border2);color:var(--white);font-family:'Kanit',sans-serif;font-weight:800;fo...` |
-| 5161 | dynamic | `display:none` |
+| 5138 | dynamic | `display:inline-flex;align-items:center;gap:6px;padding:6px 10px;background:var(--surface2);border:1px solid var(--border);borde...` |
+| 5139 | dynamic | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:11px;color:${color};text-transform:uppercase;letter-...` |
+| 5140 | dynamic | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:14px;color:${rankColor}` |
+| 5141 | dynamic | `font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);opacity:.6` |
+| 5151 | dynamic | `display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px` |
+| 5163 | static | `display:flex;align-items:center;justify-content:space-between` |
+| 5165 | static | `display:flex;align-items:center;gap:8px` |
+| 5166 | static | `font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em` |
+| 5168 | static | `background:var(--surface2);border:1px solid var(--border2);color:var(--white);font-family:'Kanit',sans-serif;font-weight:800;fo...` |
+| 5184 | dynamic | `display:none` |
 
 ### Total roster value (10)
 
 | Line | Mode | Declaration |
 |---|---|---|
-| 6380 | dynamic | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:13px;color:${_rankColor(rank)};padding:1px 6px;backg...` |
-| 6384 | static | `display:flex;gap:16px;flex-wrap:wrap;margin-bottom:24px;padding:16px;background:var(--surface2);border:1px solid var(--border)` |
-| 6385 | dynamic | `display:flex;align-items:center;gap:8px;margin-bottom:2px` |
-| 6385 | dynamic | `font-family:'Mulish',sans-serif;font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);opacity:.45` |
-| 6386 | dynamic | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:22px;color:var(--white)` |
-| 6387 | dynamic | `display:flex;align-items:center;gap:8px;margin-bottom:2px` |
-| 6387 | dynamic | `font-family:'Mulish',sans-serif;font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);opacity:.45` |
-| 6388 | dynamic | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:22px;color:var(--white)` |
-| 6389 | dynamic | `font-family:'Mulish',sans-serif;font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);opacity:.45` |
-| 6390 | dynamic | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:22px;color:var(--green)` |
+| 6403 | dynamic | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:13px;color:${_rankColor(rank)};padding:1px 6px;backg...` |
+| 6407 | static | `display:flex;gap:16px;flex-wrap:wrap;margin-bottom:24px;padding:16px;background:var(--surface2);border:1px solid var(--border)` |
+| 6408 | dynamic | `display:flex;align-items:center;gap:8px;margin-bottom:2px` |
+| 6408 | dynamic | `font-family:'Mulish',sans-serif;font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);opacity:.45` |
+| 6409 | dynamic | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:22px;color:var(--white)` |
+| 6410 | dynamic | `display:flex;align-items:center;gap:8px;margin-bottom:2px` |
+| 6410 | dynamic | `font-family:'Mulish',sans-serif;font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);opacity:.45` |
+| 6411 | dynamic | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:22px;color:var(--white)` |
+| 6412 | dynamic | `font-family:'Mulish',sans-serif;font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);opacity:.45` |
+| 6413 | dynamic | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:22px;color:var(--green)` |
 
-### Team logo helpers — load BEFORE player-panel.js so modal-hero badge works. (7)
+### Team logo helpers — load BEFORE player-panel.js so modal-hero badge works. (8)
 
 | Line | Mode | Declaration |
 |---|---|---|
 | 2101 | static | `...` |
-| 2146 | static | `position:fixed;inset:0;background:var(--black);color:var(--white);display:flex;align-items:center;justify-content:center;font-f...` |
-| 2147 | static | `background:var(--nav-bg);border-bottom:2px solid var(--red);position:sticky;top:0;z-index:100` |
-| 2147 | static | `border:none;position:static` |
-| 2150 | static | `fill-rule:evenodd;clip-rule:evenodd` |
-| 2189 | static | `background:none;border:1px solid var(--border2);color:var(--white);font-family:'Kanit',sans-serif;font-weight:800;font-style:it...` |
-| 2215 | static | `display:none` |
+| 2144 | static | `...` |
+| 2169 | static | `position:fixed;inset:0;background:var(--black);color:var(--white);display:flex;align-items:center;justify-content:center;font-f...` |
+| 2170 | static | `background:var(--nav-bg);border-bottom:2px solid var(--red);position:sticky;top:0;z-index:100` |
+| 2170 | static | `border:none;position:static` |
+| 2173 | static | `fill-rule:evenodd;clip-rule:evenodd` |
+| 2212 | static | `background:none;border:1px solid var(--border2);color:var(--white);font-family:'Kanit',sans-serif;font-weight:800;font-style:it...` |
+| 2238 | static | `display:none` |
 
 ### Close player-detail modal if open (5)
 
 | Line | Mode | Declaration |
 |---|---|---|
-| 4508 | dynamic-context | `margin-top:14px;padding-top:14px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:8px;align-items:center` |
-| 4510 | static | `display:inline-block;font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:12px;color:var(--white);backgro...` |
-| 4512 | static | `font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);font-style:italic;text-align:center;line-height:1.5;max-width...` |
-| 4526 | dynamic | `color:${diff>0?'var(--red)':diff<0?'var(--green)':'var(--white)'}` |
-| 4586 | dynamic-context | `opacity:.5` |
+| 4531 | dynamic-context | `margin-top:14px;padding-top:14px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:8px;align-items:center` |
+| 4533 | static | `display:inline-block;font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:12px;color:var(--white);backgro...` |
+| 4535 | static | `font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);font-style:italic;text-align:center;line-height:1.5;max-width...` |
+| 4549 | dynamic | `color:${diff>0?'var(--red)':diff<0?'var(--green)':'var(--white)'}` |
+| 4609 | dynamic-context | `opacity:.5` |
 
 ### Trade Builder Modal — opens over the player detail modal (z-index 250) (5)
 
 | Line | Mode | Declaration |
 |---|---|---|
-| 7540 | static | `z-index:250` |
-| 7544 | static | `margin-right:8px` |
-| 7551 | static | `z-index:260` |
-| 7552 | static | `max-width:540px` |
-| 7555 | static | `margin-right:8px` |
+| 7563 | static | `z-index:250` |
+| 7567 | static | `margin-right:8px` |
+| 7574 | static | `z-index:260` |
+| 7575 | static | `max-width:540px` |
+| 7578 | static | `margin-right:8px` |
 
 ### PICKS BRANCH (4)
 
 | Line | Mode | Declaration |
 |---|---|---|
-| 5752 | static | `background:var(--surface2);display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--border)` |
-| 5752 | static | `display:block` |
-| 5754 | dynamic | `color:#9b91d4` |
-| 5757 | dynamic | `color:${expoColor(p.exposure)}` |
+| 5775 | static | `background:var(--surface2);display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--border)` |
+| 5775 | static | `display:block` |
+| 5777 | dynamic | `color:#9b91d4` |
+| 5780 | dynamic | `color:${expoColor(p.exposure)}` |
 
 ### Group transactions by roster (4)
 
 | Line | Mode | Declaration |
 |---|---|---|
-| 6858 | dynamic | `color:var(--muted);opacity:.5;font-size:10px` |
-| 6868 | dynamic | `color:var(--red);font-size:10px;font-style:italic` |
-| 6869 | dynamic | `color:var(--yellow)` |
-| 6869 | dynamic | `color:var(--green)` |
+| 6881 | dynamic | `color:var(--muted);opacity:.5;font-size:10px` |
+| 6891 | dynamic | `color:var(--red);font-size:10px;font-style:italic` |
+| 6892 | dynamic | `color:var(--yellow)` |
+| 6892 | dynamic | `color:var(--green)` |
 
 ### Sort state for the leagues list (2)
 
 | Line | Mode | Declaration |
 |---|---|---|
-| 4927 | dynamic | `width:${w}%;background:${s.color}` |
-| 4934 | dynamic-context | `opacity:.3` |
+| 4950 | dynamic | `width:${w}%;background:${s.color}` |
+| 4957 | dynamic-context | `opacity:.3` |
 
 ### Color helpers (2)
 
 | Line | Mode | Declaration |
 |---|---|---|
-| 5842 | dynamic | `color:${posColor(p.position)}` |
-| 5845 | dynamic | `color:${expoColor(p.exposure)}` |
+| 5865 | dynamic | `color:${posColor(p.position)}` |
+| 5868 | dynamic | `color:${expoColor(p.exposure)}` |
 
 ### Update section meta with archetype legend + league averages (2)
 
 | Line | Mode | Declaration |
 |---|---|---|
-| 7210 | dynamic | `color:var(--white);font-family:'Kanit',sans-serif;font-weight:800;font-style:italic` |
-| 7210 | dynamic | `color:var(--white);font-family:'Kanit',sans-serif;font-weight:800;font-style:italic` |
+| 7233 | dynamic | `color:var(--white);font-family:'Kanit',sans-serif;font-weight:800;font-style:italic` |
+| 7233 | dynamic | `color:var(--white);font-family:'Kanit',sans-serif;font-weight:800;font-style:italic` |
 
 ### Columns: expandable league list (left) + player exposure (right) (1)
 
 | Line | Mode | Declaration |
 |---|---|---|
-| 2237 | static | `display:none` |
+| 2260 | static | `display:none` |
 
 ### Close modals on Escape (1)
 
 | Line | Mode | Declaration |
 |---|---|---|
-| 4634 | dynamic | `color:${color};border-color:${color};background:${bg}` |
+| 4657 | dynamic | `color:${color};border-color:${color};background:${bg}` |
