@@ -2162,6 +2162,40 @@
   body.fpts-ml-page .ml-mute-half       {
     color: var(--muted); opacity: .5;
   }
+
+  /* ── More utility classes (Phase A.3 of inline-style cleanup) ──
+     Each replaces an exactly-3x repeated multi-declaration inline style.
+     Single-declaration utilities at 3 occurrences (color:var(--white),
+     margin-bottom:10px, etc.) were intentionally skipped — class names
+     would be the same length as the inline declaration. */
+  body.fpts-ml-page .ml-row-between    {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  body.fpts-ml-page .ml-italic-note    {
+    color: var(--muted); font-size: 11px;
+    padding: 8px; font-style: italic;
+  }
+  body.fpts-ml-page .ml-player-name    {
+    font-family: 'Mulish', sans-serif; font-weight: 900;
+    font-size: 14px; color: var(--white);
+  }
+  body.fpts-ml-page .ml-section-title  {
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 14px; color: var(--white); text-transform: uppercase;
+  }
+  body.fpts-ml-page .ml-eyebrow        {
+    font-family: 'Mulish', sans-serif; font-size: 10px;
+    text-transform: uppercase; letter-spacing: .07em;
+    color: var(--muted); opacity: .45;
+  }
+  body.fpts-ml-page .ml-mute-tiny      {
+    color: var(--muted); opacity: .5; font-size: 10px;
+  }
+  body.fpts-ml-page .ml-kanit-mute-11  {
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 11px; color: var(--muted); opacity: .6;
+  }
 </style>
 <script>document.addEventListener('DOMContentLoaded', function(){ if (window.Legend) Legend.init('my-leagues'); document.body.classList.add('fpts-ml-page'); });</script>
 </head>
@@ -3430,7 +3464,7 @@ function renderPlayerAvailability(sleeperId) {
       <div class="ml-pd-avail-row" ${rowClickAttr} ${rowHoverIn} ${rowHoverOut}
         style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-bottom:1px solid var(--border);cursor:${rowCursor};border-radius:3px;transition:background .12s">
         ${av}
-        <div class="ml-pd-avail-info" class="ml-flex1">
+        <div class="ml-pd-avail-info ml-flex1">
           <div style="font-family:'Mulish',sans-serif;font-weight:800;font-size:12px;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r.leagueName}</div>
           <div style="font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);opacity:.6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r.format}</div>
         </div>
@@ -4037,7 +4071,7 @@ function mltbRender() {
 
   body.innerHTML = headerStrip + `
     <div style="padding:14px 18px">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+      <div class="ml-row-between">
         <span class="ml-section-head">Suggestion ${counterPos} — ${t.label}</span>
         <span style="font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted)">${balanceLabel}</span>
       </div>
@@ -5339,11 +5373,11 @@ function mlToggleTeamRoster(leagueId, rosterId) {
 // Build the inner HTML for a team's roster section (players grouped by position + picks)
 function mlBuildTeamRosterHtml(leagueId, rosterId) {
   const data = (window.ML_ALL_LEAGUE_DATA || {})[leagueId];
-  if (!data) return `<div style="color:var(--muted);font-size:11px;padding:8px;font-style:italic">Roster data unavailable</div>`;
+  if (!data) return `<div class="ml-italic-note">Roster data unavailable</div>`;
 
   const { rosters, players: lgPlayers } = data;
   const roster = rosters.find(r => r.roster_id === rosterId);
-  if (!roster) return `<div style="color:var(--muted);font-size:11px;padding:8px;font-style:italic">Roster not found</div>`;
+  if (!roster) return `<div class="ml-italic-note">Roster not found</div>`;
 
   // Group players by position
   const groups = { QB: [], RB: [], WR: [], TE: [], OTHER: [] };
@@ -5466,7 +5500,7 @@ function mlBuildTeamRosterHtml(leagueId, rosterId) {
   }
 
   if (!sections.length) {
-    return `<div style="color:var(--muted);font-size:11px;padding:8px;font-style:italic">No tracked assets on this roster</div>`;
+    return `<div class="ml-italic-note">No tracked assets on this roster</div>`;
   }
   return `<div style="font-family:'Mulish',sans-serif">${sections.join('')}</div>`;
 }
@@ -5582,7 +5616,7 @@ function openPickExposurePicker(season, round) {
     <div style="display:flex;align-items:center;gap:14px;padding:14px 16px;background:var(--surface);border:1px solid var(--border);margin-bottom:14px">
       <span style="display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;flex-shrink:0;background:var(--surface2);border:1px solid var(--border);border-radius:50%"><svg xmlns="http://www.w3.org/2000/svg" viewBox="413 0 95 90" width="20" height="20" style="display:block"><path d="M508.084,47.801l-8.983,41.534c0,0 -75.276,-0.036 -85.237,-0.002l0.015,-0.067c0,0 2.533,-17.352 5.641,-25.475c3.708,-9.689 16.604,-32.658 16.604,-32.658c12.902,8.212 8.658,21.025 7.099,27.21c11.719,-8.962 11.012,-17.186 11.003,-28.608c-0.006,-7.356 4.797,-23.375 17.858,-28.257c-4.305,14.678 3.971,24.95 7.333,30.494c6.362,10.492 1.397,21.17 1.397,21.17c0,0 9.268,-3.36 8.863,-15.254c-0.117,-3.424 -1.714,-14.283 8.012,-18.422c-0.754,9.397 5.495,18.682 10.395,28.336Z" fill="var(--red)"/></svg></span>
       <div style="flex:1">
-        <div style="font-family:'Mulish',sans-serif;font-weight:900;font-size:14px;color:var(--white)">${data.season} ${ord(data.round)} Round Pick</div>
+        <div class="ml-player-name">${data.season} ${ord(data.round)} Round Pick</div>
         <div style="font-family:'Mulish',sans-serif;font-size:11px;color:var(--muted);margin-top:3px">Trade Value: ${data.value ? data.value.toLocaleString() : '—'} · Exposure: ${data.exposure.toFixed(0)}%</div>
       </div>
     </div>
@@ -6244,7 +6278,7 @@ function renderRoster(playerIds, players, starters, myPicks, rosterToTeam, proje
       <td class="ml-tbl-td">
         <div class="ml-flex-wrap-row">
           ${(r.shouldStart && !r.isStart) ? FLAME_ICON : ''}
-          <span style="font-family:'Mulish',sans-serif;font-weight:900;font-size:14px;color:var(--white)">${r.name}</span>
+          <span class="ml-player-name">${r.name}</span>
           <span style="display:inline-flex;align-items:center">${(r.team && window.TeamHelpers) ? window.TeamHelpers.logoImg(r.team, { size: 18, coin: true }) : `<span class="ml-mulish-mute-10">${r.team || ''}</span>`}</span>
 
         </div>
@@ -6269,10 +6303,10 @@ function renderRoster(playerIds, players, starters, myPicks, rosterToTeam, proje
 
     return `
       <div style="margin-bottom:28px">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <div class="ml-row-between">
           <div style="display:flex;align-items:center;gap:10px">
             <div style="width:4px;height:20px;background:${posColors[pos]};flex-shrink:0"></div>
-            <span style="font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:14px;color:var(--white);text-transform:uppercase">${posNames[pos]}</span>
+            <span class="ml-section-title">${posNames[pos]}</span>
             <span style="font-family:'Mulish',sans-serif;font-size:11px;color:var(--muted);opacity:.4">${rows.length} players</span>
           </div>
           <span style="font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:13px;color:${posColors[pos]}">${totalVal.toLocaleString()}</span>
@@ -6319,7 +6353,7 @@ function renderRoster(playerIds, players, starters, myPicks, rosterToTeam, proje
       <div style="margin-bottom:28px">
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
           <div style="width:4px;height:20px;background:var(--pos-pick-bg);flex-shrink:0"></div>
-          <span style="font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:14px;color:var(--white);text-transform:uppercase">Draft Picks</span>
+          <span class="ml-section-title">Draft Picks</span>
         </div>
         <div style="font-size:13px;opacity:.4;padding:12px 0;font-family:'Mulish',sans-serif">No draft picks owned</div>
       </div>`;
@@ -6346,11 +6380,11 @@ function renderRoster(playerIds, players, starters, myPicks, rosterToTeam, proje
           <td class="ml-tbl-td" style="width:36px;padding-right:8px">${pickThumb()}</td>
           <td class="ml-tbl-td">
             <div class="ml-flex-wrap-row">
-              <span style="font-family:'Mulish',sans-serif;font-weight:900;font-size:14px;color:var(--white)">${p.season} ${ordinal(p.round)}</span>
+              <span class="ml-player-name">${p.season} ${ordinal(p.round)}</span>
               <span style="font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);opacity:.5">${sourceLabel}</span>
             </div>
           </td>
-          <td class="ml-tbl-num" class="ml-mute-half">${p.season}</td>
+          <td class="ml-tbl-num ml-mute-half">${p.season}</td>
           <td class="ml-tbl-num" style="color:${val > 3000 ? 'var(--green)' : val > 1000 ? 'var(--white)' : 'var(--muted)'}">${val ? val.toLocaleString() : '—'}</td>
           <td class="ml-tbl-num" style="color:var(--muted);opacity:.4;font-size:11px">Rd ${p.round}</td>
         </tr>`;
@@ -6359,10 +6393,10 @@ function renderRoster(playerIds, players, starters, myPicks, rosterToTeam, proje
 
     return `
       <div style="margin-bottom:28px">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <div class="ml-row-between">
           <div style="display:flex;align-items:center;gap:10px">
             <div style="width:4px;height:20px;background:var(--pos-pick-bg);flex-shrink:0"></div>
-            <span style="font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:14px;color:var(--white);text-transform:uppercase">Draft Picks</span>
+            <span class="ml-section-title">Draft Picks</span>
             <span style="font-family:'Mulish',sans-serif;font-size:11px;color:var(--muted);opacity:.4">${picks.length} picks</span>
           </div>
           <span style="font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:13px;color:var(--pos-pick-bg)">${totalPickVal ? totalPickVal.toLocaleString() : '—'}</span>
@@ -6405,11 +6439,11 @@ function renderRoster(playerIds, players, starters, myPicks, rosterToTeam, proje
 
   const summary = `
     <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:24px;padding:16px;background:var(--surface2);border:1px solid var(--border)">
-      <div><div style="display:flex;align-items:center;gap:8px;margin-bottom:2px"><span style="font-family:'Mulish',sans-serif;font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);opacity:.45">Total Roster Value</span>${_rankBadge(_summaryLd && _summaryLd.myRanks && _summaryLd.myRanks.TOTAL)}</div>
+      <div><div style="display:flex;align-items:center;gap:8px;margin-bottom:2px"><span class="ml-eyebrow">Total Roster Value</span>${_rankBadge(_summaryLd && _summaryLd.myRanks && _summaryLd.myRanks.TOTAL)}</div>
            <div style="font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:22px;color:var(--white)">${grandTotal.toLocaleString()}</div></div>
-      <div><div style="display:flex;align-items:center;gap:8px;margin-bottom:2px"><span style="font-family:'Mulish',sans-serif;font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);opacity:.45">Player Value</span>${_rankBadge(_summaryLd && _summaryLd.myRanks && _summaryLd.myRanks.PLAYER)}</div>
+      <div><div style="display:flex;align-items:center;gap:8px;margin-bottom:2px"><span class="ml-eyebrow">Player Value</span>${_rankBadge(_summaryLd && _summaryLd.myRanks && _summaryLd.myRanks.PLAYER)}</div>
            <div style="font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:22px;color:var(--white)">${totalPlayerVal.toLocaleString()}</div></div>
-      ${projTotal > 0 ? `<div><div style="font-family:'Mulish',sans-serif;font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);opacity:.45">Proj Starter Pts Wk${currentWeek||''}</div>
+      ${projTotal > 0 ? `<div><div class="ml-eyebrow">Proj Starter Pts Wk${currentWeek||''}</div>
            <div style="font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:22px;color:var(--green)">${projTotal.toFixed(1)}</div></div>` : ''}
     </div>`;
 
@@ -6673,16 +6707,16 @@ function renderWaiversLeaderboard(el, leagueId, data) {
           <th class="ml-wv-bar-cell">&nbsp;</th>
           <th class="num">Left</th>
           <th class="ml-wv-bar-cell">&nbsp;</th>
-          <th class="num" class="ml-tar">Won</th>
-          <th class="num" class="ml-tar">Tried</th>
-          <th class="num" class="ml-tar">Win%</th>
-          <th class="num" class="ml-tar">Max</th>
+          <th class="num ml-tar">Won</th>
+          <th class="num ml-tar">Tried</th>
+          <th class="num ml-tar">Win%</th>
+          <th class="num ml-tar">Max</th>
         </tr>
       </thead>
       <tbody>
         ${rows.map((r, i) => `
           <tr class="${r.isMe ? 'me' : ''}">
-            <td class="num" class="ml-mute-half">${i+1}</td>
+            <td class="num ml-mute-half">${i+1}</td>
             <td>
               <div class="ml-wv-team-cell">
                 ${r.avatar ? `<img class="ml-wv-team-avatar" src="${r.avatar}" onerror="this.style.visibility='hidden'">` : `<div class="ml-wv-team-avatar"></div>`}
@@ -6696,9 +6730,9 @@ function renderWaiversLeaderboard(el, leagueId, data) {
             <td class="ml-wv-bar-cell"><div class="ml-wv-bar-track"><div class="ml-wv-bar-fill" style="width:${maxSpent ? (r.spent/maxSpent*100).toFixed(0) : 0}%"></div></div></td>
             <td class="num" style="color:var(--green)">$${r.left}</td>
             <td class="ml-wv-bar-cell"><div class="ml-wv-bar-track"><div class="ml-wv-bar-fill" style="width:${budget ? (r.left/budget*100).toFixed(0) : 0}%"></div></div></td>
-            <td class="num" class="ml-tar">${r.won}</td>
+            <td class="num ml-tar">${r.won}</td>
             <td class="num" style="text-align:right;color:var(--muted)">${r.tried}</td>
-            <td class="num" class="ml-tar">${r.winPct}%</td>
+            <td class="num ml-tar">${r.winPct}%</td>
             <td class="num" style="text-align:right;color:var(--yellow)">$${r.max}</td>
           </tr>
         `).join('')}
@@ -6754,7 +6788,7 @@ function renderWaiversTopBids(el, leagueId, data) {
           }).join(', ') : '';
           return `
             <tr class="${isMe ? 'me' : ''}">
-              <td class="num" class="ml-mute-half">${i+1}</td>
+              <td class="num ml-mute-half">${i+1}</td>
               <td>
                 <div class="ml-wv-bid">$${b.bid}</div>
                 <div class="ml-wv-bid-week">Wk ${b.week}</div>
@@ -6763,7 +6797,7 @@ function renderWaiversTopBids(el, leagueId, data) {
                 <div class="ml-wv-player-cell">
                   <img class="ml-wv-player-img" src="${player.img}" onerror="this.style.visibility='hidden'">
                   <div>
-                    <div class="ml-wv-player-name">${player.name} <span style="color:var(--muted);opacity:.5;font-size:10px">(${player.team})</span></div>
+                    <div class="ml-wv-player-name">${player.name} <span class="ml-mute-tiny">(${player.team})</span></div>
                     ${dropLabel ? `<div class="ml-wv-player-drop">${dropLabel}</div>` : ''}
                   </div>
                 </div>
@@ -6816,7 +6850,7 @@ function renderWaiversRecent(el, leagueId, data) {
       const dropPids = t.drops ? Object.keys(t.drops) : [];
       const addStrs = addPids.map(pid => {
         const pl = _mlWvPlayerLabel(players, pid);
-        return `<span class="ml-wv-tx-add">+ ${pl.name}</span> <span style="color:var(--muted);opacity:.5;font-size:10px">(${pl.team})</span>`;
+        return `<span class="ml-wv-tx-add">+ ${pl.name}</span> <span class="ml-mute-tiny">(${pl.team})</span>`;
       });
       const dropStrs = dropPids.map(pid => {
         const pl = _mlWvPlayerLabel(players, pid);
@@ -6878,7 +6912,7 @@ function renderWaiversByTeam(el, leagueId, data) {
           return `Dropped: ${dp.name} (${dp.team})`;
         }).join(', ') : '';
         return `<div class="ml-wv-bt-pickup">
-          <div class="ml-wv-bt-pickup-name">${pl.name} <span style="color:var(--muted);opacity:.5;font-size:10px">(${pl.team})</span></div>
+          <div class="ml-wv-bt-pickup-name">${pl.name} <span class="ml-mute-tiny">(${pl.team})</span></div>
           ${dropLabel ? `<div class="ml-wv-bt-pickup-drop">${dropLabel}</div>` : ''}
           ${bid !== null ? `<span class="ml-wv-bt-pickup-bid">$${bid}</span>` : ''}
           <span class="ml-wv-bt-pickup-week">Wk ${t.week}</span>
@@ -7029,7 +7063,7 @@ async function renderTradeYear(leagueId, idx, allTradesByYear, players, leagueCh
                        <span class="ml-tc-team">${(a.team && window.TeamHelpers) ? window.TeamHelpers.logoImg(a.team, { size: 18, coin: true }) : (a.team || '')}</span>
                      </div>
                      ${(a.value || a.adp) ? `<div style="display:flex;gap:8px;margin-top:2px">
-                       ${a.value ? `<span style="font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:11px;color:var(--muted);opacity:.6">${a.value.toLocaleString()}</span>` : ''}
+                       ${a.value ? `<span class="ml-kanit-mute-11">${a.value.toLocaleString()}</span>` : ''}
                        ${a.adp ? `<span class="ml-mulish-mute-10">ADP ${a.adp}</span>` : ''}
                        ${a.posRank ? `<span class="ml-mulish-mute-10">${a.posRank}</span>` : ''}
                      </div>` : ''}
@@ -7209,12 +7243,12 @@ async function loadStandings(leagueId) {
                   <div>
                     <div style="font-family:'Mulish',sans-serif;font-size:9px;color:var(--muted);opacity:.4;text-transform:uppercase;letter-spacing:.06em">Value Rank</div>
                     <div style="font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:22px;color:${color}">#${rank}</div>
-                    <div style="font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:11px;color:var(--muted);opacity:.6">${val.toLocaleString()}</div>
+                    <div class="ml-kanit-mute-11">${val.toLocaleString()}</div>
                   </div>
                   ${myScore > 0 ? `<div style="border-left:1px solid var(--border2);padding-left:12px">
                     <div style="font-family:'Mulish',sans-serif;font-size:9px;color:var(--muted);opacity:.4;text-transform:uppercase;letter-spacing:.06em">Pts Rank</div>
                     <div style="font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:22px;color:${scoreColor}">#${scoreRank}</div>
-                    <div style="font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:11px;color:var(--muted);opacity:.6">${myScore.toFixed(1)}</div>
+                    <div class="ml-kanit-mute-11">${myScore.toFixed(1)}</div>
                   </div>` : ''}
                 </div>
                 <div style="font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);opacity:.35;margin-top:4px">of ${total} teams</div>
@@ -7304,7 +7338,7 @@ function renderStandingsTable() {
         </div>
       </td>
       <td class="ml-tbl-num-tight" style="color:var(--white)">${r.total.toLocaleString()}</td>
-      <td class="ml-tbl-num-tight" class="ml-mute-half">${r.avgAge ? r.avgAge.toFixed(1) : '—'}</td>
+      <td class="ml-tbl-num-tight ml-mute-half">${r.avgAge ? r.avgAge.toFixed(1) : '—'}</td>
       <td class="ml-tbl-num-tight" style="color:${posColors.QB}">${r.posVals.QB.toLocaleString()}</td>
       <td class="ml-tbl-num-tight" style="color:${posColors.RB}">${r.posVals.RB.toLocaleString()}</td>
       <td class="ml-tbl-num-tight" style="color:${posColors.WR}">${r.posVals.WR.toLocaleString()}</td>
