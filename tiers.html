@@ -174,8 +174,86 @@
   /* AUCTION dollar value */
   .tier-auction { font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; }
 
-  /* TRENDING column */
-  .tier-trending { font-size: 14px; text-align: center; }
+  /* CHANGE chip — ADP delta indicator. Matches adp-tool.html's .trend scheme
+     exactly (brand.css:163-171): transparent background, bright-green ▲ for
+     improvement, dynasty-orange ▼ for slippage, white ● for flat. Black
+     text-shadow stroke keeps the arrow legible against any row background. */
+  .tier-trending { text-align: center; padding: 6px 4px !important; }
+  .adp-change-chip {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 11px;
+    background: transparent;
+    text-shadow: 0 0 2px #000, 0 0 1px #000;
+    line-height: 1.1;
+    justify-content: center;
+  }
+  .adp-change-chip.up   { color: #66dd84; }    /* bright green — matches adp-tool .trend.up */
+  .adp-change-chip.down { color: var(--red); } /* dynasty orange #ED810C — matches .trend.down */
+  .adp-change-chip.flat { color: #ffffff; }
+  .adp-change-chip .arrow { font-size: 10px; }
+
+  /* Previous ADP column header — trigger button that opens the calendar
+     popup. Renders as a header label (Mulish 10px uppercase) with a small
+     chevron, so it visually matches surrounding <th> cells. */
+  .tier-th-compare { padding-top: 6px !important; padding-bottom: 6px !important; }
+  .tier-compare-trigger {
+    background: transparent; color: var(--muted);
+    border: none; padding: 0; margin: 0;
+    font: 700 10px/1 'Mulish', sans-serif;
+    text-transform: uppercase; letter-spacing: .06em;
+    cursor: pointer;
+    display: inline-flex; align-items: center; gap: 4px;
+  }
+  .tier-compare-trigger:hover { color: var(--white); }
+  .tier-compare-trigger:focus { outline: none; color: var(--red); }
+  .tier-compare-trigger .tier-compare-chevron { font-size: 9px; opacity: .7; }
+
+  /* Calendar popup — mounted once at body level by _tierCalendarMount.
+     Positioned in JS via getBoundingClientRect on the clicked trigger. */
+  .tier-cal-popup {
+    position: absolute; z-index: 100;
+    background: var(--surface); border: 1px solid var(--border2);
+    box-shadow: 0 4px 18px rgba(0,0,0,.55);
+    padding: 8px; min-width: 220px;
+    font-family: 'Mulish', sans-serif;
+  }
+  .tier-cal-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 4px 6px 8px; border-bottom: 1px solid var(--border);
+  }
+  .tier-cal-nav {
+    background: transparent; color: var(--white); border: none;
+    cursor: pointer; font-size: 14px; padding: 2px 8px; line-height: 1;
+  }
+  .tier-cal-nav:hover:not(:disabled) { color: var(--red); }
+  .tier-cal-nav:disabled { opacity: .25; cursor: default; }
+  .tier-cal-year {
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 14px; color: var(--white); letter-spacing: .04em;
+  }
+
+  /* 12-month grid — 4 cols × 3 rows */
+  .tier-cal-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: 4px; padding: 8px 4px 4px;
+  }
+  .tier-cal-cell {
+    background: var(--surface2); color: var(--white); border: 1px solid transparent;
+    padding: 8px 0;
+    font-family: 'Mulish', sans-serif; font-weight: 700; font-size: 11px; line-height: 1;
+    text-transform: uppercase; cursor: pointer; text-align: center;
+  }
+  .tier-cal-cell:hover:not(.disabled):not(.no-data) {
+    border-color: var(--red); color: var(--red);
+  }
+  .tier-cal-cell.active {
+    background: var(--red); color: var(--white); border-color: var(--red);
+  }
+  .tier-cal-cell.disabled { opacity: .25; cursor: default; }
+  .tier-cal-cell.no-data  { opacity: .45; cursor: default; color: var(--muted); }
+  .tier-cal-status {
+    padding: 8px; text-align: center; color: var(--muted); font-size: 11px;
+  }
 
   /* BUY/SELL/HOLD chip */
   .tier-bsh { font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 10px; padding: 2px 7px; text-transform: uppercase; letter-spacing: .04em; }
@@ -221,6 +299,10 @@
 
     /* Bottom safe-area */
     body { padding-bottom: max(20px, env(safe-area-inset-bottom)) !important; }
+
+    /* Calendar popup — center horizontally on mobile, larger touch cells */
+    .tier-cal-popup { left: 50% !important; transform: translateX(-50%); min-width: 280px; }
+    .tier-cal-cell { padding: 12px 0; font-size: 13px; }
   }
 
   /* ════════════════════════════════════════════════════════════════════════
@@ -351,7 +433,7 @@
 <link rel="stylesheet" href="assets/css/heatmap.css?v=1778642255">
 <script src="assets/js/heatmap.js?v=1778670000"></script>
 <link rel="stylesheet" href="assets/css/legend.css?v=1778949514">
-<script src="assets/js/legend-content.js?v=1778949514"></script>
+<script src="assets/js/legend-content.js?v=1779280000"></script>
 <script src="assets/js/legend.js?v=1778949514"></script>
 <script>document.addEventListener('DOMContentLoaded', function(){ if (window.Legend) Legend.init('tiers'); });</script>
 <!-- Shared player panel — DB's slide-in drawer, used identically on every page -->
@@ -410,7 +492,7 @@
       <option value="adp-tool.html">ADP</option>
       <option value="https://www.fantasypoints.com/nfl/rankings/dynasty#/">Rankings</option>
     </select>
-    <span class="nav-stat">Synced <strong id="tiers-updated-stat"><!-- TIERS:SYNCED:START -->May 16, 2026 12:32 PM<!-- TIERS:SYNCED:END --></strong></span>
+    <span class="nav-stat">Synced <strong id="tiers-updated-stat"><!-- TIERS:SYNCED:START -->May 16, 2026 2:59 PM<!-- TIERS:SYNCED:END --></strong></span>
     <span class="nav-badge" id="nav-season-badge">SEASON 2026</span>
     <button id="theme-toggle" onclick="toggleTheme()"
       style="background:none;border:1px solid var(--border2);color:var(--white);font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:11px;padding:5px 12px;cursor:pointer;transition:all .2s;letter-spacing:.04em;display:flex;align-items:center;gap:6px"
@@ -2632,6 +2714,241 @@ let tierView = 'grouped';  // 'grouped' | 'flat'
 let tierSortCol = 'tier';
 let tierSortDir = 'asc';
 
+// ADP comparison state — drives the CHANGE / CURRENT ADP / PREVIOUS ADP trio.
+// tierCompareMonth is "YYYY-MM" pointing at the user-selected comparison
+// month (any month from Dec 2021 through the most-recent fully-tracked
+// month; selected via the calendar popup in the column header).
+//
+// MONTH_INDEX is a flat per-month lookup merged from every loaded year
+// payload in YEAR_CACHE. YEAR_CACHE seeds itself from window.ADP_PAYLOAD at
+// boot (the 2026 file is already hydrated by data-bootstrap.js); other
+// years lazy-fetch on demand via _ensureYearLoaded(year), each ~15 MB.
+//
+// NOTE for the future dedicated rankings page: lift buildMonthIndex,
+// _ensureYearLoaded, the calendar popup helpers, and changeChipHtml into a
+// shared module (assets/js/adp-comparator.js) when that page lands. Kept
+// inline here so this version ships as a single-file change.
+let tierCompareMonth = null;            // "YYYY-MM" — null until _initTierCompareMonth runs
+let MONTH_INDEX = Object.create(null);  // { "2024-08": {startup_sf:[...], startup_1qb:[...]}, ... }
+let YEAR_CACHE  = Object.create(null);  // { 2024: <adp-2024.json payload>, ... }
+let tierCalViewYear = null;             // year currently displayed in the open calendar popup
+const MIN_YEAR  = 2022;                 // historical lower bound (matches adp-tool year picker)
+
+const MONTH_LABEL = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+function _formatMonthLabel(ym) {
+  // "2026-04" → "Apr 2026". Defensive against malformed input.
+  if (!ym || typeof ym !== 'string') return ym || '';
+  const m = ym.match(/^(\d{4})-(\d{2})$/);
+  if (!m) return ym;
+  const idx = parseInt(m[2], 10) - 1;
+  return (MONTH_LABEL[idx] || m[2]) + ' ' + m[1];
+}
+
+function buildMonthIndex() {
+  MONTH_INDEX = Object.create(null);
+  for (const year of Object.keys(YEAR_CACHE)) {
+    const payload = YEAR_CACHE[year];
+    if (!payload || !payload.byMonth) continue;
+    for (const m of Object.keys(payload.byMonth)) {
+      if (m === 'ALL') continue;
+      // Each year payload carries cross-year edge months (e.g. adp-2024.json
+      // includes 2023-12 and 2024-12). Later loads overwrite earlier ones —
+      // adp-2025.json's "2025-01" replaces adp-2024.json's "2025-01" if both
+      // happen to exist. We seed by-year sorted ascending so the most-
+      // canonical owner wins (e.g. 2025-01 is canonically in adp-2025.json,
+      // not adp-2024.json's edge slop).
+      MONTH_INDEX[m] = payload.byMonth[m];
+    }
+  }
+}
+
+// Lazy fetch a year payload (data/adp-{year}.json) and add to YEAR_CACHE.
+// If already cached, resolves immediately. While fetching, updates the
+// popup status line if it exists. Errors surface in status; don't throw.
+function _ensureYearLoaded(year) {
+  if (YEAR_CACHE[year]) return Promise.resolve();
+  const url = (year === Number(window.ADP_PAYLOAD?.season))
+    ? 'data/adp.json'
+    : 'data/adp-' + year + '.json';
+  const status = document.getElementById('tier-cal-status');
+  if (status) { status.hidden = false; status.textContent = 'Loading ' + year + '…'; }
+  const _v = '?v=' + (window.__DATA_VERSION || Date.now());
+  return fetch(url + _v)
+    .then(r => r.ok ? r.json() : Promise.reject(new Error('HTTP ' + r.status)))
+    .then(payload => {
+      YEAR_CACHE[year] = payload;
+      buildMonthIndex();
+      if (status) status.hidden = true;
+    })
+    .catch(err => {
+      if (status) { status.hidden = false; status.textContent = 'Failed to load ' + year; }
+      console.warn('[tiers] failed to load year', year, err);
+    });
+}
+
+// State-only initializer — no DOM. Decides which month tierCompareMonth
+// should hold at first load (saved selection from localStorage, falling back
+// to the second-newest month available in MONTH_INDEX — most-recent prior
+// month after the "now" anchor is dropped).
+function _initTierCompareMonth() {
+  const months = Object.keys(MONTH_INDEX).sort().reverse();
+  const compareOptions = months.slice(1);   // drop newest (that IS "current")
+  if (!compareOptions.length) { tierCompareMonth = null; return; }
+
+  let saved = null;
+  try { saved = localStorage.getItem('fpts-tiers-compare-month'); } catch(e) {}
+  tierCompareMonth = (saved && compareOptions.includes(saved))
+    ? saved
+    : compareOptions[0];
+}
+
+function setTierCompareMonth(value) {
+  if (!value) return;
+  tierCompareMonth = value;
+  try { localStorage.setItem('fpts-tiers-compare-month', value); } catch(e) {}
+  // Re-overlay the PREVIOUS ADP column from the newly-selected month, then
+  // repaint the table. CURRENT ADP doesn't change (still byMonth.ALL).
+  applySleeperOverlay();
+  renderTiers();
+}
+
+// ═══ CALENDAR POPUP — month-picker UI for the Previous ADP column ═══════════
+// Single popup mounted at document.body level so the grouped-view's 21 tier
+// <thead>s don't each need their own copy. Click on any .tier-compare-trigger
+// opens this popup positioned beneath the clicked trigger. Year nav arrows
+// trigger lazy-fetches via _ensureYearLoaded; month grid cells call
+// _tierCalendarPickMonth which delegates to setTierCompareMonth.
+const _MONTH_SHORT = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+
+function _tierCalendarMount() {
+  if (document.getElementById('tier-cal-popup')) return;
+  const pop = document.createElement('div');
+  pop.id = 'tier-cal-popup';
+  pop.className = 'tier-cal-popup';
+  pop.hidden = true;
+  pop.innerHTML =
+      '<div class="tier-cal-header">'
+    +   '<button type="button" class="tier-cal-nav" id="tier-cal-prev" aria-label="Previous year">◀</button>'
+    +   '<span class="tier-cal-year" id="tier-cal-year-label">—</span>'
+    +   '<button type="button" class="tier-cal-nav" id="tier-cal-next" aria-label="Next year">▶</button>'
+    + '</div>'
+    + '<div class="tier-cal-grid" id="tier-cal-grid"></div>'
+    + '<div class="tier-cal-status" id="tier-cal-status" hidden></div>';
+  document.body.appendChild(pop);
+  // Wire nav arrows (delegated to handlers that close over no state).
+  document.getElementById('tier-cal-prev').addEventListener('click', () => _tierCalendarNavYear(-1));
+  document.getElementById('tier-cal-next').addEventListener('click', () => _tierCalendarNavYear( 1));
+  // Outside-click + ESC + scroll → close. Click-inside is allowed.
+  document.addEventListener('click', (e) => {
+    if (pop.hidden) return;
+    if (pop.contains(e.target)) return;
+    if (e.target.closest && e.target.closest('.tier-compare-trigger')) return;
+    _tierCalendarClose();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (!pop.hidden && e.key === 'Escape') _tierCalendarClose();
+  });
+  window.addEventListener('scroll', () => { if (!pop.hidden) _tierCalendarClose(); }, { passive: true });
+}
+
+function _tierCalendarOpen(triggerEl) {
+  _tierCalendarMount();
+  const pop = document.getElementById('tier-cal-popup');
+  // Toggle: re-clicking the same trigger while open should close.
+  if (!pop.hidden) { _tierCalendarClose(); return; }
+  // Default view year = year-of-tierCompareMonth, or current season.
+  const fromSaved = tierCompareMonth ? parseInt(tierCompareMonth.slice(0, 4), 10) : null;
+  tierCalViewYear = fromSaved || Number(window.ADP_PAYLOAD?.season) || new Date().getFullYear();
+  // Position below the trigger (page-relative coords).
+  const rect = triggerEl.getBoundingClientRect();
+  pop.style.left = (rect.left + window.scrollX) + 'px';
+  pop.style.top  = (rect.bottom + window.scrollY + 4) + 'px';
+  pop.hidden = false;
+  // Render with whatever's cached, then await the year payload if needed.
+  _tierCalendarRenderGrid();
+  _ensureYearLoaded(tierCalViewYear).then(() => _tierCalendarRenderGrid());
+}
+
+function _tierCalendarClose() {
+  const pop = document.getElementById('tier-cal-popup');
+  if (pop) pop.hidden = true;
+}
+
+function _tierCalendarNavYear(delta) {
+  const maxYear = Number(window.ADP_PAYLOAD?.season) || new Date().getFullYear();
+  const next = Math.max(MIN_YEAR, Math.min(maxYear, (tierCalViewYear || maxYear) + delta));
+  if (next === tierCalViewYear) return;
+  tierCalViewYear = next;
+  _tierCalendarRenderGrid();
+  _ensureYearLoaded(next).then(() => _tierCalendarRenderGrid());
+}
+
+function _tierCalendarRenderGrid() {
+  const grid  = document.getElementById('tier-cal-grid');
+  const label = document.getElementById('tier-cal-year-label');
+  const prev  = document.getElementById('tier-cal-prev');
+  const next  = document.getElementById('tier-cal-next');
+  if (!grid || !label) return;
+
+  const maxYear = Number(window.ADP_PAYLOAD?.season) || new Date().getFullYear();
+  label.textContent = String(tierCalViewYear);
+  if (prev) prev.disabled = (tierCalViewYear <= MIN_YEAR);
+  if (next) next.disabled = (tierCalViewYear >= maxYear);
+
+  // NOW_MONTH = the most-recent month with data. Disable that one + future.
+  const allMonths = Object.keys(MONTH_INDEX).sort();
+  const nowMonth = allMonths.length ? allMonths[allMonths.length - 1] : null;
+
+  let html = '';
+  for (let i = 0; i < 12; i++) {
+    const mm = String(i + 1).padStart(2, '0');
+    const ym = tierCalViewYear + '-' + mm;
+    const classes = ['tier-cal-cell'];
+    const hasData = !!MONTH_INDEX[ym];
+    const isActive = (ym === tierCompareMonth);
+    const isFutureOrNow = nowMonth && ym >= nowMonth;
+    let clickAttr = '';
+    if (isActive)             classes.push('active');
+    if (isFutureOrNow)        classes.push('disabled');
+    else if (!hasData)        classes.push('no-data');
+    if (!isFutureOrNow && hasData) {
+      clickAttr = ' onclick="_tierCalendarPickMonth(\'' + ym + '\')"';
+    }
+    html += '<button type="button" class="' + classes.join(' ') + '"' + clickAttr + '>'
+          + _MONTH_SHORT[i] + '</button>';
+  }
+  grid.innerHTML = html;
+}
+
+function _tierCalendarPickMonth(ym) {
+  setTierCompareMonth(ym);
+  _tierCalendarClose();
+}
+
+// CHANGE chip — direct port of adp-tool's trendBadge() at adp-tool.html:2162.
+// Sign convention matches: delta = current - previous.
+//   delta < 0 → player ADP went DOWN (drafted earlier) → ▲ green (#66dd84)
+//   delta > 0 → player ADP went UP   (drafted later)   → ▼ orange (var(--red))
+//   |delta| < 0.05 → ● white (flat)
+// Styling matches adp-tool's .trend palette exactly: transparent background,
+// colored text + arrow, black text-shadow stroke for readability.
+function changeChipHtml(current, previous) {
+  const c = parseFloat(current), p = parseFloat(previous);
+  if (!isFinite(c) || !isFinite(p)) return '';
+  const delta = c - p;
+  const abs = Math.abs(delta);
+  if (abs < 0.05) return '<span class="adp-change-chip flat" title="No change">●</span>';
+  const label = abs.toFixed(1);
+  const tip = 'ADP ' + (delta < 0 ? 'improved' : 'slipped') +
+              ' from ' + p.toFixed(1) + ' to ' + c.toFixed(1);
+  if (delta < 0) {
+    return '<span class="adp-change-chip up" title="' + tip +
+           '"><span class="arrow">▲</span>' + label + '</span>';
+  }
+  return '<span class="adp-change-chip down" title="' + tip +
+         '"><span class="arrow">▼</span>' + label + '</span>';
+}
+
 // ════════════════════════════════════════════════════════════════════════
 //  CROSS-PAGE HANDOFF (universal helpers — identical across all 4 pages)
 // ════════════════════════════════════════════════════════════════════════
@@ -2750,11 +3067,11 @@ function renderRowHtml(p) {
     + '<td>' + fmtCell(p.posRank) + '</td>'
     + '<td>' + ((p.team && window.TeamHelpers) ? window.TeamHelpers.logoImg(p.team, { size: 20, coin: true }) : fmtCell(p.team)) + '</td>'
     + '<td class="col-num">' + fmtNumeric(p.adp2026) + '</td>'
-    + '<td class="col-num">' + fmtNumeric(p.adp2025) + '</td>'
+    + '<td class="col-num">' + fmtNumeric(p.adpPrevious) + '</td>'
+    + '<td class="tier-trending">' + changeChipHtml(p.adp2026, p.adpPrevious) + '</td>'
     + '<td class="col-num"><span class="tier-auction">' + fmtNumeric(p.auction) + '</span></td>'
     + '<td class="col-num">' + fmtNumeric(p.ppg2025) + '</td>'
     + '<td class="col-num">' + fmtNumeric(p.ppg2024) + '</td>'
-    + '<td class="tier-trending">' + (p.trending || '') + '</td>'
     + '<td>' + bshChipHtml(p.buySell) + '</td>'
     + '<td>' + priorityChipHtml(p.priority) + '</td>'
     + '<td>' + contenderChipHtml(p.contender) + '</td>'
@@ -2769,17 +3086,33 @@ function renderHeaderRow() {
     {key: 'pos', label: 'Pos'},
     {key: 'posRank', label: 'Pos Rank'},
     {key: 'team', label: 'Team'},
-    {key: 'adp2026', label: '2026 ADP'},
-    {key: 'adp2025', label: '2025 ADP'},
+    {key: 'adp2026', label: 'Current ADP'},
+    {key: 'adpPrevious', label: 'Previous ADP'},
+    {key: 'change', label: 'Change'},
     {key: 'auction', label: 'Auction'},
     {key: 'ppg2025', label: '2025 PPG'},
     {key: 'ppg2024', label: '2024 PPG'},
-    {key: 'trending', label: 'Trending'},
     {key: 'buySell', label: 'Buy/Sell'},
     {key: 'priority', label: 'Priority'},
     {key: 'contender', label: 'Contender'},
   ];
+  // Previous ADP column shows a trigger button that opens the calendar
+  // popup. Multiple tier groups share the same popup (it's mounted at body
+  // level by _tierCalendarMount), so all 21 triggers in grouped view drive
+  // a single picker without duplicating DOM. The label reads tierCompareMonth.
+  const triggerLabel = tierCompareMonth ? _formatMonthLabel(tierCompareMonth) : '—';
+
   return '<tr>' + cols.map(c => {
+    if (c.key === 'adpPrevious') {
+      return '<th class="tier-th-compare" data-col="adpPrevious">'
+        + '<button type="button" class="tier-compare-trigger"'
+        +   ' onclick="event.stopPropagation(); _tierCalendarOpen(this)"'
+        +   ' aria-label="Pick ADP comparison month">'
+        +   '<span class="tier-compare-label">' + triggerLabel + '</span>'
+        +   '<span class="tier-compare-chevron">▾</span>'
+        + '</button>'
+      + '</th>';
+    }
     const isSorted = tierSortCol === c.key && tierView === 'flat';
     const arrow = isSorted ? '<span class="sort-arrow">' + (tierSortDir === 'asc' ? '▲' : '▼') + '</span>' : '';
     return '<th class="' + (isSorted ? 'sorted' : '') + '" onclick="setSortCol(\'' + c.key + '\')" data-col="' + c.key + '">' + c.label + arrow + '</th>';
@@ -2799,10 +3132,20 @@ function setSortCol(col) {
 
 function sortPlayers(players) {
   // numeric vs string detection per col
-  const numericCols = ['age', 'adp2026', 'adp2025', 'ppg2025', 'ppg2024'];
+  const numericCols = ['age', 'adp2026', 'adpPrevious', 'ppg2025', 'ppg2024'];
   const tierCol = tierSortCol === 'tier';
   const numeric = numericCols.includes(tierSortCol);
-  
+  const changeCol = tierSortCol === 'change';
+
+  // CHANGE is computed (current - previous), not stored. Players missing
+  // either reading sort to the bottom (Infinity sentinel) so the populated
+  // rows always group at the top of an ascending sort.
+  function _changeVal(p) {
+    const c = parseFloat(p.adp2026), pr = parseFloat(p.adpPrevious);
+    if (!isFinite(c) || !isFinite(pr)) return tierSortDir === 'asc' ? Infinity : -Infinity;
+    return c - pr;
+  }
+
   return [...players].sort((a, b) => {
     let av, bv;
     if (tierCol) {
@@ -2810,6 +3153,9 @@ function sortPlayers(players) {
       bv = TIER_ORDER.indexOf(b.tier);
       if (av === -1) av = 999;
       if (bv === -1) bv = 999;
+    } else if (changeCol) {
+      av = _changeVal(a);
+      bv = _changeVal(b);
     } else if (tierSortCol === 'auction') {
       av = parseFloat((a.auction || '').replace(/[^\d.]/g, '')) || 0;
       bv = parseFloat((b.auction || '').replace(/[^\d.]/g, '')) || 0;
@@ -2947,31 +3293,38 @@ function applySleeperOverlay() {
     }
 
     // ── ADP overlay (sleeper_dynasty_adp pipeline) ───────────────────────
-    // All three ADP columns (adp2026, adp2025, adpPrior) come from the same
-    // pipeline that drives the ADP page: data/adp.json (current year),
-    // data/adp-2025.json (prior season via year-picker), and data/adp-prev.json
-    // (weekly snapshot rotated by sync-adp.py). Sheet no longer carries any
-    // ADP data — those columns are entirely overlay-owned.
-    function _applyAdpOverlay(payload, fieldName) {
-      if (!payload || !payload.byMonth) return;
+    // CURRENT ADP comes from data/adp.json's byMonth.ALL aggregate (the
+    // full-history weighted mean). PREVIOUS ADP comes from byMonth["YYYY-MM"]
+    // where YYYY-MM is the user-selected month from the calendar popup. The
+    // bucket is resolved through MONTH_INDEX which merges byMonth keys
+    // across every loaded year payload in YEAR_CACHE. The sheet carries no
+    // ADP data; these columns are entirely overlay-owned.
+    function _applyAdpOverlayFrom(bucket, fieldName) {
+      if (!bucket) return;
       let _fmt = 'sf';
       try { const _v = localStorage.getItem('fpts-adp-format'); if (_v === '1qb' || _v === 'sf') _fmt = _v; } catch (e) {}
-      const canonList = payload.byMonth?.ALL?.[_fmt === '1qb' ? 'startup_1qb' : 'startup_sf'] || [];
-      const fallList  = payload.byMonth?.ALL?.[_fmt === '1qb' ? 'startup_sf'  : 'startup_1qb'] || [];
+      const canonList = bucket[_fmt === '1qb' ? 'startup_1qb' : 'startup_sf'] || [];
+      const fallList  = bucket[_fmt === '1qb' ? 'startup_sf'  : 'startup_1qb'] || [];
       const canonByKey = {}, fallByKey = {};
       canonList.forEach(p => { if (p.name) canonByKey[_normNameTiers(p.name)] = p; });
       fallList .forEach(p => { if (p.name) fallByKey [_normNameTiers(p.name)] = p; });
       TIER_PLAYERS.forEach(p => {
+        // Clear stale values so players that fall out of the bucket render "—"
+        // rather than retaining a previous month's number.
+        p[fieldName] = '';
         const rec = canonByKey[_normNameTiers(p.name)] || fallByKey[_normNameTiers(p.name)];
-        if (!rec) return;
-        if (rec.adp != null) p[fieldName] = String(rec.adp);
+        if (rec && rec.adp != null) p[fieldName] = String(rec.adp);
       });
     }
 
     if (adp && adp.byMonth && window.applySeasonBadge) window.applySeasonBadge(adp.season);
-    _applyAdpOverlay(adp,                      'adp2026');
-    _applyAdpOverlay(window.ADP_PAYLOAD_2025,  'adp2025');
-    _applyAdpOverlay(window.ADP_PAYLOAD_PREV,  'adpPrior');
+    // CURRENT = byMonth.ALL of the current-year payload (the season aggregate).
+    _applyAdpOverlayFrom((adp && adp.byMonth) ? adp.byMonth.ALL : null, 'adp2026');
+    // PREVIOUS = byMonth[tierCompareMonth] resolved through MONTH_INDEX.
+    // Falls through to empty if the dropdown hasn't been populated yet (first
+    // render before fpts:data-ready completes the year-payload merge).
+    const prevBucket = tierCompareMonth ? MONTH_INDEX[tierCompareMonth] : null;
+    _applyAdpOverlayFrom(prevBucket, 'adpPrevious');
 
     // ── auction overlay (real dynasty auction prices) ────────────────────
     // Overwrites sheet's auction column with the median price from real
@@ -3116,25 +3469,38 @@ window.addEventListener('DOMContentLoaded', () => {
 // ADP_PAYLOAD / AUCTION_PAYLOAD / MVS_PAYLOAD, then run the tier-
 // specific overlay onto TIER_PLAYERS and repaint.
 document.addEventListener('fpts:data-ready', () => {
+  // Seed YEAR_CACHE with the current-year payload data-bootstrap already
+  // hydrated. Other years lazy-fetch via _ensureYearLoaded when the user
+  // navigates to them in the calendar popup (each ~15 MB).
+  const currentSeason = Number(window.ADP_PAYLOAD?.season);
+  if (currentSeason && window.ADP_PAYLOAD) {
+    YEAR_CACHE[currentSeason] = window.ADP_PAYLOAD;
+  }
+  buildMonthIndex();
+
+  // Subtle race: if localStorage carries a saved compare-month from a non-
+  // current year (e.g. "2023-08"), MONTH_INDEX won't contain it yet, so
+  // _initTierCompareMonth would silently fall back to the latest 2026
+  // option. Detect the saved-year-mismatch up front and kick the lazy-
+  // fetch BEFORE running init — after it lands, re-init so the saved
+  // selection sticks.
+  let savedRaw = null;
+  try { savedRaw = localStorage.getItem('fpts-tiers-compare-month'); } catch(e) {}
+  const savedYear = savedRaw ? parseInt(savedRaw.slice(0, 4), 10) : null;
+  const needsLazy = savedYear && savedYear !== currentSeason && !YEAR_CACHE[savedYear];
+
+  _initTierCompareMonth();
   applySleeperOverlay();
   renderTiers();
   applySleeperApiAgeFallback().then(filled => { if (filled) renderTiers(); });
 
-  // Fetch the two extra ADP files the tier table needs in addition to the
-  // current-year adp.json that data-bootstrap already hydrated. Both are
-  // optional — failures leave the respective column empty (renders as "—").
-  const _v = '?v=' + (window.__DATA_VERSION || Date.now());
-  Promise.all([
-    fetch('data/adp-2025.json' + _v).then(r => r.ok ? r.json() : null).catch(() => null),
-    fetch('data/adp-prev.json' + _v).then(r => r.ok ? r.json() : null).catch(() => null),
-  ]).then(([adp2025, adpPrev]) => {
-    if (adp2025) window.ADP_PAYLOAD_2025 = adp2025;
-    if (adpPrev) window.ADP_PAYLOAD_PREV = adpPrev;
-    if (adp2025 || adpPrev) {
-      applySleeperOverlay();   // re-run so the two new columns land
+  if (needsLazy) {
+    _ensureYearLoaded(savedYear).then(() => {
+      _initTierCompareMonth();   // now MONTH_INDEX has the saved month — selection sticks
+      applySleeperOverlay();
       renderTiers();
-    }
-  });
+    });
+  }
 });
 </script>
 

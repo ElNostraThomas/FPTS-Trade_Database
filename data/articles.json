@@ -1,6 +1,580 @@
 {
-  "version": "2026-05-16T17:32:33.377894+00:00",
+  "version": "2026-05-16T19:59:17.964835+00:00",
   "players": {
+    "De'Zhaun Stribling": [
+      {
+        "title": "Scott Barrett's 2026 Dynasty Rookie Rankings",
+        "url": "https://www.fantasypoints.com/nfl/articles/scott-barretts-dynasty-rookie-rankings",
+        "date": "2026-04-27T13:59:36.453Z",
+        "author": "Scott Barrett"
+      }
+    ],
+    "Nicholas Singleton": [
+      {
+        "title": "Scott Barrett's 2026 Dynasty Rookie Rankings",
+        "url": "https://www.fantasypoints.com/nfl/articles/scott-barretts-dynasty-rookie-rankings",
+        "date": "2026-04-27T13:59:36.453Z",
+        "author": "Scott Barrett"
+      },
+      {
+        "title": "Ryan Heath's 2026 Rookie RB Rankings",
+        "url": "https://www.fantasypoints.com/nfl/articles/ryan-heaths-rookie-rb-rankings",
+        "date": "2026-04-15T19:00:00.000Z",
+        "author": "Ryan Heath"
+      }
+    ],
+    "Antonio Williams": [
+      {
+        "title": "Brain Trust: 2026 Favorite Rookie Landing Spots",
+        "url": "https://www.fantasypoints.com/nfl/articles/brain-trust-2026-favorite-rookie-landing-spots",
+        "date": "2026-05-12T19:32:18.886Z",
+        "author": "FPTS Staff"
+      },
+      {
+        "title": "Scott Barrett's 2026 Dynasty Rookie Rankings",
+        "url": "https://www.fantasypoints.com/nfl/articles/scott-barretts-dynasty-rookie-rankings",
+        "date": "2026-04-27T13:59:36.453Z",
+        "author": "Scott Barrett"
+      }
+    ],
+    "Fernando Mendoza": [
+      {
+        "title": "2026 NFL Rookie of the Year Awards",
+        "url": "https://www.fantasypoints.com/nfl/articles/nfl-rookie-of-the-year-awards",
+        "date": "2026-04-28T17:00:00.000Z",
+        "author": "Tom Brolley"
+      },
+      {
+        "title": "Scott Barrett's 2026 Dynasty Rookie Rankings",
+        "url": "https://www.fantasypoints.com/nfl/articles/scott-barretts-dynasty-rookie-rankings",
+        "date": "2026-04-27T13:59:36.453Z",
+        "author": "Scott Barrett"
+      }
+    ],
+    "Zachariah Branch": [
+      {
+        "title": "Finding the Next Jaxon Smith-Njigba: Playcaller Tendencies",
+        "url": "https://www.fantasypoints.com/nfl/articles/finding-the-next-jaxon-smith-njigba-playcaller-tendencies",
+        "date": "2026-05-14T15:00:00.000Z",
+        "author": "Ryan Heath"
+      },
+      {
+        "title": "Scott Barrett's 2026 Dynasty Rookie Rankings",
+        "url": "https://www.fantasypoints.com/nfl/articles/scott-barretts-dynasty-rookie-rankings",
+        "date": "2026-04-27T13:59:36.453Z",
+        "author": "Scott Barrett"
+      },
+      {
+        "title": "Barrett's Pre-Draft Top 50 Rookie Rankings",
+        "url": "https://www.fantasypoints.com/nfl/articles/barretts-pre-draft-top-50-rookie-rankings",
+        "date": "2026-04-09T18:18:19.531Z",
+        "author": "Scott Barrett"
+      }
+    ],
+    "Brenen Thompson": [
+      {
+        "title": "Scott Barrett's 2026 Dynasty Rookie Rankings",
+        "url": "https://www.fantasypoints.com/nfl/articles/scott-barretts-dynasty-rookie-rankings",
+        "date": "2026-04-27T13:59:36.453Z",
+        "author": "Scott Barrett"
+      }
+    ],
+    "Eli Heidenreich": [
+      {
+        "title": "Scott Barrett's 2026 Dynasty Rookie Rankings",
+        "url": "https://www.fantasypoints.com/nfl/articles/scott-barretts-dynasty-rookie-rankings",
+        "date": "2026-04-27T13:59:36.453Z",
+        "author": "Scott Barrett"
+      },
+      {
+        "title": "Ryan Heath's 2026 Rookie RB Rankings",
+        "url": "https://www.fantasypoints.com/nfl/articles/ryan-heaths-rookie-rb-rankings",
+        "date": "2026-04-15T19:00:00.000Z",
+        "author": "Ryan Heath"
+      }
+    ],
+    "Mike Washington": [
+      {
+        "title": "Scott Barrett's 2026 Dynasty Rookie Rankings",
+        "url": "https://www.fantasypoints.com/nfl/articles/scott-barretts-dynasty-rookie-rankings",
+        "date": "2026-04-27T13:59:36.453Z",
+        "author": "Scott Barrett"
+      },
+      {
+        "title": "Ryan Heath's 2026 Rookie RB Rankings",
+        "url": "https://www.fantasypoints.com/nfl/articles/ryan-heaths-rookie-rb-rankings",
+        "date": "2026-04-15T19:00:00.000Z",
+        "author": "Ryan Heath"
+      }
+    ],
+    "Chris Brazzell": [
+      {
+        "title": "Scott Barrett's 2026 Dynasty Rookie Rankings",
+        "url": "https://www.fantasypoints.com/nfl/articles/scott-barretts-dynasty-rookie-rankings",
+        "date": "2026-04-27T13:59:36.453Z",
+        "author": "Scott Barrett"
+      }
+    ],
+    "Elijah Sarratt": [
+      {
+        "title": "Scott Barrett's 2026 Dynasty Rookie Rankings",
+        "url": "https://www.fantasypoints.com/nfl/articles/scott-barretts-dynasty-rookie-rankings",
+        "date": "2026-04-27T13:59:36.453Z",
+        "author": "Scott Barrett"
+      }
+    ],
+    "Emmett Johnson": [
+      {
+        "title": "Scott Barrett's 2026 Dynasty Rookie Rankings",
+        "url": "https://www.fantasypoints.com/nfl/articles/scott-barretts-dynasty-rookie-rankings",
+        "date": "2026-04-27T13:59:36.453Z",
+        "author": "Scott Barrett"
+      },
+      {
+        "title": "Ryan Heath's 2026 Rookie RB Rankings",
+        "url": "https://www.fantasypoints.com/nfl/articles/ryan-heaths-rookie-rb-rankings",
+        "date": "2026-04-15T19:00:00.000Z",
+        "author": "Ryan Heath"
+      }
+    ],
+    "Germie Bernard": [
+      {
+        "title": "Finding the Next Jaxon Smith-Njigba: Playcaller Tendencies",
+        "url": "https://www.fantasypoints.com/nfl/articles/finding-the-next-jaxon-smith-njigba-playcaller-tendencies",
+        "date": "2026-05-14T15:00:00.000Z",
+        "author": "Ryan Heath"
+      },
+      {
+        "title": "Scott Barrett's 2026 Dynasty Rookie Rankings",
+        "url": "https://www.fantasypoints.com/nfl/articles/scott-barretts-dynasty-rookie-rankings",
+        "date": "2026-04-27T13:59:36.453Z",
+        "author": "Scott Barrett"
+      }
+    ],
+    "Jadarian Price": [
+      {
+        "title": "2026 NFL Rookie of the Year Awards",
+        "url": "https://www.fantasypoints.com/nfl/articles/nfl-rookie-of-the-year-awards",
+        "date": "2026-04-28T17:00:00.000Z",
+        "author": "Tom Brolley"
+      },
+      {
+        "title": "Scott Barrett's 2026 Dynasty Rookie Rankings",
+        "url": "https://www.fantasypoints.com/nfl/articles/scott-barretts-dynasty-rookie-rankings",
+        "date": "2026-04-27T13:59:36.453Z",
+        "author": "Scott Barrett"
+      },
+      {
+        "title": "Ryan Heath's 2026 Rookie RB Rankings",
+        "url": "https://www.fantasypoints.com/nfl/articles/ryan-heaths-rookie-rb-rankings",
+        "date": "2026-04-15T19:00:00.000Z",
+        "author": "Ryan Heath"
+      }
+    ],
+    "Jeremiyah Love": [
+      {
+        "title": "2026 NFL Rookie of the Year Awards",
+        "url": "https://www.fantasypoints.com/nfl/articles/nfl-rookie-of-the-year-awards",
+        "date": "2026-04-28T17:00:00.000Z",
+        "author": "Tom Brolley"
+      },
+      {
+        "title": "Scott Barrett's 2026 Dynasty Rookie Rankings",
+        "url": "https://www.fantasypoints.com/nfl/articles/scott-barretts-dynasty-rookie-rankings",
+        "date": "2026-04-27T13:59:36.453Z",
+        "author": "Scott Barrett"
+      },
+      {
+        "title": "2026 NFL Draft Market Report: Veterans",
+        "url": "https://www.fantasypoints.com/nfl/articles/nfl-draft-market-report-veterans",
+        "date": "2026-04-25T20:00:00.000Z",
+        "author": "Tom Brolley"
+      },
+      {
+        "title": "Ryan Heath's 2026 Rookie RB Rankings",
+        "url": "https://www.fantasypoints.com/nfl/articles/ryan-heaths-rookie-rb-rankings",
+        "date": "2026-04-15T19:00:00.000Z",
+        "author": "Ryan Heath"
+      },
+      {
+        "title": "Barrett's Pre-Draft Top 50 Rookie Rankings",
+        "url": "https://www.fantasypoints.com/nfl/articles/barretts-pre-draft-top-50-rookie-rankings",
+        "date": "2026-04-09T18:18:19.531Z",
+        "author": "Scott Barrett"
+      }
+    ],
+    "Malachi Fields": [
+      {
+        "title": "Scott Barrett's 2026 Dynasty Rookie Rankings",
+        "url": "https://www.fantasypoints.com/nfl/articles/scott-barretts-dynasty-rookie-rankings",
+        "date": "2026-04-27T13:59:36.453Z",
+        "author": "Scott Barrett"
+      }
+    ],
+    "Caleb Douglas": [
+      {
+        "title": "Scott Barrett's 2026 Dynasty Rookie Rankings",
+        "url": "https://www.fantasypoints.com/nfl/articles/scott-barretts-dynasty-rookie-rankings",
+        "date": "2026-04-27T13:59:36.453Z",
+        "author": "Scott Barrett"
+      }
+    ],
+    "Denzel Boston": [
+      {
+        "title": "Scott Barrett's 2026 Dynasty Rookie Rankings",
+        "url": "https://www.fantasypoints.com/nfl/articles/scott-barretts-dynasty-rookie-rankings",
+        "date": "2026-04-27T13:59:36.453Z",
+        "author": "Scott Barrett"
+      }
+    ],
+    "Jeff Caldwell": [
+      {
+        "title": "Scott Barrett's 2026 Dynasty Rookie Rankings",
+        "url": "https://www.fantasypoints.com/nfl/articles/scott-barretts-dynasty-rookie-rankings",
+        "date": "2026-04-27T13:59:36.453Z",
+        "author": "Scott Barrett"
+      }
+    ],
+    "Jonah Coleman": [
+      {
+        "title": "Scott Barrett's 2026 Dynasty Rookie Rankings",
+        "url": "https://www.fantasypoints.com/nfl/articles/scott-barretts-dynasty-rookie-rankings",
+        "date": "2026-04-27T13:59:36.453Z",
+        "author": "Scott Barrett"
+      },
+      {
+        "title": "Ryan Heath's 2026 Rookie RB Rankings",
+        "url": "https://www.fantasypoints.com/nfl/articles/ryan-heaths-rookie-rb-rankings",
+        "date": "2026-04-15T19:00:00.000Z",
+        "author": "Ryan Heath"
+      }
+    ],
+    "Kaytron Allen": [
+      {
+        "title": "Scott Barrett's 2026 Dynasty Rookie Rankings",
+        "url": "https://www.fantasypoints.com/nfl/articles/scott-barretts-dynasty-rookie-rankings",
+        "date": "2026-04-27T13:59:36.453Z",
+        "author": "Scott Barrett"
+      },
+      {
+        "title": "Ryan Heath's 2026 Rookie RB Rankings",
+        "url": "https://www.fantasypoints.com/nfl/articles/ryan-heaths-rookie-rb-rankings",
+        "date": "2026-04-15T19:00:00.000Z",
+        "author": "Ryan Heath"
+      }
+    ],
+    "Kevin Coleman": [
+      {
+        "title": "Scott Barrett's 2026 Dynasty Rookie Rankings",
+        "url": "https://www.fantasypoints.com/nfl/articles/scott-barretts-dynasty-rookie-rankings",
+        "date": "2026-04-27T13:59:36.453Z",
+        "author": "Scott Barrett"
+      },
+      {
+        "title": "Barrett's Pre-Draft Top 50 Rookie Rankings",
+        "url": "https://www.fantasypoints.com/nfl/articles/barretts-pre-draft-top-50-rookie-rankings",
+        "date": "2026-04-09T18:18:19.531Z",
+        "author": "Scott Barrett"
+      }
+    ],
+    "Tanner Koziol": [
+      {
+        "title": "Scott Barrett's 2026 Dynasty Rookie Rankings",
+        "url": "https://www.fantasypoints.com/nfl/articles/scott-barretts-dynasty-rookie-rankings",
+        "date": "2026-04-27T13:59:36.453Z",
+        "author": "Scott Barrett"
+      }
+    ],
+    "Adam Randall": [
+      {
+        "title": "Scott Barrett's 2026 Dynasty Rookie Rankings",
+        "url": "https://www.fantasypoints.com/nfl/articles/scott-barretts-dynasty-rookie-rankings",
+        "date": "2026-04-27T13:59:36.453Z",
+        "author": "Scott Barrett"
+      }
+    ],
+    "Cade Klubnik": [
+      {
+        "title": "Scott Barrett's 2026 Dynasty Rookie Rankings",
+        "url": "https://www.fantasypoints.com/nfl/articles/scott-barretts-dynasty-rookie-rankings",
+        "date": "2026-04-27T13:59:36.453Z",
+        "author": "Scott Barrett"
+      }
+    ],
+    "Carnell Tate": [
+      {
+        "title": "Scott Barrett's 2026 Dynasty Rookie Rankings",
+        "url": "https://www.fantasypoints.com/nfl/articles/scott-barretts-dynasty-rookie-rankings",
+        "date": "2026-04-27T13:59:36.453Z",
+        "author": "Scott Barrett"
+      },
+      {
+        "title": "Barrett's Pre-Draft Top 50 Rookie Rankings",
+        "url": "https://www.fantasypoints.com/nfl/articles/barretts-pre-draft-top-50-rookie-rankings",
+        "date": "2026-04-09T18:18:19.531Z",
+        "author": "Scott Barrett"
+      }
+    ],
+    "Jack Endries": [
+      {
+        "title": "Scott Barrett's 2026 Dynasty Rookie Rankings",
+        "url": "https://www.fantasypoints.com/nfl/articles/scott-barretts-dynasty-rookie-rankings",
+        "date": "2026-04-27T13:59:36.453Z",
+        "author": "Scott Barrett"
+      }
+    ],
+    "Jordyn Tyson": [
+      {
+        "title": "Finding the Next Jaxon Smith-Njigba: Playcaller Tendencies",
+        "url": "https://www.fantasypoints.com/nfl/articles/finding-the-next-jaxon-smith-njigba-playcaller-tendencies",
+        "date": "2026-05-14T15:00:00.000Z",
+        "author": "Ryan Heath"
+      },
+      {
+        "title": "Brain Trust: 2026 Favorite Rookie Landing Spots",
+        "url": "https://www.fantasypoints.com/nfl/articles/brain-trust-2026-favorite-rookie-landing-spots",
+        "date": "2026-05-12T19:32:18.886Z",
+        "author": "FPTS Staff"
+      },
+      {
+        "title": "2026 NFL Rookie of the Year Awards",
+        "url": "https://www.fantasypoints.com/nfl/articles/nfl-rookie-of-the-year-awards",
+        "date": "2026-04-28T17:00:00.000Z",
+        "author": "Tom Brolley"
+      },
+      {
+        "title": "Scott Barrett's 2026 Dynasty Rookie Rankings",
+        "url": "https://www.fantasypoints.com/nfl/articles/scott-barretts-dynasty-rookie-rankings",
+        "date": "2026-04-27T13:59:36.453Z",
+        "author": "Scott Barrett"
+      }
+    ],
+    "Kaelon Black": [
+      {
+        "title": "Scott Barrett's 2026 Dynasty Rookie Rankings",
+        "url": "https://www.fantasypoints.com/nfl/articles/scott-barretts-dynasty-rookie-rankings",
+        "date": "2026-04-27T13:59:36.453Z",
+        "author": "Scott Barrett"
+      }
+    ],
+    "Kenyon Sadiq": [
+      {
+        "title": "2026 NFL Rookie Player Props",
+        "url": "https://www.fantasypoints.com/nfl/articles/nfl-rookie-player-props",
+        "date": "2026-04-30T21:30:00.000Z",
+        "author": "Tom Brolley"
+      },
+      {
+        "title": "Scott Barrett's 2026 Dynasty Rookie Rankings",
+        "url": "https://www.fantasypoints.com/nfl/articles/scott-barretts-dynasty-rookie-rankings",
+        "date": "2026-04-27T13:59:36.453Z",
+        "author": "Scott Barrett"
+      },
+      {
+        "title": "Barrett's Pre-Draft Top 50 Rookie Rankings",
+        "url": "https://www.fantasypoints.com/nfl/articles/barretts-pre-draft-top-50-rookie-rankings",
+        "date": "2026-04-09T18:18:19.531Z",
+        "author": "Scott Barrett"
+      }
+    ],
+    "Marlin Klein": [
+      {
+        "title": "Scott Barrett's 2026 Dynasty Rookie Rankings",
+        "url": "https://www.fantasypoints.com/nfl/articles/scott-barretts-dynasty-rookie-rankings",
+        "date": "2026-04-27T13:59:36.453Z",
+        "author": "Scott Barrett"
+      }
+    ],
+    "Taylen Green": [
+      {
+        "title": "Scott Barrett's 2026 Dynasty Rookie Rankings",
+        "url": "https://www.fantasypoints.com/nfl/articles/scott-barretts-dynasty-rookie-rankings",
+        "date": "2026-04-27T13:59:36.453Z",
+        "author": "Scott Barrett"
+      }
+    ],
+    "Bryce Lance": [
+      {
+        "title": "Scott Barrett's 2026 Dynasty Rookie Rankings",
+        "url": "https://www.fantasypoints.com/nfl/articles/scott-barretts-dynasty-rookie-rankings",
+        "date": "2026-04-27T13:59:36.453Z",
+        "author": "Scott Barrett"
+      }
+    ],
+    "Carson Beck": [
+      {
+        "title": "Scott Barrett's 2026 Dynasty Rookie Rankings",
+        "url": "https://www.fantasypoints.com/nfl/articles/scott-barretts-dynasty-rookie-rankings",
+        "date": "2026-04-27T13:59:36.453Z",
+        "author": "Scott Barrett"
+      }
+    ],
+    "Eli Raridon": [
+      {
+        "title": "Scott Barrett's 2026 Dynasty Rookie Rankings",
+        "url": "https://www.fantasypoints.com/nfl/articles/scott-barretts-dynasty-rookie-rankings",
+        "date": "2026-04-27T13:59:36.453Z",
+        "author": "Scott Barrett"
+      }
+    ],
+    "Jaren Kanak": [
+      {
+        "title": "Scott Barrett's 2026 Dynasty Rookie Rankings",
+        "url": "https://www.fantasypoints.com/nfl/articles/scott-barretts-dynasty-rookie-rankings",
+        "date": "2026-04-27T13:59:36.453Z",
+        "author": "Scott Barrett"
+      }
+    ],
+    "Justin Joly": [
+      {
+        "title": "Scott Barrett's 2026 Dynasty Rookie Rankings",
+        "url": "https://www.fantasypoints.com/nfl/articles/scott-barretts-dynasty-rookie-rankings",
+        "date": "2026-04-27T13:59:36.453Z",
+        "author": "Scott Barrett"
+      }
+    ],
+    "Makai Lemon": [
+      {
+        "title": "Scott Barrett's 2026 Dynasty Rookie Rankings",
+        "url": "https://www.fantasypoints.com/nfl/articles/scott-barretts-dynasty-rookie-rankings",
+        "date": "2026-04-27T13:59:36.453Z",
+        "author": "Scott Barrett"
+      },
+      {
+        "title": "Heath's 2026 NFL Draft Fantasy Takeaways",
+        "url": "https://www.fantasypoints.com/nfl/articles/heaths-nfl-draft-fantasy-takeaways",
+        "date": "2026-04-24T12:30:00.000Z",
+        "author": "Ryan Heath"
+      },
+      {
+        "title": "Barrett's Pre-Draft Top 50 Rookie Rankings",
+        "url": "https://www.fantasypoints.com/nfl/articles/barretts-pre-draft-top-50-rookie-rankings",
+        "date": "2026-04-09T18:18:19.531Z",
+        "author": "Scott Barrett"
+      }
+    ],
+    "Omar Cooper": [
+      {
+        "title": "Scott Barrett's 2026 Dynasty Rookie Rankings",
+        "url": "https://www.fantasypoints.com/nfl/articles/scott-barretts-dynasty-rookie-rankings",
+        "date": "2026-04-27T13:59:36.453Z",
+        "author": "Scott Barrett"
+      }
+    ],
+    "Skyler Bell": [
+      {
+        "title": "Scott Barrett's 2026 Dynasty Rookie Rankings",
+        "url": "https://www.fantasypoints.com/nfl/articles/scott-barretts-dynasty-rookie-rankings",
+        "date": "2026-04-27T13:59:36.453Z",
+        "author": "Scott Barrett"
+      }
+    ],
+    "Zay Flowers": [
+      {
+        "title": "Finding the Next Jaxon Smith-Njigba: Playcaller Tendencies",
+        "url": "https://www.fantasypoints.com/nfl/articles/finding-the-next-jaxon-smith-njigba-playcaller-tendencies",
+        "date": "2026-05-14T15:00:00.000Z",
+        "author": "Ryan Heath"
+      },
+      {
+        "title": "Scott Barrett's 2026 Dynasty Rookie Rankings",
+        "url": "https://www.fantasypoints.com/nfl/articles/scott-barretts-dynasty-rookie-rankings",
+        "date": "2026-04-27T13:59:36.453Z",
+        "author": "Scott Barrett"
+      }
+    ],
+    "Chris Bell": [
+      {
+        "title": "Scott Barrett's 2026 Dynasty Rookie Rankings",
+        "url": "https://www.fantasypoints.com/nfl/articles/scott-barretts-dynasty-rookie-rankings",
+        "date": "2026-04-27T13:59:36.453Z",
+        "author": "Scott Barrett"
+      },
+      {
+        "title": "Barrett's Pre-Draft Top 50 Rookie Rankings",
+        "url": "https://www.fantasypoints.com/nfl/articles/barretts-pre-draft-top-50-rookie-rankings",
+        "date": "2026-04-09T18:18:19.531Z",
+        "author": "Scott Barrett"
+      }
+    ],
+    "Drew Allar": [
+      {
+        "title": "Scott Barrett's 2026 Dynasty Rookie Rankings",
+        "url": "https://www.fantasypoints.com/nfl/articles/scott-barretts-dynasty-rookie-rankings",
+        "date": "2026-04-27T13:59:36.453Z",
+        "author": "Scott Barrett"
+      }
+    ],
+    "Oscar Delp": [
+      {
+        "title": "Scott Barrett's 2026 Dynasty Rookie Rankings",
+        "url": "https://www.fantasypoints.com/nfl/articles/scott-barretts-dynasty-rookie-rankings",
+        "date": "2026-04-27T13:59:36.453Z",
+        "author": "Scott Barrett"
+      }
+    ],
+    "Ty Simpson": [
+      {
+        "title": "Scott Barrett's 2026 Dynasty Rookie Rankings",
+        "url": "https://www.fantasypoints.com/nfl/articles/scott-barretts-dynasty-rookie-rankings",
+        "date": "2026-04-27T13:59:36.453Z",
+        "author": "Scott Barrett"
+      },
+      {
+        "title": "Heath's 2026 NFL Draft Fantasy Takeaways",
+        "url": "https://www.fantasypoints.com/nfl/articles/heaths-nfl-draft-fantasy-takeaways",
+        "date": "2026-04-24T12:30:00.000Z",
+        "author": "Ryan Heath"
+      },
+      {
+        "title": "Barrett's Pre-Draft Top 50 Rookie Rankings",
+        "url": "https://www.fantasypoints.com/nfl/articles/barretts-pre-draft-top-50-rookie-rankings",
+        "date": "2026-04-09T18:18:19.531Z",
+        "author": "Scott Barrett"
+      }
+    ],
+    "Max Klare": [
+      {
+        "title": "Finding the Next Jaxon Smith-Njigba: Playcaller Tendencies",
+        "url": "https://www.fantasypoints.com/nfl/articles/finding-the-next-jaxon-smith-njigba-playcaller-tendencies",
+        "date": "2026-05-14T15:00:00.000Z",
+        "author": "Ryan Heath"
+      },
+      {
+        "title": "Scott Barrett's 2026 Dynasty Rookie Rankings",
+        "url": "https://www.fantasypoints.com/nfl/articles/scott-barretts-dynasty-rookie-rankings",
+        "date": "2026-04-27T13:59:36.453Z",
+        "author": "Scott Barrett"
+      }
+    ],
+    "Sam Roush": [
+      {
+        "title": "Finding the Next Jaxon Smith-Njigba: Playcaller Tendencies",
+        "url": "https://www.fantasypoints.com/nfl/articles/finding-the-next-jaxon-smith-njigba-playcaller-tendencies",
+        "date": "2026-05-14T15:00:00.000Z",
+        "author": "Ryan Heath"
+      },
+      {
+        "title": "Scott Barrett's 2026 Dynasty Rookie Rankings",
+        "url": "https://www.fantasypoints.com/nfl/articles/scott-barretts-dynasty-rookie-rankings",
+        "date": "2026-04-27T13:59:36.453Z",
+        "author": "Scott Barrett"
+      }
+    ],
+    "Ted Hurst": [
+      {
+        "title": "Finding the Next Jaxon Smith-Njigba: Playcaller Tendencies",
+        "url": "https://www.fantasypoints.com/nfl/articles/finding-the-next-jaxon-smith-njigba-playcaller-tendencies",
+        "date": "2026-05-14T15:00:00.000Z",
+        "author": "Ryan Heath"
+      },
+      {
+        "title": "Scott Barrett's 2026 Dynasty Rookie Rankings",
+        "url": "https://www.fantasypoints.com/nfl/articles/scott-barretts-dynasty-rookie-rankings",
+        "date": "2026-04-27T13:59:36.453Z",
+        "author": "Scott Barrett"
+      }
+    ],
     "Nick Westbrook-Ikhine": [
       {
         "title": "2026 NFL Power Rankings: Post Draft",
@@ -551,26 +1125,6 @@
         "author": "Ryan Heath"
       }
     ],
-    "Zachariah Branch": [
-      {
-        "title": "Finding the Next Jaxon Smith-Njigba: Playcaller Tendencies",
-        "url": "https://www.fantasypoints.com/nfl/articles/finding-the-next-jaxon-smith-njigba-playcaller-tendencies",
-        "date": "2026-05-14T15:00:00.000Z",
-        "author": "Ryan Heath"
-      },
-      {
-        "title": "Scott Barrett's 2026 Dynasty Rookie Rankings",
-        "url": "https://www.fantasypoints.com/nfl/articles/scott-barretts-dynasty-rookie-rankings",
-        "date": "2026-04-27T13:59:36.453Z",
-        "author": "Scott Barrett"
-      },
-      {
-        "title": "Barrett's Pre-Draft Top 50 Rookie Rankings",
-        "url": "https://www.fantasypoints.com/nfl/articles/barretts-pre-draft-top-50-rookie-rankings",
-        "date": "2026-04-09T18:18:19.531Z",
-        "author": "Scott Barrett"
-      }
-    ],
     "Marvin Harrison": [
       {
         "title": "Finding the Next Jaxon Smith-Njigba: Playcaller Tendencies",
@@ -583,20 +1137,6 @@
         "url": "https://www.fantasypoints.com/nfl/articles/2025-ceiling-adjusted-fpg-wide-receivers",
         "date": "2026-04-28T16:30:00.000Z",
         "author": "Kyle Menton"
-      }
-    ],
-    "Germie Bernard": [
-      {
-        "title": "Finding the Next Jaxon Smith-Njigba: Playcaller Tendencies",
-        "url": "https://www.fantasypoints.com/nfl/articles/finding-the-next-jaxon-smith-njigba-playcaller-tendencies",
-        "date": "2026-05-14T15:00:00.000Z",
-        "author": "Ryan Heath"
-      },
-      {
-        "title": "Scott Barrett's 2026 Dynasty Rookie Rankings",
-        "url": "https://www.fantasypoints.com/nfl/articles/scott-barretts-dynasty-rookie-rankings",
-        "date": "2026-04-27T13:59:36.453Z",
-        "author": "Scott Barrett"
       }
     ],
     "Jauan Jennings": [
@@ -797,32 +1337,6 @@
         "author": "Ryan Heath"
       }
     ],
-    "Jordyn Tyson": [
-      {
-        "title": "Finding the Next Jaxon Smith-Njigba: Playcaller Tendencies",
-        "url": "https://www.fantasypoints.com/nfl/articles/finding-the-next-jaxon-smith-njigba-playcaller-tendencies",
-        "date": "2026-05-14T15:00:00.000Z",
-        "author": "Ryan Heath"
-      },
-      {
-        "title": "Brain Trust: 2026 Favorite Rookie Landing Spots",
-        "url": "https://www.fantasypoints.com/nfl/articles/brain-trust-2026-favorite-rookie-landing-spots",
-        "date": "2026-05-12T19:32:18.886Z",
-        "author": "FPTS Staff"
-      },
-      {
-        "title": "2026 NFL Rookie of the Year Awards",
-        "url": "https://www.fantasypoints.com/nfl/articles/nfl-rookie-of-the-year-awards",
-        "date": "2026-04-28T17:00:00.000Z",
-        "author": "Tom Brolley"
-      },
-      {
-        "title": "Scott Barrett's 2026 Dynasty Rookie Rankings",
-        "url": "https://www.fantasypoints.com/nfl/articles/scott-barretts-dynasty-rookie-rankings",
-        "date": "2026-04-27T13:59:36.453Z",
-        "author": "Scott Barrett"
-      }
-    ],
     "Malik Nabers": [
       {
         "title": "Finding the Next Jaxon Smith-Njigba: Playcaller Tendencies",
@@ -919,20 +1433,6 @@
         "author": "Ryan Heath"
       }
     ],
-    "Zay Flowers": [
-      {
-        "title": "Finding the Next Jaxon Smith-Njigba: Playcaller Tendencies",
-        "url": "https://www.fantasypoints.com/nfl/articles/finding-the-next-jaxon-smith-njigba-playcaller-tendencies",
-        "date": "2026-05-14T15:00:00.000Z",
-        "author": "Ryan Heath"
-      },
-      {
-        "title": "Scott Barrett's 2026 Dynasty Rookie Rankings",
-        "url": "https://www.fantasypoints.com/nfl/articles/scott-barretts-dynasty-rookie-rankings",
-        "date": "2026-04-27T13:59:36.453Z",
-        "author": "Scott Barrett"
-      }
-    ],
     "DK Metcalf": [
       {
         "title": "Finding the Next Jaxon Smith-Njigba: Playcaller Tendencies",
@@ -961,48 +1461,6 @@
         "url": "https://www.fantasypoints.com/nfl/articles/2025-ceiling-adjusted-fpg-wide-receivers",
         "date": "2026-04-28T16:30:00.000Z",
         "author": "Kyle Menton"
-      }
-    ],
-    "Max Klare": [
-      {
-        "title": "Finding the Next Jaxon Smith-Njigba: Playcaller Tendencies",
-        "url": "https://www.fantasypoints.com/nfl/articles/finding-the-next-jaxon-smith-njigba-playcaller-tendencies",
-        "date": "2026-05-14T15:00:00.000Z",
-        "author": "Ryan Heath"
-      },
-      {
-        "title": "Scott Barrett's 2026 Dynasty Rookie Rankings",
-        "url": "https://www.fantasypoints.com/nfl/articles/scott-barretts-dynasty-rookie-rankings",
-        "date": "2026-04-27T13:59:36.453Z",
-        "author": "Scott Barrett"
-      }
-    ],
-    "Sam Roush": [
-      {
-        "title": "Finding the Next Jaxon Smith-Njigba: Playcaller Tendencies",
-        "url": "https://www.fantasypoints.com/nfl/articles/finding-the-next-jaxon-smith-njigba-playcaller-tendencies",
-        "date": "2026-05-14T15:00:00.000Z",
-        "author": "Ryan Heath"
-      },
-      {
-        "title": "Scott Barrett's 2026 Dynasty Rookie Rankings",
-        "url": "https://www.fantasypoints.com/nfl/articles/scott-barretts-dynasty-rookie-rankings",
-        "date": "2026-04-27T13:59:36.453Z",
-        "author": "Scott Barrett"
-      }
-    ],
-    "Ted Hurst": [
-      {
-        "title": "Finding the Next Jaxon Smith-Njigba: Playcaller Tendencies",
-        "url": "https://www.fantasypoints.com/nfl/articles/finding-the-next-jaxon-smith-njigba-playcaller-tendencies",
-        "date": "2026-05-14T15:00:00.000Z",
-        "author": "Ryan Heath"
-      },
-      {
-        "title": "Scott Barrett's 2026 Dynasty Rookie Rankings",
-        "url": "https://www.fantasypoints.com/nfl/articles/scott-barretts-dynasty-rookie-rankings",
-        "date": "2026-04-27T13:59:36.453Z",
-        "author": "Scott Barrett"
       }
     ],
     "Tyler Shough": [
@@ -1039,20 +1497,6 @@
         "author": "Tom Brolley"
       }
     ],
-    "Antonio Williams": [
-      {
-        "title": "Brain Trust: 2026 Favorite Rookie Landing Spots",
-        "url": "https://www.fantasypoints.com/nfl/articles/brain-trust-2026-favorite-rookie-landing-spots",
-        "date": "2026-05-12T19:32:18.886Z",
-        "author": "FPTS Staff"
-      },
-      {
-        "title": "Scott Barrett's 2026 Dynasty Rookie Rankings",
-        "url": "https://www.fantasypoints.com/nfl/articles/scott-barretts-dynasty-rookie-rankings",
-        "date": "2026-04-27T13:59:36.453Z",
-        "author": "Scott Barrett"
-      }
-    ],
     "Zach Charbonnet": [
       {
         "title": "Brain Trust: 2026 Favorite Rookie Landing Spots",
@@ -1067,72 +1511,6 @@
         "url": "https://www.fantasypoints.com/nfl/articles/brain-trust-2026-favorite-rookie-landing-spots",
         "date": "2026-05-12T19:32:18.886Z",
         "author": "FPTS Staff"
-      }
-    ],
-    "Jeremiyah Love": [
-      {
-        "title": "2026 NFL Rookie of the Year Awards",
-        "url": "https://www.fantasypoints.com/nfl/articles/nfl-rookie-of-the-year-awards",
-        "date": "2026-04-28T17:00:00.000Z",
-        "author": "Tom Brolley"
-      },
-      {
-        "title": "Scott Barrett's 2026 Dynasty Rookie Rankings",
-        "url": "https://www.fantasypoints.com/nfl/articles/scott-barretts-dynasty-rookie-rankings",
-        "date": "2026-04-27T13:59:36.453Z",
-        "author": "Scott Barrett"
-      },
-      {
-        "title": "2026 NFL Draft Market Report: Veterans",
-        "url": "https://www.fantasypoints.com/nfl/articles/nfl-draft-market-report-veterans",
-        "date": "2026-04-25T20:00:00.000Z",
-        "author": "Tom Brolley"
-      },
-      {
-        "title": "Ryan Heath's 2026 Rookie RB Rankings",
-        "url": "https://www.fantasypoints.com/nfl/articles/ryan-heaths-rookie-rb-rankings",
-        "date": "2026-04-15T19:00:00.000Z",
-        "author": "Ryan Heath"
-      },
-      {
-        "title": "Barrett's Pre-Draft Top 50 Rookie Rankings",
-        "url": "https://www.fantasypoints.com/nfl/articles/barretts-pre-draft-top-50-rookie-rankings",
-        "date": "2026-04-09T18:18:19.531Z",
-        "author": "Scott Barrett"
-      }
-    ],
-    "Fernando Mendoza": [
-      {
-        "title": "2026 NFL Rookie of the Year Awards",
-        "url": "https://www.fantasypoints.com/nfl/articles/nfl-rookie-of-the-year-awards",
-        "date": "2026-04-28T17:00:00.000Z",
-        "author": "Tom Brolley"
-      },
-      {
-        "title": "Scott Barrett's 2026 Dynasty Rookie Rankings",
-        "url": "https://www.fantasypoints.com/nfl/articles/scott-barretts-dynasty-rookie-rankings",
-        "date": "2026-04-27T13:59:36.453Z",
-        "author": "Scott Barrett"
-      }
-    ],
-    "Jadarian Price": [
-      {
-        "title": "2026 NFL Rookie of the Year Awards",
-        "url": "https://www.fantasypoints.com/nfl/articles/nfl-rookie-of-the-year-awards",
-        "date": "2026-04-28T17:00:00.000Z",
-        "author": "Tom Brolley"
-      },
-      {
-        "title": "Scott Barrett's 2026 Dynasty Rookie Rankings",
-        "url": "https://www.fantasypoints.com/nfl/articles/scott-barretts-dynasty-rookie-rankings",
-        "date": "2026-04-27T13:59:36.453Z",
-        "author": "Scott Barrett"
-      },
-      {
-        "title": "Ryan Heath's 2026 Rookie RB Rankings",
-        "url": "https://www.fantasypoints.com/nfl/articles/ryan-heaths-rookie-rb-rankings",
-        "date": "2026-04-15T19:00:00.000Z",
-        "author": "Ryan Heath"
       }
     ],
     "Saquon Barkley": [
@@ -1161,384 +1539,6 @@
         "url": "https://www.fantasypoints.com/nfl/articles/nfl-rookie-of-the-year-awards",
         "date": "2026-04-28T17:00:00.000Z",
         "author": "Tom Brolley"
-      }
-    ],
-    "Kenyon Sadiq": [
-      {
-        "title": "2026 NFL Rookie Player Props",
-        "url": "https://www.fantasypoints.com/nfl/articles/nfl-rookie-player-props",
-        "date": "2026-04-30T21:30:00.000Z",
-        "author": "Tom Brolley"
-      },
-      {
-        "title": "Scott Barrett's 2026 Dynasty Rookie Rankings",
-        "url": "https://www.fantasypoints.com/nfl/articles/scott-barretts-dynasty-rookie-rankings",
-        "date": "2026-04-27T13:59:36.453Z",
-        "author": "Scott Barrett"
-      },
-      {
-        "title": "Barrett's Pre-Draft Top 50 Rookie Rankings",
-        "url": "https://www.fantasypoints.com/nfl/articles/barretts-pre-draft-top-50-rookie-rankings",
-        "date": "2026-04-09T18:18:19.531Z",
-        "author": "Scott Barrett"
-      }
-    ],
-    "De'Zhaun Stribling": [
-      {
-        "title": "Scott Barrett's 2026 Dynasty Rookie Rankings",
-        "url": "https://www.fantasypoints.com/nfl/articles/scott-barretts-dynasty-rookie-rankings",
-        "date": "2026-04-27T13:59:36.453Z",
-        "author": "Scott Barrett"
-      }
-    ],
-    "Nicholas Singleton": [
-      {
-        "title": "Scott Barrett's 2026 Dynasty Rookie Rankings",
-        "url": "https://www.fantasypoints.com/nfl/articles/scott-barretts-dynasty-rookie-rankings",
-        "date": "2026-04-27T13:59:36.453Z",
-        "author": "Scott Barrett"
-      },
-      {
-        "title": "Ryan Heath's 2026 Rookie RB Rankings",
-        "url": "https://www.fantasypoints.com/nfl/articles/ryan-heaths-rookie-rb-rankings",
-        "date": "2026-04-15T19:00:00.000Z",
-        "author": "Ryan Heath"
-      }
-    ],
-    "Brenen Thompson": [
-      {
-        "title": "Scott Barrett's 2026 Dynasty Rookie Rankings",
-        "url": "https://www.fantasypoints.com/nfl/articles/scott-barretts-dynasty-rookie-rankings",
-        "date": "2026-04-27T13:59:36.453Z",
-        "author": "Scott Barrett"
-      }
-    ],
-    "Eli Heidenreich": [
-      {
-        "title": "Scott Barrett's 2026 Dynasty Rookie Rankings",
-        "url": "https://www.fantasypoints.com/nfl/articles/scott-barretts-dynasty-rookie-rankings",
-        "date": "2026-04-27T13:59:36.453Z",
-        "author": "Scott Barrett"
-      },
-      {
-        "title": "Ryan Heath's 2026 Rookie RB Rankings",
-        "url": "https://www.fantasypoints.com/nfl/articles/ryan-heaths-rookie-rb-rankings",
-        "date": "2026-04-15T19:00:00.000Z",
-        "author": "Ryan Heath"
-      }
-    ],
-    "Mike Washington": [
-      {
-        "title": "Scott Barrett's 2026 Dynasty Rookie Rankings",
-        "url": "https://www.fantasypoints.com/nfl/articles/scott-barretts-dynasty-rookie-rankings",
-        "date": "2026-04-27T13:59:36.453Z",
-        "author": "Scott Barrett"
-      },
-      {
-        "title": "Ryan Heath's 2026 Rookie RB Rankings",
-        "url": "https://www.fantasypoints.com/nfl/articles/ryan-heaths-rookie-rb-rankings",
-        "date": "2026-04-15T19:00:00.000Z",
-        "author": "Ryan Heath"
-      }
-    ],
-    "Chris Brazzell": [
-      {
-        "title": "Scott Barrett's 2026 Dynasty Rookie Rankings",
-        "url": "https://www.fantasypoints.com/nfl/articles/scott-barretts-dynasty-rookie-rankings",
-        "date": "2026-04-27T13:59:36.453Z",
-        "author": "Scott Barrett"
-      }
-    ],
-    "Elijah Sarratt": [
-      {
-        "title": "Scott Barrett's 2026 Dynasty Rookie Rankings",
-        "url": "https://www.fantasypoints.com/nfl/articles/scott-barretts-dynasty-rookie-rankings",
-        "date": "2026-04-27T13:59:36.453Z",
-        "author": "Scott Barrett"
-      }
-    ],
-    "Emmett Johnson": [
-      {
-        "title": "Scott Barrett's 2026 Dynasty Rookie Rankings",
-        "url": "https://www.fantasypoints.com/nfl/articles/scott-barretts-dynasty-rookie-rankings",
-        "date": "2026-04-27T13:59:36.453Z",
-        "author": "Scott Barrett"
-      },
-      {
-        "title": "Ryan Heath's 2026 Rookie RB Rankings",
-        "url": "https://www.fantasypoints.com/nfl/articles/ryan-heaths-rookie-rb-rankings",
-        "date": "2026-04-15T19:00:00.000Z",
-        "author": "Ryan Heath"
-      }
-    ],
-    "Malachi Fields": [
-      {
-        "title": "Scott Barrett's 2026 Dynasty Rookie Rankings",
-        "url": "https://www.fantasypoints.com/nfl/articles/scott-barretts-dynasty-rookie-rankings",
-        "date": "2026-04-27T13:59:36.453Z",
-        "author": "Scott Barrett"
-      }
-    ],
-    "Caleb Douglas": [
-      {
-        "title": "Scott Barrett's 2026 Dynasty Rookie Rankings",
-        "url": "https://www.fantasypoints.com/nfl/articles/scott-barretts-dynasty-rookie-rankings",
-        "date": "2026-04-27T13:59:36.453Z",
-        "author": "Scott Barrett"
-      }
-    ],
-    "Denzel Boston": [
-      {
-        "title": "Scott Barrett's 2026 Dynasty Rookie Rankings",
-        "url": "https://www.fantasypoints.com/nfl/articles/scott-barretts-dynasty-rookie-rankings",
-        "date": "2026-04-27T13:59:36.453Z",
-        "author": "Scott Barrett"
-      }
-    ],
-    "Jeff Caldwell": [
-      {
-        "title": "Scott Barrett's 2026 Dynasty Rookie Rankings",
-        "url": "https://www.fantasypoints.com/nfl/articles/scott-barretts-dynasty-rookie-rankings",
-        "date": "2026-04-27T13:59:36.453Z",
-        "author": "Scott Barrett"
-      }
-    ],
-    "Jonah Coleman": [
-      {
-        "title": "Scott Barrett's 2026 Dynasty Rookie Rankings",
-        "url": "https://www.fantasypoints.com/nfl/articles/scott-barretts-dynasty-rookie-rankings",
-        "date": "2026-04-27T13:59:36.453Z",
-        "author": "Scott Barrett"
-      },
-      {
-        "title": "Ryan Heath's 2026 Rookie RB Rankings",
-        "url": "https://www.fantasypoints.com/nfl/articles/ryan-heaths-rookie-rb-rankings",
-        "date": "2026-04-15T19:00:00.000Z",
-        "author": "Ryan Heath"
-      }
-    ],
-    "Kaytron Allen": [
-      {
-        "title": "Scott Barrett's 2026 Dynasty Rookie Rankings",
-        "url": "https://www.fantasypoints.com/nfl/articles/scott-barretts-dynasty-rookie-rankings",
-        "date": "2026-04-27T13:59:36.453Z",
-        "author": "Scott Barrett"
-      },
-      {
-        "title": "Ryan Heath's 2026 Rookie RB Rankings",
-        "url": "https://www.fantasypoints.com/nfl/articles/ryan-heaths-rookie-rb-rankings",
-        "date": "2026-04-15T19:00:00.000Z",
-        "author": "Ryan Heath"
-      }
-    ],
-    "Kevin Coleman": [
-      {
-        "title": "Scott Barrett's 2026 Dynasty Rookie Rankings",
-        "url": "https://www.fantasypoints.com/nfl/articles/scott-barretts-dynasty-rookie-rankings",
-        "date": "2026-04-27T13:59:36.453Z",
-        "author": "Scott Barrett"
-      },
-      {
-        "title": "Barrett's Pre-Draft Top 50 Rookie Rankings",
-        "url": "https://www.fantasypoints.com/nfl/articles/barretts-pre-draft-top-50-rookie-rankings",
-        "date": "2026-04-09T18:18:19.531Z",
-        "author": "Scott Barrett"
-      }
-    ],
-    "Tanner Koziol": [
-      {
-        "title": "Scott Barrett's 2026 Dynasty Rookie Rankings",
-        "url": "https://www.fantasypoints.com/nfl/articles/scott-barretts-dynasty-rookie-rankings",
-        "date": "2026-04-27T13:59:36.453Z",
-        "author": "Scott Barrett"
-      }
-    ],
-    "Adam Randall": [
-      {
-        "title": "Scott Barrett's 2026 Dynasty Rookie Rankings",
-        "url": "https://www.fantasypoints.com/nfl/articles/scott-barretts-dynasty-rookie-rankings",
-        "date": "2026-04-27T13:59:36.453Z",
-        "author": "Scott Barrett"
-      }
-    ],
-    "Cade Klubnik": [
-      {
-        "title": "Scott Barrett's 2026 Dynasty Rookie Rankings",
-        "url": "https://www.fantasypoints.com/nfl/articles/scott-barretts-dynasty-rookie-rankings",
-        "date": "2026-04-27T13:59:36.453Z",
-        "author": "Scott Barrett"
-      }
-    ],
-    "Carnell Tate": [
-      {
-        "title": "Scott Barrett's 2026 Dynasty Rookie Rankings",
-        "url": "https://www.fantasypoints.com/nfl/articles/scott-barretts-dynasty-rookie-rankings",
-        "date": "2026-04-27T13:59:36.453Z",
-        "author": "Scott Barrett"
-      },
-      {
-        "title": "Barrett's Pre-Draft Top 50 Rookie Rankings",
-        "url": "https://www.fantasypoints.com/nfl/articles/barretts-pre-draft-top-50-rookie-rankings",
-        "date": "2026-04-09T18:18:19.531Z",
-        "author": "Scott Barrett"
-      }
-    ],
-    "Jack Endries": [
-      {
-        "title": "Scott Barrett's 2026 Dynasty Rookie Rankings",
-        "url": "https://www.fantasypoints.com/nfl/articles/scott-barretts-dynasty-rookie-rankings",
-        "date": "2026-04-27T13:59:36.453Z",
-        "author": "Scott Barrett"
-      }
-    ],
-    "Kaelon Black": [
-      {
-        "title": "Scott Barrett's 2026 Dynasty Rookie Rankings",
-        "url": "https://www.fantasypoints.com/nfl/articles/scott-barretts-dynasty-rookie-rankings",
-        "date": "2026-04-27T13:59:36.453Z",
-        "author": "Scott Barrett"
-      }
-    ],
-    "Marlin Klein": [
-      {
-        "title": "Scott Barrett's 2026 Dynasty Rookie Rankings",
-        "url": "https://www.fantasypoints.com/nfl/articles/scott-barretts-dynasty-rookie-rankings",
-        "date": "2026-04-27T13:59:36.453Z",
-        "author": "Scott Barrett"
-      }
-    ],
-    "Taylen Green": [
-      {
-        "title": "Scott Barrett's 2026 Dynasty Rookie Rankings",
-        "url": "https://www.fantasypoints.com/nfl/articles/scott-barretts-dynasty-rookie-rankings",
-        "date": "2026-04-27T13:59:36.453Z",
-        "author": "Scott Barrett"
-      }
-    ],
-    "Bryce Lance": [
-      {
-        "title": "Scott Barrett's 2026 Dynasty Rookie Rankings",
-        "url": "https://www.fantasypoints.com/nfl/articles/scott-barretts-dynasty-rookie-rankings",
-        "date": "2026-04-27T13:59:36.453Z",
-        "author": "Scott Barrett"
-      }
-    ],
-    "Carson Beck": [
-      {
-        "title": "Scott Barrett's 2026 Dynasty Rookie Rankings",
-        "url": "https://www.fantasypoints.com/nfl/articles/scott-barretts-dynasty-rookie-rankings",
-        "date": "2026-04-27T13:59:36.453Z",
-        "author": "Scott Barrett"
-      }
-    ],
-    "Eli Raridon": [
-      {
-        "title": "Scott Barrett's 2026 Dynasty Rookie Rankings",
-        "url": "https://www.fantasypoints.com/nfl/articles/scott-barretts-dynasty-rookie-rankings",
-        "date": "2026-04-27T13:59:36.453Z",
-        "author": "Scott Barrett"
-      }
-    ],
-    "Jaren Kanak": [
-      {
-        "title": "Scott Barrett's 2026 Dynasty Rookie Rankings",
-        "url": "https://www.fantasypoints.com/nfl/articles/scott-barretts-dynasty-rookie-rankings",
-        "date": "2026-04-27T13:59:36.453Z",
-        "author": "Scott Barrett"
-      }
-    ],
-    "Justin Joly": [
-      {
-        "title": "Scott Barrett's 2026 Dynasty Rookie Rankings",
-        "url": "https://www.fantasypoints.com/nfl/articles/scott-barretts-dynasty-rookie-rankings",
-        "date": "2026-04-27T13:59:36.453Z",
-        "author": "Scott Barrett"
-      }
-    ],
-    "Makai Lemon": [
-      {
-        "title": "Scott Barrett's 2026 Dynasty Rookie Rankings",
-        "url": "https://www.fantasypoints.com/nfl/articles/scott-barretts-dynasty-rookie-rankings",
-        "date": "2026-04-27T13:59:36.453Z",
-        "author": "Scott Barrett"
-      },
-      {
-        "title": "Heath's 2026 NFL Draft Fantasy Takeaways",
-        "url": "https://www.fantasypoints.com/nfl/articles/heaths-nfl-draft-fantasy-takeaways",
-        "date": "2026-04-24T12:30:00.000Z",
-        "author": "Ryan Heath"
-      },
-      {
-        "title": "Barrett's Pre-Draft Top 50 Rookie Rankings",
-        "url": "https://www.fantasypoints.com/nfl/articles/barretts-pre-draft-top-50-rookie-rankings",
-        "date": "2026-04-09T18:18:19.531Z",
-        "author": "Scott Barrett"
-      }
-    ],
-    "Omar Cooper": [
-      {
-        "title": "Scott Barrett's 2026 Dynasty Rookie Rankings",
-        "url": "https://www.fantasypoints.com/nfl/articles/scott-barretts-dynasty-rookie-rankings",
-        "date": "2026-04-27T13:59:36.453Z",
-        "author": "Scott Barrett"
-      }
-    ],
-    "Skyler Bell": [
-      {
-        "title": "Scott Barrett's 2026 Dynasty Rookie Rankings",
-        "url": "https://www.fantasypoints.com/nfl/articles/scott-barretts-dynasty-rookie-rankings",
-        "date": "2026-04-27T13:59:36.453Z",
-        "author": "Scott Barrett"
-      }
-    ],
-    "Chris Bell": [
-      {
-        "title": "Scott Barrett's 2026 Dynasty Rookie Rankings",
-        "url": "https://www.fantasypoints.com/nfl/articles/scott-barretts-dynasty-rookie-rankings",
-        "date": "2026-04-27T13:59:36.453Z",
-        "author": "Scott Barrett"
-      },
-      {
-        "title": "Barrett's Pre-Draft Top 50 Rookie Rankings",
-        "url": "https://www.fantasypoints.com/nfl/articles/barretts-pre-draft-top-50-rookie-rankings",
-        "date": "2026-04-09T18:18:19.531Z",
-        "author": "Scott Barrett"
-      }
-    ],
-    "Drew Allar": [
-      {
-        "title": "Scott Barrett's 2026 Dynasty Rookie Rankings",
-        "url": "https://www.fantasypoints.com/nfl/articles/scott-barretts-dynasty-rookie-rankings",
-        "date": "2026-04-27T13:59:36.453Z",
-        "author": "Scott Barrett"
-      }
-    ],
-    "Oscar Delp": [
-      {
-        "title": "Scott Barrett's 2026 Dynasty Rookie Rankings",
-        "url": "https://www.fantasypoints.com/nfl/articles/scott-barretts-dynasty-rookie-rankings",
-        "date": "2026-04-27T13:59:36.453Z",
-        "author": "Scott Barrett"
-      }
-    ],
-    "Ty Simpson": [
-      {
-        "title": "Scott Barrett's 2026 Dynasty Rookie Rankings",
-        "url": "https://www.fantasypoints.com/nfl/articles/scott-barretts-dynasty-rookie-rankings",
-        "date": "2026-04-27T13:59:36.453Z",
-        "author": "Scott Barrett"
-      },
-      {
-        "title": "Heath's 2026 NFL Draft Fantasy Takeaways",
-        "url": "https://www.fantasypoints.com/nfl/articles/heaths-nfl-draft-fantasy-takeaways",
-        "date": "2026-04-24T12:30:00.000Z",
-        "author": "Ryan Heath"
-      },
-      {
-        "title": "Barrett's Pre-Draft Top 50 Rookie Rankings",
-        "url": "https://www.fantasypoints.com/nfl/articles/barretts-pre-draft-top-50-rookie-rankings",
-        "date": "2026-04-09T18:18:19.531Z",
-        "author": "Scott Barrett"
       }
     ],
     "Christian McCaffrey": [

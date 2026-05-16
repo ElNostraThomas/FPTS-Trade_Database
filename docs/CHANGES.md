@@ -6,6 +6,91 @@ the operator manual see [`WORKFLOW.md`](WORKFLOW.md).
 
 ---
 
+## 2026-05-16 (evening) — Tiers ADP comparison columns + calendar popup picker (2022-2026)
+
+Major update on `tiers.html`: shipped a real **Current ADP / Previous ADP / Change** trio of columns where the *previous* anchor is a user-selectable historical month, picked via a calendar popup that spans the full 2022-2026 horizon. Year payloads lazy-fetch on demand. The feature was iterated through four rounds of live feedback; the final shape is documented here.
+
+### Final tier-table layout (15 columns)
+
+Left-to-right after the Team logo: **Current ADP → Previous ADP (▾ picker) → Change → Auction → 2025 PPG → 2024 PPG → Buy/Sell → Priority → Contender.**
+
+- "2026 ADP" relabeled to **Current ADP** (same data — `byMonth.ALL` of `data/adp.json` — just renamed).
+- "2025 ADP" relabeled to **Previous ADP** and made dynamic — reads `MONTH_INDEX[selectedMonth][view_key]`, driven by the calendar popup in the column header.
+- The previously-empty "Trending" sheet column got repurposed into **Change** — and then physically moved from col 12 to col 9 so the chip sits next to the two numbers it computes from.
+- "2024 PPG" preserved at col 12. Editorial 📈 emojis in `TIER_PLAYERS.trending` are preserved in the data but no longer rendered.
+
+### Calendar popup picker
+
+- Header trigger: `<button class="tier-compare-trigger">` shows e.g. `"Apr 2026 ▾"`. Click opens the popup.
+- Popup: ◀ year-nav ◀ + year label + ▶ year-nav ▶ at top; 4×3 month grid below.
+- Cell states: **active** (brand-orange filled, currently selected); **disabled** (25% opacity — future months + the most-recent "now" month); **no-data** (45% opacity — month exists in a loaded year payload but no record for that bucket); default (clickable, hover border).
+- Single popup mounted once at `document.body` level. Grouped view's 21 tier-group `<thead>`s each render their own trigger button but all open the *same* popup, positioned beneath whichever trigger was clicked via `getBoundingClientRect()` + `window.scrollX/Y`.
+- Year range **2022–2026** (matches `adp-tool.html`'s year picker; the data factory dropped 2019-2021 for missing format-bucket dimensions).
+- Year-crossing in the popup triggers `_ensureYearLoaded(year)` which fetches `data/adp-{year}.json` (~15 MB) once per year and caches in `YEAR_CACHE`. "Loading {year}…" status renders in the popup while pending; errors surface as "Failed to load {year}" without crashing.
+- Outside-click, ESC keypress, scroll, and picking a month all close the popup.
+
+### CHANGE chip styling — match adp-tool.html
+
+The chip palette intentionally mirrors `brand.css:163-171`'s `.trend` rules so the two pages read consistently:
+
+- Transparent background, colored text + arrow
+- `▲ #66dd84` (bright green) — player rising, ADP improved
+- `▼ var(--red)` `#ED810C` (dynasty orange) — player slipped, ADP went up
+- `● #ffffff` (white) — flat (|Δ| < 0.05)
+- Black text-shadow stroke for legibility against any row background
+- Number is `|Δ|.toFixed(1)` — sign encoded in arrow direction, not in label
+
+Sign convention: `delta = current − previous`. Negative Δ = improvement = ▲. Matches `adp-tool.html:trendBadge` at line 2162 exactly.
+
+### Architecture
+
+- **`YEAR_CACHE`** (`{ [year]: payload }`) — Seeded at boot from `window.ADP_PAYLOAD` for the current season. Other years populate lazily.
+- **`MONTH_INDEX`** (`{ [YYYY-MM]: bucket }`) — Flat per-month lookup rebuilt by `buildMonthIndex()` after every YEAR_CACHE mutation. Walks every cached year payload and merges all `byMonth` keys (excluding `'ALL'`).
+- **`_ensureYearLoaded(year)`** — Promise-returning lazy-fetch helper. Skips network if already cached. Updates popup status during pending state. Rebuilds `MONTH_INDEX` on success.
+- **`_applyAdpOverlayFrom(bucket, fieldName)`** — Reused unchanged from the prior iteration; called twice per render (once for CURRENT with `byMonth.ALL`, once for PREVIOUS with `MONTH_INDEX[selectedMonth]`).
+- **`changeChipHtml(curr, prev)`** — Direct port of adp-tool's `trendBadge` sign/color logic.
+- **Calendar helpers**: `_tierCalendarMount/Open/Close/NavYear/RenderGrid/PickMonth` — ~140 lines inline in tiers.html. Documented for future extraction to `assets/js/adp-comparator.js` when the dedicated rankings page lands.
+
+### Boot-time saved-year race
+
+A subtle race needed explicit handling: if `localStorage 'fpts-tiers-compare-month'` holds a non-current year (e.g. `"2023-08"`), `MONTH_INDEX` won't contain that month at boot (only 2026 months are loaded). Without intervention, `_initTierCompareMonth()` would silently fall back to the latest 2026 option and overwrite the saved selection. Fix: the `fpts:data-ready` handler now reads `localStorage` directly to detect the year mismatch, kicks `_ensureYearLoaded(savedYear)` in parallel, and re-runs `_initTierCompareMonth` + overlay + render after the fetch lands. Saved selection sticks across reloads.
+
+### Trade-offs flagged
+
+- Each historical year payload is **15-17 MB**. Worst case: a user navigates ◀ four times in the popup → ~60 MB of JSON fetched over the session. Acceptable for desktop; gzip-over-wire compresses to ~3-5 MB per file.
+- Sort on the Previous ADP column is dropped (the column header is now interactive). The more useful sort lives on the adjacent **Change** column (numeric, ascending/descending).
+- 2024 PPG column kept but unmodified; could be repurposed later if a second comparison anchor is wanted.
+
+### Legend update
+
+`assets/js/legend-content.js` Tiers > "ADP Comparison" section. Three entries: **Current ADP**, **Previous ADP**, **Change Column**. Each uses the Phase A schema (`formula` / `inputs` / `output` / `example` / `codeRef`). Previous ADP entry documents the calendar popup UI, lazy-fetch behavior, `MIN_YEAR=2022` lower bound, and YEAR_CACHE cache strategy.
+
+### Iteration history (for the record)
+
+The feature went through four rounds in one session:
+1. **Rev 0** — initial 3-column trio with toolbar "Compare to:" dropdown, solid-color chips, 2025+2026 months.
+2. **Rev 1** — dropped solid chip backgrounds; matched adp-tool's transparent + bright text trend palette.
+3. **Rev 2** — moved CHANGE column from col 12 to col 9; dropped toolbar widget; inlined dropdown into Previous ADP `<th>`; restricted to current-year months only.
+4. **Rev 3** (final) — replaced inline `<select>` with calendar popup; expanded horizon to 2022-2026 via lazy-loaded year payloads.
+
+### Cache token
+
+`assets/js/legend-content.js?v=` bumped three times during the session (`1778949514 → 1779120000 → 1779200000 → 1779280000`); current value lives on all 5 pages + the page template.
+
+### Files touched
+
+- `tiers.html` — state additions, helpers (~250 new lines net), CSS (~80 lines), markup, boot sequence
+- `assets/js/legend-content.js` — "ADP Comparison" section authored + iterated
+- `?v=` cache token on `legend-content.js` across all 5 pages + `templates/page-template.html`
+
+### What we explicitly did NOT do
+
+- No backend changes — `sync-adp.py` already emits `byMonth` buckets correctly; the data was just under-surfaced.
+- No new data files — relied on existing `data/adp.json` + `data/adp-{2022..2025}.json` produced by the 2026-05-14 year-picker shipment.
+- No shared module yet — calendar helpers stay inline in tiers.html for v1. Extract candidate for `assets/js/adp-comparator.js` when the dedicated rankings page lands.
+
+---
+
 ## 2026-05-16 — Legend system Phase A (dev-grade algorithm docs)
 
 User reported: "last I checked none of the legends on the site populated. On

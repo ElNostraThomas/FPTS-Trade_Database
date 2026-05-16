@@ -10,7 +10,32 @@ This file is the **resume-where-we-left-off** doc.
 
 ---
 
-## Where we are (end of 2026-05-16 session)
+## Where we are (end of 2026-05-16 evening session)
+
+**Tiers page now has a real ADP comparison feature.** Three columns on
+`tiers.html` — **Current ADP / Previous ADP / Change** — with the
+*previous* anchor user-selectable down to any month from Dec 2021 through
+the most-recent fully-tracked month. The picker is a **calendar popup**
+that opens when you click the Previous ADP column header: ◀ ▶ year nav
+arrows plus a 4×3 month grid; active month brand-orange; future / "now" /
+no-data months disabled. Year-crossing in the popup triggers a one-time
+lazy fetch of `data/adp-{year}.json` (~15 MB per year, cached in
+`YEAR_CACHE` for the session). Change chip palette matches adp-tool's
+trend badges exactly — transparent background, bright `#66dd84` green ▲
+for risers, dynasty orange `#ED810C` ▼ for fallers, black text-shadow
+stroke. Sign convention: `delta = current − previous`. Sort on Change
+works; Previous ADP column is no longer sortable (its header is the picker
+trigger). Saved selection persists via `localStorage 'fpts-tiers-compare-month'`
+with explicit boot-time handling for cross-year resumption (lazy-fetches
+the saved year's payload before `_initTierCompareMonth` finalizes). Final
+column layout: **Current ADP → Previous ADP (▾) → Change → Auction →
+2025 PPG → 2024 PPG → Buy/Sell → Priority → Contender**.
+Architecture: `YEAR_CACHE` (year→payload map), `MONTH_INDEX` (flat
+per-month lookup merged across cached payloads), `_ensureYearLoaded`
+(promise-returning lazy fetcher with status UI), `_tierCalendar*` helpers
+(~140 lines inline in tiers.html, extract-ready for a shared module when
+the dedicated rankings page lands). Legend gained a new "ADP Comparison"
+section under Tiers with three Phase A-schema entries.
 
 **Legend system is dev-grade.** Every algorithm with non-obvious logic
 now has a `formula` / `inputs` / `output` / `example` / `codeRef` block in
@@ -21,8 +46,9 @@ can now answer "why does this number look like that" without leaving the
 drawer. `assets/js/legend.js` renderer was upgraded to display the new
 optional fields in narrative order; `.lg-example` block in legend.css gives
 worked-example rows an orange left-border accent. ~195 items across 41
-sections, 5 pages. Cache tokens for legend.{css,js} + legend-content.js
-all bumped to `?v=1778949514` across every page + the template.
+sections, 5 pages. Cache token `legend-content.js?v=1779280000` (bumped
+three times during the 2026-05-16 evening session as the ADP feature
+iterated).
 
 **Mobile Round 2 sub-plans A-E all shipped (2026-05-15).** Drawer header
 collapse button menu (Sub-plan A), styled select for nav + "My Leagues"
@@ -407,6 +433,17 @@ for the `fpts:data-ready` event.
   flow through `SLEEPER_IDS`, the player-panel drawer (avatar = brand
   flame, pos chip = "RDP"), and the heatmap exactly like real players.
   Real `sleeperId`s are numeric strings, so there's no collision.
+- **Tiers ADP comparison lazy-loads historical year payloads** (~15 MB
+  each). `YEAR_CACHE[currentSeason]` seeds from `window.ADP_PAYLOAD` at
+  boot; other years fetch on demand via `_ensureYearLoaded(year)` when
+  the user navigates the calendar popup. `buildMonthIndex` rebuilds the
+  flat `MONTH_INDEX` after each cache mutation. **Saved-year race:** if
+  `localStorage 'fpts-tiers-compare-month'` is from a non-current year
+  on boot, the data-ready handler MUST kick the lazy fetch BEFORE
+  `_initTierCompareMonth` finalizes — otherwise init falls back to the
+  newest 2026 option and overwrites the saved selection. Look at the
+  `fpts:data-ready` handler in `tiers.html` for the exact ordering if
+  this ever needs to be tweaked.
 
 ---
 
@@ -414,6 +451,16 @@ for the `fpts:data-ready` event.
 
 Nothing structural. Polish / nice-to-haves only:
 
+- [x] ~~**Tiers ADP comparison + calendar popup picker**~~ — shipped
+  2026-05-16 (evening). `tiers.html` gained Current ADP / Previous ADP /
+  Change columns; Previous ADP anchor is user-selectable via a calendar
+  popup spanning Dec 2021 → most-recent month. Year payloads
+  (`data/adp-{2022..2025}.json`) lazy-fetch on demand, cached in
+  `YEAR_CACHE` per session. Change chip matches adp-tool's `.trend`
+  palette (transparent bg, `#66dd84` green ▲ / dynasty orange `#ED810C`
+  ▼). Legend Tiers > "ADP Comparison" section authored with 3 Phase A-
+  schema entries. See `docs/CHANGES.md` 2026-05-16 (evening) for the
+  iteration history.
 - [x] ~~**Rookie-draft-only ADP**~~ — shipped 2026-05-13 (late). The ADP
   Tool now has two top-level tabs (Dynasty Startup ADP / Dynasty Rookie
   ADP), with SF/1QB-split rookie data via `rookie_draft_{sf|1qb}` keys.
@@ -458,34 +505,40 @@ Nothing structural. Polish / nice-to-haves only:
 Paste this as the first message:
 
 ```
-Read README.md for current state. End-of-2026-05-16:
+Read README.md for current state. End-of-2026-05-16-evening:
+- TIERS ADP COMPARISON FEATURE shipped. Three columns: Current ADP,
+  Previous ADP (calendar-popup picker), Change chip. Column order:
+  Current → Previous → Change → Auction → 2025 PPG → 2024 PPG. The
+  picker spans Dec 2021 → most-recent month; year payloads
+  (data/adp-{2022..2025}.json) lazy-fetch on demand, cached in
+  YEAR_CACHE for the session. Change chip palette matches adp-tool's
+  .trend rules exactly (transparent bg, #66dd84 green ▲ / var(--red)
+  orange ▼, black text-shadow stroke). Sign convention: delta =
+  current − previous. Architecture: YEAR_CACHE (year→payload),
+  MONTH_INDEX (flat per-month merged lookup), _ensureYearLoaded
+  (promise-returning lazy fetch with status UI), calendar helpers
+  (_tierCalendar{Mount,Open,Close,NavYear,RenderGrid,PickMonth}) ~140
+  lines inline in tiers.html. Saved selection persists via localStorage
+  fpts-tiers-compare-month with explicit boot-time cross-year resume
+  (lazy-fetches saved year before _initTierCompareMonth finalizes).
+  Legend Tiers > "ADP Comparison" section authored with 3 Phase A
+  entries. legend-content.js cache token bumped to ?v=1779280000
+  across all 5 pages + template.
 - Legend system is dev-grade — every non-obvious algorithm has a full
   formula/inputs/output/example/codeRef block in legend-content.js.
   Renderer upgraded (legend.js) to render the new fields in narrative
-  order. ~195 items, 41 sections. Cache tokens for legend.{css,js} +
-  legend-content.js bumped to ?v=1778949514 across all 5 pages + template.
-- Mobile Round 2 sub-plans A-E all shipped (2026-05-15): drawer header
-  collapse menu, styled select nav, profile reflow + articles collapsed,
-  search dropdown above iOS keyboard, Sleeper deeplink drops /team on
-  mobile.
+  order. ~195 items, 41 sections.
+- Mobile Round 2 sub-plans A-E all shipped (2026-05-15).
 - Theme polish: 3 hardcoded color drift cases fixed for dark↔light
   toggle (commit 77822e9, 2026-05-15).
 - Pick modal: clicking a draft pick on own-roster picks table opens the
   cross-league exposure picker (NOT Trade Builder).
-- my-leagues.html inline-style migration Phase A complete (commits
-  2d4cf5b, dc592c3, 4294cef). Mid-frequency repeated patterns moved to
-  CSS classes; remaining inline styles are dynamic or one-offs.
 - ADP Tool has two top-level tabs (Dynasty Startup ADP / Dynasty Rookie
-  ADP). STATE.source ('startup'|'rookie') + per-tab _cache + two
-  localStorage blobs (fpts-adp-{startup,rookie}-state) + URL hash
-  `source=` param. setSource() flips PICK_AVAILABILITY_SOURCE so the
-  shared heatmap module reads the right map.
+  ADP). STATE.source ('startup'|'rookie') + URL hash source= param.
 - sync-adp.py emits rookie_draft_{sf,1qb} via duplicate-and-retag pass
   in build_adp, AND a separate rookie-draft pick-availability heatmap.
-  Both filtered to incoming rookies only (yearsExp==0 + real position).
 - Season is auto-detected (year if month>=4 else year-1). All year
   labels drive from ADP_PAYLOAD.season via window.applySeasonBadge().
-  Next April rolls automatically.
 - Site-wide headshot-fallback rule lives in brand.css — emit
   class="fpts-hs-fallback" on any new headshot fallback element.
 - Trade-chip rule: any new player-image surface uses
@@ -495,8 +548,12 @@ Read README.md for current state. End-of-2026-05-16:
 Confirm by running `git log --oneline -20`.
 
 Punch list top: Legend Phase B (~30 partial-coverage entries) + Phase C
-(consistency pass). Also: 1QB scrape expansion + per-tab SF/1QB split of
-the rookie heatmap (currently mixed; SF dominates anyway).
+(consistency pass). Also: 1QB scrape expansion; per-tab SF/1QB split of
+the rookie heatmap (currently mixed; SF dominates anyway); migrate the
+remaining 3 pages (adp-tool, my-leagues, index) to data-bootstrap.js.
+Possible follow-up to the tiers ADP feature: extract _tierCalendar*
+helpers + buildMonthIndex + _ensureYearLoaded into a shared
+assets/js/adp-comparator.js when the dedicated rankings page lands.
 ```
 
 If `data/*.json` is stale: run `push.bat` (handles all five sync steps +
