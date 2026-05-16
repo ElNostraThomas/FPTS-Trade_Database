@@ -145,13 +145,13 @@
 .pp-name { font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 26px; color: var(--white); text-transform: uppercase; line-height: 1; margin-bottom: 8px; }
 .pp-meta { display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 10px; align-items: flex-start; }
 .pp-meta-item { display: flex; flex-direction: column; gap: 2px; align-items: center; min-width: 36px; text-align: center; }
-.pp-meta-label { font-size: 9px; color: var(--white); opacity: 1; text-transform: uppercase; letter-spacing: .08em; font-family: 'Mulish', sans-serif; white-space: nowrap; }
+.pp-meta-label { font-size: 9px; color: var(--white); opacity: 1; text-transform: uppercase; letter-spacing: .06em; font-family: 'Mulish', sans-serif; white-space: nowrap; }
 .pp-meta-val { font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 14px; color: var(--white); white-space: nowrap; line-height: 1.2; }
 .pp-pos-team { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
 .pp-team-name { font-family: 'Mulish', sans-serif; font-size: 12px; font-weight: 700; color: var(--white); opacity: 1; text-transform: uppercase; letter-spacing: .06em; }
 
 .pp-ktc { text-align: right; flex-shrink: 0; }
-.pp-value-label { font-size: 9px; color: var(--white); opacity: 1; text-transform: uppercase; letter-spacing: .08em; font-family: 'Mulish', sans-serif; margin-bottom: 4px; }
+.pp-value-label { font-size: 9px; color: var(--white); opacity: 1; text-transform: uppercase; letter-spacing: .06em; font-family: 'Mulish', sans-serif; margin-bottom: 4px; }
 .pp-value-val { font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 36px; color: var(--white); line-height: 1; }
 .pp-value-rank { font-family: 'Mulish', sans-serif; font-size: 12px; color: var(--white); opacity: 1; margin-top: 4px; }
 .pp-value-trend { font-size: 12px; font-weight: 700; font-family: 'Mulish', sans-serif; margin-top: 2px; color: var(--white); opacity: .55; }
@@ -168,7 +168,7 @@
 }
 .pp-ts { padding: 12px 16px; border-right: 1px solid var(--border); }
 .pp-ts:last-child { border-right: none; }
-.pp-ts-label { font-size: 9px; color: var(--white); opacity: 1; text-transform: uppercase; letter-spacing: .07em; margin-bottom: 4px; font-family: 'Mulish', sans-serif; }
+.pp-ts-label { font-size: 9px; color: var(--white); opacity: 1; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 4px; font-family: 'Mulish', sans-serif; }
 .pp-ts-val { font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 20px; color: var(--white); }
 .pp-ts-val.red { color: var(--red); }
 
