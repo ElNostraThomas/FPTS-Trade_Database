@@ -4000,7 +4000,15 @@ function mltbRender() {
     return;
   }
   if (String(ownerRosterId) === String(myRosterId)) {
-    body.innerHTML = headerStrip + `<div style="padding:24px;text-align:center;color:var(--muted);font-size:13px">You already own this player in this league.</div>`;
+    // For picks (which the user opens from their own roster), surface the
+    // calculator CTA — useful for building a trade where the user offers
+    // this pick. For players, the "you already own" message is correct.
+    const ownLabel = targetPlayer && targetPlayer.type === 'pick'
+      ? `This is your own pick. Open the trade calculator to build a custom trade with it.`
+      : `You already own this player in this league.`;
+    body.innerHTML = headerStrip + (targetPlayer && targetPlayer.type === 'pick'
+      ? mltbCalcCtaBlock(ownLabel)
+      : `<div style="padding:24px;text-align:center;color:var(--muted);font-size:13px">${ownLabel}</div>`);
     return;
   }
 
@@ -6376,7 +6384,7 @@ function renderRoster(playerIds, players, starters, myPicks, rosterToTeam, proje
         const val   = pickValue(p.season, p.round);
         const orig  = rosterToTeam[p.originalRosterId] || `Team ${p.originalRosterId}`;
         const sourceLabel = p.isNatural ? 'Your pick' : `Via ${orig}`;
-        return `<tr style="border-bottom:1px solid var(--border)">
+        return `<tr class="ml-clickable" onclick="openTradeSuggestModalForPick('${p.season}',${p.round},window.ML_LEAGUE_ID,window.ML_MY_ROSTER_ID)" style="border-bottom:1px solid var(--border)">
           <td class="ml-tbl-td" style="width:36px;padding-right:8px">${pickThumb()}</td>
           <td class="ml-tbl-td">
             <div class="ml-flex-wrap-row">
