@@ -136,4 +136,8 @@
   .lg-trigger:hover { transform: translateX(-50%) translateY(-1px); }
   .lg-content { padding: 16px 18px 80px; }
   .lg-item-row { grid-template-columns: 48px 1fr; gap: 6px; }
+  /* Keep the page bottom from getting hidden under the floating legend trigger.
+     Without this, trade-balance text on trade-calculator and the last row of
+     tier tables get clipped behind the LEGEND button. */
+  body { padding-bottom: 72px; }
 }

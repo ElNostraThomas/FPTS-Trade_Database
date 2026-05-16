@@ -72,7 +72,7 @@
   <!-- CLOSE BAR -->
   <div class="pp-close-bar" style="justify-content:space-between;flex-shrink:0">
     <div style="font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:13px;color:var(--red);text-transform:uppercase;letter-spacing:.06em">Player Profile</div>
-    <div style="display:flex;align-items:center;gap:10px">
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end">
       <div class="pp-search-wrap" style="position:relative">
         <input type="text" id="pp-search" class="pp-search-input"
           placeholder="+ Add player to compare..."
