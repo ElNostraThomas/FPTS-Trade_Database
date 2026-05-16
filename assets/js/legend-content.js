@@ -912,4 +912,104 @@ window.LegendContent = {
       },
     ],
   },
+
+  // ════════════════════════════════════════════════════════════════════════
+  'rankings': {
+    title: 'Dynasty Rankings',
+    blurb: 'Replaces the old external Rankings link (fantasypoints.com/nfl/rankings/dynasty) with an in-app page styled in the brand system. ' +
+           'Driven by user-maintained Google Sheet CSVs (one per analyst+format combo), with FP API + ADP overlaid per row. ' +
+           'Designed from day one to scale to multiple analysts × multiple formats (SF / SF-TEP / 1QB / 1QB-TEP) — adding a new CSV is a config-edit + sync-run, never a code change. Analyst tab strip auto-hides while only one analyst has data.',
+    sections: [
+      {
+        name: 'Multi-Source Architecture',
+        items: [
+          {
+            label: 'Sources matrix',
+            what: 'Each (analyst, format) combo is one ranking source backed by one CSV / one Google-Sheet tab. v1 ships only Overall - Superflex. Future sources slot in via sync-rankings.config.json.',
+            inputs: 'sync-rankings.config.json declares the sources list. Each source: { analyst, format, label, local_csv }.',
+            formula: 'comboKey = `${analyst}-${format}`  (e.g. "overall-sf", "overall-1qb-tep")',
+            output: 'One data/rankings/{comboKey}.json per source + a single data/rankings/manifest.json listing them all.',
+            example: 'Drop a new CSV into data/source/rankings/, add { "analyst": "<your-key>", "format": "sf", "label": "Your Label — Superflex", "local_csv": "your-file.csv" } to the config, run `python sync-rankings.py` → the new analyst\'s tab on rankings.html appears automatically on next page load.',
+            codeRef: 'sync-rankings.py + sync-rankings.config.json',
+            source: 'Local CSVs in data/source/rankings/ + service-account.json (if/when Google Sheet integration is added)',
+            notes: 'Analyst keys are user-chosen — no hardcoded list. Use whatever short slug fits the source (e.g. "overall", "ecr", or the analyst\'s last name).',
+          },
+          {
+            label: 'Manifest-driven controls',
+            what: 'Analyst tab strip + format toggle render from RANKINGS_AVAILABLE (populated from manifest.json at boot). Combos NOT in the manifest render as disabled chips with a "SOON" hint + "no data yet" tooltip.',
+            inputs: 'data/rankings/manifest.json — produced by sync-rankings.py listing every successfully-built combo with its label and player count.',
+            formula: 'enabled(analyst, format) := RANKINGS_AVAILABLE.some(c => c.analyst === analyst && c.format === format)',
+            output: 'Disabled state: opacity 0.35 + cursor not-allowed. Active tab/button: dynasty-orange highlight.',
+            example: 'v1 manifest has only { analyst: "overall", format: "sf" }. The analyst tab strip auto-hides (one source = nothing to switch). SF format button is enabled; SF + TEP / 1QB / 1QB + TEP render disabled with "no data yet" tooltip.',
+            codeRef: 'rankings.html:renderAnalystTabs + renderFormatToggle',
+            source: 'data/rankings/manifest.json',
+            notes: 'Combos populate dynamically — never edit rankings.html to add a new analyst, just update the manifest via sync-rankings.py. Tab strip stays hidden until ≥2 analysts are available.',
+          },
+          {
+            label: 'Lazy fetch on tab/format change',
+            what: 'Switching analyst or format triggers _ensureComboLoaded(analyst, format) — checks RANKINGS_CACHE; if missing, fetches data/rankings/{combo}.json once and caches for the rest of the session.',
+            inputs: 'STATE.analyst + STATE.format from the active controls.',
+            formula: 'key = `${analyst}-${format}`;  if (!RANKINGS_CACHE[key]) fetch + cache.',
+            output: 'Promise resolving to the active combo\'s payload. ACTIVE_PLAYERS is set to payload.players; renderRankings() repaints the table.',
+            example: 'User loads page → only overall-sf.json fetched. User switches the format toggle to "1QB" → fetch overall-1qb.json (~30 KB), cache, render. Future 1QB clicks reuse the cache.',
+            codeRef: 'rankings.html:_ensureComboLoaded + RANKINGS_CACHE',
+            source: 'data/rankings/{analyst}-{format}.json',
+            notes: 'Pattern mirrors adp-comparator.js\'s ensureYearLoaded() for year payloads.',
+          },
+        ],
+      },
+      {
+        name: 'Sheet Source Pipeline',
+        items: [
+          { label: 'sync-rankings.py', what: 'Reads sync-rankings.config.json, parses each CSV in data/source/rankings/, writes data/rankings/{analyst}-{format}.json + data/rankings/manifest.json.', source: 'CSV exports from Google Sheet tabs (manual: File → Download → CSV)', values: 'Each output JSON: {version, season, analyst, format, label, players: [...]}', notes: 'Fails LOUDLY (exit code 1) on any per-source error so push.bat aborts before commit. Sanity-checks MIN_PLAYERS=50.' },
+          { label: 'CSV format expected', what: 'Multi-row banner header, real column headers on a row whose NAME cell equals "NAME", then optionally a #REF! junk row, then ranked player rows.', source: 'Google Sheet "NFL Dynasty Rankings (2026)" or similar', values: 'Columns at fixed positions: SDIO ID (col 1), NAME (2), AGE (3), EXP (4), POS (5), TEAM (6), AVG RANK (7), THEO (8), TRADE VALUE (14), POS RANK (15)', notes: 'Rows where NAME is empty or starts with "#" are skipped. Players are re-sorted by rank ascending so file order is canonical.' },
+          { label: 'Adding a new ranking CSV', what: 'Drop CSV into data/source/rankings/X.csv, add {analyst, format, label, local_csv: "X.csv"} to sync-rankings.config.json, run `python sync-rankings.py`, push.', source: 'Workflow', values: '—', notes: 'No code change to rankings.html — the new combo auto-appears in the tabs/toggles once the manifest reflects it.' },
+        ],
+      },
+      {
+        name: 'Column Overlays (live data on top of CSV)',
+        items: [
+          { label: 'Rank Column', what: 'CSV-driven — the THEO column from the source sheet.', source: 'CSV col 8 → players[].rank', values: 'Integer 1..N', notes: 'Sort defaults to rank ascending.' },
+          { label: 'Player Column', what: 'CSV-driven — clickable name opens the shared player drawer.', source: 'CSV col 2 → players[].name', values: 'Display name (e.g. "Ja\'Marr Chase")', notes: 'Click handler: window.openPanel(name).' },
+          { label: 'Pos / Team Columns', what: 'CSV-driven primary, FP_VALUES fallback for rookies the sheet might not have.', source: 'CSV cols 5/6; falls back to window.FP_VALUES[name].pos/team', values: 'POS = QB/RB/WR/TE; TEAM = NFL abbr', notes: 'Team renders as the coin-logo via TeamHelpers.logoImg(team, { size: 20, coin: true }).' },
+          { label: 'Age / Exp Columns', what: 'CSV-driven; age falls back to FP_VALUES if CSV blank.', source: 'CSV cols 3/4', values: 'Integers', notes: 'EXP = years of NFL experience (0 = rookie).' },
+          { label: 'Avg Rank Column', what: 'Consensus average across rankers (decimal).', source: 'CSV col 7 → players[].avgRank', values: 'Decimal (e.g. Chase = 0.17)', notes: 'Smaller is better. Useful as a tiebreaker / sanity check vs the THEO rank.' },
+          { label: 'Trade Value Column', what: 'Proprietary 0-1000 scale from the sheet.', source: 'CSV col 14', values: 'Rounded to integer at render time', notes: 'Declines monotonically (rank 1 = 1000, last ranked ≈ 75).' },
+          { label: 'Pos Rank Column', what: 'Per-position rank string.', source: 'CSV col 15', values: 'String like "WR1", "RB1", "TE2"', notes: 'String sort — for numeric sort, use the rank column.' },
+          { label: 'Current ADP Column', what: 'Live ADP from data/adp.json byMonth.ALL aggregate. Honors the format toggle (SF vs 1QB drives which startup bucket is read).', source: 'ADP_PAYLOAD.byMonth.ALL.startup_{sf|1qb}', values: 'Decimal', notes: 'Identical concept to tiers.html\'s Current ADP column.' },
+          { label: 'Previous ADP Column', what: 'User-selectable historical ADP from the AdpComparator calendar popup. Defaults to most-recent prior month; localStorage fpts-rankings-compare-month persists the selection across reloads.', source: 'AdpComparator.getMonthBucket(AdpComparator.getCurrentMonth())[startup_{sf|1qb}]', values: 'Decimal', notes: 'Click the column header → calendar popup opens. Year-crossing lazy-fetches the year payload (data/adp-{year}.json, ~15 MB each).' },
+          { label: 'Change Column (chip)', what: 'Computed: delta = Current ADP − Previous ADP. ▲ green for improvement (delta < 0), ▼ orange for slippage (delta > 0), ● flat for |delta| < 0.05. Identical chip styling to tiers.html (transparent bg, brand colors, black text-shadow stroke).', source: 'window.AdpComparator.changeChipHtml(current, previous)', values: 'Chip markup with arrow + abs(delta).toFixed(1) label', notes: 'Sort by Change column = sort by computed delta (missing values sink to bottom).' },
+        ],
+      },
+      {
+        name: 'ADP Comparison (shared with tiers)',
+        items: [
+          { label: 'adp-comparator.js module', what: 'Shared module providing the calendar popup, MONTH_INDEX, year-payload lazy-fetch, change-chip renderer, and trigger button. Used by both rankings.html AND tiers.html.', source: 'assets/js/adp-comparator.js', values: 'window.AdpComparator.{init, renderTriggerHtml, openCalendar, changeChipHtml, getCurrentMonth, getMonthBucket, ensureYearLoaded, buildMonthIndex, ...}', notes: 'Each consuming page initializes with its own storageKey + onChange callback. Tiers uses fpts-tiers-compare-month; rankings uses fpts-rankings-compare-month (independent state).' },
+          { label: 'Year payloads', what: 'Each year of ADP data lives in data/adp-{year}.json (~15 MB each). Module lazy-fetches on first navigation to that year. MIN_YEAR=2022 (matches adp-tool\'s year picker).', source: 'data/adp.json (current) + data/adp-{2022..2025}.json', values: 'Per-month buckets keyed YYYY-MM under byMonth', notes: 'Architectural decision: load on demand, not eagerly. Worst case 4 historical years fetched = ~60 MB total over the session (~3-5 MB gzipped per file).' },
+        ],
+      },
+      {
+        name: 'Controls + Interactions',
+        items: [
+          { label: 'Analyst Tabs', what: 'Top-level tab strip — built dynamically from the manifest. Whatever analyst keys are present in data/rankings/*.json files get tabs; nothing else. Auto-hidden while only one analyst exists (single-tab strip reads as broken UI).', source: 'rankings.html:renderAnalystTabs + _uniqueAnalysts reading RANKINGS_AVAILABLE', values: 'Active tab: orange underline. Click triggers _ensureComboLoaded + re-render.', notes: 'No hardcoded analyst names. Adding a CSV with a new analyst key automatically grows the strip; removing all CSVs for an analyst removes its tab on next page load.' },
+          { label: 'Format Toggle', what: 'Button group: SF / SF + TEP / 1QB / 1QB + TEP. Drives BOTH which combo CSV loads AND which ADP bucket (startup_sf vs startup_1qb) the overlays read.', source: 'rankings.html:renderFormatToggle reading RANKINGS_AVAILABLE for the active analyst', values: 'Active button: dynasty-orange fill', notes: 'Buttons without data render disabled with tooltip "No CSV for this combo yet".' },
+          { label: 'Position Filter', what: 'Dropdown filter: All / QB / RB / WR / TE. In-place filter — no fetch.', source: 'rankings.html:setPosition', values: 'Filters ACTIVE_PLAYERS by p.pos before rendering', notes: 'Persisted to localStorage as fpts-rankings-position.' },
+          { label: 'Search', what: 'Substring match against player name, case-insensitive. Debounced 60ms.', source: 'rankings.html:setSearch', values: 'Persisted to localStorage as fpts-rankings-search', notes: 'Restored to the input element on page load.' },
+          { label: 'Sort', what: 'Click any column header to toggle sort (ascending → descending → ascending). Change column sorts by computed delta.', source: 'rankings.html:setSort + _sortPlayers', values: 'Sort state lives in STATE.sort = {col, dir} — not persisted (transient per session).', notes: 'Numeric columns: rank, age, exp, avgRank, tradeValue, currentAdp, previousAdp. String columns: name, pos, team, posRank.' },
+          { label: 'Player Click → Drawer', what: 'Click any player name → opens the shared 5-tab drawer (Trades / Player Stats / Age Curve / Trade Finder / ADP Heatmap).', source: 'rankings.html:_openPlayer → window.openPanel(name)', values: '—', notes: 'Drawer is mounted via assets/js/player-panel.js (same as every other page).' },
+          { label: 'Calendar Picker (Previous ADP header)', what: 'Click the PREVIOUS ADP column header → calendar popup. ◀ ▶ year nav + 12-cell month grid. Active month highlighted; future months + the "now" month disabled.', source: 'window.AdpComparator (mounted at body level)', values: 'Selection persists to localStorage fpts-rankings-compare-month', notes: 'Outside-click, ESC, scroll all close the popup.' },
+        ],
+      },
+      {
+        name: 'localStorage Keys',
+        items: [
+          { label: 'fpts-rankings-analyst', what: 'Active analyst tab key.', source: 'localStorage', values: 'Whatever analyst slug the user picked (e.g. "overall"). Manifest-driven — no fixed enum.', notes: 'Restored on boot; falls back to first available combo if saved analyst has no data.' },
+          { label: 'fpts-rankings-format', what: 'Active format toggle.', source: 'localStorage', values: '"sf" | "sf-tep" | "1qb" | "1qb-tep"', notes: 'Restored on boot; falls back if combo unavailable.' },
+          { label: 'fpts-rankings-position', what: 'Position filter.', source: 'localStorage', values: '"all" | "QB" | "RB" | "WR" | "TE"', notes: 'Restored to the dropdown on boot.' },
+          { label: 'fpts-rankings-search', what: 'Search query.', source: 'localStorage', values: 'Free text', notes: 'Restored to the input on boot.' },
+          { label: 'fpts-rankings-compare-month', what: 'AdpComparator saved comparison anchor.', source: 'localStorage (managed by AdpComparator.init)', values: '"YYYY-MM" within 2022-2026', notes: 'Independent of tiers\' own compare-month — each page remembers its own anchor.' },
+        ],
+      },
+    ],
+  },
 };

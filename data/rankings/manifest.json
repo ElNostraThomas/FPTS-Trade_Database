@@ -1,0 +1,13 @@
+{
+  "version": "2026-05-16T21:07Z",
+  "season": 2026,
+  "sources": [
+    {
+      "analyst": "overall",
+      "format": "sf",
+      "label": "Overall Consensus — Superflex",
+      "file": "overall-sf.json",
+      "count": 264
+    }
+  ]
+}

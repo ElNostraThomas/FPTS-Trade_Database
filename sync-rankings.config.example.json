@@ -1,0 +1,22 @@
+{
+  "_comment": "Config for sync-rankings.py. Copy to sync-rankings.config.json and edit. The live file is gitignored.",
+  "season": 2026,
+  "sources_dir": "data/source/rankings",
+  "output_dir": "data/rankings",
+  "sources": [
+    {
+      "analyst": "overall",
+      "format": "sf",
+      "label": "Overall Consensus — Superflex",
+      "local_csv": "overall-sf.csv"
+    }
+  ],
+  "_examples_to_pattern_after": [
+    "Each source maps one CSV → one data/rankings/{analyst}-{format}.json file.",
+    "Analyst names are entirely your choice — they become the tab labels on rankings.html.",
+    "Format keys MUST be one of: 'sf' | 'sf-tep' | '1qb' | '1qb-tep' (matches the page's format toggle).",
+    "Examples:",
+    { "analyst": "overall", "format": "sf-tep", "label": "Overall Consensus — SF + TEP", "local_csv": "overall-sf-tep.csv" },
+    { "analyst": "overall", "format": "1qb",    "label": "Overall Consensus — 1QB",      "local_csv": "overall-1qb.csv" }
+  ]
+}
