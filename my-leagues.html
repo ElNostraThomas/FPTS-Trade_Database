@@ -2091,6 +2091,54 @@
   body.fpts-ml-page #pp-primary { overflow-y: auto !important; overflow-x: hidden; }
   /* Smooth iOS touch scrolling + prevent scroll-chaining back to the page. */
   body.fpts-ml-page #pp-primary { overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
+
+  /* ── Table cell classes (Phase A.1 of inline-style cleanup) ──
+     Replaces the legacy thS / tdS / numS JS string constants that used to be
+     interpolated into 52 inline style= attributes. The "wide" variants (12px
+     horizontal padding) are used by the roster + draft-picks tables; the
+     "-tight" variants (10px padding + smaller num font) are used by the
+     standings table. Per-row dynamic styling (color/opacity bound to data)
+     still rides on a residual inline style="..." next to the class=. */
+  body.fpts-ml-page .ml-tbl-th {
+    padding: 6px 12px 8px 0;
+    font-family: 'Mulish', sans-serif; font-weight: 700; font-size: 10px;
+    text-transform: uppercase; letter-spacing: .07em;
+    color: var(--muted); opacity: .45;
+    border-bottom: 1px solid var(--border2);
+    text-align: left; white-space: nowrap;
+  }
+  body.fpts-ml-page .ml-tbl-td {
+    padding: 9px 12px 9px 0;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+  }
+  body.fpts-ml-page .ml-tbl-num {
+    padding: 9px 12px 9px 0;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 14px;
+  }
+  body.fpts-ml-page .ml-tbl-th-tight {
+    padding: 6px 10px 8px 0;
+    font-family: 'Mulish', sans-serif; font-weight: 700; font-size: 10px;
+    text-transform: uppercase; letter-spacing: .07em;
+    color: var(--muted); opacity: .45;
+    border-bottom: 1px solid var(--border2);
+    text-align: left; white-space: nowrap;
+  }
+  body.fpts-ml-page .ml-tbl-td-tight {
+    padding: 9px 10px 9px 0;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+  }
+  body.fpts-ml-page .ml-tbl-num-tight {
+    padding: 9px 10px 9px 0;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 13px;
+  }
 </style>
 <script>document.addEventListener('DOMContentLoaded', function(){ if (window.Legend) Legend.init('my-leagues'); document.body.classList.add('fpts-ml-page'); });</script>
 </head>
@@ -6155,9 +6203,6 @@ function renderRoster(playerIds, players, starters, myPicks, rosterToTeam, proje
   Object.keys(byPos).forEach(pos => byPos[pos].sort((a,b) => b.value - a.value));
 
   // ── Helpers ────────────────────────────────────────────────────────────
-  const thS = `padding:6px 12px 8px 0;font-family:'Mulish',sans-serif;font-weight:700;font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);opacity:.45;border-bottom:1px solid var(--border2);text-align:left;white-space:nowrap;`;
-  const tdS = `padding:9px 12px 9px 0;border-bottom:1px solid var(--border);vertical-align:middle;`;
-  const numS = `${tdS}font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:14px;`;
 
   function valColor(v) {
     return v > 8000 ? 'var(--green)' : v > 5000 ? '#a8d8a0' : v > 2000 ? 'var(--white)' : v > 500 ? 'var(--muted)' : '#555';
@@ -6172,8 +6217,8 @@ function renderRoster(playerIds, players, starters, myPicks, rosterToTeam, proje
 
   function playerRow(r) {
     return `<tr style="cursor:pointer" onclick="openPlayerDetail('${r.sid || ''}')" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background=''">
-      <td style="${tdS}width:36px;padding-right:8px">${playerThumb(r.sid)}</td>
-      <td style="${tdS}">
+      <td class="ml-tbl-td" style="width:36px;padding-right:8px">${playerThumb(r.sid)}</td>
+      <td class="ml-tbl-td">
         <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
           ${(r.shouldStart && !r.isStart) ? FLAME_ICON : ''}
           <span style="font-family:'Mulish',sans-serif;font-weight:900;font-size:14px;color:var(--white)">${r.name}</span>
@@ -6181,15 +6226,15 @@ function renderRoster(playerIds, players, starters, myPicks, rosterToTeam, proje
 
         </div>
       </td>
-      <td style="${numS}color:var(--white)">${r.age}</td>
-      <td style="${numS}color:var(--white);font-size:12px">${r.exp === null ? '—' : r.exp === 0 ? 'R' : r.exp+'y'}</td>
-      <td style="${numS}color:${valColor(r.value)}">${r.value ? r.value.toLocaleString() : '—'}</td>
-      <td style="${numS}color:var(--white);font-size:12px">${r.posRank}</td>
-      <td style="${numS}color:${r.seasonProj ? 'var(--white)' : 'var(--muted)'};opacity:${r.seasonProj ? '1' : '.3'}" title="Season-long projected points">${r.seasonProj ? r.seasonProj.toFixed(1) : '—'}</td>
-      <td style="${numS}color:${r.proj ? (r.proj >= 20 ? 'var(--green)' : r.proj >= 12 ? 'var(--white)' : 'var(--muted)') : 'var(--muted)'};opacity:${r.proj ? '1' : '.3'}" title="Projected points this week">
+      <td class="ml-tbl-num" style="color:var(--white)">${r.age}</td>
+      <td class="ml-tbl-num" style="color:var(--white);font-size:12px">${r.exp === null ? '—' : r.exp === 0 ? 'R' : r.exp+'y'}</td>
+      <td class="ml-tbl-num" style="color:${valColor(r.value)}">${r.value ? r.value.toLocaleString() : '—'}</td>
+      <td class="ml-tbl-num" style="color:var(--white);font-size:12px">${r.posRank}</td>
+      <td class="ml-tbl-num" style="color:${r.seasonProj ? 'var(--white)' : 'var(--muted)'};opacity:${r.seasonProj ? '1' : '.3'}" title="Season-long projected points">${r.seasonProj ? r.seasonProj.toFixed(1) : '—'}</td>
+      <td class="ml-tbl-num" style="color:${r.proj ? (r.proj >= 20 ? 'var(--green)' : r.proj >= 12 ? 'var(--white)' : 'var(--muted)') : 'var(--muted)'};opacity:${r.proj ? '1' : '.3'}" title="Projected points this week">
         ${r.proj ? r.proj.toFixed(1) + (r.isStart ? '<span style=\"font-size:9px;color:var(--green);margin-left:3px\">▲</span>' : '') : '—'}
       </td>
-      <td style="${numS}color:var(--white)">${r.ppg !== null ? r.ppg.toFixed(1) : '—'}</td>
+      <td class="ml-tbl-num" style="color:var(--white)">${r.ppg !== null ? r.ppg.toFixed(1) : '—'}</td>
     </tr>`;
   }
 
@@ -6212,15 +6257,15 @@ function renderRoster(playerIds, players, starters, myPicks, rosterToTeam, proje
         <div style="overflow-x:auto;-webkit-overflow-scrolling:touch">
           <table style="width:100%;border-collapse:collapse;min-width:430px">
             <thead><tr>
-              <th style="${thS}width:36px"></th>
-              <th style="${thS}">Player</th>
-              <th style="${thS}">Age</th>
-              <th style="${thS}" title="Years of NFL experience (R = Rookie)">EXP</th>
-              <th style="${thS}">Value</th>
-              <th style="${thS}">Rank</th>
-              <th style="${thS}" title="Season-long projected points (Sleeper)">Season Proj</th>
-              <th style="${thS}" title="Projected points this week (Sleeper)">${currentWeek ? `Wk${currentWeek} Proj` : 'Wk Proj'}</th>
-              <th style="${thS}" title="2025 season PPG (Sleeper)">PPG</th>
+              <th class="ml-tbl-th" style="width:36px"></th>
+              <th class="ml-tbl-th">Player</th>
+              <th class="ml-tbl-th">Age</th>
+              <th class="ml-tbl-th" title="Years of NFL experience (R = Rookie)">EXP</th>
+              <th class="ml-tbl-th">Value</th>
+              <th class="ml-tbl-th">Rank</th>
+              <th class="ml-tbl-th" title="Season-long projected points (Sleeper)">Season Proj</th>
+              <th class="ml-tbl-th" title="Projected points this week (Sleeper)">${currentWeek ? `Wk${currentWeek} Proj` : 'Wk Proj'}</th>
+              <th class="ml-tbl-th" title="2025 season PPG (Sleeper)">PPG</th>
             </tr></thead>
             <tbody>${rows.map(playerRow).join('')}</tbody>
           </table>
@@ -6275,16 +6320,16 @@ function renderRoster(playerIds, players, starters, myPicks, rosterToTeam, proje
         const orig  = rosterToTeam[p.originalRosterId] || `Team ${p.originalRosterId}`;
         const sourceLabel = p.isNatural ? 'Your pick' : `Via ${orig}`;
         return `<tr style="border-bottom:1px solid var(--border)">
-          <td style="${tdS}width:36px;padding-right:8px">${pickThumb()}</td>
-          <td style="${tdS}">
+          <td class="ml-tbl-td" style="width:36px;padding-right:8px">${pickThumb()}</td>
+          <td class="ml-tbl-td">
             <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
               <span style="font-family:'Mulish',sans-serif;font-weight:900;font-size:14px;color:var(--white)">${p.season} ${ordinal(p.round)}</span>
               <span style="font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);opacity:.5">${sourceLabel}</span>
             </div>
           </td>
-          <td style="${numS}color:var(--muted);opacity:.5">${p.season}</td>
-          <td style="${numS}color:${val > 3000 ? 'var(--green)' : val > 1000 ? 'var(--white)' : 'var(--muted)'}">${val ? val.toLocaleString() : '—'}</td>
-          <td style="${numS}color:var(--muted);opacity:.4;font-size:11px">Rd ${p.round}</td>
+          <td class="ml-tbl-num" style="color:var(--muted);opacity:.5">${p.season}</td>
+          <td class="ml-tbl-num" style="color:${val > 3000 ? 'var(--green)' : val > 1000 ? 'var(--white)' : 'var(--muted)'}">${val ? val.toLocaleString() : '—'}</td>
+          <td class="ml-tbl-num" style="color:var(--muted);opacity:.4;font-size:11px">Rd ${p.round}</td>
         </tr>`;
       }).join('');
     }).join('');
@@ -6302,11 +6347,11 @@ function renderRoster(playerIds, players, starters, myPicks, rosterToTeam, proje
         <div style="overflow-x:auto">
           <table style="width:100%;border-collapse:collapse;min-width:520px">
             <thead><tr>
-              <th style="${thS}width:36px"></th>
-              <th style="${thS}">Pick</th>
-              <th style="${thS}">Season</th>
-              <th style="${thS}">Value</th>
-              <th style="${thS}">Round</th>
+              <th class="ml-tbl-th" style="width:36px"></th>
+              <th class="ml-tbl-th">Pick</th>
+              <th class="ml-tbl-th">Season</th>
+              <th class="ml-tbl-th">Value</th>
+              <th class="ml-tbl-th">Round</th>
             </tr></thead>
             <tbody>${pickRows}</tbody>
           </table>
@@ -7108,13 +7153,10 @@ async function loadStandings(leagueId) {
     const maxVal = Math.max(...rosterValues.map(r => r.total)) || 1;
 
     // ── Styles ────────────────────────────────────────────────────────────
-    const thS = `padding:6px 10px 8px 0;font-family:'Mulish',sans-serif;font-weight:700;font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);opacity:.45;border-bottom:1px solid var(--border2);text-align:left;white-space:nowrap;`;
-    const tdS = `padding:9px 10px 9px 0;border-bottom:1px solid var(--border);vertical-align:middle;`;
-    const numS = `${tdS}font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:13px;`;
     const posColors = {QB:'#e05252',RB:'var(--green)',WR:'#5b9bd5',TE:'#e09a30'};
 
     // Stash render context on window so the sort buttons can re-render
-    window.ML_STANDINGS_CONTEXT = { thS, tdS, numS, posColors, maxVal };
+    window.ML_STANDINGS_CONTEXT = { posColors, maxVal };
     window.ML_STANDINGS_SORT = window.ML_STANDINGS_SORT || 'value';
 
     // ── Section 2: Position rankings (where does YOUR team rank per pos) ──
@@ -7184,7 +7226,7 @@ function renderStandingsTable() {
   const rv = window.ML_ROSTER_VALUES;
   const ctx = window.ML_STANDINGS_CONTEXT;
   if (!rv || !ctx) return;
-  const { thS, tdS, numS, posColors, maxVal } = ctx;
+  const { posColors, maxVal } = ctx;
   const sort = window.ML_STANDINGS_SORT || 'value';
 
   // Sort rosters by chosen key
@@ -7225,8 +7267,8 @@ function renderStandingsTable() {
     }).join('') : '';
 
     return `<tr style="${rowBg}">
-      <td style="${numS}color:var(--muted);opacity:.3;width:28px">${i+1}</td>
-      <td style="${tdS}">
+      <td class="ml-tbl-num-tight" style="color:var(--muted);opacity:.3;width:28px">${i+1}</td>
+      <td class="ml-tbl-td-tight">
         <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
           ${avHtml}
           <span style="font-family:'Mulish',sans-serif;font-weight:900;font-size:13px;${r.isMe?'color:var(--red)':''}">${r.name}</span>
@@ -7238,15 +7280,15 @@ function renderStandingsTable() {
           ${barSegs}
         </div>
       </td>
-      <td style="${numS}color:var(--white)">${r.total.toLocaleString()}</td>
-      <td style="${numS}color:var(--muted);opacity:.5">${r.avgAge ? r.avgAge.toFixed(1) : '—'}</td>
-      <td style="${numS}color:${posColors.QB}">${r.posVals.QB.toLocaleString()}</td>
-      <td style="${numS}color:${posColors.RB}">${r.posVals.RB.toLocaleString()}</td>
-      <td style="${numS}color:${posColors.WR}">${r.posVals.WR.toLocaleString()}</td>
-      <td style="${numS}color:${posColors.TE}">${r.posVals.TE.toLocaleString()}</td>
-      <td style="${numS}color:var(--green)">${r.wins}-${r.losses}${r.ties?`-${r.ties}`:''}</td>
-      <td style="${numS}color:var(--white);opacity:.5">${r.pf}</td>
-      <td style="${numS}color:${r.mpxPct >= 90 ? 'var(--green)' : r.mpxPct >= 75 ? 'var(--white)' : r.mpxPct ? 'var(--red)' : 'var(--muted)'}">${r.mpxPct ? r.mpxPct+'%' : '—'}</td>
+      <td class="ml-tbl-num-tight" style="color:var(--white)">${r.total.toLocaleString()}</td>
+      <td class="ml-tbl-num-tight" style="color:var(--muted);opacity:.5">${r.avgAge ? r.avgAge.toFixed(1) : '—'}</td>
+      <td class="ml-tbl-num-tight" style="color:${posColors.QB}">${r.posVals.QB.toLocaleString()}</td>
+      <td class="ml-tbl-num-tight" style="color:${posColors.RB}">${r.posVals.RB.toLocaleString()}</td>
+      <td class="ml-tbl-num-tight" style="color:${posColors.WR}">${r.posVals.WR.toLocaleString()}</td>
+      <td class="ml-tbl-num-tight" style="color:${posColors.TE}">${r.posVals.TE.toLocaleString()}</td>
+      <td class="ml-tbl-num-tight" style="color:var(--green)">${r.wins}-${r.losses}${r.ties?`-${r.ties}`:''}</td>
+      <td class="ml-tbl-num-tight" style="color:var(--white);opacity:.5">${r.pf}</td>
+      <td class="ml-tbl-num-tight" style="color:${r.mpxPct >= 90 ? 'var(--green)' : r.mpxPct >= 75 ? 'var(--white)' : r.mpxPct ? 'var(--red)' : 'var(--muted)'}">${r.mpxPct ? r.mpxPct+'%' : '—'}</td>
     </tr>`;
   }).join('');
 
@@ -7255,17 +7297,17 @@ function renderStandingsTable() {
     <div style="overflow-x:auto;-webkit-overflow-scrolling:touch">
       <table style="width:100%;border-collapse:collapse;min-width:560px">
         <thead><tr>
-          <th style="${thS}width:28px">#</th>
-          <th style="${thS}">Team</th>
-          <th style="${thS}">Total</th>
-          <th style="${thS}">Avg Age</th>
-          <th style="${thS}color:${posColors.QB}">QB</th>
-          <th style="${thS}color:${posColors.RB}">RB</th>
-          <th style="${thS}color:${posColors.WR}">WR</th>
-          <th style="${thS}color:${posColors.TE}">TE</th>
-          <th style="${thS}">W-L</th>
-          <th style="${thS}">PF</th>
-          <th style="${thS}">MPX%</th>
+          <th class="ml-tbl-th-tight" style="width:28px">#</th>
+          <th class="ml-tbl-th-tight">Team</th>
+          <th class="ml-tbl-th-tight">Total</th>
+          <th class="ml-tbl-th-tight">Avg Age</th>
+          <th class="ml-tbl-th-tight" style="color:${posColors.QB}">QB</th>
+          <th class="ml-tbl-th-tight" style="color:${posColors.RB}">RB</th>
+          <th class="ml-tbl-th-tight" style="color:${posColors.WR}">WR</th>
+          <th class="ml-tbl-th-tight" style="color:${posColors.TE}">TE</th>
+          <th class="ml-tbl-th-tight">W-L</th>
+          <th class="ml-tbl-th-tight">PF</th>
+          <th class="ml-tbl-th-tight">MPX%</th>
         </tr></thead>
         <tbody>${valueRows}</tbody>
       </table>
