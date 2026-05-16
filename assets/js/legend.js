@@ -13,11 +13,23 @@
   }
 
   function renderItem(item) {
+    // Row order tells a narrative: purpose → where the data lives → what
+    // values mean → what feeds the algorithm → the math → what it produces
+    // → a concrete worked example → code pointer → edge cases.
+    //
+    // Simple UI entries only need {what, source, values, notes}.
+    // Algorithm entries can additionally include {inputs, formula, output,
+    // example, codeRef} for full developer-grade documentation.
     var rows = [];
-    if (item.what)   rows.push('<div class="lg-item-row"><span class="lg-k">What</span><span class="lg-v">'   + escHtml(item.what)   + '</span></div>');
-    if (item.source) rows.push('<div class="lg-item-row"><span class="lg-k">Source</span><span class="lg-v lg-mono">' + escHtml(item.source) + '</span></div>');
-    if (item.values) rows.push('<div class="lg-item-row"><span class="lg-k">Values</span><span class="lg-v">' + escHtml(item.values) + '</span></div>');
-    if (item.notes)  rows.push('<div class="lg-item-row"><span class="lg-k">Notes</span><span class="lg-v">'  + escHtml(item.notes)  + '</span></div>');
+    if (item.what)    rows.push('<div class="lg-item-row"><span class="lg-k">What</span><span class="lg-v">'         + escHtml(item.what)    + '</span></div>');
+    if (item.source)  rows.push('<div class="lg-item-row"><span class="lg-k">Source</span><span class="lg-v lg-mono">'  + escHtml(item.source)  + '</span></div>');
+    if (item.values)  rows.push('<div class="lg-item-row"><span class="lg-k">Values</span><span class="lg-v">'       + escHtml(item.values)  + '</span></div>');
+    if (item.inputs)  rows.push('<div class="lg-item-row"><span class="lg-k">Inputs</span><span class="lg-v">'       + escHtml(item.inputs)  + '</span></div>');
+    if (item.formula) rows.push('<div class="lg-item-row"><span class="lg-k">Formula</span><span class="lg-v lg-mono">' + escHtml(item.formula) + '</span></div>');
+    if (item.output)  rows.push('<div class="lg-item-row"><span class="lg-k">Output</span><span class="lg-v">'       + escHtml(item.output)  + '</span></div>');
+    if (item.example) rows.push('<div class="lg-item-row"><span class="lg-k">Example</span><span class="lg-v lg-example">' + escHtml(item.example) + '</span></div>');
+    if (item.codeRef) rows.push('<div class="lg-item-row"><span class="lg-k">Code</span><span class="lg-v lg-mono">'    + escHtml(item.codeRef) + '</span></div>');
+    if (item.notes)   rows.push('<div class="lg-item-row"><span class="lg-k">Notes</span><span class="lg-v">'        + escHtml(item.notes)   + '</span></div>');
     return '<div class="lg-item">'
          +   '<div class="lg-item-head">' + escHtml(item.label) + '</div>'
          +   rows.join('')

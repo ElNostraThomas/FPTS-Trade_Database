@@ -1,7 +1,18 @@
 # my-leagues.html inline-style inventory
 
-Generated from `my-leagues.html` (7620 lines).
-Total `style="..."` occurrences: **304**.
+**Status: historical snapshot, superseded.** This audit was taken before
+Phase A of the inline-style migration (commits `2d4cf5b` / `dc592c3` /
+`61ad387`, 2026-05-15). Line numbers and counts below reflect the
+pre-Phase-A state of `my-leagues.html` and will NOT match the current
+file. Phase A pulled ~21 repeated patterns out to CSS classes; remaining
+inline styles are dynamic (interpolated color/width/opacity) or genuine
+one-offs. Kept here for archival reference and to motivate any future
+phase. See `docs/CHANGES.md` 2026-05-15 entry for what migrated.
+
+---
+
+Generated from `my-leagues.html` (7620 lines, pre-Phase A).
+Total `style="..."` occurrences: **304** (pre-Phase A).
 
 This is a read-only audit. No code was changed. The goal is to make the
 refactor safe to execute supervised by giving every occurrence a category,

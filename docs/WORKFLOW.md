@@ -19,7 +19,7 @@ push.bat
 3. **[3/5]** `sync-tiers.py` — pulls fresh data from your Google Sheet "New SF Tier System" → rewrites the `TIER_PLAYERS` block inside `tiers.html`.
 4. **[3b/5]** `sync-mvs.py` — rebuilds `data/mvs.json` from `data/source/player_market_mvs.csv` (player + pick MVS values).
 5. **[4/5]** `make-pdf.ps1` — regenerates `docs/function-reference.pdf` from the source HTML.
-6. **[5/5]** Checks for changes — if nothing changed, **exits without prompting** (zero-friction no-op). Otherwise shows the diff, runs five non-blocking sync-check warnings (tab-sync / modal-sections / panel-css / chip-sync / legend-sync), asks for a commit message (press **Enter** to accept the default `Update site + refresh data`), commits, pushes to GitHub Pages — site redeploys in ~2 minutes.
+6. **[5/5]** Checks for changes — if nothing changed, **exits without prompting** (zero-friction no-op). Otherwise shows the diff, runs three non-blocking sync-check warnings (modal-sections / panel-css / legend-sync), asks for a commit message (press **Enter** to accept the default `Update site + refresh data`), commits, pushes to GitHub Pages — site redeploys in ~2 minutes.
 
 **If any sync step fails**, push.bat aborts before commit. You'll never accidentally ship a broken or stale site.
 

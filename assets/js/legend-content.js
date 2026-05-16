@@ -383,7 +383,18 @@ window.LegendContent = {
           { label: 'Tab: Trades (#pp-trades-tab)', what: 'Full list of trades involving this player. Same trade card template as the main 01 Recent Trades list. Respects active filters.', source: 'sorted = playerTrades; rendered via tradeCardHtml(t)', values: '—', notes: 'If no trades match, shows "No trades found".' },
           { label: 'Tab: Player Stats (#pp-stats-tab)', what: '2025 fantasy season stats: PPG, games played, pass/rush/rec yards + TDs, targets.', source: 'PLAYER_STATS_DATA hardcoded block near L3134', values: 'Big stat blocks for QB (pass yds/td), RB (rush yds/td), WR/TE (rec/yds/td/tgt)', notes: 'Currently hardcoded — could be replaced with a Sleeper /stats endpoint or sync-fp.py output.' },
           { label: 'Tab: Age Curve (#pp-age-curve-tab)', what: 'Position-relative value projection across the player\'s career arc. Visualizes when value typically peaks for their position.', source: 'renderAgeCurve() computes from FP_VALUES[name].age + posKey + per-position curve constants', values: 'Curves: RB peak 24, WR 26, TE 27, QB 28', notes: 'Curve constants in `curves` object at L6612; heuristic, not regression-fitted.' },
-          { label: 'Tab: Trade Finder (#pp-finder-tab)', what: 'Combinatorial trade suggestion engine. Generates fair trade packages on either side using current MVS values as the matching target.', source: 'renderTradeFinder() at L7598+; combines FP_VALUES + PICK_VALUES within value tolerance', values: 'Each suggestion shows asset list + total value + balance indicator', notes: 'Reuses the same valuation logic the Trade Calculator uses (multipliers + base value).' },
+          {
+            label: 'Tab: Trade Finder (#pp-finder-tab)',
+            what: 'Combinatorial trade suggestion engine. Given an "anchor" asset on one side (the open player) and the gap between sides, generates ranked single-asset suggestions whose values fill that gap. Optional search filter narrows the candidate pool by name.',
+            source: 'Shared module assets/js/player-panel.js — _drawTradeFinder() builds the UI; populated from FP_VALUES + PICK_VALUES.',
+            values: 'Each suggestion row: asset (player or pick) + value + delta vs gap. Up to 8 suggestions per side slot.',
+            inputs: 'gap: |sideA.value − sideB.value| (the imbalance the suggestion needs to close). query: optional substring to filter candidates by name/label. excluded: any asset already on either side of the trade.',
+            formula: 'candidates = (all FP_VALUES players + all PICK_VALUES picks) filtered to !excluded. If query is set: filter where label.toLowerCase().includes(query). Then sort by Math.abs(asset.value − gap) ascending. Take first 8. A suggestion is flagged "fair" when absDiff < 300 (rendered green).',
+            output: 'Up to 8 suggestion chips per slot. Clicking a chip writes it into the trade-calculator handoff and opens that page with the suggestion pre-filled.',
+            example: 'Side A = Justin Jefferson (value 9,800). Side B empty. gap = 9,800. Top candidates near 9,800: De\'Von Achane 9,650 (Δ150 ✓fair), Bijan Robinson 9,920 (Δ120 ✓fair), Drake London 9,440 (Δ360), Jahmyr Gibbs 10,100 (Δ300 ✓fair). Sorted by absDiff → Bijan, Achane, Gibbs, London, …',
+            codeRef: 'assets/js/player-panel.js:1096-1282 (_drawTradeFinder)',
+            notes: 'When gap < 100 (sides already balanced) the suggester returns nothing — there is no imbalance to fill. Single-asset only; the engine does NOT combinatorially try player+pick bundles to hit exact value.'
+          },
         ],
       },
       {
@@ -397,9 +408,74 @@ window.LegendContent = {
       {
         name: 'Cross-page Handoff System',
         items: [
-          { label: '_fptsWriteHandoff(payload, destUrl)', what: 'Writes player name (and optional trade payload) to localStorage key "fpts-handoff" with 60s TTL, then opens destUrl in a new tab.', source: 'L757-763', values: 'payload: { source, primaryPlayer, trade?, players? }', notes: 'TTL prevents stale handoffs from triggering when users browse to a destination page much later.' },
-          { label: '_fptsReadHandoff()', what: 'Reads and clears the handoff key. Returns null if older than 60s.', source: 'L764-773', values: 'Returns the payload or null', notes: 'Each destination page consumes the handoff inside its own _adpInit / loader / bootstrap.' },
-          { label: 'Floating Calc/ADP/Leagues buttons (panel)', what: 'Visible action bar at top of player panel. Each writes a player-name handoff and opens the destination.', source: '_fptsXpageOpenCalcFromPanel() etc. at L1991-2012', values: '—', notes: 'Trade-Finder tab has its own variant: _fptsXpageOpenCalcFromFinder pushes the full trade package.' },
+          {
+            label: '_fptsWriteHandoff(payload, destUrl) — the producer',
+            what: 'Universal one-way handoff. Writes a JSON payload to localStorage key "fpts-handoff" tagged with the current timestamp, then opens destUrl in a new tab. Every "Open in Calculator / ADP / My Leagues" button on this page is a thin wrapper around this function.',
+            source: 'index.html ~L757-763 (also duplicated on each page that emits handoffs)',
+            values: '—',
+            inputs: 'payload: { source: string, primaryPlayer?: string, players?: string[], trade?: {sideA, sideB} }. destUrl: page-relative URL like "trade-calculator.html" or "my-leagues.html#auto-import".',
+            formula: 'localStorage.setItem("fpts-handoff", JSON.stringify({ ts: Date.now(), ...payload })); window.open(destUrl, "_blank", "noopener,noreferrer")',
+            output: 'A localStorage key the destination page consumes within 60 seconds, OR garbage that expires silently.',
+            example: 'On panel button click: _fptsWriteHandoff({ source: "index", primaryPlayer: "Justin Jefferson" }, "trade-calculator.html"). Calculator opens, reads the handoff, auto-fills Jefferson into Side A.',
+            codeRef: 'index.html:757 (_fptsWriteHandoff)',
+            notes: 'No transactional safety — if user closes the destination tab before page load completes, the handoff is still consumed (and lost). This is acceptable because the source data lives in the player panel and can be re-opened.'
+          },
+          {
+            label: '_fptsReadHandoff() — the consumer',
+            what: 'Reads, validates, and CLEARS the handoff key. Returns the payload only if it is younger than the 60-second TTL; otherwise returns null and deletes the stale key. Consume-once semantics — a single payload cannot be read twice.',
+            source: 'index.html ~L764-773 (and on every destination page)',
+            values: 'Returns the payload object or null',
+            inputs: 'None — reads localStorage["fpts-handoff"].',
+            formula: 'raw = localStorage.getItem("fpts-handoff"); if (!raw) return null; parsed = JSON.parse(raw); localStorage.removeItem("fpts-handoff"); if (Date.now() − parsed.ts > 60000) return null; return parsed;',
+            output: '{ ts, source, primaryPlayer?, players?, trade? } or null.',
+            example: 'On trade-calculator.html bootstrap: const h = _fptsReadHandoff(); if (h && h.primaryPlayer) { addToSideA(h.primaryPlayer); } if (h && h.trade) { restoreFullTrade(h.trade); }',
+            codeRef: 'index.html:764 (_fptsReadHandoff). Destination consumers: trade-calculator.html, adp-tool.html, my-leagues.html, tiers.html — each inside its bootstrap routine.',
+            notes: 'The 60s TTL exists because users sometimes click a handoff button, get distracted, and re-open the destination 10 minutes later. Without TTL the stale handoff would fire unexpectedly. Removal-before-validation prevents the stale-key persisting in localStorage.'
+          },
+          {
+            label: 'Floating Calc/ADP/Leagues buttons (panel)',
+            what: 'Visible action bar at top of player panel. Each writes a player-name handoff and opens the destination.',
+            source: '_fptsXpageOpenCalcFromPanel() etc. at L1991-2012',
+            values: '—',
+            notes: 'Trade-Finder tab has its own variant: _fptsXpageOpenCalcFromFinder pushes the full trade package (sideA + sideB asset arrays) instead of a single primaryPlayer.'
+          },
+        ],
+      },
+      {
+        name: 'Data Pipeline (MVS overlay)',
+        items: [
+          {
+            label: 'FP_VALUES base layer',
+            what: 'The starting player dictionary. Built from data/values.json (the FantasyPoints-sourced sync-fp.py output). Has the static profile fields every page needs: sleeperId, age, team, pos, posRank, ppg, injury.',
+            source: 'data-bootstrap.js — loaded once and exposed as window.FP_VALUES',
+            values: 'FP_VALUES[playerName] = { sleeperId, age, team, pos, posRank, ppg, injury, value (initial), ... }',
+            codeRef: 'sync-fp.py (data factory) → data/values.json → data-bootstrap.js loadValues()',
+            notes: 'FP_VALUES is keyed by display name (e.g. "Justin Jefferson"). After MVS overlay runs, the .value field is replaced; the profile fields (age, team, pos) stay from FP_VALUES.'
+          },
+          {
+            label: 'MVS overlay — _applyMvsPayload',
+            what: 'Replaces every value-bearing field on FP_VALUES with MVS data when data/mvs.json is present. Format-aware: reads localStorage.fpts-adp-format (sf or 1qb) and picks the matching MVS subfield. Profile fields (age, team, pos, posRank, ppg, sleeperId, injury) fall back to FP_VALUES — MVS does NOT overwrite those.',
+            source: 'data-bootstrap.js:153-207 — _applyMvsPayload(payload, format)',
+            values: 'Wholesale replacement: value / valueSf / value1qb / baseline / trend / history / otcValue / otcDiff / rankings / recentTrades / lastUpdated',
+            inputs: 'payload: parsed data/mvs.json. format: "sf" (default) or "1qb" — read from localStorage.fpts-adp-format. If a player exists in FP_VALUES but NOT in MVS, their .value is forced to 0 (MVS-uncovered players are deliberately zeroed so they sort to the bottom of value lists rather than carrying stale FP values).',
+            formula: 'for each playerName in payload.players: FP_VALUES[name].value = (format === "1qb" ? p.value_1qb : p.value_sf); FP_VALUES[name].baseline = (format === "1qb" ? p.baseline_1qb : p.baseline_sf); FP_VALUES[name].history = (format === "1qb" ? p.history_1qb : p.history_sf); ... // profile fields untouched.',
+            output: 'A mutated window.FP_VALUES that downstream code reads as if MVS were the source of truth.',
+            example: 'localStorage.fpts-adp-format = "sf". User opens Jefferson panel. FP_VALUES["Justin Jefferson"].value === 9,800 (MVS valueSf). FP_VALUES["Justin Jefferson"].age === 26 (from FP_VALUES — MVS did not override). User toggles to 1QB on adp-tool: localStorage updates, then _applyMvsPayload re-runs with format="1qb", and FP_VALUES["Justin Jefferson"].value becomes 7,200 (MVS value1qb).',
+            codeRef: 'assets/js/data-bootstrap.js:153-207 (_applyMvsPayload). Toggle handler that re-invokes it lives in adp-tool.html.',
+            notes: 'Precedence order is: MVS wins for values, FP wins for profile. When debugging "why does this player\'s value look wrong" — check mvs.json first, then values.json. If a player suddenly has value=0, they were dropped from the MVS coverage list.'
+          },
+          {
+            label: 'Format toggle persistence (sf vs 1qb)',
+            what: 'A single user setting determines which MVS subfield shows everywhere. The toggle is exposed on adp-tool but persisted globally — every page reads it on load.',
+            source: 'localStorage key "fpts-adp-format"',
+            values: '"sf" (default) or "1qb"',
+            inputs: 'User click on the SF/1QB tab in adp-tool.html.',
+            formula: 'on toggle change: localStorage.setItem("fpts-adp-format", newFormat); then re-run _applyMvsPayload(MVS_PAYLOAD, newFormat) and re-render the visible page.',
+            output: 'Every value-displaying surface across the site reflects the chosen format.',
+            example: 'User on tiers.html sees Jefferson at 9,800 (SF). Opens adp-tool.html, clicks 1QB. Returns to tiers.html → Jefferson now shows 7,200. No data re-fetched; only the overlay was re-applied with the other format.',
+            codeRef: 'adp-tool.html toggle handler (search "fpts-adp-format"); data-bootstrap.js:153 reads the key on load.',
+            notes: 'Single-key design is intentional: separate Superflex/1QB visits to different pages would be jarring. Trade-off: a user who actively plays both formats has to toggle each time.'
+          },
         ],
       },
       {
@@ -489,6 +565,38 @@ window.LegendContent = {
         items: [
           { label: 'Shareable URL (?source=...&mode=...&qb=...&view=...)', what: 'Active tab\'s source + mode + QB format + view + filters round-trip through URL hash params so views can be bookmarked or shared. The hash represents the ACTIVE tab — switching tabs replaces the hash. The inactive tab\'s state is persisted only via localStorage.', source: 'buildHashString() / loadStateFromHash() in adp-tool.html', values: 'source (non-default = rookie), mode (only when source=startup), qb (1qb if non-default), view (list if non-default), from/to, q, pos, tc, rd', notes: 'Defaults are omitted from the URL to keep it short. Default rounds differ per tab: 20 for startup, 5 for rookie — so the rd= param is only emitted when it differs from the active tab\'s default.' },
           { label: 'localStorage — per-tab state', what: 'Each tab (startup / rookie) keeps its own complete UI state in a JSON blob. The active source is remembered separately so refresh returns to the same tab.', source: 'TAB_STATE_KEYS = { startup: "fpts-adp-startup-state", rookie: "fpts-adp-rookie-state" }; ACTIVE_SOURCE_KEY = "fpts-adp-active-source"; saveTabState() / loadTabState()', values: 'JSON shape: { mode, qbFormat, view, dateFrom, dateTo, snake, search, rounds, teamCount, filters:{positions,rounds,teams}, sort:{col,dir} }', notes: 'Saved on every renderAll() via writeHashFromState() → persistActiveTab(). URL hash takes precedence over localStorage when both present. The rookie tab forces qbFormat=sf on FIRST-EVER load (no saved state); after that it tracks user choice. Legacy "fpts-adp-format" key is still written by setQbFormat() and read on init only when no per-tab state exists.' },
+        ],
+      },
+      {
+        name: 'Data Pipeline (Picks-as-Assets)',
+        items: [
+          {
+            label: 'Why "Picks-as-Assets" exists',
+            what: 'Sleeper has no native concept of "future rookie pick" in startup drafts. League managers communicate "this slot is actually next year\'s 1st" by drafting a Kicker in a position they would otherwise never draft a kicker (rounds 1-4). The picks-bucket pipeline reverse-engineers those K placeholders back into ROOKIE_PICK_X.YY synthetic entities so the ADP board can show real players AND rookie picks intermixed.',
+            source: 'sync-adp.py classify_startup_drafts() flags startups with K in early_rounds≤4. relabel_picks_K_to_rdp() rewrites those K rows.',
+            values: 'When you see "ROOKIE_PICK_1.05" on the board, that\'s a relabeled K that was actually drafted at pick 5 in round 1 of a "picks-as-assets" startup.',
+            codeRef: 'sync-adp.py:367-445 (relabel_picks_K_to_rdp); classify_startup_drafts upstream of it.',
+            notes: 'Only applies to the "Picks" sub-variant of the Startup tab. Simple and With-Rookies variants exclude K-as-pick drafts entirely.'
+          },
+          {
+            label: 'The relabel algorithm — relabel_picks_K_to_rdp',
+            what: 'For each picks-bucket startup, walks the K-position draft rows in pick-order. Each K becomes a ROOKIE_PICK_X.YY where X is the synthetic round and YY is the slot within that round. Round/slot are computed from a draft-level counter, NOT from the K\'s original Sleeper pick number, so picks across multiple drafts line up consistently.',
+            source: 'sync-adp.py:367-445',
+            values: 'Output: player_id rewritten to "ROOKIE_PICK_{round}.{pir:02d}". Position changed from "K" to "PICK". Name set to "{round}.{pir:02d}".',
+            inputs: '_k_seq: 0-indexed counter of K-drafted positions within this single startup draft. st_teams: team count of the draft (10 / 12 / 14 etc.).',
+            formula: 'round = (_k_seq // st_teams) + 1\npir = (_k_seq % st_teams) + 1\nlabel = f"{round}.{pir:02d}"\nplayer_id = f"ROOKIE_PICK_{label}"',
+            output: 'Mutated draft-row records that look like normal Sleeper picks but with synthetic pick IDs. Downstream aggregation treats them identically to real players.',
+            example: '12-team draft. K-position rows appear at overall picks 24, 48, 72, 96, 120 (every team takes one). _k_seq goes 0, 1, 2, 3, 4.\n  _k_seq=0 → round=(0//12)+1=1, pir=(0%12)+1=1  → "ROOKIE_PICK_1.01"\n  _k_seq=1 → round=(1//12)+1=1, pir=(1%12)+1=2  → "ROOKIE_PICK_1.02"\n  _k_seq=2 → round=(2//12)+1=1, pir=3          → "ROOKIE_PICK_1.03"\n  _k_seq=3 → round=1, pir=4                    → "ROOKIE_PICK_1.04"\n  _k_seq=4 → round=1, pir=5                    → "ROOKIE_PICK_1.05"\nIf the league had taken 13 Ks instead of 5, _k_seq=12 would roll over to "ROOKIE_PICK_2.01".',
+            notes: 'The counter is per-draft, not global — every startup independently produces 1.01 → 1.12 → 2.01 etc. Aggregation across many drafts gives each synthetic pick a real ADP just like a real player.'
+          },
+          {
+            label: 'Heatmap coverage for synthetic picks',
+            what: 'data/pick-availability.json carries ~77 ROOKIE_PICK_X.YY entries in addition to ~300 real players. Each synthetic pick has its own per-team-count availability matrix exactly as if it were a real Sleeper player ID.',
+            source: 'data/pick-availability.json — built by sync-adp.py during the same run that produces adp.json',
+            values: 'PICK_AVAILABILITY["ROOKIE_PICK_1.05"] = { matrix, dropoff, expectedPick, draftsSampled }',
+            codeRef: 'sync-adp.py heatmap-build block (search "pick-availability")',
+            notes: 'Real players + synthetic picks share the same version timestamp, so the heatmap and the ADP board always reflect the same data snapshot.'
+          },
         ],
       },
       {
@@ -594,6 +702,36 @@ window.LegendContent = {
         ],
       },
       {
+        name: 'Sleeper API Coupling',
+        items: [
+          {
+            label: 'apiFetch(url) — the wrapper',
+            what: 'Thin wrapper around fetch() used everywhere on my-leagues. No retry logic, no rate-limiting; on non-2xx it throws "HTTP {status}". Callers wrap with .catch(() => []) where graceful degradation is expected.',
+            source: 'my-leagues.html:2889-2892',
+            values: 'Returns parsed JSON on success; throws Error on non-2xx',
+            codeRef: 'my-leagues.html:2889 (async function apiFetch(url))',
+            notes: 'Sleeper is generous with rate limits; we have not had to add backoff. If 429s start appearing in console, wrap this with exponential backoff.'
+          },
+          {
+            label: 'Sleeper endpoints used (full list)',
+            what: 'Every Sleeper /v1 endpoint hit by my-leagues. Base URL: https://api.sleeper.app/v1.',
+            inputs: 'username (text input), userId (from previous call), leagueId (from leagues list), season (selector), week (from /state/nfl).',
+            formula: '/players/nfl (full player DB, cached once per session) · /user/{username} → user_id · /user/{userId}/leagues/nfl/{season} → leagues array · /league/{id}/rosters · /league/{id}/users · /league/{id}/traded_picks · /league/{id}/drafts · /state/nfl (current week + season) · /projections/nfl/regular/{year} · /stats/nfl/regular/{year} · /league/{id}/transactions/{week} (waivers + trades).',
+            output: 'JSON objects/arrays specific to each endpoint. See Sleeper docs at https://docs.sleeper.com/.',
+            codeRef: 'my-leagues.html:2851 (const API = "https://api.sleeper.app/v1"); calls scattered: 4745 / 4764 / 4806 / 4862-4866 / 5980 / 6019 / 6043 / 3286',
+            notes: 'No authenticated endpoints — Sleeper exposes everything read-only by username. No password ever required. /players/nfl is ~5 MB and gets cached on window.MLPlayersCache for the session.'
+          },
+          {
+            label: 'Error handling pattern',
+            what: 'Most calls wrap .catch(() => []) so partial failures degrade gracefully — a missing /traded_picks just means "no traded picks" rather than crashing the whole league load.',
+            source: 'Per-call .catch(...) chains around apiFetch',
+            values: '—',
+            example: 'apiFetch(`${API}/league/${id}/traded_picks`).catch(() => [])  →  returns [] if Sleeper 404s the endpoint',
+            notes: 'Required for: traded_picks (some leagues have none) and drafts (some leagues never created one). Not used for /rosters or /users since those are required for the page to render anything.'
+          },
+        ],
+      },
+      {
         name: 'Leagues List',
         items: [
           { label: 'League Card', what: 'One card per imported league with name, season, your team + record, total roster value.', source: 'ML_ALL_LEAGUE_DATA[leagueId] populated on import', values: 'Big total value (red), W-L-T record, league size', notes: 'Leagues where you\'re not a roster owner are auto-skipped (nonOwnerLeagueIds set in import logic).' },
@@ -615,7 +753,18 @@ window.LegendContent = {
         items: [
           { label: 'Standings Table', what: 'All teams sorted by user-selected criterion (value / wins / max points / etc.).', source: 'Computed in mlBuildStandings; rosterValues with archetype', values: 'W-L-T, Total Value, MPX (max-point efficiency %), Average Age', notes: 'MPX = your fpts / your max possible fpts × 100. Below 75% = leaving points on the bench.' },
           { label: 'Position Rankings (your team)', what: '"Where does YOUR team rank per position?" 4 grid cells with rank + total value at each position.', source: 'rosterValues.sort by posVals[pos]; findIndex(isMe)', values: 'Rank within the league for QB/RB/WR/TE', notes: 'Shows MPX efficiency next to your record.' },
-          { label: 'Archetype Computation', what: 'Each roster gets an "archetype" tag: rebuilding / win-now / balanced / aging-contender.', source: 'mlGetArchetype(avgAge, total, leagueAvg) — heuristic based on age + value vs median', values: 'rebuilding / contender / balanced / etc.', notes: 'Median-based; rosters compared to leagueAvg snapshot.' },
+          {
+            label: 'Archetype Scoring (dynasty / contender / tweener / rebuilder / emergency)',
+            what: 'Every roster gets ONE of five archetype tags. Drives the colored chip next to team names, the sort order in the standings table, and which rosters the trade-suggestion engine targets when looking for a fair counterparty.',
+            source: 'mlGetArchetype(avgAge, totalValue, pickValue, projValue, leagueAvg) — called per-roster during mlComputeLeagueValueData. leagueAvg medians are computed via the median() helper across all rosters in the same league.',
+            values: 'dynasty (high value + young) / contender (high value, any age) / tweener (mid value, mid age) / rebuilder (low value, OR mid value + young) / emergency (low value + old, OR mid value + old)',
+            inputs: 'avgAge: median age of skill-position players on the roster. totalValue: sum of FP_VALUES[name].value across roster (MVS-overlaid). pickValue: sum from PICK_VALUES for owned picks. projValue: sum of season projections (Sleeper /projections). leagueAvg: per-league medians { age, value, pickValue, proj }.',
+            formula: 'composite = 0.6 × (totalValue / leagueAvg.value) + 0.2 × (pickValue / leagueAvg.pickValue) + 0.2 × (projValue / leagueAvg.proj); valueHigh = composite > 1.10; valueLow = composite < 0.90; ageYoung = avgAge < (leagueAvg.age − 0.6); ageOld = avgAge > (leagueAvg.age + 0.6). 9-cell mapping selects the tag in order: dynasty → contender → emergency → rebuilder → tweener fallback.',
+            output: 'Single archetype string consumed by mlArchetypeBg() / mlArchetypeFg() / mlArchetypeChip() helpers for color + label rendering.',
+            codeRef: 'my-leagues.html:2937-2958 (mlGetArchetype)',
+            example: 'Team: avgAge 24.2, totalValue 8,500, pickValue 1,200, projValue 400. League medians: age 26.5, value 7,000, pickValue 800, proj 350. composite = 0.6 × 1.214 + 0.2 × 1.5 + 0.2 × 1.143 = 1.257. valueHigh (>1.10) ✓. ageYoung (24.2 < 25.9) ✓. → "dynasty".',
+            notes: 'Returns "tweener" as fallback if leagueAvg is missing or has zero medians. Weighting (60/20/20) and thresholds (1.10, 0.90, ±0.6) are heuristics tuned for 12-team dynasty leagues — adjust in-place at my-leagues.html:2937 if real leagues consistently misclassify.'
+          },
         ],
       },
       {

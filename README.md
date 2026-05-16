@@ -10,9 +10,43 @@ This file is the **resume-where-we-left-off** doc.
 
 ---
 
-## Where we are (end of 2026-05-14 evening session)
+## Where we are (end of 2026-05-16 session)
 
-**ADP Tool now has a year picker** (`2022 / 2023 / 2024 / 2025 / 2026`) —
+**Legend system is dev-grade.** Every algorithm with non-obvious logic
+now has a `formula` / `inputs` / `output` / `example` / `codeRef` block in
+`legend-content.js`. Phase A authored 6 new entries (Archetype Scoring,
+Picks-as-Assets Relabeling, Trade Finder, Sleeper API Coupling, MVS Overlay
+Precedence, Cross-Page Handoff). A developer opening the legend on any page
+can now answer "why does this number look like that" without leaving the
+drawer. `assets/js/legend.js` renderer was upgraded to display the new
+optional fields in narrative order; `.lg-example` block in legend.css gives
+worked-example rows an orange left-border accent. ~195 items across 41
+sections, 5 pages. Cache tokens for legend.{css,js} + legend-content.js
+all bumped to `?v=1778949514` across every page + the template.
+
+**Mobile Round 2 sub-plans A-E all shipped (2026-05-15).** Drawer header
+collapse button menu (Sub-plan A), styled select for nav + "My Leagues"
+label (Sub-plan C), profile reflow + articles collapsed by default
+(Sub-plan B), search dropdown rendered above iOS keyboard (Sub-plan D),
+Sleeper deeplink drops `/team` on mobile so the iOS app lands on the right
+league (Sub-plan E).
+
+**Theme polish (2026-05-15).** Three hardcoded color drift cases fixed so
+the dark→light toggle flips cleanly on all 5 pages (commit `77822e9`).
+
+**Pick modal wiring (2026-05-15).** Clicking a draft pick in the own-roster
+picks table on My-Leagues now opens the **cross-league exposure picker**
+(treats picks as first-class assets, same as a player). Originally wired
+to Trade Builder; user redirected to exposure picker so they could answer
+"which leagues do I have a 2026 2nd in?".
+
+**Inline-style migration (2026-05-15).** Three commits (`2d4cf5b`,
+`dc592c3`, `4294cef`) — A.1/A.2/A.3 — migrated repeated inline `style="..."`
+patterns in `my-leagues.html` to CSS classes. Mid-frequency utility
+patterns and table-cell constants moved out. Phase A complete; remaining
+inline styles are dynamic or one-offs.
+
+**ADP Tool has a year picker** (`2022 / 2023 / 2024 / 2025 / 2026`) —
 historical years use the same rendering shell as the current year, with
 season-aware rookie filtering and identical visual treatment. Years
 2019-2021 were intentionally dropped because Sleeper's dynasty corpus
@@ -424,34 +458,45 @@ Nothing structural. Polish / nice-to-haves only:
 Paste this as the first message:
 
 ```
-Read README.md for current state. End-of-2026-05-14:
+Read README.md for current state. End-of-2026-05-16:
+- Legend system is dev-grade — every non-obvious algorithm has a full
+  formula/inputs/output/example/codeRef block in legend-content.js.
+  Renderer upgraded (legend.js) to render the new fields in narrative
+  order. ~195 items, 41 sections. Cache tokens for legend.{css,js} +
+  legend-content.js bumped to ?v=1778949514 across all 5 pages + template.
+- Mobile Round 2 sub-plans A-E all shipped (2026-05-15): drawer header
+  collapse menu, styled select nav, profile reflow + articles collapsed,
+  search dropdown above iOS keyboard, Sleeper deeplink drops /team on
+  mobile.
+- Theme polish: 3 hardcoded color drift cases fixed for dark↔light
+  toggle (commit 77822e9, 2026-05-15).
+- Pick modal: clicking a draft pick on own-roster picks table opens the
+  cross-league exposure picker (NOT Trade Builder).
+- my-leagues.html inline-style migration Phase A complete (commits
+  2d4cf5b, dc592c3, 4294cef). Mid-frequency repeated patterns moved to
+  CSS classes; remaining inline styles are dynamic or one-offs.
 - ADP Tool has two top-level tabs (Dynasty Startup ADP / Dynasty Rookie
   ADP). STATE.source ('startup'|'rookie') + per-tab _cache + two
   localStorage blobs (fpts-adp-{startup,rookie}-state) + URL hash
   `source=` param. setSource() flips PICK_AVAILABILITY_SOURCE so the
   shared heatmap module reads the right map.
 - sync-adp.py emits rookie_draft_{sf,1qb} via duplicate-and-retag pass
-  in build_adp, AND a separate rookie-draft pick-availability heatmap
-  (rookiePlayers map in pick-availability.json) via
-  build_rookie_draft_pick_availability. Both are filtered to incoming
-  rookies only (yearsExp==0 + real position).
-- Season is now auto-detected (year if month>=4 else year-1). All year
+  in build_adp, AND a separate rookie-draft pick-availability heatmap.
+  Both filtered to incoming rookies only (yearsExp==0 + real position).
+- Season is auto-detected (year if month>=4 else year-1). All year
   labels drive from ADP_PAYLOAD.season via window.applySeasonBadge().
   Next April rolls automatically.
 - Site-wide headshot-fallback rule lives in brand.css — emit
   class="fpts-hs-fallback" on any new headshot fallback element.
-- "Rookies" startup variant renamed to "With Rookies" to disambiguate
-  from the new top-level tab.
-- Trade-chip rule still applies: any new player-image surface uses
+- Trade-chip rule: any new player-image surface uses
   TeamHelpers.logoImg(team, { size: 22, coin: true }) right of the name.
-  The coin opt wraps the logo in a light circular backdrop so team
-  colors can't clash with the pos-pill behind them. ADP-tool excludes
-  the coin (its own box-card and list-view already provide separation).
+  ADP-tool excludes the coin (its own surfaces already provide separation).
 
 Confirm by running `git log --oneline -20`.
 
-Punch list top: 1QB scrape expansion + per-tab SF/1QB split of the
-rookie heatmap (currently mixed; SF dominates anyway).
+Punch list top: Legend Phase B (~30 partial-coverage entries) + Phase C
+(consistency pass). Also: 1QB scrape expansion + per-tab SF/1QB split of
+the rookie heatmap (currently mixed; SF dominates anyway).
 ```
 
 If `data/*.json` is stale: run `push.bat` (handles all five sync steps +

@@ -6,6 +6,71 @@ the operator manual see [`WORKFLOW.md`](WORKFLOW.md).
 
 ---
 
+## 2026-05-16 — Legend system Phase A (dev-grade algorithm docs)
+
+User reported: "last I checked none of the legends on the site populated. On
+each page write me a detailed legend concept that shows everything. I want
+a dev to look at that legend and understand exactly how and why things are
+the way they are." Two-part response: (1) verify the legend actually renders
+(it does — earlier nested-comment fix unbroke it), then (2) expand content
+to dev-grade depth for the highest-payoff algorithms.
+
+### Schema upgrade
+- **`assets/js/legend.js` `renderItem()` upgraded.** Original schema was `{label, what, source, values, notes}`. Added five optional fields rendered in narrative order: `inputs` (what feeds the algo) → `formula` (the actual math, mono-spaced) → `output` (how to read the result) → `example` (a worked example with real numbers, accent-block styled) → `codeRef` (file:line for navigation). Simple UI entries continue to work with the original five fields; algorithm entries opt into the new ones.
+- **`assets/css/legend.css` `.lg-example` class added.** Worked-example rows render with `rgba(237,129,12,.06)` background + `2px solid var(--red)` left border so they read as self-contained "try it with real numbers" demos.
+
+### Six algorithm entries authored (Phase A)
+- **Archetype Scoring** (my-leagues → Standings + Position Rankings, replacing the thin existing entry). Documents the composite formula `composite = 0.6×(totalValue/leagueAvg.value) + 0.2×(pickValue/leagueAvg.pickValue) + 0.2×(projValue/leagueAvg.proj)` with `valueHigh/Low` thresholds and `ageYoung/Old` deltas that combine into `dynasty / contender / tweener / rebuilder / emergency`. Worked example included. `codeRef: my-leagues.html:2937-2958`.
+- **Picks-as-Assets Relabeling** (adp-tool → new "Data Pipeline" section, 3 items). Documents `sync-adp.py:367-445` `relabel_picks_K_to_rdp` with formula `round=(_k_seq // st_teams)+1, pir=(_k_seq % st_teams)+1` and label format `"{round}.{pir:02d}"`. Includes 12-team draft worked example (K picks at 24/48/72/96/120 → `ROOKIE_PICK_1.01` through `1.05`). Heatmap coverage entry covers the ~77 synthetic pick entries in `data/pick-availability.json`.
+- **Trade Finder Algorithm** (index → Player Panel section, upgraded the existing thin entry). Documents `assets/js/player-panel.js:1096-1282` `_drawTradeFinder`: sort by `Math.abs(asset.value − gap)` ascending, take first 8, flag "fair" when `absDiff < 300`. Notes the single-asset-only constraint (no bundle combinatorics). Worked example with Jefferson 9,800 as anchor.
+- **Sleeper API Coupling** (my-leagues → new "Sleeper API Coupling" section, 3 items). Documents the `apiFetch()` wrapper at `my-leagues.html:2889-2892` (no retry, throws on non-2xx). Lists all 11 endpoints with file:line callsites. Documents the `.catch(() => [])` graceful-degradation pattern for non-required endpoints (`/traded_picks`, `/drafts`).
+- **MVS Overlay Precedence** (index → new "Data Pipeline" section, 3 items). Documents `data-bootstrap.js:153-207` `_applyMvsPayload`: wholesale-replaces value/baseline/trend/history/otcValue/otcDiff/rankings/recentTrades/lastUpdated; falls back to FP_VALUES for sleeperId/age/team/pos/posRank/ppg/injury. Format toggle (`localStorage.fpts-adp-format` SF↔1QB) entry explains why a single key drives every page.
+- **Cross-Page Handoff Schema** (index → upgraded 2 of 3 existing entries). `_fptsWriteHandoff` and `_fptsReadHandoff` now have full formula + worked-example coverage. The 60s TTL rationale is documented ("users sometimes click and re-open 10 minutes later"). Consume-once semantics + removal-before-validation flow spelled out.
+
+### Coverage stats
+- ~186 items → ~195 items, 38 sections → 41 sections.
+- 5 of 6 algorithm entries use the new full schema; 1 (handoff) is a partial upgrade.
+
+### Cache + wiring
+- **`?v=` tokens bumped to `1778949514`** for `assets/css/legend.css`, `assets/js/legend-content.js`, and `assets/js/legend.js` across `index.html`, `adp-tool.html`, `trade-calculator.html`, `my-leagues.html`, `tiers.html`, and `templates/page-template.html`. All 5 pages verified to call `Legend.init('<pageKey>')` correctly.
+
+### Deferred to future sessions
+- **Phase B** (~30 partial-coverage entries): age curve depth, PPR multiplier justification, pick-value computation, year-picker on adp-tool, search/filter on tiers, etc.
+- **Phase C**: polish + consistency pass; verify every `codeRef` resolves.
+
+---
+
+## 2026-05-15 — Mobile Round 2 (sub-plans A-E), theme polish, pick modal wiring
+
+Mobile screenshots from user showed five distinct issues. Each got its own sub-plan and commit.
+
+### Mobile Round 2 sub-plans
+- **Sub-plan A — Drawer header overflow** (commit `5e47cd9`). Drawer header was clipping its action buttons (Calc/ADP/Leagues) on phone widths. Collapsed them behind a `⋯` overflow menu that flyouts the three buttons. Desktop unchanged.
+- **Sub-plan B — Profile reflow + articles collapsed default** (commit `c881d29`). Player profile section reflowed for narrow widths (avatar above stats row instead of beside it). Articles section now starts collapsed on mobile to keep the drawer scrollable to the lower tabs.
+- **Sub-plan C — Nav polish + "My Leagues" label** (commit `b905be7`). Mobile nav uses a styled `<select>` for cross-page navigation (single dropdown beats a row of cramped tabs). "User Importer" renamed to "My Leagues" everywhere — the page slug stayed `my-leagues` but the user-facing nav label is friendlier.
+- **Sub-plan D — Search dropdowns above input** (commit `e587844`). On iOS the keyboard popping up was covering the autocomplete dropdown rendered below the input. Mobile-only: dropdown renders above the input (max-height + reversed flex), so suggestions stay visible while typing.
+- **Sub-plan E — Sleeper deeplink** (commit `9e80d25`). Sleeper iOS app handles `sleeper://league/{id}` natively but treats `sleeper://league/{id}/team` as an invalid path and lands users on the wrong league. Mobile-only: the deeplink builder drops the `/team` suffix. Desktop (web Sleeper) keeps the full URL.
+
+### Mobile polish (pre-Round 2, same session)
+- **Drawer header overflow guard** (commit `4294cef`). Header row gets `overflow: hidden` + `text-overflow: ellipsis` so long player names don't push the close button off-screen. Tab fade-hint added — gradient on the right edge of the tab row signals there's more content to scroll. Legend button gets a 72px bottom-padding spacer so it doesn't sit on top of the last row of trade-balance text or tier-table content.
+
+### Theme polish (commit `77822e9`)
+- **Three hardcoded color drift cases fixed.** A long click-through of the dark↔light toggle revealed three spots where colors were hardcoded rather than using CSS variables, so they didn't flip with the theme. All three migrated to `var(--white)` / `var(--black)` / `var(--border)` so the toggle works cleanly across all 5 pages.
+
+### Pick modal wiring (commit `0826dbf`, supersedes earlier `4b4820c`)
+- **Cross-league exposure picker now opens on pick row click.** My-Leagues' own-roster picks table had no `onclick` handler at all — pick rows were dead. First wired to Trade Builder (commit `4b4820c`); user redirected: they wanted the same UX as a player ("treat the pick as a first-class asset — what leagues do I have a 2026 2nd in?"). Switched to `openPickExposurePicker(season, round)` (commit `0826dbf`).
+
+### Inline-style migration (Phase A of the `my-leagues.html` cleanup)
+- **A.1** (commit `2d4cf5b`): table-cell style constants migrated to CSS classes. The repeated `style="text-align:right; font-variant-numeric:tabular-nums"` pattern on numeric columns became `.ml-tar.num`.
+- **A.2** (commit `dc592c3`): 7 mid-frequency repeated utility patterns migrated. A `replace_all` bug introduced 11 duplicate `class=` attributes (e.g. `class="num" class="ml-tar"`) — fixed in the same session via regex merge.
+- **A.3** (commit `61ad387`): 7 more mid-frequency repeated patterns. Phase A complete for the high-value targets; remaining ~150 inline styles are dynamic (color/width/opacity computed at runtime) or genuine one-offs.
+
+### Other polish (same window)
+- **Typography normalization** (commit `ddf3acd`). Eyebrow letter-spacing normalized to `.06em` everywhere (had drifted to `.04em` / `.05em` / `.07em` in three places). Single value across the site now.
+- **Availability section collapsed by default** (commit `97bd9c3`). User feedback: when the drawer opens, the "Availability in leagues" section was expanded and pushed the more-important profile info below the fold. Now starts collapsed; click to expand.
+
+---
+
 ## 2026-05-14 (evening) — ADP year picker + team-logo coin + many polishes
 
 ### ADP year picker (2022-2026)
