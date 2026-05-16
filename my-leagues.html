@@ -3181,6 +3181,25 @@ if (document.readyState !== 'loading') mlApplyExposureCollapsed();
 
 // Look up a pick's trade value when the draft slot is unknown.
 // Strategy:
+// Build a Sleeper league URL that lands the user in the most useful place
+// regardless of platform. On desktop, sleeper.com/leagues/{id}/team works —
+// drops the user straight onto their team roster (one click to start a
+// trade). On iOS the Sleeper app's universal-link handler ignores subpaths
+// like /team and drops the user on the app's leagues list instead. Linking
+// to the bare league URL on mobile at least lands on the specific league's
+// home tab (one extra tap to Team, but one fewer than the current behavior
+// which lands on the leagues list).
+function _mlBuildSleeperLeagueUrl(leagueId) {
+  if (!leagueId) return '#';
+  let isMobile = false;
+  try {
+    isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent || '');
+  } catch (e) {}
+  return isMobile
+    ? `https://sleeper.com/leagues/${leagueId}`
+    : `https://sleeper.com/leagues/${leagueId}/team`;
+}
+
 //   1) Median of specific slots if present (e.g. "2026-1.01"..."2026-1.12").
 //   2) Otherwise fall back to the generic round key ("2027-1") that the
 //      MVS feed provides for years where no specific slots have been priced yet.
@@ -3454,7 +3473,7 @@ function renderPlayerAvailability(sleeperId) {
     } else if (r.status === 'free') {
       // Sleeper claim — no trade flow possible since no one owns the player
       statusBlock = `<span style="font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:11px;color:#5b9bd5;text-transform:uppercase;letter-spacing:.05em">✓ Available — FA</span>`;
-      actionBlock = `<a href="https://sleeper.com/leagues/${r.leagueId}/team" target="_blank" rel="noopener"
+      actionBlock = `<a href="${_mlBuildSleeperLeagueUrl(r.leagueId)}" target="_blank" rel="noopener"
         style="font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:10px;color:var(--red);text-decoration:none;text-transform:uppercase;letter-spacing:.06em;flex-shrink:0;padding:4px 10px;border:1px solid var(--border2);border-radius:3px"
         onmouseover="this.style.borderColor='var(--red)'" onmouseout="this.style.borderColor='var(--border2)'"
         title="Opens this league on Sleeper — search for the player and submit your waiver claim there">Claim On Sleeper ↗</a>`;
@@ -3993,7 +4012,7 @@ function mltbRender() {
       <div style="padding:20px">
         <div style="font-family:'Mulish',sans-serif;font-size:13px;color:var(--white);margin-bottom:8px">This player is currently a free agent in this league.</div>
         <div style="font-family:'Mulish',sans-serif;font-size:12px;color:var(--muted);margin-bottom:16px">No trade is needed — claim them via waivers or free agency on Sleeper.</div>
-        <a href="https://sleeper.com/leagues/${leagueId}/team" target="_blank" rel="noopener"
+        <a href="${_mlBuildSleeperLeagueUrl(leagueId)}" target="_blank" rel="noopener"
           style="display:inline-block;font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:11px;color:var(--white);background:var(--red);text-decoration:none;text-transform:uppercase;letter-spacing:.06em;padding:10px 18px;border-radius:3px">Go To Your Team On Sleeper ↗</a>
       </div>
     `;
@@ -4320,7 +4339,7 @@ function _mlWriteAccordionOpenSet(set) {
 function _mlBuildStatusBlock(sid) {
   const status = mlGetPlayerStatus(sid);
   const lg = window.ML_LEAGUE;
-  const sleeperLeagueUrl = lg ? `https://sleeper.com/leagues/${lg.league_id}/team` : '#';
+  const sleeperLeagueUrl = lg ? _mlBuildSleeperLeagueUrl(lg.league_id) : '#';
   if (status.state === 'mine') {
     return `<div class="ml-pd-status mine">
       <span class="ml-pd-status-label">★ On Your Roster</span>
@@ -4571,7 +4590,7 @@ function renderCalcModal() {
   // /trade is broken on Sleeper, so we link to /team which works.
   const sleeperCta = MLCALC.leagueId
     ? `<div class="ml-calc-sleeper-cta" style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:8px;align-items:center">
-         <a href="https://sleeper.com/leagues/${MLCALC.leagueId}/team" target="_blank" rel="noopener"
+         <a href="${_mlBuildSleeperLeagueUrl(MLCALC.leagueId)}" target="_blank" rel="noopener"
            style="display:inline-block;font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:12px;color:var(--white);background:var(--red);text-decoration:none;text-transform:uppercase;letter-spacing:.06em;padding:10px 20px;border-radius:3px"
            onmouseover="this.style.opacity=.85" onmouseout="this.style.opacity=1">Open My Team On Sleeper ↗</a>
          <div style="font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);font-style:italic;text-align:center;line-height:1.5;max-width:520px">
