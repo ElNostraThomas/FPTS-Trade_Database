@@ -1,0 +1,15 @@
+{
+  "_comment": "Config for sync-analysts.py. Copy to sync-analysts.config.json and edit. Live file is gitignored.",
+  "season": 2026,
+  "sources_dir": "data/source/analysts",
+  "output_dir": "data/analyst-rankings",
+  "analysts": [
+    { "key": "<short-key>", "label": "<Display Name>", "local_csv": "<filename>.csv" }
+  ],
+  "_notes": [
+    "Each analyst CSV must contain all 4 positions stacked, separated by banner rows.",
+    "Banner row pattern: column 1 = '{POS} Ranks' where POS is one of QB / RB / WR / TE.",
+    "The row immediately after the banner must be the column header (ID, SDIO, Name, Team, Rank, Comments).",
+    "Adding a new analyst = drop their CSV in data/source/analysts/ + add an entry above + re-run sync-analysts.py."
+  ]
+}

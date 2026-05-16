@@ -1,0 +1,52 @@
+{
+  "version": "2026-05-16T23:41Z",
+  "season": 2026,
+  "analysts": [
+    {
+      "key": "ryan",
+      "label": "Ryan"
+    },
+    {
+      "key": "theo",
+      "label": "Theo"
+    },
+    {
+      "key": "john",
+      "label": "John"
+    },
+    {
+      "key": "andy",
+      "label": "Andy"
+    },
+    {
+      "key": "thomas",
+      "label": "Thomas"
+    }
+  ],
+  "positions": [
+    {
+      "key": "QB",
+      "label": "QB",
+      "file": "qb.json",
+      "count": 55
+    },
+    {
+      "key": "RB",
+      "label": "RB",
+      "file": "rb.json",
+      "count": 95
+    },
+    {
+      "key": "WR",
+      "label": "WR",
+      "file": "wr.json",
+      "count": 126
+    },
+    {
+      "key": "TE",
+      "label": "TE",
+      "file": "te.json",
+      "count": 55
+    }
+  ]
+}

@@ -1,0 +1,1264 @@
+{
+  "version": "2026-05-16T23:41Z",
+  "season": 2026,
+  "position": "RB",
+  "analysts": [
+    {
+      "key": "ryan",
+      "label": "Ryan"
+    },
+    {
+      "key": "theo",
+      "label": "Theo"
+    },
+    {
+      "key": "john",
+      "label": "John"
+    },
+    {
+      "key": "andy",
+      "label": "Andy"
+    },
+    {
+      "key": "thomas",
+      "label": "Thomas"
+    }
+  ],
+  "players": [
+    {
+      "name": "Bijan Robinson",
+      "team": "ATL",
+      "sdioId": "23189",
+      "ranks": {
+        "ryan": 2,
+        "theo": 2,
+        "john": 1,
+        "andy": 1,
+        "thomas": 1
+      },
+      "consensus": 1.4
+    },
+    {
+      "name": "Jahmyr Gibbs",
+      "team": "DET",
+      "sdioId": "23200",
+      "ranks": {
+        "ryan": 1,
+        "theo": 1,
+        "john": 2,
+        "andy": 2,
+        "thomas": 2
+      },
+      "consensus": 1.6
+    },
+    {
+      "name": "Ashton Jeanty",
+      "team": "LV",
+      "sdioId": "25868",
+      "ranks": {
+        "ryan": 3,
+        "theo": 3,
+        "john": 4,
+        "andy": 3,
+        "thomas": 3
+      },
+      "consensus": 3.2
+    },
+    {
+      "name": "Jeremiyah Love",
+      "team": "ARI",
+      "sdioId": "26768",
+      "ranks": {
+        "ryan": 4,
+        "theo": 4,
+        "john": 3,
+        "andy": 4,
+        "thomas": 4
+      },
+      "consensus": 3.8
+    },
+    {
+      "name": "Omarion Hampton",
+      "team": "LAC",
+      "sdioId": "25956",
+      "ranks": {
+        "ryan": 5,
+        "theo": 7,
+        "john": 6,
+        "andy": 5,
+        "thomas": 5
+      },
+      "consensus": 5.6
+    },
+    {
+      "name": "Jonathan Taylor",
+      "team": "IND",
+      "sdioId": "21682",
+      "ranks": {
+        "ryan": 6,
+        "theo": 6,
+        "john": 7,
+        "andy": 6,
+        "thomas": 6
+      },
+      "consensus": 6.2
+    },
+    {
+      "name": "De'Von Achane",
+      "team": "MIA",
+      "sdioId": "24179",
+      "ranks": {
+        "ryan": 8,
+        "theo": 5,
+        "john": 5,
+        "andy": 8,
+        "thomas": 8
+      },
+      "consensus": 6.8
+    },
+    {
+      "name": "James Cook III",
+      "team": "BUF",
+      "sdioId": "23247",
+      "ranks": {
+        "ryan": 7,
+        "theo": 8,
+        "john": 8,
+        "andy": 7,
+        "thomas": 7
+      },
+      "consensus": 7.4
+    },
+    {
+      "name": "Kenneth Walker III",
+      "team": "KC",
+      "sdioId": "23214",
+      "ranks": {
+        "ryan": 9,
+        "theo": 10,
+        "john": 11,
+        "andy": 9,
+        "thomas": 9
+      },
+      "consensus": 9.6
+    },
+    {
+      "name": "Chase Brown",
+      "team": "CIN",
+      "sdioId": "24374",
+      "ranks": {
+        "ryan": 10,
+        "theo": 11,
+        "john": 10,
+        "andy": 10,
+        "thomas": 10
+      },
+      "consensus": 10.2
+    },
+    {
+      "name": "TreVeyon Henderson",
+      "team": "NE",
+      "sdioId": "23245",
+      "ranks": {
+        "ryan": 14,
+        "theo": 9,
+        "john": 13,
+        "andy": 12,
+        "thomas": 12
+      },
+      "consensus": 12.0
+    },
+    {
+      "name": "Quinshon Judkins",
+      "team": "CLE",
+      "sdioId": "25946",
+      "ranks": {
+        "ryan": 11,
+        "theo": 13,
+        "john": 15,
+        "andy": 11,
+        "thomas": 11
+      },
+      "consensus": 12.2
+    },
+    {
+      "name": "Christian McCaffrey",
+      "team": "SF",
+      "sdioId": "18877",
+      "ranks": {
+        "ryan": 12,
+        "theo": 12,
+        "john": 14,
+        "andy": 13,
+        "thomas": 13
+      },
+      "consensus": 12.8
+    },
+    {
+      "name": "Breece Hall",
+      "team": "NYJ",
+      "sdioId": "22526",
+      "ranks": {
+        "ryan": 13,
+        "theo": 16,
+        "john": 9,
+        "andy": 16,
+        "thomas": 16
+      },
+      "consensus": 14.0
+    },
+    {
+      "name": "Saquon Barkley",
+      "team": "PHI",
+      "sdioId": "19766",
+      "ranks": {
+        "ryan": 15,
+        "theo": 17,
+        "john": 12,
+        "andy": 14,
+        "thomas": 14
+      },
+      "consensus": 14.4
+    },
+    {
+      "name": "Bucky Irving",
+      "team": "TB",
+      "sdioId": "24967",
+      "ranks": {
+        "ryan": 17,
+        "theo": 14,
+        "john": 16,
+        "andy": 15,
+        "thomas": 15
+      },
+      "consensus": 15.4
+    },
+    {
+      "name": "Cam Skattebo",
+      "team": "NYG",
+      "sdioId": "25887",
+      "ranks": {
+        "ryan": 16,
+        "theo": 15,
+        "john": 19,
+        "andy": 22,
+        "thomas": 22
+      },
+      "consensus": 18.8
+    },
+    {
+      "name": "Josh Jacobs",
+      "team": "GB",
+      "sdioId": "20824",
+      "ranks": {
+        "ryan": 18,
+        "theo": 21,
+        "john": 21,
+        "andy": 19,
+        "thomas": 19
+      },
+      "consensus": 19.6
+    },
+    {
+      "name": "Derrick Henry",
+      "team": "BAL",
+      "sdioId": "17959",
+      "ranks": {
+        "ryan": 19,
+        "theo": 22,
+        "john": 24,
+        "andy": 17,
+        "thomas": 17
+      },
+      "consensus": 19.8
+    },
+    {
+      "name": "Javonte Williams",
+      "team": "DAL",
+      "sdioId": "22558",
+      "ranks": {
+        "ryan": 22,
+        "theo": 23,
+        "john": 18,
+        "andy": 18,
+        "thomas": 18
+      },
+      "consensus": 19.8
+    },
+    {
+      "name": "Travis Etienne Jr.",
+      "team": "NO",
+      "sdioId": "21696",
+      "ranks": {
+        "ryan": 21,
+        "theo": 19,
+        "john": 22,
+        "andy": 20,
+        "thomas": 20
+      },
+      "consensus": 20.4
+    },
+    {
+      "name": "Jadarian Price",
+      "team": "SEA",
+      "sdioId": "26765",
+      "ranks": {
+        "ryan": 24,
+        "theo": 18,
+        "john": 20,
+        "andy": 21,
+        "thomas": 21
+      },
+      "consensus": 20.8
+    },
+    {
+      "name": "Kyren Williams",
+      "team": "LAR",
+      "sdioId": "23212",
+      "ranks": {
+        "ryan": 23,
+        "theo": 20,
+        "john": 17,
+        "andy": 23,
+        "thomas": 23
+      },
+      "consensus": 21.2
+    },
+    {
+      "name": "Bhayshul Tuten",
+      "team": "JAX",
+      "sdioId": "25898",
+      "ranks": {
+        "ryan": 20,
+        "theo": 24,
+        "john": 23,
+        "andy": 25,
+        "thomas": 25
+      },
+      "consensus": 23.4
+    },
+    {
+      "name": "D'Andre Swift",
+      "team": "CHI",
+      "sdioId": "21684",
+      "ranks": {
+        "ryan": 25,
+        "theo": 25,
+        "john": 25,
+        "andy": 26,
+        "thomas": 26
+      },
+      "consensus": 25.4
+    },
+    {
+      "name": "Rhamondre Stevenson",
+      "team": "NE",
+      "sdioId": "22546",
+      "ranks": {
+        "ryan": 26,
+        "theo": 30,
+        "john": 27,
+        "andy": 27,
+        "thomas": 27
+      },
+      "consensus": 27.4
+    },
+    {
+      "name": "RJ Harvey",
+      "team": "DEN",
+      "sdioId": "25944",
+      "ranks": {
+        "ryan": 32,
+        "theo": 27,
+        "john": 31,
+        "andy": 24,
+        "thomas": 24
+      },
+      "consensus": 27.6
+    },
+    {
+      "name": "Jonah Coleman",
+      "team": "DEN",
+      "sdioId": "25886",
+      "ranks": {
+        "ryan": 28,
+        "theo": 35,
+        "john": 28,
+        "andy": 28,
+        "thomas": 28
+      },
+      "consensus": 29.4
+    },
+    {
+      "name": "David Montgomery",
+      "team": "HOU",
+      "sdioId": "20882",
+      "ranks": {
+        "ryan": 27,
+        "theo": 28,
+        "john": 34,
+        "andy": 29,
+        "thomas": 29
+      },
+      "consensus": 29.4
+    },
+    {
+      "name": "Zach Charbonnet",
+      "team": "SEA",
+      "sdioId": "23173",
+      "ranks": {
+        "ryan": 33,
+        "theo": 26,
+        "john": 26,
+        "andy": 32,
+        "thomas": 32
+      },
+      "consensus": 29.8
+    },
+    {
+      "name": "Chuba Hubbard",
+      "team": "CAR",
+      "sdioId": "21691",
+      "ranks": {
+        "ryan": 29,
+        "theo": 31,
+        "john": 30,
+        "andy": 31,
+        "thomas": 31
+      },
+      "consensus": 30.4
+    },
+    {
+      "name": "Jaylen Warren",
+      "team": "PIT",
+      "sdioId": "23479",
+      "ranks": {
+        "ryan": 30,
+        "theo": 32,
+        "john": 36,
+        "andy": 33,
+        "thomas": 33
+      },
+      "consensus": 32.8
+    },
+    {
+      "name": "Rico Dowdle",
+      "team": "PIT",
+      "sdioId": "21952",
+      "ranks": {
+        "ryan": 36,
+        "theo": 33,
+        "john": 29,
+        "andy": 36,
+        "thomas": 36
+      },
+      "consensus": 34.0
+    },
+    {
+      "name": "Nicholas Singleton",
+      "team": "TEN",
+      "sdioId": "27045",
+      "ranks": {
+        "ryan": 34,
+        "theo": 40,
+        "john": 38,
+        "andy": 30,
+        "thomas": 30
+      },
+      "consensus": 34.4
+    },
+    {
+      "name": "Tony Pollard",
+      "team": "TEN",
+      "sdioId": "20912",
+      "ranks": {
+        "ryan": 31,
+        "theo": 37,
+        "john": 33,
+        "andy": 37,
+        "thomas": 37
+      },
+      "consensus": 35.0
+    },
+    {
+      "name": "Blake Corum",
+      "team": "LAR",
+      "sdioId": "24116",
+      "ranks": {
+        "ryan": 38,
+        "theo": 34,
+        "john": 32,
+        "andy": 38,
+        "thomas": 38
+      },
+      "consensus": 36.0
+    },
+    {
+      "name": "Kyle Monangai",
+      "team": "CHI",
+      "sdioId": "25952",
+      "ranks": {
+        "ryan": 37,
+        "theo": 29,
+        "john": 40,
+        "andy": 42,
+        "thomas": 42
+      },
+      "consensus": 38.0
+    },
+    {
+      "name": "Emmett Johnson",
+      "team": "KC",
+      "sdioId": "26835",
+      "ranks": {
+        "ryan": 39,
+        "theo": 46,
+        "john": 43,
+        "andy": 35,
+        "thomas": 35
+      },
+      "consensus": 39.6
+    },
+    {
+      "name": "Dylan Sampson",
+      "team": "CLE",
+      "sdioId": "25889",
+      "ranks": {
+        "ryan": 43,
+        "theo": 44,
+        "john": 41,
+        "andy": 39,
+        "thomas": 39
+      },
+      "consensus": 41.2
+    },
+    {
+      "name": "Kaytron Allen",
+      "team": "WAS",
+      "sdioId": "25939",
+      "ranks": {
+        "ryan": 40,
+        "theo": 50,
+        "john": 39,
+        "andy": 41,
+        "thomas": 41
+      },
+      "consensus": 42.2
+    },
+    {
+      "name": "J.K. Dobbins",
+      "team": "DEN",
+      "sdioId": "21674",
+      "ranks": {
+        "ryan": 41,
+        "theo": 36,
+        "john": 44,
+        "andy": 45,
+        "thomas": 45
+      },
+      "consensus": 42.2
+    },
+    {
+      "name": "Mike Washington Jr.",
+      "team": "LV",
+      "sdioId": "26932",
+      "ranks": {
+        "ryan": 52,
+        "theo": 49,
+        "john": 46,
+        "andy": 34,
+        "thomas": 34
+      },
+      "consensus": 43.0
+    },
+    {
+      "name": "Rachaad White",
+      "team": "WAS",
+      "sdioId": "23217",
+      "ranks": {
+        "ryan": 35,
+        "theo": 47,
+        "john": 49,
+        "andy": 43,
+        "thomas": 43
+      },
+      "consensus": 43.4
+    },
+    {
+      "name": "Tyrone Tracy Jr.",
+      "team": "NYG",
+      "sdioId": "25092",
+      "ranks": {
+        "ryan": 45,
+        "theo": 39,
+        "john": 35,
+        "andy": 52,
+        "thomas": 52
+      },
+      "consensus": 44.6
+    },
+    {
+      "name": "Tyler Allgeier",
+      "team": "ARI",
+      "sdioId": "23250",
+      "ranks": {
+        "ryan": 46,
+        "theo": 38,
+        "john": 48,
+        "andy": 46,
+        "thomas": 46
+      },
+      "consensus": 44.8
+    },
+    {
+      "name": "Jacory Croskey-Merritt",
+      "team": "WAS",
+      "sdioId": "26259",
+      "ranks": {
+        "ryan": 42,
+        "theo": 43,
+        "john": 52,
+        "andy": 44,
+        "thomas": 44
+      },
+      "consensus": 45.0
+    },
+    {
+      "name": "Jonathon Brooks",
+      "team": "CAR",
+      "sdioId": "24944",
+      "ranks": {
+        "ryan": 50,
+        "theo": 42,
+        "john": 42,
+        "andy": 49,
+        "thomas": 49
+      },
+      "consensus": 46.4
+    },
+    {
+      "name": "Jordan Mason",
+      "team": "MIN",
+      "sdioId": "23364",
+      "ranks": {
+        "ryan": 48,
+        "theo": 41,
+        "john": 54,
+        "andy": 47,
+        "thomas": 47
+      },
+      "consensus": 47.4
+    },
+    {
+      "name": "Kenneth Gainwell",
+      "team": "TB",
+      "sdioId": "22562",
+      "ranks": {
+        "ryan": 49,
+        "theo": 48,
+        "john": 50,
+        "andy": 48,
+        "thomas": 48
+      },
+      "consensus": 48.6
+    },
+    {
+      "name": "Aaron Jones Sr.",
+      "team": "MIN",
+      "sdioId": "19045",
+      "ranks": {
+        "ryan": 51,
+        "theo": 55,
+        "john": 51,
+        "andy": 51,
+        "thomas": 51
+      },
+      "consensus": 51.8
+    },
+    {
+      "name": "Kaelon Black",
+      "team": "SF",
+      "sdioId": "26981",
+      "ranks": {
+        "ryan": 47,
+        "theo": 60,
+        "john": 37,
+        "andy": 60,
+        "thomas": 60
+      },
+      "consensus": 52.8
+    },
+    {
+      "name": "Demond Claiborne",
+      "team": "MIN",
+      "sdioId": "26764",
+      "ranks": {
+        "ryan": 60,
+        "theo": 57,
+        "john": 45,
+        "andy": 53,
+        "thomas": 54
+      },
+      "consensus": 53.8
+    },
+    {
+      "name": "Keaton Mitchell",
+      "team": "LAC",
+      "sdioId": "24214",
+      "ranks": {
+        "ryan": 53,
+        "theo": null,
+        "john": 62,
+        "andy": 56,
+        "thomas": 53
+      },
+      "consensus": 56.0
+    },
+    {
+      "name": "Woody Marks",
+      "team": "HOU",
+      "sdioId": "25942",
+      "ranks": {
+        "ryan": 54,
+        "theo": 53,
+        "john": 55,
+        "andy": 59,
+        "thomas": 59
+      },
+      "consensus": 56.0
+    },
+    {
+      "name": "Eli Heidenreich",
+      "team": "PIT",
+      "sdioId": "26961",
+      "ranks": {
+        "ryan": 62,
+        "theo": null,
+        "john": 95,
+        "andy": 40,
+        "thomas": 40
+      },
+      "consensus": 59.2
+    },
+    {
+      "name": "Chris Rodriguez Jr.",
+      "team": "JAX",
+      "sdioId": "23237",
+      "ranks": {
+        "ryan": 44,
+        "theo": 45,
+        "john": 53,
+        "andy": 80,
+        "thomas": 80
+      },
+      "consensus": 60.4
+    },
+    {
+      "name": "Trey Benson",
+      "team": "ARI",
+      "sdioId": "24292",
+      "ranks": {
+        "ryan": 77,
+        "theo": 65,
+        "john": 47,
+        "andy": 57,
+        "thomas": 57
+      },
+      "consensus": 60.6
+    },
+    {
+      "name": "Braelon Allen",
+      "team": "NYJ",
+      "sdioId": "24934",
+      "ranks": {
+        "ryan": 66,
+        "theo": 51,
+        "john": 60,
+        "andy": 63,
+        "thomas": 63
+      },
+      "consensus": 60.6
+    },
+    {
+      "name": "Kimani Vidal",
+      "team": "LAC",
+      "sdioId": "25079",
+      "ranks": {
+        "ryan": 64,
+        "theo": 54,
+        "john": 56,
+        "andy": 65,
+        "thomas": 65
+      },
+      "consensus": 60.8
+    },
+    {
+      "name": "Tyjae Spears",
+      "team": "TEN",
+      "sdioId": "24123",
+      "ranks": {
+        "ryan": 67,
+        "theo": 52,
+        "john": 59,
+        "andy": 64,
+        "thomas": 64
+      },
+      "consensus": 61.2
+    },
+    {
+      "name": "Brian Robinson Jr.",
+      "team": "ATL",
+      "sdioId": "23190",
+      "ranks": {
+        "ryan": 57,
+        "theo": 56,
+        "john": 72,
+        "andy": 62,
+        "thomas": 62
+      },
+      "consensus": 61.8
+    },
+    {
+      "name": "J'Mari Taylor",
+      "team": "JAX",
+      "sdioId": "26736",
+      "ranks": {
+        "ryan": 63,
+        "theo": 79,
+        "john": 77,
+        "andy": 50,
+        "thomas": 50
+      },
+      "consensus": 63.8
+    },
+    {
+      "name": "Seth McGowan",
+      "team": "IND",
+      "sdioId": "26942",
+      "ranks": {
+        "ryan": 70,
+        "theo": 80,
+        "john": 64,
+        "andy": 54,
+        "thomas": 55
+      },
+      "consensus": 64.6
+    },
+    {
+      "name": "James Conner",
+      "team": "ARI",
+      "sdioId": "18983",
+      "ranks": {
+        "ryan": 74,
+        "theo": 62,
+        "john": 57,
+        "andy": 68,
+        "thomas": 68
+      },
+      "consensus": 65.8
+    },
+    {
+      "name": "Ollie Gordon II",
+      "team": "MIA",
+      "sdioId": "25953",
+      "ranks": {
+        "ryan": 58,
+        "theo": 61,
+        "john": 67,
+        "andy": 72,
+        "thomas": 72
+      },
+      "consensus": 66.0
+    },
+    {
+      "name": "Tank Bigsby",
+      "team": "PHI",
+      "sdioId": "23193",
+      "ranks": {
+        "ryan": 56,
+        "theo": 58,
+        "john": 66,
+        "andy": 76,
+        "thomas": 76
+      },
+      "consensus": 66.4
+    },
+    {
+      "name": "Sean Tucker",
+      "team": "TB",
+      "sdioId": "24194",
+      "ranks": {
+        "ryan": 69,
+        "theo": 71,
+        "john": 61,
+        "andy": 67,
+        "thomas": 67
+      },
+      "consensus": 67.0
+    },
+    {
+      "name": "Isiah Pacheco",
+      "team": "DET",
+      "sdioId": "23371",
+      "ranks": {
+        "ryan": 55,
+        "theo": 59,
+        "john": 74,
+        "andy": 75,
+        "thomas": 75
+      },
+      "consensus": 67.6
+    },
+    {
+      "name": "Ray Davis",
+      "team": "BUF",
+      "sdioId": "24980",
+      "ranks": {
+        "ryan": 68,
+        "theo": 70,
+        "john": 69,
+        "andy": 66,
+        "thomas": 66
+      },
+      "consensus": 67.8
+    },
+    {
+      "name": "Kaleb Johnson",
+      "team": "PIT",
+      "sdioId": "26040",
+      "ranks": {
+        "ryan": 65,
+        "theo": 68,
+        "john": 86,
+        "andy": 61,
+        "thomas": 61
+      },
+      "consensus": 68.2
+    },
+    {
+      "name": "Isaiah Davis",
+      "team": "NYJ",
+      "sdioId": "25064",
+      "ranks": {
+        "ryan": 71,
+        "theo": 67,
+        "john": 65,
+        "andy": 69,
+        "thomas": 69
+      },
+      "consensus": 68.2
+    },
+    {
+      "name": "Alvin Kamara",
+      "team": "NO",
+      "sdioId": "18878",
+      "ranks": {
+        "ryan": 76,
+        "theo": 63,
+        "john": 58,
+        "andy": 73,
+        "thomas": 73
+      },
+      "consensus": 68.6
+    },
+    {
+      "name": "Devin Neal",
+      "team": "NO",
+      "sdioId": "25888",
+      "ranks": {
+        "ryan": 75,
+        "theo": 69,
+        "john": 63,
+        "andy": 71,
+        "thomas": 71
+      },
+      "consensus": 69.8
+    },
+    {
+      "name": "Jaylen Wright",
+      "team": "MIA",
+      "sdioId": "24923",
+      "ranks": {
+        "ryan": 81,
+        "theo": 82,
+        "john": 78,
+        "andy": 55,
+        "thomas": 56
+      },
+      "consensus": 70.4
+    },
+    {
+      "name": "Jordan James",
+      "team": "SF",
+      "sdioId": "25903",
+      "ranks": {
+        "ryan": 59,
+        "theo": 64,
+        "john": 76,
+        "andy": 78,
+        "thomas": 78
+      },
+      "consensus": 71.0
+    },
+    {
+      "name": "Desmond Reid",
+      "team": "BUF",
+      "sdioId": "26836",
+      "ranks": {
+        "ryan": 80,
+        "theo": 91,
+        "john": 90,
+        "andy": 58,
+        "thomas": 58
+      },
+      "consensus": 75.4
+    },
+    {
+      "name": "Adam Randall",
+      "team": "BAL",
+      "sdioId": "26737",
+      "ranks": {
+        "ryan": 61,
+        "theo": 66,
+        "john": 80,
+        "andy": 85,
+        "thomas": 85
+      },
+      "consensus": 75.4
+    },
+    {
+      "name": "LeQuint Allen Jr.",
+      "team": "JAX",
+      "sdioId": "25986",
+      "ranks": {
+        "ryan": 79,
+        "theo": 78,
+        "john": 68,
+        "andy": 79,
+        "thomas": 79
+      },
+      "consensus": 76.6
+    },
+    {
+      "name": "Jarquez Hunter",
+      "team": "LAR",
+      "sdioId": "24990",
+      "ranks": {
+        "ryan": 78,
+        "theo": 72,
+        "john": 82,
+        "andy": 77,
+        "thomas": 77
+      },
+      "consensus": 77.2
+    },
+    {
+      "name": "Jaydn Ott",
+      "team": "KC",
+      "sdioId": "25891",
+      "ranks": {
+        "ryan": 73,
+        "theo": 86,
+        "john": 91,
+        "andy": 70,
+        "thomas": 70
+      },
+      "consensus": 78.0
+    },
+    {
+      "name": "Terion Stewart",
+      "team": "",
+      "sdioId": "26829",
+      "ranks": {
+        "ryan": 72,
+        "theo": 88,
+        "john": 84,
+        "andy": 74,
+        "thomas": 74
+      },
+      "consensus": 78.4
+    },
+    {
+      "name": "Brashard Smith",
+      "team": "KC",
+      "sdioId": "25899",
+      "ranks": {
+        "ryan": 85,
+        "theo": 77,
+        "john": 71,
+        "andy": 84,
+        "thomas": 84
+      },
+      "consensus": 80.2
+    },
+    {
+      "name": "DJ Giddens",
+      "team": "IND",
+      "sdioId": "25900",
+      "ranks": {
+        "ryan": 82,
+        "theo": 75,
+        "john": 88,
+        "andy": 81,
+        "thomas": 81
+      },
+      "consensus": 81.4
+    },
+    {
+      "name": "Kendre Miller",
+      "team": "NO",
+      "sdioId": "24238",
+      "ranks": {
+        "ryan": 83,
+        "theo": 81,
+        "john": 79,
+        "andy": 82,
+        "thomas": 82
+      },
+      "consensus": 81.4
+    },
+    {
+      "name": "Will Shipley",
+      "team": "PHI",
+      "sdioId": "25102",
+      "ranks": {
+        "ryan": 84,
+        "theo": 76,
+        "john": 85,
+        "andy": 83,
+        "thomas": 83
+      },
+      "consensus": 82.2
+    },
+    {
+      "name": "Najee Harris",
+      "team": "",
+      "sdioId": "21768",
+      "ranks": {
+        "ryan": 87,
+        "theo": 74,
+        "john": 81,
+        "andy": 88,
+        "thomas": 88
+      },
+      "consensus": 83.6
+    },
+    {
+      "name": "Jaydon Blue",
+      "team": "DAL",
+      "sdioId": "26038",
+      "ranks": {
+        "ryan": 93,
+        "theo": 73,
+        "john": 75,
+        "andy": 93,
+        "thomas": 93
+      },
+      "consensus": 85.4
+    },
+    {
+      "name": "Robert Henry Jr.",
+      "team": "WAS",
+      "sdioId": "26770",
+      "ranks": {
+        "ryan": 89,
+        "theo": 89,
+        "john": 83,
+        "andy": 86,
+        "thomas": 86
+      },
+      "consensus": 86.6
+    },
+    {
+      "name": "Le'Veon Moss",
+      "team": "",
+      "sdioId": "26832",
+      "ranks": {
+        "ryan": 92,
+        "theo": 87,
+        "john": 73,
+        "andy": 92,
+        "thomas": 92
+      },
+      "consensus": 87.2
+    },
+    {
+      "name": "MarShawn Lloyd",
+      "team": "GB",
+      "sdioId": "23211",
+      "ranks": {
+        "ryan": 94,
+        "theo": 84,
+        "john": 70,
+        "andy": 94,
+        "thomas": 94
+      },
+      "consensus": 87.2
+    },
+    {
+      "name": "Joe Mixon",
+      "team": "",
+      "sdioId": "18858",
+      "ranks": {
+        "ryan": 86,
+        "theo": 90,
+        "john": 92,
+        "andy": 87,
+        "thomas": 87
+      },
+      "consensus": 88.4
+    },
+    {
+      "name": "Nick Chubb",
+      "team": "",
+      "sdioId": "19798",
+      "ranks": {
+        "ryan": 90,
+        "theo": 92,
+        "john": 87,
+        "andy": 90,
+        "thomas": 90
+      },
+      "consensus": 89.8
+    },
+    {
+      "name": "Tahj Brooks",
+      "team": "CIN",
+      "sdioId": "25949",
+      "ranks": {
+        "ryan": 91,
+        "theo": 83,
+        "john": 93,
+        "andy": 91,
+        "thomas": 91
+      },
+      "consensus": 89.8
+    },
+    {
+      "name": "Kareem Hunt",
+      "team": "",
+      "sdioId": "18944",
+      "ranks": {
+        "ryan": 88,
+        "theo": 93,
+        "john": 94,
+        "andy": 89,
+        "thomas": 89
+      },
+      "consensus": 90.6
+    },
+    {
+      "name": "Damien Martinez",
+      "team": "GB",
+      "sdioId": "26029",
+      "ranks": {
+        "ryan": 95,
+        "theo": 85,
+        "john": 89,
+        "andy": 95,
+        "thomas": 95
+      },
+      "consensus": 91.8
+    }
+  ]
+}
