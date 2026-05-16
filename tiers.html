@@ -351,7 +351,7 @@
 <link rel="stylesheet" href="assets/css/heatmap.css?v=1778642255">
 <script src="assets/js/heatmap.js?v=1778670000"></script>
 <link rel="stylesheet" href="assets/css/legend.css?v=1778642255">
-<script src="assets/js/legend-content.js?v=1778680026"></script>
+<script src="assets/js/legend-content.js?v=1778680028"></script>
 <script src="assets/js/legend.js?v=1778642255"></script>
 <script>document.addEventListener('DOMContentLoaded', function(){ if (window.Legend) Legend.init('tiers'); });</script>
 <!-- Shared player panel — DB's slide-in drawer, used identically on every page -->
@@ -410,7 +410,7 @@
       <option value="adp-tool.html">ADP</option>
       <option value="https://www.fantasypoints.com/nfl/rankings/dynasty#/">Rankings</option>
     </select>
-    <span class="nav-stat">Synced <strong id="tiers-updated-stat"><!-- TIERS:SYNCED:START -->May 16, 2026 5:54 AM<!-- TIERS:SYNCED:END --></strong></span>
+    <span class="nav-stat">Synced <strong id="tiers-updated-stat"><!-- TIERS:SYNCED:START -->May 16, 2026 6:17 AM<!-- TIERS:SYNCED:END --></strong></span>
     <span class="nav-badge" id="nav-season-badge">SEASON 2026</span>
     <button id="theme-toggle" onclick="toggleTheme()"
       style="background:none;border:1px solid var(--border2);color:var(--white);font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:11px;padding:5px 12px;cursor:pointer;transition:all .2s;letter-spacing:.04em;display:flex;align-items:center;gap:6px"
@@ -499,7 +499,6 @@ const TIER_PLAYERS = [
   {
     "tier": "S++",
     "name": "Josh Allen",
-    "ppg2024": "26.1",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -509,7 +508,6 @@ const TIER_PLAYERS = [
   {
     "tier": "S++",
     "name": "Drake Maye",
-    "ppg2024": "17.2",
     "trending": "📈",
     "buySell": "",
     "priority": "",
@@ -519,7 +517,6 @@ const TIER_PLAYERS = [
   {
     "tier": "S++",
     "name": "Jaxon Smith-Njigba",
-    "ppg2024": "14.9",
     "trending": "📈",
     "buySell": "",
     "priority": "",
@@ -529,7 +526,6 @@ const TIER_PLAYERS = [
   {
     "tier": "S++",
     "name": "Ja'Marr Chase",
-    "ppg2024": "23.7",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -539,7 +535,6 @@ const TIER_PLAYERS = [
   {
     "tier": "S++",
     "name": "Jahmyr Gibbs",
-    "ppg2024": "21.4",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -549,7 +544,6 @@ const TIER_PLAYERS = [
   {
     "tier": "S++",
     "name": "Puka Nacua",
-    "ppg2024": "18.8",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -559,7 +553,6 @@ const TIER_PLAYERS = [
   {
     "tier": "S+",
     "name": "Malik Nabers",
-    "ppg2024": "18.2",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -569,7 +562,6 @@ const TIER_PLAYERS = [
   {
     "tier": "S+",
     "name": "Ashton Jeanty",
-    "ppg2024": "N/A",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -579,7 +571,6 @@ const TIER_PLAYERS = [
   {
     "tier": "S+",
     "name": "Caleb Williams",
-    "ppg2024": "18.0",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -589,7 +580,6 @@ const TIER_PLAYERS = [
   {
     "tier": "S+",
     "name": "Lamar Jackson",
-    "ppg2024": "30.6",
     "trending": "📉",
     "buySell": "",
     "priority": "",
@@ -599,7 +589,6 @@ const TIER_PLAYERS = [
   {
     "tier": "S+",
     "name": "Brock Bowers",
-    "ppg2024": "18.7",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -609,7 +598,6 @@ const TIER_PLAYERS = [
   {
     "tier": "S",
     "name": "Jeremiyah Love",
-    "ppg2024": "",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -619,7 +607,6 @@ const TIER_PLAYERS = [
   {
     "tier": "S",
     "name": "Trey McBride",
-    "ppg2024": "18.7",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -629,7 +616,6 @@ const TIER_PLAYERS = [
   {
     "tier": "S",
     "name": "Joe Burrow",
-    "ppg2024": "27.9",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -639,7 +625,6 @@ const TIER_PLAYERS = [
   {
     "tier": "S",
     "name": "Justin Jefferson",
-    "ppg2024": "18.7",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -649,7 +634,6 @@ const TIER_PLAYERS = [
   {
     "tier": "S",
     "name": "CeeDee Lamb",
-    "ppg2024": "16.5",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -659,7 +643,6 @@ const TIER_PLAYERS = [
   {
     "tier": "S",
     "name": "Amon-Ra St. Brown",
-    "ppg2024": "18.7",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -669,7 +652,6 @@ const TIER_PLAYERS = [
   {
     "tier": "S",
     "name": "Justin Herbert",
-    "ppg2024": "19.8",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -679,7 +661,6 @@ const TIER_PLAYERS = [
   {
     "tier": "S",
     "name": "Tetairoa McMillan",
-    "ppg2024": "N/A",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -689,7 +670,6 @@ const TIER_PLAYERS = [
   {
     "tier": "S",
     "name": "Coltson Loveland",
-    "ppg2024": "",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -699,7 +679,6 @@ const TIER_PLAYERS = [
   {
     "tier": "S",
     "name": "Jalen Hurts",
-    "ppg2024": "24.1",
     "trending": "📉",
     "buySell": "",
     "priority": "",
@@ -709,7 +688,6 @@ const TIER_PLAYERS = [
   {
     "tier": "A+",
     "name": "Omarion Hampton",
-    "ppg2024": "N/A",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -719,7 +697,6 @@ const TIER_PLAYERS = [
   {
     "tier": "A+",
     "name": "Garrett Wilson",
-    "ppg2024": "14.9",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -729,7 +706,6 @@ const TIER_PLAYERS = [
   {
     "tier": "A+",
     "name": "Nico Collins",
-    "ppg2024": "17.6",
     "trending": "📉",
     "buySell": "",
     "priority": "",
@@ -739,7 +715,6 @@ const TIER_PLAYERS = [
   {
     "tier": "A+",
     "name": "De'Von Achane",
-    "ppg2024": "17.6",
     "trending": "📈",
     "buySell": "",
     "priority": "",
@@ -749,7 +724,6 @@ const TIER_PLAYERS = [
   {
     "tier": "A+",
     "name": "George Pickens",
-    "ppg2024": "11.8",
     "trending": "📈",
     "buySell": "",
     "priority": "",
@@ -759,7 +733,6 @@ const TIER_PLAYERS = [
   {
     "tier": "A+",
     "name": "Jonathan Taylor",
-    "ppg2024": "17.6",
     "trending": "📈",
     "buySell": "",
     "priority": "",
@@ -769,7 +742,6 @@ const TIER_PLAYERS = [
   {
     "tier": "A+",
     "name": "Trevor Lawrence",
-    "ppg2024": "17.5",
     "trending": "📈",
     "buySell": "",
     "priority": "",
@@ -779,7 +751,6 @@ const TIER_PLAYERS = [
   {
     "tier": "A+",
     "name": "Jaxson Dart",
-    "ppg2024": "N/A",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -789,7 +760,6 @@ const TIER_PLAYERS = [
   {
     "tier": "A+",
     "name": "Luther Burden",
-    "ppg2024": "N/A",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -799,7 +769,6 @@ const TIER_PLAYERS = [
   {
     "tier": "A+",
     "name": "Rookie Pick 1.01",
-    "ppg2024": "N/A",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -809,7 +778,6 @@ const TIER_PLAYERS = [
   {
     "tier": "A",
     "name": "Jordan Love",
-    "ppg2024": "19.6",
     "trending": "📉",
     "buySell": "",
     "priority": "",
@@ -819,7 +787,6 @@ const TIER_PLAYERS = [
   {
     "tier": "A",
     "name": "Carnell Tate",
-    "ppg2024": "",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -829,7 +796,6 @@ const TIER_PLAYERS = [
   {
     "tier": "A",
     "name": "Rashee Rice",
-    "ppg2024": "16.2",
     "trending": "Up 1 Tier",
     "buySell": "",
     "priority": "",
@@ -839,7 +805,6 @@ const TIER_PLAYERS = [
   {
     "tier": "A",
     "name": "James Cook",
-    "ppg2024": "16.7",
     "trending": "📈",
     "buySell": "",
     "priority": "",
@@ -849,7 +814,6 @@ const TIER_PLAYERS = [
   {
     "tier": "A",
     "name": "Kenneth Walker",
-    "ppg2024": "16.5",
     "trending": "📈",
     "buySell": "",
     "priority": "",
@@ -859,7 +823,6 @@ const TIER_PLAYERS = [
   {
     "tier": "A",
     "name": "Christian McCaffrey",
-    "ppg2024": "12.2",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -869,7 +832,6 @@ const TIER_PLAYERS = [
   {
     "tier": "A",
     "name": "Tyler Warren",
-    "ppg2024": "N/A",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -879,7 +841,6 @@ const TIER_PLAYERS = [
   {
     "tier": "A",
     "name": "Brock Purdy",
-    "ppg2024": "21.5",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -889,7 +850,6 @@ const TIER_PLAYERS = [
   {
     "tier": "A",
     "name": "Colston Loveland",
-    "ppg2024": "N/A",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -899,7 +859,6 @@ const TIER_PLAYERS = [
   {
     "tier": "A-",
     "name": "Fernando Mendoza",
-    "ppg2024": "",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -909,7 +868,6 @@ const TIER_PLAYERS = [
   {
     "tier": "A-",
     "name": "Breece Hall",
-    "ppg2024": "15.2",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -919,7 +877,6 @@ const TIER_PLAYERS = [
   {
     "tier": "A-",
     "name": "DeVonta Smith",
-    "ppg2024": "15.3",
     "trending": "📉",
     "buySell": "Checking In",
     "priority": "Soft",
@@ -929,7 +886,6 @@ const TIER_PLAYERS = [
   {
     "tier": "A-",
     "name": "Zay Flowers",
-    "ppg2024": "12.3",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -939,7 +895,6 @@ const TIER_PLAYERS = [
   {
     "tier": "A-",
     "name": "Tee Higgins",
-    "ppg2024": "18.6",
     "trending": "📉",
     "buySell": "",
     "priority": "",
@@ -949,7 +904,6 @@ const TIER_PLAYERS = [
   {
     "tier": "A-",
     "name": "A.J. Brown",
-    "ppg2024": "16.7",
     "trending": "📉",
     "buySell": "",
     "priority": "",
@@ -959,7 +913,6 @@ const TIER_PLAYERS = [
   {
     "tier": "A-",
     "name": "Chase Brown",
-    "ppg2024": "16.0",
     "trending": "📈",
     "buySell": "",
     "priority": "",
@@ -969,7 +922,6 @@ const TIER_PLAYERS = [
   {
     "tier": "A-",
     "name": "Quinshon Judkins",
-    "ppg2024": "N/A",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -979,7 +931,6 @@ const TIER_PLAYERS = [
   {
     "tier": "A-",
     "name": "TreVeyon Henderson",
-    "ppg2024": "N/A",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -989,7 +940,6 @@ const TIER_PLAYERS = [
   {
     "tier": "A-",
     "name": "Tucker Kraft",
-    "ppg2024": "11.1",
     "trending": "📈",
     "buySell": "",
     "priority": "",
@@ -999,7 +949,6 @@ const TIER_PLAYERS = [
   {
     "tier": "A-",
     "name": "Emeka Egbuka",
-    "ppg2024": "N/A",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -1009,7 +958,6 @@ const TIER_PLAYERS = [
   {
     "tier": "A-",
     "name": "Dak Prescott",
-    "ppg2024": "18.5",
     "trending": "📈",
     "buySell": "",
     "priority": "",
@@ -1019,7 +967,6 @@ const TIER_PLAYERS = [
   {
     "tier": "A-",
     "name": "Cam Skattebo",
-    "ppg2024": "N/A",
     "trending": "Up 1 Tier",
     "buySell": "",
     "priority": "",
@@ -1029,7 +976,6 @@ const TIER_PLAYERS = [
   {
     "tier": "A-",
     "name": "Rookie Pick 1.02",
-    "ppg2024": "N/A",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -1039,7 +985,6 @@ const TIER_PLAYERS = [
   {
     "tier": "B+",
     "name": "Ladd McConkey",
-    "ppg2024": "15.1",
     "trending": "📉",
     "buySell": "",
     "priority": "",
@@ -1049,7 +994,6 @@ const TIER_PLAYERS = [
   {
     "tier": "B+",
     "name": "Marvin Harrison",
-    "ppg2024": "11.6",
     "trending": "📉",
     "buySell": "",
     "priority": "",
@@ -1059,7 +1003,6 @@ const TIER_PLAYERS = [
   {
     "tier": "B+",
     "name": "Saquon Barkley",
-    "ppg2024": "22.3",
     "trending": "📉",
     "buySell": "",
     "priority": "",
@@ -1069,7 +1012,6 @@ const TIER_PLAYERS = [
   {
     "tier": "B+",
     "name": "Jaylen Waddle",
-    "ppg2024": "10.0",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -1079,7 +1021,6 @@ const TIER_PLAYERS = [
   {
     "tier": "B+",
     "name": "KC Concepcion",
-    "ppg2024": "",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -1089,7 +1030,6 @@ const TIER_PLAYERS = [
   {
     "tier": "B+",
     "name": "Cam Ward",
-    "ppg2024": "N/A",
     "trending": "",
     "buySell": "Buying",
     "priority": "Soft",
@@ -1099,7 +1039,6 @@ const TIER_PLAYERS = [
   {
     "tier": "B+",
     "name": "Jameson Williams",
-    "ppg2024": "14.1",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -1109,7 +1048,6 @@ const TIER_PLAYERS = [
   {
     "tier": "B+",
     "name": "Bucky Irving",
-    "ppg2024": "14.4",
     "trending": "📉",
     "buySell": "",
     "priority": "",
@@ -1119,7 +1057,6 @@ const TIER_PLAYERS = [
   {
     "tier": "B+",
     "name": "Sam LaPorta",
-    "ppg2024": "12.8",
     "trending": "📉",
     "buySell": "",
     "priority": "",
@@ -1129,7 +1066,6 @@ const TIER_PLAYERS = [
   {
     "tier": "B+",
     "name": "Harold Fannin",
-    "ppg2024": "N/A",
     "trending": "Down 1 Tier",
     "buySell": "",
     "priority": "",
@@ -1139,7 +1075,6 @@ const TIER_PLAYERS = [
   {
     "tier": "B+",
     "name": "Rome Odunze",
-    "ppg2024": "8.6",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -1149,7 +1084,6 @@ const TIER_PLAYERS = [
   {
     "tier": "B+",
     "name": "Tyler Shough",
-    "ppg2024": "N/A",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -1159,7 +1093,6 @@ const TIER_PLAYERS = [
   {
     "tier": "B+",
     "name": "Jared Goff",
-    "ppg2024": "24.2",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -1169,7 +1102,6 @@ const TIER_PLAYERS = [
   {
     "tier": "B+",
     "name": "Baker Mayfield",
-    "ppg2024": "27.4",
     "trending": "📉",
     "buySell": "",
     "priority": "",
@@ -1179,7 +1111,6 @@ const TIER_PLAYERS = [
   {
     "tier": "B+",
     "name": "Josh Jacobs",
-    "ppg2024": "17.4",
     "trending": "📉",
     "buySell": "",
     "priority": "",
@@ -1189,7 +1120,6 @@ const TIER_PLAYERS = [
   {
     "tier": "B+",
     "name": "Travis Etienne",
-    "ppg2024": "8.7",
     "trending": "📈",
     "buySell": "",
     "priority": "",
@@ -1199,7 +1129,6 @@ const TIER_PLAYERS = [
   {
     "tier": "B+",
     "name": "Kyler Murray",
-    "ppg2024": "20.9",
     "trending": "📉",
     "buySell": "",
     "priority": "",
@@ -1209,7 +1138,6 @@ const TIER_PLAYERS = [
   {
     "tier": "B+",
     "name": "Bhayshul Tuten",
-    "ppg2024": "N/A",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -1219,7 +1147,6 @@ const TIER_PLAYERS = [
   {
     "tier": "B+",
     "name": "Jadarian Price",
-    "ppg2024": "",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -1229,7 +1156,6 @@ const TIER_PLAYERS = [
   {
     "tier": "B+",
     "name": "Rookie Pick 1.03",
-    "ppg2024": "N/A",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -1239,7 +1165,6 @@ const TIER_PLAYERS = [
   {
     "tier": "B+",
     "name": "Rookie Pick 1.04",
-    "ppg2024": "N/A",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -1249,7 +1174,6 @@ const TIER_PLAYERS = [
   {
     "tier": "B",
     "name": "Christian Watson",
-    "ppg2024": "7.1",
     "trending": "📈",
     "buySell": "",
     "priority": "",
@@ -1259,7 +1183,6 @@ const TIER_PLAYERS = [
   {
     "tier": "B",
     "name": "Kenyon Sadiq",
-    "ppg2024": "",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -1269,7 +1192,6 @@ const TIER_PLAYERS = [
   {
     "tier": "B",
     "name": "Jordan Addison",
-    "ppg2024": "14.2",
     "trending": "📉",
     "buySell": "",
     "priority": "",
@@ -1279,7 +1201,6 @@ const TIER_PLAYERS = [
   {
     "tier": "B",
     "name": "Derrick Henry",
-    "ppg2024": "19.8",
     "trending": "📉",
     "buySell": "",
     "priority": "",
@@ -1289,7 +1210,6 @@ const TIER_PLAYERS = [
   {
     "tier": "B",
     "name": "C.J. Stroud",
-    "ppg2024": "16.3",
     "trending": "📉",
     "buySell": "",
     "priority": "",
@@ -1299,7 +1219,6 @@ const TIER_PLAYERS = [
   {
     "tier": "B",
     "name": "Omar Cooper Jr.",
-    "ppg2024": "",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -1309,7 +1228,6 @@ const TIER_PLAYERS = [
   {
     "tier": "B",
     "name": "Oronde Gadsden",
-    "ppg2024": "N/A",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -1319,7 +1237,6 @@ const TIER_PLAYERS = [
   {
     "tier": "B",
     "name": "DJ Moore",
-    "ppg2024": "N/A",
     "trending": "📉",
     "buySell": "Buying",
     "priority": "Soft",
@@ -1329,7 +1246,6 @@ const TIER_PLAYERS = [
   {
     "tier": "B",
     "name": "Daniel Jones",
-    "ppg2024": "16.0",
     "trending": "📈",
     "buySell": "",
     "priority": "",
@@ -1339,7 +1255,6 @@ const TIER_PLAYERS = [
   {
     "tier": "B",
     "name": "Bryce Young",
-    "ppg2024": "16.8",
     "trending": "📉",
     "buySell": "",
     "priority": "",
@@ -1349,7 +1264,6 @@ const TIER_PLAYERS = [
   {
     "tier": "B",
     "name": "Ty Simpson",
-    "ppg2024": "",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -1359,7 +1273,6 @@ const TIER_PLAYERS = [
   {
     "tier": "B",
     "name": "Malik WIllis",
-    "ppg2024": "8.4",
     "trending": "📈",
     "buySell": "",
     "priority": "",
@@ -1369,7 +1282,6 @@ const TIER_PLAYERS = [
   {
     "tier": "B",
     "name": "Ricky Pearsall",
-    "ppg2024": "8.5",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -1379,7 +1291,6 @@ const TIER_PLAYERS = [
   {
     "tier": "B",
     "name": "Rookie Pick 1.05",
-    "ppg2024": "N/A",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -1389,7 +1300,6 @@ const TIER_PLAYERS = [
   {
     "tier": "B-",
     "name": "D'Andre Swift",
-    "ppg2024": "12.6",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -1399,7 +1309,6 @@ const TIER_PLAYERS = [
   {
     "tier": "B-",
     "name": "David Montgomery",
-    "ppg2024": "15.9",
     "trending": "📉",
     "buySell": "",
     "priority": "",
@@ -1409,7 +1318,6 @@ const TIER_PLAYERS = [
   {
     "tier": "B-",
     "name": "Matthew Golden",
-    "ppg2024": "N/A",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -1419,7 +1327,6 @@ const TIER_PLAYERS = [
   {
     "tier": "B-",
     "name": "Parker Washington",
-    "ppg2024": "5.4",
     "trending": "📈",
     "buySell": "",
     "priority": "",
@@ -1429,7 +1336,6 @@ const TIER_PLAYERS = [
   {
     "tier": "B-",
     "name": "Jayden Reed",
-    "ppg2024": "11.6",
     "trending": "📉",
     "buySell": "",
     "priority": "",
@@ -1439,7 +1345,6 @@ const TIER_PLAYERS = [
   {
     "tier": "B-",
     "name": "Josh Downs",
-    "ppg2024": "13.1",
     "trending": "📉",
     "buySell": "",
     "priority": "",
@@ -1449,7 +1354,6 @@ const TIER_PLAYERS = [
   {
     "tier": "B-",
     "name": "Kyle Pitts",
-    "ppg2024": "9.1",
     "trending": "📈",
     "buySell": "",
     "priority": "",
@@ -1459,7 +1363,6 @@ const TIER_PLAYERS = [
   {
     "tier": "B-",
     "name": "Denzel Boston",
-    "ppg2024": "",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -1469,7 +1372,6 @@ const TIER_PLAYERS = [
   {
     "tier": "B-",
     "name": "Travis Hunter",
-    "ppg2024": "N/A",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -1479,7 +1381,6 @@ const TIER_PLAYERS = [
   {
     "tier": "B-",
     "name": "RJ Harvey",
-    "ppg2024": "N/A",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -1489,7 +1390,6 @@ const TIER_PLAYERS = [
   {
     "tier": "B-",
     "name": "DK Metcalf",
-    "ppg2024": "12.9",
     "trending": "📉",
     "buySell": "",
     "priority": "",
@@ -1499,7 +1399,6 @@ const TIER_PLAYERS = [
   {
     "tier": "B-",
     "name": "Davante Adams",
-    "ppg2024": "17.2",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -1509,7 +1408,6 @@ const TIER_PLAYERS = [
   {
     "tier": "B-",
     "name": "Mike Evans",
-    "ppg2024": "17.2",
     "trending": "📉",
     "buySell": "",
     "priority": "",
@@ -1519,7 +1417,6 @@ const TIER_PLAYERS = [
   {
     "tier": "B-",
     "name": "Matthew Stafford",
-    "ppg2024": "16.5",
     "trending": "📈",
     "buySell": "",
     "priority": "",
@@ -1529,7 +1426,6 @@ const TIER_PLAYERS = [
   {
     "tier": "B-",
     "name": "Jayden Higgins",
-    "ppg2024": "N/A",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -1539,7 +1435,6 @@ const TIER_PLAYERS = [
   {
     "tier": "B-",
     "name": "Jonah Coleman",
-    "ppg2024": "",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -1549,7 +1444,6 @@ const TIER_PLAYERS = [
   {
     "tier": "B-",
     "name": "George Kittle",
-    "ppg2024": "18.4",
     "trending": "📉",
     "buySell": "",
     "priority": "",
@@ -1559,7 +1453,6 @@ const TIER_PLAYERS = [
   {
     "tier": "B-",
     "name": "Rhamondre Stevenson",
-    "ppg2024": "11.9",
     "trending": "📈",
     "buySell": "",
     "priority": "",
@@ -1569,7 +1462,6 @@ const TIER_PLAYERS = [
   {
     "tier": "B-",
     "name": "Alec Pierce",
-    "ppg2024": "10.1",
     "trending": "📈",
     "buySell": "",
     "priority": "",
@@ -1579,7 +1471,6 @@ const TIER_PLAYERS = [
   {
     "tier": "B-",
     "name": "Xavier Worthy",
-    "ppg2024": "11.0",
     "trending": "Up 1 Tier",
     "buySell": "",
     "priority": "",
@@ -1589,7 +1480,6 @@ const TIER_PLAYERS = [
   {
     "tier": "B-",
     "name": "Rookie Pick 1.06",
-    "ppg2024": "N/A",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -1599,7 +1489,6 @@ const TIER_PLAYERS = [
   {
     "tier": "B-",
     "name": "Rookie Pick 1.07",
-    "ppg2024": "N/A",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -1609,7 +1498,6 @@ const TIER_PLAYERS = [
   {
     "tier": "C+",
     "name": "Jonathon Brooks",
-    "ppg2024": "",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -1619,7 +1507,6 @@ const TIER_PLAYERS = [
   {
     "tier": "C+",
     "name": "Eli Stowers",
-    "ppg2024": "",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -1629,7 +1516,6 @@ const TIER_PLAYERS = [
   {
     "tier": "C+",
     "name": "Dalton Kincaid",
-    "ppg2024": "9.4",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -1639,7 +1525,6 @@ const TIER_PLAYERS = [
   {
     "tier": "C+",
     "name": "Jalen Coker",
-    "ppg2024": "8.4",
     "trending": "📈",
     "buySell": "",
     "priority": "",
@@ -1649,7 +1534,6 @@ const TIER_PLAYERS = [
   {
     "tier": "C+",
     "name": "Jacory Croskey-Merritt",
-    "ppg2024": "N/A",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -1659,7 +1543,6 @@ const TIER_PLAYERS = [
   {
     "tier": "C+",
     "name": "Kyle Monangai",
-    "ppg2024": "N/A",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -1669,7 +1552,6 @@ const TIER_PLAYERS = [
   {
     "tier": "C+",
     "name": "Jakobi Meyers",
-    "ppg2024": "14.5",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -1679,7 +1561,6 @@ const TIER_PLAYERS = [
   {
     "tier": "C+",
     "name": "Chris Godwin",
-    "ppg2024": "19.7",
     "trending": "📉",
     "buySell": "",
     "priority": "",
@@ -1689,7 +1570,6 @@ const TIER_PLAYERS = [
   {
     "tier": "C+",
     "name": "Germie Bernard",
-    "ppg2024": "",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -1699,7 +1579,6 @@ const TIER_PLAYERS = [
   {
     "tier": "C+",
     "name": "Antonio Williams",
-    "ppg2024": "",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -1709,7 +1588,6 @@ const TIER_PLAYERS = [
   {
     "tier": "C+",
     "name": "Michael Pittman",
-    "ppg2024": "10.4",
     "trending": "📈",
     "buySell": "",
     "priority": "",
@@ -1719,7 +1597,6 @@ const TIER_PLAYERS = [
   {
     "tier": "C+",
     "name": "Jake Ferguson",
-    "ppg2024": "9.7",
     "trending": "📈",
     "buySell": "",
     "priority": "",
@@ -1729,7 +1606,6 @@ const TIER_PLAYERS = [
   {
     "tier": "C+",
     "name": "Jaylen Warren",
-    "ppg2024": "8.3",
     "trending": "📈",
     "buySell": "",
     "priority": "",
@@ -1739,7 +1615,6 @@ const TIER_PLAYERS = [
   {
     "tier": "C+",
     "name": "Rico Dowdle",
-    "ppg2024": "12.5",
     "trending": "📈",
     "buySell": "",
     "priority": "",
@@ -1749,7 +1624,6 @@ const TIER_PLAYERS = [
   {
     "tier": "C+",
     "name": "Rashid Shaheed",
-    "ppg2024": "12.5",
     "trending": "📉",
     "buySell": "",
     "priority": "",
@@ -1759,7 +1633,6 @@ const TIER_PLAYERS = [
   {
     "tier": "C+",
     "name": "Chuba Hubbard",
-    "ppg2024": "16.3",
     "trending": "📉",
     "buySell": "",
     "priority": "",
@@ -1769,7 +1642,6 @@ const TIER_PLAYERS = [
   {
     "tier": "C+",
     "name": "Nick Singleton",
-    "ppg2024": "",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -1779,7 +1651,6 @@ const TIER_PLAYERS = [
   {
     "tier": "C+",
     "name": "Eli Raridon",
-    "ppg2024": "",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -1789,7 +1660,6 @@ const TIER_PLAYERS = [
   {
     "tier": "C",
     "name": "Chris Bell",
-    "ppg2024": "",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -1799,7 +1669,6 @@ const TIER_PLAYERS = [
   {
     "tier": "C",
     "name": "Tony Pollard",
-    "ppg2024": "12.7",
     "trending": "📉",
     "buySell": "Checking In",
     "priority": "Soft",
@@ -1809,7 +1678,6 @@ const TIER_PLAYERS = [
   {
     "tier": "C",
     "name": "Rachaad White",
-    "ppg2024": "12.7",
     "trending": "📉",
     "buySell": "",
     "priority": "",
@@ -1819,7 +1687,6 @@ const TIER_PLAYERS = [
   {
     "tier": "C",
     "name": "Khalil Shakir",
-    "ppg2024": "12.2",
     "trending": "Down 1 Tier",
     "buySell": "",
     "priority": "",
@@ -1829,7 +1696,6 @@ const TIER_PLAYERS = [
   {
     "tier": "C",
     "name": "Wan'Dale Robinson",
-    "ppg2024": "10.7",
     "trending": "Down 1 Tier",
     "buySell": "Checking In",
     "priority": "Soft",
@@ -1839,7 +1705,6 @@ const TIER_PLAYERS = [
   {
     "tier": "C",
     "name": "Elijah Sarratt",
-    "ppg2024": "",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -1849,7 +1714,6 @@ const TIER_PLAYERS = [
   {
     "tier": "C",
     "name": "Zachariah Branch",
-    "ppg2024": "",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -1859,7 +1723,6 @@ const TIER_PLAYERS = [
   {
     "tier": "C",
     "name": "Isaiah Likely",
-    "ppg2024": "9.1",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -1869,7 +1732,6 @@ const TIER_PLAYERS = [
   {
     "tier": "C",
     "name": "Brandon Aiyuk",
-    "ppg2024": "8.9",
     "trending": "📉",
     "buySell": "",
     "priority": "",
@@ -1879,7 +1741,6 @@ const TIER_PLAYERS = [
   {
     "tier": "C",
     "name": "Jordan Mason",
-    "ppg2024": "",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -1889,7 +1750,6 @@ const TIER_PLAYERS = [
   {
     "tier": "C",
     "name": "Mac Jones",
-    "ppg2024": "",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -1899,7 +1759,6 @@ const TIER_PLAYERS = [
   {
     "tier": "C",
     "name": "J.K. Dobbins",
-    "ppg2024": "14.8",
     "trending": "Down 1 Tier",
     "buySell": "",
     "priority": "",
@@ -1909,7 +1768,6 @@ const TIER_PLAYERS = [
   {
     "tier": "C",
     "name": "Tyjae Spears",
-    "ppg2024": "9.5",
     "trending": "📉",
     "buySell": "",
     "priority": "",
@@ -1919,7 +1777,6 @@ const TIER_PLAYERS = [
   {
     "tier": "C",
     "name": "Romeo Doubs",
-    "ppg2024": "10.2",
     "trending": "Down 1 Tier",
     "buySell": "",
     "priority": "",
@@ -1929,7 +1786,6 @@ const TIER_PLAYERS = [
   {
     "tier": "C",
     "name": "Quentin Johnston",
-    "ppg2024": "11.6",
     "trending": "Down 1 Tier",
     "buySell": "",
     "priority": "",
@@ -1939,7 +1795,6 @@ const TIER_PLAYERS = [
   {
     "tier": "C",
     "name": "Chig Okonkwo",
-    "ppg2024": "",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -1949,7 +1804,6 @@ const TIER_PLAYERS = [
   {
     "tier": "C",
     "name": "Michael Penix",
-    "ppg2024": "10.6",
     "trending": "📉",
     "buySell": "",
     "priority": "",
@@ -1959,7 +1813,6 @@ const TIER_PLAYERS = [
   {
     "tier": "C",
     "name": "Tua Tagovailoa",
-    "ppg2024": "20.8",
     "trending": "📉",
     "buySell": "",
     "priority": "",
@@ -1969,7 +1822,6 @@ const TIER_PLAYERS = [
   {
     "tier": "C",
     "name": "Oscar Delp",
-    "ppg2024": "",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -1979,7 +1831,6 @@ const TIER_PLAYERS = [
   {
     "tier": "C",
     "name": "Tyrone Tracy",
-    "ppg2024": "10.8",
     "trending": "Up 1 Tier",
     "buySell": "",
     "priority": "",
@@ -1989,7 +1840,6 @@ const TIER_PLAYERS = [
   {
     "tier": "C",
     "name": "Blake Corum",
-    "ppg2024": "2.2",
     "trending": "📈",
     "buySell": "",
     "priority": "",
@@ -1999,7 +1849,6 @@ const TIER_PLAYERS = [
   {
     "tier": "C",
     "name": "Tank Dell",
-    "ppg2024": "",
     "trending": "Up 1 Tier",
     "buySell": "",
     "priority": "",
@@ -2009,7 +1858,6 @@ const TIER_PLAYERS = [
   {
     "tier": "C",
     "name": "Aaron Jones",
-    "ppg2024": "",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -2019,7 +1867,6 @@ const TIER_PLAYERS = [
   {
     "tier": "C",
     "name": "Geno Smith",
-    "ppg2024": "19.0",
     "trending": "📉",
     "buySell": "",
     "priority": "",
@@ -2029,7 +1876,6 @@ const TIER_PLAYERS = [
   {
     "tier": "C",
     "name": "J.J. McCarthy",
-    "ppg2024": "N/A",
     "trending": "📉",
     "buySell": "",
     "priority": "",
@@ -2039,7 +1885,6 @@ const TIER_PLAYERS = [
   {
     "tier": "C",
     "name": "Aaron Rodgers",
-    "ppg2024": "19.2",
     "trending": "📉",
     "buySell": "",
     "priority": "",
@@ -2049,7 +1894,6 @@ const TIER_PLAYERS = [
   {
     "tier": "C",
     "name": "Mark Andrews",
-    "ppg2024": "",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -2059,7 +1903,6 @@ const TIER_PLAYERS = [
   {
     "tier": "C",
     "name": "T.J. Hockenson",
-    "ppg2024": "10.7",
     "trending": "📉",
     "buySell": "",
     "priority": "",
@@ -2069,7 +1912,6 @@ const TIER_PLAYERS = [
   {
     "tier": "C",
     "name": "Juwan Johnson",
-    "ppg2024": "8.7",
     "trending": "📈",
     "buySell": "",
     "priority": "",
@@ -2079,7 +1921,6 @@ const TIER_PLAYERS = [
   {
     "tier": "C",
     "name": "Dallas Goedert",
-    "ppg2024": "12.5",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -2089,7 +1930,6 @@ const TIER_PLAYERS = [
   {
     "tier": "C",
     "name": "Kenneth Gainwell",
-    "ppg2024": "3.7",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -2099,7 +1939,6 @@ const TIER_PLAYERS = [
   {
     "tier": "C",
     "name": "Zach Charbonnet",
-    "ppg2024": "11.0",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -2109,7 +1948,6 @@ const TIER_PLAYERS = [
   {
     "tier": "C",
     "name": "Emmett Johnson",
-    "ppg2024": "",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -2119,7 +1957,6 @@ const TIER_PLAYERS = [
   {
     "tier": "C",
     "name": "Dylan Sampson",
-    "ppg2024": "N/A",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -2129,7 +1966,6 @@ const TIER_PLAYERS = [
   {
     "tier": "C",
     "name": "Chris Rodriguez Jr.",
-    "ppg2024": "",
     "trending": "Up 1 Tier",
     "buySell": "",
     "priority": "",
@@ -2139,7 +1975,6 @@ const TIER_PLAYERS = [
   {
     "tier": "C",
     "name": "Chris Brazzell II",
-    "ppg2024": "",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -2149,7 +1984,6 @@ const TIER_PLAYERS = [
   {
     "tier": "C",
     "name": "Kaytron Allen",
-    "ppg2024": "",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -2159,7 +1993,6 @@ const TIER_PLAYERS = [
   {
     "tier": "C",
     "name": "Gunnar Helm",
-    "ppg2024": "",
     "trending": "Up 1 Tier",
     "buySell": "",
     "priority": "",
@@ -2169,7 +2002,6 @@ const TIER_PLAYERS = [
   {
     "tier": "C",
     "name": "Terrance Ferguson",
-    "ppg2024": "N/A",
     "trending": "Down 1 Tier",
     "buySell": "",
     "priority": "",
@@ -2179,7 +2011,6 @@ const TIER_PLAYERS = [
   {
     "tier": "C",
     "name": "Carson Beck",
-    "ppg2024": "",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -2189,7 +2020,6 @@ const TIER_PLAYERS = [
   {
     "tier": "C",
     "name": "Deebo Samuel",
-    "ppg2024": "10.3",
     "trending": "📉",
     "buySell": "",
     "priority": "",
@@ -2199,7 +2029,6 @@ const TIER_PLAYERS = [
   {
     "tier": "C",
     "name": "Jauan Jennings",
-    "ppg2024": "14.0",
     "trending": "📉",
     "buySell": "",
     "priority": "",
@@ -2209,7 +2038,6 @@ const TIER_PLAYERS = [
   {
     "tier": "C",
     "name": "Pat Bryant",
-    "ppg2024": "N/A",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -2219,7 +2047,6 @@ const TIER_PLAYERS = [
   {
     "tier": "C",
     "name": "Mike Washington Jr.",
-    "ppg2024": "",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -2229,7 +2056,6 @@ const TIER_PLAYERS = [
   {
     "tier": "C",
     "name": "Tre' Harris",
-    "ppg2024": "N/A",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -2239,7 +2065,6 @@ const TIER_PLAYERS = [
   {
     "tier": "C",
     "name": "De'Zhaun Stribling",
-    "ppg2024": "",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -2249,7 +2074,6 @@ const TIER_PLAYERS = [
   {
     "tier": "C-",
     "name": "Jack Bech",
-    "ppg2024": "",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -2259,7 +2083,6 @@ const TIER_PLAYERS = [
   {
     "tier": "C-",
     "name": "Jalen Nailor",
-    "ppg2024": "",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -2269,7 +2092,6 @@ const TIER_PLAYERS = [
   {
     "tier": "C-",
     "name": "Sean Tucker",
-    "ppg2024": "4.0",
     "trending": "📈",
     "buySell": "",
     "priority": "",
@@ -2279,7 +2101,6 @@ const TIER_PLAYERS = [
   {
     "tier": "C-",
     "name": "Keaton Mitchell",
-    "ppg2024": "",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -2289,7 +2110,6 @@ const TIER_PLAYERS = [
   {
     "tier": "C-",
     "name": "Woody Marks",
-    "ppg2024": "N/A",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -2299,7 +2119,6 @@ const TIER_PLAYERS = [
   {
     "tier": "C-",
     "name": "Braelon Allen",
-    "ppg2024": "5.0",
     "trending": "📉",
     "buySell": "",
     "priority": "",
@@ -2309,7 +2128,6 @@ const TIER_PLAYERS = [
   {
     "tier": "C-",
     "name": "Ollie Gordon",
-    "ppg2024": "",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -2319,7 +2137,6 @@ const TIER_PLAYERS = [
   {
     "tier": "C-",
     "name": "Tyreek Hill",
-    "ppg2024": "12.8",
     "trending": "📉",
     "buySell": "",
     "priority": "",
@@ -2329,7 +2146,6 @@ const TIER_PLAYERS = [
   {
     "tier": "C-",
     "name": "Ted Hurst",
-    "ppg2024": "",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -2339,7 +2155,6 @@ const TIER_PLAYERS = [
   {
     "tier": "C-",
     "name": "Jalen McMillan",
-    "ppg2024": "",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -2349,7 +2164,6 @@ const TIER_PLAYERS = [
   {
     "tier": "C-",
     "name": "Justin Joly",
-    "ppg2024": "",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -2359,7 +2173,6 @@ const TIER_PLAYERS = [
   {
     "tier": "C-",
     "name": "Brenen Thompson",
-    "ppg2024": "",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -2369,7 +2182,6 @@ const TIER_PLAYERS = [
   {
     "tier": "C-",
     "name": "Deshaun Watson",
-    "ppg2024": "13.2",
     "trending": "📈",
     "buySell": "",
     "priority": "",
@@ -2379,7 +2191,6 @@ const TIER_PLAYERS = [
   {
     "tier": "C-",
     "name": "Kaelon Black",
-    "ppg2024": "",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -2389,7 +2200,6 @@ const TIER_PLAYERS = [
   {
     "tier": "C-",
     "name": "Jacoby Brissett",
-    "ppg2024": "",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -2399,7 +2209,6 @@ const TIER_PLAYERS = [
   {
     "tier": "C-",
     "name": "Rookie Pick 1.09",
-    "ppg2024": "N/A",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -2409,7 +2218,6 @@ const TIER_PLAYERS = [
   {
     "tier": "C-",
     "name": "Rookie Pick 1.10",
-    "ppg2024": "N/A",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -2419,7 +2227,6 @@ const TIER_PLAYERS = [
   {
     "tier": "D+",
     "name": "Rookie Pick 1.11",
-    "ppg2024": "N/A",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -2429,7 +2236,6 @@ const TIER_PLAYERS = [
   {
     "tier": "D+",
     "name": "Rookie Pick 1.12",
-    "ppg2024": "N/A",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -2439,7 +2245,6 @@ const TIER_PLAYERS = [
   {
     "tier": "D",
     "name": "Rookie Pick 2.01",
-    "ppg2024": "N/A",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -2449,7 +2254,6 @@ const TIER_PLAYERS = [
   {
     "tier": "D",
     "name": "Rookie Pick 2.02",
-    "ppg2024": "N/A",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -2459,7 +2263,6 @@ const TIER_PLAYERS = [
   {
     "tier": "D",
     "name": "Rookie Pick 2.03",
-    "ppg2024": "N/A",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -2469,7 +2272,6 @@ const TIER_PLAYERS = [
   {
     "tier": "D",
     "name": "Rookie Pick 2.04",
-    "ppg2024": "N/A",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -2479,7 +2281,6 @@ const TIER_PLAYERS = [
   {
     "tier": "D-",
     "name": "Rookie Pick 2.05",
-    "ppg2024": "N/A",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -2489,7 +2290,6 @@ const TIER_PLAYERS = [
   {
     "tier": "D-",
     "name": "Rookie Pick 2.06",
-    "ppg2024": "N/A",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -2499,7 +2299,6 @@ const TIER_PLAYERS = [
   {
     "tier": "E+",
     "name": "Rookie Pick 2.07",
-    "ppg2024": "N/A",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -2509,7 +2308,6 @@ const TIER_PLAYERS = [
   {
     "tier": "E+",
     "name": "Rookie Pick 2.08",
-    "ppg2024": "N/A",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -2519,7 +2317,6 @@ const TIER_PLAYERS = [
   {
     "tier": "E-",
     "name": "Kayshon Boutte",
-    "ppg2024": "8.1",
     "trending": "📈",
     "buySell": "",
     "priority": "",
@@ -2529,7 +2326,6 @@ const TIER_PLAYERS = [
   {
     "tier": "E-",
     "name": "Rookie Pick 2.09",
-    "ppg2024": "N/A",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -2539,7 +2335,6 @@ const TIER_PLAYERS = [
   {
     "tier": "E-",
     "name": "Rookie Pick 2.10",
-    "ppg2024": "N/A",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -2549,7 +2344,6 @@ const TIER_PLAYERS = [
   {
     "tier": "E-",
     "name": "Rookie Pick 2.11",
-    "ppg2024": "N/A",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -2559,7 +2353,6 @@ const TIER_PLAYERS = [
   {
     "tier": "E-",
     "name": "Rookie Pick 2.12",
-    "ppg2024": "N/A",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -2569,7 +2362,6 @@ const TIER_PLAYERS = [
   {
     "tier": "E-",
     "name": "Stefon Diggs",
-    "ppg2024": "15.2",
     "trending": "📉",
     "buySell": "",
     "priority": "",
@@ -2579,7 +2371,6 @@ const TIER_PLAYERS = [
   {
     "tier": "F+",
     "name": "David Njoku",
-    "ppg2024": "16.4",
     "trending": "📉",
     "buySell": "",
     "priority": "",
@@ -2589,7 +2380,6 @@ const TIER_PLAYERS = [
   {
     "tier": "F+",
     "name": "Devin Neal",
-    "ppg2024": "N/A",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -2599,7 +2389,6 @@ const TIER_PLAYERS = [
   {
     "tier": "F+",
     "name": "Justin Fields",
-    "ppg2024": "13.1",
     "trending": "📉",
     "buySell": "",
     "priority": "",
@@ -2609,7 +2398,6 @@ const TIER_PLAYERS = [
   {
     "tier": "F+",
     "name": "Kirk Cousins",
-    "ppg2024": "16.5",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -2619,7 +2407,6 @@ const TIER_PLAYERS = [
   {
     "tier": "F+",
     "name": "Rookie Pick 3.01",
-    "ppg2024": "N/A",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -2629,7 +2416,6 @@ const TIER_PLAYERS = [
   {
     "tier": "F+",
     "name": "Rookie Pick 3.02",
-    "ppg2024": "N/A",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -2639,7 +2425,6 @@ const TIER_PLAYERS = [
   {
     "tier": "F+",
     "name": "Rookie Pick 3.03",
-    "ppg2024": "N/A",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -2649,7 +2434,6 @@ const TIER_PLAYERS = [
   {
     "tier": "F+",
     "name": "Rookie Pick 3.04",
-    "ppg2024": "N/A",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -2659,7 +2443,6 @@ const TIER_PLAYERS = [
   {
     "tier": "F+",
     "name": "Trey Benson",
-    "ppg2024": "3.6",
     "trending": "📉",
     "buySell": "",
     "priority": "",
@@ -2669,7 +2452,6 @@ const TIER_PLAYERS = [
   {
     "tier": "F+",
     "name": "Tyler Allgeier",
-    "ppg2024": "6.2",
     "trending": "📈",
     "buySell": "",
     "priority": "",
@@ -2679,7 +2461,6 @@ const TIER_PLAYERS = [
   {
     "tier": "F",
     "name": "Adonai Mitchell",
-    "ppg2024": "3.2",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -2689,7 +2470,6 @@ const TIER_PLAYERS = [
   {
     "tier": "F",
     "name": "Isaiah Davis",
-    "ppg2024": "3.5",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -2699,7 +2479,6 @@ const TIER_PLAYERS = [
   {
     "tier": "F",
     "name": "Jake Tonges",
-    "ppg2024": "0.0",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -2709,7 +2488,6 @@ const TIER_PLAYERS = [
   {
     "tier": "F",
     "name": "Jerry Jeudy",
-    "ppg2024": "14.2",
     "trending": "📉",
     "buySell": "",
     "priority": "",
@@ -2719,7 +2497,6 @@ const TIER_PLAYERS = [
   {
     "tier": "F",
     "name": "Rookie Pick 3.05",
-    "ppg2024": "N/A",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -2729,7 +2506,6 @@ const TIER_PLAYERS = [
   {
     "tier": "F",
     "name": "Rookie Pick 3.06",
-    "ppg2024": "N/A",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -2739,7 +2515,6 @@ const TIER_PLAYERS = [
   {
     "tier": "F",
     "name": "Tory Horton",
-    "ppg2024": "N/A",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -2749,7 +2524,6 @@ const TIER_PLAYERS = [
   {
     "tier": "F",
     "name": "Tyson Bagent",
-    "ppg2024": "-0.1",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -2759,7 +2533,6 @@ const TIER_PLAYERS = [
   {
     "tier": "F-",
     "name": "Anthony Richardson",
-    "ppg2024": "17.7",
     "trending": "📉",
     "buySell": "",
     "priority": "",
@@ -2769,7 +2542,6 @@ const TIER_PLAYERS = [
   {
     "tier": "F-",
     "name": "Jalen Milroe",
-    "ppg2024": "N/A",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -2779,7 +2551,6 @@ const TIER_PLAYERS = [
   {
     "tier": "F-",
     "name": "Kaleb Johnson",
-    "ppg2024": "N/A",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -2789,7 +2560,6 @@ const TIER_PLAYERS = [
   {
     "tier": "F-",
     "name": "Mason Taylor",
-    "ppg2024": "N/A",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -2799,7 +2569,6 @@ const TIER_PLAYERS = [
   {
     "tier": "F-",
     "name": "Rookie Pick 3.07",
-    "ppg2024": "N/A",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -2809,7 +2578,6 @@ const TIER_PLAYERS = [
   {
     "tier": "F-",
     "name": "Rookie Pick 3.08",
-    "ppg2024": "N/A",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -2819,7 +2587,6 @@ const TIER_PLAYERS = [
   {
     "tier": "F-",
     "name": "Rookie Pick 3.09",
-    "ppg2024": "N/A",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -2829,7 +2596,6 @@ const TIER_PLAYERS = [
   {
     "tier": "F-",
     "name": "Rookie Pick 3.10",
-    "ppg2024": "N/A",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -2839,7 +2605,6 @@ const TIER_PLAYERS = [
   {
     "tier": "F-",
     "name": "Rookie Pick 3.11",
-    "ppg2024": "N/A",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -2849,7 +2614,6 @@ const TIER_PLAYERS = [
   {
     "tier": "F-",
     "name": "Rookie Pick 3.12",
-    "ppg2024": "N/A",
     "trending": "",
     "buySell": "",
     "priority": "",
@@ -2989,6 +2753,7 @@ function renderRowHtml(p) {
     + '<td class="col-num">' + fmtNumeric(p.adp2025) + '</td>'
     + '<td class="col-num"><span class="tier-auction">' + fmtNumeric(p.auction) + '</span></td>'
     + '<td class="col-num">' + fmtNumeric(p.ppg2025) + '</td>'
+    + '<td class="col-num">' + fmtNumeric(p.ppg2024) + '</td>'
     + '<td class="tier-trending">' + (p.trending || '') + '</td>'
     + '<td>' + bshChipHtml(p.buySell) + '</td>'
     + '<td>' + priorityChipHtml(p.priority) + '</td>'
@@ -3008,6 +2773,7 @@ function renderHeaderRow() {
     {key: 'adp2025', label: '2025 ADP'},
     {key: 'auction', label: 'Auction'},
     {key: 'ppg2025', label: '2025 PPG'},
+    {key: 'ppg2024', label: '2024 PPG'},
     {key: 'trending', label: 'Trending'},
     {key: 'buySell', label: 'Buy/Sell'},
     {key: 'priority', label: 'Priority'},
@@ -3033,7 +2799,7 @@ function setSortCol(col) {
 
 function sortPlayers(players) {
   // numeric vs string detection per col
-  const numericCols = ['age', 'adp2026', 'adp2025', 'ppg2025'];
+  const numericCols = ['age', 'adp2026', 'adp2025', 'ppg2025', 'ppg2024'];
   const tierCol = tierSortCol === 'tier';
   const numeric = numericCols.includes(tierSortCol);
   
@@ -3170,12 +2936,13 @@ function applySleeperOverlay() {
       TIER_PLAYERS.forEach(p => {
         const rec = byKey[_normNameTiers(p.name)];
         if (!rec) return;
-        if (rec.age   != null) p.age      = String(rec.age);
-        if (rec.team)          p.team     = rec.team;
-        if (rec.pos)           p.pos      = rec.pos;
-        if (rec.posRank)       p.posRank  = rec.posRank;
-        if (rec.ppg   != null) p.ppg2025  = String(rec.ppg);
-        if (rec.injury)        p.injury   = rec.injury;
+        if (rec.age       != null) p.age      = String(rec.age);
+        if (rec.team)              p.team     = rec.team;
+        if (rec.pos)               p.pos      = rec.pos;
+        if (rec.posRank)           p.posRank  = rec.posRank;
+        if (rec.ppg       != null) p.ppg2025  = String(rec.ppg);
+        if (rec.ppgPrior  != null) p.ppg2024  = String(rec.ppgPrior);
+        if (rec.injury)            p.injury   = rec.injury;
       });
     }
 
