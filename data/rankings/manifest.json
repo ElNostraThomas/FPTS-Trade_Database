@@ -1,13 +1,27 @@
 {
-  "version": "2026-05-16T22:17Z",
+  "version": "2026-05-16T22:51Z",
   "season": 2026,
   "sources": [
+    {
+      "analyst": "overall",
+      "format": "1qb",
+      "label": "Overall Consensus — 1QB",
+      "file": "overall-1qb.json",
+      "count": 264
+    },
     {
       "analyst": "overall",
       "format": "sf",
       "label": "Overall Consensus — Superflex",
       "file": "overall-sf.json",
       "count": 284
+    },
+    {
+      "analyst": "overall",
+      "format": "1qb-tep",
+      "label": "Overall Consensus — 1QB + TE Premium",
+      "file": "overall-1qb-tep.json",
+      "count": 283
     }
   ]
 }
