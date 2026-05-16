@@ -321,8 +321,23 @@
   .pp-search-wrap { max-width: 100% !important; width: 100% !important; }
   .panel-close { font-size: 11px; padding: 4px 10px; }
   #pp-player-tabs { min-height: 36px; }
-  .pp-profile { padding: 14px !important; flex-wrap: wrap; gap: 12px; }
-  .pp-avatar { width: 56px !important; height: 56px !important; }
+  /* Profile reflow (Sub-plan B): force a clean vertical stack on mobile so
+     FANTASY POINTS doesn't float awkwardly beside the stats grid. Order:
+     [avatar + name + team], [stats grid full-width], [FANTASY POINTS row]. */
+  .pp-profile {
+    padding: 14px !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 14px;
+  }
+  .pp-avatar { width: 56px !important; height: 56px !important; align-self: flex-start; }
+  .pp-info { flex: 1 1 auto !important; }
+  .pp-ktc {
+    text-align: left !important;
+    width: 100%;
+    border-top: 1px solid var(--border);
+    padding-top: 10px;
+  }
   .pp-name { font-size: 20px !important; }
   .pp-value-val { font-size: 28px !important; }
   .pp-value-rank { font-size: 11px; }

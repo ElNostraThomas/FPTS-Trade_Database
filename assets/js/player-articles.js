@@ -52,18 +52,21 @@
       row.className = 'pp-articles-section';
       row.style.cssText = 'display:none';
       row.innerHTML = ''
-        + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">'
+        + '<div class="pp-articles-header" style="display:flex;align-items:center;gap:8px;margin-bottom:6px;cursor:pointer" role="button" aria-expanded="true">'
         +   '<span style="font-family:\'Kanit\',sans-serif;font-weight:800;font-style:italic;font-size:11px;color:var(--red);text-transform:uppercase;letter-spacing:.06em">Articles</span>'
         +   '<span class="pp-articles-source" style="font-family:\'Mulish\',sans-serif;font-size:10px;color:var(--white);opacity:.55">FantasyPoints.com</span>'
+        +   '<span class="pp-articles-collapse-arrow" style="font-size:9px;color:var(--white);opacity:.55;margin-left:auto;transition:transform .15s">▼</span>'
         + '</div>'
-        + '<div class="pp-article-inline" style="display:flex;align-items:center;gap:10px;min-height:24px"></div>'
-        + '<div class="pp-articles-more-wrap" style="display:none;margin-top:8px;position:relative">'
-        +   '<button type="button" class="pp-articles-more-btn" '
-        +     'style="background:none;border:none;color:var(--white);opacity:.7;font-family:\'Kanit\',sans-serif;font-weight:800;font-style:italic;font-size:10px;text-transform:uppercase;letter-spacing:.06em;cursor:pointer;padding:0;display:flex;align-items:center;gap:4px">'
-        +     '<span class="pp-articles-more-label">See more articles</span>'
-        +     '<span class="pp-articles-more-arrow" style="font-size:8px;transition:transform .15s">▼</span>'
-        +   '</button>'
-        +   '<div class="pp-articles-more-list" style="display:none;position:absolute;top:calc(100% + 6px);left:0;right:0;z-index:50;padding:8px 12px;background:var(--surface);border:1px solid var(--border2);box-shadow:0 6px 20px rgba(0,0,0,.5)"></div>'
+        + '<div class="pp-articles-body">'
+        +   '<div class="pp-article-inline" style="display:flex;align-items:center;gap:10px;min-height:24px"></div>'
+        +   '<div class="pp-articles-more-wrap" style="display:none;margin-top:8px;position:relative">'
+        +     '<button type="button" class="pp-articles-more-btn" '
+        +       'style="background:none;border:none;color:var(--white);opacity:.7;font-family:\'Kanit\',sans-serif;font-weight:800;font-style:italic;font-size:10px;text-transform:uppercase;letter-spacing:.06em;cursor:pointer;padding:0;display:flex;align-items:center;gap:4px">'
+        +       '<span class="pp-articles-more-label">See more articles</span>'
+        +       '<span class="pp-articles-more-arrow" style="font-size:8px;transition:transform .15s">▼</span>'
+        +     '</button>'
+        +     '<div class="pp-articles-more-list" style="display:none;position:absolute;top:calc(100% + 6px);left:0;right:0;z-index:50;padding:8px 12px;background:var(--surface);border:1px solid var(--border2);box-shadow:0 6px 20px rgba(0,0,0,.5)"></div>'
+        +   '</div>'
         + '</div>';
       containerEl.appendChild(row);
 
@@ -77,6 +80,28 @@
         lbl.textContent     = open ? 'See more articles' : 'Hide articles';
         arr.style.transform = open ? '' : 'rotate(180deg)';
       });
+
+      // Section header toggles the body (first article + see-more wrap). On
+      // mobile the section starts collapsed by default so it doesn't push the
+      // player tabs off-screen; desktop starts expanded.
+      const header = row.querySelector('.pp-articles-header');
+      const body = row.querySelector('.pp-articles-body');
+      const collapseArr = row.querySelector('.pp-articles-collapse-arrow');
+      header.addEventListener('click', function () {
+        const isCollapsed = row.classList.toggle('pp-articles-collapsed');
+        body.style.display = isCollapsed ? 'none' : '';
+        collapseArr.style.transform = isCollapsed ? 'rotate(-90deg)' : '';
+        header.setAttribute('aria-expanded', isCollapsed ? 'false' : 'true');
+      });
+      // Default-collapsed on small screens.
+      try {
+        if (window.matchMedia && window.matchMedia('(max-width: 768px)').matches) {
+          row.classList.add('pp-articles-collapsed');
+          body.style.display = 'none';
+          collapseArr.style.transform = 'rotate(-90deg)';
+          header.setAttribute('aria-expanded', 'false');
+        }
+      } catch (e) { /* matchMedia unsupported; leave expanded */ }
     }
 
     // Look up articles for this player. Try the name as-is first (most
