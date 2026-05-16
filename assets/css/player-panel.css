@@ -106,6 +106,17 @@
   display: none;
 }
 .pp-search-results.open { display: block; }
+/* Sub-plan D: on mobile, flip the dropdown ABOVE the input so the keyboard
+   doesn't cover the autocomplete results when typing. */
+@media (max-width: 768px) {
+  .pp-search-results {
+    top: auto;
+    bottom: calc(100% + 4px);
+    border-top: 1px solid var(--border2);
+    border-bottom: none;
+    box-shadow: 0 -6px 14px rgba(0,0,0,.45);
+  }
+}
 .pp-search-result {
   display: flex;
   align-items: center;

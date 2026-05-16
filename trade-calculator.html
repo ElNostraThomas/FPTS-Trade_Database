@@ -1006,11 +1006,18 @@
 
     /* ─── 3. Modal/panel overflow ─── */
     /* Calc has no modals of its own, but the search-results dropdown
-       is positioned absolute and can overflow on narrow screens */
+       is positioned absolute and can overflow on narrow screens. */
     .side-search-results {
       left: 8px !important;
       right: 8px !important;
       max-width: calc(100vw - 16px) !important;
+      /* Sub-plan D: flip above the input on mobile so the keyboard doesn't
+         cover the suggestions when the user is typing a player name. */
+      bottom: calc(100% + 4px) !important;
+      top: auto !important;
+      border-top: 1px solid var(--border2) !important;
+      border-bottom: none !important;
+      box-shadow: 0 -6px 14px rgba(0,0,0,.45);
     }
 
     /* ─── 4. Content overflow within containers ─── */
@@ -1196,7 +1203,7 @@
 <script>document.addEventListener('DOMContentLoaded', function(){ if (window.Legend) Legend.init('trade-calculator'); });</script>
 <!-- Shared player panel — DB's slide-in drawer used identically on every page -->
 <script>window.FPTS_CURRENT_PAGE = 'calc';</script>
-<link rel="stylesheet" href="assets/css/player-panel.css?v=1778680034">
+<link rel="stylesheet" href="assets/css/player-panel.css?v=1778680035">
 <!-- Team logo helpers — load BEFORE player-panel.js so modal-hero badge works. -->
 <script src="assets/js/team-helpers.js?v=1778680002"></script>
 <script src="assets/js/player-panel.js?v=1778680033" defer></script>
