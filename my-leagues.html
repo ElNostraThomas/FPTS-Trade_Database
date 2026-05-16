@@ -3509,13 +3509,13 @@ function renderPlayerAvailability(sleeperId) {
   `;
 }
 
-// Persist availability accordion state. Default collapsed = true (per UX choice).
+// Availability accordion starts collapsed every time the drawer opens.
+// In-session toggle (mlToggleAvailability) still works, but the open state
+// is intentionally NOT persisted across player clicks -- the user's stated
+// preference is "always closed by default" since most clicks don't need
+// the cross-league breakdown.
 function mlGetAvailabilityCollapsed() {
-  try {
-    const v = localStorage.getItem('fpts-availability-collapsed');
-    if (v === null) return true;  // default to collapsed
-    return v === '1';
-  } catch(e) { return true; }
+  return true;
 }
 function mlSetAvailabilityCollapsed(on) {
   try { localStorage.setItem('fpts-availability-collapsed', on ? '1' : '0'); } catch(e) {}
