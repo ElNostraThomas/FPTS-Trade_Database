@@ -72,21 +72,26 @@
   <!-- CLOSE BAR -->
   <div class="pp-close-bar" style="justify-content:space-between;flex-shrink:0">
     <div style="font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:13px;color:var(--red);text-transform:uppercase;letter-spacing:.06em">Player Profile</div>
-    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end">
-      <div class="pp-search-wrap" style="position:relative">
-        <input type="text" id="pp-search" class="pp-search-input"
-          placeholder="+ Add player to compare..."
-          oninput="ppSearchInput(this.value)"
-          onkeydown="ppSearchKey(event)"
-          autocomplete="off"
-          style="min-width:260px">
-        <div id="pp-search-results" class="pp-search-results"></div>
-      </div>
-      <div class="fpts-xpage-bar" style="margin-right:6px">
-        <button class="fpts-xpage-btn" data-page="db"   onclick="event.stopPropagation();_fptsXpageOpenDbFromPanel()"      title="Open the Trade Database with this player's profile">Open in Database ↗</button>
-        <button class="fpts-xpage-btn" data-page="calc" onclick="event.stopPropagation();_fptsXpageOpenCalcFromPanel()"    title="Open the trade calculator with this player on Side B">Open in Calculator ↗</button>
-        <button class="fpts-xpage-btn" data-page="ml"   onclick="event.stopPropagation();_fptsXpageOpenLeaguesFromPanel()" title="Open My Leagues with this player pinned in Player Exposure">Open in My Leagues ↗</button>
-        <button class="fpts-xpage-btn" data-page="adp"  onclick="event.stopPropagation();_fptsXpageOpenAdpFromPanel()"     title="Open the ADP tool with this player's modal">Open in ADP ↗</button>
+    <div class="pp-actions-area" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end;position:relative">
+      <!-- Mobile-only trigger: collapses the search + cross-page buttons below
+           into a dropdown panel so they don't push the player card off-screen. -->
+      <button class="pp-actions-trigger" aria-label="More actions" onclick="ppToggleActionsMenu(event)" type="button">⋯</button>
+      <div class="pp-actions-collapsible">
+        <div class="pp-search-wrap" style="position:relative">
+          <input type="text" id="pp-search" class="pp-search-input"
+            placeholder="+ Add player to compare..."
+            oninput="ppSearchInput(this.value)"
+            onkeydown="ppSearchKey(event)"
+            autocomplete="off"
+            style="min-width:260px">
+          <div id="pp-search-results" class="pp-search-results"></div>
+        </div>
+        <div class="fpts-xpage-bar" style="margin-right:6px">
+          <button class="fpts-xpage-btn" data-page="db"   onclick="event.stopPropagation();_fptsXpageOpenDbFromPanel()"      title="Open the Trade Database with this player's profile">Open in Database ↗</button>
+          <button class="fpts-xpage-btn" data-page="calc" onclick="event.stopPropagation();_fptsXpageOpenCalcFromPanel()"    title="Open the trade calculator with this player on Side B">Open in Calculator ↗</button>
+          <button class="fpts-xpage-btn" data-page="ml"   onclick="event.stopPropagation();_fptsXpageOpenLeaguesFromPanel()" title="Open My Leagues with this player pinned in Player Exposure">Open in My Leagues ↗</button>
+          <button class="fpts-xpage-btn" data-page="adp"  onclick="event.stopPropagation();_fptsXpageOpenAdpFromPanel()"     title="Open the ADP tool with this player's modal">Open in ADP ↗</button>
+        </div>
       </div>
       <button class="panel-close" onclick="closePanel()">✕ Close</button>
     </div>
@@ -1592,6 +1597,27 @@
     setCurrentPage: setCurrentPage
   };
 
+  // ── Mobile actions-menu toggle ──────────────────────────────────────────
+  // The drawer's close-bar collapses its search + cross-page buttons behind a
+  // ⋯ trigger on mobile so the player card shows up at the top of the drawer.
+  // Tapping ⋯ opens the dropdown panel; tapping outside or another action
+  // closes it.
+  function ppToggleActionsMenu(e) {
+    if (e && e.stopPropagation) e.stopPropagation();
+    const area = (e && e.currentTarget) ? e.currentTarget.closest('.pp-actions-area') : document.querySelector('.pp-actions-area');
+    if (!area) return;
+    area.classList.toggle('pp-actions-open');
+  }
+  function ppCloseActionsMenu() {
+    document.querySelectorAll('.pp-actions-area.pp-actions-open').forEach(el => el.classList.remove('pp-actions-open'));
+  }
+  document.addEventListener('click', function(e) {
+    const open = document.querySelector('.pp-actions-area.pp-actions-open');
+    if (!open) return;
+    if (open.contains(e.target)) return;
+    open.classList.remove('pp-actions-open');
+  });
+
   // Back-compat: existing inline onclick="openPanel('Name')" markup keeps working.
   global.openPanel = openPanel;
   global.closePanel = closePanel;
@@ -1604,6 +1630,8 @@
   global.ppRemovePlayer = ppRemovePlayer;
   global.ppRenderTabStrip = ppRenderTabStrip;
   global.ppFocusResult = ppFocusResult;
+  global.ppToggleActionsMenu = ppToggleActionsMenu;
+  global.ppCloseActionsMenu = ppCloseActionsMenu;
   // Cross-page helpers
   global._fptsXpageOpenCalcFromPanel    = _fptsXpageOpenCalcFromPanel;
   global._fptsXpageOpenLeaguesFromPanel = _fptsXpageOpenLeaguesFromPanel;

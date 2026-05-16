@@ -35,6 +35,12 @@
 .pp-close-bar { background: var(--black); padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); flex-shrink: 0; gap: 12px; }
 .pp-search-wrap { position: relative; flex: 1; max-width: 380px; }
 
+/* Actions menu defaults (desktop): trigger hidden, collapsible is a normal
+   horizontal flex row of [search][cross-page buttons]. Mobile overrides below
+   in @media (max-width: 768px) collapse this behind a ⋯ trigger button. */
+.pp-actions-trigger { display: none; }
+.pp-actions-collapsible { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
 /* Two-column card layout (rarely used, kept for compatibility) */
 .pp-col { display: contents; }
 .pp-col-left  .pp-col-header { grid-column:1; grid-row:1; border-right:1px solid var(--border); }
@@ -447,6 +453,58 @@
     min-width: 0 !important;  /* override inline min-width:260px from the template */
     box-sizing: border-box !important;
     font-size: 14px !important;
+  }
+
+  /* ── Actions menu (Sub-plan A): collapse the drawer header's search + cross-page
+     buttons behind a single ⋯ trigger on mobile. The player card now shows at the
+     top of the drawer instead of being pushed below the fold by 4-5 rows of
+     buttons. ───────────────────────────────────────────────────────────────── */
+  .pp-actions-trigger {
+    display: inline-flex !important;
+    align-items: center; justify-content: center;
+    width: 36px; min-height: 36px;
+    background: transparent;
+    color: var(--white);
+    border: 1px solid var(--border2);
+    border-radius: 2px;
+    font-size: 18px; line-height: 1;
+    cursor: pointer;
+    padding: 0;
+    flex-shrink: 0;
+  }
+  /* Hide the search + cross-page bar by default on mobile; ⋯ trigger reveals them. */
+  .pp-actions-area .pp-actions-collapsible { display: none; }
+  /* When the user taps ⋯, drop the collapsible content as an overlay dropdown
+     so it doesn't push the player card down. */
+  .pp-actions-area.pp-actions-open .pp-actions-collapsible {
+    display: flex !important;
+    flex-direction: column;
+    gap: 8px;
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    padding: 10px;
+    z-index: 100;
+    min-width: 240px;
+    max-width: calc(100vw - 20px);
+    box-shadow: 0 8px 20px rgba(0,0,0,.5);
+  }
+  /* Inside the dropdown, lay items out as a stack of full-width controls. */
+  .pp-actions-area.pp-actions-open .pp-search-wrap {
+    flex: 0 0 auto !important;
+    width: 100% !important;
+    order: 0 !important;
+  }
+  .pp-actions-area.pp-actions-open .fpts-xpage-bar {
+    display: flex !important;
+    flex-direction: column;
+    gap: 6px;
+    width: 100%;
+  }
+  .pp-actions-area.pp-actions-open .fpts-xpage-btn {
+    width: 100%; justify-content: center; font-size: 11px;
   }
   /* Cross-page bar takes whatever it needs */
   .pp-close-bar .fpts-xpage-bar {
