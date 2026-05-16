@@ -6384,7 +6384,7 @@ function renderRoster(playerIds, players, starters, myPicks, rosterToTeam, proje
         const val   = pickValue(p.season, p.round);
         const orig  = rosterToTeam[p.originalRosterId] || `Team ${p.originalRosterId}`;
         const sourceLabel = p.isNatural ? 'Your pick' : `Via ${orig}`;
-        return `<tr class="ml-clickable" onclick="openTradeSuggestModalForPick('${p.season}',${p.round},window.ML_LEAGUE_ID,window.ML_MY_ROSTER_ID)" style="border-bottom:1px solid var(--border)">
+        return `<tr class="ml-clickable" onclick="openPickExposurePicker('${p.season}',${p.round})" style="border-bottom:1px solid var(--border)">
           <td class="ml-tbl-td" style="width:36px;padding-right:8px">${pickThumb()}</td>
           <td class="ml-tbl-td">
             <div class="ml-flex-wrap-row">
