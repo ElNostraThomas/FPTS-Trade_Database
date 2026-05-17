@@ -6,7 +6,7 @@
 <title>Fantasy Points Front Office — Trade Calculator</title>
 <link href="https://fonts.googleapis.com/css2?family=Kanit:ital,wght@0,400;0,700;1,800&family=Mulish:wght@400;700;900&display=swap" rel="stylesheet">
 <!-- Brand-level shared styles (loaded BEFORE inline <style> so page overrides win). -->
-<link rel="stylesheet" href="assets/css/brand.css?v=1779840000">
+<link rel="stylesheet" href="assets/css/brand.css?v=1779920000">
 <style>
   /* Brand fonts (local TTFs from Fantasy-Design-Prompt kit) override Google Fonts
      for the canonical brand weights so on-page text matches the wordmark exactly. */
@@ -186,7 +186,7 @@
   .balance-title { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:17px; color:var(--white); text-transform:uppercase; letter-spacing:.06em; }
   .balance-verdict { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:13px; padding:4px 14px; letter-spacing:.04em; }
   .balance-verdict.idle { background:transparent; border:1px solid var(--border2); color:var(--white); opacity:0.4; }
-  .balance-verdict.fair { background:rgba(255,200,0,0.12); border:1px solid rgba(255,200,0,0.4); color:#ffc800; }
+  .balance-verdict.fair { background:rgba(240,192,64,0.12); border:1px solid rgba(240,192,64,0.4); color:var(--yellow); }
   .balance-verdict.win  { background:rgba(76,175,110,0.12); border:1px solid var(--green); color:var(--green); }
   .balance-verdict.lose { background:rgba(237,129,12,0.12); border:1px solid var(--red); color:var(--red); }
   .balance-bars { display:flex; flex-direction:column; gap:10px; margin-bottom:18px; }
@@ -700,7 +700,7 @@
     background: transparent;
   }
   .focused { background: var(--surface2); }
-  .muted { color: #3a3a3a; }
+  .muted { color: var(--muted); opacity: .35; }
   .no-results { text-align: center; padding: 60px 20px; font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 18px; color: var(--white); opacity: 1; }
   .pick-tag {
     display: inline-flex;
@@ -735,7 +735,7 @@
   .risers { color: var(--green); }
   .sf    { border-color: var(--border2); color: var(--white); }
   .tep   { border-color: var(--border2); color: var(--white); }
-  .up { color: #5dcaa5; }
+  .up { color: #66dd84; }
   .fmt-label { font-family:'Mulish',sans-serif; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--white); opacity:0.55; }
   .filter-mobile-toggle { display:none; align-items:center; gap:8px; padding:10px 0; cursor:pointer; border-bottom:1px solid var(--border); margin-bottom:0; }
   .filter-mobile-toggle-label { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:12px; text-transform:uppercase; letter-spacing:.07em; color:var(--white); }
@@ -1169,7 +1169,7 @@
   .mvs-extras-diff.down { color:var(--red); }
   .mvs-vol { display:inline-block; padding:2px 8px; font-size:10px; font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; letter-spacing:.06em; text-transform:uppercase; margin-left:6px; vertical-align:middle; }
   .mvs-vol-hot  { background:var(--red); color:#111; }
-  .mvs-vol-warm { background:#e0a060; color:#111; }
+  .mvs-vol-warm { background:var(--pos-te-bg); color:#111; }
   .mvs-vol-cool { background:var(--surface2); color:var(--white); border:1px solid var(--border2); }
   .mvs-vol-cold { background:transparent; color:var(--muted); border:1px solid var(--border2); opacity:.7; }
   .mvs-foot { padding:8px 24px 14px; font-family:'Mulish',sans-serif; font-size:10px; color:var(--muted); opacity:.55; text-align:right; letter-spacing:.04em; }
@@ -1192,7 +1192,7 @@
   .mvs-t-total { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:13px; color:var(--white); border-top:1px solid var(--border); padding-top:3px; text-align:right; }
   .mvs-t-vs { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; color:var(--red); font-size:16px; align-self:center; padding-top:18px; }
 </style>
-<link rel="stylesheet" href="assets/css/mvs-extras.css?v=1778680030">
+<link rel="stylesheet" href="assets/css/mvs-extras.css?v=1779920000">
 <script src="assets/js/mvs-extras.js?v=1778642255"></script>
 <script src="assets/js/player-articles.js?v=1778680034"></script>
 <link rel="stylesheet" href="assets/css/heatmap.css?v=1778642255">
@@ -1203,7 +1203,7 @@
 <script>document.addEventListener('DOMContentLoaded', function(){ if (window.Legend) Legend.init('trade-calculator'); });</script>
 <!-- Shared player panel — DB's slide-in drawer used identically on every page -->
 <script>window.FPTS_CURRENT_PAGE = 'calc';</script>
-<link rel="stylesheet" href="assets/css/player-panel.css?v=1778680035">
+<link rel="stylesheet" href="assets/css/player-panel.css?v=1779920000">
 <!-- Team logo helpers — load BEFORE player-panel.js so modal-hero badge works. -->
 <script src="assets/js/team-helpers.js?v=1778680002"></script>
 <script src="assets/js/player-panel.js?v=1778680033" defer></script>
@@ -2395,7 +2395,7 @@ function renderBalance() {
     if (pctOff < 0.05) {
       verdictEl.textContent = '⚖ Fair Trade';
       verdictEl.className = 'balance-verdict fair';
-      diffEl.style.color = '#ffc800';
+      diffEl.style.color = 'var(--yellow)';
       diffLabel.textContent = 'Within 5% — essentially even';
     } else if (diff > 0) {
       verdictEl.textContent = `▲ Side A wins (+${Math.round(pctOff*100)}%)`;

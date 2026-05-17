@@ -56,6 +56,9 @@
         var(--red-bg-soft)       → 6% extra-subtle tint
         rgba(237,129,12, 0.20..0.55)  → stronger tint where needed (heatmap mid, alert cells)
         rgba(237,129,12, 0.60..1.00)  → saturated (heatmap peak, primary CTA)
+        ERROR / ALERT backgrounds (e.g. "Data load failed" banners) MUST use
+        var(--pos-qb-bg) (#e05252 brand vivid red — semantic alarm color
+        distinct from the dynasty orange primary accent).
 
    2. SECONDARY GREEN (background #4caf6e)
         var(--green)             → solid green (buy chips, "best" indicators)
@@ -79,6 +82,10 @@
         .trend.flat: color #ffffff
         Pair with text-shadow black stroke (see .trend rule below) for
         legibility on colored backgrounds.
+        Other "trend-up" text surfaces (.pp-value-trend.up in player-panel.css,
+        .mvs-extras-diff.up in mvs-extras.css, ad-hoc .up classes in per-page
+        MVS displays) MUST use this same #66dd84 literal so every "up"
+        indicator across the site shares the exact same brand-bright green.
 
    6. HEATMAP — per-cell intensity gradient (one hue)
         Monochrome var(--red) at varying opacity (0.06 .. 1.00)

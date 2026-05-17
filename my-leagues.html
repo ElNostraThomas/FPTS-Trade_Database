@@ -6,7 +6,7 @@
 <title>Fantasy Points Front Office — User Importer</title>
 <link href="https://fonts.googleapis.com/css2?family=Kanit:ital,wght@0,400;0,700;1,800&family=Mulish:wght@400;600;700;900&display=swap" rel="stylesheet">
 <!-- Brand-level shared styles (loaded BEFORE inline <style> so page overrides win). -->
-<link rel="stylesheet" href="assets/css/brand.css?v=1779840000">
+<link rel="stylesheet" href="assets/css/brand.css?v=1779920000">
 <style>
   /* Brand fonts (local TTFs from Fantasy-Design-Prompt kit) override Google Fonts
      for the canonical brand weights so on-page text matches the wordmark exactly. */
@@ -586,7 +586,7 @@
   .rank-card { background: var(--surface); border: 1px solid var(--border); padding: 12px 16px; margin-bottom: 6px; display: flex; align-items: center; gap: 12px; transition: border-color .15s; }
   .rank-card:hover { border-color: var(--border2); }
   .rank-num { font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 22px; color: var(--red); width: 30px; text-align: center; flex-shrink: 0; }
-  .rank-num.muted { color: #3a3a3a; }
+  .rank-num.muted { color: var(--muted); opacity: .35; }
   .rank-info { flex: 1; min-width: 0; }
   .rank-name { font-family: 'Mulish', sans-serif; font-weight: 900; font-size: 15px; color: var(--white); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .rank-sub { font-family: 'Mulish', sans-serif; font-size: 13px; color: var(--white); opacity: 1; margin-top: 2px; }
@@ -758,7 +758,7 @@
   .pp-value-val { font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 36px; color: var(--white); line-height: 1; }
   .pp-value-rank { font-family: 'Mulish', sans-serif; font-size: 12px; color: var(--white); opacity: 1; margin-top: 4px; }
   .pp-value-trend { font-size: 12px; font-weight: 700; font-family: 'Mulish', sans-serif; margin-top: 2px; color: var(--white); opacity: .55; }
-  .pp-value-trend.up { color: #5dcaa5; opacity: 1; }
+  .pp-value-trend.up { color: #66dd84; opacity: 1; }
   .pp-value-trend.down { color: var(--red); opacity: 1; }
 
   .pp-trade-stats {
@@ -2010,7 +2010,7 @@
   .mvs-extras-diff.down { color:var(--red); }
   .mvs-vol { display:inline-block; padding:2px 8px; font-size:10px; font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; letter-spacing:.06em; text-transform:uppercase; margin-left:6px; vertical-align:middle; }
   .mvs-vol-hot  { background:var(--red); color:#111; }
-  .mvs-vol-warm { background:#e0a060; color:#111; }
+  .mvs-vol-warm { background:var(--pos-te-bg); color:#111; }
   .mvs-vol-cool { background:var(--surface2); color:var(--white); border:1px solid var(--border2); }
   .mvs-vol-cold { background:transparent; color:var(--muted); border:1px solid var(--border2); opacity:.7; }
   .mvs-foot { padding:8px 24px 14px; font-family:'Mulish',sans-serif; font-size:10px; color:var(--muted); opacity:.55; text-align:right; letter-spacing:.04em; }
@@ -2033,7 +2033,7 @@
   .mvs-t-total { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:13px; color:var(--white); border-top:1px solid var(--border); padding-top:3px; text-align:right; }
   .mvs-t-vs { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; color:var(--red); font-size:16px; align-self:center; padding-top:18px; }
 </style>
-<link rel="stylesheet" href="assets/css/mvs-extras.css?v=1778680030">
+<link rel="stylesheet" href="assets/css/mvs-extras.css?v=1779920000">
 <script src="assets/js/mvs-extras.js?v=1778642255"></script>
 <script src="assets/js/player-articles.js?v=1778680034"></script>
 <link rel="stylesheet" href="assets/css/heatmap.css?v=1778642255">
@@ -2041,7 +2041,7 @@
 <link rel="stylesheet" href="assets/css/legend.css?v=1778949514">
 <script src="assets/js/legend-content.js?v=1779840000"></script>
 <script src="assets/js/legend.js?v=1778949514"></script>
-<link rel="stylesheet" href="assets/css/player-panel.css?v=1778680035">
+<link rel="stylesheet" href="assets/css/player-panel.css?v=1779920000">
 <script>window.FPTS_CURRENT_PAGE = 'ml';</script>
 <!-- Shared data layer: fetches data/*.json, populates FP_VALUES / PICK_VALUES /
      ADP_PAYLOAD / AUCTION_PAYLOAD / MVS_PAYLOAD / PLAYER_ARTICLES /
@@ -6289,7 +6289,7 @@ function renderRoster(playerIds, players, starters, myPicks, rosterToTeam, proje
   // ── Helpers ────────────────────────────────────────────────────────────
 
   function valColor(v) {
-    return v > 8000 ? 'var(--green)' : v > 5000 ? '#a8d8a0' : v > 2000 ? 'var(--white)' : v > 500 ? 'var(--muted)' : '#555';
+    return v > 8000 ? 'var(--green)' : v > 5000 ? 'var(--green)' : v > 2000 ? 'var(--white)' : v > 500 ? 'var(--muted)' : '#555';
   }
 
   function trendHtml(t) {
@@ -7556,7 +7556,7 @@ function _fptsXpageMlPepToDb() {
   function hideLoader(){ const el = document.getElementById('_fp-loading'); if (el) el.style.display = 'none'; }
   function fail(msg){
     const el = document.getElementById('_fp-loading');
-    if (el) { el.style.background = '#7a1a1a'; el.textContent = 'Data load failed — ' + msg; }
+    if (el) { el.style.background = 'var(--pos-qb-bg)'; el.textContent = 'Data load failed — ' + msg; }
     console.error('[fp-bootstrap]', msg);
   }
 

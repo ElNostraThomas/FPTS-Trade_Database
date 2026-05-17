@@ -172,7 +172,7 @@
 .pp-value-val { font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 36px; color: var(--white); line-height: 1; }
 .pp-value-rank { font-family: 'Mulish', sans-serif; font-size: 12px; color: var(--white); opacity: 1; margin-top: 4px; }
 .pp-value-trend { font-size: 12px; font-weight: 700; font-family: 'Mulish', sans-serif; margin-top: 2px; color: var(--white); opacity: .55; }
-.pp-value-trend.up { color: #5dcaa5; opacity: 1; }
+.pp-value-trend.up { color: #66dd84; opacity: 1; }
 .pp-value-trend.down { color: var(--red); opacity: 1; }
 
 /* ── Trade stats grid (legacy 4-cell row; kept for back-compat) ──────────── */
