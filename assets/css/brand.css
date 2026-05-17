@@ -45,6 +45,62 @@
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+/* ════════════════════════════════════════════════════════════════════════
+   COLOR USAGE RULE — every page must follow this hierarchy.
+   Never hardcode hex; always reference the brand vars below.
+   ════════════════════════════════════════════════════════════════════════
+
+   1. PRIMARY ACCENT (orange #ED810C)
+        var(--red)               → solid accent (active buttons, badges, sort arrows)
+        var(--red-bg)            → 10% subtle tint (row highlights, soft callouts)
+        var(--red-bg-soft)       → 6% extra-subtle tint
+        rgba(237,129,12, 0.20..0.55)  → stronger tint where needed (heatmap mid, alert cells)
+        rgba(237,129,12, 0.60..1.00)  → saturated (heatmap peak, primary CTA)
+
+   2. SECONDARY GREEN (background #4caf6e)
+        var(--green)             → solid green (buy chips, "best" indicators)
+        var(--green-bg)          → 10% subtle tint
+        rgba(76, 175, 110, 0.20..0.55) → stronger tint (paired with red-bg variants)
+        ⚠ NEVER use #66dd84 as a background — that hue is reserved for the
+        .trend.up foreground arrow color (see §5 below).
+
+   3. POSITION PILLS
+        var(--pos-{qb,rb,wr,te,k,pick}-bg)  → fills
+        var(--pos-{qb,rb,wr,te,k,pick})     → text (always dark #111 in dark mode for contrast)
+
+   4. ACTIVE BUTTON / TAB
+        Background: var(--red)
+        Text:       #111  (dark for high contrast on orange — see .icon-btn.active,
+                           .controls-btn.active in adp-tool.html:108)
+
+   5. TREND BADGE — text indicators ▲ ▼ ●
+        .trend.up:   color #66dd84      ← LITERAL EXCEPTION, foreground only
+        .trend.down: color var(--red)
+        .trend.flat: color #ffffff
+        Pair with text-shadow black stroke (see .trend rule below) for
+        legibility on colored backgrounds.
+
+   6. HEATMAP — per-cell intensity gradient (one hue)
+        Monochrome var(--red) at varying opacity (0.06 .. 1.00)
+        Reference: heatmap.css .hm-legend-bar uses
+                   rgba(237,129,12, 0.06) → rgba(237,129,12, 1.0)
+
+   7. BIPOLAR HIGHLIGHTS — per-row min/max, like analyst-cell tints
+        "Best" / lowest / improved → rgba(76, 175, 110, 0.45..0.55)  (brand green)
+        "Worst" / highest / slipped → rgba(237, 129, 12, 0.45..0.55) (brand orange)
+        Hover state: deepen each by ~0.15
+        Reference: analysts.html .an-table td.rk-min / .rk-max
+
+   8. SURFACE / BORDERS
+        Panel backgrounds:        var(--surface) (#1a1a1a)
+        Button inactive bg:       var(--surface) or var(--surface2)
+        Borders:                  var(--border) (#2a2a2a) or var(--border2) (#333)
+
+   When adding a new visual surface: pick the closest pattern above. If you
+   need something new, add a token here (do NOT inline a hex). The 5 legacy
+   pages still carry inline copies of these vars in their <style> blocks —
+   those duplicates are fine; the goal is no new drift.
+   ════════════════════════════════════════════════════════════════════════ */
 :root {
   --black: #111111; --white: #ffffff; --red: #ED810C;
   --surface: #1a1a1a; --surface2: #222222;

@@ -7,7 +7,7 @@
 
 <link href="https://fonts.googleapis.com/css2?family=Kanit:ital,wght@0,400;0,700;1,800&family=Mulish:wght@400;700;900&display=swap" rel="stylesheet">
 
-<link rel="stylesheet" href="assets/css/brand.css?v=1778680032">
+<link rel="stylesheet" href="assets/css/brand.css?v=1779680000">
 <link rel="stylesheet" href="assets/css/mvs-extras.css?v=1778680030">
 <link rel="stylesheet" href="assets/css/heatmap.css?v=1778642255">
 <link rel="stylesheet" href="assets/css/legend.css?v=1778949514">
@@ -88,13 +88,15 @@
   .an-table .col-consensus { text-align: center; font-variant-numeric: tabular-nums; font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 14px; color: var(--red); min-width: 70px; }
   .an-table .col-team { text-align: center; min-width: 40px; }
 
-  /* Heat tints: lowest rank per row = brand green (matches adp-tool .trend.up),
-     highest = dynasty orange. Saturated enough to read at-a-glance as a heatmap. */
-  .an-table td.rk-min  { background-color: rgba(102, 221, 132, 0.42); color: var(--white); }  /* #66dd84 bright green */
-  .an-table td.rk-max  { background-color: rgba(237, 129, 12, 0.55); color: var(--white); }  /* var(--red) #ED810C dynasty orange */
+  /* Heat tints: lowest rank per row = brand green (var(--green) #4caf6e),
+     highest = dynasty orange (var(--red) #ED810C). Same opacity (0.50) for
+     equal visual weight, matching the BIPOLAR HIGHLIGHTS rule documented in
+     brand.css. NEVER #66dd84 here — that hue is reserved for .trend.up text. */
+  .an-table td.rk-min  { background-color: rgba(76, 175, 110, 0.50); color: var(--white); }   /* var(--green) */
+  .an-table td.rk-max  { background-color: rgba(237, 129, 12, 0.50); color: var(--white); }   /* var(--red)   */
   .an-table td.rk-na   { color: var(--muted); }
-  .an-table tbody tr:hover td.rk-min { background-color: rgba(102, 221, 132, 0.60); }
-  .an-table tbody tr:hover td.rk-max { background-color: rgba(237, 129, 12, 0.75); }
+  .an-table tbody tr:hover td.rk-min { background-color: rgba(76, 175, 110, 0.65); }
+  .an-table tbody tr:hover td.rk-max { background-color: rgba(237, 129, 12, 0.65); }
 
   /* PLAYER NAME */
   .an-player-name { font-family: 'Mulish', sans-serif; font-weight: 900; font-size: 13px; color: var(--white); cursor: pointer; transition: color .15s; }
