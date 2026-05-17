@@ -85,10 +85,15 @@
         Reference: heatmap.css .hm-legend-bar uses
                    rgba(237,129,12, 0.06) → rgba(237,129,12, 1.0)
 
-   7. BIPOLAR HIGHLIGHTS — per-row min/max, like analyst-cell tints
-        "Best" / lowest / improved → rgba(76, 175, 110, 0.45..0.55)  (brand green)
-        "Worst" / highest / slipped → rgba(237, 129, 12, 0.45..0.55) (brand orange)
-        Hover state: deepen each by ~0.15
+   7. BIPOLAR HIGHLIGHTS — per-row min/max, like analyst-cell highlights
+        Use SOLID brand colors with dark #111 text (same standard as the
+        position pills, .icon-btn.active, and the ADP page's player cards).
+        Half-opacity tints (rgba at 0.20-0.55) over dark surfaces read as
+        muddy — avoid them for emphasis. Reserve opacity tints for SUBTLE
+        row stripes (use --green-bg / --red-bg at 10% for those).
+            "Best" / lowest / improved → background: var(--green);  color: #111
+            "Worst" / highest / slipped → background: var(--red);   color: #111
+            Hover: opacity: .92  (matches .icon-btn.active:hover)
         Reference: analysts.html .an-table td.rk-min / .rk-max
 
    8. SURFACE / BORDERS
