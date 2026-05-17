@@ -34,29 +34,81 @@
     }).join('');
   }
 
+  // Repo source link — every file:line on a tracked file can deep-link to GitHub.
+  var REPO_BLOB_URL = 'https://github.com/ElNostraThomas/FPTS-Trade_Database/blob/main/';
+  function sourceLinkHtml(location) {
+    if (!location) return '';
+    // Match "{path}:{line}" or "{path}:{startLine}-{endLine}" or "{path}" alone.
+    var m = location.match(/^([\w./\\-]+\.(?:html|js|py|css|md))(?::(\d+)(?:-(\d+))?)?$/);
+    if (!m) return '';
+    var path = m[1].replace(/\\/g, '/');
+    var line = m[2];
+    var href = REPO_BLOB_URL + path + (line ? '#L' + line : '');
+    return ' <a class="fm-src-link" href="' + esc(href) + '" target="_blank" rel="noopener" title="View source on GitHub">↗</a>';
+  }
+
+  // Provenance categories — short tag + brand color class.
+  var PROVENANCE = {
+    'hand-tuned':         { label: 'Hand-tuned',         cls: 'prov-tuned',    desc: 'Curator-set with no formal data backing.' },
+    'derived-from-data':  { label: 'Derived from data',  cls: 'prov-derived',  desc: 'Computed from a dataset (CSV, API, parquet, etc.).' },
+    'external-standard':  { label: 'External standard',  cls: 'prov-external', desc: 'Comes from an external system (Sleeper API, FantasyPoints, etc.).' },
+    'manual-curation':    { label: 'Manual curation',    cls: 'prov-manual',   desc: 'Author picks one of a fixed enum per item (e.g. tier letter, BSH tag).' },
+    'framework-default':  { label: 'Framework default',  cls: 'prov-framework',desc: 'JS / CSS convention; not a chosen value.' },
+    'unknown':            { label: 'Unknown',            cls: 'prov-unknown',  desc: 'Origin not documented in code; analyst input requested.' },
+    'site-convention':    { label: 'Site convention',    cls: 'prov-conv',     desc: 'Brand-style choice (color, sign convention, layout).' }
+  };
+  function provenanceChipHtml(prov) {
+    if (!prov) return '';
+    var p = PROVENANCE[prov.kind] || PROVENANCE['unknown'];
+    var detail = prov.detail ? ' <span class="fm-prov-detail">— ' + esc(prov.detail) + '</span>' : '';
+    return '<span class="fm-prov-chip ' + p.cls + '" title="' + esc(p.desc) + '">' + esc(p.label) + '</span>' + detail;
+  }
+
+  function relatedChipsHtml(related) {
+    if (!related || !related.length) return '';
+    return related.map(function (id) {
+      return '<a class="fm-related-chip" href="#' + esc(id) + '" '
+           +   'onclick="event.preventDefault(); formulasGoToEntry(\'' + esc(id) + '\')">'
+           + '↳ ' + esc(id) + '</a>';
+    }).join(' ');
+  }
+
   function renderEntry(e) {
     var rows = [];
-    if (e.location) rows.push(row('Location', e.location, true));
-    if (e.inputs)   rows.push(row('Inputs',   e.inputs,   false));
-    if (e.math)     rows.push(row('Math',     e.math,     'mono'));
-    if (e.output && e.output !== '—') rows.push(row('Output', e.output, false));
-    if (e.notes && e.notes !== '—')   rows.push(row('Notes',  e.notes,  false));
+    if (e.location)    rows.push(rowMono('Location', e.location + sourceLinkHtml(e.location)));
+    if (e.provenance)  rows.push(rowRaw('Source',    provenanceChipHtml(e.provenance)));
+    if (e.inputs)      rows.push(rowText('Inputs',   e.inputs));
+    if (e.math)        rows.push(rowMono('Math',     e.math, true));
+    if (e.output && e.output !== '—')         rows.push(rowText('Output',  e.output));
+    if (e.example)                            rows.push(rowMono('Example', e.example, true, 'fm-rv-example'));
+    if (e.whyThisNumber)                      rows.push(rowRaw('Why',      '<div class="fm-rv-why">' + esc(e.whyThisNumber) + '</div>'));
+    if (e.notes && e.notes !== '—')           rows.push(rowText('Notes',   e.notes));
+    if (e.related && e.related.length)        rows.push(rowRaw('Related',  relatedChipsHtml(e.related)));
     return '<div class="fm-entry" id="' + esc(e.id) + '" data-search="' + esc(buildSearchBlob(e)) + '">'
          +   '<div class="fm-entry-head">'
          +     '<div class="fm-entry-label">' + esc(e.label) + '</div>'
-         +     (e.location ? '<div class="fm-entry-loc">' + esc(e.location) + '</div>' : '')
+         +     (e.location ? '<div class="fm-entry-loc">' + esc(e.location) + sourceLinkHtml(e.location) + '</div>' : '')
          +   '</div>'
          +   '<div class="fm-rows">' + rows.join('') + '</div>'
          + '</div>';
   }
-  function row(k, v, mode) {
-    var cls = mode === 'mono' ? 'fm-rv mono' : 'fm-rv';
-    var content = mode === 'mono' ? esc(v) : esc(v);
-    return '<div class="fm-rk">' + esc(k) + '</div>'
-         + '<div class="' + cls + '">' + content + '</div>';
+  function rowText(k, v) {
+    return '<div class="fm-rk">' + esc(k) + '</div><div class="fm-rv">' + esc(v) + '</div>';
+  }
+  function rowMono(k, v, escapeText, extraClass) {
+    // For Location we want the source link to render as HTML, so the value
+    // arrives already-HTML-safe. For Math and Example we esc() the body.
+    var body = escapeText ? esc(v) : v;
+    var cls = 'fm-rv mono' + (extraClass ? ' ' + extraClass : '');
+    return '<div class="fm-rk">' + esc(k) + '</div><div class="' + cls + '">' + body + '</div>';
+  }
+  function rowRaw(k, htmlValue) {
+    return '<div class="fm-rk">' + esc(k) + '</div><div class="fm-rv">' + htmlValue + '</div>';
   }
   function buildSearchBlob(e) {
-    return [e.label, e.location, e.inputs, e.math, e.output, e.notes]
+    return [e.label, e.location, e.inputs, e.math, e.output, e.notes,
+            e.example, e.whyThisNumber,
+            e.provenance && e.provenance.detail]
       .filter(Boolean).join(' ').toLowerCase();
   }
 
@@ -199,6 +251,19 @@
   window.formulasGoTo = function (id) {
     if (history.replaceState) history.replaceState(null, '', '#' + id);
     scrollTo(id);
+  };
+
+  // Scroll to a specific entry (not a domain) — used by the related-chip links.
+  window.formulasGoToEntry = function (entryId) {
+    if (history.replaceState) history.replaceState(null, '', '#' + entryId);
+    var el = document.getElementById(entryId);
+    if (!el) return;
+    var rect = el.getBoundingClientRect();
+    var top = window.scrollY + rect.top - 80;
+    window.scrollTo({ top: top, behavior: 'smooth' });
+    // Brief flash so the user sees what landed in view.
+    el.classList.add('fm-entry-flash');
+    setTimeout(function () { el.classList.remove('fm-entry-flash'); }, 1400);
   };
 
   // Kick off

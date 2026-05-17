@@ -20,8 +20,8 @@
 <script src="assets/js/legend.js?v=1778949514"></script>
 
 <!-- Page content (structured data + renderer) -->
-<script src="assets/js/formulas-content.js?v=1779999990"></script>
-<script src="assets/js/formulas.js?v=1779999990" defer></script>
+<script src="assets/js/formulas-content.js?v=1778994886"></script>
+<script src="assets/js/formulas.js?v=1778994886" defer></script>
 
 <style>
   /* ════════════════════════════════════════════════════════════════════════
@@ -162,6 +162,71 @@
     font-size: 12px; background: var(--black); padding: 10px 12px;
     white-space: pre; overflow-x: auto; border-left: 2px solid var(--red);
     color: var(--white); opacity: 1;
+  }
+
+  /* GitHub source link (next to file:line) */
+  .fm-src-link {
+    display: inline-block; margin-left: 6px;
+    color: var(--red); text-decoration: none; font-size: 11px; opacity: .75;
+    transition: opacity .15s;
+  }
+  .fm-src-link:hover { opacity: 1; text-decoration: underline; }
+
+  /* Provenance chip (Source row) */
+  .fm-prov-chip {
+    display: inline-block; padding: 2px 9px; border-radius: 3px;
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 10px; text-transform: uppercase; letter-spacing: .07em;
+    color: #111;
+  }
+  .fm-prov-chip.prov-tuned     { background: var(--yellow); }
+  .fm-prov-chip.prov-derived   { background: var(--pos-rb-bg); }   /* green */
+  .fm-prov-chip.prov-external  { background: var(--pos-wr-bg); }   /* blue */
+  .fm-prov-chip.prov-manual    { background: var(--pos-pick-bg); } /* lavender */
+  .fm-prov-chip.prov-framework { background: var(--muted); color: #111; }
+  .fm-prov-chip.prov-unknown   { background: var(--pos-qb-bg); color: var(--white); }   /* vivid red — needs attention */
+  .fm-prov-chip.prov-conv      { background: var(--pos-te-bg); }   /* orange */
+  .fm-prov-detail {
+    font-family: 'Mulish', sans-serif; font-weight: 400; font-style: normal;
+    font-size: 12px; color: var(--white); opacity: .85; letter-spacing: 0;
+    text-transform: none; margin-left: 4px;
+  }
+
+  /* Example block — same as math, but tinted background to distinguish */
+  .fm-rv-example {
+    border-left-color: var(--pos-rb-bg) !important;
+    background: rgba(76,175,110,0.05) !important;
+  }
+
+  /* "Why this number?" callout — yellow accent for heuristic/magic-number context */
+  .fm-rv-why {
+    background: rgba(240,192,64,0.08);
+    border-left: 2px solid var(--yellow);
+    padding: 10px 12px;
+    font-family: 'Mulish', sans-serif; font-size: 13px;
+    color: var(--white); opacity: .95; line-height: 1.55;
+  }
+
+  /* Related-entry chips (cross-links) */
+  .fm-related-chip {
+    display: inline-block; margin-right: 6px; margin-bottom: 4px;
+    padding: 3px 9px; background: var(--surface2);
+    border: 1px solid var(--border2); border-radius: 3px;
+    font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+    font-size: 11px; color: var(--white); opacity: .85;
+    text-decoration: none; transition: all .15s;
+  }
+  .fm-related-chip:hover {
+    border-color: var(--red); color: var(--red); opacity: 1;
+  }
+
+  /* Brief flash when an entry is scrolled to via a related-chip click */
+  .fm-entry.fm-entry-flash {
+    animation: fm-flash 1.4s ease-out;
+  }
+  @keyframes fm-flash {
+    0%   { background: rgba(237,129,12,0.20); }
+    100% { background: transparent; }
   }
 
   /* EMPTY STATE (search hit nothing) */

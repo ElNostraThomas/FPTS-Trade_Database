@@ -8,6 +8,26 @@
 > **Last full audit:** 2026-05-17 (post commit `e456540`)
 > **Format:** each entry has `Inputs`, `Math` (verbatim from source), `Output`, `Notes`.
 > When the code has a known heuristic or unexplained constant, it's called out in `Notes`.
+>
+> ## Live companion page
+>
+> A user-facing version of this catalog lives at **`formulas.html`** on the site
+> (top-nav link "Formulas"). The live page adds, for every entry:
+> - **Provenance chip** — `Hand-tuned`, `Derived from data`, `External standard`,
+>   `Manual curation`, `Site convention`, or `Unknown — analyst input requested`.
+> - **Concrete worked example** — input → math → output trace.
+> - **"View source on GitHub" deep-link** from every file:line.
+> - **Related-entry cross-links** — clickable chips that scroll to each connected
+>   formula (so you can follow the data flow: e.g. `getMultiplier` ↔ `adjVal` ↔
+>   `_pickNumericValue`).
+> - **"Why this number?" callout** for every magic-number and open-heuristic entry,
+>   with the actual reasoning where it can be verified or
+>   `Analyst input requested` where it can't.
+> - **Live search** across label / location / inputs / math / notes.
+>
+> The live page reads from `assets/js/formulas-content.js`. When a formula changes,
+> update **both** this markdown file AND `formulas-content.js` — they're kept in
+> sync manually.
 
 ---
 
