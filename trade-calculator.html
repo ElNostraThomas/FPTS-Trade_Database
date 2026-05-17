@@ -2240,10 +2240,16 @@ function _calcTep()    {
 function _calcPpr()    { return parseFloat(_calcFmt('f-ppr',    'fmt-ppr',    '1')); }
 function _calcPasstd() { return parseInt(_calcFmt('f-passtd', 'fmt-passtd', '4'), 10); }
 
-// Pick-value extractor: data/picks.json stores each pick as
-// { value, valueSf, valueTep } (value = 1QB baseline). Older payloads may
-// have stored a flat number — handle both. SF/TEP picked off the current
-// format selectors so picks scale like players when the user flips QB/TEP.
+// Pick-value extractor — handles three record shapes that flow into PICK_VALUES:
+//   • data/picks.json  (sync-fp.py, 2025 only):  { value, valueSf, valueTep }
+//     `value` is the 1QB baseline; no separate value1qb field.
+//   • data/mvs.json    (sync-mvs.py, 2026-28):   { value, valueSf, value1qb, valueTep, label }
+//     `value` is whatever fmt was active at sync (≈ valueSf); value1qb is the
+//     authoritative 1QB number, and valueTep is aliased to valueSf (no real
+//     TEP data for MVS picks).
+//   • legacy flat-number records (very old payloads).
+// SF / TEP / 1QB picked off the visible calc format inputs so picks scale
+// when the user flips a filter.
 function _pickNumericValue(rec) {
   if (rec == null) return 0;
   if (typeof rec === 'number') return rec;
@@ -2252,7 +2258,25 @@ function _pickNumericValue(rec) {
   const isTep = _calcTep() > 0;
   if (isTep && rec.valueTep != null) return Number(rec.valueTep) || 0;
   if (isSf  && rec.valueSf  != null) return Number(rec.valueSf)  || 0;
+  // 1QB mode — prefer the dedicated value1qb (MVS shape) and only fall back
+  // to .value when the record doesn't ship one (picks.json shape, where
+  // .value IS the 1QB baseline).
+  if (rec.value1qb != null) return Number(rec.value1qb) || 0;
   return Number(rec.value) || 0;
+}
+
+// Derive a canonical PICK_VALUES key from an asset name. Handles the two
+// label shapes the rest of the app emits: "2026 1.02" (getAllAssets) and
+// "2026 Pick 1.02" / "2026 1st" (handoff payloads + the hardcoded
+// SLEEPER_IDS dict). Returns null if the name doesn't parse — caller falls
+// back to the frozen asset.value.
+function _derivePickKey(name) {
+  if (!name) return null;
+  let m = name.match(/^(\d{4})\s+(?:Pick\s+)?(\d+)\.(\d+)$/i);
+  if (m) return `${m[1]}-${parseInt(m[2],10)}.${String(parseInt(m[3],10)).padStart(2,'0')}`;
+  m = name.match(/^(\d{4})\s+(\d+)(?:st|nd|rd|th)$/i);
+  if (m) return `${m[1]}-${parseInt(m[2],10)}`;
+  return null;
 }
 
 function getAllAssets() {
@@ -2304,9 +2328,14 @@ function getMultiplier(pos) {
 
 function adjVal(asset) {
   if (asset.type === 'pick') {
-    // Re-pull live so flipping fmt-qb / fmt-tep updates already-added picks.
-    if (asset.pickKey && PICK_VALUES[asset.pickKey]) {
-      return Math.round(_pickNumericValue(PICK_VALUES[asset.pickKey]));
+    // Re-pull live so flipping the format inputs updates already-added picks.
+    // Prefer the stored pickKey (set by getAllAssets at search time); fall
+    // back to deriving one from the asset name so handoff'd / legacy picks
+    // that never carried a pickKey still re-price live.
+    let key = asset.pickKey;
+    if (!key || !PICK_VALUES[key]) key = _derivePickKey(asset.name);
+    if (key && PICK_VALUES[key]) {
+      return Math.round(_pickNumericValue(PICK_VALUES[key]));
     }
     return Math.round(Number(asset.value) || 0);
   }
