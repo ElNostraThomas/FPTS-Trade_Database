@@ -2415,7 +2415,7 @@ function renderBalance() {
     verdictEl.textContent = pctOff < 0.05 ? '⚖ Balanced' : `▲ ${sorted[0].label} leads`;
     verdictEl.className = 'balance-verdict ' + (pctOff < 0.05 ? 'fair' : 'win');
     diffEl.textContent = gap.toLocaleString();
-    diffEl.style.color = '#ffc800';
+    diffEl.style.color = 'var(--yellow)';
     diffEl.style.opacity = '1';
     diffLabel.textContent = `${sorted[0].label} over ${sorted[1].label}`;
   }
