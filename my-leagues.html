@@ -1144,6 +1144,12 @@
   .ml-chip { font-family:'Mulish',sans-serif; font-weight:700; font-size:11px;
     padding:3px 10px; border:1px solid var(--border2); color:var(--white); opacity:.7; }
   /* Standings */
+  /* Sort by button bar — brand palette only (no grey tokens) */
+  .ml-standings-sort { display:flex; align-items:center; gap:6px; margin-bottom:16px; flex-wrap:wrap; }
+  .ml-standings-sort-label { font-family:'Mulish',sans-serif; font-weight:700; font-size:10px; text-transform:uppercase; letter-spacing:.07em; color:var(--white); opacity:.5; margin-right:4px; }
+  .ml-standings-sort-btn { background:transparent; border:1px solid var(--white); font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:11px; color:var(--white); padding:5px 14px; cursor:pointer; opacity:.5; transition:all .15s; }
+  .ml-standings-sort-btn:hover { opacity:.85; }
+  .ml-standings-sort-btn.active { border-color:var(--red); color:var(--red); opacity:1; }
   .ml-standings-table { width:100%; border-collapse:collapse; }
   .ml-standings-table th { font-family:'Mulish',sans-serif; font-weight:700; font-size:10px;
     text-transform:uppercase; letter-spacing:.07em; color:var(--muted); opacity:.45;
@@ -1190,10 +1196,11 @@
   .ml-section-toggle-btn.active { opacity:1; color:var(--red); border-bottom-color:var(--red); }
   /* Waivers — leaderboard table */
   .ml-wv-table { width:100%; border-collapse:collapse; font-family:'Mulish',sans-serif; font-size:12px; }
-  .ml-wv-table th { padding:10px 8px; text-align:left; font-family:'Mulish',sans-serif; font-weight:700; font-size:10px; text-transform:uppercase; letter-spacing:.07em; color:var(--muted); opacity:.5; border-bottom:1px solid var(--border2); white-space:nowrap; }
-  .ml-wv-table td { padding:10px 8px; border-bottom:1px solid var(--border); vertical-align:middle; }
+  .ml-wv-table th { padding:10px 8px; text-align:center; font-family:'Mulish',sans-serif; font-weight:700; font-size:10px; text-transform:uppercase; letter-spacing:.07em; color:var(--muted); opacity:.5; border-bottom:1px solid var(--border2); white-space:nowrap; }
+  .ml-wv-table td { padding:10px 8px; border-bottom:1px solid var(--border); vertical-align:middle; text-align:center; }
   .ml-wv-table tr.me { background:rgba(237,129,12,0.08); }
-  .ml-wv-table .num { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; color:var(--white); }
+  .ml-wv-table .num { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; color:var(--white); text-align:center; }
+  .ml-wv-table th:nth-child(2), .ml-wv-table td:nth-child(2) { text-align:left; }
   .ml-wv-bar-cell { width:140px; }
   .ml-wv-bar-track { width:100%; height:6px; background:var(--surface); position:relative; overflow:hidden; }
   .ml-wv-bar-fill { height:100%; background:var(--yellow); transition:width .3s; }
@@ -1937,12 +1944,12 @@
   .trend.down { color:var(--red); }
   .trend.flat { color:#ffffff; }
   .pos-pill { display:inline-block; padding:3px 9px; font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:11px; letter-spacing:.04em; }
-  .pos-pill.QB { background:var(--pos-qb-bg); color:var(--pos-qb); }
-  .pos-pill.RB { background:var(--pos-rb-bg); color:var(--pos-rb); }
-  .pos-pill.WR { background:var(--pos-wr-bg); color:var(--pos-wr); }
-  .pos-pill.TE { background:var(--pos-te-bg); color:var(--pos-te); }
-  .pos-pill.K  { background:var(--pos-k-bg);  color:var(--pos-k); }
-  .pos-pill.DEF, .pos-pill.PICK { background:var(--pos-pick-bg); color:var(--pos-pick); }
+  .pos-pill.QB { background:var(--pos-qb-bg); color:var(--white); }
+  .pos-pill.RB { background:var(--pos-rb-bg); color:var(--white); }
+  .pos-pill.WR { background:var(--pos-wr-bg); color:var(--white); }
+  .pos-pill.TE { background:var(--pos-te-bg); color:var(--white); }
+  .pos-pill.K  { background:var(--pos-k-bg);  color:var(--white); }
+  .pos-pill.DEF, .pos-pill.PICK { background:var(--pos-pick-bg); color:var(--white); }
   .team-pill { display:inline-block; padding:3px 8px; background:var(--surface2); border:1px solid var(--border2); font-family:'Mulish',sans-serif; font-weight:700; font-size:10px; letter-spacing:.05em; color:var(--white); }
 
   /* ============================================================
@@ -2100,44 +2107,58 @@
      standings table. Per-row dynamic styling (color/opacity bound to data)
      still rides on a residual inline style="..." next to the class=. */
   body.fpts-ml-page .ml-tbl-th {
-    padding: 6px 12px 8px 0;
+    padding: 6px 6px 8px 6px;
     font-family: 'Mulish', sans-serif; font-weight: 700; font-size: 10px;
     text-transform: uppercase; letter-spacing: .07em;
     color: var(--muted); opacity: .45;
     border-bottom: 1px solid var(--border2);
-    text-align: left; white-space: nowrap;
+    text-align: center; white-space: nowrap;
   }
   body.fpts-ml-page .ml-tbl-td {
-    padding: 9px 12px 9px 0;
+    padding: 9px 6px;
     border-bottom: 1px solid var(--border);
     vertical-align: middle;
+    text-align: center;
   }
   body.fpts-ml-page .ml-tbl-num {
-    padding: 9px 12px 9px 0;
+    padding: 9px 6px;
     border-bottom: 1px solid var(--border);
     vertical-align: middle;
     font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
     font-size: 14px;
+    text-align: center;
+  }
+  body.fpts-ml-page .ml-tbl-th:nth-child(1),
+  body.fpts-ml-page .ml-tbl-th:nth-child(2),
+  body.fpts-ml-page .ml-tbl-td:nth-child(1),
+  body.fpts-ml-page .ml-tbl-td:nth-child(2) {
+    text-align: left;
   }
   body.fpts-ml-page .ml-tbl-th-tight {
-    padding: 6px 10px 8px 0;
+    padding: 6px 5px 8px 5px;
     font-family: 'Mulish', sans-serif; font-weight: 700; font-size: 10px;
     text-transform: uppercase; letter-spacing: .07em;
     color: var(--muted); opacity: .45;
     border-bottom: 1px solid var(--border2);
-    text-align: left; white-space: nowrap;
+    text-align: center; white-space: nowrap;
   }
   body.fpts-ml-page .ml-tbl-td-tight {
-    padding: 9px 10px 9px 0;
+    padding: 9px 5px;
     border-bottom: 1px solid var(--border);
     vertical-align: middle;
+    text-align: center;
   }
   body.fpts-ml-page .ml-tbl-num-tight {
-    padding: 9px 10px 9px 0;
+    padding: 9px 5px;
     border-bottom: 1px solid var(--border);
     vertical-align: middle;
     font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
     font-size: 13px;
+    text-align: center;
+  }
+  body.fpts-ml-page .ml-tbl-th-tight:nth-child(2),
+  body.fpts-ml-page .ml-tbl-td-tight:nth-child(2) {
+    text-align: left;
   }
 
   /* ── Utility classes (Phase A.2 of inline-style cleanup) ──
@@ -5242,6 +5263,7 @@ function renderExpandedLeagueContent(leagueId, bodyEl) {
       <div class="ml-section-toggle" id="ml-history-toggle-${leagueId}">
         <button class="ml-section-toggle-btn active" data-mode="trades" onclick="mlHistorySetMode('${leagueId}','trades')">Trade History</button>
         <button class="ml-section-toggle-btn" data-mode="waivers" onclick="mlHistorySetMode('${leagueId}','waivers')">Waivers</button>
+        <button class="ml-section-toggle-btn" data-mode="standings" onclick="mlHistorySetMode('${leagueId}','standings')">Standings</button>
       </div>
       <div class="ml-history-tabs" id="${tradeYearTabsId}"></div>
       <div class="ml-spinner" id="trades-loading-${leagueId}" style="display:none">
@@ -6563,8 +6585,8 @@ async function loadAllTrades(leagueId, season) {
 // WAIVERS UI — top-level toggle, sub-tab management, 4 sub-views
 // ════════════════════════════════════════════════════════════════════════════
 
-// Per-league state: which top-level mode is active (trades or waivers) + which waivers sub-tab
-window.ML_HISTORY_MODE = window.ML_HISTORY_MODE || {};       // leagueId -> 'trades' | 'waivers'
+// Per-league state: which top-level mode is active (trades / waivers / standings) + which waivers sub-tab
+window.ML_HISTORY_MODE = window.ML_HISTORY_MODE || {};       // leagueId -> 'trades' | 'waivers' | 'standings'
 window.ML_WAIVERS_SUBTAB = window.ML_WAIVERS_SUBTAB || {};   // leagueId -> 'leaderboard'|'topbids'|'recent'|'byteam'
 window.ML_WAIVERS_RAW = window.ML_WAIVERS_RAW || {};         // leagueId -> { transactions, league, rosterToTeam, users, players }
 
@@ -6609,6 +6631,29 @@ async function mlHistorySetMode(leagueId, mode) {
     }
     await mlEnsureWaiversRaw(leagueId);
     renderWaiversSubtab(leagueId, 'leaderboard');
+  } else if (mode === 'standings') {
+    // Standings has no sub-tabs — clear the year/sub-tab row
+    const tabsEl = document.getElementById(`ml-trade-year-tabs-${leagueId}`);
+    if (tabsEl) tabsEl.innerHTML = '';
+    // Inject the DOM scaffolding loadStandings expects (it reads these by ID).
+    // IDs are intentionally unscoped because only one league dashboard's standings
+    // view is active at a time; if you ever need multi-league concurrent standings,
+    // refactor loadStandings/renderStandingsTable/mlSetStandingsSort to take a
+    // container element instead of getElementById.
+    const contentEl = document.getElementById(`trades-content-${leagueId}`);
+    if (contentEl) {
+      contentEl.innerHTML = `
+        <div id="standings-section-meta" class="ml-section-meta" style="margin-bottom:12px"></div>
+        <div class="ml-spinner" id="standings-loading" style="display:none">
+          <div class="ml-spinner-dot"></div>
+          <div class="ml-spinner-dot"></div>
+          <div class="ml-spinner-dot"></div>
+          <span class="ml-spinner-text">Loading standings...</span>
+        </div>
+        <div id="standings-content"></div>
+      `;
+    }
+    await loadStandings(leagueId);
   }
 }
 
@@ -7163,6 +7208,48 @@ async function loadStandings(leagueId) {
       });
     });
 
+    // ── Optimal-lineup simulation: per-position contribution to Max PF ────
+    // For each week, walk the league's lineup-slot config in order; for each
+    // starter slot, pick the highest-scoring unassigned roster player eligible
+    // for that slot. Sum the points by the player's actual position (a WR
+    // filling FLEX still counts as WR). Result: rosterMaxByPos[rid] = points
+    // that the optimal lineup contributed at each of QB / RB / WR / TE.
+    // K and DEF slots are skipped because the user wants a 4-position view.
+    const SLOT_ELIGIBILITY = {
+      QB: ['QB'], RB: ['RB'], WR: ['WR'], TE: ['TE'],
+      FLEX:       ['RB', 'WR', 'TE'],
+      SUPER_FLEX: ['QB', 'RB', 'WR', 'TE'],
+      REC_FLEX:   ['WR', 'TE'],
+      WRRB_FLEX:  ['WR', 'RB'],
+      WRRB:       ['WR', 'RB'],
+    };
+    const rosterPositions = league.roster_positions || [];
+    const rosterMaxByPos = {}; // rid -> { QB:0, RB:0, WR:0, TE:0 }
+    allMatchupWeeks.forEach(weekData => {
+      if (!Array.isArray(weekData)) return;
+      weekData.forEach(team => {
+        const rid = team.roster_id;
+        if (!rosterMaxByPos[rid]) rosterMaxByPos[rid] = {QB:0, RB:0, WR:0, TE:0};
+        // Sort eligible (QB/RB/WR/TE) players by points scored this week
+        const teamPlayers = Object.entries(team.players_points || {})
+          .filter(([, pts]) => pts > 0)
+          .map(([pid, pts]) => ({ pid, pts, pos: players[pid]?.position || null }))
+          .filter(p => p.pos && rosterMaxByPos[rid].hasOwnProperty(p.pos))
+          .sort((a, b) => b.pts - a.pts);
+        // Greedy assignment: walk slots in order, take best eligible unassigned
+        const assigned = new Set();
+        for (const slot of rosterPositions) {
+          const eligible = SLOT_ELIGIBILITY[slot];
+          if (!eligible) continue; // BN, IR, TAXI, K, DEF, IDP_FLEX — skip
+          const player = teamPlayers.find(p => !assigned.has(p.pid) && eligible.includes(p.pos));
+          if (player) {
+            assigned.add(player.pid);
+            rosterMaxByPos[rid][player.pos] += player.pts;
+          }
+        }
+      });
+    });
+
     // ── Build value + scoring data for every roster ───────────────────────
     const rosterValues = rosters.map(r => {
       const u      = users.find(u => u.user_id === r.owner_id);
@@ -7185,6 +7272,18 @@ async function loadStandings(leagueId) {
 
       // Fantasy scoring by position (from matchup data)
       const posScore = rosterPosScoring[r.roster_id] || {QB:0, RB:0, WR:0, TE:0};
+
+      // Per-position MPX% = what share of this team's optimal-lineup ceiling
+      // came from each position group. Normalized so the 4 percentages sum to
+      // 100 (any K/DEF contribution is excluded from the denominator).
+      const maxByPos = rosterMaxByPos[r.roster_id] || {QB:0, RB:0, WR:0, TE:0};
+      const maxByPosSum = maxByPos.QB + maxByPos.RB + maxByPos.WR + maxByPos.TE;
+      const mpxByPos = maxByPosSum > 0 ? {
+        QB: Math.round(maxByPos.QB / maxByPosSum * 100),
+        RB: Math.round(maxByPos.RB / maxByPosSum * 100),
+        WR: Math.round(maxByPos.WR / maxByPosSum * 100),
+        TE: Math.round(maxByPos.TE / maxByPosSum * 100),
+      } : null;
 
       // Top scoring position
       const topScoringPos = Object.entries(posScore).reduce(
@@ -7213,7 +7312,7 @@ async function loadStandings(leagueId) {
       (r.players || []).forEach(pid => { projTotal += (+_seasonProj[pid] || 0); });
 
       return { roster_id: r.roster_id, name, avatar, isMe, wins, losses, ties,
-               pf, maxPts, mpxPct, total, posVals, posScore, topScoringPos, avgAge,
+               pf, maxPts, mpxPct, mpxByPos, total, posVals, posScore, topScoringPos, avgAge,
                pickValue: pickValueTotal, projTotal };
     });
 
@@ -7267,7 +7366,7 @@ async function loadStandings(leagueId) {
               const myScore   = myTeam.posScore[pos];
               const scoreColor = scoreRank <= 3 ? 'var(--green)' : scoreRank <= Math.ceil(total/2) ? 'var(--white)' : 'var(--red)';
               return `<div style="background:var(--surface2);border:1px solid var(--border);padding:12px 14px;border-left:3px solid ${posColors[pos]}">
-                <div style="font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:11px;color:${posColors[pos]};text-transform:uppercase;margin-bottom:6px">${pos}</div>
+                <div style="margin-bottom:6px"><span class="pos-pill ${pos}">${pos}</span></div>
                 <div style="display:flex;gap:12px;align-items:flex-end">
                   <div>
                     <div style="font-family:'Mulish',sans-serif;font-size:9px;color:var(--muted);opacity:.4;text-transform:uppercase;letter-spacing:.06em">Value Rank</div>
@@ -7278,6 +7377,11 @@ async function loadStandings(leagueId) {
                     <div style="font-family:'Mulish',sans-serif;font-size:9px;color:var(--muted);opacity:.4;text-transform:uppercase;letter-spacing:.06em">Pts Rank</div>
                     <div style="font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:22px;color:${scoreColor}">#${scoreRank}</div>
                     <div class="ml-kanit-mute-11">${myScore.toFixed(1)}</div>
+                  </div>` : ''}
+                  ${myTeam.mpxByPos ? `<div style="border-left:1px solid var(--border2);padding-left:12px">
+                    <div style="font-family:'Mulish',sans-serif;font-size:9px;color:var(--muted);opacity:.4;text-transform:uppercase;letter-spacing:.06em">MPX %</div>
+                    <div style="font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:22px;color:var(--white)">${myTeam.mpxByPos[pos]}%</div>
+                    <div class="ml-kanit-mute-11">of Max PF</div>
                   </div>` : ''}
                 </div>
                 <div style="font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);opacity:.35;margin-top:4px">of ${total} teams</div>
@@ -7374,7 +7478,7 @@ function renderStandingsTable() {
       <td class="ml-tbl-num-tight" style="color:${posColors.TE}">${r.posVals.TE.toLocaleString()}</td>
       <td class="ml-tbl-num-tight" style="color:var(--green)">${r.wins}-${r.losses}${r.ties?`-${r.ties}`:''}</td>
       <td class="ml-tbl-num-tight" style="color:var(--white);opacity:.5">${r.pf}</td>
-      <td class="ml-tbl-num-tight" style="color:${r.mpxPct >= 90 ? 'var(--green)' : r.mpxPct >= 75 ? 'var(--white)' : r.mpxPct ? 'var(--red)' : 'var(--muted)'}">${r.mpxPct ? r.mpxPct+'%' : '—'}</td>
+      <td class="ml-tbl-num-tight" style="color:var(--white);opacity:.5">${r.maxPts || '—'}</td>
     </tr>`;
   }).join('');
 
@@ -7387,13 +7491,13 @@ function renderStandingsTable() {
           <th class="ml-tbl-th-tight">Team</th>
           <th class="ml-tbl-th-tight">Total</th>
           <th class="ml-tbl-th-tight">Avg Age</th>
-          <th class="ml-tbl-th-tight" style="color:${posColors.QB}">QB</th>
-          <th class="ml-tbl-th-tight" style="color:${posColors.RB}">RB</th>
-          <th class="ml-tbl-th-tight" style="color:${posColors.WR}">WR</th>
-          <th class="ml-tbl-th-tight" style="color:${posColors.TE}">TE</th>
+          <th class="ml-tbl-th-tight"><span class="pos-pill QB">QB</span></th>
+          <th class="ml-tbl-th-tight"><span class="pos-pill RB">RB</span></th>
+          <th class="ml-tbl-th-tight"><span class="pos-pill WR">WR</span></th>
+          <th class="ml-tbl-th-tight"><span class="pos-pill TE">TE</span></th>
           <th class="ml-tbl-th-tight">W-L</th>
           <th class="ml-tbl-th-tight">PF</th>
-          <th class="ml-tbl-th-tight">MPX%</th>
+          <th class="ml-tbl-th-tight">Max PF</th>
         </tr></thead>
         <tbody>${valueRows}</tbody>
       </table>
