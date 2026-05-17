@@ -598,8 +598,16 @@
     }
 
     // Fetch years-of-experience from Sleeper.
+    // Async guard: capture the player this render is for, and bail in any
+    // late-arriving .then if the user has since switched players. Without
+    // this, fetches kicked off for player A could write A's years_exp into
+    // player B's DOM after the user compared/switched.
     if (sleeperId) {
+      const targetName = playerName;
+      const isStillActive = () => global._currentPanelPlayer
+        && global._currentPanelPlayer.label === targetName;
       const setExp = (yoe) => {
+        if (!isStillActive()) return;
         const expEl = document.getElementById('pp-exp-val');
         if (!expEl || yoe === null || yoe === undefined) return;
         expEl.textContent = yoe === 0 ? 'Rookie' : `${yoe} yr${yoe !== 1 ? 's' : ''}`;
@@ -1336,7 +1344,15 @@
         .then(d => d || tryFetch(`https://api.sleeper.app/v1/stats/nfl/player/${sleeperId}?season_type=regular&season=${yr}&grouping=season`))
     );
 
+    // Capture the player this render is for; bail at resolution time if the
+    // user switched to a different compared player while fetches were in
+    // flight. Without this, a slow Sleeper response for player A would
+    // overwrite player B's stats tab once the user has already swapped tabs.
+    const targetName = name;
+
     Promise.all(fetches).then(results => {
+      const active = global._currentPanelPlayer;
+      if (!active || active.label !== targetName) return;
       const yearStats = {};
       results.forEach((data, i) => {
         if (!data) return;
@@ -1431,6 +1447,8 @@
           </table>
         </div>`;
     }).catch(() => {
+      const active = global._currentPanelPlayer;
+      if (!active || active.label !== targetName) return;
       el.innerHTML = `<div style="padding:24px;text-align:center;font-family:'Mulish',sans-serif;font-size:13px;color:var(--muted);opacity:.5">Error loading stats</div>`;
     });
   }
