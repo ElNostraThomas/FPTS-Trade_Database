@@ -1,8 +1,9 @@
 # Fantasy Points Front Office — Session Handoff
 
 A static fantasy-football site deployed via GitHub Pages from `main`.
-**Five HTML pages, all live and shipping:** `index.html` (trade DB),
-`trade-calculator.html`, `tiers.html`, `adp-tool.html`, `my-leagues.html`.
+**Seven HTML pages, all live and shipping:** `index.html` (trade DB),
+`trade-calculator.html`, `tiers.html`, `adp-tool.html`, `my-leagues.html`,
+`rankings.html`, `formulas.html`.
 
 Full operator manual: [`docs/WORKFLOW.md`](docs/WORKFLOW.md).
 Session-by-session changelog: [`docs/CHANGES.md`](docs/CHANGES.md).
@@ -10,7 +11,39 @@ This file is the **resume-where-we-left-off** doc.
 
 ---
 
-## Where we are (end of 2026-05-16 late-evening session)
+## Where we are (end of 2026-05-17 session)
+
+**The site is now 7 pages, not 6.** New `formulas.html` (top-nav "Formulas") catalogs every formula / threshold / heuristic on the site for data-analyst hand-off. Also: 11 trade-calculator + player-panel bug fixes shipped in a single session.
+
+**1. New Formulas page (formulas.html).** Site-wide catalog of 56 entries across 14 sections — trade values, player signals, age curve, tiers, team archetypes, trade suggester, lineup optimizer, ADP heatmap, rankings/analysts, sync pipeline + magic-numbers glossary + 14 open heuristics flagged for analyst review. Each entry has:
+- File:line with "View source on GitHub" deep-link
+- Provenance chip (Hand-tuned / Derived from data / External standard / Manual curation / Site convention / Unknown — analyst input requested)
+- Verbatim math in monospace block
+- Concrete worked example (input → math → output trace) in green-tinted block
+- Cross-link chips to related entries (click → smooth-scroll + flash)
+- "Why this number?" yellow callout on magic-numbers + heuristics with the actual reasoning or "Analyst input requested"
+- Sticky TOC sidebar with scroll-spy + live search bar
+
+Source-of-truth pair: `docs/FORMULAS.md` (markdown handoff artifact) + `assets/js/formulas-content.js` (structured data driving the page). Both must update together on any formula change — discipline documented in `CLAUDE.md`.
+
+**2. Calc page bug-fix arc (11 commits).** User testing surfaced a chain of issues:
+- Compare-player async-race in shared drawer (Sleeper stats showed the same for both compared players) — `c164944`
+- Pick value object-shape mismatch breaking trade calc (picks displayed `[object Object]`, sort broken, totals NaN) — `2e3b797`
+- `PICK_VALUES` never reached calc page (page-local `let` shadowed `window.PICK_VALUES`) — `0adea20`
+- Format toggle didn't re-render per-row asset values — `36d7ffd`
+- Reset All Filters + presets silently dying due to missing `#pick-tags` element — `8017154`
+- Visible filters never drove calc values (calc math read hidden `fmt-*` selectors, not visible `f-*`) — `50a3b14`
+- 2026-2028 picks invisible (MVS shape value1qb field unread; legacy/handoff picks had no pickKey) — `1677df9`
+- Cross-page handoff to calc silently dropping trade payload (`tradeState` variable didn't exist) — `4a6a9d4`
+- 149 lines of dead code removed from trade-calc — `e456540`
+
+See [`docs/CHANGES.md`](docs/CHANGES.md) 2026-05-17 for full per-commit detail.
+
+**3. CLAUDE.md extended.** Now documents both the panel async-guard pattern AND the FORMULAS.md ↔ formulas-content.js dual-file sync rule.
+
+---
+
+## Where we were (end of 2026-05-16 late-evening session)
 
 **The site is now 6 pages, not 5.** New dedicated `rankings.html` shipped
 plus a brand-color standardization pass across every page.
@@ -489,6 +522,19 @@ for the `fpts:data-ready` event.
 
 Nothing structural. Polish / nice-to-haves only:
 
+- [x] ~~**Formulas page + analyst hand-off doc**~~ — shipped 2026-05-17.
+  New `formulas.html` (top-nav "Formulas") catalogs 56 entries across
+  14 sections with provenance / examples / cross-links / "why this
+  number" callouts. Markdown companion at `docs/FORMULAS.md`. 14 open
+  heuristics flagged for analyst review. Source-of-truth pair —
+  `docs/FORMULAS.md` + `assets/js/formulas-content.js` — must stay
+  in sync; rule documented in `CLAUDE.md`.
+- [x] ~~**Trade calculator pick-handling overhaul**~~ — shipped 2026-05-17.
+  11-commit bug arc: compare-player async race, pick value object
+  shape, PICK_VALUES window mirror, format toggle re-render, Reset
+  All Filters / presets null-guard, visible filters drive calc,
+  2026-2028 picks lit up, cross-page handoff fix, 149 lines of dead
+  code removed. See `docs/CHANGES.md` 2026-05-17.
 - [x] ~~**Rankings page + Analysts comparison merged into one page**~~ —
   shipped 2026-05-16 (late evening). New `rankings.html` replaces the
   external Rankings nav link. Two modes (Consensus / By Analyst) via
@@ -551,54 +597,47 @@ Nothing structural. Polish / nice-to-haves only:
 Paste this as the first message:
 
 ```
-Read README.md for current state. End-of-2026-05-16 late-evening:
-- RANKINGS PAGE SHIPPED (rankings.html). Replaces external FantasyPoints
-  link in every page's nav. Two top-level modes via underline tabs:
-  CONSENSUS (12-col table per analyst+format combo with ADP overlays,
-  format toggle SF/SF+TEP/1QB/1QB+TEP) and BY ANALYST (8-col side-by-side
-  comparison per position with bipolar heat tints — solid var(--green)
-  for lowest rank per row, solid var(--red) for highest, #111 text).
-  STATE.mode persisted, URL hash #mode=analyst supported. Manifest-
-  driven; missing combos render disabled. Currently ships Overall ×
-  {1qb, sf, 1qb-tep}; SF+TEP awaits CSV. By Analyst ships 5 analysts
-  (Ryan/Theo/John/Andy/Thomas) × 4 positions.
-- SHARED MODULE adp-comparator.js extracted from tiers.html. Provides
-  calendar popup + YEAR_CACHE + MONTH_INDEX + _ensureYearLoaded +
-  changeChipHtml + renderTriggerHtml. Tiers and rankings both consume
-  it via window.AdpComparator.init({storageKey, onChange}). Independent
-  state per page (fpts-tiers-compare-month vs fpts-rankings-compare-
-  month). tiers.html shrunk by ~310 lines from this refactor.
-- analysts.html was briefly shipped as standalone, then MERGED INTO
-  rankings.html. File deleted. Only one "Rankings" nav link site-wide.
-- BRAND COLOR RULE documented in brand.css COLOR USAGE RULE comment
-  block (above :root). 8 categories. Enforced by scripts/check-colors.py
-  — exhaustive sweep, exit 0 = clean, exit 1 = drift with file:line.
-  Run before every push.bat. Currently CLEAN across 21 files. When
-  adding a brand color, extend BRAND_HEXES + LEGIT_RGBA_RGB in the
-  script.
-- tiers.html had its own muted palette (--green: #1a8754 forest vs
-  brand #4caf6e), now normalized. All position pills + tier badges +
-  buy/sell chips match brand bright across every page.
-- TIERS ADP COMPARISON FEATURE (prior session) intact, now uses shared
-  comparator. Calendar UX preserved exactly.
-- Legend dev-grade with formula/inputs/output/example/codeRef blocks.
-  ~195 items, 41+ sections. Rankings legend has a new "Mode Tabs
-  (Consensus / By Analyst)" sub-section.
-- Cache tokens (this session): brand.css?v=1779920000,
-  mvs-extras.css?v=1779920000, player-panel.css?v=1779920000,
-  legend-content.js?v=1779840000, adp-comparator.js?v=1779360001.
-- Mobile Round 2 (2026-05-15), pick modal cross-league exposure picker,
-  ADP source tabs (Dynasty Startup / Rookie), sync-adp rookie+heatmap,
-  season auto-detection, site-wide headshot fallback rule, trade-chip
-  rule — all intact from prior sessions.
+Read README.md for current state. End-of-2026-05-17:
+- FORMULAS PAGE SHIPPED (formulas.html). New top-nav page that catalogs
+  every formula / threshold / heuristic on the site (56 entries across
+  14 sections). Each entry has file:line + GitHub source deep-link +
+  provenance chip + verbatim math + worked example + related cross-links
+  + (for heuristics) "why this number" callout with reasoning or
+  "Analyst input requested". Sticky TOC, live search, scroll-spy.
+  Source-of-truth pair: docs/FORMULAS.md (markdown handoff) +
+  assets/js/formulas-content.js (drives the page). CLAUDE.md documents
+  that both files MUST update together on any formula change.
+- TRADE CALC BUG-FIX ARC (11 commits 2026-05-17). Compare-player async
+  race in shared drawer fixed. Pick handling overhauled across 6
+  commits — picks now search, sort, display, total correctly across
+  all years (2025 via picks.json, 2026-28 via mvs.json overlay) and
+  formats (1QB/SF/TEP). Reset All Filters + presets now actually work
+  (renderPickTags null-guard). Visible f-* filters now actually drive
+  calc values (previously read hidden fmt-* selectors). Cross-page
+  handoff to calc fixed (was referencing nonexistent tradeState var).
+  149 lines of dead code removed from trade-calc (tradeSearchInput,
+  buildPickSlots, etc. — UIs that were removed in earlier refactors).
+- CLAUDE.md extended. Now documents: panel async-guard pattern (entries
+  in shared drawer must capture target player + bail in .then if
+  switched), formulas dual-file sync rule, cache-bump rule for shared
+  module changes across all 7 pages + page-template.
+- All 7 pages now have "Formulas" in nav strip + mobile select.
+- Cache tokens (this session): player-panel.js?v=1778985630,
+  formulas-content.js?v=1778994886, formulas.js?v=1778994886.
+- Color audit CLEAN across 24 files (added formulas.html + 2 JS modules).
+- RANKINGS PAGE (rankings.html, prior session) intact. Replaces external
+  FantasyPoints link. Two modes (Consensus / By Analyst). Brand color
+  standardization (prior session) intact across all 7 pages.
 
 Confirm by running `git log --oneline -20`.
 
 Punch list top: SF+TEP CSV when ready (drop into data/source/rankings/
 overall-sf-tep.csv + add config entry + run sync-rankings.py — the
-toggle auto-enables). Legend Phase B (~30 partial-coverage entries) +
-Phase C (consistency pass). 1QB scrape expansion. Migrate remaining 3
-pages (adp-tool, my-leagues, index) to data-bootstrap.js.
+toggle auto-enables). Migrate remaining 3 pages (adp-tool, my-leagues,
+index) to data-bootstrap.js. 1QB scrape expansion. Analyst feedback
+loop: 14 heuristics in formulas.html flagged "Analyst input requested"
+— refine constants when analyst returns recommendations and update
+both docs/FORMULAS.md AND assets/js/formulas-content.js.
 ```
 
 If `data/*.json` is stale: run `push.bat` (handles all five sync steps +
@@ -624,13 +663,14 @@ Full reference: `docs/WORKFLOW.md`.
 
 ## File map
 
-### Pages (6 live)
+### Pages (7 live)
 - **`index.html`** — trade database (largest, ~7000 lines; use Grep/offsets, never read in full)
 - **`trade-calculator.html`** — trade value calculator
 - **`tiers.html`** — dynasty trade tiers (uses `adp-comparator.js` for Previous-ADP calendar)
 - **`adp-tool.html`** — ADP Tool (Box/List/heatmap views)
 - **`my-leagues.html`** — Sleeper user/league importer (accordion player drawer)
 - **`rankings.html`** — dynasty rankings with two modes (Consensus / By Analyst). Replaces the prior external FantasyPoints Rankings link. Uses `adp-comparator.js`.
+- **`formulas.html`** — site-wide formula + calculation catalog (56 entries, 14 sections). Data-analyst hand-off + developer reference. Driven by `assets/js/formulas-content.js`. Companion doc: `docs/FORMULAS.md`.
 
 ### Shared modules (under `assets/`)
 - **`assets/css/brand.css`** — canonical brand variables, fonts, top nav, position pills, page chrome, **125% body zoom**. Contains the **COLOR USAGE RULE** comment block at the top (above `:root`). Source of truth for new pages via the scaffold; 5 existing pages still inline-duplicate this CSS — all now mirror brand values exactly after the 2026-05-16 normalization.
@@ -642,6 +682,7 @@ Full reference: `docs/WORKFLOW.md`.
 - **`assets/js/player-articles.js`** — shared articles section (banner-style)
 - **`assets/css/heatmap.css`** + **`assets/js/heatmap.js`** — ADP pick-availability heatmap (with "Data refreshed" stamp)
 - **`assets/css/legend.css`** + **`assets/js/legend.js`** + **`legend-content.js`** — in-app developer legend drawer. The header comment block of `legend-content.js` is the canonical **design vocabulary** glossary.
+- **`assets/js/formulas-content.js`** + **`assets/js/formulas.js`** — drives the Formulas page (`formulas.html`). 56-entry structured catalog with provenance / examples / cross-links / "why this number" callouts. Renderer auto-generates GitHub source deep-links from every file:line. Source-of-truth pair with `docs/FORMULAS.md` — keep both in sync on any formula change (see `CLAUDE.md`).
 
 ### Quality tools (tracked)
 - **`scripts/check-colors.py`** — exhaustive brand-color audit. Run `python scripts/check-colors.py` before every `push.bat`. Exit 0 = clean, exit 1 = drift with file:line. See `docs/WORKFLOW.md` for usage + extension points.
@@ -664,7 +705,9 @@ Full reference: `docs/WORKFLOW.md`.
 ### Docs
 - **`docs/WORKFLOW.md`** — full operator manual
 - **`docs/CHANGES.md`** — session-by-session changelog
+- **`docs/FORMULAS.md`** — site-wide formula + calculation catalog (analyst hand-off). Live companion: `formulas.html`. Maintain in sync with `assets/js/formulas-content.js`.
 - **`docs/function-reference.html`** + **`.pdf`** — printable function reference
+- **`CLAUDE.md`** — per-project conventions for future Claude Code sessions (panel async-guard pattern, formulas dual-file sync, cache-bump rule for shared modules)
 
 ---
 

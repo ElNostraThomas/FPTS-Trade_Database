@@ -6,6 +6,55 @@ the operator manual see [`WORKFLOW.md`](WORKFLOW.md).
 
 ---
 
+## 2026-05-17 — Calc bug-fix arc + Formulas page (12 commits)
+
+Two distinct shipments in one session: a chain of fixes that unblocked the trade calculator after a user found multiple bugs while testing, then a brand-new Formulas page that catalogs every formula on the site for data-analyst hand-off.
+
+### 1. Compare-player async-race fix (`c164944`)
+
+User found that comparing two players in the shared drawer was showing the same Sleeper stats for both. Root cause: `renderPlayerStats` in `assets/js/player-panel.js` fires 6 Sleeper season fetches in parallel — when the user swapped players mid-load, late-arriving responses for player A clobbered player B's stats container. Same race in the years-of-experience fetch.
+
+Fix: capture the target player at call time, bail in any `.then` / `.catch` if `global._currentPanelPlayer.label !== targetName`. Pattern documented in `CLAUDE.md` for future panel tabs. Cache bump `player-panel.js?v=1778985630` across all 6 pages + page-template.
+
+### 2. Trade calculator pick-handling overhaul (8 commits, `2e3b797` … `1677df9`)
+
+User found: "you can't search draft picks in the trade calculators". Investigation surfaced **five stacked bugs**, fixed one at a time:
+
+- **Pick value object shape mismatch** (`2e3b797`): `getAllAssets` was treating `PICK_VALUES[key]` as a flat number, but data/picks.json ships `{value, valueSf, valueTep}` objects. Added `_pickNumericValue(rec)` extractor + `_derivePickKey(name)` parser; `addAssetToSide` now stores `pickKey` so format toggles re-resolve picks live.
+- **PICK_VALUES never reached calc page** (`0adea20`): calc's `let PICK_VALUES = {}` was never mirrored to `window`, so `data-bootstrap.js` populated a different object. Zero picks ever appeared in search. Added the missing mirror.
+- **Format toggle didn't re-render rows** (`36d7ffd`): `onchange="recalc()"` only updated bottom totals, not per-row asset displays. Switched to `renderAll()`.
+- **Reset All Filters + presets silently dying** (`8017154`): `renderPickTags()` threw a TypeError on the missing `#pick-tags` element (legacy UI removed). The throw killed `applyFilters()` mid-execution → chip bar never refreshed. One null-guard fixed both Reset and Presets.
+- **Visible filters never drove calc values** (`50a3b14`): the page has two sets of format selectors. The visible `f-*` filters at top filter trade history; the calc-value `fmt-*` selectors are `display:none`. All calc math read from the hidden set. Wired `_calcFmt(visibleId, hiddenId, default)` helper through `getMultiplier` and `_pickNumericValue` so visible filters drive the calc.
+- **2026-2028 picks invisible** (`1677df9`): `data/mvs.json` ships 60 picks for 2026/27/28 and `data-bootstrap.js` already merged them into `PICK_VALUES` — but `_pickNumericValue` didn't know about MVS shape's `value1qb` field, and `adjVal` only re-resolved picks with a stored `pickKey`. Added value1qb branch + `_derivePickKey` fallback for legacy/handoff picks.
+
+### 3. Cross-page handoff bug fix (`4a6a9d4`)
+
+Trade calculator's `_fptsCalcCurrentTrade` and DOMContentLoaded restore handler both referenced a nonexistent `tradeState` variable. Page state actually lives in `sides[]`. All 6 references guarded by `typeof tradeState !== 'undefined'` (always false) so they silently no-op'd. Effects: "Open in Calculator" from My Leagues dropped the trade payload; "Open in Database/My Leagues/ADP" from calc shipped empty sides. Renamed to walk the `sides` array properly; preserved `pickKey` end-to-end.
+
+### 4. Dead code cleanup (`e456540`)
+
+149 lines removed from `trade-calculator.html`: `tradeSearchInput`, `tradeSearchKey`, `tradeSearchAdd`, `clearMainSearch`, `removeTradeSearchAsset`, `highlightMatch`, `showTab` (combined trade-history search bar — UI was removed in an earlier refactor, JS forgotten), plus `buildPickSlots` / `addPick` / `removePick` (legacy pick-builder). Several had latent bugs (`a.label` on assets with only `a.name`; null-pointer on `#pb-round`) that try/catch had been swallowing.
+
+### 5. New Formulas page (3 commits, `df68e8c` … `f8cd9a0`)
+
+User asked for a site-wide inventory of every formula / threshold / heuristic, suitable for hand-off to data analysts:
+
+- **`df68e8c`**: `docs/FORMULAS.md` — 1317-line markdown catalog. 56 entries across 12 domains + magic-numbers glossary + 14 open heuristics flagged for analyst review. Each entry has file:line, verbatim math, inputs, output, notes.
+- **`b2c08d8`**: `formulas.html` + `assets/js/formulas-content.js` + `assets/js/formulas.js`. New top-nav page (added "Formulas" link to all 7 pages — 6 existing + page-template). Sticky TOC sidebar + search bar + per-domain cards. Search across label / location / inputs / math / notes; sticky-scroll active TOC link tracks the section in viewport.
+- **`f8cd9a0`**: enriched every entry with 4 new fields — `provenance` (categorized origin chip with brand color: Hand-tuned / Derived from data / External standard / Manual curation / Site convention / Unknown — analyst input requested), `example` (concrete worked input → output trace in green-tinted block), `related` (cross-link chips that smooth-scroll to connected entries with brief flash), `whyThisNumber` (yellow-tinted callout on magic-numbers + heuristics with actual reasoning or "Analyst input requested" where origin can't be verified). Plus a "View source on GitHub" deep-link from every file:line.
+
+Maintenance discipline added to `CLAUDE.md`: any formula change must update both `docs/FORMULAS.md` AND `assets/js/formulas-content.js` in the same commit. No drift-detector script for this — manual.
+
+### Files touched this session
+
+- 7 commits to `trade-calculator.html` (pick-handling overhaul + handoff fix + dead code)
+- 1 commit to `assets/js/player-panel.js` + 6 cache bumps for the async-race fix
+- 3 commits creating new files: `docs/FORMULAS.md`, `formulas.html`, `assets/js/formulas-content.js`, `assets/js/formulas.js`
+- 7 nav-link updates (each existing page + page-template for "Formulas" link)
+- `CLAUDE.md` extended with formulas dual-file sync rule
+
+---
+
 ## 2026-05-16 (late evening) — Rankings page + Analysts comparison + brand color audit
 
 Massive session, 13 commits. Three distinct major shipments + an enforcement tool, all landing in one push window.

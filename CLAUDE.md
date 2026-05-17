@@ -38,4 +38,23 @@ function renderSomething(containerId, player) {
 
 **One-time page-init fetches** (e.g. `loadPlayerArticles()` in `index.html:1546`) are also safe — they populate a global once, and per-render reads are synchronous.
 
-**Cache bump:** any change to `player-panel.js` requires bumping `?v=...` on the `<script src>` tag in all 6 pages (index, trade-calculator, tiers, adp-tool, my-leagues, rankings) plus `templates/page-template.html`. Browsers cache the file hard and won't pick up changes otherwise.
+**Cache bump:** any change to `player-panel.js` requires bumping `?v=...` on the `<script src>` tag in all 7 pages (index, trade-calculator, tiers, adp-tool, my-leagues, rankings, formulas) plus `templates/page-template.html`. Browsers cache the file hard and won't pick up changes otherwise.
+
+---
+
+## Formulas catalog: keep `docs/FORMULAS.md` and `assets/js/formulas-content.js` in sync
+
+The site has a user-facing **Formulas page** (`formulas.html`) and a markdown handoff doc (`docs/FORMULAS.md`). They contain the same 56-entry catalog of formulas / thresholds / heuristics but in different formats — the markdown is the static analyst-handoff artifact, the JS structured data drives the live page.
+
+**The rule:** any change to a formula, threshold, multiplier, or heuristic in the codebase must update **both files** in the same commit:
+- `docs/FORMULAS.md` — markdown entry with file:line, verbatim math, notes
+- `assets/js/formulas-content.js` — structured JS entry with the same fields plus `provenance`, `example`, `related`, and (for heuristics) `whyThisNumber`
+
+Header comments in both files repeat this rule. There is no audit script that enforces drift between them — it's manual discipline.
+
+When adding a new formula entry to `formulas-content.js`, also:
+- Pick the correct `provenance.kind` from the list at the top of the file
+- Add `related` cross-links both directions (if entry X depends on Y, list Y in X.related AND X in Y.related)
+- For heuristics (hand-tuned constants), add `whyThisNumber` with the actual reasoning or the literal string "Analyst input requested" if origin is undocumented
+
+The renderer (`assets/js/formulas.js`) auto-generates a "View source on GitHub" deep-link from every `location: 'file:line'` value, so the link stays valid as long as the file:line is correct.
