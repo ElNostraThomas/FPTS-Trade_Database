@@ -88,6 +88,7 @@ LEGIT_RGBA_RGB = {
     (76, 175, 110),    # --green
     (102, 221, 132),   # #66dd84 trend-up (rgba form, in case)
     (240, 192, 64),    # --yellow
+    (232, 115, 42),    # --orange (tiers-specific buy/sell variant)
     (224, 82, 82),     # --pos-qb-bg
     (91, 155, 213),    # --pos-wr-bg
     (224, 154, 48),    # --pos-te-bg
