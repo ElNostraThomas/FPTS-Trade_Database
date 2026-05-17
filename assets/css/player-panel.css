@@ -204,7 +204,7 @@
 .tf-sides { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
 .tf-side { background: var(--surface); border: 1px solid var(--border); padding: 12px; }
 .tf-side-label { font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 11px; color: var(--white); opacity: 1; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 8px; }
-.tf-side-val { font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 26px; color: var(--white); line-height: 1; }
+.tf-side-val { font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 26px; color: var(--white); line-height: 1; text-align: center; }
 .tf-asset-list { display: flex; flex-direction: column; gap: 5px; margin-top: 8px; }
 .tf-asset {
   display: flex; align-items: center; gap: 8px;

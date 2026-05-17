@@ -1417,11 +1417,20 @@
 
       const cols = colDefs[pos] || colDefs.WR;
 
-      const thStyle = `padding:6px 12px 8px 0;font-family:'Mulish',sans-serif;font-weight:700;font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);opacity:.45;border-bottom:1px solid var(--border2);text-align:left;white-space:nowrap;`;
-      const tdStyle = `padding:10px 12px 10px 0;font-family:'Mulish',sans-serif;font-size:13px;border-bottom:1px solid var(--border);vertical-align:middle;`;
+      // Inline style constants for the weekly stats table.
+      // Year column is the "name-like" left-aligned anchor; all numeric
+      // columns center per the site-wide alignment rule. Muted-header text
+      // uses rgba alpha (not opacity:) so the alpha doesn't compound to
+      // any future child element with its own color.
+      const _thBase = `padding:6px 6px 8px 6px;font-family:'Mulish',sans-serif;font-weight:700;font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:rgba(255,255,255,0.45);border-bottom:1px solid var(--border2);white-space:nowrap;`;
+      const thStyle     = `${_thBase}text-align:center;`;
+      const thStyleName = `${_thBase}text-align:left;padding-left:0;`;
+      const _tdBase = `padding:10px 6px;font-family:'Mulish',sans-serif;font-size:13px;border-bottom:1px solid var(--border);vertical-align:middle;`;
+      const tdStyle = `${_tdBase}text-align:center;`;
       const tdNum   = `${tdStyle}font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:14px;`;
+      const tdName  = `${_tdBase}text-align:left;padding-left:0;font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:14px;color:var(--red);`;
 
-      const headers = ['Year'].concat(cols.map(c => c.label)).map(h => `<th style="${thStyle}">${h}</th>`).join('');
+      const headers = `<th style="${thStyleName}">Year</th>` + cols.map(c => `<th style="${thStyle}">${c.label}</th>`).join('');
 
       const rows = Object.entries(yearStats)
         .sort((a, b) => b[0].localeCompare(a[0]))
@@ -1432,7 +1441,7 @@
             return `<td style="${tdNum}color:var(--white)">${val}</td>`;
           }).join('');
           return `<tr>
-            <td style="${tdStyle}font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:14px;color:var(--red)">${yr}</td>
+            <td style="${tdName}">${yr}</td>
             ${cells}
           </tr>`;
         }).join('');
