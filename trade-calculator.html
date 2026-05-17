@@ -3112,31 +3112,47 @@ function _fptsXpageCalcToAdp() {
   _fptsWriteHandoff({ source: 'calc', primaryPlayer: primary }, 'adp-tool.html');
 }
 function _fptsCalcCurrentTrade() {
-  try {
-    if (typeof tradeState !== 'undefined') {
-      const map = (a) => ({ name: a.name || a.label, pos: a.pos || (a.posKey || 'WR'), value: a.value || 0, type: a.type || 'player' });
-      return {
-        sideA: (tradeState.sideA || []).map(map),
-        sideB: (tradeState.sideB || []).map(map),
-      };
-    }
-  } catch(e) {}
-  return { sideA: [], sideB: [] };
+  // Reads the current state of Side A / Side B into the cross-page handoff
+  // shape ({ sideA: [...], sideB: [...] }). Page state lives in `sides` —
+  // an array of { id, label, assets, faab }. The old version referenced a
+  // nonexistent `tradeState` variable, so the handoff payload always
+  // shipped empty sides; "Open in Database / My Leagues / ADP" from the
+  // calc page silently dropped the trade context.
+  if (!Array.isArray(sides)) return { sideA: [], sideB: [] };
+  const map = (a) => ({
+    name:    a.name || a.label,
+    pos:     a.pos  || (a.posKey || 'WR'),
+    value:   a.value || 0,
+    type:    a.type || 'player',
+    pickKey: a.pickKey,
+  });
+  const sideA = (sides.find(s => s.id === 'A')?.assets || []).map(map);
+  const sideB = (sides.find(s => s.id === 'B')?.assets || []).map(map);
+  return { sideA, sideB };
 }
 window.addEventListener('DOMContentLoaded', () => {
+  // Cross-page handoff restore. The 200ms delay gives the bootstrap and any
+  // late `window.X = X` mirroring time to settle before we write into the
+  // sides array (and before renderAll fires its row-build pass). pickKey
+  // is preserved so adjVal can re-resolve format-aware values on the picks
+  // we hand off — without it, picks stay frozen at handoff-time value.
   const ho = _fptsReadHandoff();
   if (!ho || !ho.trade) return;
   setTimeout(() => {
     try {
-      if (typeof tradeState !== 'undefined') {
-        if (ho.trade.sideA && ho.trade.sideA.length) {
-          tradeState.sideA = ho.trade.sideA.map(a => ({ name: a.name, pos: a.pos, value: a.value, type: a.type || 'player' }));
-        }
-        if (ho.trade.sideB && ho.trade.sideB.length) {
-          tradeState.sideB = ho.trade.sideB.map(a => ({ name: a.name, pos: a.pos, value: a.value, type: a.type || 'player' }));
-        }
-        if (typeof renderAll === 'function') renderAll();
-      }
+      if (!Array.isArray(sides)) return;
+      const sideA = sides.find(s => s.id === 'A');
+      const sideB = sides.find(s => s.id === 'B');
+      const map = (a) => ({
+        name:    a.name,
+        pos:     a.pos,
+        value:   a.value,
+        type:    a.type || 'player',
+        pickKey: a.pickKey,
+      });
+      if (sideA && ho.trade.sideA && ho.trade.sideA.length) sideA.assets = ho.trade.sideA.map(map);
+      if (sideB && ho.trade.sideB && ho.trade.sideB.length) sideB.assets = ho.trade.sideB.map(map);
+      if (typeof renderAll === 'function') renderAll();
     } catch(e) { console.warn('handoff apply failed:', e); }
   }, 200);
 });
