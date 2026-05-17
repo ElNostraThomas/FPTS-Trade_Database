@@ -424,3 +424,20 @@ If FantasyPoints rebrands to "Dynasty Points", the only change needed is:
 | Dry-run TAT upload | `python import-tat.py --dry-run` |
 | Service-account email | `python import-tat.py --whoami` |
 | Rebuild PDF only | `powershell -NoProfile -ExecutionPolicy Bypass -File make-pdf.ps1` |
+| Audit colors against brand rule | `python scripts/check-colors.py` |
+
+### `scripts/check-colors.py` — brand color audit
+
+Exhaustive sweep that catches off-brand color drift across every `.html` /
+`.css` / `.js` file in the repo. Walks every hex + rgba/rgb in every CSS
+property value and JS color string, ignores `:root` declarations + SVG fills
++ legitimate non-chromatic uses (black shadows, white highlights, brand-RGB
+rgba tints, gray fallbacks), and reports anything that survives those
+filters.
+
+Exit code 0 = clean, exit code 1 = drift found (with `file:line` + offending
+value + suggested context). Recommended pre-push step before `push.bat` to
+catch any new drift before it ships. Authoritative brand palette lives in
+`assets/css/brand.css`'s COLOR USAGE RULE comment block — when adding a new
+brand color there, also extend `BRAND_HEXES` / `LEGIT_RGBA_RGB` at the top
+of `scripts/check-colors.py`.
