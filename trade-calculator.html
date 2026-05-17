@@ -2633,7 +2633,6 @@ document.addEventListener('fpts:data-ready', () => {
   // Each init may not exist on every build; catch individually so a single
   // broken init doesn't block the loader from hiding.
   try { if (typeof applyFilters === 'function') applyFilters(); } catch(e) { console.warn('[fp-bootstrap] applyFilters skipped:', e.message); }
-  try { if (typeof buildPickSlots === 'function') buildPickSlots(); } catch(e) { console.warn('[fp-bootstrap] buildPickSlots skipped:', e.message); }
   try { if (typeof renderAll === 'function') renderAll(); } catch(e) { console.warn('[fp-bootstrap] renderAll skipped:', e.message); }
   const _ld = document.getElementById('_fp-loading');
   if (_ld) _ld.style.display = 'none';
@@ -2683,39 +2682,6 @@ function toggleTheme() {
 
 
 // ── Filter Functions (from index.html) ──────────────────────
-
-function buildPickSlots() {
-  const round = document.getElementById("pb-round").value;
-  const sel = document.getElementById("pb-slot");
-  sel.innerHTML = '<option value="all">Any slot</option>';
-  for(let i=1; i<=14; i++) {
-    const opt = document.createElement("option");
-    opt.value = i;
-    opt.textContent = `${round}.${String(i).padStart(2,"0")}`;
-    sel.appendChild(opt);
-  }
-}
-
-function addPick() {
-  const year  = document.getElementById("pb-year").value;
-  const round = parseInt(document.getElementById("pb-round").value);
-  const slotEl = document.getElementById("pb-slot");
-  const slot  = slotEl.value === "all" ? null : parseInt(slotEl.value);
-  const label = slot
-    ? `${year} ${round}.${String(slot).padStart(2,"0")}`
-    : `${year} Rd${round}`;
-  const key = `${year}-${round}-${slot||"any"}`;
-  if(selectedPicks.find(p=>p.key===key)) return;
-  selectedPicks.push({ year, round, slot, label, key });
-  renderPickTags();
-  applyFilters();
-}
-
-function removePick(key) {
-  selectedPicks = selectedPicks.filter(p=>p.key!==key);
-  renderPickTags();
-  applyFilters();
-}
 
 function applyFilters() {
   const fqb    = document.getElementById("f-qb").value;
@@ -2858,91 +2824,6 @@ function resetFilters() {
   applyFilters();
 }
 
-function tradeSearchInput(side, val) {
-  const resultsEl = document.getElementById(`search-results-${side}`);
-  if(!val.trim()) { resultsEl.classList.remove("open"); resultsEl.innerHTML=""; return; }
-  const q = val.toLowerCase().trim();
-  const used = [...tradeSearch.a, ...tradeSearch.b].map(x=>x.key);
-  const rows = [], seen = new Set();
-  const ordinals = [["1st",1],["2nd",2],["3rd",3],["4th",4]];
-  ["2025","2026","2027","2028"].forEach(year => {
-    ordinals.forEach(([ord,round]) => {
-      const label=`${year} ${ord}`;
-      if(label.toLowerCase().includes(q)&&!seen.has(label)){
-        seen.add(label);
-        const cnt=TRADES.reduce((s,t)=>s+t.picks.filter(p=>p.year===year&&p.round===round).length,0);
-        rows.push({label,type:"pick",key:`pick-yr:${year}-r${round}`,count:cnt,ktc:"All slots"});
-      }
-    });
-  });
-  getAllAssets().filter(a=>a.type==="pick").forEach(a=>{
-    if(a.label.toLowerCase().includes(q)&&!seen.has(a.label)){
-      seen.add(a.label);
-      let cnt=TRADES.reduce((s,t)=>s+t.picks.filter(p=>`${p.year} ${p.round}${p.slot?"."+String(p.slot).padStart(2,"0"):""}`===a.label).length,0);
-      rows.push({label:a.label,type:"pick",key:`pick:${a.label}`,count:cnt,ktc:a.value?a.value.toLocaleString():"—"});
-    }
-  });
-  const pCounts={};
-  TRADES.forEach(t=>t.players.forEach(p=>{if(!pCounts[p.name])pCounts[p.name]={name:p.name,pos:p.pos,count:0};pCounts[p.name].count++;}));
-  let players=Object.values(pCounts).filter(p=>p.name.toLowerCase().includes(q)).sort((a,b)=>b.count-a.count).slice(0,6);
-  if(players.length<6){
-    const tr=new Set(Object.keys(pCounts));
-    // First try FP_VALUES
-    Object.entries(FP_VALUES).filter(([n])=>!tr.has(n)&&n.toLowerCase().includes(q)).slice(0,6-players.length).forEach(([n,d])=>{const pos=(d.posRank||"").replace(/\d+$/,"")||"?";players.push({name:n,pos,count:0});});
-    // Then KNOWN_PLAYERS
-    if(players.length<6){
-      const already=new Set([...Object.keys(pCounts),...Object.keys(FP_VALUES),...players.map(p=>p.name)]);
-      KNOWN_PLAYERS.filter(p=>!already.has(p.name)&&p.name.toLowerCase().includes(q)).slice(0,6-players.length).forEach(p=>players.push({name:p.name,pos:p.pos,count:0}));
-    }
-  }
-  players.forEach(p=>{if(!seen.has(p.name)){seen.add(p.name);rows.push({label:p.name,type:"player",key:`player:${p.name}`,count:p.count,pos:p.pos,ktc:FP_VALUES[p.name]?.value?.toLocaleString()||"—"});}});
-  const fr=rows.filter(r=>!used.includes(r.key)).slice(0,8);
-  if(!fr.length){
-    resultsEl.innerHTML=`<div class="main-search-no-results">No results matching "${val}"</div>`;
-    resultsEl.classList.add("open");
-    return;
-  }
-  resultsEl.innerHTML=fr.map((r,i)=>`
-    <div class="main-search-result${i===0?" focused":""}"
-      onclick="tradeSearchAdd('${side}','${r.label.replace(/'/g,"\\'")}','${r.type}','${r.key.replace(/'/g,"\\'")}','${(r.pos||"").replace(/'/g,"\\'")}')"
-      onmouseover="this.parentNode.querySelectorAll('.main-search-result').forEach(e=>e.classList.remove('focused'));this.classList.add('focused')">
-      ${r.type==="pick"?`<span class="pick-badge" style="font-size:11px;padding:2px 8px;flex-shrink:0">${r.label}</span>`:_imgThumb(r.label,24)+`<span class="pos-badge ${pc(r.pos)}">${r.pos}</span>`}
-      <span class="main-search-result-name">${highlightMatch(r.label,val)}</span>
-      <span class="main-search-result-meta">${r.ktc}</span>
-      <span class="main-search-result-count">${r.count>0?r.count+" trade"+(r.count!==1?"s":""):"No trades yet"}</span>
-    </div>`).join("");
-  resultsEl.classList.add("open");
-}
-
-function tradeSearchKey(e, side) {
-  const drop=document.getElementById(`search-results-${side}`);
-  const items=[...drop.querySelectorAll(".main-search-result")];
-  const focused=drop.querySelector(".main-search-result.focused");
-  const idx=items.indexOf(focused);
-  if(e.key==="ArrowDown"){e.preventDefault();const n=items[idx+1]||items[0];items.forEach(i=>i.classList.remove("focused"));if(n)n.classList.add("focused");}
-  else if(e.key==="ArrowUp"){e.preventDefault();const p=items[idx-1]||items[items.length-1];items.forEach(i=>i.classList.remove("focused"));if(p)p.classList.add("focused");}
-  else if(e.key==="Enter"){const f=drop.querySelector(".main-search-result.focused");if(f)f.dispatchEvent(new MouseEvent("mousedown"));}
-  else if(e.key==="Escape"){drop.classList.remove("open");}
-}
-
-function tradeSearchAdd(side, label, type, key, pos) {
-  if(!tradeSearch[side].find(x=>x.key===key)) tradeSearch[side].push({label,type,key,pos});
-  document.getElementById(`search-${side}`).value="";
-  const drop=document.getElementById(`search-results-${side}`);
-  drop.classList.remove("open"); drop.innerHTML="";
-  renderTradeSideTags(side);
-  applyFilters();
-  if(typeof showTab === "function" && document.getElementById("tab-recent")) showTab("recent");
-  // If player has no trades at all, show friendly message
-  if(type==="player" && !TRADES.some(t=>t.players.some(p=>p.name===label))) {
-    const _tabRecent = document.getElementById("tab-recent"); if(_tabRecent) _tabRecent.innerHTML=
-      `<div style="padding:40px 0;text-align:center">
-        <div style="font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:20px;color:var(--white);opacity:1;margin-bottom:8px">No trades found for ${label}</div>
-        <div style="font-family:'Mulish',sans-serif;font-size:13px;color:var(--white);opacity:1">This player hasn't appeared in any trades in the current dataset</div>
-      </div>`;
-  }
-}
-
 function renderPickTags() {
   // #pick-tags belonged to the legacy pick-builder UI (pb-year / pb-round /
   // pb-slot) which has since been removed from the DOM. The function is still
@@ -2984,29 +2865,8 @@ function renderTradeSideTags(side) {
 
 function renderAssetFilterTags(){renderTradeSideTags("a");renderTradeSideTags("b");}
 
-function clearMainSearch() {
-  ["a","b"].forEach(s=>{
-    tradeSearch[s]=[];
-    const inp=document.getElementById(`search-${s}`);
-    if(inp) inp.value="";
-    const drop=document.getElementById(`search-results-${s}`);
-    if(drop){drop.classList.remove("open");drop.innerHTML="";}
-    const tags=document.getElementById(`search-tags-${s}`);
-    if(tags) tags.innerHTML="";
-  });
-  const bar = document.getElementById("player-filter-bar");
-  if (bar) bar.style.display="none";
-  applyFilters();
-}
-
 function getSelectedPicks() { return selectedPicks; }
 
-
-function highlightMatch(name, query) {
-  const idx=name.toLowerCase().indexOf(query.toLowerCase());
-  if(idx===-1) return name;
-  return name.slice(0,idx)+`<span style="color:var(--red);font-weight:900">${name.slice(idx,idx+query.length)}</span>`+name.slice(idx+query.length);
-}
 
 function toggleMobileFilters() {
   const btn  = document.getElementById('filter-toggle-btn');
@@ -3015,15 +2875,6 @@ function toggleMobileFilters() {
   const isOpen = body.classList.toggle('open');
   btn.classList.toggle('open', isOpen);
 }
-function showTab(name) {} // stub for trade search
-
-function removeTradeSearchAsset(side, key) {
-  tradeSearch[side]=tradeSearch[side].filter(x=>x.key!==key);
-  renderTradeSideTags(side);
-  applyFilters();
-}
-
-
 // ── Page init ──────────────────────────────────────────────────────────────────
 (function() {
   const saved = localStorage.getItem('fpts-theme');
