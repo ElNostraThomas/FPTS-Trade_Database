@@ -137,9 +137,9 @@
     font-weight: 700; 
     text-transform: uppercase; 
     letter-spacing: .06em; 
-    padding: 10px 8px; 
-    text-align: left; 
-    border-bottom: 1px solid var(--border); 
+    padding: 10px 8px;
+    text-align: center;
+    border-bottom: 1px solid var(--border);
     cursor: pointer; 
     user-select: none;
     white-space: nowrap;
@@ -147,11 +147,12 @@
   .tiers-table thead th:hover { color: var(--white); background: var(--surface); }
   .tiers-table thead th.sorted { color: var(--red); }
   .tiers-table thead th .sort-arrow { color: var(--red); margin-left: 4px; font-size: 9px; }
-  .tiers-table td { padding: 8px; border-bottom: 1px solid var(--border); color: var(--white); white-space: nowrap; }
+  .tiers-table td { padding: 8px; border-bottom: 1px solid var(--border); color: var(--white); white-space: nowrap; text-align: center; }
   .tiers-table tbody tr:hover td { background: var(--surface2); }
   .tiers-table .col-tier { width: 50px; text-align: center; }
-  .tiers-table .col-name { min-width: 160px; }
-  .tiers-table .col-num { text-align: right; }
+  .tiers-table .col-name { min-width: 160px; text-align: left; }
+  .tiers-table th[data-col="name"] { text-align: left; }
+  .tiers-table .col-num { text-align: center; }
 
   /* TIER BADGE */
   .tier-badge { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:12px; padding:3px 8px; display:inline-block; min-width:36px; text-align:center; background: var(--red); color: var(--white); }
@@ -2797,11 +2798,11 @@ function renderHeaderRow() {
     {key: 'name', label: 'Player'},
     {key: 'age', label: 'Age'},
     {key: 'pos', label: 'Pos'},
-    {key: 'posRank', label: 'Pos Rank'},
+    {key: 'posRank', label: 'PRK'},
     {key: 'team', label: 'Team'},
-    {key: 'adp2026', label: 'Current ADP'},
+    {key: 'adp2026', label: 'ADP'},
     {key: 'adpPrevious', label: 'Previous ADP'},
-    {key: 'change', label: 'Change'},
+    {key: 'change', label: 'Chg'},
     {key: 'auction', label: 'Auction'},
     {key: 'ppg2025', label: '2025 PPG'},
     {key: 'ppg2024', label: '2024 PPG'},

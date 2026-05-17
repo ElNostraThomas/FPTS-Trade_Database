@@ -105,7 +105,7 @@
     background: var(--surface2); color: var(--muted);
     font-family: 'Mulish', sans-serif; font-size: 10px; font-weight: 700;
     text-transform: uppercase; letter-spacing: .06em;
-    padding: 10px 8px; text-align: left;
+    padding: 10px 8px; text-align: center;
     border-bottom: 1px solid var(--border);
     cursor: pointer; user-select: none; white-space: nowrap;
     position: sticky; top: 0; z-index: 5;
@@ -113,10 +113,11 @@
   .rk-table thead th:hover { color: var(--white); background: var(--surface); }
   .rk-table thead th.sorted { color: var(--red); }
   .rk-table thead th .sort-arrow { color: var(--red); margin-left: 4px; font-size: 9px; }
-  .rk-table td { padding: 8px; border-bottom: 1px solid var(--border); color: var(--white); white-space: nowrap; }
+  .rk-table td { padding: 8px; border-bottom: 1px solid var(--border); color: var(--white); white-space: nowrap; text-align: center; }
   .rk-table tbody tr:hover td { background: var(--surface2); }
-  .rk-table .col-num { text-align: right; font-variant-numeric: tabular-nums; }
-  .rk-table .col-name { min-width: 160px; }
+  .rk-table .col-num { text-align: center; font-variant-numeric: tabular-nums; }
+  .rk-table .col-name { min-width: 160px; text-align: left; }
+  .rk-table th[data-col="name"] { text-align: left; }
   .rk-table .col-change { text-align: center; padding: 6px 4px !important; }
   .rk-th-compare { padding-top: 6px !important; padding-bottom: 6px !important; }
 
@@ -490,12 +491,12 @@ const COLS = [
   { key: 'team',        label: 'Team',         num: false },
   { key: 'age',         label: 'Age',          num: true  },
   { key: 'exp',         label: 'Exp',          num: true  },
-  { key: 'avgRank',     label: 'Avg Rank',     num: true  },
-  { key: 'tradeValue',  label: 'Trade Value',  num: true  },
-  { key: 'posRank',     label: 'Pos Rank',     num: false },
-  { key: 'currentAdp',  label: 'Current ADP',  num: true  },
+  { key: 'avgRank',     label: 'Avg',          num: true  },
+  { key: 'tradeValue',  label: 'Val',          num: true  },
+  { key: 'posRank',     label: 'PRK',          num: false },
+  { key: 'currentAdp',  label: 'ADP',          num: true  },
   { key: 'previousAdp', label: 'Previous ADP', num: true  },   // special-cased to host calendar trigger
-  { key: 'change',      label: 'Change',       num: true  },
+  { key: 'change',      label: 'Chg',          num: true  },
 ];
 
 function renderHeaderRow() {
