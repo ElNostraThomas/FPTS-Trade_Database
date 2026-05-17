@@ -9,41 +9,51 @@
 <link rel="stylesheet" href="assets/css/brand.css?v=1779840000">
 
 <style>
+  /* Brand variables — kept in lockstep with assets/css/brand.css.
+     Tiers previously used a darker/muted custom palette which read as
+     visually muted vs the rest of the site. Now matches the brand for
+     consistent "bright neon" appearance across every page. */
   :root {
-    --black: #000;
-    --white: #fff;
+    --black: #111111;
+    --white: #ffffff;
     --red: #ED810C;
-    --green: #1a8754;
-    --yellow: #d4a017;
-    --orange: #e8732a;
-    --blue: #5b9bd5;
+    --green: #4caf6e;
+    --yellow: #f0c040;
+    --orange: #e8732a;                    /* tiers-specific — buy/sell "shopping/hold" variant color */
+    --red-bg: rgba(237,129,12,.10);
+    --red-bg-soft: rgba(237,129,12,.06);
+    --green-bg: rgba(76,175,110,.10);
     --surface: #1a1a1a;
-    --surface2: #252525;
-    --border: #333;
-    --border2: #444;
+    --surface2: #222222;
+    --border: #2a2a2a;
+    --border2: #333333;
     --muted: var(--white);
-    --pos-qb-bg: #c33;
-    --pos-rb-bg: #2c8a2c;
-    --pos-wr-bg: #5b9bd5;
-    --pos-te-bg: #d4a017;
-    --pos-pick-bg: #c33;
-    --pos-k-bg: #9b91d4;
-    --page-bg: var(--black);
-    --nav-bg: var(--surface);
+    --pos-qb-bg: #e05252;  --pos-qb: #111111;
+    --pos-rb-bg: #4caf6e;  --pos-rb: #111111;
+    --pos-wr-bg: #5b9bd5;  --pos-wr: #111111;
+    --pos-te-bg: #e09a30;  --pos-te: #111111;
+    --pos-k-bg:  #9b91d4;  --pos-k:  #111111;
+    --pos-pick-bg: #9b91d4; --pos-pick: #111111;
+    --nav-bg: #111111;
+    --page-bg: #111111;
     --color-scheme: dark;
   }
 
   [data-theme="light"] {
-    --black: #fff;
-    --white: #1a1a1a;
-    --red: #ED810C;
-    --surface: #f5f5f5;
-    --surface2: #eaeaea;
-    --border: #ccc;
-    --border2: #bbb;
-    --muted: var(--white);
-    --page-bg: #fff;
-    --nav-bg: #f5f5f5;
+    --black: #f0f0f0;
+    --white: #111111;
+    --surface: #e8e8e8;
+    --surface2: #dedede;
+    --border: #cccccc;
+    --border2: #bbbbbb;
+    --pos-qb-bg: #b02020;  --pos-qb: #f0f0f0;
+    --pos-rb-bg: #1a7a3a;  --pos-rb: #f0f0f0;
+    --pos-wr-bg: #2a6fa8;  --pos-wr: #f0f0f0;
+    --pos-te-bg: #c97a1a;  --pos-te: #f0f0f0;
+    --pos-k-bg:  #5a4eaa;  --pos-k:  #f0f0f0;
+    --pos-pick-bg: #5a4eaa; --pos-pick: #f0f0f0;
+    --nav-bg: #f0f0f0;
+    --page-bg: #f0f0f0;
     --color-scheme: light;
   }
 
@@ -145,25 +155,28 @@
 
   /* TIER BADGE */
   .tier-badge { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:12px; padding:3px 8px; display:inline-block; min-width:36px; text-align:center; background: var(--red); color: var(--white); }
-  .tier-badge.t-spp { background: #ED810C; }
-  .tier-badge.t-sp  { background: #d4302f; }
-  .tier-badge.t-s   { background: #d4a017; }
-  .tier-badge.t-ap  { background: #e8732a; color: var(--white); }
-  .tier-badge.t-a   { background: #2c8a2c; }
-  .tier-badge.t-am  { background: #2c8a2c; opacity: .85; }
-  .tier-badge.t-bp, .tier-badge.t-b, .tier-badge.t-bm { background: #5b9bd5; }
-  .tier-badge.t-cp, .tier-badge.t-c, .tier-badge.t-cm { background: #6f57b6; }
+  /* Tier-letter badges use brand-bright color spectrum for visual hierarchy.
+     S/A/B/C tiers in vivid brand-aligned hues; D/E/F intentionally grayscale
+     to signal "less valuable" with diminishing saturation. */
+  .tier-badge.t-spp { background: var(--red);         color: #111; }   /* dynasty orange */
+  .tier-badge.t-sp  { background: var(--pos-qb-bg);   color: #111; }   /* brand vivid red */
+  .tier-badge.t-s   { background: var(--yellow);      color: #111; }   /* brand bright gold */
+  .tier-badge.t-ap  { background: var(--orange);      color: #111; }   /* warm orange */
+  .tier-badge.t-a   { background: var(--pos-rb-bg);   color: #111; }   /* brand vivid green */
+  .tier-badge.t-am  { background: var(--pos-rb-bg);   color: #111; opacity: .85; }
+  .tier-badge.t-bp, .tier-badge.t-b, .tier-badge.t-bm { background: var(--pos-wr-bg);   color: #111; }   /* brand blue */
+  .tier-badge.t-cp, .tier-badge.t-c, .tier-badge.t-cm { background: var(--pos-pick-bg); color: #111; }   /* brand lavender */
   .tier-badge.t-dp, .tier-badge.t-d, .tier-badge.t-dm { background: #555; }
   .tier-badge.t-ep, .tier-badge.t-e, .tier-badge.t-em { background: #444; }
   .tier-badge.t-fp, .tier-badge.t-f, .tier-badge.t-fm { background: #333; color: var(--muted); }
 
   /* POS BADGE */
   .pos-badge { font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 11px; padding: 2px 7px; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; min-width: 28px; }
-  .pos-qb { background: var(--pos-qb-bg); color: var(--white); }
-  .pos-rb { background: var(--pos-rb-bg); color: var(--white); }
-  .pos-wr { background: var(--pos-wr-bg); color: var(--white); }
-  .pos-te { background: var(--pos-te-bg); color: var(--white); }
-  .pos-k  { background: var(--pos-k-bg); color: var(--white); }
+  .pos-qb { background: var(--pos-qb-bg); color: var(--pos-qb); }
+  .pos-rb { background: var(--pos-rb-bg); color: var(--pos-rb); }
+  .pos-wr { background: var(--pos-wr-bg); color: var(--pos-wr); }
+  .pos-te { background: var(--pos-te-bg); color: var(--pos-te); }
+  .pos-k  { background: var(--pos-k-bg);  color: var(--pos-k);  }
 
   /* PLAYER NAME — clickable to open Database player panel */
   .tier-player-name { font-family: 'Mulish', sans-serif; font-weight: 900; font-size: 13px; color: var(--white); cursor: pointer; transition: color .15s; }
