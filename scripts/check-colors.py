@@ -115,6 +115,105 @@ SKIP_DIRS = {'.git', 'data', 'docs', 'node_modules', 'fonts', 'scripts'}
 HEX_PAT  = re.compile(r'#[0-9a-fA-F]{3,8}\b')
 RGBA_PAT = re.compile(r'rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)(?:\s*,\s*[0-9.]+)?\s*\)')
 
+# ──────────────────────────────────────────────────────────────────────────
+# Branding hard-rule patterns (see brand.css "THE BRANDING HARD RULES" + CLAUDE.md).
+# These extend the basic hex-drift audit with two compounding-bug checks.
+# ──────────────────────────────────────────────────────────────────────────
+
+# A CSS rule has a "bright fill" if its body contains a background using one
+# of these tokens or literal brand hexes.
+BRIGHT_BG_PATTERNS = [
+    'var(--red)', 'var(--green)', 'var(--yellow)', 'var(--orange)',
+    'var(--pos-qb-bg)', 'var(--pos-rb-bg)', 'var(--pos-wr-bg)',
+    'var(--pos-te-bg)', 'var(--pos-k-bg)', 'var(--pos-pick-bg)',
+    '#ed810c', '#4caf6e', '#f0c040', '#e8732a',
+    '#e05252', '#5b9bd5', '#e09a30', '#9b91d4',
+]
+
+# Dark text values that would be a "dim text on bright fill" bug.
+DARK_TEXT_LITERALS = ('#111', '#111111', '#000', '#000000')
+
+# Selector substrings that mark a rule as targeting a pill / badge / chip /
+# active button — the compounding-bug risk class. opacity: < 1 on these
+# dims any nested colored content.
+PILL_CONTAINER_HINTS = (
+    'pill', 'badge', 'chip', 'tier-bsh', 'mvs-vol-',
+    '.active', '.up', '.down',
+)
+
+# Matches "selector { body }" — non-greedy, no nested braces.
+RULE_BLOCK_PAT = re.compile(r'([^{}\n][^{}]*?)\{([^{}]*?)\}', re.MULTILINE)
+
+# Matches opacity: 0.X or opacity: .X (less than 1).
+OPACITY_PAT = re.compile(r'opacity:\s*0?\.\d+')
+
+# Matches color: <dark>  — must NOT match border-color, background-color, etc.
+COLOR_DARK_PAT = re.compile(r'(?<![a-z-])color:\s*(#(?:1{3}|1{6}|0{3}|0{6}))\b', re.IGNORECASE)
+
+# State-transitions + intentionally-muted variant markers. Matches either
+# `.X` (standalone class) or `-X` (suffix), so `.mvs-vol-cold` triggers via
+# `-cold` and `.empty` triggers as itself. Also catches pseudo-classes.
+SKIP_MARKER_PAT = re.compile(
+    r':hover|:focus|:disabled|@keyframes'
+    r'|[.-](?:disabled|dim|empty|cold|cool|muted|na|placeholder|archived)\b'
+)
+
+
+def find_brand_rule_violations(content):
+    """Walk CSS rule blocks and report two patterns:
+       1. Dim text (#111 / #000) on a bright-fill background — same block.
+       2. opacity: < 1 on a pill/badge/active-button container that also has a
+          bright-color background (the actual compounding hazard).
+
+    Heuristic refinements to avoid false positives:
+      - Pattern 2 only fires when the LAST simple selector matches a pill
+        hint (so `.X .label` doesn't flag — `.label` is a leaf child of `.X`)
+        AND the rule body has a literal bright bg (surface / transparent /
+        border-only chips don't compound dangerously).
+      - Selectors with intentional-muted suffixes (`.cold`, `.dim`, `.empty`,
+        `.na`, `.muted`) are skipped — the class name itself signals
+        intentional fade.
+
+    Returns list of (line_no, kind, value, line_text) hits."""
+    hits = []
+    for m in RULE_BLOCK_PAT.finditer(content):
+        selector = m.group(1).strip()
+        body = m.group(2)
+        line_no = content[:m.start()].count('\n') + 1
+        body_lower = body.lower()
+        sel_lower = selector.lower()
+
+        # Pattern 1: dim text on bright fill (same rule block)
+        has_bright_bg = any(p in body_lower for p in BRIGHT_BG_PATTERNS)
+        if has_bright_bg:
+            dark_match = COLOR_DARK_PAT.search(body)
+            if dark_match:
+                hits.append((
+                    line_no, 'dim-text-on-bright-bg', dark_match.group(1).lower(),
+                    f'{selector[:60]} has bright bg + dark text'
+                ))
+
+        # Pattern 2: opacity: < 1 on a pill/badge/active-button container
+        # WITH a bright-fill background in the same rule.
+        # Skip state transitions and intentionally-muted variants.
+        # The regex matches both .X (standalone class) and -X (suffix in a
+        # compound class like .mvs-vol-cold).
+        if SKIP_MARKER_PAT.search(sel_lower):
+            continue
+        # Get the LAST simple-selector segment (after the last whitespace /
+        # combinator). Only flag if THAT segment matches a pill hint.
+        last_segment = re.split(r'[\s>+~]', sel_lower)[-1] if sel_lower else ''
+        last_is_pill = any(h in last_segment for h in PILL_CONTAINER_HINTS)
+        if last_is_pill and has_bright_bg:
+            op_match = OPACITY_PAT.search(body)
+            if op_match:
+                hits.append((
+                    line_no, 'opacity-on-pill-with-bright-bg', op_match.group(),
+                    f'{selector[:60]} bright bg + {op_match.group()}'
+                ))
+
+    return hits
+
 
 def find_files(root):
     """Yield every .html / .css / .js file under root, skipping SKIP_DIRS."""
@@ -195,6 +294,10 @@ def audit(verbose=False):
                 if is_legitimate_rgba(r, g, b):
                     continue
                 drift[path].append((line_no, 'rgba', m.group(0), line.strip()[:140]))
+
+        # Branding-rule checks (operates on full CSS rule blocks, not per-line).
+        for hit in find_brand_rule_violations(content):
+            drift[path].append(hit)
 
     return file_count, drift
 

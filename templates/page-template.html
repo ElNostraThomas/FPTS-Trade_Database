@@ -4,6 +4,39 @@
   FPTS Front Office — page template (scaffold for new pages / tools)
 ═══════════════════════════════════════════════════════════════════════════
 
+  ┌──────────────────────────────────────────────────────────────────────┐
+  │ BRANDING + ALIGNMENT RULES — read before adding ANY new component.   │
+  │ Full rules are at the top of assets/css/brand.css ("THE BRANDING     │
+  │ HARD RULES") and copy-paste recipes are in CLAUDE.md ("Recipes for   │
+  │ new components"). The 5 must-knows:                                  │
+  │                                                                      │
+  │ 1. WHITE TEXT ON EVERY BRIGHT FILL. Pills / badges / heat tints /    │
+  │    .active buttons / lg-trigger / mvs-vol-* — every surface using    │
+  │    a bright brand color as bg uses color: var(--white). Never        │
+  │    color: #111 on a var(--pos-*-bg) or var(--red)/(--green)/(--      │
+  │    yellow)/(--orange) background.                                    │
+  │                                                                      │
+  │ 2. NEVER opacity: ON A PARENT THAT HAS COLORED CHILDREN. CSS         │
+  │    opacity compounds. Use color: rgba(255,255,255,X) on the text     │
+  │    directly. opacity: is only safe on leaf elements (placeholders,   │
+  │    footnotes with no children inside) and :hover/:disabled state     │
+  │    transitions.                                                      │
+  │                                                                      │
+  │ 3. USE THE EXISTING SHARED CLASSES. Don't roll your own pill /       │
+  │    badge / tab / active-button. Reuse: .pos-pill.QB|RB|WR|TE|K,      │
+  │    .icon-btn.active, .tier-badge.t-*, .ml-history-tab,               │
+  │    .ml-section-toggle-btn, .rk-mode-tab, .adp-tab. brand.css is      │
+  │    loaded — these all resolve automatically.                         │
+  │                                                                      │
+  │ 4. TABLES: thead th + td both text-align:center. Override only the   │
+  │    Player / Pick / Team / variable-length-text column to left via    │
+  │    a .col-name class + th[data-col="name"] attribute selector.       │
+  │    Padding symmetric (8px 8px, not 8px 12px 8px 0).                  │
+  │                                                                      │
+  │ 5. python scripts/check-colors.py MUST PRINT CLEAN before push.      │
+  │    push.bat runs it automatically and aborts on drift.               │
+  └──────────────────────────────────────────────────────────────────────┘
+
   COPY THIS FILE WHEN STARTING A NEW PAGE OR TOOL.
 
   Steps:
@@ -52,12 +85,12 @@
 <link href="https://fonts.googleapis.com/css2?family=Kanit:ital,wght@0,400;0,700;1,800&family=Mulish:wght@400;700;900&display=swap" rel="stylesheet">
 
 <!-- Brand-level styles: fonts, color variables, nav, page chrome, pos pills. -->
-<link rel="stylesheet" href="assets/css/brand.css?v=1779920000">
+<link rel="stylesheet" href="assets/css/brand.css?v=1779990000">
 
 <!-- Shared UI component modules (CSS). -->
 <link rel="stylesheet" href="assets/css/mvs-extras.css?v=1780000000">
-<link rel="stylesheet" href="assets/css/heatmap.css?v=1778642255">
-<link rel="stylesheet" href="assets/css/legend.css?v=1778949514">
+<link rel="stylesheet" href="assets/css/heatmap.css?v=1779990000">
+<link rel="stylesheet" href="assets/css/legend.css?v=1779990000">
 <link rel="stylesheet" href="assets/css/player-panel.css?v=1779990000">
 
 <!-- Page identity + data layer config (must run BEFORE data-bootstrap.js). -->
