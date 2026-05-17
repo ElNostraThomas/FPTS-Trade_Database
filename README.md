@@ -10,32 +10,55 @@ This file is the **resume-where-we-left-off** doc.
 
 ---
 
-## Where we are (end of 2026-05-16 evening session)
+## Where we are (end of 2026-05-16 late-evening session)
 
-**Tiers page now has a real ADP comparison feature.** Three columns on
-`tiers.html` — **Current ADP / Previous ADP / Change** — with the
-*previous* anchor user-selectable down to any month from Dec 2021 through
-the most-recent fully-tracked month. The picker is a **calendar popup**
-that opens when you click the Previous ADP column header: ◀ ▶ year nav
-arrows plus a 4×3 month grid; active month brand-orange; future / "now" /
-no-data months disabled. Year-crossing in the popup triggers a one-time
-lazy fetch of `data/adp-{year}.json` (~15 MB per year, cached in
-`YEAR_CACHE` for the session). Change chip palette matches adp-tool's
-trend badges exactly — transparent background, bright `#66dd84` green ▲
-for risers, dynasty orange `#ED810C` ▼ for fallers, black text-shadow
-stroke. Sign convention: `delta = current − previous`. Sort on Change
-works; Previous ADP column is no longer sortable (its header is the picker
-trigger). Saved selection persists via `localStorage 'fpts-tiers-compare-month'`
-with explicit boot-time handling for cross-year resumption (lazy-fetches
-the saved year's payload before `_initTierCompareMonth` finalizes). Final
-column layout: **Current ADP → Previous ADP (▾) → Change → Auction →
-2025 PPG → 2024 PPG → Buy/Sell → Priority → Contender**.
-Architecture: `YEAR_CACHE` (year→payload map), `MONTH_INDEX` (flat
-per-month lookup merged across cached payloads), `_ensureYearLoaded`
-(promise-returning lazy fetcher with status UI), `_tierCalendar*` helpers
-(~140 lines inline in tiers.html, extract-ready for a shared module when
-the dedicated rankings page lands). Legend gained a new "ADP Comparison"
-section under Tiers with three Phase A-schema entries.
+**The site is now 6 pages, not 5.** New dedicated `rankings.html` shipped
+plus a brand-color standardization pass across every page.
+
+**1. Rankings page (rankings.html — REPLACES external FantasyPoints link).**
+Two top-level modes via underline tabs in the page-header (mirrors
+adp-tool's Dynasty Startup / Dynasty Rookie pattern):
+- **CONSENSUS mode**: 12-col table per (analyst, format) combo with ADP
+  overlays (Current / Previous / Change). Format toggle (`SF / SF+TEP /
+  1QB / 1QB+TEP`) manifest-driven; missing combos render disabled.
+  Currently ships Overall consensus for 1QB / SF / 1QB+TEP (3 of 4 format
+  combos populated; SF+TEP awaits CSV).
+- **BY ANALYST mode**: 8-col side-by-side comparison per position with
+  bipolar heat tints. 5 analysts (Ryan, Theo, John, Andy, Thomas) ×
+  4 positions (QB/RB/WR/TE) = 20 data points. Solid `var(--green)` for
+  lowest rank per row, solid `var(--red)` for highest, `#111` text.
+
+Architecture: `STATE.mode` ∈ {`consensus`, `analyst`} with per-mode
+sub-state in separate localStorage keys. URL hash `#mode=analyst` for
+deep-links. Both modes share the page's data layer + nav. Standalone
+`analysts.html` was shipped briefly then merged into rankings.html —
+file deleted, only one "Rankings" nav link.
+
+**2. Shared `assets/js/adp-comparator.js` module** extracted from
+tiers.html. Provides the calendar popup, `YEAR_CACHE`, `MONTH_INDEX`,
+`_ensureYearLoaded`, `changeChipHtml`, and the trigger button markup
+used by tiers' Previous ADP column header. Each consumer initializes
+with its own `storageKey` + `onChange` callback. Tiers shrunk by
+~310 lines as a result.
+
+**3. Brand color standardization across all 6 pages.** Exhaustive audit
+(every hex + rgba in every HTML/CSS/JS) caught 22 real drift hits across
+6 files + 2 shared modules. All normalized to brand tokens. The biggest
+source of disparity was `tiers.html` which had its own darker/muted
+palette (`--green: #1a8754` forest vs brand `#4caf6e` bright, `#c33` red
+vs brand `#e05252`, etc.) — now mirrors `brand.css` exactly. The full
+COLOR USAGE RULE is now documented in a comment block at the top of
+`brand.css` (8 categories: primary accent, secondary green, position
+pills, active button/tab, trend badge, heatmap, bipolar highlights,
+surface/borders). New `scripts/check-colors.py` enforces the rule:
+`python scripts/check-colors.py` returns clean or names the file:line
+of any drift. Recommended pre-`push.bat` step.
+
+**4. Tiers ADP comparison feature** (previously shipped) is intact and
+uses the new shared comparator module. Same calendar UX, just no longer
+duplicated code. Cache tokens: `brand.css?v=1779920000`,
+`mvs-extras.css?v=1779920000`, `player-panel.css?v=1779920000`,
+`legend-content.js?v=1779840000`, `adp-comparator.js?v=1779360001`.
 
 **Legend system is dev-grade.** Every algorithm with non-obvious logic
 now has a `formula` / `inputs` / `output` / `example` / `codeRef` block in
@@ -435,15 +458,30 @@ for the `fpts:data-ready` event.
   Real `sleeperId`s are numeric strings, so there's no collision.
 - **Tiers ADP comparison lazy-loads historical year payloads** (~15 MB
   each). `YEAR_CACHE[currentSeason]` seeds from `window.ADP_PAYLOAD` at
-  boot; other years fetch on demand via `_ensureYearLoaded(year)` when
-  the user navigates the calendar popup. `buildMonthIndex` rebuilds the
-  flat `MONTH_INDEX` after each cache mutation. **Saved-year race:** if
+  boot; other years fetch on demand. **Saved-year race**: if
   `localStorage 'fpts-tiers-compare-month'` is from a non-current year
   on boot, the data-ready handler MUST kick the lazy fetch BEFORE
-  `_initTierCompareMonth` finalizes — otherwise init falls back to the
-  newest 2026 option and overwrites the saved selection. Look at the
-  `fpts:data-ready` handler in `tiers.html` for the exact ordering if
-  this ever needs to be tweaked.
+  `AdpComparator.init` finalizes — otherwise init falls back to the
+  newest 2026 option and overwrites the saved selection. The shared
+  module handles this internally now via its own init logic; consumers
+  just supply `storageKey` + `onChange`. See `tiers.html` /
+  `rankings.html` for the standard init pattern.
+- **rankings.html uses TWO manifests** loaded in parallel at boot:
+  `data/rankings/manifest.json` (consensus combos) and
+  `data/analyst-rankings/manifest.json` (analyst comparison positions).
+  Each mode (`STATE.mode = 'consensus' | 'analyst'`) reads its own
+  manifest and cache (`RANKINGS_CACHE` for consensus combos,
+  `ANALYSTS_CACHE` for analyst positions). Mode switch lazy-fetches
+  the missing combo via `_ensureComboLoaded` / `_ensurePositionLoaded`.
+  URL hash `#mode=analyst` pre-sets STATE.mode on boot. Each mode has
+  its own localStorage key prefix to avoid state collision.
+- **Brand color rule + pre-push audit.** `scripts/check-colors.py` is
+  the source of truth for "no off-brand color drift anywhere." Run it
+  before every `push.bat`. When adding a new brand color, update
+  `assets/css/brand.css` :root + COLOR USAGE RULE comment block, AND
+  extend `BRAND_HEXES` (and possibly `LEGIT_RGBA_RGB`) at the top of
+  the audit script. Keep both in lockstep or the audit drifts away
+  from the actual brand.
 
 ---
 
@@ -451,16 +489,24 @@ for the `fpts:data-ready` event.
 
 Nothing structural. Polish / nice-to-haves only:
 
+- [x] ~~**Rankings page + Analysts comparison merged into one page**~~ —
+  shipped 2026-05-16 (late evening). New `rankings.html` replaces the
+  external Rankings nav link. Two modes (Consensus / By Analyst) via
+  underline tabs in the page-header. Manifest-driven format toggle +
+  position filter + lazy-fetch per combo. Shared `adp-comparator.js`
+  module extracted from tiers and consumed by both pages. See
+  `docs/CHANGES.md` 2026-05-16 (late evening) for the full arc.
+- [x] ~~**Brand color standardization across all pages**~~ — shipped
+  2026-05-16 (late evening). 22 real drift hits fixed across 6 files +
+  2 shared modules. COLOR USAGE RULE documented in `brand.css` head
+  comment. `scripts/check-colors.py` enforces the rule: zero off-brand
+  hexes anywhere in HTML/CSS/JS after the pass. Run before every
+  `push.bat`.
 - [x] ~~**Tiers ADP comparison + calendar popup picker**~~ — shipped
   2026-05-16 (evening). `tiers.html` gained Current ADP / Previous ADP /
   Change columns; Previous ADP anchor is user-selectable via a calendar
-  popup spanning Dec 2021 → most-recent month. Year payloads
-  (`data/adp-{2022..2025}.json`) lazy-fetch on demand, cached in
-  `YEAR_CACHE` per session. Change chip matches adp-tool's `.trend`
-  palette (transparent bg, `#66dd84` green ▲ / dynasty orange `#ED810C`
-  ▼). Legend Tiers > "ADP Comparison" section authored with 3 Phase A-
-  schema entries. See `docs/CHANGES.md` 2026-05-16 (evening) for the
-  iteration history.
+  popup spanning Dec 2021 → most-recent month. Now uses the shared
+  `adp-comparator.js` module (refactor 2026-05-16 late-evening).
 - [x] ~~**Rookie-draft-only ADP**~~ — shipped 2026-05-13 (late). The ADP
   Tool now has two top-level tabs (Dynasty Startup ADP / Dynasty Rookie
   ADP), with SF/1QB-split rookie data via `rookie_draft_{sf|1qb}` keys.
@@ -505,55 +551,54 @@ Nothing structural. Polish / nice-to-haves only:
 Paste this as the first message:
 
 ```
-Read README.md for current state. End-of-2026-05-16-evening:
-- TIERS ADP COMPARISON FEATURE shipped. Three columns: Current ADP,
-  Previous ADP (calendar-popup picker), Change chip. Column order:
-  Current → Previous → Change → Auction → 2025 PPG → 2024 PPG. The
-  picker spans Dec 2021 → most-recent month; year payloads
-  (data/adp-{2022..2025}.json) lazy-fetch on demand, cached in
-  YEAR_CACHE for the session. Change chip palette matches adp-tool's
-  .trend rules exactly (transparent bg, #66dd84 green ▲ / var(--red)
-  orange ▼, black text-shadow stroke). Sign convention: delta =
-  current − previous. Architecture: YEAR_CACHE (year→payload),
-  MONTH_INDEX (flat per-month merged lookup), _ensureYearLoaded
-  (promise-returning lazy fetch with status UI), calendar helpers
-  (_tierCalendar{Mount,Open,Close,NavYear,RenderGrid,PickMonth}) ~140
-  lines inline in tiers.html. Saved selection persists via localStorage
-  fpts-tiers-compare-month with explicit boot-time cross-year resume
-  (lazy-fetches saved year before _initTierCompareMonth finalizes).
-  Legend Tiers > "ADP Comparison" section authored with 3 Phase A
-  entries. legend-content.js cache token bumped to ?v=1779280000
-  across all 5 pages + template.
-- Legend system is dev-grade — every non-obvious algorithm has a full
-  formula/inputs/output/example/codeRef block in legend-content.js.
-  Renderer upgraded (legend.js) to render the new fields in narrative
-  order. ~195 items, 41 sections.
-- Mobile Round 2 sub-plans A-E all shipped (2026-05-15).
-- Theme polish: 3 hardcoded color drift cases fixed for dark↔light
-  toggle (commit 77822e9, 2026-05-15).
-- Pick modal: clicking a draft pick on own-roster picks table opens the
-  cross-league exposure picker (NOT Trade Builder).
-- ADP Tool has two top-level tabs (Dynasty Startup ADP / Dynasty Rookie
-  ADP). STATE.source ('startup'|'rookie') + URL hash source= param.
-- sync-adp.py emits rookie_draft_{sf,1qb} via duplicate-and-retag pass
-  in build_adp, AND a separate rookie-draft pick-availability heatmap.
-- Season is auto-detected (year if month>=4 else year-1). All year
-  labels drive from ADP_PAYLOAD.season via window.applySeasonBadge().
-- Site-wide headshot-fallback rule lives in brand.css — emit
-  class="fpts-hs-fallback" on any new headshot fallback element.
-- Trade-chip rule: any new player-image surface uses
-  TeamHelpers.logoImg(team, { size: 22, coin: true }) right of the name.
-  ADP-tool excludes the coin (its own surfaces already provide separation).
+Read README.md for current state. End-of-2026-05-16 late-evening:
+- RANKINGS PAGE SHIPPED (rankings.html). Replaces external FantasyPoints
+  link in every page's nav. Two top-level modes via underline tabs:
+  CONSENSUS (12-col table per analyst+format combo with ADP overlays,
+  format toggle SF/SF+TEP/1QB/1QB+TEP) and BY ANALYST (8-col side-by-side
+  comparison per position with bipolar heat tints — solid var(--green)
+  for lowest rank per row, solid var(--red) for highest, #111 text).
+  STATE.mode persisted, URL hash #mode=analyst supported. Manifest-
+  driven; missing combos render disabled. Currently ships Overall ×
+  {1qb, sf, 1qb-tep}; SF+TEP awaits CSV. By Analyst ships 5 analysts
+  (Ryan/Theo/John/Andy/Thomas) × 4 positions.
+- SHARED MODULE adp-comparator.js extracted from tiers.html. Provides
+  calendar popup + YEAR_CACHE + MONTH_INDEX + _ensureYearLoaded +
+  changeChipHtml + renderTriggerHtml. Tiers and rankings both consume
+  it via window.AdpComparator.init({storageKey, onChange}). Independent
+  state per page (fpts-tiers-compare-month vs fpts-rankings-compare-
+  month). tiers.html shrunk by ~310 lines from this refactor.
+- analysts.html was briefly shipped as standalone, then MERGED INTO
+  rankings.html. File deleted. Only one "Rankings" nav link site-wide.
+- BRAND COLOR RULE documented in brand.css COLOR USAGE RULE comment
+  block (above :root). 8 categories. Enforced by scripts/check-colors.py
+  — exhaustive sweep, exit 0 = clean, exit 1 = drift with file:line.
+  Run before every push.bat. Currently CLEAN across 21 files. When
+  adding a brand color, extend BRAND_HEXES + LEGIT_RGBA_RGB in the
+  script.
+- tiers.html had its own muted palette (--green: #1a8754 forest vs
+  brand #4caf6e), now normalized. All position pills + tier badges +
+  buy/sell chips match brand bright across every page.
+- TIERS ADP COMPARISON FEATURE (prior session) intact, now uses shared
+  comparator. Calendar UX preserved exactly.
+- Legend dev-grade with formula/inputs/output/example/codeRef blocks.
+  ~195 items, 41+ sections. Rankings legend has a new "Mode Tabs
+  (Consensus / By Analyst)" sub-section.
+- Cache tokens (this session): brand.css?v=1779920000,
+  mvs-extras.css?v=1779920000, player-panel.css?v=1779920000,
+  legend-content.js?v=1779840000, adp-comparator.js?v=1779360001.
+- Mobile Round 2 (2026-05-15), pick modal cross-league exposure picker,
+  ADP source tabs (Dynasty Startup / Rookie), sync-adp rookie+heatmap,
+  season auto-detection, site-wide headshot fallback rule, trade-chip
+  rule — all intact from prior sessions.
 
 Confirm by running `git log --oneline -20`.
 
-Punch list top: Legend Phase B (~30 partial-coverage entries) + Phase C
-(consistency pass). Also: 1QB scrape expansion; per-tab SF/1QB split of
-the rookie heatmap (currently mixed; SF dominates anyway); migrate the
-remaining 3 pages (adp-tool, my-leagues, index) to data-bootstrap.js.
-Possible follow-up to the tiers ADP feature: extract _tierCalendar*
-helpers + buildMonthIndex + _ensureYearLoaded into a shared
-assets/js/adp-comparator.js when the dedicated rankings page lands.
+Punch list top: SF+TEP CSV when ready (drop into data/source/rankings/
+overall-sf-tep.csv + add config entry + run sync-rankings.py — the
+toggle auto-enables). Legend Phase B (~30 partial-coverage entries) +
+Phase C (consistency pass). 1QB scrape expansion. Migrate remaining 3
+pages (adp-tool, my-leagues, index) to data-bootstrap.js.
 ```
 
 If `data/*.json` is stale: run `push.bat` (handles all five sync steps +
@@ -579,22 +624,27 @@ Full reference: `docs/WORKFLOW.md`.
 
 ## File map
 
-### Pages
+### Pages (6 live)
 - **`index.html`** — trade database (largest, ~7000 lines; use Grep/offsets, never read in full)
 - **`trade-calculator.html`** — trade value calculator
-- **`tiers.html`** — dynasty trade tiers
+- **`tiers.html`** — dynasty trade tiers (uses `adp-comparator.js` for Previous-ADP calendar)
 - **`adp-tool.html`** — ADP Tool (Box/List/heatmap views)
 - **`my-leagues.html`** — Sleeper user/league importer (accordion player drawer)
+- **`rankings.html`** — dynasty rankings with two modes (Consensus / By Analyst). Replaces the prior external FantasyPoints Rankings link. Uses `adp-comparator.js`.
 
 ### Shared modules (under `assets/`)
-- **`assets/css/brand.css`** — canonical brand variables, fonts, top nav, position pills, page chrome, **125% body zoom**. Source of truth for new pages via the scaffold; 5 existing pages still inline-duplicate this CSS until migrated.
-- **`assets/js/data-bootstrap.js`** — shared data layer. Fetches `data/*.json` + populates `window.*` globals + fires `fpts:data-ready`. Used by future pages; 5 existing pages still hand-roll their bootstrap until migrated.
-- **`assets/js/team-helpers.js`** — NFL team logo helpers (`logoUrl`, `logoImg`, `headshotBadge`, `wrapWithBadge`). Sleeper-CDN-backed PNGs at `sleepercdn.com/images/team_logos/nfl/{team}.png`. Standard chip-context call is `TeamHelpers.logoImg(team, { size: 22, coin: true })` — the `coin: true` opt wraps the logo in a `.team-logo--coin` light circular backdrop (defined in `brand.css`) so the logo never blends with the pos-pill color behind it. ADP-tool's two callsites omit the coin (box-card has `.card-team-logo`, list-view has `.team-pill`). Loaded by all 5 pages + the template.
-- **`assets/css/player-panel.css`** + **`assets/js/player-panel.js`** — shared right-edge slide-out drawer (used by all 5 pages)
+- **`assets/css/brand.css`** — canonical brand variables, fonts, top nav, position pills, page chrome, **125% body zoom**. Contains the **COLOR USAGE RULE** comment block at the top (above `:root`). Source of truth for new pages via the scaffold; 5 existing pages still inline-duplicate this CSS — all now mirror brand values exactly after the 2026-05-16 normalization.
+- **`assets/js/data-bootstrap.js`** — shared data layer. Fetches `data/*.json` + populates `window.*` globals + fires `fpts:data-ready`.
+- **`assets/js/team-helpers.js`** — NFL team logo helpers (`logoUrl`, `logoImg`, `headshotBadge`, `wrapWithBadge`). Sleeper-CDN-backed PNGs. Standard chip-context call: `TeamHelpers.logoImg(team, { size: 22, coin: true })`.
+- **`assets/js/adp-comparator.js`** — **shared month-to-month ADP comparison module**. Provides the calendar popup, `YEAR_CACHE` (lazy-loaded per-year payloads), `MONTH_INDEX`, `changeChipHtml`, `renderTriggerHtml`. Used by both `tiers.html` and `rankings.html`. Each consumer calls `window.AdpComparator.init({ storageKey, onChange })`. CSS is injected by the module on first init.
+- **`assets/css/player-panel.css`** + **`assets/js/player-panel.js`** — shared right-edge slide-out drawer (used by all 6 pages)
 - **`assets/css/mvs-extras.css`** + **`assets/js/mvs-extras.js`** — MVS header (OTC, baseline, trade volume, contributor rankings, recent trades helpers)
 - **`assets/js/player-articles.js`** — shared articles section (banner-style)
-- **`assets/css/heatmap.css`** + **`assets/js/heatmap.js`** — ADP pick-availability heatmap (now with "Data refreshed" stamp)
-- **`assets/css/legend.css`** + **`assets/js/legend.js`** + **`legend-content.js`** — in-app developer legend drawer. The header comment block of `legend-content.js` is the canonical **design vocabulary** glossary — what "pill", "coin", "chip", "card", "row", "badge", "thumb", "flame" each mean, plus the design tokens. Read it before invents-new-classes.
+- **`assets/css/heatmap.css`** + **`assets/js/heatmap.js`** — ADP pick-availability heatmap (with "Data refreshed" stamp)
+- **`assets/css/legend.css`** + **`assets/js/legend.js`** + **`legend-content.js`** — in-app developer legend drawer. The header comment block of `legend-content.js` is the canonical **design vocabulary** glossary.
+
+### Quality tools (tracked)
+- **`scripts/check-colors.py`** — exhaustive brand-color audit. Run `python scripts/check-colors.py` before every `push.bat`. Exit 0 = clean, exit 1 = drift with file:line. See `docs/WORKFLOW.md` for usage + extension points.
 
 ### Scaffold for new pages
 - **`templates/page-template.html`** — copy-this-to-start scaffold. See `docs/WORKFLOW.md` § "2b. Add a new page or tool" for the flow.
@@ -604,10 +654,12 @@ Full reference: `docs/WORKFLOW.md`.
 - **`sync-adp.py`** — dynasty ADP/auction/heatmap from parquets
 - **`sync-mvs.py`** — MVS values from local CSV
 - **`sync-tiers.py`** — Google Sheet → tiers.html
+- **`sync-rankings.py`** — reads `data/source/rankings/*.csv` → writes `data/rankings/{analyst}-{format}.json` + `manifest.json`. Drives rankings.html Consensus mode.
+- **`sync-analysts.py`** — reads `data/source/analysts/*.csv` (each contains 4 positions stacked, banner-delimited) → writes `data/analyst-rankings/{qb,rb,wr,te}.json` + `manifest.json`. Drives rankings.html By Analyst mode.
 - **`import-tat.py`** — TAT CSV → Google Sheet
 - **`make-pdf.ps1`** — regenerates function-reference PDF
-- **`push.bat`** — full deploy pipeline (5 sync steps + checks + commit + push)
-- **`sync-adp.config.json`** / **`sync-fp.config.json`** / **`sync-tiers.config.json`** — local paths/credentials
+- **`push.bat`** — full deploy pipeline (5+ sync steps + checks + commit + push)
+- **`sync-adp.config.json`** / **`sync-fp.config.json`** / **`sync-tiers.config.json`** / **`sync-rankings.config.json`** / **`sync-analysts.config.json`** — local paths/credentials
 
 ### Docs
 - **`docs/WORKFLOW.md`** — full operator manual

@@ -6,6 +6,109 @@ the operator manual see [`WORKFLOW.md`](WORKFLOW.md).
 
 ---
 
+## 2026-05-16 (late evening) — Rankings page + Analysts comparison + brand color audit
+
+Massive session, 13 commits. Three distinct major shipments + an enforcement tool, all landing in one push window.
+
+### 1. New Rankings page (rankings.html) — replaces external FantasyPoints link
+
+Brand-new in-app page driven by user-maintained Google Sheet CSVs. Replaces the external `fantasypoints.com/nfl/rankings/dynasty` link in every page's nav (one-line swap in 6 files). Multi-source architecture from day one — manifest-driven analyst tabs + format toggle (`SF / SF+TEP / 1QB / 1QB+TEP`), lazy-fetch per combo, cached in `RANKINGS_CACHE`. Adding a new CSV is a config-edit + sync-run, never a code change.
+
+Currently shipping 3 consensus combos:
+- **Overall — 1QB** (264 players, Chase WR #1)
+- **Overall — Superflex** (284 players, Josh Allen QB #1)
+- **Overall — 1QB + TE Premium** (283 players, Chase #1 with Bowers elevated to #10 by TEP)
+
+`SF + TEP` toggle stays disabled until that CSV is provided. CSV column layout is detected by header name (not position), so the SF tab's extra `SFX RANK` column at position 1 doesn't break parsing. POS RANK auto-filled by per-position count when the source CSV omits the header label.
+
+Sync: `sync-rankings.py` (gitignored, modeled on `sync-tiers.py`). Reads `sync-rankings.config.json` → walks `data/source/rankings/*.csv` → produces `data/rankings/{analyst}-{format}.json` + `data/rankings/manifest.json`.
+
+### 2. Shared adp-comparator.js — extracted from tiers, used by tiers + rankings
+
+`assets/js/adp-comparator.js` (~415 lines). Pulled the calendar popup + `YEAR_CACHE` + `MONTH_INDEX` + `_ensureYearLoaded` + `changeChipHtml` out of `tiers.html` into a shared module. Each consuming page initializes with its own `storageKey` + `onChange` callback. Tiers uses `fpts-tiers-compare-month`; rankings uses `fpts-rankings-compare-month` (independent state).
+
+`tiers.html` refactored to consume the module — `~310 lines deleted` from inline calendar code, replaced with `<script>` tag + `AdpComparator.init({...})` + 3 short call sites. Behavior preserved exactly.
+
+### 3. Analysts page → merged into rankings.html (two-tab pattern)
+
+Originally shipped as standalone `analysts.html` (multi-analyst rank comparison per position with bipolar heat tints), then merged into `rankings.html` via two big underline tabs in the page-header (mirrors `adp-tool.html`'s Dynasty Startup / Dynasty Rookie pattern). `analysts.html` deleted; one "Rankings" nav link instead of two.
+
+Data: 5 analysts (Ryan, Theo, John, Andy, Thomas) × 4 positions (QB/RB/WR/TE). Each analyst's CSV holds all 4 positions stacked with `"{POS} Ranks"` banner rows. `sync-analysts.py` splits by banner detection, merges by normalized name per position, computes consensus average, writes `data/analyst-rankings/{qb,rb,wr,te}.json` + manifest.
+
+Page state: `STATE.mode` ∈ {`consensus`, `analyst`} with per-mode sub-state in separate `localStorage` keys (`fpts-rankings-*` for consensus, `fpts-rankings-analyst-*` for analyst). URL hash `#mode=analyst` supports deep-linking. Heat tints use solid brand colors (`var(--green)` / `var(--red)` + `#111` text) — same pattern as `.icon-btn.active` and position pills.
+
+### 4. Brand color standardization across entire codebase
+
+User caught repeated partial audits. Final pass was truly exhaustive:
+
+- **22 real drift hits across 6 files + 2 shared modules** all normalized to brand vars
+- **61 legitimate non-chromatic uses confirmed and left alone** (black shadows, white highlights, brand-RGB rgba tints, IDP-position grays, tier-D/E/F intentional grayscale)
+
+Drift fixed:
+- `#e0a060` → `var(--pos-te-bg)` (mvs-extras.css `.mvs-vol-warm` + 3 inline copies)
+- `#5dcaa5` → `#66dd84` (player-panel.css `.pp-value-trend.up` + 2 inline copies — now matches `.trend.up` exception literal)
+- `#3a3a3a` → `var(--muted); opacity: .35` (3 sites — theme-safe dim, no more invisible dark gray)
+- `#ffc800` + paired `rgba(255,200,0,X)` → `var(--yellow)` + `rgba(240,192,64,X)` (trade-calc balance verdict — CSS + 2 JS color assignments)
+- `#1e1e1e` → `var(--border)` (index.html section divider)
+- `#7a1a1a` → `var(--pos-qb-bg)` (3 sites — "Data load failed" error backgrounds; brand vivid red as semantic alarm)
+- `#a8d8a0` → `var(--green)` (my-leagues mid-tier trade-value gradient)
+
+`tiers.html` was the biggest source of drift before this pass — had its own inline palette with darker greens (`#1a8754`), darker reds (`#c33`), darker tier-badge spectrum. Now normalized to brand-vivid (`#4caf6e` green, `#e05252` red, brand tier-badge spectrum for S/A/B/C, intentional grayscale preserved for D/E/F).
+
+### 5. Brand color rule documented in brand.css
+
+New COLOR USAGE RULE comment block in `assets/css/brand.css` (above `:root`). 8 categories: primary accent / secondary green / position pills / active button-tab / trend badge / heatmap / bipolar highlights / surfaces. Explicit rules including:
+- NEVER use `#66dd84` as a background (reserved for foreground `.trend.up` text only)
+- ERROR backgrounds use `var(--pos-qb-bg)` (semantic alarm, distinct from dynasty orange)
+- BIPOLAR highlights use SOLID brand colors with `#111` text (matches position pills, not 50% opacity tints)
+
+### 6. scripts/check-colors.py — pre-push enforcement
+
+New tracked tool at `scripts/check-colors.py`. Exhaustive sweep: every `.html`/`.css`/`.js` in the repo, every hex + rgba/rgb in every CSS property + JS color string. Skips legitimate non-chromatic uses + brand-RGB tints. Exit 0 = clean, exit 1 = drift with file:line + offending value + suggested fix.
+
+`WORKFLOW.md` gained a section documenting usage + extension (`BRAND_HEXES` + `LEGIT_RGBA_RGB` at top of script, keep in lockstep with `brand.css` when adding new tokens).
+
+Pre-push workflow: `python scripts/check-colors.py` before every `push.bat`. Current verified state: **CLEAN across all 21 files**.
+
+### Cache token bumps (this session)
+
+- `brand.css?v=1779840000 → 1779920000`
+- `mvs-extras.css?v=1778680030 → 1779920000`
+- `player-panel.css?v=1778680035 → 1779920000`
+- `legend-content.js?v=1779520000 → 1779840000`
+- `adp-comparator.js?v=1779360001` (new file, first version)
+
+All bumped across all 7 pages + page-template.
+
+### Files added (tracked)
+
+- `rankings.html` (new dedicated page — Consensus + By Analyst modes)
+- `assets/js/adp-comparator.js` (shared calendar/comparator module)
+- `sync-rankings.config.example.json`
+- `sync-analysts.config.example.json`
+- `scripts/check-colors.py` (audit tool)
+- `data/source/rankings/{overall-1qb,overall-sf,overall-1qb-tep}.csv`
+- `data/source/analysts/{ryan,theo,john,andy,thomas}.csv`
+- `data/rankings/{manifest,overall-1qb,overall-sf,overall-1qb-tep}.json`
+- `data/analyst-rankings/{manifest,qb,rb,wr,te}.json`
+
+### Files added (gitignored)
+
+- `sync-rankings.py`
+- `sync-rankings.config.json`
+- `sync-analysts.py`
+- `sync-analysts.config.json`
+
+### Files deleted
+
+- `analysts.html` (merged into rankings.html)
+
+### Iteration summary (the rough road this session)
+
+Color work required 4 separate revision passes before landing because I kept doing partial audits (catching some drift, shipping, user catching more). Lesson saved to feedback memory `feedback-exhaustive-audits.md`: for codebase-wide audit tasks, ONE truly exhaustive sweep + categorized report + post-fix re-verification, never iterate-then-get-caught. Audit script ensures this is enforceable going forward.
+
+---
+
 ## 2026-05-16 (evening) — Tiers ADP comparison columns + calendar popup picker (2022-2026)
 
 Major update on `tiers.html`: shipped a real **Current ADP / Previous ADP / Change** trio of columns where the *previous* anchor is a user-selectable historical month, picked via a calendar popup that spans the full 2022-2026 horizon. Year payloads lazy-fetch on demand. The feature was iterated through four rounds of live feedback; the final shape is documented here.
