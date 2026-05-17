@@ -2213,6 +2213,33 @@ function pickThumb(size) {
 }
 
 // ── ASSETS ────────────────────────────────────────────────────────────────────
+// ── CALC FORMAT INPUTS ────────────────────────────────────────────────────
+// The page has two sets of format selectors: the visible "League Format" +
+// "Scoring" dropdowns at the top of the page (IDs `f-qb` / `f-tep` /
+// `f-passtd` / `f-ppr`) which the user actually sees and uses, and a hidden
+// second set (`fmt-*`, display:none via .format-area CSS) that no longer
+// renders. _calcFmt() reads from f-* first and falls back to fmt-* only if
+// the visible ones are missing for some reason. f-* dropdowns use 'all' as
+// their default — we normalize that to the unspecified-value defaults below.
+function _calcFmt(visibleId, hiddenId, defaultVal) {
+  const vis = document.getElementById(visibleId);
+  if (vis && vis.value && vis.value !== 'all') return vis.value;
+  const hid = document.getElementById(hiddenId);
+  if (hid && hid.value && hid.value !== 'all') return hid.value;
+  return defaultVal;
+}
+
+function _calcQb()     { return _calcFmt('f-qb',     'fmt-qb',     'sf'); }
+function _calcTep()    {
+  const raw = _calcFmt('f-tep', 'fmt-tep', '0');
+  // f-tep options: "all" | "none" | "0.5" | "0.75" | "1.0"
+  // fmt-tep options: "0" | "0.5" | "0.75" | "1.0"
+  if (raw === 'none') return 0;
+  return parseFloat(raw) || 0;
+}
+function _calcPpr()    { return parseFloat(_calcFmt('f-ppr',    'fmt-ppr',    '1')); }
+function _calcPasstd() { return parseInt(_calcFmt('f-passtd', 'fmt-passtd', '4'), 10); }
+
 // Pick-value extractor: data/picks.json stores each pick as
 // { value, valueSf, valueTep } (value = 1QB baseline). Older payloads may
 // have stored a flat number — handle both. SF/TEP picked off the current
@@ -2221,10 +2248,8 @@ function _pickNumericValue(rec) {
   if (rec == null) return 0;
   if (typeof rec === 'number') return rec;
   if (typeof rec !== 'object') return Number(rec) || 0;
-  const qb  = document.getElementById('fmt-qb');
-  const tep = document.getElementById('fmt-tep');
-  const isSf  = qb  && qb.value  === 'sf';
-  const isTep = tep && parseFloat(tep.value) > 0;
+  const isSf  = _calcQb() === 'sf';
+  const isTep = _calcTep() > 0;
   if (isTep && rec.valueTep != null) return Number(rec.valueTep) || 0;
   if (isSf  && rec.valueSf  != null) return Number(rec.valueSf)  || 0;
   return Number(rec.value) || 0;
@@ -2251,10 +2276,10 @@ function getAllAssets() {
 
 // ── FORMAT MULTIPLIERS ────────────────────────────────────────────────────────
 function getMultiplier(pos) {
-  const qb     = document.getElementById('fmt-qb').value;
-  const ppr    = parseFloat(document.getElementById('fmt-ppr').value);
-  const tep    = parseFloat(document.getElementById('fmt-tep').value);
-  const passtd = parseInt(document.getElementById('fmt-passtd').value);
+  const qb     = _calcQb();      // 'sf' | '1qb' (defaults 'sf')
+  const ppr    = _calcPpr();     // 1 | 0.5 | 0   (defaults 1)
+  const tep    = _calcTep();     // 0 | 0.5 | 0.75 | 1.0 (defaults 0)
+  const passtd = _calcPasstd();  // 4 | 5 | 6  (defaults 4)
   let m = 1.0;
   if (pos === 'QB') {
     if (qb === 'sf')    m *= 1.15;
