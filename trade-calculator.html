@@ -2213,15 +2213,38 @@ function pickThumb(size) {
 }
 
 // ── ASSETS ────────────────────────────────────────────────────────────────────
+// Pick-value extractor: data/picks.json stores each pick as
+// { value, valueSf, valueTep } (value = 1QB baseline). Older payloads may
+// have stored a flat number — handle both. SF/TEP picked off the current
+// format selectors so picks scale like players when the user flips QB/TEP.
+function _pickNumericValue(rec) {
+  if (rec == null) return 0;
+  if (typeof rec === 'number') return rec;
+  if (typeof rec !== 'object') return Number(rec) || 0;
+  const qb  = document.getElementById('fmt-qb');
+  const tep = document.getElementById('fmt-tep');
+  const isSf  = qb  && qb.value  === 'sf';
+  const isTep = tep && parseFloat(tep.value) > 0;
+  if (isTep && rec.valueTep != null) return Number(rec.valueTep) || 0;
+  if (isSf  && rec.valueSf  != null) return Number(rec.valueSf)  || 0;
+  return Number(rec.value) || 0;
+}
+
 function getAllAssets() {
   const assets = [];
   Object.entries(FP_VALUES).forEach(([name, d]) => {
     const pos = d.posRank ? d.posRank.replace(/\d+/g,'') : 'WR';
     assets.push({ name, value:d.value, pos, type:'player' });
   });
-  Object.entries(PICK_VALUES).forEach(([key, value]) => {
+  Object.entries(PICK_VALUES).forEach(([key, rec]) => {
     const [year, slot] = key.split('-');
-    assets.push({ name:`${year} ${slot}`, value, pos:'PK', type:'pick' });
+    assets.push({
+      name: `${year} ${slot}`,
+      value: Math.round(_pickNumericValue(rec)),
+      pickKey: key,
+      pos: 'PK',
+      type: 'pick',
+    });
   });
   return assets.sort((a,b) => b.value - a.value);
 }
@@ -2255,7 +2278,13 @@ function getMultiplier(pos) {
 }
 
 function adjVal(asset) {
-  if (asset.type === 'pick') return asset.value;
+  if (asset.type === 'pick') {
+    // Re-pull live so flipping fmt-qb / fmt-tep updates already-added picks.
+    if (asset.pickKey && PICK_VALUES[asset.pickKey]) {
+      return Math.round(_pickNumericValue(PICK_VALUES[asset.pickKey]));
+    }
+    return Math.round(Number(asset.value) || 0);
+  }
   return Math.round(asset.value * getMultiplier(asset.pos));
 }
 
@@ -2482,7 +2511,7 @@ function searchKeydown(e,sideId) { if(e.key==='Escape') hideResults(sideId); }
 function addAssetToSide(sideId, asset) {
   const side = sides.find(s=>s.id===sideId);
   if (!side) return;
-  side.assets.push({ name:asset.name, value:asset.value, pos:asset.pos, type:asset.type });
+  side.assets.push({ name:asset.name, value:asset.value, pos:asset.pos, type:asset.type, pickKey:asset.pickKey });
   const inp = document.getElementById(`search-${sideId}`);
   if (inp) inp.value='';
   hideResults(sideId);
