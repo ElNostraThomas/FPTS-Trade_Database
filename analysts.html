@@ -42,17 +42,21 @@
     background: var(--surface); border: 1px solid var(--border);
   }
   .an-control-label { font-family: 'Mulish', sans-serif; font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .07em; }
-  .an-pos-toggle { display: flex; gap: 0; }
+
+  /* Position toggle — matches the standard ADP page mode-toggle pattern
+     (adp-tool.html .controls-btn): filled surface bg, Mulish font, dark text
+     on the active orange fill for high contrast. */
+  .an-pos-toggle { display: inline-flex; border: 1px solid var(--border2); }
   .an-pos-btn {
-    background: transparent; color: var(--white); border: 1px solid var(--border2);
-    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
-    font-size: 12px; text-transform: uppercase; letter-spacing: .06em;
-    padding: 7px 16px; cursor: pointer; transition: all .15s;
+    background: var(--surface); color: var(--white); border: none;
+    font-family: 'Mulish', sans-serif; font-weight: 700;
+    font-size: 11px; text-transform: uppercase; letter-spacing: .06em;
+    padding: 8px 16px; cursor: pointer; transition: all .15s;
     min-width: 52px;
   }
-  .an-pos-btn:not(:last-child) { border-right: none; }
-  .an-pos-btn:hover:not(.disabled) { color: var(--red); }
-  .an-pos-btn.active { background: var(--red); border-color: var(--red); color: var(--white); }
+  .an-pos-btn + .an-pos-btn { border-left: 1px solid var(--border2); }
+  .an-pos-btn:hover:not(.disabled):not(.active) { background: var(--surface2); }
+  .an-pos-btn.active { background: var(--red); color: #111; }
   .an-pos-btn.disabled { opacity: .35; cursor: not-allowed; }
   .an-search {
     background: var(--surface2); color: var(--white); border: 1px solid var(--border2);
@@ -84,12 +88,13 @@
   .an-table .col-consensus { text-align: center; font-variant-numeric: tabular-nums; font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 14px; color: var(--red); min-width: 70px; }
   .an-table .col-team { text-align: center; min-width: 40px; }
 
-  /* Heat tints: lowest rank per row = green, highest = orange */
-  .an-table td.rk-min  { background-color: rgba(26, 135, 84, 0.18); }   /* var(--green) */
-  .an-table td.rk-max  { background-color: rgba(237, 129, 12, 0.18); }  /* var(--red) — dynasty orange */
+  /* Heat tints: lowest rank per row = brand green (matches adp-tool .trend.up),
+     highest = dynasty orange. Saturated enough to read at-a-glance as a heatmap. */
+  .an-table td.rk-min  { background-color: rgba(102, 221, 132, 0.42); color: var(--white); }  /* #66dd84 bright green */
+  .an-table td.rk-max  { background-color: rgba(237, 129, 12, 0.55); color: var(--white); }  /* var(--red) #ED810C dynasty orange */
   .an-table td.rk-na   { color: var(--muted); }
-  .an-table tbody tr:hover td.rk-min { background-color: rgba(26, 135, 84, 0.30); }
-  .an-table tbody tr:hover td.rk-max { background-color: rgba(237, 129, 12, 0.30); }
+  .an-table tbody tr:hover td.rk-min { background-color: rgba(102, 221, 132, 0.60); }
+  .an-table tbody tr:hover td.rk-max { background-color: rgba(237, 129, 12, 0.75); }
 
   /* PLAYER NAME */
   .an-player-name { font-family: 'Mulish', sans-serif; font-weight: 900; font-size: 13px; color: var(--white); cursor: pointer; transition: color .15s; }
