@@ -23,8 +23,8 @@
 .mvs-extras-diff.up   { color:#66dd84; }
 .mvs-extras-diff.down { color:var(--red); }
 .mvs-vol { display:inline-block; padding:2px 8px; font-size:10px; font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; letter-spacing:.06em; text-transform:uppercase; margin-left:6px; vertical-align:middle; }
-.mvs-vol-hot  { background:var(--red); color:#111; }
-.mvs-vol-warm { background:var(--pos-te-bg); color:#111; }
+.mvs-vol-hot  { background:var(--red); color:var(--white); }
+.mvs-vol-warm { background:var(--pos-te-bg); color:var(--white); }
 .mvs-vol-cool { background:var(--surface2); color:var(--white); border:1px solid var(--border2); }
 .mvs-vol-cold { background:transparent; color:var(--muted); border:1px solid var(--border2); opacity:.7; }
 .mvs-foot { padding:8px 24px 14px; font-family:'Mulish',sans-serif; font-size:10px; color:var(--muted); opacity:.55; text-align:right; letter-spacing:.04em; }

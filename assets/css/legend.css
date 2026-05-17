@@ -5,7 +5,7 @@
 
 .lg-trigger {
   position: fixed; bottom: 18px; right: 18px; z-index: 9000;
-  background: var(--red); color: #111;
+  background: var(--red); color: var(--white);
   border: none; padding: 10px 16px;
   font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
   font-size: 12px; letter-spacing: .06em; text-transform: uppercase;

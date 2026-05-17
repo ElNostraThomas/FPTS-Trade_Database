@@ -8,12 +8,12 @@
 <link href="https://fonts.googleapis.com/css2?family=Kanit:ital,wght@0,400;0,700;1,800&family=Mulish:wght@400;700;900&display=swap" rel="stylesheet">
 
 <!-- Brand-level styles: fonts, color variables, nav, page chrome, pos pills. -->
-<link rel="stylesheet" href="assets/css/brand.css?v=1779920000">
+<link rel="stylesheet" href="assets/css/brand.css?v=1779990000">
 
 <!-- Shared UI component modules (CSS). -->
-<link rel="stylesheet" href="assets/css/mvs-extras.css?v=1779920000">
-<link rel="stylesheet" href="assets/css/heatmap.css?v=1778642255">
-<link rel="stylesheet" href="assets/css/legend.css?v=1778949514">
+<link rel="stylesheet" href="assets/css/mvs-extras.css?v=1779990000">
+<link rel="stylesheet" href="assets/css/heatmap.css?v=1779990000">
+<link rel="stylesheet" href="assets/css/legend.css?v=1779990000">
 <link rel="stylesheet" href="assets/css/player-panel.css?v=1779920000">
 
 <!-- Page identity + data layer config (must run BEFORE data-bootstrap.js). -->
@@ -56,14 +56,14 @@
   .rk-mode-tabs { display: flex; gap: 28px; align-items: flex-end; margin-bottom: 8px; border-bottom: 1px solid var(--border); padding-bottom: 0; }
   .rk-mode-tab {
     font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
-    font-size: 26px; color: var(--white); opacity: .45;
+    font-size: 26px; color: rgba(255,255,255,0.45);
     text-transform: uppercase; letter-spacing: .02em; line-height: 1;
     background: none; border: none; border-bottom: 3px solid transparent;
     padding: 0 0 6px; cursor: pointer; margin-bottom: -1px;
-    transition: opacity .15s, border-color .15s, color .15s;
+    transition: color .15s, border-color .15s;
   }
-  .rk-mode-tab:hover { opacity: .75; }
-  .rk-mode-tab.active { opacity: 1; border-bottom-color: var(--red); }
+  .rk-mode-tab:hover { color: rgba(255,255,255,0.75); }
+  .rk-mode-tab.active { color: var(--white); border-bottom-color: var(--red); }
 
   /* CONTROLS BAR — format toggle + filters + search */
   .rk-controls {
@@ -154,7 +154,7 @@
   }
   .rk-analyst-pos-btn + .rk-analyst-pos-btn { border-left: 1px solid var(--border2); }
   .rk-analyst-pos-btn:hover:not(.disabled):not(.active) { background: var(--surface2); }
-  .rk-analyst-pos-btn.active { background: var(--red); color: #111; }
+  .rk-analyst-pos-btn.active { background: var(--red); color: var(--white); }
   .rk-analyst-pos-btn.disabled { opacity: .35; cursor: not-allowed; }
 
   /* Analyst table cells: numeric (rank cells centered, Kanit italic) +
@@ -164,10 +164,10 @@
   .rk-table .col-analyst-team { text-align: center; min-width: 40px; }
 
   /* Bipolar heat highlights (per analyst rank cell): solid brand colors with
-     dark text — matches the bipolar-highlights rule documented in brand.css.
+     white text — matches the universal "white text on bright fill" rule.
      Best (min rank in row) = brand green; worst (max rank) = dynasty orange. */
-  .rk-table td.rk-min  { background-color: var(--green); color: #111; font-weight: 800; }
-  .rk-table td.rk-max  { background-color: var(--red);   color: #111; font-weight: 800; }
+  .rk-table td.rk-min  { background-color: var(--green); color: var(--white); font-weight: 800; }
+  .rk-table td.rk-max  { background-color: var(--red);   color: var(--white); font-weight: 800; }
   .rk-table td.rk-na   { color: var(--muted); }
   .rk-table tbody tr:hover td.rk-min,
   .rk-table tbody tr:hover td.rk-max { opacity: .92; }

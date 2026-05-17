@@ -4,6 +4,20 @@ Project conventions that aren't obvious from reading the code. Add to this file 
 
 ---
 
+## Branding: white text on every bright fill, never opacity on colored parents
+
+The site has a strict branding rule, codified at the top of `assets/css/brand.css` ("THE BRANDING HARD RULES"). Summary:
+
+1. **WHITE text on every bright-colored fill.** Position pills, tier badges, heat tints (`.rk-min`/`.rk-max`), `*.active` button states, `.mvs-vol-hot`/`.mvs-vol-warm`, `.hm-flash-label`, `.lg-trigger`, every place a bright brand color is a `background` — the text inside is `var(--white)`. Position text tokens (`--pos-qb`, `--pos-rb`, `--pos-wr`, `--pos-te`, `--pos-k`, `--pos-pick`) resolve to white in dark theme — `color: var(--pos-qb)` and `color: var(--white)` are equivalent. The one exception: bg is itself white/muted/surface (e.g. `.fm-prov-chip.prov-framework`) — then dark text is correct.
+2. **Never use `opacity:` on a parent that contains a colored child.** CSS opacity compounds down to all children and can't be overridden by `opacity: 1` on the child. To fade muted text, use `color: rgba(255,255,255,X)` directly on the text element. Reserve `opacity:` for leaf-only elements (placeholders, footnotes, disabled state on a standalone button with no children).
+3. **Brand tokens are the source of truth in `brand.css`.** 6 inline `:root` duplicates exist in HTML pages (index, trade-calculator, adp-tool, my-leagues, tiers) — they must match `brand.css` exactly. Never hardcode `color: #111` on a bright fill; reference the token.
+4. **Vibrant by default.** "Grey-looking" surfaces are a bug. The cause is always one of: (a) opacity compounding from a parent, (b) hardcoded `#111` text on a bright fill, (c) wrong token reference. Don't ship a "grey" surface that should be colored.
+5. **`python scripts/check-colors.py` must print CLEAN after any change.** Extend `BRAND_HEXES` if you add a new brand color.
+
+**Cache bump:** any change to `brand.css`, `mvs-extras.css`, `heatmap.css`, `legend.css`, or `player-panel.css` requires bumping `?v=...` on the `<link>`/`<script>` tag in every page that loads it. Browsers cache hard.
+
+---
+
 ## Player panel: async fetches MUST guard against player switches
 
 The shared `assets/js/player-panel.js` drawer reuses a single set of DOM containers (`#pp-stats-tab`, `#pp-exp-val`, etc.) across every player the user opens. The "+ Add player to compare" search lets the user swap players inside the open drawer.

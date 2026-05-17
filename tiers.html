@@ -6,7 +6,7 @@
 <title>Fantasy Points Front Office — Tiers</title>
 
 <!-- Brand-level shared styles (loaded BEFORE inline <style> so page overrides win). -->
-<link rel="stylesheet" href="assets/css/brand.css?v=1779920000">
+<link rel="stylesheet" href="assets/css/brand.css?v=1779990000">
 
 <style>
   /* Brand variables — kept in lockstep with assets/css/brand.css.
@@ -28,12 +28,12 @@
     --border: #2a2a2a;
     --border2: #333333;
     --muted: var(--white);
-    --pos-qb-bg: #e05252;  --pos-qb: #111111;
-    --pos-rb-bg: #4caf6e;  --pos-rb: #111111;
-    --pos-wr-bg: #5b9bd5;  --pos-wr: #111111;
-    --pos-te-bg: #e09a30;  --pos-te: #111111;
-    --pos-k-bg:  #9b91d4;  --pos-k:  #111111;
-    --pos-pick-bg: #9b91d4; --pos-pick: #111111;
+    --pos-qb-bg: #e05252;  --pos-qb: #ffffff;
+    --pos-rb-bg: #4caf6e;  --pos-rb: #ffffff;
+    --pos-wr-bg: #5b9bd5;  --pos-wr: #ffffff;
+    --pos-te-bg: #e09a30;  --pos-te: #ffffff;
+    --pos-k-bg:  #9b91d4;  --pos-k:  #ffffff;
+    --pos-pick-bg: #9b91d4; --pos-pick: #ffffff;
     --nav-bg: #111111;
     --page-bg: #111111;
     --color-scheme: dark;
@@ -159,14 +159,14 @@
   /* Tier-letter badges use brand-bright color spectrum for visual hierarchy.
      S/A/B/C tiers in vivid brand-aligned hues; D/E/F intentionally grayscale
      to signal "less valuable" with diminishing saturation. */
-  .tier-badge.t-spp { background: var(--red);         color: #111; }   /* dynasty orange */
-  .tier-badge.t-sp  { background: var(--pos-qb-bg);   color: #111; }   /* brand vivid red */
-  .tier-badge.t-s   { background: var(--yellow);      color: #111; }   /* brand bright gold */
-  .tier-badge.t-ap  { background: var(--orange);      color: #111; }   /* warm orange */
-  .tier-badge.t-a   { background: var(--pos-rb-bg);   color: #111; }   /* brand vivid green */
-  .tier-badge.t-am  { background: var(--pos-rb-bg);   color: #111; opacity: .85; }
-  .tier-badge.t-bp, .tier-badge.t-b, .tier-badge.t-bm { background: var(--pos-wr-bg);   color: #111; }   /* brand blue */
-  .tier-badge.t-cp, .tier-badge.t-c, .tier-badge.t-cm { background: var(--pos-pick-bg); color: #111; }   /* brand lavender */
+  .tier-badge.t-spp { background: var(--red);         color: var(--white); }   /* dynasty orange */
+  .tier-badge.t-sp  { background: var(--pos-qb-bg);   color: var(--white); }   /* brand vivid red */
+  .tier-badge.t-s   { background: var(--yellow);      color: var(--white); }   /* brand bright gold */
+  .tier-badge.t-ap  { background: var(--orange);      color: var(--white); }   /* warm orange */
+  .tier-badge.t-a   { background: var(--pos-rb-bg);   color: var(--white); }   /* brand vivid green */
+  .tier-badge.t-am  { background: var(--pos-rb-bg);   color: rgba(255,255,255,0.85); }
+  .tier-badge.t-bp, .tier-badge.t-b, .tier-badge.t-bm { background: var(--pos-wr-bg);   color: var(--white); }   /* brand blue */
+  .tier-badge.t-cp, .tier-badge.t-c, .tier-badge.t-cm { background: var(--pos-pick-bg); color: var(--white); }   /* brand lavender */
   .tier-badge.t-dp, .tier-badge.t-d, .tier-badge.t-dm { background: #555; }
   .tier-badge.t-ep, .tier-badge.t-e, .tier-badge.t-em { background: #444; }
   .tier-badge.t-fp, .tier-badge.t-f, .tier-badge.t-fm { background: #333; color: var(--muted); }
@@ -347,11 +347,11 @@
   .pp-info { flex:1; min-width:0; }
   .pp-id { display:flex; align-items:center; gap:10px; margin-bottom:8px; }
   .pos-pill { display:inline-block; padding:3px 9px; font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:11px; letter-spacing:.04em; }
-  .pos-pill.QB { background:var(--pos-qb-bg); color:#111; }
-  .pos-pill.RB { background:var(--pos-rb-bg); color:#111; }
-  .pos-pill.WR { background:var(--pos-wr-bg); color:#111; }
-  .pos-pill.TE { background:var(--pos-te-bg); color:#111; }
-  .pos-pill.K  { background:var(--pos-k-bg);  color:#111; }
+  .pos-pill.QB { background:var(--pos-qb-bg); color:var(--pos-qb); }
+  .pos-pill.RB { background:var(--pos-rb-bg); color:var(--pos-rb); }
+  .pos-pill.WR { background:var(--pos-wr-bg); color:var(--pos-wr); }
+  .pos-pill.TE { background:var(--pos-te-bg); color:var(--pos-te); }
+  .pos-pill.K  { background:var(--pos-k-bg);  color:var(--pos-k); }
   .pp-team-label { font-family:'Mulish',sans-serif; font-size:13px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; color:var(--white); }
   .pp-name { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:32px; color:var(--white); text-transform:uppercase; letter-spacing:.02em; line-height:1; margin-bottom:12px; }
   .pp-stats { display:flex; flex-wrap:wrap; gap:6px 22px; font-family:'Mulish',sans-serif; }
@@ -365,12 +365,12 @@
   .pp-tab { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:12px; letter-spacing:.06em; color:var(--white); padding:10px 18px; cursor:pointer; border:none; background:none; border-bottom:2px solid transparent; margin-bottom:-1px; text-transform:uppercase; transition:color .15s, border-color .15s; }
   .pp-tab.active { color:var(--red); border-bottom-color:var(--red); }
 </style>
-<link rel="stylesheet" href="assets/css/mvs-extras.css?v=1779920000">
+<link rel="stylesheet" href="assets/css/mvs-extras.css?v=1779990000">
 <script src="assets/js/mvs-extras.js?v=1778642255"></script>
 <script src="assets/js/player-articles.js?v=1778680034"></script>
-<link rel="stylesheet" href="assets/css/heatmap.css?v=1778642255">
+<link rel="stylesheet" href="assets/css/heatmap.css?v=1779990000">
 <script src="assets/js/heatmap.js?v=1778670000"></script>
-<link rel="stylesheet" href="assets/css/legend.css?v=1778949514">
+<link rel="stylesheet" href="assets/css/legend.css?v=1779990000">
 <script src="assets/js/legend-content.js?v=1779840000"></script>
 <script src="assets/js/legend.js?v=1778949514"></script>
 <script>document.addEventListener('DOMContentLoaded', function(){ if (window.Legend) Legend.init('tiers'); });</script>

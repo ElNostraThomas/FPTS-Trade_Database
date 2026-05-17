@@ -2,6 +2,51 @@
    FPTS brand.css — canonical brand-level styles for every page.
    ════════════════════════════════════════════════════════════════════════
 
+   ───────────────────────────────────────────────────────────────────────
+   THE BRANDING HARD RULES (read this before changing color anywhere)
+   ───────────────────────────────────────────────────────────────────────
+
+   1. WHITE TEXT ON EVERY BRIGHT-COLORED FILL — NO EXCEPTIONS.
+      Every surface that uses a vibrant brand-color fill (--pos-qb-bg,
+      --pos-rb-bg, --pos-wr-bg, --pos-te-bg, --pos-k-bg, --pos-pick-bg,
+      --red, --green, --yellow, --orange) uses var(--white) for text inside.
+      Includes: pos pills, tier badges, heat tints (.rk-min/.rk-max),
+      icon-btn active states, mvs-vol-hot/warm, hm-flash-label, lg-trigger,
+      every "*.active" button on every page. The only exception is when the
+      fill is itself white/muted/surface — then dark text is correct.
+
+   2. NEVER USE `opacity:` ON A PARENT THAT CONTAINS COLORED CHILDREN.
+      CSS opacity COMPOUNDS down to children and cannot be overridden by
+      `opacity: 1` on the child. If a parent has a pill, badge, or any
+      colored visual element inside, do NOT set opacity on the parent.
+      Instead, fade the text directly with `color: rgba(255,255,255,X)`.
+      Leaf text-only elements (placeholders, footnotes, labels with no
+      colored children) MAY use `opacity:` — but prefer rgba alpha as the
+      house style so we never hit the compounding bug.
+
+   3. SOURCE OF TRUTH IS THIS FILE.
+      Color tokens (--pos-*-bg, --pos-*, --red, --green, --yellow, --orange)
+      are defined here. Inline duplicates in HTML pages must match exactly.
+      Never hardcode position hex values in CSS rules — always reference
+      the token. Never hardcode `color:#111` on a bright fill — use
+      `color: var(--white)`. Hardcoded values bypass rule #1 and silently
+      break when the token is updated.
+
+   4. VIBRANT BY DEFAULT.
+      Muted styling is reserved for genuinely secondary info (column
+      labels, footnotes, helper text) and is achieved with rgba alpha on
+      the text color, NEVER by opacity on a container. If a surface looks
+      "grey" or "dim" when it shouldn't, the cause is one of: (a) opacity
+      compounding from a parent, (b) hardcoded #111 text on a token-driven
+      bright fill, or (c) referencing --pos-X text token via a hardcoded
+      value rather than the variable.
+
+   5. CHECK SCRIPT.
+      `python scripts/check-colors.py` must print CLEAN after any change.
+      Extend BRAND_HEXES if you add a new brand color.
+
+   ───────────────────────────────────────────────────────────────────────
+
    PURPOSE
      Single source of truth for:
        - Brand color variables (--red is the dynasty-orange #ED810C accent)
@@ -93,13 +138,14 @@
                    rgba(237,129,12, 0.06) → rgba(237,129,12, 1.0)
 
    7. BIPOLAR HIGHLIGHTS — per-row min/max, like analyst-cell highlights
-        Use SOLID brand colors with dark #111 text (same standard as the
-        position pills, .icon-btn.active, and the ADP page's player cards).
+        Use SOLID brand colors with WHITE text (same standard as the
+        position pills, .icon-btn.active, tier badges, and every other
+        bright-fill surface — see THE WHITE-TEXT RULE block below).
         Half-opacity tints (rgba at 0.20-0.55) over dark surfaces read as
         muddy — avoid them for emphasis. Reserve opacity tints for SUBTLE
         row stripes (use --green-bg / --red-bg at 10% for those).
-            "Best" / lowest / improved → background: var(--green);  color: #111
-            "Worst" / highest / slipped → background: var(--red);   color: #111
+            "Best" / lowest / improved → background: var(--green);  color: var(--white)
+            "Worst" / highest / slipped → background: var(--red);   color: var(--white)
             Hover: opacity: .92  (matches .icon-btn.active:hover)
         Reference: rankings.html .rk-table td.rk-min / .rk-max (analyst mode)
 
@@ -122,12 +168,12 @@
   --red-bg: rgba(237,129,12,.10);
   --red-bg-soft: rgba(237,129,12,.06);
   --green-bg: rgba(76,175,110,.10);
-  --pos-wr-bg:#5b9bd5; --pos-wr:#111111;
-  --pos-rb-bg:#4caf6e; --pos-rb:#111111;
-  --pos-qb-bg:#e05252; --pos-qb:#111111;
-  --pos-te-bg:#e09a30; --pos-te:#111111;
-  --pos-k-bg:#9b91d4;  --pos-k:#111111;
-  --pos-pick-bg:#9b91d4; --pos-pick:#111111;
+  --pos-wr-bg:#5b9bd5; --pos-wr:#ffffff;
+  --pos-rb-bg:#4caf6e; --pos-rb:#ffffff;
+  --pos-qb-bg:#e05252; --pos-qb:#ffffff;
+  --pos-te-bg:#e09a30; --pos-te:#ffffff;
+  --pos-k-bg:#9b91d4;  --pos-k:#ffffff;
+  --pos-pick-bg:#9b91d4; --pos-pick:#ffffff;
   --nav-bg: #111111; --page-bg: #111111;
   --muted: var(--white);
   --color-scheme: dark;
@@ -225,8 +271,8 @@ body { zoom: 1.25; }
 
 .icon-btn { display:inline-flex; align-items:center; gap:6px; padding:8px 14px; border:1px solid var(--border2); background:var(--surface); color:var(--white); font-family:'Mulish',sans-serif; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; cursor:pointer; transition:all .12s; }
 .icon-btn:hover { border-color:var(--red); color:var(--red); }
-.icon-btn.active { background:var(--red); color:#111; border-color:var(--red); }
-.icon-btn.active:hover { color:#111; opacity:.92; }
+.icon-btn.active { background:var(--red); color:var(--white); border-color:var(--red); }
+.icon-btn.active:hover { color:var(--white); opacity:.92; }
 
 /* ── TREND BADGE ──────────────────────────────────────────────────────── */
 /* Black text-stroke instead of a chip background so the arrow + delta reads
