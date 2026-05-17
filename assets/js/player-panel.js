@@ -1309,6 +1309,131 @@
   }
 
   // ────────────────────────────────────────────────────────────────────────
+  // Weekly stats cache + lazy fetch helper.  Keyed by `${sleeperId}_${year}`.
+  // Each cached value is an array of week records:
+  //   { week: Number, season_type: 'regular' | 'post', stats: { pts_ppr, ... } }
+  // sorted regular-season first, then playoffs.
+  // ────────────────────────────────────────────────────────────────────────
+  const _weeklyStatsCache = {};
+
+  function _fetchWeeklyStats(sleeperId, year) {
+    const cacheKey = `${sleeperId}_${year}`;
+    if (_weeklyStatsCache[cacheKey]) {
+      return Promise.resolve(_weeklyStatsCache[cacheKey]);
+    }
+    const tryFetch = url => fetch(url).then(r => r.ok ? r.json() : null).catch(() => null);
+    const fetchReg = tryFetch(`https://api.sleeper.com/stats/nfl/player/${sleeperId}?season=${year}&season_type=regular&grouping=week`)
+      .then(d => d || tryFetch(`https://api.sleeper.app/v1/stats/nfl/player/${sleeperId}?season_type=regular&season=${year}&grouping=week`));
+    const fetchPost = tryFetch(`https://api.sleeper.com/stats/nfl/player/${sleeperId}?season=${year}&season_type=post&grouping=week`)
+      .then(d => d || tryFetch(`https://api.sleeper.app/v1/stats/nfl/player/${sleeperId}?season_type=post&season=${year}&grouping=week`));
+    return Promise.all([fetchReg, fetchPost]).then(([reg, post]) => {
+      const merged = [];
+      function consume(data, season_type) {
+        if (!data || typeof data !== 'object') return;
+        Object.entries(data).forEach(([wk, entry]) => {
+          if (!entry || typeof entry !== 'object') return;
+          const stats = entry.stats || entry;
+          if (!stats || typeof stats !== 'object') return;
+          // Skip weeks where the player didn't play (no stats at all)
+          if (!stats.gp && stats.pts_ppr == null) return;
+          merged.push({ week: +wk, season_type, stats });
+        });
+      }
+      consume(reg, 'regular');
+      consume(post, 'post');
+      merged.sort((a, b) => {
+        if (a.season_type !== b.season_type) return a.season_type === 'regular' ? -1 : 1;
+        return a.week - b.week;
+      });
+      _weeklyStatsCache[cacheKey] = merged;
+      return merged;
+    });
+  }
+
+  // Renders the inner `<tr class="pp-weekly-row">` HTML for a list of weekly
+  // records using the same column definitions as the year row above.  The
+  // first cell shows "Wk N" (left-aligned, indented under the chevron) plus
+  // a "PLAYOFF" chip for post-season weeks.  Stat cells use a slightly
+  // smaller / alpha-muted style so weekly rows read as supplementary to
+  // the year row, but pills/badges stay full-opacity (no parent opacity).
+  function _renderWeeklyRowsHtml(weeks, cols) {
+    const tdBase = `padding:5px 6px;font-family:'Mulish',sans-serif;font-size:11px;border-bottom:1px solid var(--border);vertical-align:middle;`;
+    const tdWk = `${tdBase}text-align:center;font-family:'Kanit',sans-serif;font-weight:700;font-style:italic;font-size:12px;color:rgba(255,255,255,0.85);`;
+    const tdWkLabel = `${tdBase}text-align:left;padding-left:20px;font-family:'Kanit',sans-serif;font-weight:700;font-style:italic;font-size:12px;color:rgba(255,255,255,0.65);white-space:nowrap;`;
+    const playoffChip = `<span style="display:inline-block;background:var(--red);color:var(--white);font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:8px;padding:1px 5px;margin-left:6px;letter-spacing:.04em;vertical-align:middle">PLAYOFF</span>`;
+    return weeks.map(w => {
+      const isPost = w.season_type === 'post';
+      const cells = cols.map(c => {
+        const raw = w.stats[c.key];
+        const val = c.useRow ? c.fmt(raw, w.stats) : c.fmt(raw);
+        return `<td style="${tdWk}">${val}</td>`;
+      }).join('');
+      return `<tr class="pp-weekly-row"><td style="${tdWkLabel}">Wk ${w.week}${isPost ? playoffChip : ''}</td>${cells}</tr>`;
+    }).join('');
+  }
+
+  // Click handler attached to each Year cell in renderPlayerStats.  Walks
+  // the table to find any existing expanded rows and collapses them; if
+  // none, fires the fetch (with async-guard against player switches) and
+  // inserts the weekly rows in place of a transient loading row.
+  function _toggleWeeklyExpand(yearCell, sleeperId, year, cols, colCount, capturedName) {
+    const row = yearCell.parentElement; // the <tr>
+    if (!row || !row.parentElement) return;
+    const chev = yearCell.querySelector('.pp-yr-chevron');
+
+    // Find any expanded sibling rows immediately after this year row
+    const expanded = [];
+    let sib = row.nextElementSibling;
+    while (sib && sib.classList && (sib.classList.contains('pp-weekly-row') || sib.classList.contains('pp-weekly-loading'))) {
+      expanded.push(sib);
+      sib = sib.nextElementSibling;
+    }
+
+    if (expanded.length > 0) {
+      // Collapse
+      expanded.forEach(r => r.remove());
+      if (chev) chev.textContent = '▸';  // ▸
+      return;
+    }
+
+    // Expand — insert loading row, fetch, replace with weekly rows
+    const loadingRow = document.createElement('tr');
+    loadingRow.className = 'pp-weekly-loading';
+    loadingRow.innerHTML = `<td colspan="${colCount}" style="padding:12px 20px;text-align:left;font-size:11px;color:rgba(255,255,255,0.5);font-family:'Mulish',sans-serif;border-bottom:1px solid var(--border)">Loading ${year} weekly stats…</td>`;
+    row.parentNode.insertBefore(loadingRow, row.nextElementSibling);
+    if (chev) chev.textContent = '▾';  // ▾
+
+    _fetchWeeklyStats(sleeperId, year).then(weeks => {
+      // Async-guard: if user switched players while fetch was in flight, abort
+      const active = global._currentPanelPlayer;
+      if (!active || active.label !== capturedName) {
+        if (loadingRow.parentNode) loadingRow.remove();
+        return;
+      }
+      if (!weeks || weeks.length === 0) {
+        loadingRow.innerHTML = `<td colspan="${colCount}" style="padding:12px 20px;text-align:left;font-size:11px;color:rgba(255,255,255,0.5);font-family:'Mulish',sans-serif;border-bottom:1px solid var(--border)">No weekly stats available for ${year}</td>`;
+        loadingRow.className = 'pp-weekly-row';
+        return;
+      }
+      // Insert all weekly rows before the loading row, then remove the loader
+      const wrapper = document.createElement('tbody');
+      wrapper.innerHTML = _renderWeeklyRowsHtml(weeks, cols);
+      while (wrapper.firstChild) {
+        loadingRow.parentNode.insertBefore(wrapper.firstChild, loadingRow);
+      }
+      loadingRow.remove();
+    }).catch(() => {
+      const active = global._currentPanelPlayer;
+      if (!active || active.label !== capturedName) {
+        if (loadingRow.parentNode) loadingRow.remove();
+        return;
+      }
+      loadingRow.innerHTML = `<td colspan="${colCount}" style="padding:12px 20px;text-align:left;font-size:11px;color:rgba(255,255,255,0.5);font-family:'Mulish',sans-serif;border-bottom:1px solid var(--border)">Error loading weekly stats for ${year}</td>`;
+      loadingRow.className = 'pp-weekly-row';
+    });
+  }
+
+  // ────────────────────────────────────────────────────────────────────────
   // renderPlayerStats — Sleeper per-season stat table.
   // ────────────────────────────────────────────────────────────────────────
   function renderPlayerStats(containerId, player) {
@@ -1432,6 +1557,9 @@
 
       const headers = `<th style="${thStyleName}">Year</th>` + cols.map(c => `<th style="${thStyle}">${c.label}</th>`).join('');
 
+      // Year cell is clickable — chevron + cursor:pointer signals expand.
+      // padding-left is bumped from 0 to 4px to leave room for the chevron.
+      const tdYear = `${_tdBase}text-align:left;padding-left:4px;font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:14px;color:var(--red);cursor:pointer;user-select:none;`;
       const rows = Object.entries(yearStats)
         .sort((a, b) => b[0].localeCompare(a[0]))
         .map(([yr, s]) => {
@@ -1440,21 +1568,30 @@
             const val = c.useRow ? c.fmt(raw, s) : c.fmt(raw);
             return `<td style="${tdNum}color:var(--white)">${val}</td>`;
           }).join('');
-          return `<tr>
-            <td style="${tdName}">${yr}</td>
+          return `<tr class="pp-year-row">
+            <td style="${tdYear}" data-pp-year="${yr}"><span class="pp-yr-chevron" style="display:inline-block;width:11px;color:var(--red);font-size:10px;margin-right:2px">▸</span>${yr}</td>
             ${cells}
           </tr>`;
         }).join('');
 
       el.innerHTML = `
         <div style="font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:11px;color:var(--red);text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px">${posName} Season Stats</div>
-        <div style="font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);opacity:.4;margin-bottom:10px">Source: Sleeper · Full PPR scoring</div>
+        <div style="font-family:'Mulish',sans-serif;font-size:10px;color:rgba(255,255,255,0.4);margin-bottom:10px">Source: Sleeper · Full PPR scoring · click any year for week-by-week</div>
         <div style="overflow-x:auto;-webkit-overflow-scrolling:touch">
           <table style="width:100%;border-collapse:collapse;min-width:400px">
             <thead><tr>${headers}</tr></thead>
             <tbody>${rows}</tbody>
           </table>
         </div>`;
+
+      // Attach click handlers to each Year cell. Closure captures cols / pos /
+      // sleeperId / targetName so the toggle helper has everything it needs.
+      const colCount = 1 + cols.length;
+      el.querySelectorAll('[data-pp-year]').forEach(yearCell => {
+        yearCell.addEventListener('click', () => {
+          _toggleWeeklyExpand(yearCell, sleeperId, yearCell.dataset.ppYear, cols, colCount, targetName);
+        });
+      });
     }).catch(() => {
       const active = global._currentPanelPlayer;
       if (!active || active.label !== targetName) return;
