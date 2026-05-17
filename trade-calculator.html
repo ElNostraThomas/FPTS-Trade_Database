@@ -2890,7 +2890,15 @@ function tradeSearchAdd(side, label, type, key, pos) {
 }
 
 function renderPickTags() {
+  // #pick-tags belonged to the legacy pick-builder UI (pb-year / pb-round /
+  // pb-slot) which has since been removed from the DOM. The function is still
+  // called from resetFilters() + applyPreset(), so a missing element used to
+  // throw a TypeError and silently kill the rest of those handlers — which is
+  // why "Reset All Filters" didn't clear the chip bar and the preset buttons
+  // appeared to reset dropdowns without applying any preset values. Bail
+  // quietly if the container is gone.
   const container = document.getElementById("pick-tags");
+  if (!container) return;
   container.innerHTML = selectedPicks.map(p=>`
     <span class="pick-tag">
       ${p.label}
