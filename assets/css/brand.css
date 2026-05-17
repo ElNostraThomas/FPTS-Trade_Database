@@ -94,7 +94,7 @@
             "Best" / lowest / improved → background: var(--green);  color: #111
             "Worst" / highest / slipped → background: var(--red);   color: #111
             Hover: opacity: .92  (matches .icon-btn.active:hover)
-        Reference: analysts.html .an-table td.rk-min / .rk-max
+        Reference: rankings.html .rk-table td.rk-min / .rk-max (analyst mode)
 
    8. SURFACE / BORDERS
         Panel backgrounds:        var(--surface) (#1a1a1a)

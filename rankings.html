@@ -8,7 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Kanit:ital,wght@0,400;0,700;1,800&family=Mulish:wght@400;700;900&display=swap" rel="stylesheet">
 
 <!-- Brand-level styles: fonts, color variables, nav, page chrome, pos pills. -->
-<link rel="stylesheet" href="assets/css/brand.css?v=1779760000">
+<link rel="stylesheet" href="assets/css/brand.css?v=1779840000">
 
 <!-- Shared UI component modules (CSS). -->
 <link rel="stylesheet" href="assets/css/mvs-extras.css?v=1778680030">
@@ -25,7 +25,7 @@
 <script src="assets/js/mvs-extras.js?v=1778642255"></script>
 <script src="assets/js/player-articles.js?v=1778680034"></script>
 <script src="assets/js/heatmap.js?v=1778670000"></script>
-<script src="assets/js/legend-content.js?v=1779520000"></script>
+<script src="assets/js/legend-content.js?v=1779840000"></script>
 <script src="assets/js/legend.js?v=1778949514"></script>
 <!-- Team logo helpers — load BEFORE player-panel.js so modal-hero badge works. -->
 <script src="assets/js/team-helpers.js?v=1778680000"></script>
@@ -46,30 +46,24 @@
 
   /* PAGE */
   .page { max-width: 1440px; margin: 0 auto; padding: 0 5px; }
-  .page-header { padding: 32px 0 24px; display: flex; align-items: flex-end; justify-content: space-between; border-bottom: 1px solid var(--border); margin-bottom: 28px; flex-wrap: wrap; gap: 16px; }
+  .page-header { padding: 32px 0 12px; display: flex; align-items: flex-end; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
   .page-title { font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 36px; color: var(--white); text-transform: uppercase; line-height: 1; }
   .page-title span { color: var(--red); }
   .page-subtitle { font-family: 'Mulish', sans-serif; font-size: 13px; color: var(--white); opacity: 1; margin-top: 6px; }
   .page-stat { text-align: right; font-family: 'Mulish', sans-serif; font-size: 11px; color: var(--muted); }
 
-  /* ANALYST TABS — top-level navigation across data sources */
-  .rk-tabs {
-    display: flex; align-items: stretch; gap: 0;
-    margin-bottom: 14px; flex-wrap: wrap;
-    border-bottom: 1px solid var(--border);
-  }
-  .rk-tab {
-    background: transparent; color: var(--muted); border: none;
-    padding: 12px 20px; cursor: pointer;
+  /* MODE TABS — Consensus / By Analyst (mirrors adp-tool .adp-source-tabs) */
+  .rk-mode-tabs { display: flex; gap: 28px; align-items: flex-end; margin-bottom: 8px; border-bottom: 1px solid var(--border); padding-bottom: 0; }
+  .rk-mode-tab {
     font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
-    font-size: 13px; text-transform: uppercase; letter-spacing: .06em;
-    border-bottom: 3px solid transparent; margin-bottom: -1px;
-    transition: color .15s, border-color .15s;
+    font-size: 26px; color: var(--white); opacity: .45;
+    text-transform: uppercase; letter-spacing: .02em; line-height: 1;
+    background: none; border: none; border-bottom: 3px solid transparent;
+    padding: 0 0 6px; cursor: pointer; margin-bottom: -1px;
+    transition: opacity .15s, border-color .15s, color .15s;
   }
-  .rk-tab:hover:not(.disabled) { color: var(--white); }
-  .rk-tab.active { color: var(--red); border-bottom-color: var(--red); }
-  .rk-tab.disabled { opacity: .35; cursor: not-allowed; }
-  .rk-tab .rk-tab-hint { font-size: 9px; opacity: .7; margin-left: 4px; font-weight: 700; font-style: normal; letter-spacing: 0; }
+  .rk-mode-tab:hover { opacity: .75; }
+  .rk-mode-tab.active { opacity: 1; border-bottom-color: var(--red); }
 
   /* CONTROLS BAR — format toggle + filters + search */
   .rk-controls {
@@ -143,6 +137,40 @@
   /* EMPTY STATE */
   .rk-empty { padding: 60px 20px; text-align: center; color: var(--muted); font-family: 'Mulish', sans-serif; font-size: 14px; }
 
+  /* ──────────────────────────────────────────────────────────────────────
+     ANALYST MODE — multi-analyst rank comparison (was its own page)
+     ────────────────────────────────────────────────────────────────────── */
+
+  /* Position toggle (QB/RB/WR/TE) matches adp-tool's .controls-btn standard:
+     filled surface bg, Mulish font, dark text on active orange fill. */
+  .rk-analyst-pos-toggle { display: inline-flex; border: 1px solid var(--border2); }
+  .rk-analyst-pos-btn {
+    background: var(--surface); color: var(--white); border: none;
+    font-family: 'Mulish', sans-serif; font-weight: 700;
+    font-size: 11px; text-transform: uppercase; letter-spacing: .06em;
+    padding: 8px 16px; cursor: pointer; transition: all .15s;
+    min-width: 52px;
+  }
+  .rk-analyst-pos-btn + .rk-analyst-pos-btn { border-left: 1px solid var(--border2); }
+  .rk-analyst-pos-btn:hover:not(.disabled):not(.active) { background: var(--surface2); }
+  .rk-analyst-pos-btn.active { background: var(--red); color: #111; }
+  .rk-analyst-pos-btn.disabled { opacity: .35; cursor: not-allowed; }
+
+  /* Analyst table cells: numeric (rank cells centered, Kanit italic) +
+     dedicated consensus + team columns. Reuses .rk-table-wrap / .rk-table base. */
+  .rk-table .col-analyst-rank { text-align: center; font-variant-numeric: tabular-nums; font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 13px; min-width: 56px; }
+  .rk-table .col-analyst-consensus { text-align: center; font-variant-numeric: tabular-nums; font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 14px; color: var(--red); min-width: 70px; }
+  .rk-table .col-analyst-team { text-align: center; min-width: 40px; }
+
+  /* Bipolar heat highlights (per analyst rank cell): solid brand colors with
+     dark text — matches the bipolar-highlights rule documented in brand.css.
+     Best (min rank in row) = brand green; worst (max rank) = dynasty orange. */
+  .rk-table td.rk-min  { background-color: var(--green); color: #111; font-weight: 800; }
+  .rk-table td.rk-max  { background-color: var(--red);   color: #111; font-weight: 800; }
+  .rk-table td.rk-na   { color: var(--muted); }
+  .rk-table tbody tr:hover td.rk-min,
+  .rk-table tbody tr:hover td.rk-max { opacity: .92; }
+
   /* MOBILE */
   @media (max-width: 768px) {
     .topnav { padding: 0 10px; gap: 8px; height: 48px; }
@@ -214,7 +242,6 @@
     <a class="nav-link" href="tiers.html">Tiers</a>
     <a class="nav-link" href="adp-tool.html">ADP</a>
     <a class="nav-link active" aria-current="page">Rankings</a>
-    <a class="nav-link" href="analysts.html">Analysts</a>
   </nav>
   <div class="nav-right">
     <select class="mobile-nav-select" onchange="if(this.value)window.location.href=this.value">
@@ -225,7 +252,6 @@
       <option value="tiers.html">Tiers</option>
       <option value="adp-tool.html">ADP</option>
       <option value="rankings.html">Rankings</option>
-      <option value="analysts.html">Analysts</option>
     </select>
     <span class="nav-badge" id="nav-season-badge">SEASON 2026</span>
     <button id="theme-toggle" onclick="toggleTheme()"
@@ -246,16 +272,20 @@
   <div class="page-header">
     <div>
       <div class="page-title">Dynasty <span>Rankings</span> 2026</div>
-      <div class="page-subtitle" id="rk-subtitle">Loading rankings…</div>
     </div>
     <div class="page-stat" id="rk-stat-count">—</div>
   </div>
 
-  <!-- Analyst tab strip — built dynamically from manifest -->
-  <div class="rk-tabs" id="rk-analyst-tabs" role="tablist" aria-label="Analyst"></div>
+  <!-- Mode tabs — Consensus vs By Analyst (adp-tool's Dynasty Startup/Rookie pattern) -->
+  <div class="rk-mode-tabs" role="tablist" aria-label="Rankings mode">
+    <button class="rk-mode-tab active" data-mode="consensus" role="tab" aria-selected="true"  onclick="setMode('consensus')">Consensus</button>
+    <button class="rk-mode-tab"        data-mode="analyst"   role="tab" aria-selected="false" onclick="setMode('analyst')">By Analyst</button>
+  </div>
 
-  <!-- Controls bar — format toggle, position filter, search -->
-  <div class="rk-controls">
+  <div class="page-subtitle" id="rk-subtitle">Loading…</div>
+
+  <!-- Consensus mode controls -->
+  <div class="rk-controls" id="rk-controls-consensus">
     <span class="rk-control-label">Format:</span>
     <div class="rk-format-toggle" id="rk-format-toggle" role="tablist" aria-label="Format"></div>
 
@@ -271,6 +301,16 @@
     <span class="rk-spacer"></span>
 
     <input type="search" class="rk-search" id="rk-search" placeholder="Search player…" oninput="setSearch(this.value)">
+  </div>
+
+  <!-- Analyst mode controls -->
+  <div class="rk-controls" id="rk-controls-analyst" style="display:none">
+    <span class="rk-control-label">Position:</span>
+    <div class="rk-analyst-pos-toggle" id="rk-analyst-pos-toggle" role="tablist" aria-label="Position"></div>
+
+    <span class="rk-spacer"></span>
+
+    <input type="search" class="rk-search" id="rk-analyst-search" placeholder="Search player…" oninput="setAnalystSearch(this.value)">
   </div>
 
   <!-- Table body (rendered by JS) -->
@@ -305,17 +345,41 @@ function toggleTheme() {
 })();
 
 // ── STATE ──────────────────────────────────────────────────────────────────
+// Top-level mode flips the entire view (controls + table) — Consensus shows
+// the format-driven overall ranking with ADP overlays; Analyst shows the
+// 5-analyst side-by-side comparison per position with heat tints.
+//
+// Each mode keeps its own sub-state via separate localStorage keys, so a
+// user's saved selections in one mode don't bleed into the other.
 const STATE = {
-  analyst: 'overall',
-  format:  'sf',
+  mode: 'consensus',          // 'consensus' | 'analyst'
+
+  // ── Consensus sub-state ──
+  analyst:  'overall',         // (currently always 'overall' — multi-analyst consensus tabs deferred)
+  format:   'sf',
   position: 'all',
-  search:  '',
-  sort:    { col: 'rank', dir: 'asc' },
+  search:   '',
+  sort:     { col: 'rank', dir: 'asc' },
+
+  // ── Analyst sub-state ──
+  analystPosition: 'QB',
+  analystSearch:   '',
+  analystSort:     { col: 'consensus', dir: 'asc' },
 };
 
-let RANKINGS_AVAILABLE = [];   // populated from manifest.json
-let RANKINGS_CACHE     = Object.create(null);   // { "overall-sf": <payload>, ... }
-let ACTIVE_PLAYERS     = [];   // shortcut to RANKINGS_CACHE[comboKey].players
+// Consensus-mode data
+let RANKINGS_AVAILABLE = [];                        // from data/rankings/manifest.json
+let RANKINGS_CACHE     = Object.create(null);       // { "overall-sf": <payload>, ... }
+let ACTIVE_PLAYERS     = [];
+
+// Analyst-mode data
+let ANALYSTS_AVAILABLE = [];                        // from data/analyst-rankings/manifest.json
+let ANALYST_META       = [];                        // [{ key, label }] — for column headers
+let ANALYST_KEYS       = [];                        // ordered analyst keys (for cell iteration)
+let ANALYSTS_CACHE     = Object.create(null);       // { "QB": <payload>, ... }
+let ACTIVE_ANALYST_PLAYERS = [];
+
+const ANALYST_POSITIONS = ['QB', 'RB', 'WR', 'TE'];
 
 // Canonical format set surfaced in the toggle (in display order). Format
 // names are fixed fantasy-football scoring variants — these are real and
@@ -326,31 +390,6 @@ const FORMATS = [
   { key: '1qb',     label: '1QB' },
   { key: '1qb-tep', label: '1QB + TEP' },
 ];
-
-// Analyst list is manifest-driven — no hardcoded names. Whatever analyst
-// keys appear in data/rankings/manifest.json get tabs; nothing else.
-// _capitalize() formats the key for display if no explicit label is given.
-function _capitalize(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : ''; }
-function _analystLabel(key) {
-  // Use the manifest-provided label if any entry for this analyst has one
-  // (e.g. label="Overall Consensus — Superflex" → analyst label "Overall").
-  // Otherwise fall back to a Title-Case'd version of the key.
-  const entry = RANKINGS_AVAILABLE.find(c => c.analyst === key);
-  if (entry && entry.label) {
-    // Strip everything after the first " — " (format separator) for the tab label
-    const before = entry.label.split('—')[0].split('-')[0].trim();
-    if (before) return before;
-  }
-  return _capitalize(key);
-}
-function _uniqueAnalysts() {
-  const seen = new Set();
-  const out = [];
-  for (const c of RANKINGS_AVAILABLE) {
-    if (!seen.has(c.analyst)) { seen.add(c.analyst); out.push(c.analyst); }
-  }
-  return out;
-}
 
 // ── HELPERS ────────────────────────────────────────────────────────────────
 function _normName(name) {
@@ -564,30 +603,7 @@ function renderRankings() {
     sorted.length + (sorted.length === enriched.length ? '' : ' of ' + enriched.length) + ' players';
 }
 
-// ── CONTROLS ───────────────────────────────────────────────────────────────
-function renderAnalystTabs() {
-  const wrap = document.getElementById('rk-analyst-tabs');
-  const analysts = _uniqueAnalysts();
-
-  // Hide the strip entirely when there's nothing to switch between —
-  // a single-tab strip reads as broken UI. Once a 2nd analyst CSV lands,
-  // the strip reappears automatically on the next page load.
-  if (analysts.length <= 1) {
-    wrap.innerHTML = '';
-    wrap.style.display = 'none';
-    return;
-  }
-  wrap.style.display = '';
-
-  wrap.innerHTML = analysts.map(key => {
-    const active = STATE.analyst === key;
-    const cls = 'rk-tab' + (active ? ' active' : '');
-    return '<button type="button" role="tab" class="' + cls
-      + '" onclick="setAnalyst(\'' + key + '\')">'
-      + _analystLabel(key) + '</button>';
-  }).join('');
-}
-
+// ── CONSENSUS MODE — controls + setters ────────────────────────────────────
 function renderFormatToggle() {
   const wrap = document.getElementById('rk-format-toggle');
   wrap.innerHTML = FORMATS.map(f => {
@@ -598,32 +614,6 @@ function renderFormatToggle() {
     const title = enabled ? '' : ' title="No CSV for this combo yet"';
     return '<button type="button"' + title + ' class="' + cls + '" ' + click + '>' + f.label + '</button>';
   }).join('');
-}
-
-function _updateSubtitle() {
-  const sub = document.getElementById('rk-subtitle');
-  if (!sub) return;
-  const active = RANKINGS_AVAILABLE.find(c => c.analyst === STATE.analyst && c.format === STATE.format);
-  sub.textContent = active ? active.label : 'No data for this combo yet';
-}
-
-function setAnalyst(key) {
-  if (STATE.analyst === key) return;
-  STATE.analyst = key;
-  try { localStorage.setItem('fpts-rankings-analyst', key); } catch (e) {}
-
-  // Re-pick format if current isn't available under this analyst
-  if (!_comboAvailable(key, STATE.format)) {
-    const fallback = RANKINGS_AVAILABLE.find(c => c.analyst === key);
-    if (fallback) {
-      STATE.format = fallback.format;
-      try { localStorage.setItem('fpts-rankings-format', STATE.format); } catch (e) {}
-    }
-  }
-  renderAnalystTabs();
-  renderFormatToggle();
-  _updateSubtitle();
-  _loadAndRender();
 }
 
 function setFormat(key) {
@@ -675,6 +665,243 @@ function _loadAndRender() {
   });
 }
 
+// ── ANALYST MODE — data, render, controls (was its own page) ──────────────
+function loadAnalystsManifest() {
+  const _v = '?v=' + (window.__DATA_VERSION || Date.now());
+  return fetch('data/analyst-rankings/manifest.json' + _v)
+    .then(r => r.ok ? r.json() : Promise.reject(new Error('HTTP ' + r.status)))
+    .then(j => {
+      ANALYSTS_AVAILABLE = j.positions || [];
+      ANALYST_META       = j.analysts  || [];
+      ANALYST_KEYS       = ANALYST_META.map(a => a.key);
+    })
+    .catch(err => {
+      console.warn('[rankings] analysts manifest load failed', err);
+      ANALYSTS_AVAILABLE = []; ANALYST_META = []; ANALYST_KEYS = [];
+    });
+}
+
+function _posAvailable(pos) {
+  return ANALYSTS_AVAILABLE.some(p => p.key === pos);
+}
+
+function _ensurePositionLoaded(pos) {
+  if (ANALYSTS_CACHE[pos]) return Promise.resolve(ANALYSTS_CACHE[pos]);
+  const entry = ANALYSTS_AVAILABLE.find(p => p.key === pos);
+  if (!entry) return Promise.reject(new Error('No analyst data for ' + pos));
+  const _v = '?v=' + (window.__DATA_VERSION || Date.now());
+  return fetch('data/analyst-rankings/' + entry.file + _v)
+    .then(r => r.ok ? r.json() : Promise.reject(new Error('HTTP ' + r.status)))
+    .then(payload => { ANALYSTS_CACHE[pos] = payload; return payload; });
+}
+
+function renderAnalystPosToggle() {
+  const wrap = document.getElementById('rk-analyst-pos-toggle');
+  wrap.innerHTML = ANALYST_POSITIONS.map(pos => {
+    const enabled = _posAvailable(pos);
+    const active  = STATE.analystPosition === pos;
+    const cls = 'rk-analyst-pos-btn' + (active ? ' active' : '') + (enabled ? '' : ' disabled');
+    const click = enabled ? ('onclick="setAnalystPosition(\'' + pos + '\')"') : '';
+    const title = enabled ? '' : ' title="No analyst data for this position yet"';
+    return '<button type="button" role="tab" class="' + cls + '"' + title + ' ' + click + '>' + pos + '</button>';
+  }).join('');
+}
+
+function _analystHeaderCols() {
+  const cols = [
+    { key: 'name', label: 'Player', cls: 'col-name' },
+    { key: 'team', label: 'Team',   cls: 'col-analyst-team' },
+  ];
+  for (const a of ANALYST_META) {
+    cols.push({ key: 'ranks.' + a.key, label: a.label, cls: 'col-analyst-rank' });
+  }
+  cols.push({ key: 'consensus', label: 'Consensus', cls: 'col-analyst-consensus' });
+  return cols;
+}
+
+function renderAnalystHeaderRow() {
+  return '<tr>' + _analystHeaderCols().map(c => {
+    const isSorted = STATE.analystSort.col === c.key;
+    const arrow = isSorted ? '<span class="sort-arrow">' + (STATE.analystSort.dir === 'asc' ? '▲' : '▼') + '</span>' : '';
+    const sortedCls = isSorted ? 'sorted ' : '';
+    return '<th class="' + sortedCls + (c.cls || '') + '" onclick="setAnalystSort(\'' + c.key + '\')" data-col="' + c.key + '">'
+      + c.label + arrow + '</th>';
+  }).join('') + '</tr>';
+}
+
+function _renderAnalystRow(p) {
+  const ranksByKey = ANALYST_KEYS.map(k => p.ranks[k]).filter(r => r != null);
+  const minR = ranksByKey.length ? Math.min.apply(null, ranksByKey) : null;
+  const maxR = ranksByKey.length ? Math.max.apply(null, ranksByKey) : null;
+  const sameRank = (minR != null && minR === maxR);
+
+  const nameCell = '<span class="rk-player-name" onclick="_openPlayer(\''
+    + (p.name || '').replace(/'/g, "\\'") + '\')">' + p.name + '</span>';
+  const teamCell = (p.team && window.TeamHelpers)
+    ? window.TeamHelpers.logoImg(p.team, { size: 20, coin: true })
+    : (p.team || '<span style="color:var(--muted)">—</span>');
+
+  let html = '<tr>';
+  html += '<td class="col-name">' + nameCell + '</td>';
+  html += '<td class="col-analyst-team">' + teamCell + '</td>';
+
+  for (const k of ANALYST_KEYS) {
+    const r = p.ranks[k];
+    if (r == null) {
+      html += '<td class="col-analyst-rank rk-na">—</td>';
+    } else {
+      let cls = 'col-analyst-rank';
+      if (!sameRank) {
+        if (r === minR) cls += ' rk-min';
+        else if (r === maxR) cls += ' rk-max';
+      }
+      html += '<td class="' + cls + '">' + r + '</td>';
+    }
+  }
+
+  const cons = (p.consensus != null) ? p.consensus.toFixed(1) : '—';
+  html += '<td class="col-analyst-consensus">' + cons + '</td>';
+  html += '</tr>';
+  return html;
+}
+
+function _applyAnalystFilters(players) {
+  if (!STATE.analystSearch) return players;
+  const q = STATE.analystSearch.toLowerCase();
+  return players.filter(p => (p.name || '').toLowerCase().includes(q));
+}
+
+function _getAnalystColValue(p, col) {
+  if (col === 'name')      return (p.name || '').toLowerCase();
+  if (col === 'team')      return (p.team || '').toLowerCase();
+  if (col === 'consensus') return (p.consensus != null) ? p.consensus : 9999;
+  if (col.indexOf('ranks.') === 0) {
+    const k = col.slice(6);
+    const r = p.ranks && p.ranks[k];
+    return (r != null) ? r : 9999;
+  }
+  return '';
+}
+
+function _sortAnalystPlayers(players) {
+  const col = STATE.analystSort.col;
+  const dir = STATE.analystSort.dir === 'asc' ? 1 : -1;
+  return [...players].sort((a, b) => {
+    const av = _getAnalystColValue(a, col);
+    const bv = _getAnalystColValue(b, col);
+    if (av < bv) return -1 * dir;
+    if (av > bv) return  1 * dir;
+    return 0;
+  });
+}
+
+function renderAnalystComparison() {
+  const body = document.getElementById('rankings-body');
+  if (!ACTIVE_ANALYST_PLAYERS.length) {
+    body.innerHTML = '<div class="rk-empty">No analyst rankings loaded for this position yet.</div>';
+    document.getElementById('rk-stat-count').textContent = '—';
+    return;
+  }
+  const filtered = _applyAnalystFilters(ACTIVE_ANALYST_PLAYERS);
+  const sorted   = _sortAnalystPlayers(filtered);
+
+  body.innerHTML = '<div class="rk-table-wrap"><table class="rk-table">'
+    + '<thead>' + renderAnalystHeaderRow() + '</thead>'
+    + '<tbody>' + sorted.map(_renderAnalystRow).join('') + '</tbody>'
+  + '</table></div>';
+
+  document.getElementById('rk-stat-count').textContent =
+    sorted.length + (sorted.length === ACTIVE_ANALYST_PLAYERS.length ? '' : ' of ' + ACTIVE_ANALYST_PLAYERS.length) + ' players';
+}
+
+function setAnalystPosition(pos) {
+  if (STATE.analystPosition === pos) return;
+  STATE.analystPosition = pos;
+  try { localStorage.setItem('fpts-rankings-analyst-position', pos); } catch (e) {}
+  renderAnalystPosToggle();
+  _updateSubtitle();
+  _loadAndRenderAnalyst();
+}
+
+let _analystSearchDebounce = 0;
+function setAnalystSearch(q) {
+  STATE.analystSearch = q || '';
+  try { localStorage.setItem('fpts-rankings-analyst-search', STATE.analystSearch); } catch (e) {}
+  clearTimeout(_analystSearchDebounce);
+  _analystSearchDebounce = setTimeout(renderAnalystComparison, 60);
+}
+
+function setAnalystSort(col) {
+  if (STATE.analystSort.col === col) {
+    STATE.analystSort.dir = STATE.analystSort.dir === 'asc' ? 'desc' : 'asc';
+  } else {
+    STATE.analystSort.col = col;
+    STATE.analystSort.dir = 'asc';
+  }
+  renderAnalystComparison();
+}
+
+function _loadAndRenderAnalyst() {
+  if (!_posAvailable(STATE.analystPosition)) {
+    ACTIVE_ANALYST_PLAYERS = [];
+    renderAnalystComparison();
+    return;
+  }
+  _ensurePositionLoaded(STATE.analystPosition).then(payload => {
+    ACTIVE_ANALYST_PLAYERS = (payload && payload.players) || [];
+    renderAnalystComparison();
+  }).catch(err => {
+    console.warn('[rankings] analyst load failed', err);
+    ACTIVE_ANALYST_PLAYERS = [];
+    renderAnalystComparison();
+  });
+}
+
+// ── MODE DISPATCHER ────────────────────────────────────────────────────────
+function _updateSubtitle() {
+  const sub = document.getElementById('rk-subtitle');
+  if (!sub) return;
+  if (STATE.mode === 'analyst') {
+    const cnt = ANALYST_META.length;
+    sub.textContent = STATE.analystPosition + ' rankings across ' + cnt + ' analyst' + (cnt === 1 ? '' : 's')
+      + ' — lowest cell = green (best), highest cell = orange (worst). Click any column header to sort.';
+  } else {
+    const active = RANKINGS_AVAILABLE.find(c => c.analyst === STATE.analyst && c.format === STATE.format);
+    sub.textContent = active ? active.label : 'No data for this combo yet';
+  }
+}
+
+function setMode(mode) {
+  if (mode !== 'consensus' && mode !== 'analyst') return;
+  if (STATE.mode === mode) return;
+  STATE.mode = mode;
+  try { localStorage.setItem('fpts-rankings-mode', mode); } catch (e) {}
+  // Update URL hash for shareable deep-links (mirrors adp-tool pattern)
+  try { history.replaceState(null, '', '#mode=' + mode); } catch (e) {}
+  _applyMode();
+}
+
+function _applyMode() {
+  // Update tab strip active state + ARIA
+  document.querySelectorAll('.rk-mode-tab').forEach(tab => {
+    const isActive = tab.dataset.mode === STATE.mode;
+    tab.classList.toggle('active', isActive);
+    tab.setAttribute('aria-selected', isActive ? 'true' : 'false');
+  });
+  // Swap controls visibility
+  document.getElementById('rk-controls-consensus').style.display = (STATE.mode === 'consensus') ? '' : 'none';
+  document.getElementById('rk-controls-analyst').style.display   = (STATE.mode === 'analyst')   ? '' : 'none';
+  _updateSubtitle();
+  // Render the active mode
+  if (STATE.mode === 'analyst') {
+    renderAnalystPosToggle();
+    _loadAndRenderAnalyst();
+  } else {
+    renderFormatToggle();
+    _loadAndRender();
+  }
+}
+
 // ── PLAYER PANEL CLICK ─────────────────────────────────────────────────────
 function _openPlayer(name) {
   if (window.openPanel) window.openPanel(name);
@@ -686,34 +913,53 @@ document.addEventListener('fpts:data-ready', function () {
   const overlay = document.getElementById('_fp-loading');
   if (overlay) overlay.style.display = 'none';
 
-  // Initialize the ADP comparator (shared with tiers). On month change,
+  // Initialize the ADP comparator (used by consensus mode). On month change,
   // re-render so PREVIOUS ADP + CHANGE columns reflect the new anchor.
+  // (No-op for analyst mode — its table doesn't use the comparator.)
   window.AdpComparator.init({
     storageKey: 'fpts-rankings-compare-month',
-    onChange: function () { renderRankings(); },
+    onChange: function () {
+      if (STATE.mode === 'consensus') renderRankings();
+    },
   });
 
   // Restore saved state from localStorage
   try {
-    const a = localStorage.getItem('fpts-rankings-analyst');
-    const f = localStorage.getItem('fpts-rankings-format');
-    const p = localStorage.getItem('fpts-rankings-position');
-    const s = localStorage.getItem('fpts-rankings-search');
+    const m  = localStorage.getItem('fpts-rankings-mode');
+    const a  = localStorage.getItem('fpts-rankings-analyst');
+    const f  = localStorage.getItem('fpts-rankings-format');
+    const p  = localStorage.getItem('fpts-rankings-position');
+    const s  = localStorage.getItem('fpts-rankings-search');
+    const ap = localStorage.getItem('fpts-rankings-analyst-position');
+    const as = localStorage.getItem('fpts-rankings-analyst-search');
+    if (m === 'consensus' || m === 'analyst') STATE.mode = m;
     if (a) STATE.analyst = a;
     if (f) STATE.format  = f;
     if (p) STATE.position = p;
     if (s) STATE.search  = s;
+    if (ap && ANALYST_POSITIONS.indexOf(ap) >= 0) STATE.analystPosition = ap;
+    if (as) STATE.analystSearch = as;
   } catch (e) {}
 
-  // Reflect restored state into the UI controls
+  // URL hash overrides localStorage (for shareable links — mirrors adp-tool)
+  try {
+    const hash = (window.location.hash || '').replace(/^#/, '');
+    const params = new URLSearchParams(hash);
+    const hashMode = params.get('mode');
+    if (hashMode === 'consensus' || hashMode === 'analyst') STATE.mode = hashMode;
+  } catch (e) {}
+
+  // Reflect restored state into the UI controls (both modes' inputs)
   const posSel = document.getElementById('rk-position-filter');
   if (posSel) posSel.value = STATE.position;
   const searchInput = document.getElementById('rk-search');
   if (searchInput) searchInput.value = STATE.search;
+  const analystSearchInput = document.getElementById('rk-analyst-search');
+  if (analystSearchInput) analystSearchInput.value = STATE.analystSearch;
 
-  // Load the manifest, then pick the best matching combo & render
-  loadManifest().then(() => {
-    // If saved combo is no longer available, fall back to the first one
+  // Load both manifests in parallel (each is a small JSON file)
+  Promise.all([loadManifest(), loadAnalystsManifest()]).then(() => {
+    // Validate consensus combo (fall back to first available if saved is gone)
     if (!_comboAvailable(STATE.analyst, STATE.format)) {
       const first = RANKINGS_AVAILABLE[0];
       if (first) {
@@ -721,10 +967,13 @@ document.addEventListener('fpts:data-ready', function () {
         STATE.format  = first.format;
       }
     }
-    renderAnalystTabs();
-    renderFormatToggle();
-    _updateSubtitle();
-    _loadAndRender();
+    // Validate analyst position (fall back to first available if saved is gone)
+    if (!_posAvailable(STATE.analystPosition)) {
+      const firstPos = ANALYSTS_AVAILABLE[0];
+      if (firstPos) STATE.analystPosition = firstPos.key;
+    }
+    // Hand off to the mode dispatcher — it renders the right controls + table
+    _applyMode();
   });
 });
 </script>

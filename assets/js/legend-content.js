@@ -917,9 +917,17 @@ window.LegendContent = {
   'rankings': {
     title: 'Dynasty Rankings',
     blurb: 'Replaces the old external Rankings link (fantasypoints.com/nfl/rankings/dynasty) with an in-app page styled in the brand system. ' +
-           'Driven by user-maintained Google Sheet CSVs (one per analyst+format combo), with FP API + ADP overlaid per row. ' +
-           'Designed from day one to scale to multiple analysts × multiple formats (SF / SF-TEP / 1QB / 1QB-TEP) — adding a new CSV is a config-edit + sync-run, never a code change. Analyst tab strip auto-hides while only one analyst has data.',
+           'TWO MODES via top tabs: CONSENSUS (consensus rankings per format combo with ADP overlays) and BY ANALYST (multi-analyst side-by-side comparison per position with heat tints). ' +
+           'Both modes driven by user-maintained Google Sheet CSVs. Consensus mode is config-driven: adding a new combo is a sync-run, no code change. By Analyst mode is manifest-driven: adding a new analyst CSV at data/source/analysts/<key>.csv expands the comparison columns automatically.',
     sections: [
+      {
+        name: 'Mode Tabs (Consensus / By Analyst)',
+        items: [
+          { label: 'Top-tab pattern', what: 'Two large Kanit italic tabs in the page-header (mirrors adp-tool.html\'s Dynasty Startup ADP / Dynasty Rookie ADP). Click flips the entire view (controls bar + table) without leaving the page. URL hash supports #mode=consensus or #mode=analyst for deep-linking.', source: 'rankings.html .rk-mode-tabs / .rk-mode-tab — copies .adp-source-tabs / .adp-tab from adp-tool.html', values: 'Active tab: full opacity + orange underline. Inactive: opacity 0.45.', notes: 'STATE.mode persists to localStorage fpts-rankings-mode. Each mode keeps its own sub-state via separate localStorage keys (fpts-rankings-* for consensus, fpts-rankings-analyst-* for analyst).' },
+          { label: 'Consensus mode', what: 'The original rankings view: single ranked list per (analyst, format) combo with overlays for Current ADP, Previous ADP (calendar picker), and Change chip. Format toggle + Position filter + Search.', source: 'data/rankings/manifest.json + data/rankings/{analyst}-{format}.json', values: '12-col table: Rank | Player | Pos | Team | Age | Exp | Avg Rank | Trade Value | Pos Rank | Current ADP | Previous ADP | Change', notes: 'Shares the AdpComparator module with tiers.html for the calendar picker.' },
+          { label: 'By Analyst mode', what: 'Multi-analyst side-by-side comparison per position. Each analyst gets a column with their integer rank for that player; a Consensus column shows the average. Per-row heat tints: lowest rank = solid brand green (best), highest = dynasty orange (worst), no tint when all analysts agree.', source: 'data/analyst-rankings/manifest.json + data/analyst-rankings/{position}.json', values: '8-col table (with 5 analysts): Player | Team | Ryan | Theo | John | Andy | Thomas | Consensus', notes: 'Position picker required (data is per-position). No format toggle — analyst rankings are standard 1QB / non-TEP scoring.' },
+        ],
+      },
       {
         name: 'Multi-Source Architecture',
         items: [
@@ -1013,61 +1021,4 @@ window.LegendContent = {
     ],
   },
 
-  // ════════════════════════════════════════════════════════════════════════
-  'analysts': {
-    title: 'Analyst Rankings',
-    blurb: 'Per-position side-by-side comparison of multiple analyst rankings, plus a consensus average. ' +
-           'Driven by per-analyst Google Sheet CSVs — each analyst publishes one CSV containing all 4 positions stacked (QB / RB / WR / TE), separated by banner rows. ' +
-           'sync-analysts.py splits each CSV into sections by banner detection and merges per position. ' +
-           'No format toggle (these are standard 1QB / non-TEP rankings — distinct from rankings.html which carries the format dimension).',
-    sections: [
-      {
-        name: 'Sheet Source Pipeline',
-        items: [
-          { label: 'sync-analysts.py', what: 'Reads sync-analysts.config.json, parses each analyst CSV (splits by "{POS} Ranks" banners), merges by normalized name per position, computes consensus average, writes data/analyst-rankings/{qb,rb,wr,te}.json + manifest.json.', source: 'Per-analyst CSVs in data/source/analysts/<key>.csv', values: 'Each output JSON: {version, season, position, analysts: [{key,label}], players: [{name, team, sdioId, ranks: {key:rank|null}, consensus}]}', notes: 'Fails LOUDLY (exit 1) if any analyst CSV has a section with <10 parsed players — likely indicates banner detection failed. MIN_PLAYERS_PER_SECTION = 10.' },
-          { label: 'CSV format expected', what: 'Single CSV per analyst, containing all 4 positions stacked. Banner row pattern: column 1 = "{POS} Ranks". Immediately following row = column header (ID, SDIO, Name, Team, Rank, Comments). Then player rows until the next banner or blank gap.', source: 'Each analyst exports their sheet tab as CSV from File → Download → CSV', values: 'Within a section: Name (col 2), Team (col 3), Rank (col 4, restarts at 1 per position).', notes: 'A run of 30+ blank rows ends the current section (defensive — shouldn\'t happen in practice).' },
-          { label: 'Adding a new analyst', what: 'Drop CSV at data/source/analysts/<key>.csv, add {key, label, local_csv} to sync-analysts.config.json, run `python sync-analysts.py`, push. No rankings.html code change — manifest-driven.', source: 'Workflow', values: '—', notes: 'Tab strip on analysts.html auto-grows; new analyst becomes a new column in the comparison table.' },
-        ],
-      },
-      {
-        name: 'Output JSON Shape',
-        items: [
-          { label: 'Per-position file (data/analyst-rankings/{qb,rb,wr,te}.json)', what: 'Contains every player who appears in at least one analyst\'s section for that position, plus the consensus average rank.', source: 'sync-analysts.py merge_per_position()', values: '{version, season, position, analysts: [{key,label}], players: [...]}', notes: 'Players sorted by consensus ascending (best first). Players with no consensus sink to bottom.' },
-          { label: 'Per-player record', what: 'One entry per ranked player.', source: 'Generated by sync-analysts.py', values: '{name, team, sdioId, ranks: {analyst_key: rank | null}, consensus: avg(non-null ranks) rounded to 1 dp}', notes: 'Players are joined across analysts by normalized name (case + accents + suffix stripped).' },
-          { label: 'Manifest (data/analyst-rankings/manifest.json)', what: 'Lists available analysts + populated positions. analysts.html reads this at boot to render the position toggle + column headers.', source: 'Generated by sync-analysts.py', values: '{version, season, analysts: [{key,label}], positions: [{key,label,file,count}]}', notes: 'Position toggle only shows positions present in the manifest as enabled; missing positions render disabled.' },
-        ],
-      },
-      {
-        name: 'Column Overlays',
-        items: [
-          { label: 'Player Column', what: 'CSV-driven — clickable name opens the shared 5-tab player drawer.', source: 'CSV col 2 → players[].name', values: 'Display name (e.g. "Josh Allen")', notes: 'Click handler: window.openPanel(name). Same drawer as every other page.' },
-          { label: 'Team Column', what: 'CSV-driven, rendered as coin-style team logo via TeamHelpers.logoImg.', source: 'CSV col 3 → players[].team', values: 'NFL team abbreviation (e.g. "BUF")', notes: 'Joined per-player from CSV across analysts; first non-empty value wins.' },
-          { label: 'Analyst Columns (Ryan / Theo / ...)', what: 'Each analyst\'s integer rank for this player at this position. "—" if the analyst didn\'t rank the player.', source: 'players[].ranks[<analyst_key>]', values: 'Integer ≥1 or null', notes: 'Sortable by clicking the column header. Players who didn\'t make this analyst\'s list sink to bottom on that column\'s sort.' },
-          { label: 'Consensus Column', what: 'Average of available analyst ranks for this player at this position. Rounded to 1 decimal.', source: 'players[].consensus', values: 'Decimal (e.g. 3.6)', notes: 'Default sort column (ascending = best players first). Players ranked by ALL analysts get a more reliable consensus than players ranked by only 1-2.' },
-        ],
-      },
-      {
-        name: 'Heat Coloring (per-row analyst rank cells)',
-        items: [
-          { label: 'Min / Max highlighting', what: 'Within each row, the analyst cell(s) with the LOWEST rank get a brand-green background tint (highest confidence among rankers). Cell(s) with the HIGHEST rank get a brand-orange tint (most disagreement). Equal-rank rows (e.g. all analysts agree on rank 1) get NO tint.', source: 'rankings.html:_renderRow heat logic', values: 'rgba(26, 135, 84, 0.18) green / rgba(237, 129, 12, 0.18) orange', notes: 'Lets users instantly spot which players have the widest disagreement between rankers. Missing values ("—") never get tinted.' },
-        ],
-      },
-      {
-        name: 'Controls + Interactions',
-        items: [
-          { label: 'Position Toggle', what: 'Required choice: QB / RB / WR / TE. The underlying data is per-position (no "all positions" view).', source: 'rankings.html:renderPositionToggle reading ANALYSTS_AVAILABLE', values: 'Active position: dynasty-orange filled button', notes: 'Switching position lazy-fetches the corresponding {pos}.json if not cached. Disabled positions show "no analyst data yet" tooltip.' },
-          { label: 'Search', what: 'Substring match against player name, case-insensitive, debounced 60ms.', source: 'analysts.html:setSearch', values: 'Persisted to localStorage fpts-analysts-search', notes: 'Restored on page load.' },
-          { label: 'Sort', what: 'Click any column header to toggle sort. Default is Consensus ascending. Numeric columns (each analyst + consensus) sort numerically; missing values sink to bottom.', source: 'analysts.html:setSort + _sortPlayers', values: 'STATE.sort = {col, dir} (transient, not persisted)', notes: 'Player + Team columns sort alphabetically.' },
-          { label: 'Player Click → Drawer', what: 'Click any player name → opens the shared 5-tab drawer (Trades / Player Stats / Age Curve / Trade Finder / ADP Heatmap).', source: 'analysts.html:_openPlayer → window.openPanel(name)', values: '—', notes: 'Same drawer + lookup behavior as the rest of the site.' },
-        ],
-      },
-      {
-        name: 'localStorage Keys',
-        items: [
-          { label: 'fpts-analysts-position', what: 'Active position picker.', source: 'localStorage', values: '"QB" | "RB" | "WR" | "TE"', notes: 'Restored on boot; falls back to first available position if the saved one has no data.' },
-          { label: 'fpts-analysts-search', what: 'Search query string.', source: 'localStorage', values: 'Free text', notes: 'Restored to the search input on boot.' },
-        ],
-      },
-    ],
-  },
 };
