@@ -469,17 +469,17 @@
 <section class="page">
   <div class="page-num">01</div>
   <h2 class="page-title">PROJECT<br>OVERVIEW</h2>
-  <p class="page-tagline">Four HTML pages. One brand system. Zero build step. A complete dynasty fantasy-football trade toolkit served straight from GitHub Pages.</p>
+  <p class="page-tagline">Seven HTML pages. One brand system. Zero build step. A complete dynasty fantasy-football trade toolkit served straight from GitHub Pages.</p>
   <div class="red-bar"></div>
 
   <div class="feature-block">
     <h3 class="feature-title"><span class="num">A</span>What this is</h3>
-    <p class="feature-body">The <b>FantasyPoints Dynasty Trade Database</b> is a static, dependency-free web application that ingests live dynasty trade data, Sleeper league rosters, and KeepTradeCut player values to surface trade-market trends, calculate fair-value packages, and audit a user's entire league portfolio in one place.</p>
+    <p class="feature-body">The <b>FantasyPoints Dynasty Trade Database</b> is a static, dependency-free web application that ingests live dynasty trade data, Sleeper league rosters, MVS market values, and analyst rankings to surface trade-market trends, calculate fair-value packages, audit a user's entire league portfolio, compare rankings across analysts, and document every formula on the site for analyst hand-off.</p>
   </div>
 
   <div class="feature-block">
     <h3 class="feature-title"><span class="num">B</span>Architecture</h3>
-    <p class="feature-body">Four standalone HTML files — each a fully self-contained page with inline CSS, inline JavaScript, and inline data. No build pipeline, no bundler, no server-side code. Cross-page state is passed through a small <b>session-storage handoff</b> envelope so a trade started on one page can be opened on another.</p>
+    <p class="feature-body">Seven standalone HTML files plus a shared <span class="kbd">assets/</span> tree of CSS / JS modules consumed by each page. No build pipeline, no bundler, no server-side code. Cross-page state passes through a small <b>session-storage handoff</b> envelope so a trade started on one page can be opened on another. A <span class="kbd">data-bootstrap.js</span> module fetches every <span class="kbd">data/*.json</span> file in parallel and fires <span class="kbd">fpts:data-ready</span> when populated.</p>
   </div>
 
   <div class="feature-block">
@@ -489,7 +489,7 @@
 
   <div class="feature-block">
     <h3 class="feature-title"><span class="num">D</span>Brand alignment</h3>
-    <p class="feature-body">Every page follows the <b>FantasyPoints Brand Style Guide v6</b> with a Front Office accent override — the 60 / 30 / 10 palette uses <span style="color:var(--red);font-weight:700">#ED810C</span> dynasty orange (in place of the parent-brand red), <b>#111111</b> black, and <b>#F0F0F0</b> off-white. Kanit Extrabold Italic for display type, Mulish for body and UI copy. Both dark and light themes ship; the theme toggle is mirrored across all four pages.</p>
+    <p class="feature-body">Every page follows the <b>FantasyPoints Brand Style Guide v6</b> with a Front Office accent override — the 60 / 30 / 10 palette uses <span style="color:var(--red);font-weight:700">#ED810C</span> dynasty orange (in place of the parent-brand red), <b>#111111</b> black, and <b>#F0F0F0</b> off-white. Kanit Extrabold Italic for display type, Mulish for body and UI copy. Both dark and light themes ship; the theme toggle is mirrored across all seven pages. Enforced by <span class="kbd">scripts/check-colors.py</span> which fails any push with off-brand color drift.</p>
   </div>
 
   <div class="footer-strip"><span>FPTS · FUNCTION REFERENCE</span><span class="accent">01 · OVERVIEW</span></div>
@@ -501,7 +501,7 @@
 <section class="page">
   <div class="page-num">02</div>
   <h2 class="page-title">SITE<br>MAP</h2>
-  <p class="page-tagline">Four pages, two directions of traffic. Every page can hand off a player, a pick, or an in-progress trade to any other page through a session-storage envelope read on load.</p>
+  <p class="page-tagline">Seven pages, two directions of traffic. Every page can hand off a player, a pick, or an in-progress trade to any other page through a session-storage envelope read on load.</p>
   <div class="red-bar"></div>
 
   <div class="sitemap">
@@ -521,9 +521,24 @@
       <p class="sm-desc">Sleeper league importer. Auth, roster ingest, waiver analytics, archetype detection, trade suggestions, exposure rollups.</p>
     </div>
     <div class="sm-card">
-      <div class="sm-tag">Rankings</div>
+      <div class="sm-tag">Tiers</div>
       <h3 class="sm-name">TIERS<span class="accent">.HTML</span></h3>
-      <p class="sm-desc">Dynasty Trade Tiers. Grouped or flat sortable view of every player and rookie pick, with Buy / Sell / Hold chips.</p>
+      <p class="sm-desc">Dynasty Trade Tiers. Grouped or flat sortable view of every player and rookie pick, with Buy / Sell / Hold chips and month-to-month ADP comparison.</p>
+    </div>
+    <div class="sm-card">
+      <div class="sm-tag">ADP</div>
+      <h3 class="sm-name">ADP-TOOL<span class="accent">.HTML</span></h3>
+      <p class="sm-desc">Sleeper-derived dynasty ADP across years (2022-2026) with Box / List / Heatmap views. Dynasty Startup + Rookie source tabs; format-bucket toggles (picks / simple / rookies).</p>
+    </div>
+    <div class="sm-card">
+      <div class="sm-tag">Rankings</div>
+      <h3 class="sm-name">RANKINGS<span class="accent">.HTML</span></h3>
+      <p class="sm-desc">Two modes — Consensus (multi-analyst average with ADP overlays per format) and By Analyst (5-analyst side-by-side comparison per position with bipolar heat tints).</p>
+    </div>
+    <div class="sm-card">
+      <div class="sm-tag">Reference</div>
+      <h3 class="sm-name">FORMULAS<span class="accent">.HTML</span></h3>
+      <p class="sm-desc">Site-wide formula + calculation catalog. 56 entries × 14 sections with provenance / examples / cross-links / "why this number" callouts. Built for analyst hand-off and developer reference.</p>
     </div>
   </div>
 
