@@ -1444,7 +1444,7 @@
       <div class="format-section-body">
         <div class="fmt-group">
           <span class="fmt-label">QB Format</span>
-          <select class="fmt-select" id="fmt-qb" onchange="recalc()">
+          <select class="fmt-select" id="fmt-qb" onchange="renderAll()">
             <option value="sf">Superflex</option>
             <option value="1qb">1 QB</option>
           </select>
@@ -1466,7 +1466,7 @@
       <div class="format-section-body">
         <div class="fmt-group">
           <span class="fmt-label">TEP Bonus</span>
-          <select class="fmt-select" id="fmt-tep" onchange="recalc()">
+          <select class="fmt-select" id="fmt-tep" onchange="renderAll()">
             <option value="0">None</option>
             <option value="0.5">+0.5 TEP</option>
             <option value="0.75">+0.75 TEP</option>
@@ -1475,7 +1475,7 @@
         </div>
         <div class="fmt-group">
           <span class="fmt-label">Pass TDs</span>
-          <select class="fmt-select" id="fmt-passtd" onchange="recalc()">
+          <select class="fmt-select" id="fmt-passtd" onchange="renderAll()">
             <option value="4">4pt TD</option>
             <option value="5">5pt TD</option>
             <option value="6">6pt TD</option>
@@ -1483,7 +1483,7 @@
         </div>
         <div class="fmt-group">
           <span class="fmt-label">PPR</span>
-          <select class="fmt-select" id="fmt-ppr" onchange="recalc()">
+          <select class="fmt-select" id="fmt-ppr" onchange="renderAll()">
             <option value="1">Full PPR</option>
             <option value="0.5">Half PPR</option>
             <option value="0">Standard</option>
