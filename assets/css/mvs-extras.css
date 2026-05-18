@@ -46,3 +46,53 @@
 .mvs-t-asset-focus .mvs-t-asset-name { color:var(--red); font-weight:900; }
 .mvs-t-total { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:13px; color:var(--white); border-top:1px solid var(--border); padding-top:3px; text-align:right; }
 .mvs-t-vs { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; color:var(--red); font-size:16px; align-self:center; padding-top:18px; }
+
+/* ════════════════════════════════════════════════════════════════════════
+   MOBILE — MVS extras on a 390px touch viewport.
+   The .mvs-extras grid uses auto-fit minmax(220px, 1fr) which naturally
+   collapses to 1 column on phone — that part is already responsive. What
+   needs mobile-specific handling: trade cards (Side A vs Side B should
+   stack vertically), section padding, font sizes, and the trade-card
+   inline trade-stats row which can overflow.
+   ════════════════════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  /* Section padding shrinks. */
+  .mvs-section { padding: 12px 14px; }
+  .mvs-section-label { font-size: 10px; margin-bottom: 8px; }
+  .mvs-section-sub { font-size: 9px; }
+  .mvs-foot { padding: 6px 14px 10px; font-size: 9px; }
+
+  /* MVS extras grid: 220px minmax already collapses to 1 column at 390px
+     naturally. Just tighten cell padding + value font for mobile density. */
+  .mvs-extras-cell { padding: 10px 12px; }
+  .mvs-extras-val { font-size: 16px; }
+  .mvs-extras-label { font-size: 8px; }
+  .mvs-extras-diff { font-size: 10px; }
+
+  /* Sparkline: shrink height a bit, full width is fine. */
+  .mvs-spark { height: 44px; }
+  .mvs-spark-delta { font-size: 10px; }
+
+  /* Rankings row: tighter gap so 4-5 chips fit. */
+  .mvs-rk-row { gap: 8px; font-size: 11px; }
+  .mvs-rk-l { font-size: 8px; }
+  .mvs-rk-v { font-size: 12px; }
+
+  /* Trade cards: stack Side A above Side B vertically; the VS chevron
+     moves to a horizontal divider rather than a side-by-side separator. */
+  .mvs-t-card { padding: 8px 10px; }
+  .mvs-t-head { gap: 6px; margin-bottom: 4px; flex-wrap: wrap; }
+  .mvs-t-date { font-size: 10px; }
+  .mvs-t-fmt { font-size: 9px; padding: 2px 5px; }
+  .mvs-t-sides { flex-direction: column; gap: 6px; }
+  .mvs-t-side { width: 100%; }
+  .mvs-t-vs {
+    align-self: stretch; text-align: center; padding: 0;
+    font-size: 13px;
+  }
+  .mvs-t-asset { font-size: 10px; }
+  .mvs-t-total { font-size: 11px; }
+
+  /* Volume chip: stays inline but slightly smaller. */
+  .mvs-vol { font-size: 9px; padding: 2px 6px; margin-left: 4px; }
+}

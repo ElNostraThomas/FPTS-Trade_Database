@@ -20,14 +20,41 @@
 .hm-flash-label.show { visibility:visible; }
 .hm-empty { padding:24px; text-align:center; font-family:'Mulish',sans-serif; font-size:12px; color:var(--white); opacity:.55; background:var(--surface2); border:1px solid var(--border); }
 
+/* ════════════════════════════════════════════════════════════════════════
+   MOBILE — heatmap on a 390px touch viewport.
+   Designed from a small-screen baseline rather than as overrides of the
+   desktop layout. Folded the legacy 480px sub-breakpoint into this 768px
+   block so the entire phone range gets one consistent design.
+   ════════════════════════════════════════════════════════════════════════ */
 @media (max-width: 768px) {
-  .hm-callout { gap: 12px; flex-wrap: wrap; padding: 8px 12px; }
-  .hm-callout .hm-co-v { font-size: 16px; }
+  /* Callout strip: stack stats vertically; drop the note text (covered by
+     the heatmap itself + flash label, so the prose note is redundant on
+     phone where space is tight). */
+  .hm-callout {
+    flex-direction: column; align-items: stretch; gap: 6px;
+    padding: 10px 12px;
+  }
+  .hm-callout .hm-co-stat { flex-direction: row; align-items: baseline; gap: 8px; }
+  .hm-callout .hm-co-k { font-size: 9px; }
+  .hm-callout .hm-co-v { font-size: 15px; }
   .hm-callout .hm-co-note { display: none; }
-  .hm-legend { flex-wrap: wrap; }
-  .hm-legend-bar { width: 100px; }
-}
-@media (max-width: 480px) {
+
+  /* Cells: bigger min-height so individual rounds/slots are tappable.
+     Folded from the legacy 480px sub-breakpoint. */
   .hm-cell { min-height: 22px; }
-  .hm-corner, .hm-col-head, .hm-row-head { min-height: 22px; font-size: 8px; }
+  .hm-corner, .hm-col-head, .hm-row-head {
+    min-height: 22px; font-size: 8px;
+  }
+
+  /* Legend: wrap to two rows + narrower gradient bar. */
+  .hm-legend { flex-wrap: wrap; gap: 6px; font-size: 8px; }
+  .hm-legend-bar { width: 90px; height: 8px; }
+  .hm-flash-label {
+    margin-left: 0; margin-top: 4px; padding: 3px 8px;
+    width: 100%; max-width: 100%; text-align: center;
+    font-size: 9px;
+  }
+
+  /* Empty state */
+  .hm-empty { padding: 16px; font-size: 11px; }
 }

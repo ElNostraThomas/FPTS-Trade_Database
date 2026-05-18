@@ -140,15 +140,59 @@
   color: var(--white); opacity: .9;
 }
 
-/* Phone — drawer becomes full-screen, trigger button moves to bottom-center */
+/* ════════════════════════════════════════════════════════════════════════
+   MOBILE — Legend drawer on a 390px touch viewport.
+   Designed mobile-first. Drawer becomes a bottom-sheet-style full-screen
+   modal sliding up from the bottom (instead of side-edge on desktop), the
+   trigger button anchors bottom-center for thumb reach, and the close bar
+   sticks to the top of the drawer for one-tap dismiss.
+   ════════════════════════════════════════════════════════════════════════ */
 @media (max-width: 768px) {
-  .lg-drawer { max-width: 100%; border-left: none; border-top: 2px solid var(--red); }
-  .lg-trigger { left: 50%; right: auto; transform: translateX(-50%); bottom: 12px; padding: 8px 14px; font-size: 11px; }
+  /* Drawer: full screen, slides up from bottom (axis flip from X to Y). */
+  .lg-backdrop { align-items: flex-end; }
+  .lg-drawer {
+    width: 100%; max-width: 100%; height: 92vh;
+    border-left: none; border-top: 2px solid var(--red);
+    animation: lg-slide-up .2s ease-out;
+  }
+  @keyframes lg-slide-up {
+    from { transform: translateY(40px); opacity: .6; }
+    to   { transform: translateY(0); opacity: 1; }
+  }
+
+  /* Trigger button: bottom-center for thumb reach. */
+  .lg-trigger {
+    left: 50%; right: auto;
+    transform: translateX(-50%);
+    bottom: 12px;
+    padding: 10px 18px;        /* ≥44px tap target via padding */
+    font-size: 11px;
+    min-height: 40px;
+  }
   .lg-trigger:hover { transform: translateX(-50%) translateY(-1px); }
-  .lg-content { padding: 16px 18px 80px; }
-  .lg-item-row { grid-template-columns: 48px 1fr; gap: 6px; }
-  /* Keep the page bottom from getting hidden under the floating legend trigger.
-     Without this, trade-balance text on trade-calculator and the last row of
-     tier tables get clipped behind the LEGEND button. */
+
+  /* Close bar: sticks to top of drawer so the close button is always reachable. */
+  .lg-close-bar {
+    position: sticky; top: 0; z-index: 2;
+    padding: 10px 16px;
+  }
+  .lg-close {
+    min-height: 36px; padding: 8px 14px; font-size: 11px;
+  }
+
+  /* Content: tighter padding, smaller item-row column for narrow viewport. */
+  .lg-content { padding: 14px 16px 90px; }
+  .lg-header { margin-bottom: 10px; padding-bottom: 10px; }
+  .lg-title { font-size: 18px; }
+  .lg-title-sub { font-size: 13px; }
+  .lg-blurb { font-size: 12px; }
+  .lg-section-head { padding: 14px 0; min-height: 44px; }
+  .lg-section-title { font-size: 12px; }
+  .lg-item-row { grid-template-columns: 52px 1fr; gap: 6px; }
+  .lg-v { font-size: 11px; }
+  .lg-mono { font-size: 10px; }
+  .lg-example { font-size: 11px; padding: 8px 10px; }
+
+  /* Page bottom padding so the floating trigger doesn't clip page content. */
   body { padding-bottom: 72px; }
 }
