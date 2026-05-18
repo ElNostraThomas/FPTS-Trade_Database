@@ -541,6 +541,74 @@
     font-variant-numeric: tabular-nums;
   }
 
+  /* ── STICKY ON-THE-CLOCK BAR ────────────────────────────────────────
+     Pins under the nav (top:62px desktop / top:50px mobile to clear the
+     60px+2px nav border / 48px+2px mobile nav border). z-index sits
+     under the nav (z:100) but above page content so it survives any
+     intermediate stacking contexts.
+     Click/tap smooth-scrolls the board to the on-the-clock cell. */
+  .ld-otc-bar {
+    position: sticky; top: 62px; z-index: 50;
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 14px; margin: 12px 0;
+    background: var(--surface2); border: 1px solid var(--border);
+    border-left: 4px solid var(--red);
+    cursor: pointer;
+    transition: border-color .15s;
+  }
+  .ld-otc-bar:hover { border-color: var(--red); }
+  .ld-otc-bar.user-up-next { border-left-color: var(--green); }
+  .ld-otc-bar.user-up-next:hover { border-color: var(--green); }
+  .ld-otc-bar-dot {
+    width: 10px; height: 10px; flex-shrink: 0;
+    background: var(--red);
+    animation: ld-otc-bar-pulse 1.4s ease-in-out infinite;
+  }
+  .ld-otc-bar.user-up-next .ld-otc-bar-dot { background: var(--green); }
+  @keyframes ld-otc-bar-pulse {
+    0%, 100% { opacity: .35; transform: scale(.85); }
+    50%      { opacity: 1;   transform: scale(1.05); }
+  }
+  .ld-otc-bar-label {
+    font-family: 'Mulish', sans-serif; font-size: 9px; font-weight: 800;
+    color: rgba(255,255,255,0.6);
+    text-transform: uppercase; letter-spacing: .08em;
+    flex-shrink: 0;
+  }
+  .ld-otc-bar-pick {
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 16px; color: var(--white);
+    font-variant-numeric: tabular-nums;
+    flex-shrink: 0;
+  }
+  .ld-otc-bar-owner {
+    display: flex; align-items: center; gap: 6px;
+    min-width: 0;
+    font-family: 'Mulish', sans-serif; font-size: 12px; font-weight: 700;
+    color: var(--white);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .ld-otc-bar-owner img,
+  .ld-otc-bar-owner-initial {
+    width: 22px; height: 22px; border-radius: 50%;
+    flex-shrink: 0;
+    object-fit: cover;
+    background: var(--surface); border: 1px solid var(--border);
+    display: inline-flex; align-items: center; justify-content: center;
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 10px; color: var(--white);
+  }
+  .ld-otc-bar-mine {
+    margin-left: auto;
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 11px;
+    padding: 3px 8px;
+    color: var(--white); background: var(--green);
+    letter-spacing: .05em;
+    flex-shrink: 0;
+  }
+  .ld-otc-bar-mine:empty { display: none; }
+
   /* ── TRADE SUGGESTIONS card (below roster panel) ───────────────────
      Up to 3 fair-value packages for the user's next pick. Desktop: 3
      columns side-by-side. Mobile: stacked vertical. Each card has a
@@ -887,6 +955,14 @@
        names + stats get tighter, but the user sees two positions per
        row without scrolling vertically — matches the "see more at
        once" goal. */
+    /* OTC bar tops out at the mobile nav height (48px + 2px border). Also
+       trims padding so it doesn't crowd the screen on narrow viewports. */
+    .ld-otc-bar { top: 50px; padding: 6px 10px; gap: 8px; margin: 8px 0; }
+    .ld-otc-bar-pick { font-size: 14px; }
+    .ld-otc-bar-owner { font-size: 11px; }
+    .ld-otc-bar-owner img, .ld-otc-bar-owner-initial { width: 20px; height: 20px; }
+    .ld-otc-bar-mine { font-size: 10px; padding: 2px 6px; }
+
     /* Trade Suggestions stack vertically on mobile so each package can be
        inspected without horizontal squeeze. */
     .ld-trades { padding: 10px 12px; margin-top: 10px; }
@@ -1062,6 +1138,20 @@
           <option value="">— pick a league —</option>
         </select>
       </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════════════
+         STICKY ON-THE-CLOCK SUMMARY BAR — pins below the nav while
+         scrolling so the user always knows whose pick is up next without
+         scrolling back to the board. Tap to scroll the board into view at
+         the on-the-clock cell. Hidden until a live draft is loaded.
+         ════════════════════════════════════════════════════════════════ -->
+    <div id="ld-otc-bar" class="ld-otc-bar" style="display:none" onclick="ldScrollToOTC()" role="button" tabindex="0">
+      <span class="ld-otc-bar-dot"></span>
+      <span class="ld-otc-bar-label">On the clock</span>
+      <span class="ld-otc-bar-pick" id="ld-otc-bar-pick">—</span>
+      <span class="ld-otc-bar-owner" id="ld-otc-bar-owner"></span>
+      <span class="ld-otc-bar-mine" id="ld-otc-bar-mine"></span>
     </div>
 
     <!-- Draft info bar (status + type + teams + rounds) -->
@@ -1555,6 +1645,7 @@
     DRAFT.myRosterId = null;
     document.getElementById('ld-draft-info').style.display = 'none';
     document.getElementById('ld-analysis').style.display = 'none';
+    document.getElementById('ld-otc-bar').style.display = 'none';
     document.getElementById('ld-bpa').style.display = 'none';
     document.getElementById('ld-roster-panel').style.display = 'none';
     document.getElementById('ld-trades').style.display = 'none';
@@ -1654,6 +1745,7 @@
     DRAFT.draftId = null; DRAFT.draft = null; DRAFT.myRosterId = null;
     document.getElementById('ld-draft-info').style.display = 'none';
     document.getElementById('ld-analysis').style.display = 'none';
+    document.getElementById('ld-otc-bar').style.display = 'none';
     document.getElementById('ld-bpa').style.display = 'none';
     document.getElementById('ld-roster-panel').style.display = 'none';
     document.getElementById('ld-trades').style.display = 'none';
@@ -1748,6 +1840,7 @@
     DRAFT.draft = null;
     document.getElementById('ld-draft-info').style.display = 'none';
     document.getElementById('ld-analysis').style.display = 'none';
+    document.getElementById('ld-otc-bar').style.display = 'none';
     document.getElementById('ld-bpa').style.display = 'none';
     document.getElementById('ld-roster-panel').style.display = 'none';
     document.getElementById('ld-trades').style.display = 'none';
@@ -1809,6 +1902,7 @@
       const mine = ownership.rosters.find(r => r.owner_id === DRAFT.userId);
       DRAFT.myRosterId = mine ? mine.roster_id : DRAFT.myRosterId;
       ldRenderInfo(meta, picks);
+      ldRenderOTCBar(meta, picks);
       ldRenderAnalysis(meta, picks, players);
       ldRenderBPA(meta, picks, players);
       ldRenderBoard(meta, picks, players);
@@ -1888,6 +1982,7 @@
         DRAFT.draft = meta;
         DRAFT.detailsByDraft[draftId] = { meta, picks };
         ldRenderInfo(meta, picks);
+        ldRenderOTCBar(meta, picks);
         ldRenderAnalysis(meta, picks, DRAFT.players || {});
         ldRenderBPA(meta, picks, DRAFT.players || {});
         ldRenderBoard(meta, picks, DRAFT.players || {});
@@ -2540,6 +2635,89 @@
       + '<div class="ld-info-stat"><span class="ld-info-label">Picks made</span>'
       +   '<span class="ld-info-val">' + made + (total ? ' / ' + total : '') + '</span></div>';
     bar.style.display = '';
+  }
+
+  // ════════════════════════════════════════════════════════════════════
+  // PHASE 5 — STICKY ON-THE-CLOCK BAR
+  //
+  // Pins under the nav while scrolling so the user can always see whose
+  // pick is up without scrolling to the board. Tap → smooth-scroll to
+  // the OTC cell. Hidden when the draft is not live (pre-board / complete).
+  // ════════════════════════════════════════════════════════════════════
+  function ldRenderOTCBar(meta, picks) {
+    const bar = document.getElementById('ld-otc-bar');
+    if (!bar) return;
+    if (!meta) { bar.style.display = 'none'; return; }
+    const settings = meta.settings || {};
+    const teams  = settings.teams || (meta.draft_order ? Object.keys(meta.draft_order).length : 12);
+    const rounds = settings.rounds || 0;
+    if (!rounds) { bar.style.display = 'none'; return; }
+    const total = teams * rounds;
+    const made = (picks || []).length;
+    const isDraftLive = meta.status !== 'complete' && made < total;
+    if (!isDraftLive) { bar.style.display = 'none'; return; }
+
+    const nextPickNo = made + 1;
+    const round = Math.ceil(nextPickNo / teams);
+    const draftSlot = ((nextPickNo - 1) % teams) + 1;
+    const isSnake = (meta.type || 'snake') === 'snake';
+    const isReverse = isSnake && (round % 2 === 0);
+    const columnSlot = isReverse ? (teams - draftSlot + 1) : draftSlot;
+    const slotToRoster   = DRAFT.slotToRoster   || meta.slot_to_roster_id || {};
+    const tradedPicksMap = DRAFT.tradedPicksMap || {};
+    const ownerRoster = _resolveCellOwner(null, round, columnSlot, slotToRoster, tradedPicksMap);
+    const isMine = (ownerRoster != null && ownerRoster === DRAFT.myRosterId);
+    const ownerUser = (DRAFT.userByRosterId || {})[ownerRoster] || null;
+    const ownerLabel = _ownerLabel(ownerUser, columnSlot);
+
+    bar.style.display = '';
+    bar.classList.toggle('user-up-next', isMine);
+    bar.dataset.pickNo = String(nextPickNo);
+
+    document.getElementById('ld-otc-bar-pick').textContent =
+      round + '.' + _padPick(draftSlot);
+
+    const ownerEl = document.getElementById('ld-otc-bar-owner');
+    // Reuse the same avatar helper the column-headers use so the styling
+    // matches across surfaces. _avatarHtml emits an <img> or a single-
+    // letter fallback wrapped in an inline element; we keep the name span
+    // right after it.
+    ownerEl.innerHTML = (ownerUser
+        ? _avatarHtmlSmall(ownerUser)
+        : '<span class="ld-otc-bar-owner-initial">' + _escapeHtml((ownerLabel[0] || '?').toUpperCase()) + '</span>')
+      + '<span>' + _escapeHtml(ownerLabel) + '</span>';
+
+    document.getElementById('ld-otc-bar-mine').textContent = isMine ? 'YOUR PICK' : '';
+  }
+
+  // Smaller avatar variant for the OTC bar (the column-header _avatarHtml
+  // uses CSS sizing tuned for the table-cell context; here we want a 22px
+  // round inline avatar). Falls back to a single-letter initial.
+  function _avatarHtmlSmall(user) {
+    if (!user) return '<span class="ld-otc-bar-owner-initial">?</span>';
+    if (user.avatar) {
+      const url = 'https://sleepercdn.com/avatars/thumbs/' + user.avatar;
+      const safeUrl = url.replace(/"/g, '&quot;');
+      return '<img src="' + safeUrl + '" alt="" loading="lazy" onerror="this.style.display=\'none\'">';
+    }
+    const initial = ((user.display_name || user.username || '?')[0] || '?').toUpperCase();
+    return '<span class="ld-otc-bar-owner-initial">' + _escapeHtml(initial) + '</span>';
+  }
+
+  // Smooth-scroll the board so the on-the-clock cell is visible. Called
+  // from the OTC bar's onclick. Falls back to scrolling the board host
+  // into view when the specific cell isn't in the DOM yet.
+  function ldScrollToOTC() {
+    const bar = document.getElementById('ld-otc-bar');
+    const pickNo = bar && bar.dataset ? parseInt(bar.dataset.pickNo, 10) : NaN;
+    let target = null;
+    if (pickNo) {
+      target = document.querySelector('.ld-cell[data-pick-no="' + pickNo + '"]');
+    }
+    if (!target) target = document.getElementById('ld-board-host');
+    if (target && typeof target.scrollIntoView === 'function') {
+      target.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
+    }
   }
 
   // Build the draft board grid. Snake-aware: even rounds (0-indexed) go
