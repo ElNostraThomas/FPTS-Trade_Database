@@ -761,6 +761,46 @@ Nothing structural. Polish / nice-to-haves only:
 - [ ] Visual polish pass after live use — typography balance, mobile
   viewport on each page, dark/light theme toggle on the new accordion.
   **Next session focus: mobile issues.**
+- [ ] **Player Comparison full page** — dedicated page that compares 2-4
+  players side-by-side, complementing (not replacing) the drawer's quick-
+  reference role. Two visual references the user supplied (`Desktop/Player
+  comparison page.jpg` + `Desktop/HIm4pBXaUAAsSMz.jpg`):
+  - Underdog-style stat table: players as columns, stat-category row
+    groups (Projections / Season Stats / Last N Games), green
+    highlight on best-in-group per row.
+  - Hayden-Winks-style profile + matches: hero player card with
+    archetype + key metrics, then a "Top Profile Matches" row of
+    similar-player cards.
+  Likely a new `compare.html` page with a multi-player picker at top and
+  the comparison rendered below. **Gated on the data-suite migration**
+  (task below) because the comparison views need the same per-player
+  stat fields the data suite provides. User says "build when the
+  live-draft page is deemed fully finished" — Phase 5 just shipped so
+  this is the next big initiative.
+- [ ] **Migrate stats data to data-suite CSVs** — user has CSV exports
+  from the data suite that should replace the current per-player stats
+  source across the site. Build a `sync-stats.py` (matching the
+  `sync-fp.py` / `sync-rankings.py` pattern) that reads the CSVs from
+  `data/source/stats/`, writes a canonical `data/stats.json`, and a
+  config file lists which columns map to which fields. Every page that
+  currently reads `window.ML_SEASON_STATS` / `window.ML_SEASON_PROJ` /
+  similar should switch to the new payload via data-bootstrap. Includes
+  a manifest of which existing data files this replaces vs. augments.
+- [ ] **Scoring-variant math layer (TEP / PPC / passing TD)** — the data-
+  suite CSVs are base-PPR with 4-pt passing TDs. We adjust client-side
+  based on each league's scoring_settings:
+  - 6-pt passing TD: +2 pts per pass TD
+  - 5-pt passing TD: +1 pt per pass TD
+  - TEP: +0.25 / +0.5 / +0.75 / +1.0 per TE reception (read from
+    `scoring_settings.bonus_rec_te`)
+  - PPC: +0.25 per carry for any player who registered a carry
+    (read from `scoring_settings.rush_att` or equivalent)
+  Implementation: a pure helper `adjustStatsForLeague(rawStats,
+  scoring_settings)` in `sleeper-helpers.js`. Already touches
+  `_projForPlayerId` (live-draft) and `applyTep` (my-leagues) — fold
+  those into the new shared helper so both pages consume one
+  implementation. Same approach for the new pass-TD + PPC bonuses
+  once the data suite ships the underlying fields.
 
 ---
 
