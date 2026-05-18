@@ -513,6 +513,49 @@
 
     /* Compare cards single column */
     .compare-grid { grid-template-columns: 1fr; }
+
+    /* ────────────────────────────────────────────────────────────────────
+       Phase 2C — Box view ENABLED on mobile.
+       Was disabled via JS (enforceMobileView) and force-switched to list.
+       Now Box view renders normally, with #view-box as a horizontal
+       scroll container so the 12-team grid swipes across the touch
+       viewport. Native scroll-snap-type: x mandatory snaps the view to
+       column boundaries so swipes feel discrete. The grid keeps its
+       dynamic min-width (set in JS via renderBoxView's `style="...min-
+       width: Xpx"`) so total scrollable extent matches the data shape.
+       ──────────────────────────────────────────────────────────────────── */
+    #view-box {
+      overflow-x: auto;
+      overflow-y: visible;
+      -webkit-overflow-scrolling: touch;
+      scroll-snap-type: x mandatory;
+      /* Right-edge gradient affordance — subtle hint that there's more to
+         the right. Disappears when fully scrolled to the right edge. */
+      -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 18px), transparent 100%);
+              mask-image: linear-gradient(to right, #000 calc(100% - 18px), transparent 100%);
+    }
+    #view-box .box-grid {
+      /* Cards snap-align so a swipe lands on a column edge rather than
+         mid-card. Header column doesn't snap. */
+    }
+    #view-box .box-card {
+      scroll-snap-align: start;
+    }
+    /* Slightly smaller cards on mobile so more columns are visible at once
+       without making the grid much wider than necessary. */
+    #view-box .box-card {
+      height: 72px;
+      padding: 4px 6px;
+    }
+    #view-box .box-card .card-lname { font-size: 11px; }
+    #view-box .box-card .card-fname { font-size: 8px; }
+    #view-box .box-card .card-hs { width: 28px; height: 28px; }
+    #view-box .box-card .card-team-logo { width: 22px; height: 22px; }
+    #view-box .box-card .card-team-logo img { width: 16px; height: 16px; }
+
+    /* The view-box button stays enabled and clickable (no opacity 0.45
+       / disabled state). enforceMobileView() is now a no-op. */
+    [data-view="box"] { opacity: 1 !important; cursor: pointer !important; }
   }
 </style>
 <link rel="stylesheet" href="assets/css/mvs-extras.css?v=1780400000">
@@ -1572,29 +1615,22 @@ function setQbFormat(qb) {
 function setView(view) {
   if (view !== 'box' && view !== 'list') return;
   // Box view is unusable at phone widths — force list and hint why.
-  if (view === 'box' && isMobileWidth()) {
-    view = 'list';
-  }
+  // Phase 2C — Box view is enabled on mobile (previously forced to list).
+  // Mobile CSS makes #view-box horizontally scrollable with scroll-snap so
+  // each round-row swipes naturally across the 12 team columns. The grid's
+  // dynamic min-width sets the scrollable extent.
   STATE.view = view;
   document.querySelectorAll('[data-view]').forEach(b => b.classList.toggle('active', b.dataset.view === view));
   renderAll();
 }
 
-// Enforce list view on narrow screens. Called on init and on resize.
+// Phase 2C: previously this function disabled Box view on mobile and force-
+// switched STATE.view to 'list'. Box view now works on mobile via horizontal
+// scroll (see #view-box mobile CSS). Function kept as a no-op stub so any
+// upstream resize/init callers don't break; can be removed in a future
+// cleanup once all call sites are audited.
 function enforceMobileView() {
-  const mobile = isMobileWidth();
-  const boxBtn = document.querySelector('[data-view="box"]');
-  if (boxBtn) {
-    boxBtn.disabled = mobile;
-    boxBtn.style.opacity = mobile ? '0.45' : '';
-    boxBtn.style.cursor  = mobile ? 'not-allowed' : '';
-    boxBtn.title = mobile ? 'Box view requires a wider screen — list view is shown on mobile.' : '';
-  }
-  if (mobile && STATE.view === 'box') {
-    STATE.view = 'list';
-    document.querySelectorAll('[data-view]').forEach(b => b.classList.toggle('active', b.dataset.view === 'list'));
-    renderAll();
-  }
+  /* no-op — Box view available on all viewports as of Phase 2C */
 }
 function setDates(fromISO, toISO) {
   STATE.dateFrom = fromISO || null;
