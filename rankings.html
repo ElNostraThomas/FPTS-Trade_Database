@@ -29,7 +29,7 @@
 <script src="assets/js/legend.js?v=1778949514"></script>
 <!-- Team logo helpers — load BEFORE player-panel.js so modal-hero badge works. -->
 <script src="assets/js/team-helpers.js?v=1778680000"></script>
-<script src="assets/js/player-panel.js?v=1780000100" defer></script>
+<script src="assets/js/player-panel.js?v=1780500000" defer></script>
 
 <!-- Data bootstrap — fetches every data/*.json, populates window globals,
      fires 'fpts:data-ready' when done. -->
@@ -163,14 +163,10 @@
   .rk-table .col-analyst-consensus { text-align: center; font-variant-numeric: tabular-nums; font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 14px; color: var(--red); min-width: 70px; }
   .rk-table .col-analyst-team { text-align: center; min-width: 40px; }
 
-  /* Bipolar heat highlights (per analyst rank cell): solid brand colors with
-     white text — matches the universal "white text on bright fill" rule.
-     Best (min rank in row) = brand green; worst (max rank) = dynasty orange. */
-  .rk-table td.rk-min  { background-color: var(--green); color: var(--white); font-weight: 800; }
-  .rk-table td.rk-max  { background-color: var(--red);   color: var(--white); font-weight: 800; }
+  /* Analyst rank cells: no bipolar heat highlights (per-user request the
+     "lowest = green / highest = orange" tints were removed). N/A cells get
+     a muted color to indicate "no rank from this analyst." */
   .rk-table td.rk-na   { color: var(--muted); }
-  .rk-table tbody tr:hover td.rk-min,
-  .rk-table tbody tr:hover td.rk-max { opacity: .92; }
 
   /* Header label toggle: full names show on desktop, 3-char abbreviations
      on mobile (RYA / THE / JOH / AND / THO + Tm + Avg). Both spans are in the
@@ -233,9 +229,8 @@
        Replaces the table rendering on phone widths via _renderAnalystCard
        in JS. Each player becomes a card: name + team chip + consensus
        value on the top row, 5 analyst rank cells in a horizontal strip
-       below. Bipolar heat tints (best/worst rank in row) survive as
-       .rk-min / .rk-max on the strip cells, same colors as the desktop
-       table.
+       below. Bipolar heat tints removed per user request; cells render
+       uniformly against surface2.
        ──────────────────────────────────────────────────────────────────── */
     .rk-acards {
       display: flex; flex-direction: column; gap: 8px;
@@ -279,14 +274,6 @@
       background: var(--surface2); border: 1px solid var(--border2);
       color: var(--white);
     }
-    .rk-acard-cell.rk-min {
-      background: var(--green); border-color: var(--green);
-      color: var(--white);
-    }
-    .rk-acard-cell.rk-max {
-      background: var(--red); border-color: var(--red);
-      color: var(--white);
-    }
     .rk-acard-cell.rk-na { opacity: .55; }
     .rk-acard-cell-l {
       font-family: 'Mulish', sans-serif; font-size: 8px; font-weight: 800;
@@ -297,6 +284,89 @@
       font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
       font-size: 16px;
       font-variant-numeric: tabular-nums;
+    }
+
+    /* ────────────────────────────────────────────────────────────────────
+       CONSENSUS MODE CARD LAYOUT — mobile-first.
+       Same pattern as .rk-acard but for the Consensus tab's data shape.
+       Renders via _renderConsensusCard() when _isMobileView() is true.
+       Each card has: rank# + name + POS pill + team logo (header), a
+       5-stat strip (VAL/PRK/AVG/ADP/CHG), and age/exp footer.
+       ──────────────────────────────────────────────────────────────────── */
+    .rk-ccards {
+      display: flex; flex-direction: column; gap: 8px;
+    }
+    .rk-ccard {
+      background: var(--surface); border: 1px solid var(--border);
+      padding: 10px 12px;
+    }
+    .rk-ccard-head {
+      display: flex; align-items: center; gap: 8px;
+      margin-bottom: 8px;
+    }
+    .rk-ccard-rank {
+      flex-shrink: 0;
+      font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+      font-size: 16px; color: var(--red);
+      min-width: 32px;
+      font-variant-numeric: tabular-nums;
+    }
+    .rk-ccard-name {
+      flex: 1; min-width: 0;
+      font-family: 'Mulish', sans-serif; font-weight: 900;
+      font-size: 14px; color: var(--white);
+      cursor: pointer;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+      transition: color .15s;
+    }
+    .rk-ccard-name:hover { color: var(--red); }
+    .rk-ccard-head .pos-badge {
+      flex-shrink: 0; font-size: 10px; padding: 2px 6px;
+    }
+    .rk-ccard-team {
+      flex-shrink: 0; display: inline-flex; align-items: center;
+    }
+    .rk-ccard-team img { width: 22px; height: 22px; }
+
+    .rk-ccard-strip {
+      display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px;
+      margin-bottom: 6px;
+    }
+    .rk-ccard-cell {
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: center; gap: 2px;
+      padding: 6px 4px; min-height: 44px;
+      background: var(--surface2); border: 1px solid var(--border2);
+    }
+    .rk-ccard-cell-l {
+      font-family: 'Mulish', sans-serif; font-size: 8px; font-weight: 800;
+      text-transform: uppercase; letter-spacing: .04em;
+      color: rgba(255,255,255,0.55);
+    }
+    .rk-ccard-cell-v {
+      font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+      font-size: 14px; color: var(--white);
+      font-variant-numeric: tabular-nums;
+      line-height: 1;
+    }
+    /* The CHG cell hosts the AdpComparator change-chip HTML which already
+       has its own color (up=green, down=red). Don't override its inline
+       color; just make sure the wrapper doesn't add font styling that
+       fights the chip. */
+    .rk-ccard-cell-chg .rk-ccard-cell-v {
+      font-family: 'Mulish', sans-serif;
+      font-style: normal;
+      font-size: 11px;
+    }
+
+    .rk-ccard-foot {
+      display: flex; gap: 14px;
+      font-family: 'Mulish', sans-serif; font-size: 10px; font-weight: 700;
+      color: rgba(255,255,255,0.55);
+      text-transform: uppercase; letter-spacing: .04em;
+    }
+    .rk-ccard-foot strong {
+      color: var(--white); font-weight: 800; margin-left: 2px;
     }
 
     /* Bottom safe-area */
@@ -650,6 +720,50 @@ function _renderRow(p) {
   + '</tr>';
 }
 
+function _renderConsensusCard(p) {
+  // Mobile-first card mode for Consensus rankings — same data as _renderRow
+  // but reflowed for a 390px touch viewport. Each player gets a card with:
+  //   Header: rank # + name + POS pill + team logo
+  //   Strip:  5-stat grid (VAL / PRK / AVG / ADP / CHG) — the headline stats
+  //   Foot:   age + exp as small secondary text
+  // Mirrors the .rk-acard pattern from By Analyst card mode for consistency.
+  const posBadge = p.pos
+    ? '<span class="pos-badge pos-' + p.pos.toLowerCase() + '">' + p.pos + '</span>'
+    : '';
+  const teamCell = (p.team && window.TeamHelpers)
+    ? window.TeamHelpers.logoImg(p.team, { size: 22, coin: true })
+    : '';
+  const safeName = (p.name || '').replace(/'/g, "\\'");
+  const rank     = (p.rank != null) ? p.rank : '—';
+  const tradeVal = (p.tradeValue != null) ? Math.round(p.tradeValue) : '—';
+  const avgRank  = (p.avgRank   != null) ? p.avgRank.toFixed(2) : '—';
+  const curAdp   = (p.currentAdp != null) ? p.currentAdp.toFixed(1) : '—';
+  const posRank  = p.posRank || '—';
+  const chip     = window.AdpComparator.changeChipHtml(p.currentAdp, p.previousAdp);
+  const age      = (p.age != null) ? p.age : '—';
+  const exp      = (p.exp != null) ? p.exp : '—';
+
+  return '<article class="rk-ccard">'
+    + '<header class="rk-ccard-head">'
+    +   '<span class="rk-ccard-rank">#' + rank + '</span>'
+    +   '<span class="rk-ccard-name" onclick="_openPlayer(\'' + safeName + '\')">' + p.name + '</span>'
+    +   posBadge
+    +   '<span class="rk-ccard-team">' + teamCell + '</span>'
+    + '</header>'
+    + '<div class="rk-ccard-strip">'
+    +   '<span class="rk-ccard-cell"><span class="rk-ccard-cell-l">VAL</span><span class="rk-ccard-cell-v">' + tradeVal + '</span></span>'
+    +   '<span class="rk-ccard-cell"><span class="rk-ccard-cell-l">PRK</span><span class="rk-ccard-cell-v">' + posRank + '</span></span>'
+    +   '<span class="rk-ccard-cell"><span class="rk-ccard-cell-l">AVG</span><span class="rk-ccard-cell-v">' + avgRank + '</span></span>'
+    +   '<span class="rk-ccard-cell"><span class="rk-ccard-cell-l">ADP</span><span class="rk-ccard-cell-v">' + curAdp + '</span></span>'
+    +   '<span class="rk-ccard-cell rk-ccard-cell-chg"><span class="rk-ccard-cell-l">CHG</span><span class="rk-ccard-cell-v">' + chip + '</span></span>'
+    + '</div>'
+    + '<footer class="rk-ccard-foot">'
+    +   '<span>Age <strong>' + age + '</strong></span>'
+    +   '<span>Exp <strong>' + exp + '</strong></span>'
+    + '</footer>'
+    + '</article>';
+}
+
 function _applyFilters(players) {
   let out = players;
   if (STATE.position !== 'all') {
@@ -690,6 +804,13 @@ function _sortPlayers(players) {
   });
 }
 
+// Mobile breakpoint helper — inline matchMedia call so this works regardless
+// of where in the file it's invoked. Both Consensus and By Analyst modes use
+// it to choose between table and card layout on each render.
+function _isMobileView() {
+  return !!(window.matchMedia && window.matchMedia('(max-width: 768px)').matches);
+}
+
 function renderRankings() {
   const body = document.getElementById('rankings-body');
   if (!ACTIVE_PLAYERS.length) {
@@ -700,10 +821,19 @@ function renderRankings() {
   const filtered = _applyFilters(enriched);
   const sorted   = _sortPlayers(filtered);
 
-  body.innerHTML = '<div class="rk-table-wrap"><table class="rk-table">'
-    + '<thead>' + renderHeaderRow() + '</thead>'
-    + '<tbody>' + sorted.map(_renderRow).join('') + '</tbody>'
-  + '</table></div>';
+  if (_isMobileView()) {
+    // Card mode — designed for 390px touch viewport. The 12-column table is
+    // unreadable cramped on phone (player names wrap to 3 lines, columns
+    // smash together). Each player becomes a card with rank/name/pos/team
+    // in the header, a 5-stat strip below (VAL/PRK/AVG/ADP/CHG), and
+    // age/exp as a footer.
+    body.innerHTML = '<div class="rk-ccards">' + sorted.map(_renderConsensusCard).join('') + '</div>';
+  } else {
+    body.innerHTML = '<div class="rk-table-wrap"><table class="rk-table">'
+      + '<thead>' + renderHeaderRow() + '</thead>'
+      + '<tbody>' + sorted.map(_renderRow).join('') + '</tbody>'
+    + '</table></div>';
+  }
 
   document.getElementById('rk-stat-count').textContent =
     sorted.length + (sorted.length === enriched.length ? '' : ' of ' + enriched.length) + ' players';
@@ -845,11 +975,6 @@ function renderAnalystHeaderRow() {
 }
 
 function _renderAnalystRow(p) {
-  const ranksByKey = ANALYST_KEYS.map(k => p.ranks[k]).filter(r => r != null);
-  const minR = ranksByKey.length ? Math.min.apply(null, ranksByKey) : null;
-  const maxR = ranksByKey.length ? Math.max.apply(null, ranksByKey) : null;
-  const sameRank = (minR != null && minR === maxR);
-
   const nameCell = '<span class="rk-player-name" onclick="_openPlayer(\''
     + (p.name || '').replace(/'/g, "\\'") + '\')">' + p.name + '</span>';
   const teamCell = (p.team && window.TeamHelpers)
@@ -865,12 +990,7 @@ function _renderAnalystRow(p) {
     if (r == null) {
       html += '<td class="col-analyst-rank rk-na">—</td>';
     } else {
-      let cls = 'col-analyst-rank';
-      if (!sameRank) {
-        if (r === minR) cls += ' rk-min';
-        else if (r === maxR) cls += ' rk-max';
-      }
-      html += '<td class="' + cls + '">' + r + '</td>';
+      html += '<td class="col-analyst-rank">' + r + '</td>';
     }
   }
 
@@ -885,13 +1005,6 @@ function _renderAnalystCard(p) {
   // a 390px touch viewport. Each player gets a card with name + team chip on
   // the top row, the 5 analyst rank cells in a horizontal strip below, and
   // the consensus value as a big red number on the right of the header.
-  // Bipolar heat tints (green = best rank in row, orange = worst) survive
-  // unchanged — they apply to .rk-acard-cell instead of <td>.
-  const ranksByKey = ANALYST_KEYS.map(k => p.ranks[k]).filter(r => r != null);
-  const minR = ranksByKey.length ? Math.min.apply(null, ranksByKey) : null;
-  const maxR = ranksByKey.length ? Math.max.apply(null, ranksByKey) : null;
-  const sameRank = (minR != null && minR === maxR);
-
   const safeName = (p.name || '').replace(/'/g, "\\'");
   const teamCell = (p.team && window.TeamHelpers)
     ? window.TeamHelpers.logoImg(p.team, { size: 22, coin: true })
@@ -906,12 +1019,7 @@ function _renderAnalystCard(p) {
         + '<span class="rk-acard-cell-v">—</span>'
         + '</span>';
     }
-    let cls = 'rk-acard-cell';
-    if (!sameRank) {
-      if (r === minR) cls += ' rk-min';
-      else if (r === maxR) cls += ' rk-max';
-    }
-    return '<span class="' + cls + '">'
+    return '<span class="rk-acard-cell">'
       + '<span class="rk-acard-cell-l">' + a.label.slice(0,3).toUpperCase() + '</span>'
       + '<span class="rk-acard-cell-v">' + r + '</span>'
       + '</span>';
@@ -957,16 +1065,13 @@ function _sortAnalystPlayers(players) {
   });
 }
 
-// Mobile breakpoint — single source of truth, kept in lockstep with the
-// CSS @media (max-width: 768px) blocks. matchMedia listener at the bottom
-// of this file re-renders when the viewport crosses the breakpoint so a
-// desktop user resizing their window down to phone size gets the card
-// layout, and vice versa.
+// matchMedia listener cache — single source of truth, kept in lockstep
+// with the CSS @media (max-width: 768px) blocks. The actual viewport
+// check is in _isMobileView() defined above (near renderRankings). The
+// listener at the bottom of this file re-renders when the viewport
+// crosses the breakpoint (desktop user resizing window down to phone
+// width swaps to card layout, and vice versa).
 const _MOBILE_MQ = window.matchMedia && window.matchMedia('(max-width: 768px)');
-
-function _isMobileView() {
-  return !!(_MOBILE_MQ && _MOBILE_MQ.matches);
-}
 
 function renderAnalystComparison() {
   const body = document.getElementById('rankings-body');
@@ -1000,12 +1105,15 @@ function renderAnalystComparison() {
 
 // Re-render when the viewport crosses the mobile breakpoint (e.g. desktop
 // user resizes window to phone width). Only fires once per cross, not on
-// every resize event. STATE.mode check ensures we only re-render when the
-// analyst tab is the active view.
+// every resize event. Routes to the right renderer based on the active
+// STATE.mode ('consensus' or 'analyst'). Both modes have their own
+// table-vs-card switch via _isMobileView() inside their renderers.
 if (_MOBILE_MQ) {
   const _onMobileChange = () => {
     if (STATE.mode === 'analyst' && ACTIVE_ANALYST_PLAYERS.length) {
       renderAnalystComparison();
+    } else if (STATE.mode === 'consensus' && typeof ACTIVE_PLAYERS !== 'undefined' && ACTIVE_PLAYERS.length) {
+      renderRankings();
     }
   };
   if (_MOBILE_MQ.addEventListener) {
@@ -1066,7 +1174,7 @@ function _updateSubtitle() {
   if (STATE.mode === 'analyst') {
     const cnt = ANALYST_META.length;
     sub.textContent = STATE.analystPosition + ' rankings across ' + cnt + ' analyst' + (cnt === 1 ? '' : 's')
-      + ' — lowest cell = green (best), highest cell = orange (worst). Click any column header to sort.';
+      + '. Click any column header to sort.';
   } else {
     const active = RANKINGS_AVAILABLE.find(c => c.analyst === STATE.analyst && c.format === STATE.format);
     sub.textContent = active ? active.label : 'No data for this combo yet';

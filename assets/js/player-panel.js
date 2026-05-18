@@ -1390,9 +1390,12 @@
     }
 
     if (expanded.length > 0) {
-      // Collapse
+      // Collapse — rotate chevron back to point-right (▸). One character used
+      // in both states so vertical metrics stay identical between collapsed
+      // and expanded; only rotation changes. Eliminates the "year text drops"
+      // visual where ▸ and ▾ rendered at different baselines.
       expanded.forEach(r => r.remove());
-      if (chev) chev.textContent = '▸';  // ▸
+      if (chev) chev.style.transform = '';
       return;
     }
 
@@ -1401,7 +1404,7 @@
     loadingRow.className = 'pp-weekly-loading';
     loadingRow.innerHTML = `<td colspan="${colCount}" style="padding:12px 20px;text-align:left;font-size:11px;color:rgba(255,255,255,0.5);font-family:'Mulish',sans-serif;border-bottom:1px solid var(--border)">Loading ${year} weekly stats…</td>`;
     row.parentNode.insertBefore(loadingRow, row.nextElementSibling);
-    if (chev) chev.textContent = '▾';  // ▾
+    if (chev) chev.style.transform = 'rotate(90deg)';
 
     _fetchWeeklyStats(sleeperId, year).then(weeks => {
       // Async-guard: if user switched players while fetch was in flight, abort
@@ -1547,7 +1550,13 @@
       // columns center per the site-wide alignment rule. Muted-header text
       // uses rgba alpha (not opacity:) so the alpha doesn't compound to
       // any future child element with its own color.
-      const _thBase = `padding:6px 6px 8px 6px;font-family:'Mulish',sans-serif;font-weight:700;font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:rgba(255,255,255,0.45);border-bottom:1px solid var(--border2);white-space:nowrap;`;
+      // position:sticky on the <th> cells pins the header row to the top
+      // of the drawer scroll context while the user scrolls weekly stats.
+      // Opaque background:var(--surface) keeps row text from bleeding
+      // through. The parent wrapper uses overflow:auto clip (below) so
+      // sticky bubbles up to .pp-scroll instead of getting trapped inside
+      // a nested vertical scroll context.
+      const _thBase = `padding:6px 6px 8px 6px;font-family:'Mulish',sans-serif;font-weight:700;font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:rgba(255,255,255,0.45);border-bottom:1px solid var(--border2);white-space:nowrap;position:sticky;top:0;z-index:2;background:var(--surface);`;
       const thStyle     = `${_thBase}text-align:center;`;
       const thStyleName = `${_thBase}text-align:left;padding-left:0;`;
       const _tdBase = `padding:10px 6px;font-family:'Mulish',sans-serif;font-size:13px;border-bottom:1px solid var(--border);vertical-align:middle;`;
@@ -1569,7 +1578,7 @@
             return `<td style="${tdNum}color:var(--white)">${val}</td>`;
           }).join('');
           return `<tr class="pp-year-row">
-            <td style="${tdYear}" data-pp-year="${yr}"><span class="pp-yr-chevron" style="display:inline-block;width:11px;color:var(--red);font-size:10px;margin-right:2px">▸</span>${yr}</td>
+            <td style="${tdYear}" data-pp-year="${yr}"><span class="pp-yr-chevron" style="display:inline-block;width:11px;text-align:center;color:var(--red);font-size:10px;margin-right:2px;vertical-align:middle;transition:transform .15s">▸</span>${yr}</td>
             ${cells}
           </tr>`;
         }).join('');
@@ -1577,7 +1586,7 @@
       el.innerHTML = `
         <div style="font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:11px;color:var(--red);text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px">${posName} Season Stats</div>
         <div style="font-family:'Mulish',sans-serif;font-size:10px;color:rgba(255,255,255,0.4);margin-bottom:10px">Source: Sleeper · Full PPR scoring · click any year for week-by-week</div>
-        <div style="overflow-x:auto;-webkit-overflow-scrolling:touch">
+        <div style="overflow:auto clip;-webkit-overflow-scrolling:touch">
           <table style="width:100%;border-collapse:collapse;min-width:400px">
             <thead><tr>${headers}</tr></thead>
             <tbody>${rows}</tbody>

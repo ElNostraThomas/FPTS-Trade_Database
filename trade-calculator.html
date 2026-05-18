@@ -151,6 +151,20 @@
   .balance-verdict.fair { background:rgba(240,192,64,0.12); border:1px solid rgba(240,192,64,0.4); color:var(--yellow); }
   .balance-verdict.win  { background:rgba(76,175,110,0.12); border:1px solid var(--green); color:var(--green); }
   .balance-verdict.lose { background:rgba(237,129,12,0.12); border:1px solid var(--red); color:var(--red); }
+  /* "Guru Approved" variant — fair trades swap the "⚖ Fair Trade" text for
+     a cartoon-face image of the dynasty guru next to a Kanit-italic caption.
+     Keeps the yellow border/tint so it still reads as the "fair" verdict
+     state, but the image gives it personality. */
+  .balance-verdict.guru {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 2px 12px 2px 4px;
+    background: rgba(240,192,64,0.12);
+    border: 1px solid rgba(240,192,64,0.4);
+    color: var(--yellow);
+  }
+  .balance-verdict.guru img {
+    height: 32px; width: auto; display: block; flex-shrink: 0;
+  }
   .balance-bars { display:flex; flex-direction:column; gap:10px; margin-bottom:18px; }
   .balance-row { display:flex; align-items:center; gap:12px; }
   .balance-row-label { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:12px; color:var(--white); opacity:0.5; width:60px; flex-shrink:0; text-transform:uppercase; letter-spacing:.04em; }
@@ -712,7 +726,10 @@
   .filter-collapsible-body { display: flex; flex-direction: column; }
 
     .mobile-nav-select { display: none !important; }
-  body .mobile-nav-select { display: none !important; }
+  /* Stray `body .mobile-nav-select { display: none !important }` rule was
+     hiding the mobile nav dropdown on phone for this page only — its
+     0,1,1 specificity beat the @media (max-width:768px) unhide rule below
+     at 0,1,0. Removed 2026-05-18 after user report. */
 
   @media (max-width:480px) {
     
@@ -1168,7 +1185,7 @@
 <link rel="stylesheet" href="assets/css/player-panel.css?v=1780400000">
 <!-- Team logo helpers — load BEFORE player-panel.js so modal-hero badge works. -->
 <script src="assets/js/team-helpers.js?v=1778680002"></script>
-<script src="assets/js/player-panel.js?v=1780000100" defer></script>
+<script src="assets/js/player-panel.js?v=1780500000" defer></script>
 <!-- Data bootstrap — fetches every data/*.json, populates window globals,
      fires 'fpts:data-ready' when done. -->
 <script src="assets/js/data-bootstrap.js?v=1780200000"></script>
@@ -2440,8 +2457,11 @@ function renderBalance() {
     diffEl.style.opacity = '1';
     diffEl.textContent = (diff >= 0 ? '+' : '−') + abs.toLocaleString();
     if (pctOff < 0.05) {
-      verdictEl.textContent = '⚖ Fair Trade';
-      verdictEl.className = 'balance-verdict fair';
+      // Fair trade → swap the textual "Fair Trade" label for the Guru
+      // Approved image badge. innerHTML used (not textContent) so the <img>
+      // renders. Caption text stays alongside as a written confirmation.
+      verdictEl.innerHTML = '<img src="assets/images/john-cartoon.png" alt="Guru Approved" /><span>GURU APPROVED</span>';
+      verdictEl.className = 'balance-verdict guru';
       diffEl.style.color = 'var(--yellow)';
       diffLabel.textContent = 'Within 5% — essentially even';
     } else if (diff > 0) {
@@ -2459,8 +2479,14 @@ function renderBalance() {
     const sorted = [...totals].sort((a,b)=>b.total-a.total);
     const gap = sorted[0].total - sorted[1].total;
     let pctOff = sorted[0].total > 0 ? gap / sorted[0].total : 0;
-    verdictEl.textContent = pctOff < 0.05 ? '⚖ Balanced' : `▲ ${sorted[0].label} leads`;
-    verdictEl.className = 'balance-verdict ' + (pctOff < 0.05 ? 'fair' : 'win');
+    if (pctOff < 0.05) {
+      // 3-way balanced → same Guru Approved badge as the 2-way fair state
+      verdictEl.innerHTML = '<img src="assets/images/john-cartoon.png" alt="Guru Approved" /><span>GURU APPROVED</span>';
+      verdictEl.className = 'balance-verdict guru';
+    } else {
+      verdictEl.textContent = `▲ ${sorted[0].label} leads`;
+      verdictEl.className = 'balance-verdict win';
+    }
     diffEl.textContent = gap.toLocaleString();
     diffEl.style.color = 'var(--yellow)';
     diffEl.style.opacity = '1';

@@ -515,34 +515,53 @@
     .compare-grid { grid-template-columns: 1fr; }
 
     /* ────────────────────────────────────────────────────────────────────
-       Phase 2C — Box view ENABLED on mobile.
+       Phase 2C — Box view ENABLED on mobile (mobile-first iteration).
        Was disabled via JS (enforceMobileView) and force-switched to list.
-       Now Box view renders normally, with #view-box as a horizontal
-       scroll container so the 12-team grid swipes across the touch
-       viewport. Native scroll-snap-type: x mandatory snaps the view to
-       column boundaries so swipes feel discrete. The grid keeps its
-       dynamic min-width (set in JS via renderBoxView's `style="...min-
-       width: Xpx"`) so total scrollable extent matches the data shape.
+       Now Box view renders normally with #view-box as a horizontal scroll
+       container.
+
+       Sticky-positioning preserved on mobile:
+       - .box-row-head sticks to left:0 so R1/R2/R3 labels + snake arrows
+         stay visible while the user swipes through teams 1-12
+       - .box-col-header sticks to top:0 so TEAM 1/2/3 labels stay visible
+         while the user scrolls down through rounds
+       - .box-corner sticks to both top:0 and left:0
+       - Backgrounds opaque on each so cards scroll behind them cleanly
+
+       Phase-2C-iter1 lessons (this commit):
+       - REMOVED mask-image gradient — it created a stacking context that
+         broke sticky-left positioning of .box-row-head, making the
+         leftmost column disappear behind the first Team 1 card
+       - REMOVED scroll-snap-type: x mandatory + scroll-snap-align: start
+         — mandatory snap forced scroll position to align cards flush
+         to viewport-left, hiding the sticky row-head column. Free scroll
+         lets the row-head + col-header sticky surfaces stay in place.
        ──────────────────────────────────────────────────────────────────── */
     #view-box {
       overflow-x: auto;
       overflow-y: visible;
       -webkit-overflow-scrolling: touch;
-      scroll-snap-type: x mandatory;
-      /* Right-edge gradient affordance — subtle hint that there's more to
-         the right. Disappears when fully scrolled to the right edge. */
-      -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 18px), transparent 100%);
-              mask-image: linear-gradient(to right, #000 calc(100% - 18px), transparent 100%);
+      /* Free scroll — no mandatory snap. The sticky row-head/col-header
+         provide the "you are here" reference while swiping. */
     }
-    #view-box .box-grid {
-      /* Cards snap-align so a swipe lands on a column edge rather than
-         mid-card. Header column doesn't snap. */
+    /* Make sure the sticky background paints over scrolling cards.
+       Desktop CSS already sets sticky + bg + z-index; mobile inherits
+       them. Re-asserting here defensively in case any inline style
+       overrides leak in. */
+    #view-box .box-corner {
+      position: sticky; top: 0; left: 0; z-index: 3;
+      background: var(--surface);
     }
-    #view-box .box-card {
-      scroll-snap-align: start;
+    #view-box .box-col-header {
+      position: sticky; top: 0; z-index: 2;
+      background: var(--surface);
     }
-    /* Slightly smaller cards on mobile so more columns are visible at once
-       without making the grid much wider than necessary. */
+    #view-box .box-row-head {
+      position: sticky; left: 0; z-index: 2;
+      background: var(--surface);
+    }
+    /* Slightly smaller cards on mobile so more columns are visible at
+       once without making the grid much wider than necessary. */
     #view-box .box-card {
       height: 72px;
       padding: 4px 6px;
@@ -578,7 +597,7 @@
 <!-- Team logo helpers — must load BEFORE player-panel.js so the modal-hero
      badge wiring finds window.TeamHelpers. -->
 <script src="assets/js/team-helpers.js?v=1778680002"></script>
-<script src="assets/js/player-panel.js?v=1780000100" defer></script>
+<script src="assets/js/player-panel.js?v=1780500000" defer></script>
 <style>
   /* Hide the legacy in-page modal — openModal now routes to the shared panel. */
   #modal-backdrop { display: none !important; }
