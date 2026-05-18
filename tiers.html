@@ -334,10 +334,14 @@
 <link rel="stylesheet" href="assets/css/player-panel.css?v=1780400000">
 <!-- Team logo helpers — load BEFORE player-panel.js so modal-hero badge works. -->
 <script src="assets/js/team-helpers.js?v=1778680002"></script>
-<script src="assets/js/player-panel.js?v=1781100000" defer></script>
+<script src="assets/js/player-panel.js?v=1781200000" defer></script>
 <!-- Data bootstrap — fetches every data/*.json, populates window globals,
      fires 'fpts:data-ready' when done. First live page on the scaffold. -->
 <script src="assets/js/data-bootstrap.js?v=1781000000"></script>
+<!-- Trade engine + scoring overlay + projection math. Powers the player drawer's
+     Stats tab fantasyPts column on every page (adjustStatsForLeague applies the
+     PPR / TEP / PPC / pass-TD overlay to data-suite stat lines). -->
+<script src="assets/js/sleeper-helpers.js?v=1780800000"></script>
 <!-- ADP comparator — shared month-to-month picker module (also used by rankings.html). -->
 <script src="assets/js/adp-comparator.js?v=1779360001"></script>
 <style>

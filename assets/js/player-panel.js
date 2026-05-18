@@ -1575,7 +1575,10 @@
       Loading stats…
     </div>`;
 
-    const seasons = ['2025', '2024', '2023', '2022', '2021', '2020'];
+    // 2021-2025 = the data-suite coverage window. Older years were Sleeper-
+    // only and the user trimmed them since the data suite is now the
+    // canonical source and doesn't carry pre-2021 history.
+    const seasons = ['2025', '2024', '2023', '2022', '2021'];
     const tryFetch = url => fetch(url).then(r => r.ok ? r.json() : null).catch(() => null);
 
     // Resolution path per year:
@@ -1710,7 +1713,7 @@
 
       el.innerHTML = `
         <div style="font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:11px;color:var(--red);text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px">${posName} Season Stats</div>
-        <div style="font-family:'Mulish',sans-serif;font-size:10px;color:rgba(255,255,255,0.4);margin-bottom:10px">Source: Sleeper · Full PPR scoring · click any year for week-by-week</div>
+        <div style="font-family:'Mulish',sans-serif;font-size:10px;color:rgba(255,255,255,0.4);margin-bottom:10px">Source: Data Suite · Full PPR scoring · click any year for week-by-week</div>
         <div style="overflow:auto clip;-webkit-overflow-scrolling:touch">
           <table style="width:100%;border-collapse:collapse;min-width:400px">
             <thead><tr>${headers}</tr></thead>
