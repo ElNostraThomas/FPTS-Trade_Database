@@ -1309,18 +1309,128 @@
   }
 
   // ────────────────────────────────────────────────────────────────────────
+  // DATA-SUITE TRANSLATOR — convert STATS_DATA records (from data-suite
+  // CSVs) into the Sleeper-shaped objects the renderer expects.
+  //
+  // STATS_DATA per-season payload uses canonical names (games, passYards,
+  // passTd, rushAtt, etc.). The renderer reads Sleeper-API names (gp,
+  // pass_yd, pass_td, rush_att, etc.) so we adapt at the boundary.
+  // Fantasy points are computed via SLEEPER.adjustStatsForLeague with
+  // empty scoring = full-PPR + 4-pt-pass-TD baseline (no league context
+  // in the drawer, so this is the neutral display number).
+  //
+  // Returns null when the player isn't in STATS_DATA — caller falls
+  // back to Sleeper /stats for that year so coverage stays complete
+  // (older years, IDP / K / DEF, rookies pre-stats, etc.).
+  // ────────────────────────────────────────────────────────────────────────
+  function _statsDataLookup(sleeperId, playerName) {
+    const STATS = global.STATS_DATA;
+    if (!STATS) return null;
+    const sidKey = sleeperId ? ('sid:' + sleeperId) : null;
+    if (sidKey && STATS[sidKey]) return STATS[sidKey];
+    if (playerName) {
+      const norm = (typeof global.normalizePlayerName === 'function')
+        ? global.normalizePlayerName
+        : (s => String(s || '').trim().toLowerCase().replace(/\./g, '').replace(/\s+/g, ' '));
+      const nameKey = 'name:' + norm(playerName);
+      if (STATS[nameKey]) return STATS[nameKey];
+    }
+    return null;
+  }
+
+  // Translate STATS_DATA per-season record → Sleeper-shaped { gp, pts_ppr,
+  // pass_yd, ... }. Returns null when input is missing or yields 0 games.
+  function _toSleeperShape(rec) {
+    if (!rec) return null;
+    const games = +(rec.games) || 0;
+    if (games <= 0) return null;
+    const SL = global.SLEEPER;
+    const baselinePts = (SL && typeof SL.adjustStatsForLeague === 'function')
+      ? (SL.adjustStatsForLeague(rec, {}).fantasyPts || 0)
+      : 0;
+    const passAtt = +(rec.passAtt) || 0;
+    const passCmp = +(rec.passCmp) || 0;
+    const rushAtt = +(rec.rushAtt) || 0;
+    const rec_   = +(rec.rec)     || 0;
+    return {
+      gp:        games,
+      pts_ppr:   baselinePts,
+      pts_half_ppr: baselinePts,  // not split per-format in the drawer
+      pts_std:   baselinePts,
+      pass_att:  passAtt,
+      pass_cmp:  passCmp,
+      pass_yd:   +(rec.passYards) || 0,
+      pass_td:   +(rec.passTd)    || 0,
+      pass_int:  +(rec.passInts)  || 0,
+      pass_cmp_pct: passAtt > 0 ? (passCmp / passAtt) : 0,
+      rush_att:  rushAtt,
+      rush_yd:   +(rec.rushYards) || 0,
+      rush_td:   +(rec.rushTd)    || 0,
+      rush_yd_per_att: rushAtt > 0 ? ((+(rec.rushYards) || 0) / rushAtt) : 0,
+      rec_tgt:   +(rec.targets)   || 0,
+      rec:       rec_,
+      rec_yd:    +(rec.recYards)  || 0,
+      rec_td:    +(rec.recTd)     || 0,
+      rec_yd_per_rec: rec_ > 0 ? ((+(rec.recYards) || 0) / rec_) : 0,
+      fum_lost:  +(rec.fumbles)   || 0,
+    };
+  }
+
+  // ────────────────────────────────────────────────────────────────────────
   // Weekly stats cache + lazy fetch helper.  Keyed by `${sleeperId}_${year}`.
   // Each cached value is an array of week records:
   //   { week: Number, season_type: 'regular' | 'post', stats: { pts_ppr, ... } }
   // sorted regular-season first, then playoffs.
+  //
+  // Resolution path:
+  //   1. window.STATS_DATA[key].seasons[year].weeks + .playoffWeeks
+  //      (data-suite is the source of truth for stats)
+  //   2. Sleeper /stats/nfl/player/{id} fallback (only fires when STATS_DATA
+  //      doesn't cover this (player, year) — e.g., IDP, K, pre-2021 history)
   // ────────────────────────────────────────────────────────────────────────
   const _weeklyStatsCache = {};
 
-  function _fetchWeeklyStats(sleeperId, year) {
+  // Build the Sleeper-shaped weeks list for a player+year from STATS_DATA.
+  // Returns the merged array (regular + playoffs) or null when the data
+  // suite doesn't carry this (player, year). Same shape as the Sleeper
+  // path so the renderer reads either source identically.
+  function _weeklyFromStatsData(sleeperId, playerName, year) {
+    const rec = _statsDataLookup(sleeperId, playerName);
+    if (!rec || !rec.seasons) return null;
+    const seasonRec = rec.seasons[String(year)];
+    if (!seasonRec) return null;
+    const merged = [];
+    const reg = seasonRec.weeks || {};
+    Object.keys(reg).forEach(wk => {
+      const shaped = _toSleeperShape(Object.assign({ games: 1 }, reg[wk]));
+      if (shaped) merged.push({ week: +wk, season_type: 'regular', stats: shaped });
+    });
+    const post = seasonRec.playoffWeeks || {};
+    Object.keys(post).forEach(wk => {
+      const shaped = _toSleeperShape(Object.assign({ games: 1 }, post[wk]));
+      if (shaped) merged.push({ week: +wk, season_type: 'post', stats: shaped });
+    });
+    if (!merged.length) return null;
+    merged.sort((a, b) => {
+      if (a.season_type !== b.season_type) return a.season_type === 'regular' ? -1 : 1;
+      return a.week - b.week;
+    });
+    return merged;
+  }
+
+  function _fetchWeeklyStats(sleeperId, year, playerName) {
     const cacheKey = `${sleeperId}_${year}`;
     if (_weeklyStatsCache[cacheKey]) {
       return Promise.resolve(_weeklyStatsCache[cacheKey]);
     }
+    // Tier 1: data suite (window.STATS_DATA) — synchronous, no network.
+    const local = _weeklyFromStatsData(sleeperId, playerName, year);
+    if (local) {
+      _weeklyStatsCache[cacheKey] = local;
+      return Promise.resolve(local);
+    }
+    // Tier 2: Sleeper /stats fallback for (player, year) combos not in
+    // STATS_DATA (older history, IDP / K, etc.).
     const tryFetch = url => fetch(url).then(r => r.ok ? r.json() : null).catch(() => null);
     const fetchReg = tryFetch(`https://api.sleeper.com/stats/nfl/player/${sleeperId}?season=${year}&season_type=regular&grouping=week`)
       .then(d => d || tryFetch(`https://api.sleeper.app/v1/stats/nfl/player/${sleeperId}?season_type=regular&season=${year}&grouping=week`));
@@ -1406,7 +1516,7 @@
     row.parentNode.insertBefore(loadingRow, row.nextElementSibling);
     if (chev) chev.style.transform = 'rotate(90deg)';
 
-    _fetchWeeklyStats(sleeperId, year).then(weeks => {
+    _fetchWeeklyStats(sleeperId, year, capturedName).then(weeks => {
       // Async-guard: if user switched players while fetch was in flight, abort
       const active = global._currentPanelPlayer;
       if (!active || active.label !== capturedName) {
@@ -1462,15 +1572,31 @@
       <div style="width:8px;height:8px;border-radius:50%;background:var(--red);animation:ml-pulse 1.2s ease-in-out infinite"></div>
       <div style="width:8px;height:8px;border-radius:50%;background:var(--red);animation:ml-pulse 1.2s ease-in-out .2s infinite"></div>
       <div style="width:8px;height:8px;border-radius:50%;background:var(--red);animation:ml-pulse 1.2s ease-in-out .4s infinite"></div>
-      Loading stats from Sleeper...
+      Loading stats…
     </div>`;
 
     const seasons = ['2025', '2024', '2023', '2022', '2021', '2020'];
     const tryFetch = url => fetch(url).then(r => r.ok ? r.json() : null).catch(() => null);
-    const fetches = seasons.map(yr =>
-      tryFetch(`https://api.sleeper.com/stats/nfl/player/${sleeperId}?season=${yr}&season_type=regular&grouping=season`)
+
+    // Resolution path per year:
+    //   1. window.STATS_DATA[key].seasons[year] (data suite, instant — no fetch)
+    //   2. Sleeper /stats fallback for years/players the data suite doesn't
+    //      carry (pre-2021 history, IDP / K, deep rookies).
+    // Data suite covers 2021-2025 for fantasy positions; older years and
+    // unmapped players still get the Sleeper backup so the table never goes
+    // empty.
+    const dsRec = _statsDataLookup(sleeperId, name);
+    const fetches = seasons.map(yr => {
+      // Try data suite first
+      if (dsRec && dsRec.seasons && dsRec.seasons[yr]) {
+        const shaped = _toSleeperShape(dsRec.seasons[yr]);
+        if (shaped) return Promise.resolve(shaped);
+      }
+      // Fall back to Sleeper for years/players the data suite doesn't cover
+      return tryFetch(`https://api.sleeper.com/stats/nfl/player/${sleeperId}?season=${yr}&season_type=regular&grouping=season`)
         .then(d => d || tryFetch(`https://api.sleeper.app/v1/stats/nfl/player/${sleeperId}?season_type=regular&season=${yr}&grouping=season`))
-    );
+        .then(d => d ? (d.stats || d) : null);
+    });
 
     // Capture the player this render is for; bail at resolution time if the
     // user switched to a different compared player while fetches were in
@@ -1482,11 +1608,10 @@
       const active = global._currentPanelPlayer;
       if (!active || active.label !== targetName) return;
       const yearStats = {};
-      results.forEach((data, i) => {
-        if (!data) return;
+      results.forEach((s, i) => {
+        if (!s) return;
         const yr = seasons[i];
-        const s = data.stats || data;
-        if (!s || !s.gp || s.gp === 0) return;
+        if (!s.gp || s.gp === 0) return;
         yearStats[yr] = s;
       });
 
