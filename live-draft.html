@@ -242,7 +242,10 @@
   .ld-pa-pos.TE { background: var(--pos-te-bg); }
   .ld-pa-pos.K, .ld-pa-pos.DEF, .ld-pa-pos.PICK { background: var(--pos-pick-bg); }
   .ld-pa-stats {
-    display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px;
+    /* 4 tiles now (Pick / ADP / Proj / Delta) — Proj is the picked player's
+       projected season points from Sleeper, surfaced so the user can judge
+       a pick on production-projection alongside ADP-delta. */
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px;
     margin-top: 12px;
   }
   .ld-pa-stat {
@@ -311,6 +314,15 @@
     font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
     font-size: 14px; color: var(--white);
     font-variant-numeric: tabular-nums;
+  }
+  /* League-rank color coding — mirrors my-leagues' prank-pills:
+     top 3 = green, bottom half = red, middle = default white. */
+  .ld-needs-stat-v.rank-top    { color: var(--green); }
+  .ld-needs-stat-v.rank-bottom { color: var(--red); }
+  .ld-needs-rank-of {
+    font-family: 'Mulish', sans-serif; font-weight: 700; font-style: normal;
+    font-size: 9px; color: rgba(255,255,255,0.5);
+    margin-left: 3px;
   }
   .ld-needs-tag {
     font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
@@ -386,6 +398,22 @@
     font-size: 18px; color: var(--white);
     font-variant-numeric: tabular-nums;
     margin-left: auto;
+  }
+  /* League-rank chip in the group head — same color rule as my-leagues
+     (top 3 green, bottom half red, middle white). Sits between the pill
+     and the right-aligned count. */
+  .ld-rp-rank {
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 13px; padding: 2px 8px; color: var(--white);
+    background: var(--surface); border: 1px solid var(--border);
+    font-variant-numeric: tabular-nums;
+  }
+  .ld-rp-rank.rank-top    { color: var(--green); border-color: var(--green); }
+  .ld-rp-rank.rank-bottom { color: var(--red);   border-color: var(--red); }
+  .ld-rp-rank-of {
+    font-family: 'Mulish', sans-serif; font-weight: 700; font-style: normal;
+    font-size: 9px; color: rgba(255,255,255,0.5);
+    margin-left: 3px;
   }
   .ld-rp-totals { display: flex; flex-direction: column; gap: 2px; }
   .ld-rp-total {
@@ -690,6 +718,10 @@
     .ld-rp-group { padding: 8px 10px; }
     .ld-rp-pill { font-size: 11px; padding: 3px 9px; min-width: 42px; }
     .ld-rp-count { font-size: 16px; }
+    /* Rank chip shrinks to fit the pill + chip + count triple on iPhone-width
+       2-col layout (~150px per group cell). */
+    .ld-rp-rank { font-size: 11px; padding: 2px 6px; }
+    .ld-rp-rank-of { font-size: 8px; }
     .ld-rp-total-v { font-size: 13px; }
     .ld-rp-player {
       grid-template-columns: 1fr 36px 36px;
@@ -851,7 +883,7 @@
         <div class="ld-card-body" id="ld-card-pick-body"></div>
       </div>
       <div class="ld-card" id="ld-card-needs">
-        <div class="ld-card-label">Team Needs — by value</div>
+        <div class="ld-card-label">Team Needs — by league rank</div>
         <div class="ld-card-body" id="ld-card-needs-body"></div>
       </div>
     </div>
@@ -1706,22 +1738,107 @@
     return out;
   }
 
-  // Value-weighted team needs: sort positions by total trade-value
-  // ascending. Lowest-value position is the "biggest need". The user can
-  // see exactly where their draft capital is light without us inventing
-  // predictive logic. Returns array of { pos, count, value, ppg, proj, isBiggestNeed }
-  // sorted ascending by value. proj = projected season points (Sleeper),
-  // shown alongside Total Value in the Team Needs card.
-  function _computeTeamNeeds(agg) {
+  // Per-position league rank — for each position, sums total FP_VALUES.value
+  // across every team's roster + this draft's picks, sorts teams descending,
+  // and returns the user's rank position (1 = best). Mirrors my-leagues'
+  // prank-pills metric (FP trade-value, not projections) so the signal is
+  // consistent across pages.
+  //
+  // Picks from this draft are folded in via pk.roster_id (post-trade owner),
+  // so the rank updates live as picks happen. Dedup via per-roster Set so a
+  // player on both r.players[] (post-draft) and the picks list isn't counted
+  // twice once Sleeper backfills the roster.
+  //
+  // Returns { teams: <N>, byPos: { QB: {myRank}, RB: {myRank}, WR: {myRank}, TE: {myRank} } }
+  // with myRank=null when the user's roster isn't found in this league.
+  function _computeLeagueRanks(picks, sourceLeagueId, players) {
+    const out = {
+      teams: 0,
+      byPos: { QB: { myRank: null }, RB: { myRank: null },
+               WR: { myRank: null }, TE: { myRank: null } },
+    };
+    const rosters = DRAFT.rostersByLeague[sourceLeagueId] || [];
+    if (!rosters.length || DRAFT.myRosterId == null) return out;
+    out.teams = rosters.length;
+
+    const teamTotals = {};          // roster_id → { QB: {value}, RB: ..., ... }
+    const seenByRoster = {};        // roster_id → Set of player_ids already counted
+    rosters.forEach(r => {
+      teamTotals[r.roster_id] = { QB: { value: 0 }, RB: { value: 0 },
+                                  WR: { value: 0 }, TE: { value: 0 } };
+      seenByRoster[r.roster_id] = new Set();
+    });
+
+    function addToTeam(rosterId, pid, p, pickRow) {
+      const tt = teamTotals[rosterId];
+      if (!tt || !pid) return;
+      const seen = seenByRoster[rosterId];
+      if (seen.has(pid)) return;
+      seen.add(pid);
+      if (!p) return;
+      const pos = (p.position || '').toUpperCase();
+      if (!tt[pos]) return;
+      const name = _playerName(p, pickRow || { player_id: pid });
+      const stats = _fpStatsForName(name);
+      tt[pos].value += stats.value != null ? Number(stats.value) : 0;
+    }
+
+    // 1. Existing roster.players[] on every team
+    rosters.forEach(r => {
+      (r.players || []).forEach(pid => addToTeam(r.roster_id, pid, players[pid]));
+    });
+    // 2. Augment with this draft's picks — pk.roster_id is the CURRENT owner,
+    //    already traded-pick-resolved by Sleeper.
+    (picks || []).forEach(pk => {
+      if (pk && pk.player_id && pk.roster_id != null) {
+        addToTeam(pk.roster_id, pk.player_id, players[pk.player_id] || {}, pk);
+      }
+    });
+
+    const myKey = String(DRAFT.myRosterId);
+    ['QB', 'RB', 'WR', 'TE'].forEach(pos => {
+      const rosterIds = Object.keys(teamTotals);
+      const sorted = rosterIds.slice().sort((a, b) =>
+        (teamTotals[b][pos].value || 0) - (teamTotals[a][pos].value || 0)
+      );
+      const idx = sorted.indexOf(myKey);
+      out.byPos[pos].myRank = idx >= 0 ? idx + 1 : null;
+    });
+
+    return out;
+  }
+
+  // Color-code a rank against the league size — mirrors my-leagues:
+  // top 3 = green, bottom half = red, middle = default (white).
+  function _rankColorCls(rank, total) {
+    if (rank == null || !total) return '';
+    if (rank <= 3) return 'rank-top';
+    if (rank > Math.ceil(total / 2)) return 'rank-bottom';
+    return '';
+  }
+
+  // Value-weighted team needs: sort positions by league rank descending
+  // (worst rank = biggest need), with fallback to total value ascending when
+  // ranks are unavailable. Returns array of
+  //   { pos, count, value, ppg, proj, rank, teams, isBiggestNeed }
+  // The renderer reads `rank` + `teams` for the league-rank stat column.
+  function _computeTeamNeeds(agg, ranks) {
     if (!agg || !agg.totalsByPos) return [];
+    const teamsCount = (ranks && ranks.teams) || 0;
     const rows = ['QB', 'RB', 'WR', 'TE'].map(pos => ({
       pos,
       count: agg.totalsByPos[pos].count,
       value: Math.round(agg.totalsByPos[pos].value || 0),
       ppg:   +(agg.totalsByPos[pos].ppg || 0).toFixed(1),
       proj:  Math.round(agg.totalsByPos[pos].proj || 0),
+      rank:  ranks && ranks.byPos[pos] ? ranks.byPos[pos].myRank : null,
+      teams: teamsCount,
     }));
-    rows.sort((a, b) => a.value - b.value);
+    rows.sort((a, b) => {
+      if (a.rank != null && b.rank != null) return b.rank - a.rank;  // higher rank = worse = biggest need first
+      if (a.rank == null && b.rank == null) return a.value - b.value;
+      return a.rank == null ? 1 : -1;                                 // ranked rows sort before unranked
+    });
     if (rows.length) rows[0].isBiggestNeed = true;
     return rows;
   }
@@ -1754,6 +1871,10 @@
       const fullName = _playerName(player, recentPick);
       const adp = _playerAdp(fullName, fmtKey);
       const verdict = _pickDelta(recentPick.pick_no, adp);
+      // Projected season points for the picked player (Sleeper /projections).
+      // Useful for rookies + breakouts where ADP says one thing but production
+      // projection says another. Falls to '—' when no projection exists.
+      const proj = _projForPlayerId(recentPick.player_id);
       pa.innerHTML = ''
         + '<div class="ld-pa-name">' + _escapeHtml(fullName) + '</div>'
         + '<div class="ld-pa-meta">'
@@ -1763,29 +1884,38 @@
         + '<div class="ld-pa-stats">'
         +   '<div class="ld-pa-stat"><span class="ld-pa-stat-label">Pick</span><span class="ld-pa-stat-val">' + recentPick.pick_no + '</span></div>'
         +   '<div class="ld-pa-stat"><span class="ld-pa-stat-label">ADP</span><span class="ld-pa-stat-val">' + (adp != null ? adp.toFixed(1) : '—') + '</span></div>'
+        +   '<div class="ld-pa-stat" title="Projected season points (Sleeper)"><span class="ld-pa-stat-label">Proj</span><span class="ld-pa-stat-val">' + (proj != null && proj > 0 ? Math.round(proj) : '—') + '</span></div>'
         +   '<div class="ld-pa-stat"><span class="ld-pa-stat-label">Delta</span><span class="ld-pa-stat-val">' + (verdict.delta != null ? (verdict.delta > 0 ? '+' : '') + Math.round(verdict.delta) : '—') + '</span></div>'
         + '</div>'
         + '<div class="ld-pa-badge ' + verdict.cls + '" title="' + _verdictTooltip(verdict.cls) + '">' + verdict.label + '</div>';
     }
 
-    // Aggregate roster once — used by both Team Needs + Roster Panel below
-    const agg = _aggregateRoster(picks, _activeSourceLeagueId(), players);
+    // Aggregate roster once — used by both Team Needs + Roster Panel below.
+    // League ranks are computed in parallel so Team Needs can sort by
+    // "where I stand vs the league" instead of just my own value totals.
+    const sourceLeagueId = _activeSourceLeagueId();
+    const agg   = _aggregateRoster(picks, sourceLeagueId, players);
+    const ranks = _computeLeagueRanks(picks, sourceLeagueId, players);
 
-    // ── Team Needs card (value-weighted) ─────────────────────────
+    // ── Team Needs card (league-rank weighted) ─────────────────────────
     const needsEl = document.getElementById('ld-card-needs-body');
     if (!DRAFT.myRosterId) {
       needsEl.innerHTML = '<div class="ld-card-empty">Sign in to a league with your roster to compute team needs.</div>';
     } else if (agg.total === 0) {
       needsEl.innerHTML = '<div class="ld-card-empty">No players on your roster yet — every position is open.</div>';
     } else {
-      const rows = _computeTeamNeeds(agg);
+      const rows = _computeTeamNeeds(agg, ranks);
       needsEl.innerHTML = rows.map(r => {
         const tag = r.isBiggestNeed
           ? '<span class="ld-needs-tag">Biggest need</span>'
           : '<span class="ld-needs-tag-empty">·</span>';
+        const rankCls = _rankColorCls(r.rank, r.teams);
+        const rankHtml = r.rank != null
+          ? '#' + r.rank + '<span class="ld-needs-rank-of">/ ' + r.teams + '</span>'
+          : '—';
         return '<div class="ld-needs-row' + (r.isBiggestNeed ? ' biggest-need' : '') + '">'
           + '<span class="ld-needs-pill ' + r.pos + '">' + r.pos + '</span>'
-          + '<span class="ld-needs-stat"><span class="ld-needs-stat-l">Total Value</span><span class="ld-needs-stat-v">' + r.value + '</span></span>'
+          + '<span class="ld-needs-stat" title="Rank by total trade value vs the rest of the league"><span class="ld-needs-stat-l">League Rank</span><span class="ld-needs-stat-v ' + rankCls + '">' + rankHtml + '</span></span>'
           + '<span class="ld-needs-stat"><span class="ld-needs-stat-l">Proj Pts</span><span class="ld-needs-stat-v" title="Projected season points (Sleeper)">' + (r.proj > 0 ? r.proj : '—') + '</span></span>'
           + tag
           + '</div>';
@@ -1797,7 +1927,7 @@
       rosterPanel.style.display = 'none';
     } else {
       rosterPanel.style.display = '';
-      ldRenderRosterPanel(agg);
+      ldRenderRosterPanel(agg, ranks);
     }
   }
 
@@ -1808,19 +1938,27 @@
     return 'Player not in ADP coverage (rookies, deep picks)';
   }
 
-  function ldRenderRosterPanel(agg) {
+  function ldRenderRosterPanel(agg, ranks) {
     const host = document.getElementById('ld-roster-panel-body');
     // Each position group is now a vertical card flowed via CSS column-
-    // count. Group head stacks: [pill + count row] [totals stacked]. Team
-    // column on player rows dropped to keep names readable in narrow cols.
+    // count. Group head stacks: [pill + rank chip + count row] [totals
+    // stacked]. Team column on player rows dropped to keep names readable
+    // in narrow cols.
     const groups = ['QB', 'RB', 'WR', 'TE'].map(pos => {
       const players  = agg.byPos[pos] || [];
       const totals   = agg.totalsByPos[pos] || { value: 0, ppg: 0, proj: 0, count: 0 };
       const projTotal = Math.round(totals.proj || 0);
+      const myRank    = ranks && ranks.byPos[pos] ? ranks.byPos[pos].myRank : null;
+      const teamsN    = ranks ? ranks.teams : 0;
+      const rankCls   = _rankColorCls(myRank, teamsN);
+      const rankChip  = myRank != null
+        ? '<span class="ld-rp-rank ' + rankCls + '" title="Your ' + pos + ' rank vs the rest of the league">#' + myRank + '<span class="ld-rp-rank-of">/ ' + teamsN + '</span></span>'
+        : '';
       const head = ''
         + '<div class="ld-rp-group-head">'
         +   '<div class="ld-rp-group-head-top">'
         +     '<span class="ld-rp-pill ' + pos + '">' + pos + '</span>'
+        +     rankChip
         +     '<span class="ld-rp-count">' + totals.count + '</span>'
         +   '</div>'
         +   '<div class="ld-rp-totals">'
