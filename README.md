@@ -786,6 +786,21 @@ Nothing structural. Polish / nice-to-haves only:
   currently reads `window.ML_SEASON_STATS` / `window.ML_SEASON_PROJ` /
   similar should switch to the new payload via data-bootstrap. Includes
   a manifest of which existing data files this replaces vs. augments.
+- [ ] **ADP audit — players in wrong spots** — user flagged 2026-05-18
+  that "some players are not in the right spots for sure" in the published
+  ADP. Could be legitimate outliers (a low-volume player with one outlier
+  early pick dragging their avg) or a data-quality issue with the scrape.
+  Audit path:
+  - Compare `data/adp.json` entries with low `drafts` count against high-
+    visibility consensus rankings; flag any whose ADP rank is wildly out
+    of position vs the consensus.
+  - Spot-check the BPA-style noise floor (`BPA_MIN_DRAFTS = 25` from
+    commit 04d776d) — kickers leaked at lower thresholds; verify the
+    floor catches enough of the bad rows.
+  - If the issue is upstream (Sleeper draft corpus is correct but the
+    scrape mis-maps), update `sleeper_dynasty_adp/` scrape logic.
+  Note when starting which specific player(s) the user flagged so the
+  audit can be targeted vs blanket.
 - [ ] **Scoring-variant math layer (TEP / PPC / passing TD)** — the data-
   suite CSVs are base-PPR with 4-pt passing TDs. We adjust client-side
   based on each league's scoring_settings:
