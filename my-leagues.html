@@ -5950,24 +5950,40 @@ async function loadRoster(leagueId, season) {
       window.ML_SEASON_PROJ = seasonProj;
     } catch(e) { /* season projections not available */ }
 
-    // Fetch 2025 season totals for PPG (most recently completed season). The
-    // canonical Sleeper stats endpoint is api.sleeper.app/v1, NOT api.sleeper.com,
-    // and the response is a flat dict (not an array).
+    // PPG comes from the Data Suite (window.STATS_DATA) instead of Sleeper's
+    // /stats/nfl endpoint. For each rostered player, look up their season
+    // stats via normalized name, run them through the same league-aware
+    // scoring overlay (TEP + PPC + pass-TD + half/std) that the projection
+    // pipeline uses, then divide by games. Same window.ML_SEASON_STATS
+    // dict shape so the renderer doesn't change.
     try {
-      const ssData = await apiFetch(`${API}/stats/nfl/regular/2025`);
       const seasonStats = {};
-      if (ssData && typeof ssData === 'object') {
-        Object.entries(ssData).forEach(([pid, stats]) => {
-          if (!stats || typeof stats !== 'object') return;
-          const gp = stats.gp || 0;
-          const pts = stats[`pts_${scoringType}`] ?? stats.pts_ppr ?? stats.pts_half_ppr ?? stats.pts_std ?? 0;
-          if (gp > 0 && pts > 0) {
-            seasonStats[pid] = +(pts / gp).toFixed(1);
-          }
+      const STATS = window.STATS_DATA || {};
+      const norm  = (typeof window.normalizePlayerName === 'function')
+                  ? window.normalizePlayerName
+                  : (s => String(s || '').trim().toLowerCase().replace(/\./g, '').replace(/\s+/g, ' '));
+      const scoring = league.scoring_settings || {};
+      const adjust  = (window.SLEEPER && typeof SLEEPER.adjustStatsForLeague === 'function')
+                    ? SLEEPER.adjustStatsForLeague : null;
+      if (adjust) {
+        const rosteredIds = new Set();
+        rosters.forEach(r => (r.players || []).forEach(pid => rosteredIds.add(pid)));
+        rosteredIds.forEach(pid => {
+          const p = players[pid];
+          if (!p) return;
+          const name = p.full_name || ((p.first_name || '') + ' ' + (p.last_name || '')).trim();
+          if (!name) return;
+          const rec = STATS['sid:' + pid] || STATS['name:' + norm(name)];
+          if (!rec) return;
+          const games = +(rec.games) || 0;
+          if (games <= 0) return;
+          const adj = adjust(rec, scoring);
+          if (!adj || !adj.fantasyPts || adj.fantasyPts <= 0) return;
+          seasonStats[pid] = +(adj.fantasyPts / games).toFixed(1);
         });
       }
       window.ML_SEASON_STATS = seasonStats;
-    } catch(e) { /* season stats not available */ }
+    } catch(e) { /* data-suite PPG unavailable — fall back to null on roster rows */ }
 
     // Find my roster
     const myUser   = users.find(u => u.user_id === ML.userId);
