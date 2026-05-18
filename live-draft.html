@@ -1616,10 +1616,15 @@
       DRAFT.username   = user.username || raw;
       DRAFT.userId     = user.user_id;
       DRAFT.displayName = user.display_name || user.username || raw;
+      // Persist for next visit AND share with my-leagues.html — both pages
+      // use the same LS keys, so a sign-in here also signs the user in there.
+      // The avatar field is my-leagues-only so we store it for cross-page use.
       try {
         localStorage.setItem(LS.USERNAME, DRAFT.username);
         localStorage.setItem(LS.USER_ID,  DRAFT.userId);
         localStorage.setItem(LS.DISPLAY,  DRAFT.displayName);
+        if (user.avatar) localStorage.setItem('fpts-sleeper-avatar', user.avatar);
+        else localStorage.removeItem('fpts-sleeper-avatar');
       } catch (e) { /* localStorage may be disabled */ }
       ldShowConnected();
     } catch (e) {
@@ -1635,7 +1640,8 @@
     DRAFT.year = null; DRAFT.leagueId = null; DRAFT.league = null;
     DRAFT.draftId = null; DRAFT.draft = null; DRAFT.myRosterId = null;
     try {
-      [LS.USERNAME, LS.USER_ID, LS.DISPLAY, LS.LAST_YEAR, LS.LAST_LEAGUE, LS.LAST_DRAFT]
+      [LS.USERNAME, LS.USER_ID, LS.DISPLAY, LS.LAST_YEAR, LS.LAST_LEAGUE, LS.LAST_DRAFT,
+       'fpts-sleeper-avatar']
         .forEach(k => localStorage.removeItem(k));
     } catch (e) {}
     ldShowLogin();

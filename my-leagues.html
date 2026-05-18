@@ -4559,6 +4559,33 @@ async function getPlayers() {
   return playersLoading;
 }
 
+// ── Session persistence ──────────────────────────────────────────────────
+// Same localStorage keys as live-draft.html so a Sleeper login on either
+// page restores the other automatically. fpts-sleeper-avatar is my-leagues-
+// specific (live-draft doesn't render an avatar chip).
+const ML_LS = {
+  USERNAME: 'fpts-sleeper-username',
+  USER_ID:  'fpts-sleeper-user-id',
+  DISPLAY:  'fpts-sleeper-display-name',
+  AVATAR:   'fpts-sleeper-avatar',
+};
+
+function mlSaveSession(user) {
+  try {
+    localStorage.setItem(ML_LS.USERNAME, user.username || '');
+    localStorage.setItem(ML_LS.USER_ID,  user.user_id || '');
+    localStorage.setItem(ML_LS.DISPLAY,  user.display_name || user.username || '');
+    if (user.avatar) localStorage.setItem(ML_LS.AVATAR, user.avatar);
+    else localStorage.removeItem(ML_LS.AVATAR);
+  } catch (e) { /* localStorage may be disabled */ }
+}
+
+function mlClearSession() {
+  try {
+    Object.values(ML_LS).forEach(k => localStorage.removeItem(k));
+  } catch (e) {}
+}
+
 // ── Search ────────────────────────────────────────────────────────────────
 async function mlSearch() {
   hideError();
@@ -4585,6 +4612,9 @@ async function mlSearch() {
     document.getElementById('ml-user-display').textContent = user.display_name || user.username;
     document.getElementById('ml-user-meta').textContent = `@${user.username}`;
 
+    // Persist for next visit (cleared by mlSignOut).
+    mlSaveSession(user);
+
     // Switch from landing → app shell
     document.getElementById('ml-landing').style.display = 'none';
     document.getElementById('ml-app').classList.add('open');
@@ -4597,6 +4627,47 @@ async function mlSearch() {
   } finally {
     btn.textContent = 'LOAD'; btn.disabled = false;
   }
+}
+
+// Auto-restore from localStorage on page boot. Mirrors live-draft's pattern:
+// hydrate UI immediately from cached LS values, then kick off leagues fetch.
+// If the cached user is stale / Sleeper is unreachable, loadAndRenderLeagues
+// swallows the error and shows empty leagues — user can sign out + back in.
+async function mlAutoRestoreSession() {
+  let username, userId, display, avatar;
+  try {
+    username = localStorage.getItem(ML_LS.USERNAME);
+    userId   = localStorage.getItem(ML_LS.USER_ID);
+    display  = localStorage.getItem(ML_LS.DISPLAY);
+    avatar   = localStorage.getItem(ML_LS.AVATAR);
+  } catch (e) { return false; }
+  if (!username || !userId) return false;
+
+  ML.userId = userId;
+  ML.username = username;
+  ML.displayName = display || username;
+
+  // Restore header without a network round-trip — avatar is the only field
+  // not in the existing three LS keys, so we cache it too.
+  const av = avatar
+    ? `${CDN}/avatars/thumbs/${avatar}`
+    : `${CDN}/avatars/thumbs/avatar_null`;
+  const avatarEl = document.getElementById('ml-user-avatar');
+  if (avatarEl) avatarEl.src = av;
+  const displayEl = document.getElementById('ml-user-display');
+  if (displayEl) displayEl.textContent = display || username;
+  const metaEl = document.getElementById('ml-user-meta');
+  if (metaEl) metaEl.textContent = '@' + username;
+
+  document.getElementById('ml-landing').style.display = 'none';
+  document.getElementById('ml-app').classList.add('open');
+
+  // Fire-and-forget leagues fetch — the spinner inside loadAndRenderLeagues
+  // gives the user feedback while it runs.
+  loadAndRenderLeagues().catch(() => {
+    /* swallowed — empty league list will surface the issue */
+  });
+  return true;
 }
 
 async function loadAndRenderLeagues() {
@@ -5752,8 +5823,9 @@ function mlSignOut() {
   ML.selectedLeague = null;
   ML.selectedSeason = null;
 
-  // Wipe persisted league sync (keeps theme prefs)
+  // Wipe persisted league sync + Sleeper session (keeps theme prefs).
   try { localStorage.removeItem('fpts-imported-league'); } catch(e){}
+  mlClearSession();
 
   // Wipe window state (modals + all-leagues + exposure)
   ['ML_PLAYERS','ML_ROSTERS','ML_USERS','ML_LEAGUE_ID','ML_MY_ROSTER_ID','ML_MY_PLAYER_IDS',
@@ -7489,6 +7561,10 @@ function _fptsXpageMlPepToDb() {
     try { if (typeof buildPickSlots === 'function') buildPickSlots(); } catch(e) { console.warn('[fp-bootstrap] buildPickSlots skipped:', e.message); }
     try { if (typeof renderAll === 'function') renderAll(); } catch(e) { console.warn('[fp-bootstrap] renderAll skipped:', e.message); }
     try { if (typeof renderTiers === 'function') renderTiers(); } catch(e) { console.warn('[fp-bootstrap] renderTiers skipped:', e.message); }
+    // Auto-restore Sleeper session if one is cached in localStorage. Same
+    // pattern as live-draft.html — keeps the user signed in across reloads
+    // AND across pages (shared LS keys).
+    try { if (typeof mlAutoRestoreSession === 'function') mlAutoRestoreSession(); } catch(e) { console.warn('[fp-bootstrap] mlAutoRestoreSession skipped:', e.message); }
     hideLoader();
   });
 
