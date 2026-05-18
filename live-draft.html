@@ -201,11 +201,11 @@
   .ld-info-val.status-pre-draft  { color: var(--red); }
 
   /* ── ANALYSIS CARDS (Phase 2) ─────────────────────────────────────
-     Three cards above the board: Most Recent Pick / Your Roster / Team
-     Needs. Desktop is a 3-up grid; mobile stacks vertically (handled in
-     the bottom @media block). Same card chrome reused across all three. */
+     Two cards above the board: Pick Analysis (left) + Team Needs (right).
+     Desktop = 2-up grid; mobile stacks vertically (bottom @media block).
+     Your Roster moved to a wide panel below the board (.ld-roster-panel). */
   .ld-analysis {
-    display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
     margin-bottom: 14px;
   }
   .ld-card {
@@ -273,52 +273,152 @@
   .ld-pa-badge.reach  { background: var(--red);      color: var(--white); }
   .ld-pa-badge.no-adp { background: var(--surface2); color: rgba(255,255,255,0.45); border: 1px dashed var(--border2); }
 
-  /* YOUR ROSTER card — position pills with player counts + chip list */
-  .ld-roster-row {
-    display: flex; align-items: center; gap: 8px;
-    margin-bottom: 6px; min-width: 0;
-  }
-  .ld-roster-row:last-child { margin-bottom: 0; }
-  .ld-roster-pos {
-    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
-    font-size: 11px; padding: 3px 9px; color: var(--white);
-    flex-shrink: 0; min-width: 38px; text-align: center;
-  }
-  .ld-roster-pos.QB { background: var(--pos-qb-bg); }
-  .ld-roster-pos.RB { background: var(--pos-rb-bg); }
-  .ld-roster-pos.WR { background: var(--pos-wr-bg); }
-  .ld-roster-pos.TE { background: var(--pos-te-bg); }
-  .ld-roster-count {
-    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
-    font-size: 14px; color: var(--white);
-    font-variant-numeric: tabular-nums; min-width: 18px;
-  }
-  .ld-roster-names {
-    font-family: 'Mulish', sans-serif; font-size: 11px; font-weight: 700;
-    color: rgba(255,255,255,0.7);
-    min-width: 0; flex: 1;
-    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-  }
-
-  /* TEAM NEEDS card — pos pills for the weakest positions + shortfall text */
+  /* TEAM NEEDS card — value-weighted ranking of positions by total
+     trade value + total PPG. Sorted lowest → highest (lowest = biggest
+     need). The lowest row gets a .biggest-need outline so it pops. */
   .ld-needs-row {
-    display: flex; align-items: center; gap: 10px; margin-bottom: 8px;
+    display: grid;
+    grid-template-columns: 56px 1fr 1fr auto;
+    align-items: center; gap: 10px;
+    padding: 8px 10px; margin-bottom: 6px;
+    background: var(--surface2); border: 1px solid var(--border2);
   }
   .ld-needs-row:last-child { margin-bottom: 0; }
+  .ld-needs-row.biggest-need { border: 2px solid var(--red); }
   .ld-needs-pill {
     font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
-    font-size: 13px; padding: 4px 12px; color: var(--white);
-    flex-shrink: 0; min-width: 44px; text-align: center;
+    font-size: 13px; padding: 4px 0; color: var(--white);
+    text-align: center;
   }
   .ld-needs-pill.QB { background: var(--pos-qb-bg); }
   .ld-needs-pill.RB { background: var(--pos-rb-bg); }
   .ld-needs-pill.WR { background: var(--pos-wr-bg); }
   .ld-needs-pill.TE { background: var(--pos-te-bg); }
-  .ld-needs-note {
-    font-family: 'Mulish', sans-serif; font-size: 11px;
-    color: rgba(255,255,255,0.65);
+  .ld-needs-stat { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+  .ld-needs-stat-l {
+    font-family: 'Mulish', sans-serif; font-size: 8px; font-weight: 800;
+    color: rgba(255,255,255,0.55);
+    text-transform: uppercase; letter-spacing: .06em;
   }
-  .ld-needs-note strong { color: var(--white); font-weight: 900; }
+  .ld-needs-stat-v {
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 14px; color: var(--white);
+    font-variant-numeric: tabular-nums;
+  }
+  .ld-needs-tag {
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 9px; color: var(--white); background: var(--red);
+    padding: 3px 7px; letter-spacing: .04em;
+    white-space: nowrap;
+  }
+  .ld-needs-tag-empty {
+    font-family: 'Mulish', sans-serif; font-size: 9px; font-weight: 700;
+    color: rgba(255,255,255,0.4);
+  }
+
+  /* ── WIDE ROSTER PANEL (below the draft board) ────────────────────
+     Replaces the old "Your Roster" 3rd top-card. Position groups with
+     pill + total Val + total PPG headers; per-player rows beneath each.
+     Player rows use the canonical site-wide pos color pill format.
+     ────────────────────────────────────────────────────────────────── */
+  .ld-roster-panel {
+    background: var(--surface); border: 1px solid var(--border);
+    margin-top: 14px; padding: 14px 16px;
+  }
+  .ld-roster-panel-head {
+    display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap;
+    margin-bottom: 12px;
+  }
+  .ld-roster-panel-sub {
+    font-family: 'Mulish', sans-serif; font-size: 11px;
+    color: rgba(255,255,255,0.55);
+  }
+  .ld-roster-panel-tag {
+    font-family: 'Consolas', 'Menlo', monospace; font-size: 10px;
+    background: var(--surface2); border: 1px solid var(--border2);
+    color: var(--white); padding: 1px 5px;
+  }
+
+  /* Position groups inside the panel */
+  .ld-rp-group {
+    margin-bottom: 14px; padding-bottom: 14px;
+    border-bottom: 1px solid var(--border);
+  }
+  .ld-rp-group:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+  .ld-rp-group-head {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 8px;
+  }
+  .ld-rp-pill {
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 14px; padding: 5px 14px; color: var(--white);
+    min-width: 56px; text-align: center;
+  }
+  .ld-rp-pill.QB { background: var(--pos-qb-bg); }
+  .ld-rp-pill.RB { background: var(--pos-rb-bg); }
+  .ld-rp-pill.WR { background: var(--pos-wr-bg); }
+  .ld-rp-pill.TE { background: var(--pos-te-bg); }
+  .ld-rp-count {
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 16px; color: var(--white);
+    font-variant-numeric: tabular-nums;
+  }
+  .ld-rp-totals { display: flex; gap: 14px; margin-left: auto; }
+  .ld-rp-total { display: flex; flex-direction: column; gap: 1px; align-items: flex-end; }
+  .ld-rp-total-l {
+    font-family: 'Mulish', sans-serif; font-size: 8px; font-weight: 800;
+    color: rgba(255,255,255,0.55);
+    text-transform: uppercase; letter-spacing: .06em;
+  }
+  .ld-rp-total-v {
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 16px; color: var(--white);
+    font-variant-numeric: tabular-nums;
+  }
+  .ld-rp-empty {
+    font-family: 'Mulish', sans-serif; font-size: 11px;
+    color: rgba(255,255,255,0.45);
+    margin-left: 10px; font-style: italic;
+  }
+
+  /* Per-player rows under each position group */
+  .ld-rp-players {
+    list-style: none;
+    display: grid; gap: 4px;
+  }
+  .ld-rp-player {
+    display: grid;
+    grid-template-columns: 1fr 50px 70px 60px;
+    align-items: center; gap: 10px;
+    padding: 6px 10px;
+    background: var(--surface2); border: 1px solid var(--border);
+    cursor: pointer; transition: border-color .12s;
+  }
+  .ld-rp-player:hover { border-color: var(--red); }
+  .ld-rp-player-name {
+    font-family: 'Mulish', sans-serif; font-weight: 800; font-size: 13px;
+    color: var(--white);
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    min-width: 0;
+  }
+  .ld-rp-player-team {
+    font-family: 'Mulish', sans-serif; font-size: 10px; font-weight: 700;
+    color: rgba(255,255,255,0.55);
+    text-transform: uppercase; letter-spacing: .06em;
+  }
+  .ld-rp-player-stat {
+    display: flex; flex-direction: column; gap: 1px; align-items: flex-end;
+  }
+  .ld-rp-player-stat-l {
+    font-family: 'Mulish', sans-serif; font-size: 8px; font-weight: 800;
+    color: rgba(255,255,255,0.45);
+    text-transform: uppercase; letter-spacing: .06em;
+  }
+  .ld-rp-player-stat-v {
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 13px; color: var(--white);
+    font-variant-numeric: tabular-nums;
+  }
 
   /* ── DRAFT BOARD ─────────────────────────────────────────────────── */
   .ld-board-wrap {
@@ -545,11 +645,31 @@
     .ld-pa-stat { padding: 6px 4px; }
     .ld-pa-stat-val { font-size: 13px; }
     .ld-pa-badge { font-size: 11px; padding: 5px 10px; }
-    .ld-roster-pos { font-size: 10px; padding: 3px 7px; min-width: 32px; }
-    .ld-roster-count { font-size: 13px; }
-    .ld-roster-names { font-size: 10px; }
-    .ld-needs-pill { font-size: 12px; padding: 4px 10px; min-width: 40px; }
-    .ld-needs-note { font-size: 10px; }
+
+    /* Team Needs rows shrink on mobile but keep the 4-column shape. */
+    .ld-needs-row { grid-template-columns: 44px 1fr 1fr auto; gap: 8px; padding: 6px 8px; }
+    .ld-needs-pill { font-size: 11px; padding: 3px 0; }
+    .ld-needs-stat-v { font-size: 12px; }
+    .ld-needs-tag { font-size: 8px; padding: 2px 5px; }
+
+    /* Roster panel — tighter padding, smaller pills, totals stack closer */
+    .ld-roster-panel { padding: 12px 14px; margin-top: 10px; }
+    .ld-roster-panel-head { gap: 8px; margin-bottom: 10px; }
+    .ld-roster-panel-sub { font-size: 10px; }
+    .ld-rp-group { margin-bottom: 12px; padding-bottom: 12px; }
+    .ld-rp-pill { font-size: 12px; padding: 4px 10px; min-width: 44px; }
+    .ld-rp-count { font-size: 14px; }
+    .ld-rp-totals { gap: 10px; }
+    .ld-rp-total-v { font-size: 13px; }
+    /* Player rows on mobile drop the team column to fit; team becomes a
+       small chip prefix on the name instead. Grid becomes 3-col. */
+    .ld-rp-player {
+      grid-template-columns: 1fr 64px 56px;
+      gap: 8px; padding: 5px 8px;
+    }
+    .ld-rp-player-team { display: none; }
+    .ld-rp-player-name { font-size: 12px; }
+    .ld-rp-player-stat-v { font-size: 12px; }
 
     /* Smaller cells so 12-team grids are usable on phone (still requires
        horizontal swipe — sticky row + col headers from the desktop CSS
@@ -693,26 +813,39 @@
     <div id="ld-draft-info" class="ld-draft-info" style="display:none"></div>
 
     <!-- ════════════════════════════════════════════════════════════════
-         ANALYSIS PANELS — three cards above the board, hidden until a
-         draft is loaded. Mobile stacks vertically; desktop is a 3-up grid.
+         ANALYSIS CARDS — Pick Analysis (left) + Team Needs (right).
+         Mobile stacks vertically; desktop is a 2-up grid. Roster moved
+         below the board as a wide panel — see #ld-roster-panel.
          ════════════════════════════════════════════════════════════════ -->
     <div id="ld-analysis" class="ld-analysis" style="display:none">
       <div class="ld-card" id="ld-card-pick">
         <div class="ld-card-label">Most Recent Pick</div>
         <div class="ld-card-body" id="ld-card-pick-body"></div>
       </div>
-      <div class="ld-card" id="ld-card-roster">
-        <div class="ld-card-label">Your Roster</div>
-        <div class="ld-card-body" id="ld-card-roster-body"></div>
-      </div>
       <div class="ld-card" id="ld-card-needs">
-        <div class="ld-card-label">Team Needs</div>
+        <div class="ld-card-label">Team Needs — by value</div>
         <div class="ld-card-body" id="ld-card-needs-body"></div>
       </div>
     </div>
 
     <!-- Draft board -->
     <div id="ld-board-host"></div>
+
+    <!-- ════════════════════════════════════════════════════════════════
+         YOUR ROSTER — wide panel below the board. Position groups with
+         total Value + total PPG; per-player rows beneath each group.
+         Hidden until a draft loads.
+         ════════════════════════════════════════════════════════════════ -->
+    <div id="ld-roster-panel" class="ld-roster-panel" style="display:none">
+      <div class="ld-roster-panel-head">
+        <div class="ld-card-label">Your Roster</div>
+        <div class="ld-roster-panel-sub">
+          Value + PPG sourced from
+          <span class="ld-roster-panel-tag">FP_VALUES</span>. Sum across all rostered + drafted players (deduped).
+        </div>
+      </div>
+      <div id="ld-roster-panel-body"></div>
+    </div>
   </div>
 
 </main>
@@ -1052,6 +1185,7 @@
     DRAFT.myRosterId = null;
     document.getElementById('ld-draft-info').style.display = 'none';
     document.getElementById('ld-analysis').style.display = 'none';
+    document.getElementById('ld-roster-panel').style.display = 'none';
     document.getElementById('ld-board-host').innerHTML = '';
     await ldFetchLeagues(DRAFT.year);
   }
@@ -1148,6 +1282,7 @@
     DRAFT.draftId = null; DRAFT.draft = null; DRAFT.myRosterId = null;
     document.getElementById('ld-draft-info').style.display = 'none';
     document.getElementById('ld-analysis').style.display = 'none';
+    document.getElementById('ld-roster-panel').style.display = 'none';
     document.getElementById('ld-board-host').innerHTML = '';
     try { if (id) localStorage.setItem(LS.LAST_LEAGUE, id); } catch (e) {}
     if (!id) {
@@ -1239,6 +1374,7 @@
     DRAFT.draft = null;
     document.getElementById('ld-draft-info').style.display = 'none';
     document.getElementById('ld-analysis').style.display = 'none';
+    document.getElementById('ld-roster-panel').style.display = 'none';
     document.getElementById('ld-board-host').innerHTML = '';
     try { if (id) localStorage.setItem(LS.LAST_DRAFT, id); } catch (e) {}
     if (!id) return;
@@ -1308,8 +1444,15 @@
   // (1QB + 4RB + 5WR + 1TE = 11 starters across most formats); user can
   // refine these later if leagues vary wildly.
   // ════════════════════════════════════════════════════════════════════
-  const TEAM_NEED_TARGETS_STARTUP = { QB: 2, RB: 4, WR: 5, TE: 2 };
-  const TEAM_NEED_TARGETS_ROOKIE  = { QB: 1, RB: 1, WR: 2, TE: 1 };
+  // Phase 2.7 — Team Needs is value-weighted now (no longer count-based
+  // against arbitrary targets). The previous constants were:
+  //   TEAM_NEED_TARGETS_STARTUP = { QB:2 RB:4 WR:5 TE:2 }
+  //   TEAM_NEED_TARGETS_ROOKIE  = { QB:1 RB:1 WR:2 TE:1 }
+  // Removed because they were hand-tuned heuristics with no league-context
+  // signal. Now: sum each position's trade-value across the user's
+  // roster + drafted players, sort ascending. Lowest total value = biggest
+  // need (honest reflection of where draft capital is light, no predictive
+  // guesswork).
 
   function _adpFmtKey(draftMeta, league) {
     const rounds = (draftMeta && draftMeta.settings && draftMeta.settings.rounds) || 0;
@@ -1356,73 +1499,122 @@
     const delta = adp - actualPick;       // positive = picked AFTER ADP (value)
     if (delta > 5)  return { delta, label: 'VALUE +' + Math.round(delta), cls: 'value' };
     if (delta < -5) return { delta, label: 'REACH ' + Math.round(delta), cls: 'reach' };
-    return { delta, label: 'PAR', cls: 'par' };
+    // "ON ADP" replaces the legacy "PAR" (golf-derived). Direct meaning:
+    // pick number is within ±5 of ADP, neither value nor reach.
+    return { delta, label: 'ON ADP', cls: 'par' };
   }
 
-  // Aggregate user's owned players: pre-existing roster + this draft's picks.
-  // Returns { byPos: { QB: [names], RB: [...], WR: [...], TE: [...] }, total }
+  // Look up { value, ppg } for a Sleeper player by name against the
+  // already-loaded window.FP_VALUES dict. Handles name variations via
+  // window.normalizePlayerName when the exact key isn't present.
+  // Returns { value, ppg } with nulls when no FP coverage exists (common
+  // for late-round picks, deep rookies, IDP, etc.).
+  let _fpNormCache = null;
+  function _fpStatsForName(name) {
+    if (!name) return { value: null, ppg: null };
+    const FP = window.FP_VALUES || {};
+    if (FP[name]) return { value: FP[name].value, ppg: FP[name].ppg };
+    const norm = (typeof window.normalizePlayerName === 'function')
+      ? window.normalizePlayerName
+      : (s => String(s || '').trim().toLowerCase());
+    if (!_fpNormCache) {
+      _fpNormCache = {};
+      for (const k in FP) { _fpNormCache[norm(k)] = FP[k]; }
+    }
+    const hit = _fpNormCache[norm(name)];
+    return hit ? { value: hit.value, ppg: hit.ppg } : { value: null, ppg: null };
+  }
+
+  // Aggregate user's owned players: pre-existing roster + this draft's
+  // picks. Each entry includes value + PPG from FP_VALUES so downstream
+  // renderers (Team Needs, Roster Panel) can compute totals + sort by
+  // value. Returns:
+  //   { byPos: { QB: [{name, team, value, ppg}], RB: [...], ... },
+  //     totalsByPos: { QB: {value, ppg, count}, ... },
+  //     total: <int> total players }
   function _aggregateRoster(picks, sourceLeagueId, players) {
-    const out = { QB: [], RB: [], WR: [], TE: [], total: 0 };
+    const out = {
+      byPos:       { QB: [], RB: [], WR: [], TE: [] },
+      totalsByPos: { QB: { value: 0, ppg: 0, count: 0 },
+                     RB: { value: 0, ppg: 0, count: 0 },
+                     WR: { value: 0, ppg: 0, count: 0 },
+                     TE: { value: 0, ppg: 0, count: 0 } },
+      total: 0,
+    };
     if (!DRAFT.myRosterId) return out;
     const seen = new Set();
+
+    function add(pid, p, pickRow) {
+      if (!pid || seen.has(pid)) return;
+      seen.add(pid);
+      if (!p) return;
+      const pos = (p.position || '').toUpperCase();
+      if (!out.byPos[pos]) return;
+      const name = _playerName(p, pickRow || { player_id: pid });
+      const stats = _fpStatsForName(name);
+      const value = stats.value != null ? Number(stats.value) : 0;
+      const ppg   = stats.ppg   != null ? Number(stats.ppg)   : 0;
+      out.byPos[pos].push({ name, team: p.team || '', value: stats.value, ppg: stats.ppg });
+      out.totalsByPos[pos].value += value;
+      out.totalsByPos[pos].ppg   += ppg;
+      out.totalsByPos[pos].count++;
+      out.total++;
+    }
 
     // 1. Pre-existing roster.players from /league/{id}/rosters
     const rosters = DRAFT.rostersByLeague[sourceLeagueId] || [];
     const myRoster = rosters.find(r => r.roster_id === DRAFT.myRosterId);
     const baseIds = (myRoster && myRoster.players) || [];
-    baseIds.forEach(pid => {
-      if (!pid || seen.has(pid)) return;
-      seen.add(pid);
-      const p = players[pid];
-      if (!p) return;
-      const pos = (p.position || '').toUpperCase();
-      if (out[pos]) {
-        out[pos].push(_playerName(p, { player_id: pid }));
-        out.total++;
-      }
-    });
+    baseIds.forEach(pid => add(pid, players[pid]));
 
     // 2. This draft's picks where pick.roster_id === DRAFT.myRosterId
     (picks || []).forEach(pk => {
       if (!pk || pk.roster_id !== DRAFT.myRosterId) return;
-      const pid = pk.player_id;
-      if (!pid || seen.has(pid)) return;
-      seen.add(pid);
-      const p = players[pid] || {};
-      const pos = (p.position || '').toUpperCase();
-      if (out[pos]) {
-        out[pos].push(_playerName(p, pk));
-        out.total++;
-      }
+      add(pk.player_id, players[pk.player_id] || {}, pk);
     });
 
-    return out;
-  }
-
-  function _computeTeamNeeds(byPos, draftMeta) {
-    const rounds = (draftMeta && draftMeta.settings && draftMeta.settings.rounds) || 0;
-    const targets = (rounds && rounds <= 6) ? TEAM_NEED_TARGETS_ROOKIE : TEAM_NEED_TARGETS_STARTUP;
-    const out = [];
+    // Sort each position's player list by value (highest first) so the
+    // roster panel reads top-down strong → weak.
     ['QB', 'RB', 'WR', 'TE'].forEach(pos => {
-      const have   = byPos[pos] ? byPos[pos].length : 0;
-      const target = targets[pos] || 0;
-      const gap    = target - have;
-      out.push({ pos, have, target, gap });
+      out.byPos[pos].sort((a, b) => (b.value || 0) - (a.value || 0));
     });
-    // Sort by largest gap first (biggest shortfall = highest need)
-    out.sort((a, b) => b.gap - a.gap);
+
     return out;
   }
 
-  // Render the three analysis cards. recentPick is the cell whose pick
-  // info is shown in the Pick Analysis card (defaults to the most recent
-  // pick in the draft, but can be overridden by clicking any cell).
+  // Value-weighted team needs: sort positions by total trade-value
+  // ascending. Lowest-value position is the "biggest need". The user can
+  // see exactly where their draft capital is light without us inventing
+  // predictive logic. Returns array of { pos, count, value, ppg, isBiggestNeed }
+  // sorted ascending by value.
+  function _computeTeamNeeds(agg) {
+    if (!agg || !agg.totalsByPos) return [];
+    const rows = ['QB', 'RB', 'WR', 'TE'].map(pos => ({
+      pos,
+      count: agg.totalsByPos[pos].count,
+      value: Math.round(agg.totalsByPos[pos].value || 0),
+      ppg:   +(agg.totalsByPos[pos].ppg || 0).toFixed(1),
+    }));
+    rows.sort((a, b) => a.value - b.value);
+    if (rows.length) rows[0].isBiggestNeed = true;
+    return rows;
+  }
+
+  // Render the analysis cards (Pick Analysis + Team Needs) and the wide
+  // roster panel below the board. recentPick controls which pick the
+  // Pick Analysis card surfaces — defaults to the latest pick made, but
+  // a cell click overrides it.
   function ldRenderAnalysis(meta, picks, players, recentPick) {
     const wrap = document.getElementById('ld-analysis');
-    if (!meta) { wrap.style.display = 'none'; return; }
+    const rosterPanel = document.getElementById('ld-roster-panel');
+    if (!meta) {
+      wrap.style.display = 'none';
+      rosterPanel.style.display = 'none';
+      return;
+    }
     wrap.style.display = '';
 
-    // Pick Analysis card
+    // ── Pick Analysis card ─────────────────────────────────────────
     const fmtKey = _adpFmtKey(meta, DRAFT.league);
     const pa = document.getElementById('ld-card-pick-body');
     if (!recentPick && picks && picks.length) {
@@ -1447,44 +1639,77 @@
         +   '<div class="ld-pa-stat"><span class="ld-pa-stat-label">ADP</span><span class="ld-pa-stat-val">' + (adp != null ? adp.toFixed(1) : '—') + '</span></div>'
         +   '<div class="ld-pa-stat"><span class="ld-pa-stat-label">Delta</span><span class="ld-pa-stat-val">' + (verdict.delta != null ? (verdict.delta > 0 ? '+' : '') + Math.round(verdict.delta) : '—') + '</span></div>'
         + '</div>'
-        + '<div class="ld-pa-badge ' + verdict.cls + '">' + verdict.label + '</div>';
+        + '<div class="ld-pa-badge ' + verdict.cls + '" title="' + _verdictTooltip(verdict.cls) + '">' + verdict.label + '</div>';
     }
 
-    // Your Roster card
-    const roster = _aggregateRoster(picks, _activeSourceLeagueId(), players);
-    const rosterEl = document.getElementById('ld-card-roster-body');
-    if (!DRAFT.myRosterId || roster.total === 0) {
-      rosterEl.innerHTML = '<div class="ld-card-empty">No players on your roster yet.</div>';
-    } else {
-      const rows = ['QB', 'RB', 'WR', 'TE'].map(p => {
-        const names = roster[p] || [];
-        return '<div class="ld-roster-row">'
-          + '<span class="ld-roster-pos ' + p + '">' + p + '</span>'
-          + '<span class="ld-roster-count">' + names.length + '</span>'
-          + '<span class="ld-roster-names" title="' + _escapeHtml(names.join(', ')) + '">'
-          +   (names.length ? _escapeHtml(names.join(' · ')) : '<span style="opacity:.45">—</span>')
-          + '</span>'
-          + '</div>';
-      }).join('');
-      rosterEl.innerHTML = rows;
-    }
+    // Aggregate roster once — used by both Team Needs + Roster Panel below
+    const agg = _aggregateRoster(picks, _activeSourceLeagueId(), players);
 
-    // Team Needs card
-    const needs = _computeTeamNeeds(roster, meta);
-    const top = needs.filter(n => n.gap > 0).slice(0, 2);
+    // ── Team Needs card (value-weighted) ─────────────────────────
     const needsEl = document.getElementById('ld-card-needs-body');
     if (!DRAFT.myRosterId) {
       needsEl.innerHTML = '<div class="ld-card-empty">Sign in to a league with your roster to compute team needs.</div>';
-    } else if (!top.length) {
-      needsEl.innerHTML = '<div class="ld-card-empty">Roster meets typical starting-position targets. Best player available.</div>';
+    } else if (agg.total === 0) {
+      needsEl.innerHTML = '<div class="ld-card-empty">No players on your roster yet — every position is open.</div>';
     } else {
-      needsEl.innerHTML = top.map(n =>
-        '<div class="ld-needs-row">'
-        + '<span class="ld-needs-pill ' + n.pos + '">' + n.pos + '</span>'
-        + '<span class="ld-needs-note">Have <strong>' + n.have + '</strong> · Target <strong>' + n.target + '</strong> · Short <strong>' + n.gap + '</strong></span>'
-        + '</div>'
-      ).join('');
+      const rows = _computeTeamNeeds(agg);
+      needsEl.innerHTML = rows.map(r => {
+        const tag = r.isBiggestNeed
+          ? '<span class="ld-needs-tag">Biggest need</span>'
+          : '<span class="ld-needs-tag-empty">·</span>';
+        return '<div class="ld-needs-row' + (r.isBiggestNeed ? ' biggest-need' : '') + '">'
+          + '<span class="ld-needs-pill ' + r.pos + '">' + r.pos + '</span>'
+          + '<span class="ld-needs-stat"><span class="ld-needs-stat-l">Total Value</span><span class="ld-needs-stat-v">' + r.value + '</span></span>'
+          + '<span class="ld-needs-stat"><span class="ld-needs-stat-l">Total PPG</span><span class="ld-needs-stat-v">' + r.ppg.toFixed(1) + '</span></span>'
+          + tag
+          + '</div>';
+      }).join('');
     }
+
+    // ── Roster Panel below the board ─────────────────────────────
+    if (!DRAFT.myRosterId || agg.total === 0) {
+      rosterPanel.style.display = 'none';
+    } else {
+      rosterPanel.style.display = '';
+      ldRenderRosterPanel(agg);
+    }
+  }
+
+  function _verdictTooltip(cls) {
+    if (cls === 'value')  return 'Picked later than ADP (got value)';
+    if (cls === 'reach')  return 'Picked earlier than ADP (reach)';
+    if (cls === 'par')    return 'Within ±5 of ADP — picked on schedule';
+    return 'Player not in ADP coverage (rookies, deep picks)';
+  }
+
+  function ldRenderRosterPanel(agg) {
+    const host = document.getElementById('ld-roster-panel-body');
+    const groups = ['QB', 'RB', 'WR', 'TE'].map(pos => {
+      const players  = agg.byPos[pos] || [];
+      const totals   = agg.totalsByPos[pos] || { value: 0, ppg: 0, count: 0 };
+      const head = ''
+        + '<div class="ld-rp-group-head">'
+        +   '<span class="ld-rp-pill ' + pos + '">' + pos + '</span>'
+        +   '<span class="ld-rp-count">' + totals.count + '</span>'
+        +   '<div class="ld-rp-totals">'
+        +     '<div class="ld-rp-total"><span class="ld-rp-total-l">Total Value</span><span class="ld-rp-total-v">' + Math.round(totals.value) + '</span></div>'
+        +     '<div class="ld-rp-total"><span class="ld-rp-total-l">Total PPG</span><span class="ld-rp-total-v">' + (totals.ppg || 0).toFixed(1) + '</span></div>'
+        +   '</div>'
+        + '</div>';
+      const body = players.length
+        ? '<ul class="ld-rp-players">' + players.map(p => {
+            const safeName = (p.name || '').replace(/'/g, "\\'");
+            return '<li class="ld-rp-player" onclick="ldOpenPlayer(\'' + safeName + '\')">'
+              + '<span class="ld-rp-player-name">' + _escapeHtml(p.name) + '</span>'
+              + '<span class="ld-rp-player-team">' + _escapeHtml(p.team || '—') + '</span>'
+              + '<span class="ld-rp-player-stat"><span class="ld-rp-player-stat-l">Val</span><span class="ld-rp-player-stat-v">' + (p.value != null ? Math.round(p.value) : '—') + '</span></span>'
+              + '<span class="ld-rp-player-stat"><span class="ld-rp-player-stat-l">PPG</span><span class="ld-rp-player-stat-v">' + (p.ppg != null ? (+p.ppg).toFixed(1) : '—') + '</span></span>'
+              + '</li>';
+          }).join('') + '</ul>'
+        : '<div class="ld-rp-empty">No ' + pos + ' on roster yet</div>';
+      return '<div class="ld-rp-group">' + head + body + '</div>';
+    });
+    host.innerHTML = groups.join('');
   }
 
   // Convenience accessor — figure out which league_id the current draft
