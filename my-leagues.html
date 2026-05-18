@@ -3197,8 +3197,42 @@ function _mlBuildSleeperLeagueUrl(leagueId) {
 //   2) Otherwise fall back to the generic round key ("2027-1") that the
 //      MVS feed provides for years where no specific slots have been priced yet.
 //   3) Returns a record { value, valueSf, value1qb } or 0 if nothing found.
-// Thin delegation — body moved to assets/js/sleeper-helpers.js.
-function mlPickValue(season, round) { return SLEEPER.pickValue(season, round); }
+// ──────────────────────────────────────────────────────────────────────────
+// FORMAT-AWARE VALUE LOOKUP
+//
+// FP_VALUES + PICK_VALUES carry both .valueSf (Superflex) and .value1qb
+// (1QB) columns. Reading .value alone gives the SF-equivalent in every
+// league, which mis-values QBs in 1QB leagues. Each callsite that operates
+// on a known league context routes through mlFpValue / mlPickValue with the
+// leagueId so the format-correct column is read.
+// ──────────────────────────────────────────────────────────────────────────
+function mlValueKey(leagueId) {
+  if (!leagueId || typeof ML === 'undefined' || !ML.leagues) return 'value';
+  for (const s in ML.leagues) {
+    const lg = (ML.leagues[s] || []).find(l => l.league_id === leagueId);
+    if (lg && Array.isArray(lg.roster_positions)) {
+      return lg.roster_positions.indexOf('SUPER_FLEX') >= 0 ? 'valueSf' : 'value1qb';
+    }
+  }
+  return 'value';
+}
+
+// Read the format-aware trade value off a FP_VALUES record. Falls back to
+// .value when the format-specific column is missing (defensive against
+// partial data). When leagueId is null/unknown, returns the default 'value'.
+function mlFpValue(ktc, leagueId) {
+  if (!ktc) return 0;
+  const k = mlValueKey(leagueId);
+  return (ktc[k] != null ? ktc[k] : ktc.value) || 0;
+}
+
+// mlPickValue now accepts an optional leagueId — when provided, routes the
+// right valueSf/value1qb column to SLEEPER.pickValue. Callers without league
+// context fall back to default 'value' (existing behavior preserved).
+function mlPickValue(season, round, leagueId) {
+  const key = leagueId ? mlValueKey(leagueId) : 'value';
+  return SLEEPER.pickValue(season, round, key);
+}
 
 // Thin delegation — body moved to assets/js/sleeper-helpers.js.
 function mlGetOwnedPicks(rosterId, tradedPicks, leagueRounds, currentSeason, completedDraftSeasons) {
@@ -3591,6 +3625,7 @@ function mlArchetypeFg(key) {
 // wrappers below preserve my-leagues' existing public surface.
 
 // Look up league data, then hand it off to the pure asset-pool builder.
+// Passes the format-keyed value column so QBs are priced correctly in 1QB.
 function mlBuildAssetPool(leagueId, rosterId) {
   const data = (window.ML_ALL_LEAGUE_DATA || {})[leagueId];
   if (!data) return [];
@@ -3601,7 +3636,7 @@ function mlBuildAssetPool(leagueId, rosterId) {
     draftRounds:            data.draftRounds,
     leagueSeason:           data.leagueSeason,
     completedDraftSeasons:  data.completedDraftSeasons,
-  }, rosterId);
+  }, rosterId, mlValueKey(leagueId));
 }
 
 // Thin delegation — full body (including candidate enumeration + bucket
@@ -3702,7 +3737,7 @@ function openTradeSuggestModalForPick(season, round, leagueId, ownerRosterId) {
   if (!data) return;
   const { rosters, users, myRosterId } = data;
 
-  const targetValue = mlPickValue(String(season), Number(round)) || 0;
+  const targetValue = mlPickValue(String(season), Number(round), leagueId) || 0;
   const targetName = `${season} Round ${round}`;
 
   // League name + owner info
@@ -4269,7 +4304,7 @@ function openCalcModal(targetName, targetSleeperId, opts) {
     const ktc = mlGetValueByName(targetName);
     if (ktc) {
       const pos = ktc.posRank ? ktc.posRank.replace(/\d+/g, '') : 'WR';
-      MLCALC.sides.B = [{ name: targetName, value: ktc.value, pos, type: 'player', sleeperId: targetSleeperId || null }];
+      MLCALC.sides.B = [{ name: targetName, value: mlFpValue(ktc, opts.leagueId), pos, type: 'player', sleeperId: targetSleeperId || null }];
     } else {
       MLCALC.sides.B = targetName ? [{ name: targetName, value: 0, pos: 'WR', type: 'player', sleeperId: targetSleeperId || null }] : [];
     }
@@ -4425,7 +4460,7 @@ function mlCalcSearch(sideId, query) {
           const name = p.full_name || ((p.first_name||'') + ' ' + (p.last_name||'')).trim();
           const ktc = mlGetValueByName(name);
           if (!ktc) return null;
-          return { name, value: ktc.value, pos: p.position, type: 'player', isMine: true };
+          return { name, value: mlFpValue(ktc, window.ML_LEAGUE_ID), pos: p.position, type: 'player', isMine: true };
         })
         .filter(Boolean)
         .filter(a => !taken.has(a.name))
@@ -4889,7 +4924,7 @@ function mlComputeLeagueValueData(leagueId) {
       if (!p || !posVals.hasOwnProperty(p.position)) return;
       const pname = p.full_name || `${p.first_name || ''} ${p.last_name || ''}`.trim();
       if (!pname) return;
-      posVals[p.position] += FP_VALUES[pname]?.value || 0;
+      posVals[p.position] += mlFpValue(FP_VALUES[pname], leagueId);
       if (p.age && p.age > 0) ages.push(p.age);
     });
     const avgAge = ages.length ? ages.reduce((s,a)=>s+a,0)/ages.length : 0;
@@ -4904,7 +4939,7 @@ function mlComputeLeagueValueData(leagueId) {
   // Compute pick value for EVERY team using the full owned-picks computation.
   teams.forEach(t => {
     const owned = mlGetOwnedPicks(t.rosterId, d.tradedPicks, d.draftRounds, d.leagueSeason, d.completedDraftSeasons);
-    t.pickValue = owned.reduce((sum, p) => sum + mlPickValue(p.season, p.round), 0);
+    t.pickValue = owned.reduce((sum, p) => sum + mlPickValue(p.season, p.round, leagueId), 0);
     t.pickCount = owned.length;
   });
 
@@ -5195,7 +5230,7 @@ function mlBuildTeamRosterHtml(leagueId, rosterId) {
       pos,
       team: p.team || 'FA',
       age: p.age || ktc.age || null,
-      value: ktc.value || 0,
+      value: mlFpValue(ktc, leagueId),
       posRank: ktc.posRank || '',
     };
     if (groups[pos]) groups[pos].push(item);
@@ -5241,7 +5276,7 @@ function mlBuildTeamRosterHtml(leagueId, rosterId) {
   };
 
   const renderPickRow = (pk) => {
-    const val = mlPickValue(pk.season, pk.round) || 0;
+    const val = mlPickValue(pk.season, pk.round, leagueId) || 0;
     const label = `${pk.season} Round ${pk.round}${pk.isNatural ? '' : ' (acquired)'}`;
     return `
       <div onclick="openTradeSuggestModalForPick('${pk.season}',${pk.round},'${leagueId}',${rosterId})" class="ml-team-roster-row pos-PK">
@@ -5289,7 +5324,7 @@ function mlBuildTeamRosterHtml(leagueId, rosterId) {
 
   // Picks
   if (ownedPicks.length) {
-    const totalPickVal = ownedPicks.reduce((s,p) => s + (mlPickValue(p.season, p.round) || 0), 0);
+    const totalPickVal = ownedPicks.reduce((s,p) => s + (mlPickValue(p.season, p.round, leagueId) || 0), 0);
     sections.push(`
       <div style="margin-bottom:10px">
         <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 4px;border-bottom:1px solid var(--border2);margin-bottom:2px">
@@ -5382,7 +5417,7 @@ function computePickExposure() {
       if (!buckets[key]) {
         buckets[key] = {
           key, season: String(pk.season), round: Number(pk.round),
-          value: mlPickValue(pk.season, pk.round) || 0,
+          value: mlPickValue(pk.season, pk.round, lid) || 0,
           leaguesOwned: [],
         };
       }
@@ -5446,7 +5481,7 @@ function closePickExposurePicker() {
 // Internal: from pick picker, open calculator with this pick on Side A (your outgoing)
 function _mlPepGoToCalc(season, round, leagueId) {
   closePickExposurePicker();
-  const value = mlPickValue(String(season), Number(round)) || 0;
+  const value = mlPickValue(String(season), Number(round), leagueId) || 0;
   const ord = (n) => ({1:'1st', 2:'2nd', 3:'3rd', 4:'4th', 5:'5th'})[n] || `${n}th`;
   const name = `${season} ${ord(Number(round))}`;
   // Open the calc with the pick already on Side A. Pass leagueId so the Sleeper
@@ -5948,9 +5983,12 @@ function _mlComputeOptimalLineup(playerIds, players, projections, rosterPosition
     if (hasProjData) {
       return (projections && projections[id]) ? +projections[id] : 0;
     }
-    // Fallback: trade value — auto-switches to projections when those become available
+    // Fallback: trade value — auto-switches to projections when those become available.
+    // Use SF-vs-1QB column based on the league's roster_positions so QB ranking is
+    // correct in 1QB leagues (otherwise SF-default would over-rank QBs there).
     const ktc = (typeof FP_VALUES !== 'undefined') ? (FP_VALUES[name] || {}) : {};
-    return +(ktc.value || 0);
+    const valKey = (Array.isArray(rosterPositions) && rosterPositions.indexOf('SUPER_FLEX') >= 0) ? 'valueSf' : 'value1qb';
+    return +((ktc[valKey] != null ? ktc[valKey] : ktc.value) || 0);
   };
 
   // Build candidate list ranked by whichever signal is active
@@ -6045,7 +6083,7 @@ function renderRoster(playerIds, players, starters, myPicks, rosterToTeam, proje
       team:    p.team || 'FA',
       age:     p.age || '—',
       exp:     (p.years_exp !== undefined && p.years_exp !== null) ? p.years_exp : null,
-      value:   ktc.value || 0,
+      value:   mlFpValue(ktc, window.ML_LEAGUE_ID),
       posRank: ktc.posRank || '—',
       rank:    ktc.rank || null,
       adp:     ktc.adp || null,
@@ -6841,17 +6879,17 @@ async function renderTradeYear(leagueId, idx, allTradesByYear, players, leagueCh
           const ktc  = FP_VALUES[name] || {};
           const sid  = SLEEPER_IDS[name] || pid;
           assets.push({ type:'player', name, pos, team, sid,
-            value: ktc.value || 0, adp: ktc.adp || null, posRank: ktc.posRank || null });
+            value: mlFpValue(ktc, leagueId), adp: ktc.adp || null, posRank: ktc.posRank || null });
         });
       }
 
-      // Picks this roster RECEIVED
+      // Picks this roster RECEIVED — uses format-aware pick value so QBs/picks
+      // in 1QB leagues read off the value1qb column.
       (t.draft_picks || []).forEach(dp => {
         if (dp.owner_id !== rid) return;
         const label   = `${dp.season} Rd${dp.round}`;
         const origOwner = rosterToTeam[dp.roster_id] || `Team ${dp.roster_id}`;
-        const _pv     = PICK_VALUES?.[label];
-        const val     = (_pv && typeof _pv === 'object') ? (Number(_pv.value) || 0) : (Number(_pv) || 0);
+        const val     = mlPickValue(String(dp.season), Number(dp.round), leagueId) || 0;
         assets.push({ type:'pick', label, origOwner, value: val });
       });
 
@@ -7016,7 +7054,7 @@ async function loadStandings(leagueId) {
         if (!p || !posVals.hasOwnProperty(p.position)) return;
         const pname = p.full_name || `${p.first_name || ''} ${p.last_name || ''}`.trim();
         if (!pname) return;
-        posVals[p.position] += FP_VALUES[pname]?.value || 0;
+        posVals[p.position] += mlFpValue(FP_VALUES[pname], leagueId);
         if (p.age && p.age > 0) ages.push(p.age);
       });
       const avgAge = ages.length ? (ages.reduce((s,a)=>s+a, 0) / ages.length) : 0;
@@ -7056,7 +7094,7 @@ async function loadStandings(leagueId) {
       let pickValueTotal = 0;
       if (_lgData) {
         const _ownedPicks = mlGetOwnedPicks(r.roster_id, _lgData.tradedPicks, _lgData.draftRounds, _lgData.leagueSeason, _lgData.completedDraftSeasons);
-        pickValueTotal = _ownedPicks.reduce((sum, pk) => sum + mlPickValue(pk.season, pk.round), 0);
+        pickValueTotal = _ownedPicks.reduce((sum, pk) => sum + mlPickValue(pk.season, pk.round, leagueId), 0);
       }
       const _seasonProj = window.ML_SEASON_PROJ || {};
       let projTotal = 0;
@@ -7385,7 +7423,7 @@ function _fptsXpageMlPdToCalc() {
   _fptsWriteHandoff({
     source: 'leagues',
     primaryPlayer: name,
-    trade: { sideA: [], sideB: [{ name, pos, value: ktc.value || 0, type: 'player' }] }
+    trade: { sideA: [], sideB: [{ name, pos, value: mlFpValue(ktc, window.ML_LEAGUE_ID), type: 'player' }] }
   }, 'trade-calculator.html');
 }
 function _fptsXpageMlPdToAdp() {
