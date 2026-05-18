@@ -407,7 +407,7 @@
   .tf-asset-name { font-size: 11px; }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 768px) {
   .pp-close-bar { justify-content: space-between; }
   .pp-search-wrap { order: 3; width: 100% !important; }
 }
@@ -473,7 +473,7 @@
   }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 768px) {
   .pp-tab { font-size: 10px !important; padding: 12px 10px !important; }
   .pp-close-bar { padding: 6px 10px !important; }
 }
@@ -636,7 +636,7 @@
 }
 
 /* Extra-narrow phones (≤480px) — additional tightening for player card */
-@media (max-width: 480px) {
+@media (max-width: 768px) {
   .pp-close-bar > div:first-child { font-size: 10px !important; }
   .pp-tab { font-size: 10px !important; padding: 10px 10px !important; }
   .pp-scroll { max-height: calc(100vh - 260px) !important; }
