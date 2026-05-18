@@ -629,6 +629,22 @@
     color: var(--white); font-weight: 800;
     font-variant-numeric: tabular-nums;
   }
+  /* Archetype chip — color hints at the team-build mode the engine is
+     tilting toward. Same five buckets as my-leagues. Contender = orange
+     (win-now, brand emphasis), dynasty = green (long-term elite),
+     rebuilder/emergency = muted (signal that's about WHAT they want
+     more than how strong they are). */
+  .ld-trades-archetype {
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    letter-spacing: .04em;
+    padding: 1px 6px;
+    background: var(--surface2); border: 1px solid var(--border);
+    color: var(--white);
+  }
+  .ld-trades-archetype.contender { color: var(--red); border-color: var(--red); }
+  .ld-trades-archetype.dynasty   { color: var(--green); border-color: var(--green); }
+  .ld-trades-archetype.rebuilder,
+  .ld-trades-archetype.emergency { color: rgba(255,255,255,0.55); }
   .ld-trades-body {
     display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
     align-items: start;
@@ -2623,15 +2639,38 @@
       card.style.display = 'none';
       return;
     }
-    const suggestions = SLEEPER.generateTradeSuggestions(myAssets, targetValue, 'tweener', 3);
+    // PHASE 7 — detect the user's archetype from their lineup-projected
+    // total + roster value vs league medians. Replaces the v1 hardcoded
+    // 'tweener' literal. The trade engine uses archetype to tilt
+    // package selection toward what an owner of that type tends to
+    // accept (rebuilder = picks+youth, contender = veterans, etc.).
+    let archetype = 'tweener';
+    try {
+      const ranks = _computeLeagueRanks(picks || [], _activeSourceLeagueId(), players);
+      const mine = ranks.teamData && ranks.teamData.find(t => t.isMe);
+      if (mine && ranks.leagueAvg && ranks.leagueAvg.age && ranks.leagueAvg.value) {
+        archetype = SLEEPER.archetypeFromTotals(
+          mine.avgAge,
+          mine.totalValue,
+          0,                  // pickValue input — leagueAvg.pickValue absent → pickNorm defaults to 1 (neutral). A future iteration can wire per-team pick totals.
+          mine.projTotal,
+          ranks.leagueAvg
+        ) || 'tweener';
+      }
+    } catch (e) { /* archetype detection is enhancement-only; fall back to tweener */ }
+
+    const suggestions = SLEEPER.generateTradeSuggestions(myAssets, targetValue, archetype, 3);
     if (!suggestions.length) {
       card.style.display = 'none';
       return;
     }
     card.style.display = '';
+    const archetypeLabel = SLEEPER.archetypeLabel ? SLEEPER.archetypeLabel(archetype) : archetype;
     document.getElementById('ld-trades-target').innerHTML = ''
       + 'Your next pick: <strong>' + myNext.round + '.' + _padPick(myNext.columnSlot) + '</strong>'
-      + ' · Target value: <strong>' + Math.round(targetValue) + '</strong>';
+      + ' · Target value: <strong>' + Math.round(targetValue) + '</strong>'
+      + ' · Archetype: <strong class="ld-trades-archetype ' + _escapeHtml(archetype) + '">'
+      +   _escapeHtml(archetypeLabel.toUpperCase()) + '</strong>';
     const body = document.getElementById('ld-trades-body');
     body.innerHTML = suggestions.map(sug => {
       const assetsHtml = (sug.sending || []).map(a => {
