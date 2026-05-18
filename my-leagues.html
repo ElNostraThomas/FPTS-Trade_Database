@@ -5925,30 +5925,39 @@ async function loadRoster(leagueId, season) {
       }
     } catch(e) { /* projections not available this week */ }
 
-    // Fetch season-long projections. Try the requested season first; if it 404s
-    // (next-season projections not seeded yet), fall back one year.
-    async function fetchSeasonProj(year) {
-      try {
-        const d = await apiFetch(`${API}/projections/nfl/regular/${year}`);
-        return (d && typeof d === 'object') ? d : null;
-      } catch(e) { return null; }
-    }
+    // Season projections from the data suite (window.STATS_DATA) instead of
+    // Sleeper's /projections/nfl endpoint. SLEEPER.projectPlayer pulls the
+    // player's current-season stats and runs them through the same scoring
+    // overlay (TEP / PPC / pass-TD / half-PPR / std). Same window.ML_SEASON_PROJ
+    // shape so consumers (mlComputeLeagueValueData fallback, seasonProj column
+    // on roster rows) read unchanged.
     try {
-      let seasonProjData = await fetchSeasonProj(projSeason);
-      if (!seasonProjData || !Object.keys(seasonProjData).length) {
-        seasonProjData = await fetchSeasonProj(String(parseInt(projSeason,10) - 1));
-      }
       const seasonProj = {};
-      if (seasonProjData) {
-        Object.entries(seasonProjData).forEach(([pid, stats]) => {
-          if (!stats || typeof stats !== 'object') return;
-          const proj = stats[`pts_${scoringType}`] ?? stats.pts_ppr ?? stats.pts_half_ppr ?? stats.pts_std ?? 0;
-          const adjusted = applyTep(pid, +proj, stats);
-          if (adjusted > 0) seasonProj[pid] = adjusted;
+      const norm = (typeof window.normalizePlayerName === 'function')
+                 ? window.normalizePlayerName
+                 : (s => String(s || '').trim().toLowerCase().replace(/\./g, '').replace(/\s+/g, ' '));
+      const scoring = league.scoring_settings || {};
+      const STATS = window.STATS_DATA || {};
+      const project = (window.SLEEPER && typeof SLEEPER.projectPlayer === 'function')
+                    ? SLEEPER.projectPlayer : null;
+      if (project) {
+        const rosteredIds = new Set();
+        rosters.forEach(r => (r.players || []).forEach(pid => rosteredIds.add(pid)));
+        rosteredIds.forEach(pid => {
+          const p = players[pid];
+          if (!p) return;
+          const name = p.full_name || ((p.first_name || '') + ' ' + (p.last_name || '')).trim();
+          if (!name) return;
+          // Only project players that have a data-suite stat line — players
+          // missing from STATS_DATA stay absent so the renderer shows null
+          // (consistent with the previous Sleeper-projection fallback).
+          if (!STATS['sid:' + pid] && !STATS['name:' + norm(name)]) return;
+          const pts = project({ sleeperId: pid, name }, scoring, { position: p.position });
+          if (pts != null && pts > 0) seasonProj[pid] = +pts.toFixed(1);
         });
       }
       window.ML_SEASON_PROJ = seasonProj;
-    } catch(e) { /* season projections not available */ }
+    } catch(e) { /* data-suite season projection unavailable */ }
 
     // PPG comes from the Data Suite (window.STATS_DATA) instead of Sleeper's
     // /stats/nfl endpoint. For each rostered player, look up their season
