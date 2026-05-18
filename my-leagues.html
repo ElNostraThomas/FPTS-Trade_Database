@@ -1239,7 +1239,7 @@
     .fpts-xpage-bar { flex-wrap: wrap; gap: 4px; }
     .fpts-xpage-btn { font-size: 9px; padding: 6px 8px; min-height: 32px; }
   }
-  @media (max-width: 480px) {
+  @media (max-width: 768px) {
     .fpts-xpage-bar { width: 100%; gap: 4px; }
     .fpts-xpage-btn { flex: 1 1 auto; font-size: 9px; padding: 7px 6px; min-height: 36px; justify-content: center; }
   }
@@ -1388,7 +1388,7 @@
     footer { flex-direction: column; gap: 6px; padding: 12px 10px; text-align: center; }
   }
 
-  @media (max-width: 480px) {
+  @media (max-width: 768px) {
     .value-sidebar { grid-template-columns: 1fr !important; }
     .page-title { font-size: 18px !important; }
     .topnav { height: 44px; }
@@ -1688,7 +1688,7 @@
   /* ═══════ MOBILE RULES FOR v11.1 NEW COMPONENTS ═══════ */
   /* These target the new sections added this session that use inline styles.
      Inline styles can't easily be media-queried, so we rely on class hooks. */
-  @media (max-width: 600px) {
+  @media (max-width: 768px) {
     /* Availability row: status + buttons cluster wraps below league name */
     .ml-pd-avail-row {
       flex-wrap: wrap !important;
@@ -1887,7 +1887,7 @@
   }
 
   /* Extra-narrow phones (≤480px) — additional tightening */
-  @media (max-width: 480px) {
+  @media (max-width: 768px) {
     .ml-modal { max-width: calc(100vw - 8px) !important; width: calc(100vw - 8px) !important; }
     .ml-modal-backdrop { padding: 4px 4px max(20px, env(safe-area-inset-bottom)) 4px !important; }
     .ml-modal-header { padding: 8px 10px !important; }
