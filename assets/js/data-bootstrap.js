@@ -26,6 +26,7 @@
      window.FP_VALUES              — { [name]: { value, age, team, pos, ... } }
      window.PICK_VALUES            — { [key]: { value, valueSf, value1qb, label } }
      window.SLEEPER_IDS            — { [name]: sleeperId } (auto-built from FP_VALUES if page didn't pre-seed it)
+     window.STATS_DATA             — { [key]: rawStats } from data/stats.json. Keys are 'sid:<id>' or 'name:<normalized name>'. Downstream callers look up via `STATS_DATA['name:' + normalizePlayerName(name)]` or `'sid:' + sleeperId`.
      window.ADP_PAYLOAD            — raw adp.json
      window.AUCTION_PAYLOAD        — raw auction.json
      window.MVS_PAYLOAD            — raw mvs.json
@@ -35,7 +36,7 @@
      window.FPTS_DATA              — public API: { ready: Promise, version, _apply* helpers }
 
    OPT-OUTS (set in FPTS_DATA_OPTS.skip)
-     'values' 'adp' 'auction' 'picks' 'mvs' 'articles' 'pick-availability'
+     'values' 'adp' 'auction' 'picks' 'mvs' 'articles' 'pick-availability' 'stats'
      Default: fetch everything. Most pages should NOT opt out — the shared
      player-panel drawer depends on the full set being present.
 
@@ -68,6 +69,7 @@
   if (!global.PLAYER_ARTICLES)         global.PLAYER_ARTICLES = {};
   if (!global.PICK_AVAILABILITY)       global.PICK_AVAILABILITY = {};
   if (!global.PICK_AVAILABILITY_META)  global.PICK_AVAILABILITY_META = null;
+  if (!global.STATS_DATA)              global.STATS_DATA = {};
 
   // ─── Shared helpers ──────────────────────────────────────────────────────
 
@@ -229,8 +231,9 @@
     _maybe('mvs',               'data/mvs.json'),
     _maybe('articles',          'data/articles.json'),
     _maybe('pick-availability', 'data/pick-availability.json'),
+    _maybe('stats',             'data/stats.json'),
   ]).then(function (results) {
-    const [values, adp, auction, picks, mvs, articles, pa] = results;
+    const [values, adp, auction, picks, mvs, articles, pa, stats] = results;
 
     // Apply in canonical order:
     //   1. values  — seeds FP_VALUES with all players
@@ -253,6 +256,12 @@
       teamCount:  pa.teamCount,
       topN:       pa.topN,
     };
+    // Per-player raw stats from the data-suite CSVs (sync-stats.py output).
+    // Keyed by 'sid:<sleeperId>' when the CSV ships the ID column, else
+    // 'name:<normalized name>'. Consumers (live-draft / my-leagues via
+    // sleeper-helpers.js) look up by either form and apply league-specific
+    // scoring (TEP / PPC / pass-TD bonus) at render time.
+    if (stats && stats.players) Object.assign(global.STATS_DATA, stats.players);
 
     // Auto-populate SLEEPER_IDS from FP_VALUES if the page didn't pre-seed it.
     // Pages that ship a hand-curated SLEEPER_IDS dict (e.g. trade-calculator)
