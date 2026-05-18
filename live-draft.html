@@ -217,22 +217,39 @@
     background: var(--surface2);
     min-height: 32px;
   }
-  /* Column headers (TEAM 1, TEAM 2, ...) — sticky to top while vertical scroll */
+  /* Column headers — owner avatar + display name. Sticky to top while
+     vertical scroll. Renders as a vertical stack on mobile (avatar above
+     name) for compactness; horizontal on desktop where there's more room. */
   .ld-col-head {
     position: sticky; top: 0; z-index: 2;
     background: var(--surface2);
     font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
     font-size: 10px; color: var(--red);
-    text-transform: uppercase; letter-spacing: .04em;
-    text-align: center;
-    padding: 7px 4px;
+    text-transform: uppercase; letter-spacing: .03em;
+    padding: 5px 6px;
     border-bottom: 1px solid var(--border);
-    min-height: 32px;
-    display: flex; align-items: center; justify-content: center;
-    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    min-height: 44px;
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    overflow: hidden;
   }
   .ld-col-head.col-mine {
     background: var(--red); color: var(--white);
+  }
+  .ld-col-head.col-mine .ld-col-head-avatar-fallback { background: var(--surface); color: var(--white); }
+  .ld-col-head-avatar {
+    width: 22px; height: 22px; border-radius: 50%;
+    flex-shrink: 0; object-fit: cover; display: block;
+    background: var(--surface);
+  }
+  .ld-col-head-avatar-fallback {
+    display: inline-flex; align-items: center; justify-content: center;
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 11px; color: var(--red); background: var(--surface);
+  }
+  .ld-col-head-name {
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    min-width: 0; flex: 1;
+    text-align: left;
   }
   /* Row headers (R1, R2, ... with snake arrows) — sticky to left while horizontal scroll */
   .ld-row-head {
@@ -369,7 +386,15 @@
     .ld-cell { height: 64px; padding: 4px 5px; }
     .ld-cell-lname { font-size: 11px; }
     .ld-cell-fname { font-size: 8px; }
-    .ld-col-head { font-size: 9px; min-height: 28px; padding: 6px 3px; }
+    /* Mobile column headers stack the avatar above the name so the
+       narrow column doesn't have to fit them side-by-side. */
+    .ld-col-head {
+      flex-direction: column; gap: 2px;
+      font-size: 8px; min-height: 44px; padding: 4px 3px;
+    }
+    .ld-col-head-avatar { width: 18px; height: 18px; }
+    .ld-col-head-avatar-fallback { font-size: 9px; }
+    .ld-col-head-name { text-align: center; line-height: 1.1; }
     .ld-row-head { font-size: 10px; }
   }
 </style>
@@ -546,8 +571,12 @@
     username: null, userId: null, displayName: null,
     // Cached fetches
     leaguesByYear: {},        // year → [leagues]
-    draftsByLeague: {},       // leagueId → [drafts]
+    leagueById: {},           // leagueId → league object (used when walking previous_league_id chain)
+    chainByLeague: {},        // leagueId → [leagueId + ancestor ids]
+    draftsByLeague: {},       // leagueId → [drafts merged across the league's history chain]
     detailsByDraft: {},       // draftId → { meta, picks }
+    usersByLeague: {},        // leagueId → [users] (Sleeper /league/{id}/users response)
+    rostersByLeague: {},      // leagueId → [rosters]
     players: null,            // /players/nfl cache (~5 MB)
     _playersPromise: null,
     // Active selection
@@ -555,6 +584,7 @@
     leagueId: null, league: null,
     draftId: null, draft: null,
     myRosterId: null,         // user's roster_id in the selected league (for highlighting picks)
+    slotUserMap: null,        // slot (1..N) → user object for the active draft's column headers
   };
 
   // localStorage keys
@@ -575,6 +605,92 @@
       .then(p => { DRAFT.players = p || {}; return DRAFT.players; })
       .catch(e => { DRAFT._playersPromise = null; throw e; });
     return DRAFT._playersPromise;
+  }
+
+  // ════════════════════════════════════════════════════════════════════
+  // LEAGUE HISTORY CHAIN — Sleeper leagues use `previous_league_id` to
+  // link year-by-year. A 2026 dynasty league points at its 2025 instance,
+  // which points at 2024, etc. The original startup-year league sits at
+  // the end of the chain (previous_league_id === null). We walk it so the
+  // draft picker can surface ALL drafts in the league's history — most
+  // importantly the startup draft, which lives in the FIRST (oldest)
+  // league only.
+  //
+  // Stops walking on null/empty previous_league_id, or after MAX_HOPS
+  // iterations as a runaway safeguard (Sleeper has had rare data with
+  // accidental cycles).
+  // ════════════════════════════════════════════════════════════════════
+  async function _walkLeagueChain(startLeagueId) {
+    if (DRAFT.chainByLeague[startLeagueId]) return DRAFT.chainByLeague[startLeagueId];
+    const chain = [startLeagueId];
+    let current = await _getLeagueDetail(startLeagueId);
+    const MAX_HOPS = 20;
+    for (let i = 0; i < MAX_HOPS && current && current.previous_league_id; i++) {
+      const prev = current.previous_league_id;
+      if (chain.indexOf(prev) >= 0) break; // cycle guard
+      chain.push(prev);
+      current = await _getLeagueDetail(prev).catch(() => null);
+    }
+    DRAFT.chainByLeague[startLeagueId] = chain;
+    return chain;
+  }
+
+  function _getLeagueDetail(leagueId) {
+    if (DRAFT.leagueById[leagueId]) return Promise.resolve(DRAFT.leagueById[leagueId]);
+    return apiFetch(SLEEPER_API + '/league/' + encodeURIComponent(leagueId))
+      .then(l => { DRAFT.leagueById[leagueId] = l; return l; });
+  }
+
+  // ════════════════════════════════════════════════════════════════════
+  // SLOT → USER MAP — combines /league/{id}/users + /league/{id}/rosters
+  // + draft.slot_to_roster_id to map each draft slot (1..N) to a user
+  // object with display_name + avatar + metadata. Used to render owner
+  // names + avatars in the board's column headers (replacing "TEAM N").
+  //
+  // The draft's home league may be a HISTORIC league instance (e.g.
+  // startup draft from 2020 living in a 2020 league). We resolve users
+  // against that draft's league_id, not the currently-selected league
+  // (which is whichever the user picked in the dropdown).
+  // ════════════════════════════════════════════════════════════════════
+  async function _buildSlotUserMap(leagueId, draftMeta) {
+    if (!draftMeta || !draftMeta.slot_to_roster_id) return {};
+    let users   = DRAFT.usersByLeague[leagueId];
+    let rosters = DRAFT.rostersByLeague[leagueId];
+    if (!users || !rosters) {
+      const [u, r] = await Promise.all([
+        apiFetch(SLEEPER_API + '/league/' + encodeURIComponent(leagueId) + '/users').catch(() => []),
+        apiFetch(SLEEPER_API + '/league/' + encodeURIComponent(leagueId) + '/rosters').catch(() => []),
+      ]);
+      users = DRAFT.usersByLeague[leagueId]   = u || [];
+      rosters = DRAFT.rostersByLeague[leagueId] = r || [];
+    }
+    const userById = {};
+    users.forEach(u => { userById[u.user_id] = u; });
+    const ownerByRoster = {};
+    rosters.forEach(r => { ownerByRoster[r.roster_id] = r.owner_id; });
+    const map = {};
+    Object.entries(draftMeta.slot_to_roster_id).forEach(([slot, rosterId]) => {
+      const ownerId = ownerByRoster[rosterId];
+      map[parseInt(slot, 10)] = userById[ownerId] || null;
+    });
+    return map;
+  }
+
+  // Sleeper avatar CDN. Falls back to a brand-orange initial bubble when
+  // a user has no avatar uploaded.
+  function _avatarHtml(user) {
+    if (user && user.avatar) {
+      return '<img class="ld-col-head-avatar" src="https://sleepercdn.com/avatars/thumbs/'
+        + encodeURIComponent(user.avatar) + '" alt="" loading="lazy">';
+    }
+    const initial = (user && (user.display_name || user.username) || '?').charAt(0).toUpperCase();
+    return '<span class="ld-col-head-avatar ld-col-head-avatar-fallback">' + _escapeHtml(initial) + '</span>';
+  }
+
+  function _ownerLabel(user, slot) {
+    if (!user) return 'Team ' + slot;
+    if (user.metadata && user.metadata.team_name) return user.metadata.team_name;
+    return user.display_name || user.username || ('Team ' + slot);
   }
 
   // ════════════════════════════════════════════════════════════════════
@@ -698,6 +814,10 @@
       leagueSel.innerHTML = '<option value="">No leagues found for ' + year + '</option>';
       return;
     }
+    // Populate dropdown WITHOUT active-draft markers first (instant render),
+    // then progressively enhance — fetch each league's drafts in parallel
+    // and prepend "🔴 " to leagues with at least one in-progress draft. This
+    // way the picker is usable immediately even if probing takes a beat.
     leagueSel.innerHTML = '<option value="">— select league —</option>'
       + leagues.map(l => '<option value="' + l.league_id + '">'
           + _escapeHtml(l.name) + '</option>').join('');
@@ -711,6 +831,35 @@
         await ldOnLeagueChange();
       }
     } catch (e) {}
+
+    // ── Progressive enhancement: probe drafts for each league to mark
+    // those currently in-progress with a 🔴 prefix. Done AFTER the
+    // dropdown is already usable so it doesn't block.
+    _probeActiveLeagues(leagues, leagueSel);
+  }
+
+  async function _probeActiveLeagues(leagues, leagueSel) {
+    if (!leagues || !leagues.length) return;
+    const probes = leagues.map(l =>
+      apiFetch(SLEEPER_API + '/league/' + encodeURIComponent(l.league_id) + '/drafts')
+        .then(drafts => ({
+          id: l.league_id,
+          active: (drafts || []).some(d => d.status === 'drafting' || d.status === 'paused'),
+        }))
+        .catch(() => ({ id: l.league_id, active: false }))
+    );
+    const results = await Promise.all(probes);
+    const activeIds = new Set(results.filter(r => r.active).map(r => r.id));
+    if (!activeIds.size) return;
+    // Rewrite options preserving current selection
+    const currentVal = leagueSel.value;
+    leagueSel.innerHTML = '<option value="">— select league —</option>'
+      + leagues.map(l => {
+          const marker = activeIds.has(l.league_id) ? '🔴 ' : '';
+          return '<option value="' + l.league_id + '">'
+            + marker + _escapeHtml(l.name) + '</option>';
+        }).join('');
+    if (currentVal) leagueSel.value = currentVal;
   }
 
   async function ldOnLeagueChange() {
@@ -741,14 +890,27 @@
   async function ldFetchDrafts(leagueId) {
     const draftSel = document.getElementById('ld-draft-select');
     draftSel.disabled = true;
-    draftSel.innerHTML = '<option value="">Loading…</option>';
+    draftSel.innerHTML = '<option value="">Loading draft history…</option>';
 
     let drafts = DRAFT.draftsByLeague[leagueId];
     if (!drafts) {
       try {
-        drafts = await apiFetch(SLEEPER_API + '/league/' + encodeURIComponent(leagueId) + '/drafts');
-        DRAFT.draftsByLeague[leagueId] = drafts || [];
-        drafts = DRAFT.draftsByLeague[leagueId];
+        // Walk the previous_league_id chain so this user-facing list
+        // includes the STARTUP draft (lives in the oldest league) and
+        // every annual rookie draft since. Each league instance only
+        // owns its own year's drafts via /league/{id}/drafts.
+        const chain = await _walkLeagueChain(leagueId);
+        const batches = await Promise.all(chain.map(id =>
+          apiFetch(SLEEPER_API + '/league/' + encodeURIComponent(id) + '/drafts').catch(() => [])
+        ));
+        // Annotate each draft with its source-league_id so downstream
+        // logic (slot→user map) can resolve users in the correct league.
+        const merged = [];
+        batches.forEach((batch, i) => {
+          (batch || []).forEach(d => merged.push(Object.assign({}, d, { _sourceLeagueId: chain[i] })));
+        });
+        DRAFT.draftsByLeague[leagueId] = merged;
+        drafts = merged;
       } catch (e) {
         draftSel.innerHTML = '<option value="">Error: ' + (e.message || e) + '</option>';
         return;
@@ -762,7 +924,7 @@
     drafts.sort((a, b) => (b.start_time || b.created || 0) - (a.start_time || a.created || 0));
     draftSel.innerHTML = '<option value="">— select draft —</option>'
       + drafts.map(d => {
-          const lbl = (d.metadata && d.metadata.name) || _draftLabel(d);
+          const lbl = _draftLabel(d);
           return '<option value="' + d.draft_id + '">' + _escapeHtml(lbl) + '</option>';
         }).join('');
     draftSel.disabled = false;
@@ -777,11 +939,18 @@
     } catch (e) {}
   }
 
+  // Label format: "2020 · 25R · SNAKE · COMPLETE · Startup"
+  // The trailing kind tag ("Startup" / "Rookie") is a heuristic — drafts
+  // with >= 7 rounds are treated as Startup, fewer are Rookie. Annotated
+  // separately from status so a glance shows season + size + state.
   function _draftLabel(d) {
     const parts = [];
-    parts.push((d.type || 'snake').toUpperCase());
     if (d.season) parts.push(d.season);
-    if (d.status) parts.push('(' + d.status.replace(/_/g, ' ') + ')');
+    const rounds = (d.settings && d.settings.rounds) || 0;
+    if (rounds) parts.push(rounds + 'R');
+    parts.push((d.type || 'snake').toUpperCase());
+    if (d.status) parts.push(d.status.replace(/_/g, ' ').toUpperCase());
+    if (rounds) parts.push(rounds >= 7 ? 'Startup' : 'Rookie');
     return parts.join(' · ');
   }
 
@@ -806,6 +975,14 @@
       + 'Loading draft board…</div>';
 
     try {
+      // Find the matching draft record so we know its source league
+      // (a startup draft lives in the original league, not the current
+      // selected one — owners/rosters must resolve against the draft's
+      // own league_id).
+      const allDrafts = DRAFT.draftsByLeague[DRAFT.leagueId] || [];
+      const draftRow = allDrafts.find(d => d.draft_id === draftId) || {};
+      const sourceLeagueId = draftRow._sourceLeagueId || draftRow.league_id || DRAFT.leagueId;
+
       const [meta, picks, players] = await Promise.all([
         apiFetch(SLEEPER_API + '/draft/' + encodeURIComponent(draftId)),
         apiFetch(SLEEPER_API + '/draft/' + encodeURIComponent(draftId) + '/picks'),
@@ -813,6 +990,15 @@
       ]);
       DRAFT.draft = meta;
       DRAFT.detailsByDraft[draftId] = { meta, picks };
+      // Build slot → user map from the SOURCE league so owner names + avatars
+      // line up with whoever was in the league at the time of that draft.
+      DRAFT.slotUserMap = await _buildSlotUserMap(sourceLeagueId, meta);
+      // Recompute myRosterId for the source league too — for historic
+      // startup drafts in older league instances the user's roster_id
+      // may differ from their current league's roster_id.
+      const sourceRosters = DRAFT.rostersByLeague[sourceLeagueId] || [];
+      const mine = sourceRosters.find(r => r.owner_id === DRAFT.userId);
+      DRAFT.myRosterId = mine ? mine.roster_id : DRAFT.myRosterId;
       ldRenderInfo(meta, picks);
       ldRenderBoard(meta, picks, players);
     } catch (e) {
@@ -890,10 +1076,18 @@
     const parts = ['<div class="ld-board-wrap"><div class="ld-grid" style="' + gridStyle + '">'];
     // Top-left corner
     parts.push('<div class="ld-corner"></div>');
-    // Column headers — TEAM 1 .. TEAM N
+    // Column headers — owner avatar + display name (falls back to "TEAM N"
+    // if the slot has no user mapping, which can happen for orphaned slots
+    // or partial league configs).
+    const slotUserMap = DRAFT.slotUserMap || {};
     for (let t = 1; t <= teams; t++) {
+      const user = slotUserMap[t];
       const cls = 'ld-col-head' + (mySlots.has(t) ? ' col-mine' : '');
-      parts.push('<div class="' + cls + '" title="Slot ' + t + '">TEAM ' + t + '</div>');
+      const label = _ownerLabel(user, t);
+      parts.push('<div class="' + cls + '" title="' + _escapeHtml(label) + ' · Slot ' + t + '">'
+        + _avatarHtml(user)
+        + '<span class="ld-col-head-name">' + _escapeHtml(label) + '</span>'
+        + '</div>');
     }
     // Body rows
     for (let r = 1; r <= rounds; r++) {

@@ -848,21 +848,47 @@
 
 
 
-  /* ── User Importer Page ── */
-  .ml-landing { max-width:560px; margin:60px auto 0; text-align:center; padding:0 16px; }
-  .ml-search-label { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic;
-    font-size:13px; color:var(--red); text-transform:uppercase; letter-spacing:.08em;
-    margin-bottom:12px; }
+  /* ── User Importer Page — login surface matches live-draft.html ── */
+  .ml-landing { max-width:480px; margin:60px auto 0; text-align:center; padding:0 16px; }
+  .ml-search-label {
+    font-family:'Kanit',sans-serif; font-weight:800; font-style:italic;
+    font-size:13px; color:var(--red);
+    text-transform:uppercase; letter-spacing:.08em;
+    margin-bottom:14px;
+  }
+  .ml-search-title {
+    font-family:'Kanit',sans-serif; font-weight:800; font-style:italic;
+    font-size:26px; color:var(--white);
+    text-transform:uppercase; letter-spacing:-.01em;
+    line-height:1.1; margin-bottom:6px;
+  }
+  .ml-search-sub {
+    font-family:'Mulish',sans-serif; font-size:12px;
+    color:rgba(255,255,255,0.55); margin-bottom:24px;
+  }
   .ml-search-wrap { display:flex; gap:0; border:2px solid var(--red); background:var(--surface); }
-  .ml-search-input { flex:1; background:transparent; border:none; outline:none;
-    font-family:'Mulish',sans-serif; font-weight:700; font-size:16px; color:var(--white);
-    padding:14px 18px; }
-  .ml-search-input::placeholder { color:var(--white); opacity:.3; }
-  .ml-search-btn { background:var(--red); border:none; cursor:pointer; padding:0 24px;
-    font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:13px;
-    color:#fff; text-transform:uppercase; letter-spacing:.06em; transition:opacity .15s; }
-  .ml-search-btn:hover { opacity:.85; }
-  .ml-error { color:var(--red); font-size:13px; margin-top:10px; font-family:'Mulish',sans-serif; }
+  .ml-search-input {
+    flex:1; background:transparent; border:none; outline:none;
+    color:var(--white);
+    font-family:'Mulish',sans-serif; font-weight:700; font-size:16px;
+    padding:12px 14px;
+  }
+  .ml-search-input::placeholder { color:rgba(255,255,255,0.35); }
+  .ml-search-btn {
+    background:var(--red); border:none; color:var(--white);
+    font-family:'Kanit',sans-serif; font-weight:800; font-style:italic;
+    font-size:13px; padding:12px 22px;
+    text-transform:uppercase; letter-spacing:.05em;
+    cursor:pointer; transition:background .15s;
+    min-height:44px;
+  }
+  .ml-search-btn:hover { background:var(--orange); }
+  .ml-error {
+    margin-top:14px; padding:10px 14px;
+    background:rgba(224,82,82,0.12); border:1px solid var(--pos-qb-bg);
+    color:var(--white);
+    font-family:'Mulish',sans-serif; font-size:12px;
+  }
 
   /* ── App shell (post-login) ── */
   .ml-app { display:none; }
@@ -2246,16 +2272,19 @@
     </div>
   </div>
 
-  <!-- LANDING: username input -->
-  <!-- LANDING: pre-login view (centered username input only) -->
+  <!-- LANDING: pre-login view (centered username input).
+       Visual structure matches live-draft.html's login surface so the two
+       Sleeper-connect pages feel identical. -->
   <div id="ml-landing">
-    <div class="ml-search-label">Enter your Sleeper username</div>
-    <div class="ml-search-wrap">
+    <div class="ml-search-label">Connect Sleeper</div>
+    <div class="ml-search-title">Import your dynasty leagues</div>
+    <div class="ml-search-sub">Username only — no password. We use Sleeper's public API to read your rosters + draft picks.</div>
+    <form class="ml-search-wrap" onsubmit="event.preventDefault();mlSearch();">
       <input class="ml-search-input" id="ml-username-input" type="text"
-        placeholder="sleeper username..." autocomplete="off" autocorrect="off"
-        autocapitalize="off" spellcheck="false" onkeydown="if(event.key==='Enter')mlSearch()">
-      <button class="ml-search-btn" onclick="mlSearch()">LOAD</button>
-    </div>
+        placeholder="Sleeper username" autocomplete="username"
+        autocapitalize="off" autocorrect="off" spellcheck="false">
+      <button type="submit" class="ml-search-btn">LOAD</button>
+    </form>
     <div class="ml-error" id="ml-error" style="display:none"></div>
   </div>
 
