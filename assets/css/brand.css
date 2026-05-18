@@ -165,6 +165,7 @@
   --border: #2a2a2a; --border2: #333333;
   --green: #4caf6e;
   --yellow: #f0c040;
+  --orange: #e8732a;
   --red-bg: rgba(237,129,12,.10);
   --red-bg-soft: rgba(237,129,12,.06);
   --green-bg: rgba(76,175,110,.10);
@@ -176,6 +177,7 @@
   --pos-pick-bg:#9b91d4; --pos-pick:#ffffff;
   --nav-bg: #111111; --page-bg: #111111;
   --muted: var(--white);
+  --muted2: var(--white);
   --color-scheme: dark;
 }
 [data-theme="light"] {

@@ -6,56 +6,11 @@
 <title>Fantasy Points Front Office — Tiers</title>
 
 <!-- Brand-level shared styles (loaded BEFORE inline <style> so page overrides win). -->
-<link rel="stylesheet" href="assets/css/brand.css?v=1779990000">
+<link rel="stylesheet" href="assets/css/brand.css?v=1780100000">
 
 <style>
-  /* Brand variables — kept in lockstep with assets/css/brand.css.
-     Tiers previously used a darker/muted custom palette which read as
-     visually muted vs the rest of the site. Now matches the brand for
-     consistent "bright neon" appearance across every page. */
-  :root {
-    --black: #111111;
-    --white: #ffffff;
-    --red: #ED810C;
-    --green: #4caf6e;
-    --yellow: #f0c040;
-    --orange: #e8732a;                    /* tiers-specific — buy/sell "shopping/hold" variant color */
-    --red-bg: rgba(237,129,12,.10);
-    --red-bg-soft: rgba(237,129,12,.06);
-    --green-bg: rgba(76,175,110,.10);
-    --surface: #1a1a1a;
-    --surface2: #222222;
-    --border: #2a2a2a;
-    --border2: #333333;
-    --muted: var(--white);
-    --pos-qb-bg: #e05252;  --pos-qb: #ffffff;
-    --pos-rb-bg: #4caf6e;  --pos-rb: #ffffff;
-    --pos-wr-bg: #5b9bd5;  --pos-wr: #ffffff;
-    --pos-te-bg: #e09a30;  --pos-te: #ffffff;
-    --pos-k-bg:  #9b91d4;  --pos-k:  #ffffff;
-    --pos-pick-bg: #9b91d4; --pos-pick: #ffffff;
-    --nav-bg: #111111;
-    --page-bg: #111111;
-    --color-scheme: dark;
-  }
-
-  [data-theme="light"] {
-    --black: #f0f0f0;
-    --white: #111111;
-    --surface: #e8e8e8;
-    --surface2: #dedede;
-    --border: #cccccc;
-    --border2: #bbbbbb;
-    --pos-qb-bg: #b02020;  --pos-qb: #f0f0f0;
-    --pos-rb-bg: #1a7a3a;  --pos-rb: #f0f0f0;
-    --pos-wr-bg: #2a6fa8;  --pos-wr: #f0f0f0;
-    --pos-te-bg: #c97a1a;  --pos-te: #f0f0f0;
-    --pos-k-bg:  #5a4eaa;  --pos-k:  #f0f0f0;
-    --pos-pick-bg: #5a4eaa; --pos-pick: #f0f0f0;
-    --nav-bg: #f0f0f0;
-    --page-bg: #f0f0f0;
-    --color-scheme: light;
-  }
+  /* Brand variables (:root + [data-theme="light"]) live in assets/css/brand.css
+     — single source of truth. tiers no longer inline-duplicates them. */
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html { background: var(--page-bg); transition: background .3s; overflow-y: scroll; }
@@ -376,13 +331,13 @@
 <script>document.addEventListener('DOMContentLoaded', function(){ if (window.Legend) Legend.init('tiers'); });</script>
 <!-- Shared player panel — DB's slide-in drawer, used identically on every page -->
 <script>window.FPTS_CURRENT_PAGE = 'tiers';</script>
-<link rel="stylesheet" href="assets/css/player-panel.css?v=1779990000">
+<link rel="stylesheet" href="assets/css/player-panel.css?v=1780200000">
 <!-- Team logo helpers — load BEFORE player-panel.js so modal-hero badge works. -->
 <script src="assets/js/team-helpers.js?v=1778680002"></script>
 <script src="assets/js/player-panel.js?v=1780000100" defer></script>
 <!-- Data bootstrap — fetches every data/*.json, populates window globals,
      fires 'fpts:data-ready' when done. First live page on the scaffold. -->
-<script src="assets/js/data-bootstrap.js?v=1778680027"></script>
+<script src="assets/js/data-bootstrap.js?v=1780200000"></script>
 <!-- ADP comparator — shared month-to-month picker module (also used by rankings.html). -->
 <script src="assets/js/adp-comparator.js?v=1779360001"></script>
 <style>

@@ -11,7 +11,58 @@ This file is the **resume-where-we-left-off** doc.
 
 ---
 
-## Where we are (end of 2026-05-17 — second session)
+## Where we are (end of 2026-05-17 — fourth session)
+
+**Four sessions on 2026-05-17.** The fourth one (covered here) was mobile fixes pass: nav dropdown sync to current page, player drawer compare-search dropdown solidity + count-wrap, Fantasy Points hero block reflow next to the headshot (saved an ~80px vertical band), and rankings By Analyst table compact-fit so all 5 analyst cells render without horizontal scroll on iPhone. Plus a standalone interactive `docs/analyst-heuristics-review.html` for the 14 analyst-flagged heuristics so the user can hand it to the data analyst.
+
+**1. Mobile nav dropdown — synced to current page.** The `<select class="mobile-nav-select">` placeholder ("— Pages —") was sticking on every page. Added `_syncMobileNav()` to `assets/js/data-bootstrap.js` — runs after DOM ready, matches `window.location.pathname` to the right `<option value>`, sets `selectedIndex`. Idempotent + shared across all 7 pages + the template via the bootstrap. Now `rankings.html` reads "Rankings" in the dropdown instead of "— Pages —".
+
+**2. Player drawer compare-search dropdown — solid + opaque, count compact.** `.pp-search-results` got an explicit `background-color: var(--surface)`, `z-index: 500` (up from 300 — clears the actions-menu overlay), and a `box-shadow` so a 1-result dropdown reads as a clearly-bounded panel. Each `.pp-search-result` row also got its own `background-color` + `text-decoration: none` defensively. `.pp-search-result-name` now uses `text-overflow: ellipsis` instead of wrapping; `.pp-search-result-count` is `flex-shrink: 0; white-space: nowrap` so "No trades yet" never breaks onto two lines next to the player name. Combined fix kills the "Chase / yet / No" garbled-overlap from the screenshot.
+
+**3. Fantasy Points hero block — moved next to headshot on mobile.** The `.pp-profile` mobile flex direction flipped from `column` back to `row` with `flex-wrap: wrap`. Children get `order:` properties so they lay out as: avatar (left, 72px) + Fantasy Points block (right, flex-1, vertically centered) on row 1, then the rest of player info (name + meta grids + articles) as a full-width band on row 2. Removed the late-block `.pp-avatar { 48px }` override that conflicted with the new layout. Net: ~80px vertical band killed, tab strip + trade cards lift up into the viewport.
+
+**4. Rankings By Analyst table — compact-fit on mobile.** `_analystHeaderCols` + `renderAnalystHeaderRow` now emit BOTH `<span class="th-full">Ryan</span>` AND `<span class="th-short">RYA</span>` per `<th>`. Mobile `@media` shows only the short span and drops the table's `min-width: 1100px` so it contracts to viewport. Compact widths (Player auto / Team 30px / each analyst 34px / Avg 42px) fit all 5 analyst cells + Player + Team + Avg in ~365px — no horizontal scroll needed on a 393px iPhone. Bipolar heat tints (best/worst rank per row) survive unchanged.
+
+**Cache tokens bumped this session:** `player-panel.css ?v=1779990000` → `?v=1780200000`, `data-bootstrap.js ?v=1778680027` → `?v=1780200000` (both across all 8 consumers).
+
+**Audit:** `python scripts/check-colors.py` — CLEAN across 24 files.
+
+**Bonus artifact:** `docs/analyst-heuristics-review.html` — standalone interactive document for the 14 analyst-flagged heuristics (9 questions needing data + 5 developer flags). localStorage-backed checkboxes + textareas + "Copy summary" button that emits paste-ready markdown for the developer follow-up. Emailable as a single file.
+
+See [`docs/CHANGES.md`](docs/CHANGES.md) 2026-05-17 (fourth session) for full per-edit detail.
+
+---
+
+## Where we were (end of 2026-05-17 — third session)
+
+**Three sessions on 2026-05-17.** The third one (covered here) was a punch-list close-out: migrated the inline `:root` duplicates off all 5 pages onto canonical `brand.css`, verified the data-bootstrap migration was already complete (README item was stale), verified the trade corpus flow end-to-end, and removed 388 KB of dead inline texture data from `trade-calculator.html`. The user explicitly redirected mobile work to the next session — this one closed every tractable polish item first.
+
+**1. Inline `:root` migration — complete.** `brand.css` is now the sole source of truth for brand color tokens across every page. Added `--orange` and `--muted2` to the canonical `:root` (both were used at 239+ sites but had only lived in page-local duplicates). Deleted the inline `:root` + `[data-theme="light"]` blocks entirely from `tiers.html` and `adp-tool.html`. Shrunk `index.html` and `my-leagues.html` inline blocks down to only the 3 page-specific texture tokens (`--tex-url`, `--tex-size`, `--tex-opacity` — these back `body::before`). Removed both the brand duplicates AND the dead texture tokens from `trade-calculator.html` (no `body::before`, ~388 KB of unused inline base64 image data). Surgery used `sed -i` for the 3 big pages because the texture data-URL lines (376,710 chars each) exceed the Edit tool's input window.
+
+**2. data-bootstrap migration — verified already complete.** The README's open item "Migrate remaining 3 pages to data-bootstrap.js" was stale. Verified by code inspection: `adp-tool.html:932-970`, `my-leagues.html:7656-7695`, and `index.html:5855-5985` already use `fpts:data-ready` listeners; their wrapper IIFEs only do page-specific work (SLEEPER_IDS hydration, TRADES build from MVS, the extra `data/adp-prev.json` fetch for ADP year-picker). Zero hand-rolled `fetch('data/*.json')` calls remain across all HTML files.
+
+**3. Trade corpus — verified by code path.** Punch-list item "Verify all five player modals display real recent trades" traced end-to-end: `data/mvs.json` per-player `recentTrades` → `data-bootstrap.js:186` overlay → `player-panel.js:_buildTradesFromMvs` (line 688) dedupe + normalize → `_trades()` lazy cache (line 183) → `tradeCardHtml` render. All 5 pages route through the same chain; `index` has its own builder, the other 4 rely on the panel's lazy fallback.
+
+**4. Deferred-by-design items closed with rationale.**
+- **`loadStandings` orphan DOM IDs** (cleanup item from prior handoff) — source comment at `my-leagues.html:6601-6604` already documents the trade-off as intentional. Refactor would touch ~10 sites with zero functional benefit and no browser-test safety net.
+- **Pedantic `opacity:` → `rgba()` for ~50 leaf elements** — discarded because `rgba(255,255,255,X)` doesn't flip with theme like `var(--white)` does. The conversion would break light mode. CLAUDE.md rule #2 already permits leaf-element opacity.
+- **`my-leagues.html` inline-style cleanup** — diminishing returns. `docs/ml-inline-style-inventory.md` marks itself "historical snapshot, superseded" after Phase A. Remaining 280 occurrences are 144 dynamic (must stay), 8 JS-set (must stay), 137 static-but-1-off.
+
+**5. Remaining items are external-blocked.**
+- 1QB scrape SEED_USERS expansion — needs user-supplied 1QB-active Sleeper usernames.
+- Analyst feedback loop on 14 flagged heuristics — waiting on analyst recommendations.
+
+**Cache tokens bumped this session:** `brand.css ?v=1779990000` → `?v=1780100000` across every consumer (`index`, `trade-calculator`, `tiers`, `adp-tool`, `my-leagues`, `rankings`, `formulas`, `templates/page-template.html`).
+
+**Audit:** `python scripts/check-colors.py` — CLEAN across 24 files.
+
+**Next session:** mobile issues (user-directed). The punch list is closed except for the 2 external-blocked items.
+
+See [`docs/CHANGES.md`](docs/CHANGES.md) 2026-05-17 (third session) for full per-edit detail.
+
+---
+
+## Where we were (end of 2026-05-17 — second session)
 
 **Two sessions on 2026-05-17.** The second one (covered here) was a site-wide alignment + branding consistency pass, codified the branding rules into a 4-layer governance system that machine-enforces drift at push time, and shipped a long-deferred weekly-stats breakdown feature in the drawer. The first session (calc bug-fix arc + Formulas page) is documented below under "Where we were."
 
@@ -598,28 +649,54 @@ Nothing structural. Polish / nice-to-haves only:
   1,614 SF; need 1QB-active seed users in
   `sleeper_dynasty_adp/scripts_or_notebooks/01_ingest_historical.py`
   (line 30 `SEED_USERS`). Until then, the 1QB Picks toggle stays hidden.
+  **BLOCKED on user-supplied 1QB-active Sleeper usernames.**
 - [x] ~~**Year-specific ADP**~~ — shipped 2026-05-14 (evening). ADP Tool
   has a year-picker dropdown (2022-2026). Per-year files under
   `data/adp-{year}.json`, `data/auction-{year}.json`,
   `data/pick-availability-{year}.json`. Backend filters offense-only
   and uses season-aware rookie classification. Years 2019-2021 dropped
   because their data shape differs from 2026.
-- [ ] **Migrate remaining 3 pages to `data-bootstrap.js`** —
-  `tiers.html` and `trade-calculator.html` are done (2026-05-14 evening,
-  -177 lines combined). Still to migrate: `adp-tool.html`, `my-leagues.html`,
-  `index.html`. Pattern is proven; each is a near-mechanical repeat.
-- [ ] `my-leagues.html` inline-style cleanup (~361 occurrences of
-  `style="…"` could move to CSS classes). Pure refactor, deferred.
+- [x] ~~**Migrate remaining 3 pages to `data-bootstrap.js`**~~ — verified
+  complete 2026-05-17 (third session). All 7 pages already route through
+  `data-bootstrap.js`; `adp-tool` / `my-leagues` / `index` each use a
+  `fpts:data-ready` listener for page-specific init (SLEEPER_IDS
+  hydration, TRADES build from MVS, page-specific extra fetches like
+  `data/adp-prev.json`). Zero hand-rolled `fetch('data/*.json')` calls
+  remain across all HTML.
+- [x] ~~**Migrate inline `:root` duplicates to canonical `brand.css`**~~ —
+  shipped 2026-05-17 (third session). Added `--orange` and `--muted2` to
+  `brand.css` canonical; deleted the inline `:root` + `[data-theme="light"]`
+  blocks from `tiers` and `adp-tool` entirely; shrunk `index` and
+  `my-leagues` inline blocks down to only the 3 page-specific texture
+  tokens (`--tex-url/size/opacity`); removed the dead texture tokens from
+  `trade-calculator` (no `body::before`, ~388 KB of unused inline base64
+  image data deleted — file shrunk from 571 KB → 183 KB). Brand-color
+  audit CLEAN across 24 files.
+- [ ] `my-leagues.html` inline-style cleanup (~280 occurrences of
+  `style="…"`). **DEFERRED — diminishing returns.** Phase A (2026-05-15)
+  migrated the high-frequency repeated patterns. Remaining static residue
+  is overwhelmingly 1-off; top repeated declaration sets are SVG
+  `fill-rule:nonzero; fill:var(--black)` (13×, can't refactor) and
+  `display:none/block` (JS toggles, must stay inline). See
+  `docs/ml-inline-style-inventory.md` for the audit trail.
 - [x] ~~Audit `push.bat` sync-check warnings~~ — done 2026-05-14
   (evening). Stale `tab-sync` + `chip-sync` detectors removed (their
   regex matched against retired per-page tab functions). The other
   three checks (`modal-sections` / `panel-css` / `legend-sync`) stay.
-  were written for the old per-page tab functions which the shared-panel
-  refactor retired. Either update the detectors or remove them.
-- [ ] Trade corpus is now sourced from `data/mvs.json` (real
-  transactions). Verify all five player modals display real recent trades.
+- [x] ~~**Trade corpus on all 5 modals**~~ — verified by code-path
+  inspection 2026-05-17 (third session). Full chain: `data/mvs.json`
+  → `data-bootstrap.js:186` writes `recentTrades` per player →
+  `_buildTradesFromMvs` (player-panel.js:688) dedupes + normalizes →
+  `_trades()` (line 183) lazy-caches → `tradeCardHtml` renders. All
+  5 pages route through the same chain.
+- [ ] **Analyst feedback loop** — 14 heuristics in `formulas.html` flagged
+  "Analyst input requested". **BLOCKED on analyst recommendations.** When
+  analyst returns constants/threshold revisions, update BOTH
+  `docs/FORMULAS.md` AND `assets/js/formulas-content.js` per the
+  dual-sync rule documented in `CLAUDE.md`.
 - [ ] Visual polish pass after live use — typography balance, mobile
   viewport on each page, dark/light theme toggle on the new accordion.
+  **Next session focus: mobile issues.**
 
 ---
 
@@ -628,59 +705,43 @@ Nothing structural. Polish / nice-to-haves only:
 Paste this as the first message:
 
 ```
-Read README.md for current state. End-of-2026-05-17 (second session):
-- SITE-WIDE ALIGNMENT AUDIT CLOSED. Every table + drawer tab now uses
-  text-align:center on headers AND data. Variable-length text columns
-  (Player / Pick / Team) override to left via .col-name or
-  th[data-col="name"]. Padding symmetric. Affected files: rankings,
-  tiers, my-leagues (5 tables), drawer Player Stats table, mvs-extras
-  strip, Top Risers/Fallers headers.
-- SITE-WIDE BRANDING CONSISTENCY. Every bright-colored fill (pos pills,
-  tier badges, heat tints, .active button states, mvs-vol, lg-trigger)
-  uses color:var(--white) for text inside. brand.css token flip:
-  --pos-qb/rb/wr/te/k/pick from #111111 to #ffffff. Hand-edited 30+
-  hardcoded color:#111 cases. Fixed 5 opacity-compounding bugs +
-  3 dimmed-brand-color cases by converting opacity:.X to rgba(R,G,B,X).
-- STANDINGS WIRED + MPX%. loadStandings was complete dead code — now a
-  3rd tab next to Trade History / Waivers. MPX% column replaced with
-  raw Max PF. Per-position MPX% added to Position Rankings cards via
-  optimal-lineup simulation (greedy assign to roster_positions slots,
-  sum by player's actual position, normalize across QB+RB+WR+TE).
-- WEEKLY STATS BREAKDOWN. Click any year in drawer's Player Stats tab
-  to expand week-by-week (regular season + playoffs, playoff weeks
-  marked with bright orange "PLAYOFF" chip). Cached per (player, year).
-  Async-guard pattern per CLAUDE.md §1.
-- GOVERNANCE: 4-layer rule enforcement. Template comment block has the
-  rules. scripts/check-colors.py extended with 2 new lint patterns
-  (dim-text-on-bright-bg + opacity-on-pill-with-bright-bg). push.bat
-  runs the audit and aborts on drift. CLAUDE.md has Recipes for new
-  components (copy-paste CSS for tables / pills / .active buttons /
-  drawer tabs / section toggles / muted text).
-- THE BRANDING HARD RULE (codified at top of brand.css):
-  1) White text on every bright fill.
-  2) Never opacity: on a parent with colored children — use rgba on text.
-  3) Brand tokens are source of truth in brand.css.
-  4) Vibrant by default.
-  5) check-colors.py must stay CLEAN. push.bat enforces.
-- Cache tokens (this session): brand.css ?v=1779990000, mvs-extras.css
-  ?v=1780000000, heatmap.css ?v=1779990000, legend.css ?v=1779990000,
-  player-panel.js ?v=1780000100, player-panel.css ?v=1779990000.
-- Color audit CLEAN across 24 files (includes the 2 new lint patterns).
-- Prior session shipments (Formulas page, calc bug fixes, Rankings,
-  Analysts merge) all intact.
+Read README.md for current state. End-of-2026-05-17 (third session):
+- PUNCH LIST CLOSED (every tractable item). Remaining items are
+  external-blocked (1QB scrape SEED_USERS, analyst-feedback heuristics).
+  Next session focus per user: MOBILE ISSUES.
+- INLINE :root MIGRATION COMPLETE. brand.css is the sole source of
+  truth for brand color tokens. Added --orange and --muted2 to canonical
+  brand.css :root. Removed inline :root + [data-theme="light"] blocks
+  entirely from tiers.html and adp-tool.html. Shrunk index.html and
+  my-leagues.html inline blocks down to ONLY the 3 page-specific
+  texture tokens (--tex-url/size/opacity — these back body::before).
+  trade-calculator.html had its texture tokens removed entirely (no
+  body::before — were dead 388 KB of unused inline base64; file shrunk
+  571 KB → 183 KB).
+- DATA-BOOTSTRAP MIGRATION VERIFIED ALREADY DONE. The README item was
+  stale. adp-tool/my-leagues/index all use fpts:data-ready listeners;
+  zero hand-rolled fetch('data/*.json') remains across all HTML.
+- TRADE CORPUS VERIFIED end-to-end by code path. mvs.json → data-
+  bootstrap.js:186 → _buildTradesFromMvs → _trades() cache → render.
+- DEFERRED-BY-DESIGN items closed: loadStandings orphan IDs (source
+  comment documents the intentional trade-off); pedantic opacity→rgba
+  conversion (would break light mode because rgba(255,255,255,X) doesn't
+  theme-flip like var(--white)); my-leagues inline-style cleanup
+  (Phase A complete per docs/ml-inline-style-inventory.md; residue is
+  1-off or JS-toggled).
+- Cache token bumped this session: brand.css ?v=1779990000 → ?v=1780100000
+  in all 8 consumers (index, trade-calculator, tiers, adp-tool, my-leagues,
+  rankings, formulas, templates/page-template.html).
+- Color audit CLEAN across 24 files.
+- Prior session shipments (alignment audit, branding consistency,
+  Standings tab, weekly stats breakdown, Formulas page, calc bug fixes,
+  Rankings, Analysts) all intact.
 
 Confirm by running `git log --oneline -20`.
 
-Punch list top: SF+TEP CSV when ready. Migrate remaining 3 pages
-(adp-tool, my-leagues, index) off inline :root duplicates to canonical
-brand.css. 1QB scrape expansion. Analyst feedback loop: 14 heuristics
-in formulas.html flagged "Analyst input requested" — refine constants
-when analyst returns recommendations and update BOTH docs/FORMULAS.md
-AND assets/js/formulas-content.js. Deferred minor cleanup:
-loadStandings's orphan DOM ID references (#standings-content etc. are
-injected dynamically now, JS still calls them by hardcoded ID — works
-but slightly weird). Optional pedantic conversion of ~50 leaf-element
-opacity: rules to rgba() (visually identical, semantic consistency).
+User-directed next phase: MOBILE ISSUES. Punch list residue is
+external-blocked (1QB scrape needs SEED_USERS list, analyst feedback
+needs analyst recommendations on 14 flagged heuristics).
 ```
 
 If `data/*.json` is stale: run `push.bat` (handles all five sync steps +

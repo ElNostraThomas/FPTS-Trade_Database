@@ -97,13 +97,14 @@
   position: absolute;
   top: 100%;
   left: 0; right: 0;
-  background: var(--surface);
+  background-color: var(--surface);
   border: 1px solid var(--border2);
   border-top: none;
-  z-index: 300;
+  z-index: 500;
   max-height: 220px;
   overflow-y: auto;
   display: none;
+  box-shadow: 0 6px 14px rgba(0,0,0,.45);
 }
 .pp-search-results.open { display: block; }
 /* Sub-plan D: on mobile, flip the dropdown ABOVE the input so the keyboard
@@ -125,11 +126,23 @@
   cursor: pointer;
   border-bottom: 1px solid var(--border);
   transition: background .1s;
+  background-color: var(--surface);
+  text-decoration: none;
+  min-width: 0;
 }
 .pp-search-result:last-child { border-bottom: none; }
-.pp-search-result:hover, .pp-search-result.focused { background: var(--surface2); }
-.pp-search-result-name { font-family: 'Mulish', sans-serif; font-weight: 900; font-size: 13px; color: var(--white); flex: 1; }
-.pp-search-result-count { font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 12px; color: var(--white); opacity: 1; }
+.pp-search-result:hover, .pp-search-result.focused { background-color: var(--surface2); }
+.pp-search-result-name {
+  font-family: 'Mulish', sans-serif; font-weight: 900; font-size: 13px;
+  color: var(--white); flex: 1; min-width: 0;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  text-decoration: none;
+}
+.pp-search-result-count {
+  font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+  font-size: 12px; color: var(--white); opacity: 1;
+  flex-shrink: 0; white-space: nowrap; text-decoration: none;
+}
 .panel-close { background: none; border: 1px solid var(--border2); color: var(--white); font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 12px; padding: 5px 14px; cursor: pointer; transition: border-color .15s; }
 .panel-close:hover { border-color: var(--red); color: var(--red); }
 
@@ -332,26 +345,43 @@
   .pp-search-wrap { max-width: 100% !important; width: 100% !important; }
   .panel-close { font-size: 11px; padding: 4px 10px; }
   #pp-player-tabs { min-height: 36px; }
-  /* Profile reflow (Sub-plan B): force a clean vertical stack on mobile so
-     FANTASY POINTS doesn't float awkwardly beside the stats grid. Order:
-     [avatar + name + team], [stats grid full-width], [FANTASY POINTS row]. */
+  /* Profile reflow (Mobile-fixes session): put the FANTASY POINTS hero block
+     directly to the right of the 80px headshot so it fills the empty space
+     that would otherwise sit there. Then drop the rest of the player info
+     (name, meta grid, articles) onto a full-width second row below. Net
+     effect: kills an entire ~80px vertical band so the tab strip + trade
+     cards lift up into the viewport without scrolling. */
   .pp-profile {
     padding: 14px !important;
-    flex-direction: column !important;
-    align-items: stretch !important;
-    gap: 14px;
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+    align-items: flex-start !important;
+    gap: 14px 16px;
   }
-  .pp-avatar { width: 56px !important; height: 56px !important; align-self: flex-start; }
-  .pp-info { flex: 1 1 auto !important; }
+  .pp-avatar {
+    width: 72px !important; height: 72px !important;
+    flex-shrink: 0; align-self: flex-start;
+    order: 1;
+  }
   .pp-ktc {
     text-align: left !important;
-    width: 100%;
-    border-top: 1px solid var(--border);
-    padding-top: 10px;
+    flex: 1 1 auto !important;
+    min-width: 0;
+    border-top: none !important;
+    padding-top: 0 !important;
+    order: 2;
+    align-self: center;
+  }
+  .pp-info {
+    flex: 0 0 100% !important;
+    min-width: 0;
+    order: 3;
   }
   .pp-name { font-size: 20px !important; }
-  .pp-value-val { font-size: 28px !important; }
+  .pp-value-val { font-size: 26px !important; line-height: 1; }
+  .pp-value-label { font-size: 9px; }
   .pp-value-rank { font-size: 11px; }
+  .pp-value-trend { font-size: 11px; }
   .pp-trade-stats { grid-template-columns: 1fr 1fr !important; }
   .pp-ts { padding: 8px 12px; }
   .pp-ts-val { font-size: 16px; }
@@ -363,8 +393,9 @@
   .pp-meta-item { min-width: 40px; }
   .pp-meta-label { font-size: 8px; }
   .pp-meta-val { font-size: 12px; }
-  .pp-name { font-size: 18px !important; }
-  .pp-avatar { width: 48px !important; height: 48px !important; }
+  /* Avatar + name sizes are set in the Profile reflow block above; the 48px
+     override that used to live here conflicted with the avatar-beside-FP
+     layout (made the avatar disappear) and has been removed. */
   .pp-tab { font-size: 10px; padding: 8px 10px; white-space: nowrap; }
 
   /* ─── TRADE FINDER ─── */

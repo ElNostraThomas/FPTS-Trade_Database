@@ -290,4 +290,30 @@
     normalizePlayerName:  normalizePlayerName,
   };
 
+  // ─── Mobile nav sync ─────────────────────────────────────────────────────
+  // The mobile nav is a native <select class="mobile-nav-select"> with a "— Pages —"
+  // placeholder option first. Without intervention, every page renders with the
+  // placeholder selected — the dropdown never shows "Tiers" / "Rankings" / etc.
+  // even when you're already on that page. This sets selectedIndex to the option
+  // whose value matches the current URL filename. Idempotent + safe if the page
+  // doesn't have the select.
+  function _syncMobileNav() {
+    try {
+      const sel = document.querySelector('.mobile-nav-select');
+      if (!sel) return;
+      const path = (global.location && global.location.pathname || '').split('/').pop() || 'index.html';
+      for (let i = 0; i < sel.options.length; i++) {
+        if (sel.options[i].value && sel.options[i].value === path) {
+          sel.selectedIndex = i;
+          return;
+        }
+      }
+    } catch (e) { /* silent — non-critical UI sync */ }
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', _syncMobileNav);
+  } else {
+    _syncMobileNav();
+  }
+
 })(typeof window !== 'undefined' ? window : globalThis);

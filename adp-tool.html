@@ -9,7 +9,7 @@
      sizing). Loaded BEFORE this page's inline <style> so existing per-page
      overrides still win on duplicate selectors; the new .team-logo /
      .player-hs-team rules add cleanly. -->
-<link rel="stylesheet" href="assets/css/brand.css?v=1779990000">
+<link rel="stylesheet" href="assets/css/brand.css?v=1780100000">
 <style>
   /* Brand fonts (local TTFs from Fantasy-Design-Prompt kit) override Google Fonts
      for the canonical brand weights so on-page text matches the wordmark exactly. */
@@ -30,38 +30,8 @@
 
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-  :root {
-    --black: #111111; --white: #ffffff; --red: #ED810C;
-    --surface: #1a1a1a; --surface2: #222222;
-    --border: #2a2a2a; --border2: #333333;
-    --green: #4caf6e;
-    --yellow: #f0c040;
-    --red-bg: rgba(237,129,12,.10);
-    --red-bg-soft: rgba(237,129,12,.06);
-    --green-bg: rgba(76,175,110,.10);
-    --pos-wr-bg:#5b9bd5; --pos-wr:#ffffff;
-    --pos-rb-bg:#4caf6e; --pos-rb:#ffffff;
-    --pos-qb-bg:#e05252; --pos-qb:#ffffff;
-    --pos-te-bg:#e09a30; --pos-te:#ffffff;
-    --pos-k-bg:#9b91d4;  --pos-k:#ffffff;
-    --pos-pick-bg:#9b91d4; --pos-pick:#ffffff;
-    --nav-bg: #111111; --page-bg: #111111;
-    --muted: var(--white);
-    --color-scheme: dark;
-  }
-  [data-theme="light"] {
-    --black: #f0f0f0; --white: #111111;
-    --surface: #e8e8e8; --surface2: #dedede;
-    --border: #cccccc; --border2: #bbbbbb;
-    --pos-wr-bg:#2a6fa8; --pos-wr:#f0f0f0;
-    --pos-rb-bg:#1a7a3a; --pos-rb:#f0f0f0;
-    --pos-qb-bg:#b02020; --pos-qb:#f0f0f0;
-    --pos-te-bg:#c97a1a; --pos-te:#f0f0f0;
-    --pos-k-bg:#5a4eaa;  --pos-k:#f0f0f0;
-    --pos-pick-bg:#5a4eaa; --pos-pick:#f0f0f0;
-    --nav-bg: #f0f0f0; --page-bg: #f0f0f0;
-    --color-scheme: light;
-  }
+  /* Brand variables (:root + [data-theme="light"]) live in assets/css/brand.css
+     — single source of truth. adp-tool no longer inline-duplicates them. */
 
   html { background: var(--page-bg); transition: background .3s; overflow-y: scroll; }
   body { color-scheme: var(--color-scheme); color: var(--white); font-family: 'Mulish', sans-serif; min-height: 100vh; background: var(--page-bg); }
@@ -560,8 +530,8 @@
      AUCTION_PAYLOAD / MVS_PAYLOAD / PLAYER_ARTICLES / PICK_AVAILABILITY, then
      fires 'fpts:data-ready'. The small inline bootstrap below adds adp-prev
      (not loaded by data-bootstrap) and runs the page-specific init. -->
-<script src="assets/js/data-bootstrap.js?v=1778680027"></script>
-<link rel="stylesheet" href="assets/css/player-panel.css?v=1779990000">
+<script src="assets/js/data-bootstrap.js?v=1780200000"></script>
+<link rel="stylesheet" href="assets/css/player-panel.css?v=1780200000">
 <!-- Team logo helpers — must load BEFORE player-panel.js so the modal-hero
      badge wiring finds window.TeamHelpers. -->
 <script src="assets/js/team-helpers.js?v=1778680002"></script>

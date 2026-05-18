@@ -1,0 +1,1093 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FPTS Front Office — Analyst Heuristics Review</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Kanit:ital,wght@1,800&family=Mulish:wght@400;700;900&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --black:    #111111;
+    --white:    #ffffff;
+    --red:      #ED810C;
+    --green:    #4caf6e;
+    --yellow:   #f0c040;
+    --orange:   #e8732a;
+    --surface:  #1a1a1a;
+    --surface2: #222222;
+    --border:   #2a2a2a;
+    --border2:  #333333;
+    --pos-qb-bg:#e05252;
+    --pos-rb-bg:#4caf6e;
+    --pos-wr-bg:#5b9bd5;
+    --pos-te-bg:#e09a30;
+    --pos-k-bg: #9b91d4;
+    --red-bg:   rgba(237,129,12,.10);
+    --green-bg: rgba(76,175,110,.10);
+    --yellow-bg:rgba(240,192,64,.10);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { background: var(--black); }
+  body { font-family: 'Mulish', sans-serif; background: var(--black); color: var(--white); min-height: 100vh; line-height: 1.5; }
+
+  /* ── NAV / HEADER ─────────────────────────────────────── */
+  .topnav {
+    background: var(--black); border-bottom: 2px solid var(--red);
+    padding: 14px 24px; display: flex; align-items: center; gap: 18px;
+    position: sticky; top: 0; z-index: 10;
+  }
+  .wordmark { font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 22px; letter-spacing: -.01em; text-transform: uppercase; }
+  .wordmark .accent { color: var(--red); }
+  .wordmark-tag { font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 22px; text-transform: uppercase; color: var(--white); }
+  .nav-spacer { flex: 1; }
+  .nav-progress {
+    display: flex; align-items: center; gap: 10px;
+    font-family: 'Mulish', sans-serif; font-size: 11px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .07em; color: var(--white);
+  }
+  .nav-progress-bar {
+    width: 220px; height: 8px; background: var(--surface2);
+    border: 1px solid var(--border2); position: relative; overflow: hidden;
+  }
+  .nav-progress-fill {
+    position: absolute; left: 0; top: 0; bottom: 0;
+    background: var(--green); width: 0%; transition: width .3s;
+  }
+  .nav-progress-count { font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 16px; color: var(--green); }
+
+  /* ── PAGE LAYOUT ─────────────────────────────────────── */
+  .page { max-width: 1080px; margin: 0 auto; padding: 32px 24px 80px; }
+
+  .page-title {
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 38px; line-height: 1.05; letter-spacing: -.01em;
+    text-transform: uppercase; margin-bottom: 6px;
+  }
+  .page-title .accent { color: var(--red); }
+  .page-subtitle {
+    font-size: 14px; color: var(--white); opacity: .65; max-width: 720px;
+    margin-bottom: 28px;
+  }
+
+  /* ── INTRO BOX ───────────────────────────────────────── */
+  .intro {
+    background: var(--surface); border: 1px solid var(--border);
+    border-left: 4px solid var(--red);
+    padding: 18px 22px; margin-bottom: 32px;
+  }
+  .intro h3 {
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 14px; text-transform: uppercase; letter-spacing: .06em;
+    color: var(--red); margin-bottom: 8px;
+  }
+  .intro p { font-size: 13px; color: var(--white); opacity: .85; margin-bottom: 8px; }
+  .intro p:last-child { margin-bottom: 0; }
+  .intro code {
+    font-family: 'Consolas', 'Menlo', monospace; font-size: 12px;
+    background: var(--surface2); padding: 1px 6px; color: var(--white);
+    border: 1px solid var(--border2);
+  }
+
+  /* ── SECTION HEADER ──────────────────────────────────── */
+  .section-header {
+    margin-top: 40px; margin-bottom: 18px; padding-bottom: 10px;
+    border-bottom: 2px solid var(--red); display: flex; align-items: baseline;
+    gap: 14px;
+  }
+  .section-header h2 {
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 22px; text-transform: uppercase; letter-spacing: -.01em;
+    color: var(--white);
+  }
+  .section-header .count {
+    font-family: 'Mulish', sans-serif; font-size: 11px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .06em;
+    color: var(--white); opacity: .55;
+  }
+  .section-intro {
+    font-size: 13px; color: var(--white); opacity: .65; margin-bottom: 20px;
+    max-width: 720px;
+  }
+
+  /* ── ITEM CARD ───────────────────────────────────────── */
+  .item {
+    background: var(--surface); border: 1px solid var(--border);
+    margin-bottom: 18px; transition: border-color .15s;
+  }
+  .item.is-resolved { border-color: var(--green); opacity: .75; }
+  .item.is-resolved .item-head { border-bottom-color: var(--green); }
+  .item-head {
+    display: flex; align-items: center; gap: 12px; padding: 14px 20px;
+    border-bottom: 1px solid var(--border2);
+  }
+  .item-num {
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 20px; color: var(--red); flex-shrink: 0; min-width: 30px;
+  }
+  .item-title {
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 16px; flex: 1; color: var(--white); text-transform: uppercase;
+    letter-spacing: -.005em;
+  }
+  .item-tag {
+    font-family: 'Mulish', sans-serif; font-size: 9px; font-weight: 800;
+    text-transform: uppercase; letter-spacing: .08em;
+    padding: 4px 9px; flex-shrink: 0;
+  }
+  .item-tag.t-handtuned   { background: var(--red);     color: var(--white); }
+  .item-tag.t-unknown     { background: var(--pos-qb-bg); color: var(--white); }
+  .item-tag.t-intentional { background: var(--green);   color: var(--white); }
+  .item-tag.t-naming      { background: var(--yellow);  color: var(--black); }
+  .item-tag.t-cosmetic    { background: var(--pos-k-bg); color: var(--white); }
+
+  .item-body { padding: 16px 20px 20px; }
+
+  .field { margin-bottom: 14px; }
+  .field:last-child { margin-bottom: 0; }
+  .field-label {
+    font-family: 'Mulish', sans-serif; font-size: 9px; font-weight: 800;
+    text-transform: uppercase; letter-spacing: .08em;
+    color: var(--white); opacity: .55; margin-bottom: 5px;
+  }
+  .field-value { font-size: 13px; color: var(--white); }
+  .field-value code, .field-value pre {
+    font-family: 'Consolas', 'Menlo', monospace; font-size: 12px;
+    background: var(--surface2); padding: 8px 12px; color: var(--white);
+    border-left: 3px solid var(--border2); display: block;
+    white-space: pre-wrap; word-break: break-word;
+  }
+  .field-value.inline code {
+    display: inline; padding: 1px 6px; border: 1px solid var(--border2);
+    border-left: 1px solid var(--border2);
+  }
+
+  .field-question {
+    background: rgba(240,192,64,.08); border-left: 3px solid var(--yellow);
+    padding: 10px 14px; font-size: 13px; color: var(--white);
+  }
+  .field-question::before {
+    content: 'QUESTION FOR ANALYST'; display: block;
+    font-family: 'Mulish', sans-serif; font-size: 9px; font-weight: 800;
+    text-transform: uppercase; letter-spacing: .08em;
+    color: var(--yellow); margin-bottom: 4px;
+  }
+  .field-question.developer::before { content: 'NOTE FOR DEVELOPER'; color: var(--pos-k-bg); }
+  .field-question.developer { border-left-color: var(--pos-k-bg); background: rgba(155,145,212,.08); }
+
+  .field-reasoning {
+    background: var(--surface2); border-left: 3px solid var(--border2);
+    padding: 10px 14px; font-size: 13px; color: var(--white); opacity: .85;
+  }
+
+  .field-related a {
+    display: inline-block; background: var(--surface2); border: 1px solid var(--border2);
+    color: var(--white); font-size: 11px; padding: 3px 8px; margin-right: 6px;
+    text-decoration: none; font-family: 'Mulish', sans-serif;
+  }
+  .field-related a:hover { border-color: var(--red); color: var(--red); }
+
+  textarea.recommend {
+    width: 100%; min-height: 80px; resize: vertical;
+    background: var(--surface2); color: var(--white);
+    border: 1px solid var(--border2); border-left: 3px solid var(--green);
+    padding: 10px 14px; font-family: 'Mulish', sans-serif; font-size: 13px;
+    line-height: 1.5;
+  }
+  textarea.recommend:focus { outline: none; border-color: var(--green); }
+  textarea.recommend::placeholder { color: var(--white); opacity: .35; font-style: italic; }
+
+  .item-actions {
+    display: flex; gap: 10px; align-items: center; margin-top: 14px;
+    padding-top: 14px; border-top: 1px solid var(--border2);
+  }
+  .toggle-resolved {
+    background: var(--surface2); color: var(--white); border: 1px solid var(--border2);
+    padding: 7px 14px; font-family: 'Mulish', sans-serif; font-size: 11px;
+    font-weight: 800; text-transform: uppercase; letter-spacing: .06em;
+    cursor: pointer; transition: all .15s;
+  }
+  .toggle-resolved:hover { border-color: var(--green); color: var(--green); }
+  .is-resolved .toggle-resolved { background: var(--green); color: var(--white); border-color: var(--green); }
+
+  .item-meta {
+    margin-left: auto; font-size: 11px; color: var(--white); opacity: .55;
+    font-family: 'Consolas', 'Menlo', monospace;
+  }
+
+  /* ── WORKFLOW BOX ────────────────────────────────────── */
+  .workflow {
+    background: var(--surface); border: 1px solid var(--border);
+    border-left: 4px solid var(--green); padding: 20px 24px;
+    margin-top: 48px;
+  }
+  .workflow h3 {
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 16px; text-transform: uppercase; letter-spacing: -.005em;
+    color: var(--green); margin-bottom: 12px;
+  }
+  .workflow ol { margin-left: 18px; }
+  .workflow li { font-size: 13px; color: var(--white); opacity: .85; margin-bottom: 8px; line-height: 1.55; }
+  .workflow li code {
+    font-family: 'Consolas', 'Menlo', monospace; font-size: 12px;
+    background: var(--surface2); padding: 1px 6px; color: var(--white);
+    border: 1px solid var(--border2);
+  }
+
+  /* ── EXPORT ACTIONS ──────────────────────────────────── */
+  .export-bar {
+    display: flex; gap: 12px; margin-top: 24px; flex-wrap: wrap;
+  }
+  .btn {
+    background: var(--surface2); color: var(--white); border: 1px solid var(--border2);
+    padding: 9px 16px; font-family: 'Mulish', sans-serif; font-size: 11px;
+    font-weight: 800; text-transform: uppercase; letter-spacing: .06em;
+    cursor: pointer; transition: all .15s;
+  }
+  .btn:hover { border-color: var(--red); color: var(--red); }
+  .btn.btn-primary { background: var(--red); color: var(--white); border-color: var(--red); }
+  .btn.btn-primary:hover { background: var(--orange); border-color: var(--orange); color: var(--white); }
+  .btn.btn-danger { color: var(--pos-qb-bg); }
+  .btn.btn-danger:hover { border-color: var(--pos-qb-bg); color: var(--white); background: var(--pos-qb-bg); }
+
+  /* ── PRINT ───────────────────────────────────────────── */
+  @media print {
+    .topnav { position: static; }
+    .item { break-inside: avoid; page-break-inside: avoid; }
+    .export-bar, .toggle-resolved { display: none; }
+    body { background: #fff; color: #111; }
+    .item, .intro, .workflow, .field-value code { background: #fff; color: #111; border-color: #ccc; }
+    textarea.recommend { background: #fff; color: #111; }
+    .field-question { background: #fffbe6; }
+    .field-reasoning { background: #f6f6f6; }
+  }
+
+  /* ── MOBILE ──────────────────────────────────────────── */
+  @media (max-width: 720px) {
+    .topnav { flex-wrap: wrap; padding: 12px 16px; }
+    .nav-progress-bar { width: 140px; }
+    .page { padding: 20px 16px 60px; }
+    .page-title { font-size: 28px; }
+    .item-head { flex-wrap: wrap; gap: 8px; }
+    .item-tag { order: 3; }
+  }
+</style>
+</head>
+<body>
+
+<div class="topnav">
+  <div class="wordmark"><span class="accent">Fantasy</span> Points</div>
+  <div class="wordmark-tag">Front Office</div>
+  <div class="nav-spacer"></div>
+  <div class="nav-progress">
+    <span>Resolved</span>
+    <span class="nav-progress-count" id="progress-count">0 / 14</span>
+    <div class="nav-progress-bar"><div class="nav-progress-fill" id="progress-fill"></div></div>
+  </div>
+</div>
+
+<main class="page">
+
+  <h1 class="page-title">Analyst <span class="accent">Heuristics</span> Review</h1>
+  <p class="page-subtitle">
+    14 hand-tuned magic numbers and code flags catalogued from the FPTS Front Office formulas system.
+    9 need data-backed values from the analyst; 5 are intentional design choices or developer-side
+    code flags that don't need analyst input but are documented here for completeness.
+  </p>
+
+  <div class="intro">
+    <h3>About this document</h3>
+    <p>
+      Every number in the FPTS trade-calculator, trade-suggester, and team-archetype scoring system
+      lives in <code>assets/js/formulas-content.js</code> and is documented on the live
+      <a href="../formulas.html" style="color:var(--red);text-decoration:underline">Formulas page</a>.
+      Most are derived from data or external standards. The 14 below are flagged as either
+      <strong>hand-tuned</strong> (picked by feel) or <strong>unknown</strong> (origin not documented).
+    </p>
+    <p>
+      <strong>To resolve an item:</strong> type the recommended replacement into the green-bordered
+      text area, then click "Mark resolved." Status persists locally in your browser via
+      <code>localStorage</code>. When you've reviewed a batch, hit "Copy summary" to grab a
+      paste-ready block for the developer to apply.
+    </p>
+    <p>
+      <strong>Dual-sync rule</strong> when a value changes in code:
+      both <code>docs/FORMULAS.md</code> AND <code>assets/js/formulas-content.js</code> must
+      update in the same commit. <code>CLAUDE.md</code> documents this.
+    </p>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════════════
+       SECTION A — 9 ANALYST QUESTIONS (need data)
+       ════════════════════════════════════════════════════════════════ -->
+  <div class="section-header">
+    <h2>Section A — Analyst Questions</h2>
+    <span class="count">9 items · need empirical data</span>
+  </div>
+  <p class="section-intro">
+    Each entry below is a hand-tuned constant where the author wants the analyst to either
+    (a) confirm the gut-feel value with data, or (b) recommend a replacement derived from
+    actual dynasty / Sleeper / FantasyPoints datasets.
+  </p>
+
+  <!-- ───── #1 FAAB ───── -->
+  <article class="item" data-id="heur-1-faab">
+    <header class="item-head">
+      <div class="item-num">#1</div>
+      <div class="item-title">FAAB → MVS ratio (× 10)</div>
+      <span class="item-tag t-handtuned">Hand-tuned</span>
+    </header>
+    <div class="item-body">
+      <div class="field">
+        <div class="field-label">Source location</div>
+        <div class="field-value inline"><code>trade-calculator.html:2346</code></div>
+      </div>
+      <div class="field">
+        <div class="field-label">Current math</div>
+        <div class="field-value"><code>side.faab * 10</code></div>
+      </div>
+      <div class="field">
+        <div class="field-label">Reasoning</div>
+        <div class="field-reasoning">
+          The 10:1 ratio approximates the dynasty community heuristic that $1 of FAAB ≈ 10 mid-range
+          trade-value units (e.g. $100 FAAB ≈ 1000, which is around a late-3rd / early-4th rookie pick).
+          In auction leagues or shallow leagues this ratio breaks down.
+        </div>
+      </div>
+      <div class="field">
+        <div class="field-question">
+          Should this scale with league depth (starter count) or FAAB budget? In mixed-auction
+          leagues this ratio may not hold.
+        </div>
+      </div>
+      <div class="field">
+        <div class="field-label">Recommended replacement</div>
+        <textarea class="recommend" placeholder="e.g. side.faab * (10 * (12 / starterCount))  — proposed because…"></textarea>
+      </div>
+      <div class="item-actions">
+        <button class="toggle-resolved" type="button">Mark resolved</button>
+        <span class="item-meta">cross-ref: faab-conversion</span>
+      </div>
+    </div>
+  </article>
+
+  <!-- ───── #2 AGE CURVES ───── -->
+  <article class="item" data-id="heur-2-age-curves">
+    <header class="item-head">
+      <div class="item-num">#2</div>
+      <div class="item-title">Age-curve constants per position</div>
+      <span class="item-tag t-handtuned">Hand-tuned</span>
+    </header>
+    <div class="item-body">
+      <div class="field">
+        <div class="field-label">Source location</div>
+        <div class="field-value inline"><code>assets/js/player-panel.js:908</code></div>
+      </div>
+      <div class="field">
+        <div class="field-label">Current values</div>
+        <div class="field-value"><pre>RB:  peak 24, peakVal ~8500, decay 0.78/yr  (~22% drop per year past peak)
+WR:  peak 26, peakVal ~9000
+TE:  peak 27, peakVal ~8500
+QB:  peak ~26, peakVal ~9000, decay 0.88/yr (~12% drop per year past peak)</pre></div>
+      </div>
+      <div class="field">
+        <div class="field-label">Reasoning</div>
+        <div class="field-reasoning">
+          Peak ages roughly match community-cited positional aging research (RB peak earliest at 24,
+          TE latest at 27). Decay rates are hand-tuned to match observed "the cliff" patterns.
+          PeakVals are intentionally close (~8500–9000) so a "max-tier WR" and "max-tier QB" feel comparable.
+        </div>
+      </div>
+      <div class="field">
+        <div class="field-question">
+          Regression against actual dynasty value-vs-age data could refine these constants. Not currently
+          regressed against any real dataset.
+        </div>
+      </div>
+      <div class="field">
+        <div class="field-label">Recommended replacement</div>
+        <textarea class="recommend" placeholder="Per-position table of peak age, peakVal, rampUp, decay — backed by dynasty value-vs-age regression results."></textarea>
+      </div>
+      <div class="item-actions">
+        <button class="toggle-resolved" type="button">Mark resolved</button>
+        <span class="item-meta">cross-ref: age-curves-per-pos</span>
+      </div>
+    </div>
+  </article>
+
+  <!-- ───── #3 ADP DECAY ───── -->
+  <article class="item" data-id="heur-3-adp-decay">
+    <header class="item-head">
+      <div class="item-num">#3</div>
+      <div class="item-title">ADP-implied value decay (0.93/pick)</div>
+      <span class="item-tag t-handtuned">Hand-tuned</span>
+    </header>
+    <div class="item-body">
+      <div class="field">
+        <div class="field-label">Source location</div>
+        <div class="field-value inline"><code>assets/js/player-panel.js:919–923</code></div>
+      </div>
+      <div class="field">
+        <div class="field-label">Current math</div>
+        <div class="field-value"><code>maxVal × 0.93^(adp - 1)</code></div>
+      </div>
+      <div class="field">
+        <div class="field-label">Sample outputs</div>
+        <div class="field-value"><pre>Slot  1   → 10000  (maxVal)
+Slot 11   →  4840  (~halves every 10 picks: 0.93^10 ≈ 0.48)
+Slot 21   →  2342
+Slot 50   →   280  (2.8% of max)</pre></div>
+      </div>
+      <div class="field">
+        <div class="field-label">Reasoning</div>
+        <div class="field-reasoning">
+          The 0.93 decay produces values that roughly halve every 10 picks. Feels right against
+          dynasty rank-1 vs late-2nd vs early-4th valuations by eye.
+        </div>
+      </div>
+      <div class="field">
+        <div class="field-question">
+          Validate decay shape against real ADP-vs-value scatter. Could be a power-law
+          (<code>maxVal × adp^(-k)</code>) instead of exponential — different shape at the tail.
+        </div>
+      </div>
+      <div class="field">
+        <div class="field-label">Recommended replacement</div>
+        <textarea class="recommend" placeholder="e.g. fit shape to actual data — exponential (0.93 ± ?) or power-law (k ≈ ?)."></textarea>
+      </div>
+      <div class="item-actions">
+        <button class="toggle-resolved" type="button">Mark resolved</button>
+        <span class="item-meta">cross-ref: adp-implied-value</span>
+      </div>
+    </div>
+  </article>
+
+  <!-- ───── #4 BUY-SELL ───── -->
+  <article class="item" data-id="heur-4-buy-sell">
+    <header class="item-head">
+      <div class="item-num">#4</div>
+      <div class="item-title">Buy-low / sell-high threshold (±500)</div>
+      <span class="item-tag t-handtuned">Hand-tuned</span>
+    </header>
+    <div class="item-body">
+      <div class="field">
+        <div class="field-label">Source location</div>
+        <div class="field-value inline"><code>assets/js/player-panel.js:984</code></div>
+      </div>
+      <div class="field">
+        <div class="field-label">Current math</div>
+        <div class="field-value"><code>gap &gt; 500 → "buy"; gap &lt; -500 → "sell"</code></div>
+      </div>
+      <div class="field">
+        <div class="field-label">Reasoning</div>
+        <div class="field-reasoning">
+          ±500 represents a "meaningful gap" — roughly 5–7% of a mid-range dynasty asset value.
+          Below that the FC/ADP delta is plausibly noise.
+        </div>
+      </div>
+      <div class="field">
+        <div class="field-question">
+          Percentage-based threshold (e.g. ±10%) would scale better. At very high values (10000)
+          the current 500 threshold is only 5%; at low values (2000) it's 25%. The asymmetry
+          probably under-fires for stars and over-fires for depth pieces.
+        </div>
+      </div>
+      <div class="field">
+        <div class="field-label">Recommended replacement</div>
+        <textarea class="recommend" placeholder="e.g. Math.abs(gap / val) > 0.10  — proposed because…"></textarea>
+      </div>
+      <div class="item-actions">
+        <button class="toggle-resolved" type="button">Mark resolved</button>
+        <span class="item-meta">cross-ref: buy-sell-signal</span>
+      </div>
+    </div>
+  </article>
+
+  <!-- ───── #5 ARCHETYPE WEIGHTS ───── -->
+  <article class="item" data-id="heur-5-archetype-weights">
+    <header class="item-head">
+      <div class="item-num">#5</div>
+      <div class="item-title">Composite archetype weights (0.6 / 0.2 / 0.2)</div>
+      <span class="item-tag t-handtuned">Hand-tuned</span>
+    </header>
+    <div class="item-body">
+      <div class="field">
+        <div class="field-label">Source location</div>
+        <div class="field-value inline"><code>my-leagues.html:2942</code></div>
+      </div>
+      <div class="field">
+        <div class="field-label">Current math</div>
+        <div class="field-value"><code>composite = 0.6*valNorm + 0.2*pickNorm + 0.2*projNorm</code></div>
+      </div>
+      <div class="field">
+        <div class="field-label">Reasoning</div>
+        <div class="field-reasoning">
+          Player value gets 3× weight because skill-position rosters are the dominant indicator
+          of dynasty league strength (vs picks which are future-tense and projections which are
+          short-tense). 20/20 split between picks and projections reflects them being roughly
+          equally informative for "where this team is right now" (picks lean future, projections lean current).
+        </div>
+      </div>
+      <div class="field">
+        <div class="field-question">
+          Sensitivity analysis — does shifting to 0.5/0.3/0.2 or 0.7/0.15/0.15 change archetype
+          assignments meaningfully?
+        </div>
+      </div>
+      <div class="field">
+        <div class="field-label">Recommended replacement</div>
+        <textarea class="recommend" placeholder="e.g. 0.55 / 0.25 / 0.20 — backed by sensitivity-analysis showing N% of teams change bucket under perturbations."></textarea>
+      </div>
+      <div class="item-actions">
+        <button class="toggle-resolved" type="button">Mark resolved</button>
+        <span class="item-meta">cross-ref: team-archetype</span>
+      </div>
+    </div>
+  </article>
+
+  <!-- ───── #6 ARCHETYPE BANDS ───── -->
+  <article class="item" data-id="heur-6-archetype-bands">
+    <header class="item-head">
+      <div class="item-num">#6</div>
+      <div class="item-title">Archetype value/age cutoffs (±10% value, ±0.6yr age)</div>
+      <span class="item-tag t-handtuned">Hand-tuned</span>
+    </header>
+    <div class="item-body">
+      <div class="field">
+        <div class="field-label">Source location</div>
+        <div class="field-value inline"><code>my-leagues.html:2944–47</code></div>
+      </div>
+      <div class="field">
+        <div class="field-label">Current math</div>
+        <div class="field-value"><pre>valueHigh = composite &gt; 1.10
+valueLow  = composite &lt; 0.90
+ageBand   = ±0.6yr from league median</pre></div>
+      </div>
+      <div class="field">
+        <div class="field-label">Reasoning</div>
+        <div class="field-reasoning">
+          ±10% composite value creates 3 buckets (low / mid / high) that roughly correspond to
+          bottom-3 / middle-6 / top-3 in a 12-team league. ±0.6yr age band is intentionally narrow
+          to catch real youth/age skews (the median league age band is typically ~3 years total,
+          so ±0.6 = ~40% of the spread).
+        </div>
+      </div>
+      <div class="field">
+        <div class="field-question">
+          Border teams (composite 1.09 → tweener vs 1.11 → contender) flip on small changes.
+          Should there be a "soft border" treatment or a wider band?
+        </div>
+      </div>
+      <div class="field">
+        <div class="field-label">Recommended replacement</div>
+        <textarea class="recommend" placeholder="e.g. continuous archetype-strength score 0–1, or soft-border with 5% dead zone."></textarea>
+      </div>
+      <div class="item-actions">
+        <button class="toggle-resolved" type="button">Mark resolved</button>
+        <span class="item-meta">cross-ref: team-archetype</span>
+      </div>
+    </div>
+  </article>
+
+  <!-- ───── #7 SUGGESTER WEIGHTS ───── -->
+  <article class="item" data-id="heur-7-suggester-weights">
+    <header class="item-head">
+      <div class="item-num">#7</div>
+      <div class="item-title">Trade-suggester weights (0.55 / 0.35 / 0.10)</div>
+      <span class="item-tag t-handtuned">Hand-tuned</span>
+    </header>
+    <div class="item-body">
+      <div class="field">
+        <div class="field-label">Source location</div>
+        <div class="field-value inline"><code>my-leagues.html:3796</code></div>
+      </div>
+      <div class="field">
+        <div class="field-label">Current math</div>
+        <div class="field-value"><code>fitScore = 0.55*valueFit + 0.35*archFit + 0.10*fewer</code></div>
+      </div>
+      <div class="field">
+        <div class="field-label">Reasoning</div>
+        <div class="field-reasoning">
+          Value-fit dominates because a trade that's far from par is broken regardless of
+          archetype alignment. Archetype-fit is secondary (35%) because a fair trade that doesn't
+          match the target's preferences is unlikely to get accepted. The 10% "fewer assets" weight
+          is a mild penalty for multi-asset packages — keeps the simpler offer ranking higher when
+          scores are otherwise close.
+        </div>
+      </div>
+      <div class="field">
+        <div class="field-question">
+          Are the weights right? Suggester-acceptance data (which suggestions actually got traded)
+          would refine these.
+        </div>
+      </div>
+      <div class="field">
+        <div class="field-label">Recommended replacement</div>
+        <textarea class="recommend" placeholder="e.g. fit-against-accepted-trades regression — coefficient suggestion based on platform data."></textarea>
+      </div>
+      <div class="item-actions">
+        <button class="toggle-resolved" type="button">Mark resolved</button>
+        <span class="item-meta">cross-ref: trade-suggestion-fit</span>
+      </div>
+    </div>
+  </article>
+
+  <!-- ───── #8 VOLUME ───── -->
+  <article class="item" data-id="heur-8-volume">
+    <header class="item-head">
+      <div class="item-num">#8</div>
+      <div class="item-title">Trade volume cutoffs (200 hot / 50 warm)</div>
+      <span class="item-tag t-handtuned">Hand-tuned</span>
+    </header>
+    <div class="item-body">
+      <div class="field">
+        <div class="field-label">Source location</div>
+        <div class="field-value inline"><code>assets/js/mvs-extras.js:108</code></div>
+      </div>
+      <div class="field">
+        <div class="field-label">Current math</div>
+        <div class="field-value"><pre>tradesLastWeek &gt;= 200  → "hot"
+tradesLastWeek &gt;= 50   → "warm"
+otherwise              → "cool" / "cold"</pre></div>
+      </div>
+      <div class="field">
+        <div class="field-label">Reasoning</div>
+        <div class="field-reasoning">
+          200 trades/week is roughly top-decile activity across the MVS player universe
+          (~150–200 active players). 50/week is roughly median for the top half of skill-position
+          players. Both are absolute counts, not percentiles.
+        </div>
+      </div>
+      <div class="field">
+        <div class="field-question">
+          Should these be percentile-derived from the current week's distribution to self-calibrate
+          as the platform user count changes?
+        </div>
+      </div>
+      <div class="field">
+        <div class="field-label">Recommended replacement</div>
+        <textarea class="recommend" placeholder="e.g. p90 / p50 of current week trade-counts — auto-calibrates to platform growth."></textarea>
+      </div>
+      <div class="item-actions">
+        <button class="toggle-resolved" type="button">Mark resolved</button>
+        <span class="item-meta">cross-ref: trade-volume-chip</span>
+      </div>
+    </div>
+  </article>
+
+  <!-- ───── #9 HEATMAP CONTRAST ───── -->
+  <article class="item" data-id="heur-9-heatmap-contrast">
+    <header class="item-head">
+      <div class="item-num">#9</div>
+      <div class="item-title">Heatmap text-contrast threshold at 35%</div>
+      <span class="item-tag t-handtuned">Hand-tuned</span>
+    </header>
+    <div class="item-body">
+      <div class="field">
+        <div class="field-label">Source location</div>
+        <div class="field-value inline"><code>assets/js/heatmap.js</code></div>
+      </div>
+      <div class="field">
+        <div class="field-label">Current math</div>
+        <div class="field-value"><code>textColor = v &gt;= 35 ? "#111" : "rgba(255,255,255,.5)"</code></div>
+      </div>
+      <div class="field">
+        <div class="field-label">Reasoning</div>
+        <div class="field-reasoning">
+          At ~35% alpha on the brand orange (rgb 237,129,12), the bg becomes "dark enough" that
+          #111 text is more readable than semi-white. Below 35% the bg is faint enough that
+          semi-white reads better on the parent surface. Picked by eye.
+        </div>
+      </div>
+      <div class="field">
+        <div class="field-question">
+          Verify against WCAG AA contrast ratio. The 35% threshold could be derived from the actual
+          bg luminance vs both candidate text colors.
+        </div>
+      </div>
+      <div class="field">
+        <div class="field-label">Recommended replacement</div>
+        <textarea class="recommend" placeholder="e.g. compute luminance of (brand-orange × alpha + surface) at each cell and pick text by WCAG AA ratio."></textarea>
+      </div>
+      <div class="item-actions">
+        <button class="toggle-resolved" type="button">Mark resolved</button>
+        <span class="item-meta">cross-ref: heatmap-css-intensity</span>
+      </div>
+    </div>
+  </article>
+
+  <!-- ════════════════════════════════════════════════════════════════
+       SECTION B — 5 DEVELOPER FLAGS (don't need analyst data)
+       ════════════════════════════════════════════════════════════════ -->
+  <div class="section-header">
+    <h2>Section B — Developer Flags</h2>
+    <span class="count">5 items · code / docs decisions only</span>
+  </div>
+  <p class="section-intro">
+    The remaining 5 entries from the OPEN HEURISTICS section live alongside the analyst questions
+    in <code style="font-family:Consolas,Menlo,monospace;background:var(--surface2);padding:1px 6px;border:1px solid var(--border2)">formulas-content.js</code>
+    but don't need analyst input. They're either intentional design choices that are documented
+    for transparency, naming / cosmetic bugs that need a one-line fix, or one-time site-convention
+    explanations. Group them with the analyst output so the dev can address them in the same
+    follow-up commit.
+  </p>
+
+  <!-- ───── #10 ZERO-OUT ───── -->
+  <article class="item" data-id="heur-10-mvs-zero-fp-fallback">
+    <header class="item-head">
+      <div class="item-num">#10</div>
+      <div class="item-title">MVS overlay zeros out FP players not in MVS</div>
+      <span class="item-tag t-intentional">Intentional</span>
+    </header>
+    <div class="item-body">
+      <div class="field">
+        <div class="field-label">Source location</div>
+        <div class="field-value inline"><code>assets/js/data-bootstrap.js:191–194</code></div>
+      </div>
+      <div class="field">
+        <div class="field-label">Current math</div>
+        <div class="field-value"><pre>Object.values(FP).forEach(rec =&gt; {
+  if (overlaid.has(rec)) return;
+  rec.value = 0; rec.valueSf = 0; rec.value1qb = 0;
+});</pre></div>
+      </div>
+      <div class="field">
+        <div class="field-label">Reasoning</div>
+        <div class="field-reasoning">
+          Intentional. Players in <code>data/values.json</code> without a matching MVS record are
+          most likely inactive / cut / suspended — keeping the stale FP value would mislead users
+          (e.g. showing a 5000-value chip on a player who hasn't played in 6 months). Zeroing makes
+          them obviously "no current market" in any value display.
+        </div>
+      </div>
+      <div class="field">
+        <div class="field-question developer">
+          No action required. Documented here so anyone reading the code understands why stale
+          FP-only players display as $0 across the calc instead of falling back to their last
+          known FP value.
+        </div>
+      </div>
+      <div class="item-actions">
+        <button class="toggle-resolved" type="button">Acknowledge</button>
+        <span class="item-meta">no cross-refs</span>
+      </div>
+    </div>
+  </article>
+
+  <!-- ───── #11 3-WAY BUG ───── -->
+  <article class="item" data-id="heur-11-3way-balance">
+    <header class="item-head">
+      <div class="item-num">#11</div>
+      <div class="item-title">3-way trade balance uses different denominator</div>
+      <span class="item-tag t-unknown">Code bug</span>
+    </header>
+    <div class="item-body">
+      <div class="field">
+        <div class="field-label">Source location</div>
+        <div class="field-value inline"><code>trade-calculator.html:2497</code></div>
+      </div>
+      <div class="field">
+        <div class="field-label">Current math</div>
+        <div class="field-value"><pre>2-way: pctOff = abs / max(t0, t1)        // leader-relative
+3-way: pctOff = gap / sorted[0].total    // top-relative</pre></div>
+      </div>
+      <div class="field">
+        <div class="field-label">Reasoning</div>
+        <div class="field-reasoning">
+          Likely an oversight from when 3-way support was added — code re-used the leader-relative
+          pattern instead of generalizing the max-relative pattern. 3-way trades are rare in calc
+          usage data so the bug rarely surfaces.
+        </div>
+      </div>
+      <div class="field">
+        <div class="field-question developer">
+          Code-correctness fix, not a math-validity question. Generalize the 2-way pattern so
+          both branches use the same denominator <code>max(t0..tN)</code>. Likely a 1-line change.
+        </div>
+      </div>
+      <div class="field">
+        <div class="field-label">Fix proposal</div>
+        <textarea class="recommend" placeholder="Generalize the 2-way denominator to max across all sides. Track fix in commit message."></textarea>
+      </div>
+      <div class="item-actions">
+        <button class="toggle-resolved" type="button">Mark fixed</button>
+        <span class="item-meta">cross-ref: trade-balance</span>
+      </div>
+    </div>
+  </article>
+
+  <!-- ───── #12 TEP ALIAS ───── -->
+  <article class="item" data-id="heur-12-mvs-tep-alias">
+    <header class="item-head">
+      <div class="item-num">#12</div>
+      <div class="item-title">MVS valueTep aliased to valueSf (no real TEP)</div>
+      <span class="item-tag t-intentional">Intentional</span>
+    </header>
+    <div class="item-body">
+      <div class="field">
+        <div class="field-label">Source location</div>
+        <div class="field-value inline"><code>assets/js/data-bootstrap.js:203</code></div>
+      </div>
+      <div class="field">
+        <div class="field-label">Current math</div>
+        <div class="field-value"><code>valueTep: rec.valueSf  // alias — no real TEP in upstream CSV</code></div>
+      </div>
+      <div class="field">
+        <div class="field-label">Reasoning</div>
+        <div class="field-reasoning">
+          The upstream MVS CSV (<code>player_market_mvs.csv</code>) only ships <code>value_sf</code>
+          and <code>value_1qb</code> columns for picks — no TEP variant. Aliasing
+          <code>valueTep</code> to <code>valueSf</code> means: in SF+TEP mode, an MVS pick shows
+          the SF value (the closer of the two available numbers). The <code>picks.json</code>
+          (FP API, 2025-only) DOES have real TEP data; for 2026–2028 picks coming via MVS, we don't.
+        </div>
+      </div>
+      <div class="field">
+        <div class="field-question developer">
+          No action unless the upstream CSV gains a TEP column. If/when it does, drop the alias
+          and read <code>rec.valueTep</code> directly. Tracked so the alias doesn't get treated
+          as a real value source.
+        </div>
+      </div>
+      <div class="item-actions">
+        <button class="toggle-resolved" type="button">Acknowledge</button>
+        <span class="item-meta">cross-ref: pick-numeric-value</span>
+      </div>
+    </div>
+  </article>
+
+  <!-- ───── #13 LEAGUEAVG NAMING ───── -->
+  <article class="item" data-id="heur-13-misnamed-avg">
+    <header class="item-head">
+      <div class="item-num">#13</div>
+      <div class="item-title"><code style="font-family:Consolas,Menlo,monospace;background:var(--surface2);padding:1px 6px;border:1px solid var(--border2);font-size:14px">leagueAvg</code> is a median, not a mean</div>
+      <span class="item-tag t-naming">Naming bug</span>
+    </header>
+    <div class="item-body">
+      <div class="field">
+        <div class="field-label">Source location</div>
+        <div class="field-value inline"><code>my-leagues.html:5093–5174</code></div>
+      </div>
+      <div class="field">
+        <div class="field-label">Reasoning</div>
+        <div class="field-reasoning">
+          Earlier code used means; later refactored to medians (more robust to outliers in
+          12-team leagues where 1 standout team can skew the mean). The variable name didn't
+          get updated. Pure naming bug, no math impact.
+        </div>
+      </div>
+      <div class="field">
+        <div class="field-question developer">
+          Rename <code>leagueAvg</code> → <code>leagueMedian</code> everywhere in the file so
+          anyone reading the code doesn't assume mean. Safe global find-replace.
+        </div>
+      </div>
+      <div class="field">
+        <div class="field-label">Fix proposal</div>
+        <textarea class="recommend" placeholder="Rename across my-leagues.html. Update any downstream cross-refs if exposed via window.* globals."></textarea>
+      </div>
+      <div class="item-actions">
+        <button class="toggle-resolved" type="button">Mark fixed</button>
+        <span class="item-meta">cross-ref: league-medians</span>
+      </div>
+    </div>
+  </article>
+
+  <!-- ───── #14 DUPLICATE GREEN ───── -->
+  <article class="item" data-id="heur-14-val-color-collapse">
+    <header class="item-head">
+      <div class="item-num">#14</div>
+      <div class="item-title">valColor has duplicate green branches</div>
+      <span class="item-tag t-cosmetic">Cosmetic artifact</span>
+    </header>
+    <div class="item-body">
+      <div class="field">
+        <div class="field-label">Source location</div>
+        <div class="field-value inline"><code>my-leagues.html:6292</code></div>
+      </div>
+      <div class="field">
+        <div class="field-label">Current math</div>
+        <div class="field-value"><pre>v &gt; 8000  → green     // originally bright-green
+v &gt; 5000  → green     // originally light-green mid-shade
+v &gt; 2000  → green-bg
+otherwise → muted</pre></div>
+      </div>
+      <div class="field">
+        <div class="field-label">Reasoning</div>
+        <div class="field-reasoning">
+          Originally <code>v &gt; 8000 → bright-green</code> and <code>v &gt; 5000 → light-green mid-shade</code>.
+          The brand-color audit (commit <code>fca6d0e</code>) collapsed the mid-shade to brand green
+          for palette consistency. The duplicate branches were left in case the design wants to
+          differentiate again later. Effectively one threshold at <code>v &gt; 2000</code>
+          (everything above is green).
+        </div>
+      </div>
+      <div class="field">
+        <div class="field-question developer">
+          Either (a) collapse to a single <code>v &gt; 2000</code> branch and delete the dead
+          conditional, or (b) re-introduce a distinct mid-shade green for the 5000–8000 band
+          if the design wants more granularity.
+        </div>
+      </div>
+      <div class="field">
+        <div class="field-label">Decision</div>
+        <textarea class="recommend" placeholder="(a) Collapse to one branch (recommended), or (b) re-introduce mid-shade — pick one and note it here."></textarea>
+      </div>
+      <div class="item-actions">
+        <button class="toggle-resolved" type="button">Mark decided</button>
+        <span class="item-meta">cross-ref: val-color</span>
+      </div>
+    </div>
+  </article>
+
+  <!-- ════════════════════════════════════════════════════════════════
+       WORKFLOW / EXPORT
+       ════════════════════════════════════════════════════════════════ -->
+  <div class="workflow">
+    <h3>Workflow — when a value is decided</h3>
+    <ol>
+      <li>Type the recommended replacement (or fix proposal) into the green-bordered text area for that item. Press tab — it auto-saves locally.</li>
+      <li>Click <strong>Mark resolved</strong> on each completed item. The progress bar at the top updates.</li>
+      <li>When the batch is done, click <strong>Copy summary</strong> below. The clipboard gets a paste-ready markdown block with each resolved item's source location + recommendation.</li>
+      <li>Developer applies updates to BOTH <code>assets/js/formulas-content.js</code> AND <code>docs/FORMULAS.md</code> in the same commit (the dual-sync rule documented in <code>CLAUDE.md</code>). Then bumps the cache token on whichever module changed.</li>
+      <li>If the change updates a number that appears on the live <code>formulas.html</code> page, also update the <code>whyThisNumber</code> field to remove the "Analyst input requested" suffix and replace with the dated recommendation source.</li>
+    </ol>
+  </div>
+
+  <div class="export-bar">
+    <button class="btn btn-primary" type="button" id="btn-copy">📋 Copy summary</button>
+    <button class="btn" type="button" id="btn-print">🖨 Print / Save PDF</button>
+    <button class="btn btn-danger" type="button" id="btn-reset">⟲ Reset all local data</button>
+  </div>
+
+</main>
+
+<script>
+  // ── localStorage persistence ────────────────────────────────────────
+  const STORAGE_KEY = 'fpts-heuristics-review';
+
+  function loadState() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      return raw ? JSON.parse(raw) : {};
+    } catch (e) { return {}; }
+  }
+  function saveState(s) {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(s)); } catch (e) {}
+  }
+
+  const state = loadState();
+  const items = document.querySelectorAll('.item');
+  const TOTAL = items.length;
+
+  function refreshProgress() {
+    const resolved = Object.values(state).filter(v => v && v.resolved).length;
+    document.getElementById('progress-count').textContent = resolved + ' / ' + TOTAL;
+    document.getElementById('progress-fill').style.width = ((resolved / TOTAL) * 100) + '%';
+  }
+
+  items.forEach(item => {
+    const id = item.dataset.id;
+    const rec = state[id] || {};
+
+    // Initial state
+    if (rec.resolved) item.classList.add('is-resolved');
+    const textarea = item.querySelector('textarea.recommend');
+    if (textarea && rec.note) textarea.value = rec.note;
+    const btn = item.querySelector('.toggle-resolved');
+    if (btn && rec.resolved) {
+      const isAck = btn.textContent.toLowerCase().includes('acknowledge');
+      btn.textContent = isAck ? 'Acknowledged ✓' : (btn.textContent.toLowerCase().includes('decided') ? 'Decided ✓' : (btn.textContent.toLowerCase().includes('fixed') ? 'Fixed ✓' : 'Resolved ✓'));
+    }
+
+    // Wire textarea persistence
+    if (textarea) {
+      textarea.addEventListener('input', () => {
+        state[id] = state[id] || {};
+        state[id].note = textarea.value;
+        saveState(state);
+      });
+    }
+    // Wire toggle
+    if (btn) {
+      const originalLabel = btn.textContent;
+      btn.addEventListener('click', () => {
+        state[id] = state[id] || {};
+        state[id].resolved = !state[id].resolved;
+        if (state[id].resolved) {
+          item.classList.add('is-resolved');
+          // Pick the right success label based on the original button text
+          if (originalLabel.toLowerCase().includes('acknowledge')) btn.textContent = 'Acknowledged ✓';
+          else if (originalLabel.toLowerCase().includes('decided')) btn.textContent = 'Decided ✓';
+          else if (originalLabel.toLowerCase().includes('fixed')) btn.textContent = 'Fixed ✓';
+          else btn.textContent = 'Resolved ✓';
+        } else {
+          item.classList.remove('is-resolved');
+          btn.textContent = originalLabel;
+        }
+        saveState(state);
+        refreshProgress();
+      });
+    }
+  });
+
+  refreshProgress();
+
+  // ── Copy summary ────────────────────────────────────────────────────
+  document.getElementById('btn-copy').addEventListener('click', () => {
+    const lines = ['# FPTS Heuristics Review — recommendations', ''];
+    let count = 0;
+    items.forEach(item => {
+      const id = item.dataset.id;
+      const rec = state[id] || {};
+      if (!rec.resolved && !rec.note) return;
+      count++;
+      const num = item.querySelector('.item-num').textContent.trim();
+      const title = item.querySelector('.item-title').textContent.trim();
+      const loc = item.querySelector('.field-value.inline code').textContent.trim();
+      const tag = item.querySelector('.item-tag').textContent.trim();
+      lines.push(`## ${num} — ${title}`);
+      lines.push(`- **Source**: \`${loc}\``);
+      lines.push(`- **Category**: ${tag}`);
+      lines.push(`- **Status**: ${rec.resolved ? 'RESOLVED' : 'In progress'}`);
+      if (rec.note) {
+        lines.push(`- **Recommendation / fix**:`);
+        lines.push('  ' + rec.note.split('\n').join('\n  '));
+      }
+      lines.push('');
+    });
+    if (count === 0) {
+      lines.push('_No items have been worked on yet._');
+    }
+    lines.push(`---`);
+    lines.push(`Generated ${new Date().toISOString().slice(0,10)} from analyst-heuristics-review.html`);
+    const text = lines.join('\n');
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(() => {
+        const btn = document.getElementById('btn-copy');
+        const orig = btn.textContent;
+        btn.textContent = '✓ Copied!';
+        setTimeout(() => { btn.textContent = orig; }, 1800);
+      });
+    } else {
+      // Fallback: show in a prompt for manual copy
+      window.prompt('Copy this summary:', text);
+    }
+  });
+
+  // ── Print ───────────────────────────────────────────────────────────
+  document.getElementById('btn-print').addEventListener('click', () => window.print());
+
+  // ── Reset ───────────────────────────────────────────────────────────
+  document.getElementById('btn-reset').addEventListener('click', () => {
+    if (confirm('Clear all recommendations and resolved-marks? This cannot be undone.')) {
+      localStorage.removeItem(STORAGE_KEY);
+      window.location.reload();
+    }
+  });
+</script>
+
+</body>
+</html>

@@ -8,13 +8,13 @@
 <link href="https://fonts.googleapis.com/css2?family=Kanit:ital,wght@0,400;0,700;1,800&family=Mulish:wght@400;700;900&display=swap" rel="stylesheet">
 
 <!-- Brand-level styles: fonts, color variables, nav, page chrome, pos pills. -->
-<link rel="stylesheet" href="assets/css/brand.css?v=1779990000">
+<link rel="stylesheet" href="assets/css/brand.css?v=1780100000">
 
 <!-- Shared UI component modules (CSS). -->
 <link rel="stylesheet" href="assets/css/mvs-extras.css?v=1780000000">
 <link rel="stylesheet" href="assets/css/heatmap.css?v=1779990000">
 <link rel="stylesheet" href="assets/css/legend.css?v=1779990000">
-<link rel="stylesheet" href="assets/css/player-panel.css?v=1779990000">
+<link rel="stylesheet" href="assets/css/player-panel.css?v=1780200000">
 
 <!-- Page identity + data layer config (must run BEFORE data-bootstrap.js). -->
 <script>
@@ -33,7 +33,7 @@
 
 <!-- Data bootstrap — fetches every data/*.json, populates window globals,
      fires 'fpts:data-ready' when done. -->
-<script src="assets/js/data-bootstrap.js?v=1778680027"></script>
+<script src="assets/js/data-bootstrap.js?v=1780200000"></script>
 
 <!-- ADP comparator — shared month-to-month picker module (also used by tiers.html). -->
 <script src="assets/js/adp-comparator.js?v=1779360001"></script>
@@ -172,6 +172,12 @@
   .rk-table tbody tr:hover td.rk-min,
   .rk-table tbody tr:hover td.rk-max { opacity: .92; }
 
+  /* Header label toggle: full names show on desktop, 3-char abbreviations
+     on mobile (RYA / THE / JOH / AND / THO + Tm + Avg). Both spans are in the
+     DOM so JS sorting + onclick handlers stay attached to the <th>. */
+  .rk-table th .th-full  { display: inline; }
+  .rk-table th .th-short { display: none; }
+
   /* MOBILE */
   @media (max-width: 768px) {
     .topnav { padding: 0 10px; gap: 8px; height: 48px; }
@@ -193,8 +199,34 @@
     .rk-format-btn { padding: 8px 12px; min-height: 36px; font-size: 10px; }
     .rk-filter-select, .rk-search { width: 100%; min-height: 36px; font-size: 13px; }
 
-    .rk-table thead th { padding: 8px 6px; font-size: 9px; }
-    .rk-table td { padding: 6px; font-size: 11px; }
+    .rk-table thead th { padding: 6px 3px !important; font-size: 8px !important; letter-spacing: 0 !important; }
+    .rk-table td { padding: 5px 3px !important; font-size: 11px; }
+
+    /* Swap label spans inside <th> so mobile gets compact 3-char abbreviations. */
+    .rk-table th .th-full  { display: none; }
+    .rk-table th .th-short { display: inline; }
+
+    /* Mobile fit-without-scroll: drop the table's min-width override so it
+       contracts to viewport, then set per-column compact widths so all 5
+       analyst cells + Player + Team + Avg fit on a ~390px iPhone screen
+       without horizontal scroll. The .rk-table-wrap parent keeps its
+       overflow-x:auto as a safety net in case content does spill. */
+    .rk-table { min-width: 0 !important; table-layout: fixed; width: 100% !important; }
+    .rk-table .col-name {
+      min-width: 0 !important;
+      width: auto;
+      padding-left: 6px !important;
+    }
+    .rk-table .col-name .rk-player-name {
+      font-size: 11px;
+      white-space: normal;
+      line-height: 1.2;
+      word-break: break-word;
+    }
+    .rk-table .col-analyst-team { min-width: 26px !important; width: 30px; }
+    .rk-table .col-analyst-team img { width: 18px !important; height: 18px !important; }
+    .rk-table .col-analyst-rank { min-width: 30px !important; width: 34px; font-size: 12px !important; }
+    .rk-table .col-analyst-consensus { min-width: 36px !important; width: 42px; font-size: 12px !important; }
 
     /* Bottom safe-area */
     body { padding-bottom: max(20px, env(safe-area-inset-bottom)) !important; }
@@ -712,13 +744,18 @@ function renderAnalystPosToggle() {
 
 function _analystHeaderCols() {
   const cols = [
-    { key: 'name', label: 'Player', cls: 'col-name' },
-    { key: 'team', label: 'Team',   cls: 'col-analyst-team' },
+    { key: 'name', label: 'Player', short: 'Player', cls: 'col-name' },
+    { key: 'team', label: 'Team',   short: 'Tm',     cls: 'col-analyst-team' },
   ];
   for (const a of ANALYST_META) {
-    cols.push({ key: 'ranks.' + a.key, label: a.label, cls: 'col-analyst-rank' });
+    cols.push({
+      key:   'ranks.' + a.key,
+      label: a.label,
+      short: a.label.slice(0, 3).toUpperCase(),  // "Ryan" → "RYA", "Thomas" → "THO"
+      cls:   'col-analyst-rank'
+    });
   }
-  cols.push({ key: 'consensus', label: 'Consensus', cls: 'col-analyst-consensus' });
+  cols.push({ key: 'consensus', label: 'Consensus', short: 'Avg', cls: 'col-analyst-consensus' });
   return cols;
 }
 
@@ -727,8 +764,12 @@ function renderAnalystHeaderRow() {
     const isSorted = STATE.analystSort.col === c.key;
     const arrow = isSorted ? '<span class="sort-arrow">' + (STATE.analystSort.dir === 'asc' ? '▲' : '▼') + '</span>' : '';
     const sortedCls = isSorted ? 'sorted ' : '';
+    // Both labels render; CSS hides one or the other based on viewport width.
+    // Keeps desktop labels intact while letting mobile show compact headers.
     return '<th class="' + sortedCls + (c.cls || '') + '" onclick="setAnalystSort(\'' + c.key + '\')" data-col="' + c.key + '">'
-      + c.label + arrow + '</th>';
+      + '<span class="th-full">' + c.label + '</span>'
+      + '<span class="th-short">' + (c.short || c.label) + '</span>'
+      + arrow + '</th>';
   }).join('') + '</tr>';
 }
 
