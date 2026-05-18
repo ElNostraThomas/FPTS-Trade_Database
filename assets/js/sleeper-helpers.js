@@ -1,0 +1,316 @@
+/*
+ * sleeper-helpers.js — shared trade-engine + Sleeper-data utilities.
+ *
+ * Pure functions (no DOM). Depend only on two intentionally page-level
+ * globals: window.FP_VALUES (player trade-value dict, loaded by
+ * data-bootstrap.js) and window.PICK_VALUES (draft-pick value dict, same
+ * source). Everything else is passed in as arguments — so each consumer
+ * page can shape its own data dict without coupling to the other.
+ *
+ * Consumers:
+ *   - my-leagues.html (the trade-suggestion modal + roster archetype chips)
+ *   - live-draft.html (live trade-fair-value at the user's upcoming pick)
+ *
+ * Surfaces are exposed on window.SLEEPER.*. Function signatures match the
+ * original my-leagues inline functions where possible so the migration is
+ * mostly a body-swap; the one exception is buildAssetPool, which now takes
+ * a plain `data` object instead of looking up `window.ML_ALL_LEAGUE_DATA`
+ * by leagueId. The my-leagues caller does the lookup before delegating.
+ */
+(function () {
+  'use strict';
+
+  // ──────────────────────────────────────────────────────────────────
+  // Archetype preferences: how much each archetype wants picks vs.
+  // youth vs. veterans. Drives mlPackageFit's per-asset scoring inside
+  // generateTradeSuggestions.
+  // ──────────────────────────────────────────────────────────────────
+  const ARCH_PREFS = {
+    rebuilder: { wantPicks: 1.0, wantYouth: 1.0, wantVeterans: 0.3 },
+    emergency: { wantPicks: 1.0, wantYouth: 0.6, wantVeterans: 0.4 },
+    tweener:   { wantPicks: 0.5, wantYouth: 0.5, wantVeterans: 0.5 },
+    contender: { wantPicks: 0.3, wantYouth: 0.3, wantVeterans: 1.0 },
+    dynasty:   { wantPicks: 0.5, wantYouth: 0.7, wantVeterans: 0.7 },
+  };
+
+  // ──────────────────────────────────────────────────────────────────
+  // PICK_VALUES lookup. Tries the specific pick key first (e.g.
+  // "2026-1.05"), falls back to a generic round key ("2026-1") when the
+  // specific slot isn't seeded. Values may be numeric or an object with
+  // a .value field; normalize both.
+  // ──────────────────────────────────────────────────────────────────
+  function pickValue(season, round) {
+    const PV = window.PICK_VALUES || {};
+    const num = v => (v && typeof v === 'object') ? (Number(v.value) || 0) : (Number(v) || 0);
+    const specific = Object.keys(PV).filter(k => k.startsWith(season + '-' + round + '.'));
+    if (specific.length) {
+      specific.sort();
+      return num(PV[specific[Math.floor(specific.length / 2)]]);
+    }
+    return num(PV[season + '-' + round]);
+  }
+
+  function getValueByName(name) {
+    if (!name) return null;
+    return (window.FP_VALUES || {})[name] || null;
+  }
+
+  // ──────────────────────────────────────────────────────────────────
+  // getOwnedPicks — given a roster_id and the league's traded_picks
+  // ledger, return every pick that roster CURRENTLY owns (natural picks
+  // it hasn't traded away + picks acquired via trade). Excludes picks
+  // in already-completed draft seasons (those are spent).
+  // ──────────────────────────────────────────────────────────────────
+  function getOwnedPicks(rosterId, tradedPicks, leagueRounds, currentSeason, completedDraftSeasons) {
+    const picks = [];
+    const rounds = leagueRounds && leagueRounds > 0 ? Math.min(leagueRounds, 5) : 4;
+    const completed = completedDraftSeasons instanceof Set ? completedDraftSeasons : new Set();
+
+    const seasonsSet = new Set();
+    (tradedPicks || []).forEach(p => seasonsSet.add(String(p.season)));
+    const baseYear = parseInt(currentSeason, 10) || (new Date()).getFullYear();
+    for (let s = 0; s < 3; s++) seasonsSet.add(String(baseYear + s));
+    const seasons = [...seasonsSet]
+      .filter(s => parseInt(s, 10) >= baseYear)
+      .filter(s => !completed.has(String(s)))
+      .sort();
+
+    const tradedKeys = new Set();
+    (tradedPicks || []).forEach(p => {
+      tradedKeys.add(p.season + ':' + p.round + ':' + p.roster_id);
+    });
+
+    seasons.forEach(season => {
+      for (let round = 1; round <= rounds; round++) {
+        const key = season + ':' + round + ':' + rosterId;
+        if (!tradedKeys.has(key)) {
+          picks.push({ season, round, roster_id: rosterId, owner_id: rosterId,
+                       isNatural: true, originalRosterId: rosterId });
+        }
+      }
+    });
+
+    (tradedPicks || []).forEach(p => {
+      if (completed.has(String(p.season))) return;
+      if (String(p.owner_id) === String(rosterId)) {
+        picks.push({
+          season: String(p.season), round: p.round,
+          roster_id: p.roster_id, owner_id: p.owner_id,
+          isNatural: false, originalRosterId: p.roster_id,
+        });
+      }
+    });
+
+    picks.sort((a, b) => a.season !== b.season ? a.season.localeCompare(b.season) : a.round - b.round);
+    return picks;
+  }
+
+  // ──────────────────────────────────────────────────────────────────
+  // buildAssetPool — flat list of { id, name, value, pos, age, type } for
+  // a roster. type is 'player' or 'pick'. Used as the search space for
+  // generateTradeSuggestions.
+  //
+  // data shape: { rosters, players, tradedPicks, draftRounds,
+  //               leagueSeason, completedDraftSeasons }
+  // rosterId: the roster whose pool we want.
+  // ──────────────────────────────────────────────────────────────────
+  function buildAssetPool(data, rosterId) {
+    if (!data) return [];
+    const { rosters, players } = data;
+    if (!rosters || !players) return [];
+    const roster = rosters.find(r => r.roster_id === rosterId);
+    if (!roster) return [];
+
+    const assets = [];
+
+    (roster.players || []).forEach(pid => {
+      const p = players[pid];
+      if (!p) return;
+      const name = p.full_name || ((p.first_name || '') + ' ' + (p.last_name || '')).trim();
+      const fp = getValueByName(name);
+      if (!fp || !fp.value) return;
+      assets.push({
+        id: 'p_' + pid,
+        name,
+        value: fp.value,
+        pos: p.position || (fp.posRank ? fp.posRank.replace(/\d+/g, '') : '—'),
+        age: p.age || fp.age || null,
+        type: 'player',
+      });
+    });
+
+    const owned = getOwnedPicks(rosterId, data.tradedPicks, data.draftRounds,
+                                 data.leagueSeason, data.completedDraftSeasons);
+    owned.forEach((pk, idx) => {
+      const value = pickValue(pk.season, pk.round) || 0;
+      if (!value) return;
+      const label = pk.season + ' Round ' + pk.round + (pk.isNatural ? '' : ' (acquired)');
+      assets.push({
+        id: 'pk_' + idx + '_' + pk.season + '_' + pk.round,
+        name: label,
+        value,
+        pos: 'PICK',
+        age: null,
+        type: 'pick',
+        season: pk.season,
+        round: pk.round,
+      });
+    });
+
+    return assets;
+  }
+
+  function packageFit(pkg, archetype) {
+    const prefs = ARCH_PREFS[archetype] || ARCH_PREFS.tweener;
+    let score = 0, weight = 0;
+    pkg.forEach(a => {
+      const w = a.value;
+      weight += w;
+      if (a.type === 'pick') score += prefs.wantPicks * w;
+      else if (a.age && a.age <= 24) score += prefs.wantYouth * w;
+      else score += prefs.wantVeterans * w;
+    });
+    return weight > 0 ? score / weight : 0;
+  }
+
+  function fitNote(pkg, archetype, fitScore) {
+    if (!archetype) return '';
+    const A = archetype.toUpperCase();
+    if (fitScore >= 0.7) return '✓ Aligns with ' + A + ' preferences';
+    if (fitScore >= 0.5) return '~ Reasonable fit for ' + A;
+    return '⚠ May not interest a ' + A;
+  }
+
+  // ──────────────────────────────────────────────────────────────────
+  // generateTradeSuggestions — given a roster's asset pool, a target
+  // trade value (what we're trying to match), and an archetype, surface
+  // up to N candidate packages that hit the target ±15% with diversity
+  // across 1-/2-/3-asset packages + slight-overpay + archetype-tilted.
+  // ──────────────────────────────────────────────────────────────────
+  function generateTradeSuggestions(myAssets, targetValue, archetype, maxCount) {
+    if (!targetValue || !myAssets || !myAssets.length) return [];
+    const N = maxCount || 5;
+    const minSize = Math.max(50, targetValue * 0.05);
+    const pool = myAssets.filter(a => a.value >= minSize).sort((a, b) => b.value - a.value);
+
+    const candidates = [];
+    const tryAdd = (assets, kindLabel) => {
+      const total = assets.reduce((s, a) => s + a.value, 0);
+      const ratio = total / targetValue;
+      if (ratio < 0.85 || ratio > 1.30) return;
+      const sig = assets.map(a => a.id).sort().join('|');
+      if (candidates.some(c => c.sig === sig)) return;
+      candidates.push({ assets, total, ratio, sig, kind: kindLabel });
+    };
+
+    pool.forEach(a => tryAdd([a], '1-asset'));
+
+    for (let i = 0; i < Math.min(pool.length, 12); i++) {
+      for (let j = i + 1; j < pool.length; j++) {
+        const sum = pool[i].value + pool[j].value;
+        if (sum < targetValue * 0.85 || sum > targetValue * 1.30) continue;
+        tryAdd([pool[i], pool[j]], '2-asset');
+      }
+    }
+
+    for (let i = 0; i < Math.min(pool.length, 8); i++) {
+      for (let j = i + 1; j < Math.min(pool.length, 12); j++) {
+        for (let k = j + 1; k < pool.length; k++) {
+          const sum = pool[i].value + pool[j].value + pool[k].value;
+          if (sum < targetValue * 0.85 || sum > targetValue * 1.30) continue;
+          tryAdd([pool[i], pool[j], pool[k]], '3-asset');
+        }
+      }
+    }
+
+    if (!candidates.length) return [];
+
+    candidates.forEach(c => {
+      const valueFit = 1 - Math.min(Math.abs(c.ratio - 1), 0.30) / 0.30;
+      const archFit  = packageFit(c.assets, archetype);
+      const fewer    = 1 - (c.assets.length - 1) * 0.05;
+      c.fitScore     = (valueFit * 0.55 + archFit * 0.35 + fewer * 0.10);
+      c.archFit      = archFit;
+    });
+
+    candidates.sort((a, b) => b.fitScore - a.fitScore);
+
+    const picked = [];
+    const pickedSigs = new Set();
+    const pickFrom = (filterFn, label) => {
+      const found = candidates.find(c => !pickedSigs.has(c.sig) && filterFn(c));
+      if (found) {
+        picked.push(Object.assign({}, found, { label }));
+        pickedSigs.add(found.sig);
+      }
+    };
+    pickFrom(c => c.kind === '1-asset' && c.ratio >= 0.95 && c.ratio <= 1.05, 'FAIR VALUE — 1 ASSET');
+    pickFrom(c => c.kind === '2-asset' && c.ratio >= 0.95 && c.ratio <= 1.05, 'FAIR VALUE — 2 ASSETS');
+    pickFrom(c => c.ratio > 1.05 && c.ratio <= 1.15, 'SLIGHT OVERPAY');
+    pickFrom(c => c.kind === '3-asset' && c.ratio >= 0.95 && c.ratio <= 1.10, 'VALUE PACKAGE — 3 ASSETS');
+    pickFrom(c => c.archFit >= 0.65 && c.ratio >= 0.92 && c.ratio <= 1.15, 'ARCHETYPE-TILTED');
+    for (const c of candidates) {
+      if (picked.length >= N) break;
+      if (pickedSigs.has(c.sig)) continue;
+      picked.push(Object.assign({}, c, { label: 'ALTERNATIVE' }));
+      pickedSigs.add(c.sig);
+    }
+
+    return picked.slice(0, N).map(c => ({
+      label: c.label,
+      sending: c.assets.map(a => ({ name: a.name, pos: a.pos, value: a.value, type: a.type, age: a.age })),
+      totalSent: c.total,
+      fitScore: c.fitScore,
+      fitNote: fitNote(c.assets, archetype, c.archFit),
+      ratio: c.ratio,
+    }));
+  }
+
+  // ──────────────────────────────────────────────────────────────────
+  // archetypeFromTotals — composite of trade value + pick value +
+  // projection-vs-league-median, paired with age-vs-league-median, to
+  // bucket a roster into one of dynasty / contender / tweener /
+  // rebuilder / emergency.
+  // ──────────────────────────────────────────────────────────────────
+  function archetypeFromTotals(avgAge, totalValue, pickVal, projValue, leagueAvg) {
+    if (!leagueAvg || !leagueAvg.age || !leagueAvg.value) return 'tweener';
+    const valNorm  = (totalValue || 0) / (leagueAvg.value || 1);
+    const pickNorm = leagueAvg.pickValue ? ((pickVal || 0) / leagueAvg.pickValue) : 1;
+    const projNorm = leagueAvg.proj      ? ((projValue || 0) / leagueAvg.proj)    : 1;
+    const composite = 0.6 * valNorm + 0.2 * pickNorm + 0.2 * projNorm;
+
+    const valueHigh = composite > 1.10;
+    const valueLow  = composite < 0.90;
+    const ageYoung  = avgAge < leagueAvg.age - 0.6;
+    const ageOld    = avgAge > leagueAvg.age + 0.6;
+
+    if (valueHigh && ageYoung) return 'dynasty';
+    if (valueHigh)              return 'contender';
+    if (valueLow  && ageOld)    return 'emergency';
+    if (valueLow  && ageYoung)  return 'rebuilder';
+    if (valueLow)               return 'rebuilder';
+    if (ageYoung) return 'rebuilder';
+    if (ageOld)   return 'emergency';
+    return 'tweener';
+  }
+
+  function archetypeLabel(key) {
+    return ({
+      dynasty:   'Dynasty',
+      contender: 'Contender',
+      tweener:   'Tweener',
+      rebuilder: 'Rebuilder',
+      emergency: 'Emergency',
+    })[key] || 'Tweener';
+  }
+
+  window.SLEEPER = {
+    pickValue,
+    getValueByName,
+    getOwnedPicks,
+    buildAssetPool,
+    generateTradeSuggestions,
+    archetypeFromTotals,
+    archetypeLabel,
+  };
+})();
