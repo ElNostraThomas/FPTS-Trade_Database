@@ -1284,6 +1284,13 @@
     _projectionsSeason: null,         // season string of the currently-cached projections (e.g., '2026')
     _projectionsPromiseSeason: null,  // season string of the in-flight projections request
     projScoring: 'ppr',
+    // PHASE 5.6 — format-aware fields. valueKey selects which FP_VALUES /
+    // PICK_VALUES column to read (sf vs 1qb). tepBonus is bonus_rec_te from
+    // the league's scoring_settings — used to add receptions×bonus to TE
+    // season projections. isSuperflex mirrors valueKey for renderers.
+    valueKey:    'valueSf',
+    isSuperflex: true,
+    tepBonus:    0,
     // Active selection
     year: null,
     leagueId: null, league: null,
@@ -1375,11 +1382,37 @@
     return 'std';
   }
 
+  // Detect Superflex by inspecting league.roster_positions for SUPER_FLEX.
+  // Returns true for SF, false for 1QB. Falls back to SF when undetermined
+  // (most dynasty leagues are SF; over-valuing QBs in a 1QB context is the
+  // more visible miscalibration to avoid).
+  function _detectSuperflex(league) {
+    if (league && Array.isArray(league.roster_positions)) {
+      return league.roster_positions.indexOf('SUPER_FLEX') >= 0;
+    }
+    return true;
+  }
+
+  // Tight End Premium bonus: scoring_settings.bonus_rec_te is the extra
+  // points TEs get per reception (typically 0, 0.5, or 1.0). Used to
+  // adjust season-projection points for TEs since Sleeper's pts_ppr /
+  // pts_half_ppr / pts_std fields don't bake in TEP scoring.
+  function _detectTepBonus(league) {
+    const b = league && league.scoring_settings && league.scoring_settings.bonus_rec_te;
+    return (typeof b === 'number' && b > 0) ? b : 0;
+  }
+
   // Lookup projected season points for a Sleeper player_id under the
   // active league's scoring type. Falls through to other pts_* fields
   // when the preferred key is missing, then null when no projection
   // exists at all (rookies pre-projection, inactive players, etc.).
-  function _projForPlayerId(sleeperId) {
+  //
+  // position (optional): when 'TE' and the league is TEP (DRAFT.tepBonus
+  // > 0), add receptions × bonus to the base points. Sleeper's pts_*
+  // fields don't bake in TEP — for a 80-rec TE in a 0.5 TEP league
+  // that's an extra 40 season points that materially changes Team Needs
+  // sorting.
+  function _projForPlayerId(sleeperId, position) {
     if (!sleeperId || !DRAFT.projections) return null;
     const stats = DRAFT.projections[sleeperId];
     if (!stats || typeof stats !== 'object') return null;
@@ -1390,7 +1423,13 @@
             : stats.pts_ppr != null ? stats.pts_ppr
             : stats.pts_half_ppr != null ? stats.pts_half_ppr
             : stats.pts_std;
-    return v != null ? Number(v) : null;
+    if (v == null) return null;
+    let pts = Number(v);
+    if (position === 'TE' && DRAFT.tepBonus > 0) {
+      const rec = stats.rec != null ? Number(stats.rec) : 0;
+      if (rec > 0) pts += rec * DRAFT.tepBonus;
+    }
+    return pts;
   }
 
   // ════════════════════════════════════════════════════════════════════
@@ -1872,6 +1911,13 @@
       // when scoring_settings isn't present (e.g., we landed via deep link with
       // no league context loaded yet).
       DRAFT.projScoring = _detectScoringType(DRAFT.league);
+      // Format awareness — SF vs 1QB drives which value column to read from
+      // FP_VALUES + PICK_VALUES, and TEP (bonus_rec_te) adjusts TE projections.
+      // Defaults are SF + no-TEP; detection happens here so every downstream
+      // render call (analysis / BPA / trades / roster) reads consistent values.
+      DRAFT.isSuperflex = _detectSuperflex(DRAFT.league);
+      DRAFT.valueKey    = DRAFT.isSuperflex ? 'valueSf' : 'value1qb';
+      DRAFT.tepBonus    = _detectTepBonus(DRAFT.league);
       // Use the draft's own season for projections — drafts in older league
       // instances (historic startups walked via previous_league_id) project
       // against that year's data, not the current year.
@@ -2097,11 +2143,19 @@
   // window.normalizePlayerName when the exact key isn't present.
   // Returns { value, ppg } with nulls when no FP coverage exists (common
   // for late-round picks, deep rookies, IDP, etc.).
+  //
+  // value column is keyed by DRAFT.valueKey ('valueSf' for SF leagues,
+  // 'value1qb' for 1QB). Falls back to the default 'value' field when
+  // the format-specific key is missing (defensive against partial data).
   let _fpNormCache = null;
   function _fpStatsForName(name) {
     if (!name) return { value: null, ppg: null };
     const FP = window.FP_VALUES || {};
-    if (FP[name]) return { value: FP[name].value, ppg: FP[name].ppg };
+    const pickValue = (rec) => {
+      const k = DRAFT.valueKey;
+      return (k && rec[k] != null) ? rec[k] : rec.value;
+    };
+    if (FP[name]) return { value: pickValue(FP[name]), ppg: FP[name].ppg };
     const norm = (typeof window.normalizePlayerName === 'function')
       ? window.normalizePlayerName
       : (s => String(s || '').trim().toLowerCase());
@@ -2110,7 +2164,7 @@
       for (const k in FP) { _fpNormCache[norm(k)] = FP[k]; }
     }
     const hit = _fpNormCache[norm(name)];
-    return hit ? { value: hit.value, ppg: hit.ppg } : { value: null, ppg: null };
+    return hit ? { value: pickValue(hit), ppg: hit.ppg } : { value: null, ppg: null };
   }
 
   // Aggregate user's owned players: pre-existing roster + this draft's
@@ -2142,7 +2196,7 @@
       if (!out.byPos[pos]) return;
       const name  = _playerName(p, pickRow || { player_id: pid });
       const stats = _fpStatsForName(name);
-      const proj  = _projForPlayerId(pid);
+      const proj  = _projForPlayerId(pid, pos);
       const value = stats.value != null ? Number(stats.value) : 0;
       const ppg   = stats.ppg   != null ? Number(stats.ppg)   : 0;
       out.byPos[pos].push({ name, team: p.team || '', value: stats.value, ppg: stats.ppg, proj });
@@ -2417,7 +2471,7 @@
       draftRounds:            (DRAFT.league && DRAFT.league.settings && DRAFT.league.settings.draft_rounds) || 4,
       leagueSeason:           (DRAFT.league && DRAFT.league.season) || new Date().getFullYear(),
       completedDraftSeasons:  new Set(),
-    }, DRAFT.myRosterId);
+    }, DRAFT.myRosterId, DRAFT.valueKey);
   }
 
   function ldRenderTrades(meta, picks, players) {
@@ -2432,7 +2486,7 @@
       card.style.display = 'none';
       return;
     }
-    const targetValue = SLEEPER.pickValue(String(myNext.season), myNext.round);
+    const targetValue = SLEEPER.pickValue(String(myNext.season), myNext.round, DRAFT.valueKey);
     if (!targetValue) {
       // No MVS coverage for this season/round (e.g., 2027+ before
       // sync-fp covers it). Better to hide than to render with a
@@ -2506,8 +2560,9 @@
       const verdict = _pickDelta(recentPick.pick_no, adp);
       // Projected season points for the picked player (Sleeper /projections).
       // Useful for rookies + breakouts where ADP says one thing but production
-      // projection says another. Falls to '—' when no projection exists.
-      const proj = _projForPlayerId(recentPick.player_id);
+      // projection says another. Falls to '—' when no projection exists. TEP
+      // is applied inside _projForPlayerId when the league is TE-premium.
+      const proj = _projForPlayerId(recentPick.player_id, pos);
       pa.innerHTML = ''
         + '<div class="ld-pa-name">' + _escapeHtml(fullName) + '</div>'
         + '<div class="ld-pa-meta">'
@@ -2641,6 +2696,16 @@
     const statusCls = 'status-' + status.replace(/_/g, '-');
     const statusLabel = status.replace(/_/g, ' ').toUpperCase();
 
+    // Format-awareness signals so the user can verify what's been detected
+    // for trade-value lookups + projection scoring. SF/1QB drives the FP
+    // value column; PPR/half/std drives the Sleeper projections field;
+    // TEP adds receptions × bonus to TE projections.
+    const formatLabel = DRAFT.isSuperflex ? 'SF' : '1QB';
+    const scoringLabel = DRAFT.projScoring === 'half_ppr' ? 'HALF PPR'
+                       : DRAFT.projScoring === 'std'      ? 'STANDARD'
+                       : 'PPR';
+    const tepLabel = DRAFT.tepBonus > 0 ? (DRAFT.tepBonus + ' TEP') : 'NO';
+
     const bar = document.getElementById('ld-draft-info');
     bar.innerHTML = ''
       + '<div class="ld-info-stat"><span class="ld-info-label">Status</span>'
@@ -2651,6 +2716,12 @@
       +   '<span class="ld-info-val">' + teams + '</span></div>'
       + '<div class="ld-info-stat"><span class="ld-info-label">Rounds</span>'
       +   '<span class="ld-info-val">' + (rounds || '—') + '</span></div>'
+      + '<div class="ld-info-stat"><span class="ld-info-label">Format</span>'
+      +   '<span class="ld-info-val" title="Drives which FP trade-value column is read (valueSf vs value1qb)">' + formatLabel + '</span></div>'
+      + '<div class="ld-info-stat"><span class="ld-info-label">Scoring</span>'
+      +   '<span class="ld-info-val" title="Drives which pts_* Sleeper projection field is read">' + scoringLabel + '</span></div>'
+      + '<div class="ld-info-stat"><span class="ld-info-label">TEP</span>'
+      +   '<span class="ld-info-val" title="Tight End Premium bonus per reception (bonus_rec_te). Added to TE projections.">' + tepLabel + '</span></div>'
       + '<div class="ld-info-stat"><span class="ld-info-label">Picks made</span>'
       +   '<span class="ld-info-val">' + made + (total ? ' / ' + total : '') + '</span></div>';
     bar.style.display = '';

@@ -38,10 +38,26 @@
   // "2026-1.05"), falls back to a generic round key ("2026-1") when the
   // specific slot isn't seeded. Values may be numeric or an object with
   // a .value field; normalize both.
+  //
+  // formatKey selects which trade-value column to read off the pick
+  // record: 'value' (SF default), 'valueSf' (explicit SF), or 'value1qb'
+  // (1QB). Default is 'value' so existing callers (my-leagues) keep
+  // their prior behavior — live-draft passes 'value1qb' when the active
+  // league is 1QB.
   // ──────────────────────────────────────────────────────────────────
-  function pickValue(season, round) {
+  function pickValue(season, round, formatKey) {
     const PV = window.PICK_VALUES || {};
-    const num = v => (v && typeof v === 'object') ? (Number(v.value) || 0) : (Number(v) || 0);
+    const key = formatKey || 'value';
+    const num = v => {
+      if (v && typeof v === 'object') {
+        const n = Number(v[key]);
+        if (!isNaN(n) && n !== 0) return n;
+        // Fall back to the default 'value' if the requested key isn't on
+        // this record (defensive against partial data).
+        return Number(v.value) || 0;
+      }
+      return Number(v) || 0;
+    };
     const specific = Object.keys(PV).filter(k => k.startsWith(season + '-' + round + '.'));
     if (specific.length) {
       specific.sort();
@@ -113,13 +129,18 @@
   // data shape: { rosters, players, tradedPicks, draftRounds,
   //               leagueSeason, completedDraftSeasons }
   // rosterId: the roster whose pool we want.
+  // formatKey: 'value' (default — SF-equivalent), 'valueSf', or
+  //   'value1qb'. Selects which trade-value column on FP_VALUES + on
+  //   PICK_VALUES to read. Live-draft passes 'value1qb' when the active
+  //   league is 1QB so QBs are valued correctly vs the SF default.
   // ──────────────────────────────────────────────────────────────────
-  function buildAssetPool(data, rosterId) {
+  function buildAssetPool(data, rosterId, formatKey) {
     if (!data) return [];
     const { rosters, players } = data;
     if (!rosters || !players) return [];
     const roster = rosters.find(r => r.roster_id === rosterId);
     if (!roster) return [];
+    const valKey = formatKey || 'value';
 
     const assets = [];
 
@@ -128,11 +149,13 @@
       if (!p) return;
       const name = p.full_name || ((p.first_name || '') + ' ' + (p.last_name || '')).trim();
       const fp = getValueByName(name);
-      if (!fp || !fp.value) return;
+      if (!fp) return;
+      const playerValue = (fp[valKey] != null ? fp[valKey] : fp.value) || 0;
+      if (!playerValue) return;
       assets.push({
         id: 'p_' + pid,
         name,
-        value: fp.value,
+        value: playerValue,
         pos: p.position || (fp.posRank ? fp.posRank.replace(/\d+/g, '') : '—'),
         age: p.age || fp.age || null,
         type: 'player',
@@ -142,7 +165,7 @@
     const owned = getOwnedPicks(rosterId, data.tradedPicks, data.draftRounds,
                                  data.leagueSeason, data.completedDraftSeasons);
     owned.forEach((pk, idx) => {
-      const value = pickValue(pk.season, pk.round) || 0;
+      const value = pickValue(pk.season, pk.round, valKey) || 0;
       if (!value) return;
       const label = pk.season + ' Round ' + pk.round + (pk.isNatural ? '' : ' (acquired)');
       assets.push({
