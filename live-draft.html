@@ -339,22 +339,23 @@
     color: var(--white); padding: 1px 5px;
   }
 
-  /* Position-group COLUMN container — CSS multi-column layout flows the
-     four groups (QB / RB / WR / TE) as side-by-side columns instead of
-     stacked vertically. Each group block stays intact (break-inside:avoid)
-     and the browser distributes them across the column count. Desktop
-     gets 4 columns; mobile drops to 2 (handled in the @media block). */
+  /* Position-group container — CSS Grid lays out the four groups
+     (QB / RB / WR / TE) as ONE row of four columns on desktop, regardless
+     of how many players each group has. Mobile drops to 2x2. CSS Grid
+     specifically (not multi-column) because column-count auto-balances
+     by height — with 4 groups of varying heights the browser would
+     "balance" them into 2 columns of 2. Grid keeps them as fixed
+     side-by-side tracks with independent heights. */
   #ld-roster-panel-body {
-    column-count: 4;
-    column-gap: 10px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    align-items: start;         /* don't stretch short groups to match tall ones */
   }
   .ld-rp-group {
-    break-inside: avoid;
     background: var(--surface2); border: 1px solid var(--border);
     padding: 10px 12px;
-    margin: 0 0 10px;            /* gap between rows when columns wrap */
-    display: inline-block;        /* needed for break-inside in some browsers */
-    width: 100%;                  /* fill the column */
+    min-width: 0;                /* allow content to shrink/truncate in narrow columns */
   }
   .ld-rp-group-head {
     display: flex; flex-direction: column; gap: 8px;
@@ -678,8 +679,8 @@
     .ld-roster-panel { padding: 10px 12px; margin-top: 10px; }
     .ld-roster-panel-head { gap: 8px; margin-bottom: 8px; }
     .ld-roster-panel-sub { font-size: 10px; }
-    #ld-roster-panel-body { column-count: 2; column-gap: 8px; }
-    .ld-rp-group { padding: 8px 10px; margin-bottom: 8px; }
+    #ld-roster-panel-body { grid-template-columns: 1fr 1fr; gap: 8px; }
+    .ld-rp-group { padding: 8px 10px; }
     .ld-rp-pill { font-size: 11px; padding: 3px 9px; min-width: 42px; }
     .ld-rp-count { font-size: 16px; }
     .ld-rp-total-v { font-size: 13px; }
