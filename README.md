@@ -71,6 +71,21 @@ data-suite CSV (passing / rushing / receiving × 5 years × weekly-split toggle)
 
 **Audit:** `python scripts/check-colors.py` — CLEAN across 26 files after every phase commit.
 
+### Post-Phase-8 polish that landed late in the session
+
+After the data-suite migration completed (commit `f276530`) and the doc resync (`b1f5e53`), six follow-up commits closed out remaining gaps:
+
+| Commit | What |
+|---|---|
+| `3fee1fd` | ADP cleanup filter (position + 25-draft floor) in `data-bootstrap.js` — kickers + 5-12-draft outliers no longer pollute ranks. |
+| `22f45dd` | Scale-aware floor — `max(25, corpus_max × 10%)` so SF and 1QB corpora each get their proper threshold (SF rookie → 1,091; 1QB rookie → 58). |
+| `1db152d` | adp-tool rookie draft display capped at 4 rounds (R5 isn't common practice; the corpus only sparsely populates it). |
+| `8e45560` | Player-drawer Stats tab migrated to data suite. `_statsDataLookup` + `_toSleeperShape` translate STATS_DATA records to Sleeper-API shape so the renderer is unchanged; Sleeper /stats stays as fallback for IDP / K / pre-2021. |
+| `8e08aed` | Drawer fixes: FPTS column populating (added `sleeper-helpers.js` to every page that loads `player-panel.js`); year list trimmed to 2021-2025 (data suite cut-off); subtitle now reads "Source: Data Suite". |
+| `0ddfd85` | Punch list — ADP audit item marked done (user-confirmed "adp looks way better"). |
+
+**Cache token state after the session:** `data-bootstrap.js?v=1781000000`, `sleeper-helpers.js?v=1780800000`, `player-panel.js?v=1781200000`, `legend-content.js?v=1781100000` across the 9 consumers.
+
 See [`docs/CHANGES.md`](docs/CHANGES.md) 2026-05-18 (seventh session) for full per-commit detail.
 
 ---
@@ -887,42 +902,59 @@ Paste this as the first message:
 
 ```
 Read README.md for current state. End-of-2026-05-18 (seventh session):
-- LIVE DRAFT ASSISTANT shipped end-to-end. All 5 phases + polish:
-  login + chain walk + traded-pick resolution; Pick Analysis + Team
-  Needs (league-rank weighted) + Roster Panel + BPA + Fair Value at
-  Next Pick; live polling every 25s with visibility-pause; sticky
-  on-the-clock summary bar. Format-aware values (SF/1QB + TEP) wired
-  through every consumer. Real archetype detection via
-  SLEEPER.archetypeFromTotals; replaces v1 'tweener' literal.
-- DATA-SUITE MIGRATION shipped Phases 1-8. data/stats.json is the
-  source of truth: 1,104 players × 5 seasons (2021-2025) × per-week
-  + per-season + playoffWeeks. Cascade wired: CSV → STATS_DATA →
-  adjustStatsForLeague → projectPlayer → lineupProjection →
-  archetypeFromTotals → trade-suggestion packages. Phase 8 closed
-  the last two Sleeper stat surfaces (my-leagues PPG column +
-  ML_SEASON_PROJ now data-suite-derived).
+- LIVE DRAFT ASSISTANT shipped end-to-end. All 5 phases + polish.
+- DATA-SUITE MIGRATION shipped Phases 1-8. data/stats.json (1,104
+  players × 5 seasons 2021-2025) is the source of truth. Cascade:
+  CSV → STATS_DATA → adjustStatsForLeague → projectPlayer →
+  lineupProjection → archetypeFromTotals → trade suggestions.
+- PLAYER DRAWER migrated to data suite (commits 8e45560 / 8e08aed).
+  Stats tab reads window.STATS_DATA via _toSleeperShape translator;
+  Sleeper /stats stays as fallback for IDP / K / pre-2021. Year
+  list cut to 2021-2025. Subtitle "Source: Data Suite". FPTS column
+  works site-wide now that sleeper-helpers.js loads on every page
+  with player-panel.js.
+- ADP CLEANUP shipped + user-confirmed "adp looks way better"
+  (commits 3fee1fd / 22f45dd / 1db152d). Consumer-side filter in
+  data-bootstrap.js _cleanAdpPayload: position ∈ {QB,RB,WR,TE} +
+  drafts >= max(25, corpus_max × 10%). Raw preserved under
+  window.ADP_PAYLOAD_RAW. Rookie display capped at 4 rounds.
 - WHAT STAYS SLEEPER (intentional): /league/{id}/*, /players/nfl,
-  scoring_settings, roster_positions, per-week /projections for the
-  in-season Proj Wk N column, and the live-draft tier-2 fallback for
-  IDP / K / unmapped rookies.
+  scoring_settings, roster_positions, per-week /projections for
+  the in-season Proj Wk N column, live-draft tier-2 fallback for
+  IDP / K / unmapped rookies, player-drawer Stats tier-2 fallback.
 - SHARED MODULE assets/js/sleeper-helpers.js carries the trade
   engine + scoring overlay + lineup math + archetype classifier.
-  Both my-leagues and live-draft consume from one source of truth.
-- SESSION PERSISTENCE: fpts-sleeper-username / -user-id /
-  -display-name / -avatar shared LS keys; my-leagues + live-draft
-  auto-restore on either page after sign-in on the other.
-- Cache tokens bumped this session: data-bootstrap.js,
-  sleeper-helpers.js, my-leagues.html → ?v=1780800000 across all
-  9 consumers.
-- Color audit CLEAN across 26 files. Prior session shipments
-  (mobile-first refactor, Live Draft, format-aware values, session
-  persistence) all intact.
+- SESSION PERSISTENCE: fpts-sleeper-* shared LS keys across
+  my-leagues + live-draft.
+- Cache tokens at session close: data-bootstrap.js ?v=1781000000,
+  sleeper-helpers.js ?v=1780800000, player-panel.js ?v=1781200000,
+  legend-content.js ?v=1781100000.
+- Color audit CLEAN across 26 files.
 
 Confirm by running `git log --oneline -20`.
 
-User-directed next phase: PLAYER COMPARISON FULL PAGE (now unblocked
-by the data-suite migration). Open: ADP audit (specific players TBD),
-external-blocked (1QB scrape SEED_USERS, 14 analyst-flagged heuristics).
+PUNCH LIST (present this to the user at session start — don't act
+on any item without explicit user direction):
+  1. Player Comparison full page — UNBLOCKED, next big initiative.
+     Two visual refs in punch list (Underdog stat-table layout +
+     Hayden-Winks profile-matches layout). STATS_DATA[key].seasons
+     ready for career-trend rendering.
+  2. 1QB scrape SEED_USERS — external-blocked on user-supplied
+     1QB-active Sleeper usernames.
+  3. Analyst feedback loop — external-blocked on analyst input on
+     14 heuristics flagged in formulas.html.
+  4. my-leagues inline-style cleanup — deferred (~280 1-off /
+     JS-toggled, diminishing returns per
+     docs/ml-inline-style-inventory.md).
+  5. Visual polish pass after live use — typography balance,
+     mobile viewport per page, theme toggle on accordion.
+  6. Re-export 2021 + 2022 rushing "Basic" CSVs — low priority;
+     current setup uses Advanced exports which work for the rushing
+     volume fields.
+
+ALL of the above are either user-deferred, external-blocked, or
+require user direction. Don't auto-start work — present the list +
+wait.
 ```
 
 If `data/*.json` is stale: run `push.bat` (handles all five sync steps +

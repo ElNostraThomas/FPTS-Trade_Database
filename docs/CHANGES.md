@@ -91,6 +91,25 @@ Phase 8 commits (close out remaining Sleeper stat surfaces in my-leagues):
 - Spot-checks against Pro Football Reference: Saquon 2024 (345/2005/13), JT 2021 (332/1811/18), CMC 2022 (244/1139/8), Henry 2021 (8 games — real foot-injury truncation).
 - Cross-page consistency: my-leagues + live-draft produce identical archetype + lineupProjection for the same league/team.
 
+### Post-Phase-8 polish
+
+After Phase 8b closed out the last my-leagues Sleeper stat call, six more commits cleaned up adjacent surfaces.
+
+**ADP cleanup** — user flagged outliers in rookie ADP ("some players are not in the right spots"). Audit identified two root causes: 11 kickers polluting rookie ADP (Ethan Sanchez at rank 18 from 12 drafts), and 115 of 204 `rookie_draft_sf` entries having fewer than 25 drafts (statistical noise from a handful of weirdo leagues). Fix:
+
+- `3fee1fd` — initial filter in `data-bootstrap.js _cleanAdpPayload`: position ∈ {QB, RB, WR, TE} + `drafts >= 25`. Re-rank within filtered list. Raw preserved under `window.ADP_PAYLOAD_RAW`. FP_VALUES.adp overlay still uses RAW so individual players don't lose their ADP scalar.
+- `22f45dd` — scale-aware floor: `max(25, corpus_max × 10%)`. Auto-handles the 100x corpus-size gap between SF (max 10,919 drafts) and 1QB (max 586). User-validated: "adp looks way better."
+- `1db152d` — `adp-tool.html` rookie display caps at 4 rounds (R5 isn't common consensus practice; the corpus only sparsely populates it).
+
+**Player-drawer Stats tab migrated to data suite** — user noted the drawer's Player Stats tab was still hitting Sleeper directly. The data suite already covers 2021-2025 weekly + season totals; just needed the drawer to read it.
+
+- `8e45560` — Added `_statsDataLookup` + `_toSleeperShape` translators in `player-panel.js`. The renderer reads Sleeper-API shape (`gp`, `pts_ppr`, `pass_yd`, etc.); the translator adapts STATS_DATA records to that shape. Two-tier resolution: data suite first (synchronous, no network), Sleeper `/stats` fallback only for years/players the suite doesn't carry (pre-2021, IDP, K, DEF).
+- `8e08aed` — Fix FPTS column rendering as `—` everywhere except my-leagues + live-draft. Root cause: `SLEEPER.adjustStatsForLeague` was undefined on pages that didn't load `sleeper-helpers.js`, so fantasyPts computed as 0 → formatter dashed it. Fix: add `sleeper-helpers.js <script>` tag to every page that loads `player-panel.js`. Also dropped 2020 from the year list (data suite cuts off at 2021) and updated the subtitle from "Source: Sleeper" → "Source: Data Suite".
+
+**Punch list close-out** — `0ddfd85` marks the ADP audit item as ✅ done in the README. Player Comparison full page is now the only fully-unblocked next-big-initiative on the list (all other open items are external-blocked or deferred).
+
+**Cache token state at session close**: `data-bootstrap.js?v=1781000000`, `sleeper-helpers.js?v=1780800000`, `player-panel.js?v=1781200000`, `legend-content.js?v=1781100000` across the 9 consumers.
+
 ---
 
 ## 2026-05-17 (sixth session — overnight autonomous) — Mobile-first refactor Phases 1 + 2A + 2B+ + 2C
