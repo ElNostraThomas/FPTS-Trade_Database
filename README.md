@@ -850,21 +850,19 @@ Nothing structural. Polish / nice-to-haves only:
   + real archetype detection, and the my-leagues PPG + `ML_SEASON_PROJ`
   migration off Sleeper. Multi-year archive (2021-2025) at 1,104 players
   in `data/stats.json` (~1.8MB gzipped OTW).
-- [ ] **ADP audit — players in wrong spots** — user flagged 2026-05-18
-  that "some players are not in the right spots for sure" in the published
-  ADP. Could be legitimate outliers (a low-volume player with one outlier
-  early pick dragging their avg) or a data-quality issue with the scrape.
-  Audit path:
-  - Compare `data/adp.json` entries with low `drafts` count against high-
-    visibility consensus rankings; flag any whose ADP rank is wildly out
-    of position vs the consensus.
-  - Spot-check the BPA-style noise floor (`BPA_MIN_DRAFTS = 25` from
-    commit 04d776d) — kickers leaked at lower thresholds; verify the
-    floor catches enough of the bad rows.
-  - If the issue is upstream (Sleeper draft corpus is correct but the
-    scrape mis-maps), update `sleeper_dynasty_adp/` scrape logic.
-  Note when starting which specific player(s) the user flagged so the
-  audit can be targeted vs blanket.
+- [x] ~~**ADP audit — players in wrong spots**~~ — shipped 2026-05-18
+  (user-confirmed "adp looks way better"). Audit identified two root
+  causes: position pollution (kickers ranked alongside QBs in rookie
+  ADP) + small-sample noise (5-12-draft players appearing at top-30
+  ranks because their handful of outlier drafts averaged out early).
+  Fix: consumer-side filter in `data-bootstrap.js` `_cleanAdpPayload`
+  — keep QB/RB/WR/TE only, drop entries below `max(25, corpus_max ×
+  10%)`, re-rank within the filtered list. Auto-scales across the
+  100x corpus-size gap between SF (~10K leagues) and 1QB (~hundreds).
+  Raw payload preserved under `window.ADP_PAYLOAD_RAW` for the
+  future ADP-tool research-mode toggle. Rookie draft display also
+  capped at 4 rounds (R5 wasn't common enough practice). See commits
+  `3fee1fd` + `22f45dd` + `1db152d` for the cascade.
 - [x] ~~**Scoring-variant math layer (TEP / PPC / passing TD)**~~ — shipped
   2026-05-18 (seventh session) as part of the data-suite migration. Lives in
   `SLEEPER.adjustStatsForLeague(rawStats, scoring_settings)` in
