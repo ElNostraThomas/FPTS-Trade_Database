@@ -1572,6 +1572,10 @@ function _applyTabState(snap) {
   STATE.filters.rounds    = new Set(snap.filters && snap.filters.rounds    || []);
   STATE.filters.teams     = new Set(snap.filters && snap.filters.teams     || []);
   STATE.sort = snap.sort ? { ...snap.sort } : { col: 'rank', dir: 'asc' };
+  // Rookie-tab migration: round 5 isn't common enough in consensus to display
+  // (most leagues run 4-round rookie drafts; the ADP corpus only sparsely
+  // populates R5). Clamp any pre-existing localStorage value to the new max.
+  if (STATE.source === 'rookie' && STATE.rounds > 4) STATE.rounds = 4;
 }
 
 function _defaultsForSource(source) {
@@ -1582,7 +1586,11 @@ function _defaultsForSource(source) {
       view: 'box',
       dateFrom: null, dateTo: null,
       snake: false, search: '',   // rookie drafts are conventionally linear
-      rounds: 5, teamCount: 12,
+      // 4 rounds is the consensus rookie-draft length. Round 5 isn't common
+      // enough in practice (most leagues only carry 4 rookie rounds) and the
+      // ADP corpus only thinly populates round 5 — visible board shows ~3 of
+      // 12 picks in R5 which is misleading. User-directed: drop R5.
+      rounds: 4, teamCount: 12,
       filters: { positions: [], rounds: [], teams: [] },
       sort: { col: 'rank', dir: 'asc' },
     };
@@ -1894,6 +1902,8 @@ function applySettings() {
   if (activeTeams) STATE.teamCount = Number(activeTeams.dataset.teams) || 12;
   const r = Number(document.getElementById('rounds-input').value);
   if (Number.isInteger(r) && r >= 1 && r <= 30) STATE.rounds = r;
+  // Rookie source caps at 4 rounds — round 5 isn't common consensus practice.
+  if (STATE.source === 'rookie' && STATE.rounds > 4) STATE.rounds = 4;
   saveSettings();
   renderAll();
   closeSettings();
