@@ -274,17 +274,24 @@
   .ld-pa-badge.no-adp { background: var(--surface2); color: rgba(255,255,255,0.45); border: 1px dashed var(--border2); }
 
   /* TEAM NEEDS card — value-weighted ranking of positions by total
-     trade value + total PPG. Sorted lowest → highest (lowest = biggest
-     need). The lowest row gets a .biggest-need outline so it pops. */
+     trade value + projected season points. Sorted lowest → highest
+     (lowest = biggest need). The lowest row gets a .biggest-need
+     outline so it pops. */
   .ld-needs-row {
     display: grid;
-    grid-template-columns: 56px 1fr 1fr auto;
+    /* Last column is FIXED width (not auto) so the "Biggest need" tag
+       on one row and the "·" placeholder on the others don't shift the
+       1fr stat columns horizontally between rows — Total Value / Total
+       Proj line up vertically regardless of which row carries the tag. */
+    grid-template-columns: 56px 1fr 1fr 110px;
     align-items: center; gap: 10px;
     padding: 8px 10px; margin-bottom: 6px;
     background: var(--surface2); border: 1px solid var(--border2);
   }
   .ld-needs-row:last-child { margin-bottom: 0; }
-  .ld-needs-row.biggest-need { border: 2px solid var(--red); }
+  /* Outline (not border) so the +1px doesn't change box size between
+     biggest-need and other rows — stat columns stay aligned. */
+  .ld-needs-row.biggest-need { outline: 2px solid var(--red); outline-offset: -2px; }
   .ld-needs-pill {
     font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
     font-size: 13px; padding: 4px 0; color: var(--white);
@@ -318,7 +325,7 @@
 
   /* ── WIDE ROSTER PANEL (below the draft board) ────────────────────
      Replaces the old "Your Roster" 3rd top-card. Position groups with
-     pill + total Val + total PPG headers; per-player rows beneath each.
+     pill + total Val + total Proj headers; per-player rows beneath each.
      Player rows use the canonical site-wide pos color pill format.
      ────────────────────────────────────────────────────────────────── */
   .ld-roster-panel {
@@ -403,7 +410,7 @@
 
   /* Per-player rows. Narrower columns mean we drop the team column
      entirely (position is in the group header; team can be inspected
-     by clicking through to the drawer). Name + Val + PPG fit cleanly. */
+     by clicking through to the drawer). Name + Val + Proj fit cleanly. */
   .ld-rp-players {
     list-style: none;
     display: grid; gap: 3px;
@@ -665,7 +672,7 @@
     .ld-pa-badge { font-size: 11px; padding: 5px 10px; }
 
     /* Team Needs rows shrink on mobile but keep the 4-column shape. */
-    .ld-needs-row { grid-template-columns: 44px 1fr 1fr auto; gap: 8px; padding: 6px 8px; }
+    .ld-needs-row { grid-template-columns: 44px 1fr 1fr 90px; gap: 8px; padding: 6px 8px; }
     .ld-needs-pill { font-size: 11px; padding: 3px 0; }
     .ld-needs-stat-v { font-size: 12px; }
     .ld-needs-tag { font-size: 8px; padding: 2px 5px; }
@@ -854,15 +861,15 @@
 
     <!-- ════════════════════════════════════════════════════════════════
          YOUR ROSTER — wide panel below the board. Position groups with
-         total Value + total PPG; per-player rows beneath each group.
+         total Value + total Proj; per-player rows beneath each group.
          Hidden until a draft loads.
          ════════════════════════════════════════════════════════════════ -->
     <div id="ld-roster-panel" class="ld-roster-panel" style="display:none">
       <div class="ld-roster-panel-head">
         <div class="ld-card-label">Your Roster</div>
         <div class="ld-roster-panel-sub">
-          Value + PPG sourced from
-          <span class="ld-roster-panel-tag">FP_VALUES</span>. Sum across all rostered + drafted players (deduped).
+          Value from <span class="ld-roster-panel-tag">FP_VALUES</span>, Proj Pts from
+          <span class="ld-roster-panel-tag">Sleeper /projections</span>. Sum across all rostered + drafted players (deduped).
         </div>
       </div>
       <div id="ld-roster-panel-body"></div>
@@ -924,6 +931,14 @@
     tradedPicksByLeague: {},  // leagueId → [traded_picks] from /league/{id}/traded_picks
     players: null,            // /players/nfl cache (~5 MB)
     _playersPromise: null,
+    // Season-aggregated Sleeper projections, flat dict { player_id: { pts_ppr, pts_half_ppr, pts_std, ... } }.
+    // Fetched per draft load (cheap — one request, no per-week fan-out).
+    // projScoring drives which pts_* key to read per player (set from league.scoring_settings.rec).
+    projections: null,
+    _projectionsPromise: null,
+    _projectionsSeason: null,         // season string of the currently-cached projections (e.g., '2026')
+    _projectionsPromiseSeason: null,  // season string of the in-flight projections request
+    projScoring: 'ppr',
     // Active selection
     year: null,
     leagueId: null, league: null,
@@ -953,6 +968,77 @@
       .then(p => { DRAFT.players = p || {}; return DRAFT.players; })
       .catch(e => { DRAFT._playersPromise = null; throw e; });
     return DRAFT._playersPromise;
+  }
+
+  // Sleeper season-aggregated projections. One request, returns flat dict
+  // { player_id: { pts_ppr, pts_half_ppr, pts_std, ... } } — same shape my-leagues
+  // consumes for its season-projection column. Used in the live-draft Team Needs
+  // and Roster Panel to display projected SEASON points (not last-year PPG).
+  //
+  // Fallback: if the requested year 404s (next-season projections not seeded
+  // yet by Sleeper — usually true through late spring), drop back one year.
+  // If both fail, return {} and let downstream renderers show '—'.
+  //
+  // Cache is keyed by season so switching between drafts in different years
+  // (e.g., the user browses a historic startup from the league's first season)
+  // doesn't reuse the wrong year's projections.
+  function getProjections(season) {
+    const yr = String(season || new Date().getFullYear());
+    if (DRAFT.projections && DRAFT._projectionsSeason === yr) {
+      return Promise.resolve(DRAFT.projections);
+    }
+    if (DRAFT._projectionsPromise && DRAFT._projectionsPromiseSeason === yr) {
+      return DRAFT._projectionsPromise;
+    }
+    DRAFT.projections = null;
+    DRAFT._projectionsPromise = null;
+    const y0 = String(parseInt(yr, 10) - 1);
+    const tryYear = (y) => apiFetch(SLEEPER_API + '/projections/nfl/regular/' + y)
+      .then(d => (d && typeof d === 'object' && Object.keys(d).length) ? d : null)
+      .catch(() => null);
+    DRAFT._projectionsPromiseSeason = yr;
+    DRAFT._projectionsPromise = tryYear(yr)
+      .then(d => d || tryYear(y0))
+      .then(d => {
+        DRAFT.projections = d || {};
+        DRAFT._projectionsSeason = yr;
+        return DRAFT.projections;
+      })
+      .catch(() => {
+        DRAFT.projections = {};
+        DRAFT._projectionsSeason = yr;
+        return DRAFT.projections;
+      });
+    return DRAFT._projectionsPromise;
+  }
+
+  // Detect league scoring type for picking the right pts_* projection field.
+  // Sleeper league.scoring_settings.rec values: 1.0=full PPR, 0.5=half, 0=standard.
+  // Default 'ppr' when unknown (most common dynasty scoring).
+  function _detectScoringType(league) {
+    const rec = league && league.scoring_settings && league.scoring_settings.rec;
+    if (rec == null) return 'ppr';
+    if (rec >= 0.99) return 'ppr';
+    if (rec >= 0.49) return 'half_ppr';
+    return 'std';
+  }
+
+  // Lookup projected season points for a Sleeper player_id under the
+  // active league's scoring type. Falls through to other pts_* fields
+  // when the preferred key is missing, then null when no projection
+  // exists at all (rookies pre-projection, inactive players, etc.).
+  function _projForPlayerId(sleeperId) {
+    if (!sleeperId || !DRAFT.projections) return null;
+    const stats = DRAFT.projections[sleeperId];
+    if (!stats || typeof stats !== 'object') return null;
+    const key = DRAFT.projScoring === 'half_ppr' ? 'pts_half_ppr'
+              : DRAFT.projScoring === 'std'      ? 'pts_std'
+              : 'pts_ppr';
+    const v = stats[key] != null ? stats[key]
+            : stats.pts_ppr != null ? stats.pts_ppr
+            : stats.pts_half_ppr != null ? stats.pts_half_ppr
+            : stats.pts_std;
+    return v != null ? Number(v) : null;
   }
 
   // ════════════════════════════════════════════════════════════════════
@@ -1419,10 +1505,23 @@
       const draftRow = allDrafts.find(d => d.draft_id === draftId) || {};
       const sourceLeagueId = draftRow._sourceLeagueId || draftRow.league_id || DRAFT.leagueId;
 
-      const [meta, picks, players] = await Promise.all([
+      // Resolve league scoring (PPR vs Half vs Standard) BEFORE the projections
+      // fetch so _projForPlayerId reads the right pts_* field. Falls back to PPR
+      // when scoring_settings isn't present (e.g., we landed via deep link with
+      // no league context loaded yet).
+      DRAFT.projScoring = _detectScoringType(DRAFT.league);
+      // Use the draft's own season for projections — drafts in older league
+      // instances (historic startups walked via previous_league_id) project
+      // against that year's data, not the current year.
+      const projSeason = (draftRow && draftRow.season)
+                      || (DRAFT.league && DRAFT.league.season)
+                      || new Date().getFullYear();
+
+      const [meta, picks, players, _proj] = await Promise.all([
         apiFetch(SLEEPER_API + '/draft/' + encodeURIComponent(draftId)),
         apiFetch(SLEEPER_API + '/draft/' + encodeURIComponent(draftId) + '/picks'),
         getPlayers(),
+        getProjections(projSeason),
       ]);
       DRAFT.draft = meta;
       DRAFT.detailsByDraft[draftId] = { meta, picks };
@@ -1547,19 +1646,21 @@
   }
 
   // Aggregate user's owned players: pre-existing roster + this draft's
-  // picks. Each entry includes value + PPG from FP_VALUES so downstream
-  // renderers (Team Needs, Roster Panel) can compute totals + sort by
-  // value. Returns:
-  //   { byPos: { QB: [{name, team, value, ppg}], RB: [...], ... },
-  //     totalsByPos: { QB: {value, ppg, count}, ... },
+  // picks. Each entry includes trade value (FP_VALUES) + projected season
+  // points (Sleeper /projections, looked up by player_id) so downstream
+  // renderers (Team Needs, Roster Panel) can compute totals + sort.
+  // PPG (last-year per-game) is kept as a fallback when the projection
+  // is missing (rookies, inactives, etc.). Returns:
+  //   { byPos: { QB: [{name, team, value, ppg, proj}], RB: [...], ... },
+  //     totalsByPos: { QB: {value, ppg, proj, count}, ... },
   //     total: <int> total players }
   function _aggregateRoster(picks, sourceLeagueId, players) {
     const out = {
       byPos:       { QB: [], RB: [], WR: [], TE: [] },
-      totalsByPos: { QB: { value: 0, ppg: 0, count: 0 },
-                     RB: { value: 0, ppg: 0, count: 0 },
-                     WR: { value: 0, ppg: 0, count: 0 },
-                     TE: { value: 0, ppg: 0, count: 0 } },
+      totalsByPos: { QB: { value: 0, ppg: 0, proj: 0, count: 0 },
+                     RB: { value: 0, ppg: 0, proj: 0, count: 0 },
+                     WR: { value: 0, ppg: 0, proj: 0, count: 0 },
+                     TE: { value: 0, ppg: 0, proj: 0, count: 0 } },
       total: 0,
     };
     if (!DRAFT.myRosterId) return out;
@@ -1571,13 +1672,15 @@
       if (!p) return;
       const pos = (p.position || '').toUpperCase();
       if (!out.byPos[pos]) return;
-      const name = _playerName(p, pickRow || { player_id: pid });
+      const name  = _playerName(p, pickRow || { player_id: pid });
       const stats = _fpStatsForName(name);
+      const proj  = _projForPlayerId(pid);
       const value = stats.value != null ? Number(stats.value) : 0;
       const ppg   = stats.ppg   != null ? Number(stats.ppg)   : 0;
-      out.byPos[pos].push({ name, team: p.team || '', value: stats.value, ppg: stats.ppg });
+      out.byPos[pos].push({ name, team: p.team || '', value: stats.value, ppg: stats.ppg, proj });
       out.totalsByPos[pos].value += value;
       out.totalsByPos[pos].ppg   += ppg;
+      out.totalsByPos[pos].proj  += (proj != null ? Number(proj) : 0);
       out.totalsByPos[pos].count++;
       out.total++;
     }
@@ -1606,8 +1709,9 @@
   // Value-weighted team needs: sort positions by total trade-value
   // ascending. Lowest-value position is the "biggest need". The user can
   // see exactly where their draft capital is light without us inventing
-  // predictive logic. Returns array of { pos, count, value, ppg, isBiggestNeed }
-  // sorted ascending by value.
+  // predictive logic. Returns array of { pos, count, value, ppg, proj, isBiggestNeed }
+  // sorted ascending by value. proj = projected season points (Sleeper),
+  // shown alongside Total Value in the Team Needs card.
   function _computeTeamNeeds(agg) {
     if (!agg || !agg.totalsByPos) return [];
     const rows = ['QB', 'RB', 'WR', 'TE'].map(pos => ({
@@ -1615,6 +1719,7 @@
       count: agg.totalsByPos[pos].count,
       value: Math.round(agg.totalsByPos[pos].value || 0),
       ppg:   +(agg.totalsByPos[pos].ppg || 0).toFixed(1),
+      proj:  Math.round(agg.totalsByPos[pos].proj || 0),
     }));
     rows.sort((a, b) => a.value - b.value);
     if (rows.length) rows[0].isBiggestNeed = true;
@@ -1681,7 +1786,7 @@
         return '<div class="ld-needs-row' + (r.isBiggestNeed ? ' biggest-need' : '') + '">'
           + '<span class="ld-needs-pill ' + r.pos + '">' + r.pos + '</span>'
           + '<span class="ld-needs-stat"><span class="ld-needs-stat-l">Total Value</span><span class="ld-needs-stat-v">' + r.value + '</span></span>'
-          + '<span class="ld-needs-stat"><span class="ld-needs-stat-l">Total PPG</span><span class="ld-needs-stat-v">' + r.ppg.toFixed(1) + '</span></span>'
+          + '<span class="ld-needs-stat"><span class="ld-needs-stat-l">Proj Pts</span><span class="ld-needs-stat-v" title="Projected season points (Sleeper)">' + (r.proj > 0 ? r.proj : '—') + '</span></span>'
           + tag
           + '</div>';
       }).join('');
@@ -1710,7 +1815,8 @@
     // column on player rows dropped to keep names readable in narrow cols.
     const groups = ['QB', 'RB', 'WR', 'TE'].map(pos => {
       const players  = agg.byPos[pos] || [];
-      const totals   = agg.totalsByPos[pos] || { value: 0, ppg: 0, count: 0 };
+      const totals   = agg.totalsByPos[pos] || { value: 0, ppg: 0, proj: 0, count: 0 };
+      const projTotal = Math.round(totals.proj || 0);
       const head = ''
         + '<div class="ld-rp-group-head">'
         +   '<div class="ld-rp-group-head-top">'
@@ -1719,17 +1825,18 @@
         +   '</div>'
         +   '<div class="ld-rp-totals">'
         +     '<div class="ld-rp-total"><span class="ld-rp-total-l">Total Value</span><span class="ld-rp-total-v">' + Math.round(totals.value) + '</span></div>'
-        +     '<div class="ld-rp-total"><span class="ld-rp-total-l">Total PPG</span><span class="ld-rp-total-v">' + (totals.ppg || 0).toFixed(1) + '</span></div>'
+        +     '<div class="ld-rp-total" title="Projected season points (Sleeper)"><span class="ld-rp-total-l">Proj Pts</span><span class="ld-rp-total-v">' + (projTotal > 0 ? projTotal : '—') + '</span></div>'
         +   '</div>'
         + '</div>';
       const body = players.length
         ? '<ul class="ld-rp-players">' + players.map(p => {
             const safeName = (p.name || '').replace(/'/g, "\\'");
             const teamTitle = p.team ? (_escapeHtml(p.name) + ' · ' + _escapeHtml(p.team)) : _escapeHtml(p.name);
+            const projDisp  = p.proj != null && p.proj > 0 ? Math.round(p.proj) : '—';
             return '<li class="ld-rp-player" onclick="ldOpenPlayer(\'' + safeName + '\')" title="' + teamTitle + '">'
               + '<span class="ld-rp-player-name">' + _escapeHtml(p.name) + '</span>'
               + '<span class="ld-rp-player-stat"><span class="ld-rp-player-stat-l">Val</span><span class="ld-rp-player-stat-v">' + (p.value != null ? Math.round(p.value) : '—') + '</span></span>'
-              + '<span class="ld-rp-player-stat"><span class="ld-rp-player-stat-l">PPG</span><span class="ld-rp-player-stat-v">' + (p.ppg != null ? (+p.ppg).toFixed(1) : '—') + '</span></span>'
+              + '<span class="ld-rp-player-stat" title="Projected season points (Sleeper)"><span class="ld-rp-player-stat-l">Proj</span><span class="ld-rp-player-stat-v">' + projDisp + '</span></span>'
               + '</li>';
           }).join('') + '</ul>'
         : '<div class="ld-rp-empty">No ' + pos + ' on roster yet</div>';
