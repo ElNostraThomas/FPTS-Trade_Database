@@ -926,7 +926,7 @@
 <section class="page">
   <div class="page-num">11</div>
   <h2 class="page-title small">INDEX · PLAYER<br>PANEL</h2>
-  <p class="page-tagline">The right-hand panel that opens on player or pick click. Five tabs: Trades, Articles, Stats, Age Curve, Finder.</p>
+  <p class="page-tagline">The right-hand panel that opens on player or pick click. Five tabs: Trades, Player Stats (click any year for week-by-week + playoff breakdown), Age Curve, Trade Finder, ADP Heatmap. Articles render as a banner inside the panel hero (not a tab).</p>
   <div class="red-bar"></div>
 
   <div class="fn-card">
@@ -948,9 +948,10 @@
   </div>
 
   <div class="fn-card">
-    <div class="fn-head"><span class="fn-name">renderPlayerStats</span><span class="fn-tag">Stats</span></div>
-    <code class="fn-sig">renderPlayerStats(containerId, player)</code>
-    <p class="fn-desc">Fetches season stats from Sleeper for the player's Sleeper ID and renders a compact stats panel. Falls back gracefully when no Sleeper ID is mapped.</p>
+    <div class="fn-head"><span class="fn-name">renderPlayerStats · _fetchWeeklyStats · _renderWeeklyRowsHtml · _toggleWeeklyExpand</span><span class="fn-tag">Stats</span></div>
+    <code class="fn-sig">renderPlayerStats(containerId, player) · _fetchWeeklyStats(sleeperId, year) · _toggleWeeklyExpand(yearCell, sleeperId, year, cols, colCount, capturedName)</code>
+    <p class="fn-desc">Fetches season stats from Sleeper for the player's Sleeper ID and renders a position-aware stats table — one row per year with FPTS / GP / position-specific counting stats / PPG. Each Year cell is <b>clickable</b>: a small chevron (▸ ▾) toggles an inline expansion that fetches weekly stats (regular + post-season in parallel via <span class="kbd">grouping=week</span>) and inserts child rows below the year row using the same column structure. Playoff weeks marked with a bright orange "PLAYOFF" chip. Per-(player, year) results cached in <span class="kbd">_weeklyStatsCache</span> for the page session. Falls back gracefully when no Sleeper ID is mapped.</p>
+    <p class="fn-meta">Async-guard pattern per CLAUDE.md §1: every fetch captures the target player at call time and bails at resolution if the user has swapped to a different compared player. Inline-style constants <b>_thBase · thStyle · thStyleName · _tdBase · tdStyle · tdNum · tdName</b> reused between the season table and weekly child rows so cells align vertically.</p>
   </div>
 
   <div class="fn-card">
@@ -1264,7 +1265,8 @@
   <div class="fn-card">
     <div class="fn-head"><span class="fn-name">loadStandings · renderStandingsTable · mlSetStandingsSort</span><span class="fn-tag">Standings</span></div>
     <code class="fn-sig">async loadStandings(leagueId) · renderStandingsTable() · mlSetStandingsSort(key)</code>
-    <p class="fn-desc">Pulls all rosters and matchups, derives wins/losses/PF/PA, max points, max-points percentage, and points-by-position breakdown. Renders a sortable table with the user's row highlighted.</p>
+    <p class="fn-desc">Pulls all rosters, users, and up to 18 weeks of matchup data; derives wins/losses/PF/PA, max points (raw <span class="kbd">fpts_max</span>), per-position scoring breakdown, archetype composite (60% player value + 20% pick value + 20% projection), and <b>per-position Max PF contribution (MPX %)</b> via an optimal-lineup simulation that walks <span class="kbd">league.roster_positions</span> and greedily fills each starter slot with the highest-scoring eligible player. Renders a sortable table (Total Value / Archetype / Avg Age / Record / Points For) plus four "Position Rankings" cards with Value Rank, Pts Rank, and MPX % stat blocks. The user's row is highlighted.</p>
+    <p class="fn-meta">Wired up <b>2026-05-17 (second session)</b> as a 3rd tab next to Trade History / Waivers via a <span class="kbd">data-mode="standings"</span> branch in <span class="kbd">mlHistorySetMode</span>. Was previously dead code (function existed but no UI button invoked it). The handler injects the expected DOM scaffolding (<span class="kbd">#standings-content · #standings-loading · #standings-section-meta</span>) into the shared <span class="kbd">trades-content-{leagueId}</span> container before calling <span class="kbd">loadStandings(leagueId)</span>. Per-position MPX% formula documented at <b>docs/FORMULAS.md §57</b>.</p>
   </div>
 
   <div class="fn-card">
@@ -1278,7 +1280,7 @@
   <div class="fn-card">
     <div class="fn-head"><span class="fn-name">loadAllTrades · loadAllTradesScoped · showTradeYear · renderTradeYear · mlHistorySetMode</span><span class="fn-tag">History</span></div>
     <code class="fn-sig">async loadAllTrades(leagueId, season) · showTradeYear(leagueId, idx, tabEl) · async renderTradeYear(leagueId, idx, allTradesByYear, players, leagueChain)</code>
-    <p class="fn-desc">Walks the Sleeper league-chain (<span class="kbd">previous_league_id</span>) back as far as 2017, fetching trades for every season. <span class="kbd">renderTradeYear()</span> renders the active year's trades; <span class="kbd">mlHistorySetMode()</span> swaps between Trades and Waivers in the history surface.</p>
+    <p class="fn-desc">Walks the Sleeper league-chain (<span class="kbd">previous_league_id</span>) back as far as 2017, fetching trades for every season. <span class="kbd">renderTradeYear()</span> renders the active year's trades; <span class="kbd">mlHistorySetMode()</span> swaps between three modes — Trade History, Waivers, and Standings (Standings wired in 2026-05-17 second session via a new <span class="kbd">data-mode="standings"</span> branch). All three share the same <span class="kbd">trades-content-{leagueId}</span> content container; the mode handler injects mode-specific scaffolding and dispatches to <span class="kbd">renderTradeYear</span> / <span class="kbd">renderWaiversSubtab</span> / <span class="kbd">loadStandings</span> respectively.</p>
   </div>
 
   <h3 class="fn-section-head">Cross-league availability</h3>
