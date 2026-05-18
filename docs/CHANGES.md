@@ -6,6 +6,93 @@ the operator manual see [`WORKFLOW.md`](WORKFLOW.md).
 
 ---
 
+## 2026-05-18 (seventh session) — Live Draft Assistant + Data-Suite Migration
+
+Two major initiatives across ~30 commits.
+
+### Live Draft Assistant — full page shipped (Phases 1-5 + polish)
+
+New `live-draft.html` page in the top nav. Sign in with Sleeper username → year + league picker (historic leagues surfaced via `previous_league_id` chain walk; active drafts marked with 🔥) → draft picker → live board. Per-pick analysis card with VALUE/ON ADP/REACH/NO ADP badges. Team Needs sorted by league rank (worst rank = biggest need). Roster Panel with per-position groups (4-up desktop, 2x2 mobile). Best Player Available card (top 10 undrafted by ADP, position-filtered, 25-draft minimum-volume floor). Fair-Value Trade Suggestions backed by the shared trade engine.
+
+Commit map:
+- `fd5eccc` Phase 1: page skeleton + login + draft board
+- `6c80a5a` Phase 1.5: unified login UI + draft-history chain + owner names + active markers
+- `d7f470e` Sort leagues with active drafts to top of dropdown
+- `bb4f57b` Phase 1.7: traded-pick tracking in the draft board
+- `df6c570` Swap 🔴 → 🔥 for active-draft markers in league dropdown
+- `60971e0` Phase 2: per-pick ADP analysis + roster + team needs cards
+- `6b3e239` Phase 2.6-2.8: ON ADP rename + value-weighted Team Needs + wide roster panel
+- `197e9af` Phase 2.10: roster position groups side-by-side (4-up desktop, 2x2 mobile)
+- `41b39ba` CSS multi-column → Grid fix for roster panel
+- `e1ab9a1` Replace PPG with Sleeper projected season pts + fix TE row alignment
+- `870b71c` Per-position league rank + Proj on Pick Analysis
+- `ea46503` Phase 3: live polling + on-the-clock highlight
+- `9322af7` Phase 4.1: Best Player Available card
+- `b27c5e9` Phase 4.2: Fair Value trade suggestions for next pick
+- `128c6c1` Phase 5: sticky on-the-clock summary bar
+- `04d776d` BPA: filter to fantasy positions + minimum draft volume
+
+### Format-aware values across the site
+
+Trade values + pick values now route to the right column (`valueSf` for SF leagues, `value1qb` for 1QB) per-league. TEP / PPC / pass-TD bonus applied via shared `SLEEPER.adjustStatsForLeague` reading each league's `scoring_settings`.
+
+- `bc901f6` Extract `assets/js/sleeper-helpers.js` shared module (trade engine + asset pool + archetype + pick value)
+- `0b7af01` Live Draft: factor in SF/1QB and TEP for values + projections
+- `bf65836` my-leagues: factor in SF/1QB for trade values + pick values
+- `4d5bbb1` my-leagues: apply TEP bonus to projections (consistency with live-draft)
+- `8ec19bc` my-leagues: persist Sleeper session across reloads (shared LS keys with live-draft)
+
+### Data-Suite Migration — Phases 1-8
+
+User dropped CSV exports from FantasyPoints' Data Suite covering 5 seasons (2021-2025) × 3 categories (passing / rushing / receiving) with the "week split" toggle ON. The data suite is now the source of truth for stats; Sleeper stays only for league data + player identity + forward-looking weekly projections.
+
+Phase 1-7 commits (ingest + math + cascade):
+- `095979b` Phase 1: `sync-stats.py` shell + config example + source dir
+- `4f3b48a` Phase 1 verification: ingest data-suite CSVs → data/stats.json (631 players)
+- `3fef56c` Weekly-split mode — aggregate season totals + emit weeks map
+- `544bc4e` Multi-year ingest (2021-2025) — pivot to per-player seasons map
+- `136da75` Playoff data + season-mismatch guard + games fix
+- `94401ce` Backfill 2021 + 2022 rushing (Advanced exports)
+- `7b6986d` Phase 2: data-bootstrap loadStats — expose `window.STATS_DATA`
+- `7784a7e` Phase 3+4: `SLEEPER.adjustStatsForLeague` + `projectPlayer`
+- `a445b87` Phase 5: lineup projection → archetype cascade
+- `6889ccf` Phase 6: live-draft cascade — lineup projection through Team Needs + League Ranks
+- `a9c9953` Phase 7: real archetype detection in live-draft Trade Suggestions
+
+Phase 8 commits (close out remaining Sleeper stat surfaces in my-leagues):
+- `ef6bce4` Phase 8a: PPG column migrated from Sleeper /stats to data-suite STATS_DATA
+- `f276530` Phase 8b: ML_SEASON_PROJ migrated from Sleeper /projections to data-suite
+
+### What stays Sleeper-sourced (intentional)
+
+- `/league/{id}/*` (rosters, users, drafts, traded_picks) — the league IS Sleeper
+- `/players/nfl` — player identity; data suite doesn't ship Sleeper IDs
+- `league.scoring_settings` + `league.roster_positions` — per-league configuration
+- Per-week `/projections/nfl/regular/{year}/{week}` (in-season "Proj Wk N" column only) — forward-looking, no data-suite equivalent
+- Live-draft `_projForPlayerId` tier-2 fallback for IDP / K / DEF / unmapped rookies
+
+### Bugfixes worth flagging
+
+- **BPA position filter** (`04d776d`): Ethan Sanchez (K, 12 drafts in the corpus, ADP 20.2) was landing at #1 BPA. Filtered to QB/RB/WR/TE with a 25-draft minimum-volume floor.
+- **TE row alignment** (`e1ab9a1`): Team Needs row used `auto` last column + 1px-vs-2px border. Fixed via outline-with-negative-offset + fixed-width last column.
+- **Footer-row garbage** (`136da75`): Data suite ships legend text rows ("Rank, Most to Least", "Weighted Opportunity, a somewhat watered down version of XFP") that snuck through as fake players. Filtered via `seasonType` check.
+- **`games` count overwrite** (`136da75`): Per-source `games` summed within a CSV but the LAST source's count was overwriting earlier sources. Now derived from `len(weeks)` at restructure time.
+- **Mislabeled CSVs caught** (`136da75`): `2021/rushing.csv` actually contained 2022 data, `2022/rushing.csv` contained 2023. Season-mismatch guard now aborts the sync with a clear file-naming error.
+
+### Notable artifacts
+
+- `data/stats.json` — ~12 MB on disk, ~1.8 MB gzipped OTW. Boot-fetched once via data-bootstrap. Shape: `{ currentSeason, seasons[], players: { 'name:<norm>' or 'sid:<id>': { name, sleeperId, [currentSeason top-level fields], seasons: { '2021': {...}, ..., '2025': {weeks, playoffWeeks} } } } }`.
+- `assets/js/sleeper-helpers.js` — exports on `window.SLEEPER`: `pickValue`, `getValueByName`, `getOwnedPicks`, `buildAssetPool`, `generateTradeSuggestions`, `archetypeFromTotals`, `archetypeLabel`, `adjustStatsForLeague`, `projectPlayer`, `optimalLineup`, `lineupProjection`.
+- `sync-stats.py` (local-only, gitignored) — config-driven multi-year CSV ingester with composite-key support + season-mismatch validation.
+
+### Verification
+
+- `python scripts/check-colors.py` — CLEAN across 26 files after every phase commit.
+- Spot-checks against Pro Football Reference: Saquon 2024 (345/2005/13), JT 2021 (332/1811/18), CMC 2022 (244/1139/8), Henry 2021 (8 games — real foot-injury truncation).
+- Cross-page consistency: my-leagues + live-draft produce identical archetype + lineupProjection for the same league/team.
+
+---
+
 ## 2026-05-17 (sixth session — overnight autonomous) — Mobile-first refactor Phases 1 + 2A + 2B+ + 2C
 
 User went to bed with instructions: "push through this overnight stop if there is something wrong." Six phase commits shipped autonomously through the night, each pushed live after a clean `python scripts/check-colors.py` audit. Stop conditions in the plan file held — anything requiring browser verification or risky cross-file changes was deferred to a daytime session.

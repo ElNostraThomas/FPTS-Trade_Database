@@ -11,7 +11,71 @@ This file is the **resume-where-we-left-off** doc.
 
 ---
 
-## Where we are (end of 2026-05-17 — sixth session, overnight autonomous)
+## Where we are (end of 2026-05-18 — seventh session)
+
+**The day the data suite became the source of truth.** Two major initiatives shipped across ~30 commits: (1) Live Draft Assistant page from skeleton through Phase 5 + polish, (2) Data-Suite Migration Phases 1-8 that replaces Sleeper-sourced stats / projections across the entire site with user-supplied CSVs from FantasyPoints' Data Suite.
+
+### Live Draft Assistant — page complete end-to-end
+
+New `live-draft.html` page in the nav. Flow: Sleeper username → year + league dropdown (with historic leagues via `previous_league_id` chain walk, active drafts surfaced with 🔥 marker) → draft picker (rookie + startup auto-detected) → live board.
+
+Per-pick analysis: **Pick Analysis card** (Pick / ADP / Proj / Delta with VALUE/ON ADP/REACH/NO ADP badge), **Team Needs** sorted by league rank with worst-rank-first = biggest need, **Roster Panel** with per-position groups (4-up desktop, 2x2 mobile) showing per-player Val + Proj, **Best Player Available** card (top 10 undrafted by ADP, position-filtered to QB/RB/WR/TE, 25-draft minimum-volume floor), **Fair Value at Your Next Pick** trade-suggestion card backed by the shared trade engine.
+
+Live polling every 25s with `visibilitychange` pause (no API burn on backgrounded tabs). On-the-clock highlight: pulsing brand-orange halo on the next-up cell, green when it's the user's pick. **Sticky on-the-clock summary bar** pins under the nav so the user always sees whose pick is up without scrolling to the board.
+
+Traded-pick handling: `slot_to_roster_id` + `/league/{id}/traded_picks` + `pk.roster_id` precedence chain resolves the actual owner of every cell (regardless of season). Per-position **league rank chip** mirrors my-leagues' prank-pills (top 3 green, bottom half red).
+
+### Data-Suite Migration — `data/stats.json` is the source of truth
+
+Multi-year archive: **1,104 unique players × 5 seasons (2021-2025)** × per-week + per-season detail. Ingest pipeline:
+
+```
+data-suite CSV (passing / rushing / receiving × 5 years × weekly-split toggle)
+   → sync-stats.py with composite-key support ("Passing/YDS" vs "Rushing/YDS")
+   → data/stats.json (per-player .seasons[year].weeks + .playoffWeeks maps)
+      → window.STATS_DATA (data-bootstrap.js loadStats)
+         → SLEEPER.adjustStatsForLeague(rawStats, scoring_settings)
+              [+TEP, +PPC, +pass-TD bonus, +half-PPR / std]
+            → SLEEPER.projectPlayer(playerKey, scoring)
+               → SLEEPER.lineupProjection(roster, scoring, roster_positions)
+                  [sum of Start-N optimal-lineup starters]
+                 → SLEEPER.archetypeFromTotals(...projValue=lineupProj...)
+                    → SLEEPER.generateTradeSuggestions(myAssets, target, archetype)
+```
+
+**Start-N lineup auto-sizes** from each league's `roster_positions` array — Start-10 SF, Start-9 1QB, Start-8, all work without hardcoding. **TEP / PPC / pass-TD bonus** detected per league from `scoring_settings.bonus_rec_te` / `.rush_att` / `.pass_td`. **Phase 8** migrated the last two Sleeper stat surfaces in my-leagues (`ML_SEASON_STATS` PPG column + `ML_SEASON_PROJ` season projections) to the data suite — both now derived from `STATS_DATA` via the same scoring overlay.
+
+### What stays Sleeper-sourced (intentional)
+
+- `/league/{id}/*` — rosters, users, drafts, traded_picks (the league IS Sleeper)
+- `/players/nfl` — player identity (Sleeper IDs, positions, teams, ages, injury status). The data suite doesn't ship Sleeper IDs.
+- `league.scoring_settings` + `league.roster_positions` — per-league configuration
+- `/projections/nfl/regular/{year}/{week}` (per-week) — Sleeper's forward-looking weekly projection. The data suite ships historical weeks only — no forward-looking equivalent. Displayed only during in-season weeks.
+- Live-draft `_projForPlayerId` tier-2 fallback — Sleeper /projections for IDP / K / DEF / unmapped rookies (returns null when STATS_DATA misses).
+
+### Format-aware values everywhere
+
+`SLEEPER.pickValue(season, round, formatKey)` and `SLEEPER.buildAssetPool(data, rosterId, formatKey)` route the right column (valueSf vs value1qb) per league. my-leagues + live-draft both detect format from `roster_positions.includes('SUPER_FLEX')` and pass the key through. Trade suggestions in 1QB leagues no longer over-value QBs.
+
+### Session persistence
+
+`fpts-sleeper-username` / `-user-id` / `-display-name` / `-avatar` localStorage keys are shared between my-leagues and live-draft — sign in on either page, auto-restore on both.
+
+### What's queued next
+
+- **Player Comparison full page** — was gated on the data-suite migration; now unblocked. `STATS_DATA[key].seasons` provides per-year career-trend data. Two visual references in the punch list (Underdog stat-table layout + Hayden-Winks profile-matches layout).
+- **ADP audit** — user flagged "some players are not in the right spots." Audit path documented in punch list; needs specific player names.
+- Remaining items external-blocked (1QB scrape seed users, 14 analyst-flagged heuristics) or deferred (my-leagues inline-style cleanup).
+
+**Cache tokens bumped this session:** `data-bootstrap.js`, `sleeper-helpers.js`, `my-leagues.html` → `?v=1780800000` across all 9 consumers.
+
+**Audit:** `python scripts/check-colors.py` — CLEAN across 26 files after every phase commit.
+
+See [`docs/CHANGES.md`](docs/CHANGES.md) 2026-05-18 (seventh session) for full per-commit detail.
+
+---
+
+## Where we were (end of 2026-05-17 — sixth session, overnight autonomous)
 
 **Six sessions on 2026-05-17.** The sixth one (covered here) was an autonomous overnight run that shipped Phases 1 + 2A + 2B+ + 2C of the mobile-first refactor. User went to bed with instructions: "push through this overnight stop if there is something wrong." Six phase commits pushed live, each gated on a clean brand audit.
 
@@ -761,31 +825,31 @@ Nothing structural. Polish / nice-to-haves only:
 - [ ] Visual polish pass after live use — typography balance, mobile
   viewport on each page, dark/light theme toggle on the new accordion.
   **Next session focus: mobile issues.**
-- [ ] **Player Comparison full page** — dedicated page that compares 2-4
-  players side-by-side, complementing (not replacing) the drawer's quick-
-  reference role. Two visual references the user supplied (`Desktop/Player
-  comparison page.jpg` + `Desktop/HIm4pBXaUAAsSMz.jpg`):
+- [ ] **Player Comparison full page** — **UNBLOCKED 2026-05-18 by the data-
+  suite migration.** Dedicated page that compares 2-4 players side-by-side,
+  complementing (not replacing) the drawer's quick-reference role. Two
+  visual references the user supplied (`Desktop/Player comparison page.jpg`
+  + `Desktop/HIm4pBXaUAAsSMz.jpg`):
   - Underdog-style stat table: players as columns, stat-category row
     groups (Projections / Season Stats / Last N Games), green
     highlight on best-in-group per row.
   - Hayden-Winks-style profile + matches: hero player card with
     archetype + key metrics, then a "Top Profile Matches" row of
     similar-player cards.
-  Likely a new `compare.html` page with a multi-player picker at top and
-  the comparison rendered below. **Gated on the data-suite migration**
-  (task below) because the comparison views need the same per-player
-  stat fields the data suite provides. User says "build when the
-  live-draft page is deemed fully finished" — Phase 5 just shipped so
-  this is the next big initiative.
-- [ ] **Migrate stats data to data-suite CSVs** — user has CSV exports
-  from the data suite that should replace the current per-player stats
-  source across the site. Build a `sync-stats.py` (matching the
-  `sync-fp.py` / `sync-rankings.py` pattern) that reads the CSVs from
-  `data/source/stats/`, writes a canonical `data/stats.json`, and a
-  config file lists which columns map to which fields. Every page that
-  currently reads `window.ML_SEASON_STATS` / `window.ML_SEASON_PROJ` /
-  similar should switch to the new payload via data-bootstrap. Includes
-  a manifest of which existing data files this replaces vs. augments.
+  Likely a new `compare.html` page. Per-year career data available from
+  `STATS_DATA[key].seasons` (2021-2025 in stats.json). Last-N-games
+  view reads `STATS_DATA[key].seasons[currentYear].weeks` (or
+  `.playoffWeeks` for post-season-aware modes). **Next big initiative**.
+- [x] ~~**Migrate stats data to data-suite CSVs**~~ — shipped 2026-05-18
+  (seventh session). Phases 1-8 covered ingest (`sync-stats.py` with
+  composite-key support + season-mismatch guard), the bootstrap pipe
+  (`data-bootstrap loadStats` → `window.STATS_DATA`), per-league scoring
+  overlay (`SLEEPER.adjustStatsForLeague`), per-player projection
+  (`SLEEPER.projectPlayer`), lineup math (`SLEEPER.lineupProjection`),
+  the live-draft cascade through `_aggregateRoster` + `_computeLeagueRanks`
+  + real archetype detection, and the my-leagues PPG + `ML_SEASON_PROJ`
+  migration off Sleeper. Multi-year archive (2021-2025) at 1,104 players
+  in `data/stats.json` (~1.8MB gzipped OTW).
 - [ ] **ADP audit — players in wrong spots** — user flagged 2026-05-18
   that "some players are not in the right spots for sure" in the published
   ADP. Could be legitimate outliers (a low-volume player with one outlier
@@ -801,21 +865,21 @@ Nothing structural. Polish / nice-to-haves only:
     scrape mis-maps), update `sleeper_dynasty_adp/` scrape logic.
   Note when starting which specific player(s) the user flagged so the
   audit can be targeted vs blanket.
-- [ ] **Scoring-variant math layer (TEP / PPC / passing TD)** — the data-
-  suite CSVs are base-PPR with 4-pt passing TDs. We adjust client-side
-  based on each league's scoring_settings:
-  - 6-pt passing TD: +2 pts per pass TD
-  - 5-pt passing TD: +1 pt per pass TD
-  - TEP: +0.25 / +0.5 / +0.75 / +1.0 per TE reception (read from
-    `scoring_settings.bonus_rec_te`)
-  - PPC: +0.25 per carry for any player who registered a carry
-    (read from `scoring_settings.rush_att` or equivalent)
-  Implementation: a pure helper `adjustStatsForLeague(rawStats,
-  scoring_settings)` in `sleeper-helpers.js`. Already touches
-  `_projForPlayerId` (live-draft) and `applyTep` (my-leagues) — fold
-  those into the new shared helper so both pages consume one
-  implementation. Same approach for the new pass-TD + PPC bonuses
-  once the data suite ships the underlying fields.
+- [x] ~~**Scoring-variant math layer (TEP / PPC / passing TD)**~~ — shipped
+  2026-05-18 (seventh session) as part of the data-suite migration. Lives in
+  `SLEEPER.adjustStatsForLeague(rawStats, scoring_settings)` in
+  `assets/js/sleeper-helpers.js`. Pulls `bonus_rec_te`, `rush_att`,
+  `pass_td`, `rec` from each league's Sleeper `scoring_settings` and
+  applies bonuses on top of the base full-PPR / 4-pt-pass-TD line. Used
+  by every projection consumer (live-draft Pick Analysis + Team Needs
+  + Trade Suggestions; my-leagues PPG + ML_SEASON_PROJ + archetype).
+- [ ] **Re-export 2021 + 2022 rushing "Basic" CSVs** — current setup uses
+  the "Advanced" rushing exports for those years (the user's "Basic"
+  exports for 2021/2022 were mis-mapped to wrong year folders). Advanced
+  ships identical Rushing/ATT,YDS,TD,FUM but no Receiving section for
+  RBs in those years — so RBs in 2021/2022 only have receiving stats
+  from the receiving CSVs (which is authoritative anyway). Low priority
+  follow-up; functionally complete today.
 
 ---
 
@@ -824,43 +888,43 @@ Nothing structural. Polish / nice-to-haves only:
 Paste this as the first message:
 
 ```
-Read README.md for current state. End-of-2026-05-17 (third session):
-- PUNCH LIST CLOSED (every tractable item). Remaining items are
-  external-blocked (1QB scrape SEED_USERS, analyst-feedback heuristics).
-  Next session focus per user: MOBILE ISSUES.
-- INLINE :root MIGRATION COMPLETE. brand.css is the sole source of
-  truth for brand color tokens. Added --orange and --muted2 to canonical
-  brand.css :root. Removed inline :root + [data-theme="light"] blocks
-  entirely from tiers.html and adp-tool.html. Shrunk index.html and
-  my-leagues.html inline blocks down to ONLY the 3 page-specific
-  texture tokens (--tex-url/size/opacity — these back body::before).
-  trade-calculator.html had its texture tokens removed entirely (no
-  body::before — were dead 388 KB of unused inline base64; file shrunk
-  571 KB → 183 KB).
-- DATA-BOOTSTRAP MIGRATION VERIFIED ALREADY DONE. The README item was
-  stale. adp-tool/my-leagues/index all use fpts:data-ready listeners;
-  zero hand-rolled fetch('data/*.json') remains across all HTML.
-- TRADE CORPUS VERIFIED end-to-end by code path. mvs.json → data-
-  bootstrap.js:186 → _buildTradesFromMvs → _trades() cache → render.
-- DEFERRED-BY-DESIGN items closed: loadStandings orphan IDs (source
-  comment documents the intentional trade-off); pedantic opacity→rgba
-  conversion (would break light mode because rgba(255,255,255,X) doesn't
-  theme-flip like var(--white)); my-leagues inline-style cleanup
-  (Phase A complete per docs/ml-inline-style-inventory.md; residue is
-  1-off or JS-toggled).
-- Cache token bumped this session: brand.css ?v=1779990000 → ?v=1780100000
-  in all 8 consumers (index, trade-calculator, tiers, adp-tool, my-leagues,
-  rankings, formulas, templates/page-template.html).
-- Color audit CLEAN across 24 files.
-- Prior session shipments (alignment audit, branding consistency,
-  Standings tab, weekly stats breakdown, Formulas page, calc bug fixes,
-  Rankings, Analysts) all intact.
+Read README.md for current state. End-of-2026-05-18 (seventh session):
+- LIVE DRAFT ASSISTANT shipped end-to-end. All 5 phases + polish:
+  login + chain walk + traded-pick resolution; Pick Analysis + Team
+  Needs (league-rank weighted) + Roster Panel + BPA + Fair Value at
+  Next Pick; live polling every 25s with visibility-pause; sticky
+  on-the-clock summary bar. Format-aware values (SF/1QB + TEP) wired
+  through every consumer. Real archetype detection via
+  SLEEPER.archetypeFromTotals; replaces v1 'tweener' literal.
+- DATA-SUITE MIGRATION shipped Phases 1-8. data/stats.json is the
+  source of truth: 1,104 players × 5 seasons (2021-2025) × per-week
+  + per-season + playoffWeeks. Cascade wired: CSV → STATS_DATA →
+  adjustStatsForLeague → projectPlayer → lineupProjection →
+  archetypeFromTotals → trade-suggestion packages. Phase 8 closed
+  the last two Sleeper stat surfaces (my-leagues PPG column +
+  ML_SEASON_PROJ now data-suite-derived).
+- WHAT STAYS SLEEPER (intentional): /league/{id}/*, /players/nfl,
+  scoring_settings, roster_positions, per-week /projections for the
+  in-season Proj Wk N column, and the live-draft tier-2 fallback for
+  IDP / K / unmapped rookies.
+- SHARED MODULE assets/js/sleeper-helpers.js carries the trade
+  engine + scoring overlay + lineup math + archetype classifier.
+  Both my-leagues and live-draft consume from one source of truth.
+- SESSION PERSISTENCE: fpts-sleeper-username / -user-id /
+  -display-name / -avatar shared LS keys; my-leagues + live-draft
+  auto-restore on either page after sign-in on the other.
+- Cache tokens bumped this session: data-bootstrap.js,
+  sleeper-helpers.js, my-leagues.html → ?v=1780800000 across all
+  9 consumers.
+- Color audit CLEAN across 26 files. Prior session shipments
+  (mobile-first refactor, Live Draft, format-aware values, session
+  persistence) all intact.
 
 Confirm by running `git log --oneline -20`.
 
-User-directed next phase: MOBILE ISSUES. Punch list residue is
-external-blocked (1QB scrape needs SEED_USERS list, analyst feedback
-needs analyst recommendations on 14 flagged heuristics).
+User-directed next phase: PLAYER COMPARISON FULL PAGE (now unblocked
+by the data-suite migration). Open: ADP audit (specific players TBD),
+external-blocked (1QB scrape SEED_USERS, 14 analyst-flagged heuristics).
 ```
 
 If `data/*.json` is stale: run `push.bat` (handles all five sync steps +
