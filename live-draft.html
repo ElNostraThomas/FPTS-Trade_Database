@@ -602,7 +602,8 @@
     opacity: .35; cursor: default;
   }
   .ld-cell.empty.mine,
-  .ld-cell.empty.traded { opacity: 1; }
+  .ld-cell.empty.traded,
+  .ld-cell.empty.on-the-clock { opacity: 1; }
   .ld-cell.empty:hover { transform: none; }
 
   /* User's own picks: brand-orange outline (with white text already from bright bgs above) */
@@ -610,6 +611,38 @@
     outline: 2px solid var(--red); outline-offset: -2px;
     z-index: 1;
   }
+
+  /* PHASE 3 — ON THE CLOCK: the next-up pick gets a pulsing brand-orange
+     halo so the user can spot the live front of the draft at a glance.
+     Box-shadow pulses outward (not inward) so it doesn't compete with
+     the .mine outline. When the on-the-clock cell ALSO belongs to the
+     user, the pulse swaps to brand-green so it reads as "your turn" not
+     "someone else's turn". */
+  .ld-cell.on-the-clock {
+    outline: 2px solid var(--red); outline-offset: -2px;
+    z-index: 2;
+    animation: ld-otc-pulse 1.6s ease-in-out infinite;
+  }
+  .ld-cell.on-the-clock.user-up-next {
+    outline-color: var(--green);
+    animation-name: ld-otc-pulse-mine;
+  }
+  @keyframes ld-otc-pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(237, 129, 12, 0);   }
+    50%      { box-shadow: 0 0 0 5px rgba(237, 129, 12, .45); }
+  }
+  @keyframes ld-otc-pulse-mine {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(76, 175, 110, 0);   }
+    50%      { box-shadow: 0 0 0 5px rgba(76, 175, 110, .45); }
+  }
+  /* OTC label sits in the empty-cell name slot — replaces the "—" dash.
+     Brand orange for any-team, brand green when it's the user's pick. */
+  .ld-cell-otc {
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 10px; letter-spacing: .04em;
+    color: var(--red);
+  }
+  .ld-cell.on-the-clock.user-up-next .ld-cell-otc { color: var(--green); }
 
   /* Trade indicator — small chip in bottom-right of any cell where the
      pick has been traded away from its slot owner. Arrow + the new
@@ -980,6 +1013,13 @@
     userByRosterId: null,     // roster_id → user (for resolving trade-indicator avatars)
     slotToRoster: null,       // slot (1..N) → original-owner roster_id (constant, from draft.slot_to_roster_id)
     tradedPicksMap: null,     // 'round.slot' → currentOwnerRosterId for any traded pick in the active draft
+    // PHASE 3 — live polling state. pollTimer holds the setInterval id while
+    // the active draft is in a pollable status (anything other than 'complete').
+    // pollDraftId pins the loop to the draft that started it so a draft-switch
+    // mid-poll doesn't cause cross-render. pollPaused tracks the visibility
+    // state so resume can fire an immediate refetch.
+    pollTimer: null,
+    pollDraftId: null,
   };
 
   // localStorage keys
@@ -1271,6 +1311,7 @@
   }
 
   function ldLogout() {
+    ldStopPolling();  // tear down any active poll loop before clearing state
     DRAFT.username = null; DRAFT.userId = null; DRAFT.displayName = null;
     DRAFT.year = null; DRAFT.leagueId = null; DRAFT.league = null;
     DRAFT.draftId = null; DRAFT.draft = null; DRAFT.myRosterId = null;
@@ -1574,11 +1615,111 @@
       ldRenderInfo(meta, picks);
       ldRenderAnalysis(meta, picks, players);
       ldRenderBoard(meta, picks, players);
+      // PHASE 3 — kick off live polling while the draft is in any non-terminal
+      // status. A completed draft has nothing to refresh; pre_draft / drafting /
+      // paused all benefit from background refresh (pre_draft → drafting is the
+      // moment-of-truth signal we want to surface without a manual reload).
+      ldStartPolling(draftId, meta.status);
     } catch (e) {
       host.innerHTML = '<div class="ld-empty"><strong>Couldn\'t load draft.</strong><br>'
         + _escapeHtml(e.message || String(e)) + '</div>';
     }
   }
+
+  // ════════════════════════════════════════════════════════════════════
+  // PHASE 3 — LIVE POLLING
+  //
+  // While a draft is in any non-'complete' status, re-fetch /draft/{id} +
+  // /picks every POLL_INTERVAL_MS so the board / analysis / roster panel
+  // stay current without manual reloads. The fetch is cheap (Sleeper
+  // documented limit is ~1000 req/min/IP; we use 2 req every 25s = ~5/min).
+  //
+  // Tab-hidden pauses the interval entirely (see _ldVisibilityHandler) so
+  // backgrounded tabs don't quietly burn API quota or battery. On resume,
+  // we fire ONE immediate refetch then restart the interval — so when the
+  // user flips back from another app they see the current state immediately.
+  //
+  // Re-render is gated by a cheap diff: only redraw when the picks count
+  // OR the draft status changed. Same-state polls are silent no-ops to
+  // avoid flicker.
+  // ════════════════════════════════════════════════════════════════════
+  const POLL_INTERVAL_MS = 25000;
+
+  function ldStartPolling(draftId, currentStatus) {
+    ldStopPolling();
+    if (currentStatus === 'complete') return;  // nothing to poll for
+    DRAFT.pollDraftId = draftId;
+    // Only start the interval if the tab is currently visible. Otherwise
+    // the visibility handler will start it when the user comes back.
+    if (document.visibilityState !== 'hidden') {
+      DRAFT.pollTimer = setInterval(ldPollOnce, POLL_INTERVAL_MS);
+    }
+  }
+
+  function ldStopPolling() {
+    if (DRAFT.pollTimer) {
+      clearInterval(DRAFT.pollTimer);
+      DRAFT.pollTimer = null;
+    }
+    DRAFT.pollDraftId = null;
+  }
+
+  async function ldPollOnce() {
+    const draftId = DRAFT.pollDraftId;
+    if (!draftId) return;
+    // If the user has navigated to a different draft since this poll was
+    // queued, drop the response on the floor — the next ldLoadDraft will
+    // have already started the correct poll loop.
+    if (draftId !== DRAFT.draftId) {
+      ldStopPolling();
+      return;
+    }
+    try {
+      const [meta, picks] = await Promise.all([
+        apiFetch(SLEEPER_API + '/draft/' + encodeURIComponent(draftId)),
+        apiFetch(SLEEPER_API + '/draft/' + encodeURIComponent(draftId) + '/picks'),
+      ]);
+      // Double-check the user didn't switch drafts while we were awaiting.
+      if (draftId !== DRAFT.draftId) return;
+      const prev = DRAFT.detailsByDraft[draftId] || {};
+      const prevCount = (prev.picks || []).length;
+      const newCount  = (picks || []).length;
+      const prevStatus = prev.meta ? prev.meta.status : null;
+      const statusChanged = prevStatus !== meta.status;
+      if (newCount !== prevCount || statusChanged) {
+        DRAFT.draft = meta;
+        DRAFT.detailsByDraft[draftId] = { meta, picks };
+        ldRenderInfo(meta, picks);
+        ldRenderAnalysis(meta, picks, DRAFT.players || {});
+        ldRenderBoard(meta, picks, DRAFT.players || {});
+      }
+      if (meta && meta.status === 'complete') ldStopPolling();
+    } catch (e) {
+      // Single-tick fetch failure is non-fatal — try again on the next
+      // interval. Surfacing a banner on every transient blip would just
+      // be noise during a live draft.
+    }
+  }
+
+  function _ldVisibilityHandler() {
+    if (!DRAFT.pollDraftId) return;  // not polling anything right now
+    if (document.visibilityState === 'visible') {
+      // Resume: fire one immediate poll for fresh state, then re-arm the
+      // interval. Guard against double-arm in case the listener fires
+      // while the timer is still set.
+      if (!DRAFT.pollTimer) {
+        DRAFT.pollTimer = setInterval(ldPollOnce, POLL_INTERVAL_MS);
+        ldPollOnce();
+      }
+    } else {
+      // Hidden — clear interval so we don't burn quota / battery.
+      if (DRAFT.pollTimer) {
+        clearInterval(DRAFT.pollTimer);
+        DRAFT.pollTimer = null;
+      }
+    }
+  }
+  document.addEventListener('visibilitychange', _ldVisibilityHandler);
 
   // ════════════════════════════════════════════════════════════════════
   // PHASE 2 — ANALYSIS HELPERS
@@ -2043,6 +2184,15 @@
     const pickByNo = {};
     (picks || []).forEach(p => { pickByNo[p.pick_no] = p; });
 
+    // PHASE 3 — "on the clock" is the empty cell with the lowest pick_no
+    // (i.e., the next pick to be made). Computed once, applied per-cell in
+    // the loop below. Suppressed once the draft is complete so the
+    // hypothetical cell beyond the last pick doesn't pulse forever.
+    const made = (picks || []).length;
+    const total = teams * rounds;
+    const isDraftLive = meta && meta.status !== 'complete' && made < total;
+    const onTheClockPickNo = isDraftLive ? (made + 1) : null;
+
     // slot_to_roster_id maps draft slot (1-indexed) → ORIGINAL league
     // roster_id (constant for the draft's lifetime). Combined with
     // tradedPicksMap (built in _buildOwnership) we can resolve the
@@ -2115,12 +2265,21 @@
           // Empty future pick. Highlight if user OWNS this future pick.
           // Show traded chip too so user can see "this future pick now
           // belongs to me / has been traded away from its slot owner".
-          const cls = 'ld-cell empty' + (isMine ? ' mine' : '') + (isTraded ? ' traded' : '');
+          // ON THE CLOCK: if this is the very next pick to be made, pulse
+          // the cell. Swap to green pulse when the user is up.
+          const isOTC      = (pickNo === onTheClockPickNo);
+          const isMyOTC    = isOTC && isMine;
+          const otcCls     = isOTC   ? ' on-the-clock'   : '';
+          const myOtcCls   = isMyOTC ? ' user-up-next'   : '';
+          const cls = 'ld-cell empty' + (isMine ? ' mine' : '') + (isTraded ? ' traded' : '') + otcCls + myOtcCls;
+          const otcLabel = isOTC
+            ? '<span class="ld-cell-otc">' + (isMyOTC ? 'YOUR PICK' : 'ON THE CLOCK') + '</span>'
+            : '<span style="opacity:.45;font-size:11px">—</span>';
           parts.push('<div class="' + cls + '" data-pick-no="' + pickNo + '">'
             + '<div class="ld-cell-top">'
             +   '<span class="ld-cell-pick">' + r + '.' + _padPick(draftSlot) + '</span>'
             + '</div>'
-            + '<div class="ld-cell-name"><span style="opacity:.45;font-size:11px">—</span></div>'
+            + '<div class="ld-cell-name">' + otcLabel + '</div>'
             + tradedChip
             + '</div>');
           continue;
