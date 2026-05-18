@@ -335,6 +335,71 @@
     color: rgba(255,255,255,0.4);
   }
 
+  /* ── BEST PLAYER AVAILABLE card (between analysis grid + board) ────
+     2-col grid on desktop (5 rows × 2 cols = 10 picks visible at once),
+     1-col on mobile. Each row is name + pos pill + Val + ADP, click-
+     through to the shared player drawer. */
+  .ld-bpa {
+    background: var(--surface); border: 1px solid var(--border);
+    padding: 12px 14px; margin-top: 14px;
+  }
+  .ld-bpa-head {
+    display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap;
+    margin-bottom: 10px;
+  }
+  .ld-bpa-sub {
+    font-family: 'Mulish', sans-serif; font-size: 11px;
+    color: rgba(255,255,255,0.55);
+  }
+  .ld-bpa-body {
+    display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px;
+  }
+  .ld-bpa-row {
+    display: grid;
+    grid-template-columns: 22px 40px 1fr 52px 52px;
+    align-items: center; gap: 8px;
+    padding: 6px 10px;
+    background: var(--surface2); border: 1px solid var(--border2);
+    cursor: pointer;
+    transition: border-color .15s, transform .15s;
+  }
+  .ld-bpa-row:hover {
+    border-color: var(--red); transform: translateX(2px);
+  }
+  .ld-bpa-rank {
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 14px; color: rgba(255,255,255,0.55);
+    font-variant-numeric: tabular-nums;
+    text-align: center;
+  }
+  .ld-bpa-pos {
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 11px; padding: 2px 0; color: var(--white);
+    text-align: center;
+  }
+  .ld-bpa-pos.QB { background: var(--pos-qb-bg); }
+  .ld-bpa-pos.RB { background: var(--pos-rb-bg); }
+  .ld-bpa-pos.WR { background: var(--pos-wr-bg); }
+  .ld-bpa-pos.TE { background: var(--pos-te-bg); }
+  .ld-bpa-pos.K, .ld-bpa-pos.DEF, .ld-bpa-pos.PICK { background: var(--pos-pick-bg); }
+  .ld-bpa-name {
+    font-family: 'Mulish', sans-serif; font-size: 13px; font-weight: 700;
+    color: var(--white);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    min-width: 0;
+  }
+  .ld-bpa-stat { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+  .ld-bpa-stat-l {
+    font-family: 'Mulish', sans-serif; font-size: 8px; font-weight: 800;
+    color: rgba(255,255,255,0.55);
+    text-transform: uppercase; letter-spacing: .06em;
+  }
+  .ld-bpa-stat-v {
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 13px; color: var(--white);
+    font-variant-numeric: tabular-nums;
+  }
+
   /* ── WIDE ROSTER PANEL (below the draft board) ────────────────────
      Replaces the old "Your Roster" 3rd top-card. Position groups with
      pill + total Val + total Proj headers; per-player rows beneath each.
@@ -744,6 +809,15 @@
        names + stats get tighter, but the user sees two positions per
        row without scrolling vertically — matches the "see more at
        once" goal. */
+    /* BPA shrinks to 1 column on mobile so each player row stays readable. */
+    .ld-bpa { padding: 10px 12px; margin-top: 10px; }
+    .ld-bpa-sub { font-size: 10px; }
+    .ld-bpa-body { grid-template-columns: 1fr; gap: 5px; }
+    .ld-bpa-row { grid-template-columns: 20px 34px 1fr 44px 44px; gap: 6px; padding: 5px 8px; }
+    .ld-bpa-pos { font-size: 10px; padding: 2px 0; }
+    .ld-bpa-name { font-size: 12px; }
+    .ld-bpa-stat-v { font-size: 12px; }
+
     .ld-roster-panel { padding: 10px 12px; margin-top: 10px; }
     .ld-roster-panel-head { gap: 8px; margin-bottom: 8px; }
     .ld-roster-panel-sub { font-size: 10px; }
@@ -919,6 +993,20 @@
         <div class="ld-card-label">Team Needs — by league rank</div>
         <div class="ld-card-body" id="ld-card-needs-body"></div>
       </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════════════
+         BEST PLAYER AVAILABLE — full-width card between the analysis grid
+         and the board. Top 10 undrafted players by ADP for this format.
+         Refreshes on every poll tick + initial load (not on cell-click —
+         BPA reflects current board state, not the inspected pick).
+         ════════════════════════════════════════════════════════════════ -->
+    <div id="ld-bpa" class="ld-bpa" style="display:none">
+      <div class="ld-bpa-head">
+        <div class="ld-card-label">Best Player Available</div>
+        <div class="ld-bpa-sub">Top 10 undrafted players by ADP for this format. Tap a row to open the player drawer.</div>
+      </div>
+      <div id="ld-bpa-body" class="ld-bpa-body"></div>
     </div>
 
     <!-- Draft board -->
@@ -1365,6 +1453,7 @@
     DRAFT.myRosterId = null;
     document.getElementById('ld-draft-info').style.display = 'none';
     document.getElementById('ld-analysis').style.display = 'none';
+    document.getElementById('ld-bpa').style.display = 'none';
     document.getElementById('ld-roster-panel').style.display = 'none';
     document.getElementById('ld-board-host').innerHTML = '';
     await ldFetchLeagues(DRAFT.year);
@@ -1462,6 +1551,7 @@
     DRAFT.draftId = null; DRAFT.draft = null; DRAFT.myRosterId = null;
     document.getElementById('ld-draft-info').style.display = 'none';
     document.getElementById('ld-analysis').style.display = 'none';
+    document.getElementById('ld-bpa').style.display = 'none';
     document.getElementById('ld-roster-panel').style.display = 'none';
     document.getElementById('ld-board-host').innerHTML = '';
     try { if (id) localStorage.setItem(LS.LAST_LEAGUE, id); } catch (e) {}
@@ -1554,6 +1644,7 @@
     DRAFT.draft = null;
     document.getElementById('ld-draft-info').style.display = 'none';
     document.getElementById('ld-analysis').style.display = 'none';
+    document.getElementById('ld-bpa').style.display = 'none';
     document.getElementById('ld-roster-panel').style.display = 'none';
     document.getElementById('ld-board-host').innerHTML = '';
     try { if (id) localStorage.setItem(LS.LAST_DRAFT, id); } catch (e) {}
@@ -1614,6 +1705,7 @@
       DRAFT.myRosterId = mine ? mine.roster_id : DRAFT.myRosterId;
       ldRenderInfo(meta, picks);
       ldRenderAnalysis(meta, picks, players);
+      ldRenderBPA(meta, picks, players);
       ldRenderBoard(meta, picks, players);
       // PHASE 3 — kick off live polling while the draft is in any non-terminal
       // status. A completed draft has nothing to refresh; pre_draft / drafting /
@@ -1691,6 +1783,7 @@
         DRAFT.detailsByDraft[draftId] = { meta, picks };
         ldRenderInfo(meta, picks);
         ldRenderAnalysis(meta, picks, DRAFT.players || {});
+        ldRenderBPA(meta, picks, DRAFT.players || {});
         ldRenderBoard(meta, picks, DRAFT.players || {});
       }
       if (meta && meta.status === 'complete') ldStopPolling();
@@ -1982,6 +2075,72 @@
     });
     if (rows.length) rows[0].isBiggestNeed = true;
     return rows;
+  }
+
+  // ════════════════════════════════════════════════════════════════════
+  // PHASE 4.1 — BEST PLAYER AVAILABLE
+  //
+  // Filter the format-appropriate ADP list down to players who have NOT
+  // been picked yet in this draft, then return the top N by ADP. Reflects
+  // current board state — re-runs on every poll tick + initial load, but
+  // NOT on cell-click (BPA is "what's still on the board," not "what was
+  // available when I clicked that pick").
+  // ════════════════════════════════════════════════════════════════════
+  const BPA_LIMIT = 10;
+
+  function _computeBPA(meta, picks, players, fmtKey) {
+    const payload = window.ADP_PAYLOAD;
+    const adpList = payload && payload.byMonth && payload.byMonth.ALL && payload.byMonth.ALL[fmtKey];
+    if (!Array.isArray(adpList) || !adpList.length) return [];
+    const norm = (typeof window.normalizePlayerName === 'function')
+      ? window.normalizePlayerName
+      : (s => String(s || '').trim().toLowerCase());
+    // Collect every drafted player's normalized name — both via Sleeper's
+    // canonical player record (players[pick.player_id]) and via the pick's
+    // own metadata fallback (rookies / unmatched IDs).
+    const picked = new Set();
+    (picks || []).forEach(pk => {
+      if (!pk || !pk.player_id) return;
+      const p = players[pk.player_id] || {};
+      const nm = _playerName(p, pk);
+      if (nm) picked.add(norm(nm));
+    });
+    const out = [];
+    for (const row of adpList) {
+      if (!row || !row.name || row.adp == null) continue;
+      if (picked.has(norm(row.name))) continue;
+      out.push(row);
+      if (out.length >= BPA_LIMIT) break;
+    }
+    return out;
+  }
+
+  function ldRenderBPA(meta, picks, players) {
+    const card = document.getElementById('ld-bpa');
+    if (!card) return;
+    if (!meta) { card.style.display = 'none'; return; }
+    const fmtKey = _adpFmtKey(meta, DRAFT.league);
+    const list = _computeBPA(meta, picks, players, fmtKey);
+    if (!list.length) {
+      card.style.display = 'none';
+      return;
+    }
+    card.style.display = '';
+    const body = document.getElementById('ld-bpa-body');
+    body.innerHTML = list.map((p, i) => {
+      const stats = _fpStatsForName(p.name);
+      const pos = (p.pos || 'PICK').toUpperCase();
+      const safeName = (p.name || '').replace(/'/g, "\\'");
+      const valDisp = stats.value != null ? Math.round(stats.value) : '—';
+      const adpDisp = (+p.adp).toFixed(1);
+      return '<div class="ld-bpa-row" onclick="ldOpenPlayer(\'' + safeName + '\')" title="' + _escapeHtml(p.name) + ' · ADP ' + adpDisp + '">'
+        + '<span class="ld-bpa-rank">' + (i + 1) + '</span>'
+        + '<span class="ld-bpa-pos ' + pos + '">' + pos + '</span>'
+        + '<span class="ld-bpa-name">' + _escapeHtml(p.name) + '</span>'
+        + '<span class="ld-bpa-stat"><span class="ld-bpa-stat-l">Val</span><span class="ld-bpa-stat-v">' + valDisp + '</span></span>'
+        + '<span class="ld-bpa-stat"><span class="ld-bpa-stat-l">ADP</span><span class="ld-bpa-stat-v">' + adpDisp + '</span></span>'
+        + '</div>';
+    }).join('');
   }
 
   // Render the analysis cards (Pick Analysis + Team Needs) and the wide
