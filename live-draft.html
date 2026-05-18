@@ -2289,6 +2289,16 @@
   // available when I clicked that pick").
   // ════════════════════════════════════════════════════════════════════
   const BPA_LIMIT = 10;
+  // Dynasty BPA = QB/RB/WR/TE only. The ADP scrape includes kickers + DEF +
+  // IDP, and a tiny fringe of leagues draft a kicker at e.g. round 2 — which
+  // shoves the kicker's ADP into the top-20 with only ~10 drafts of evidence.
+  // Without this filter Ethan Sanchez (K, 12 drafts, ADP 20.2) lands at BPA #1.
+  const BPA_POSITIONS = new Set(['QB', 'RB', 'WR', 'TE']);
+  // Even within fantasy-relevant positions, an ADP entry with only a handful
+  // of drafts is noise (1-2 weirdo leagues, not consensus). 25 is a low floor
+  // that virtually any real prospect clears (real top-30 rookies typically
+  // have 10k+ drafts in the scrape) while killing the long tail.
+  const BPA_MIN_DRAFTS = 25;
 
   function _computeBPA(meta, picks, players, fmtKey) {
     const payload = window.ADP_PAYLOAD;
@@ -2311,6 +2321,12 @@
     for (const row of adpList) {
       if (!row || !row.name || row.adp == null) continue;
       if (picked.has(norm(row.name))) continue;
+      const pos = (row.position || row.pos || '').toUpperCase();
+      if (!BPA_POSITIONS.has(pos)) continue;
+      // drafts field is the number of leagues this player was actually
+      // selected in; absent fields default through to pass (defensive
+      // against ADP shape drift).
+      if (row.drafts != null && row.drafts < BPA_MIN_DRAFTS) continue;
       out.push(row);
       if (out.length >= BPA_LIMIT) break;
     }
@@ -2331,7 +2347,10 @@
     const body = document.getElementById('ld-bpa-body');
     body.innerHTML = list.map((p, i) => {
       const stats = _fpStatsForName(p.name);
-      const pos = (p.pos || 'PICK').toUpperCase();
+      // ADP rows store the field as `position` (full word), not `pos`. The
+      // earlier `p.pos || 'PICK'` fallthrough is why every BPA row rendered
+      // with the purple PICK pill — fix by reading both keys.
+      const pos = (p.position || p.pos || 'PICK').toUpperCase();
       const safeName = (p.name || '').replace(/'/g, "\\'");
       const valDisp = stats.value != null ? Math.round(stats.value) : '—';
       const adpDisp = (+p.adp).toFixed(1);
