@@ -1,0 +1,39 @@
+{
+  "_comment": "Config for sync-stats.py. Copy to sync-stats.config.json and edit. The live file is gitignored.",
+  "season": 2025,
+  "sources_dir": "data/source/stats",
+  "output_file": "data/stats.json",
+  "sources": [
+    {
+      "label": "Data Suite 2025 season totals",
+      "local_csv": "datasuite-2025.csv",
+      "_field_mapping_help": "Map canonical field names (left) to the exact CSV header text in your file (right). Canonical names known to downstream code: name (REQUIRED), team, pos, sleeperId, games, passAtt, passCmp, passYards, passTd, passInts, rushAtt, rushYards, rushTd, targets, rec, recYards, recTd, fumbles. Headers not present in the CSV are skipped with a warning.",
+      "fields": {
+        "name":      "Player",
+        "team":      "Team",
+        "pos":       "Pos",
+        "sleeperId": "SleeperID",
+        "games":     "G",
+        "passAtt":   "PassAtt",
+        "passCmp":   "PassCmp",
+        "passYards": "PassYds",
+        "passTd":    "PassTD",
+        "passInts":  "PassInt",
+        "rushAtt":   "RushAtt",
+        "rushYards": "RushYds",
+        "rushTd":    "RushTD",
+        "targets":   "Tgt",
+        "rec":       "Rec",
+        "recYards":  "RecYds",
+        "recTd":     "RecTD",
+        "fumbles":   "Fum"
+      }
+    }
+  ],
+  "_examples_to_pattern_after": [
+    "Adding a second source (e.g. per-week stats appended into the same stats.json): duplicate the sources entry, point at the new CSV, set its field mapping.",
+    "Sources are merged in array order. Later sources OVERWRITE fields on conflicting keys (so put canonical season totals FIRST and any supplemental sources after).",
+    "When sleeperId is present in a row, the player is keyed by 'sid:<id>'. When absent, keyed by 'name:<normalized name>'. Downstream JS picks both up.",
+    "If your CSV uses different column names than the example above, just edit the right-hand side of the field mapping. The left-hand side names are fixed and must match the canonical field list."
+  ]
+}

@@ -10,6 +10,7 @@ sync-adp.py
 sync-mvs.py
 sync-rankings.py
 sync-analysts.py
+sync-stats.py
 
 # Local logs (weekly scrape output)
 logs/
@@ -28,6 +29,7 @@ sync-fp.config.json
 sync-adp.config.json
 sync-rankings.config.json
 sync-analysts.config.json
+sync-stats.config.json
 
 # API sample files (used to inspect endpoint shapes during dev; not for production)
 *-sample.json
