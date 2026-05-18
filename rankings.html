@@ -25,7 +25,7 @@
 <script src="assets/js/mvs-extras.js?v=1778642255"></script>
 <script src="assets/js/player-articles.js?v=1778680034"></script>
 <script src="assets/js/heatmap.js?v=1778670000"></script>
-<script src="assets/js/legend-content.js?v=1780300000"></script>
+<script src="assets/js/legend-content.js?v=1780600000"></script>
 <script src="assets/js/legend.js?v=1778949514"></script>
 <!-- Team logo helpers — load BEFORE player-panel.js so modal-hero badge works. -->
 <script src="assets/js/team-helpers.js?v=1778680000"></script>
@@ -329,7 +329,7 @@
     .rk-ccard-team img { width: 22px; height: 22px; }
 
     .rk-ccard-strip {
-      display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px;
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px;
       margin-bottom: 6px;
     }
     .rk-ccard-cell {
@@ -625,7 +625,7 @@ function _ensureComboLoaded(analyst, format) {
 
 // ── OVERLAYS — attach ADP comparison fields only ───────────────────────────
 // CSV is the SOLE source of player identity (name, rank, pos, team, age,
-// exp, avgRank, tradeValue, posRank). We do NOT fall back to FP_VALUES for
+// exp, tradeValue, posRank). We do NOT fall back to FP_VALUES for
 // any of those — if the CSV cell is blank, the cell renders as "—" / no
 // badge / no logo. Only the three ADP overlay columns (CurrentADP,
 // PreviousADP, Change) come from sources outside the CSV.
@@ -664,7 +664,6 @@ const COLS = [
   { key: 'team',        label: 'Team',         num: false },
   { key: 'age',         label: 'Age',          num: true  },
   { key: 'exp',         label: 'Exp',          num: true  },
-  { key: 'avgRank',     label: 'Avg',          num: true  },
   { key: 'tradeValue',  label: 'Val',          num: true  },
   { key: 'posRank',     label: 'PRK',          num: false },
   { key: 'currentAdp',  label: 'ADP',          num: true  },
@@ -699,7 +698,6 @@ function _renderRow(p) {
   const nameCell = '<span class="rk-player-name" onclick="_openPlayer(\''
     + (p.name || '').replace(/'/g, "\\'") + '\')">' + p.name + '</span>';
   const tradeVal = (p.tradeValue != null) ? '<span class="rk-trade-value">' + Math.round(p.tradeValue) + '</span>' : '—';
-  const avgRank  = (p.avgRank   != null) ? p.avgRank.toFixed(2) : '—';
   const curAdp   = (p.currentAdp  != null) ? p.currentAdp.toFixed(1)  : '<span style="color:var(--muted)">—</span>';
   const prevAdp  = (p.previousAdp != null) ? p.previousAdp.toFixed(1) : '<span style="color:var(--muted)">—</span>';
   const chip     = window.AdpComparator.changeChipHtml(p.currentAdp, p.previousAdp);
@@ -711,7 +709,6 @@ function _renderRow(p) {
     + '<td>' + teamCell + '</td>'
     + '<td class="col-num">' + _fmtNumeric(p.age)  + '</td>'
     + '<td class="col-num">' + _fmtNumeric(p.exp)  + '</td>'
-    + '<td class="col-num">' + avgRank + '</td>'
     + '<td class="col-num">' + tradeVal + '</td>'
     + '<td>' + _fmtCell(p.posRank) + '</td>'
     + '<td class="col-num">' + curAdp + '</td>'
@@ -724,7 +721,7 @@ function _renderConsensusCard(p) {
   // Mobile-first card mode for Consensus rankings — same data as _renderRow
   // but reflowed for a 390px touch viewport. Each player gets a card with:
   //   Header: rank # + name + POS pill + team logo
-  //   Strip:  5-stat grid (VAL / PRK / AVG / ADP / CHG) — the headline stats
+  //   Strip:  4-stat grid (VAL / PRK / ADP / CHG) — the headline stats
   //   Foot:   age + exp as small secondary text
   // Mirrors the .rk-acard pattern from By Analyst card mode for consistency.
   const posBadge = p.pos
@@ -736,7 +733,6 @@ function _renderConsensusCard(p) {
   const safeName = (p.name || '').replace(/'/g, "\\'");
   const rank     = (p.rank != null) ? p.rank : '—';
   const tradeVal = (p.tradeValue != null) ? Math.round(p.tradeValue) : '—';
-  const avgRank  = (p.avgRank   != null) ? p.avgRank.toFixed(2) : '—';
   const curAdp   = (p.currentAdp != null) ? p.currentAdp.toFixed(1) : '—';
   const posRank  = p.posRank || '—';
   const chip     = window.AdpComparator.changeChipHtml(p.currentAdp, p.previousAdp);
@@ -753,7 +749,6 @@ function _renderConsensusCard(p) {
     + '<div class="rk-ccard-strip">'
     +   '<span class="rk-ccard-cell"><span class="rk-ccard-cell-l">VAL</span><span class="rk-ccard-cell-v">' + tradeVal + '</span></span>'
     +   '<span class="rk-ccard-cell"><span class="rk-ccard-cell-l">PRK</span><span class="rk-ccard-cell-v">' + posRank + '</span></span>'
-    +   '<span class="rk-ccard-cell"><span class="rk-ccard-cell-l">AVG</span><span class="rk-ccard-cell-v">' + avgRank + '</span></span>'
     +   '<span class="rk-ccard-cell"><span class="rk-ccard-cell-l">ADP</span><span class="rk-ccard-cell-v">' + curAdp + '</span></span>'
     +   '<span class="rk-ccard-cell rk-ccard-cell-chg"><span class="rk-ccard-cell-l">CHG</span><span class="rk-ccard-cell-v">' + chip + '</span></span>'
     + '</div>'
@@ -779,7 +774,7 @@ function _applyFilters(players) {
 function _sortPlayers(players) {
   const col = STATE.sort.col;
   const dir = STATE.sort.dir === 'asc' ? 1 : -1;
-  const numericCols = ['rank','age','exp','avgRank','tradeValue','currentAdp','previousAdp'];
+  const numericCols = ['rank','age','exp','tradeValue','currentAdp','previousAdp'];
   const isNum = numericCols.includes(col);
   const isChange = col === 'change';
 
