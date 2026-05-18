@@ -1,0 +1,1009 @@
+<!DOCTYPE html>
+<!--
+═══════════════════════════════════════════════════════════════════════════
+  FPTS Front Office — Live Draft Assistant
+═══════════════════════════════════════════════════════════════════════════
+
+  Sleeper-username login → year/league/draft picker → live draft board.
+
+  Phase 1 (this commit) — skeleton: login + cascading pickers + static
+  board render of picks made so far. No polling, no analysis, no trade
+  suggestions yet.
+
+  Future phases (per plan ~/.claude/plans/i-have-a-deeper-golden-wadler.md):
+    Phase 2 — per-pick ADP-delta + user roster + team-needs panel
+    Phase 3 — live polling every 25s + "on the clock" highlight
+    Phase 4 — passive trade suggestions for the user's next pick
+    Phase 5 — mobile polish + edge cases
+
+  Sleeper endpoints used by this page:
+    GET /user/{username}                          → user_id resolution
+    GET /user/{user_id}/leagues/nfl/{season}      → list user's leagues
+    GET /league/{league_id}/drafts                → list drafts
+    GET /draft/{draft_id}                         → draft metadata
+    GET /draft/{draft_id}/picks                   → picks made so far
+    GET /players/nfl                              → player catalog (cached)
+
+  Branding + mobile-first rules: all rules in `assets/css/brand.css` top
+  comment block apply. One breakpoint at 768px. White text on every bright
+  brand-color fill. No opacity: on parents with colored children. No
+  inline :root duplicates (brand.css is the source of truth).
+═══════════════════════════════════════════════════════════════════════════
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Live Draft — Fantasy Points Front Office</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Kanit:ital,wght@0,400;0,700;1,800&family=Mulish:wght@400;700;900&display=swap" rel="stylesheet">
+
+<!-- Brand-level styles -->
+<link rel="stylesheet" href="assets/css/brand.css?v=1780600000">
+
+<!-- Shared UI component modules (CSS) -->
+<link rel="stylesheet" href="assets/css/mvs-extras.css?v=1780400000">
+<link rel="stylesheet" href="assets/css/heatmap.css?v=1780400000">
+<link rel="stylesheet" href="assets/css/legend.css?v=1780400000">
+<link rel="stylesheet" href="assets/css/player-panel.css?v=1780500000">
+
+<!-- Page identity + data layer config -->
+<script>
+  window.FPTS_CURRENT_PAGE = 'draft';
+</script>
+
+<!-- Shared UI component modules (JS) -->
+<script src="assets/js/mvs-extras.js?v=1778642255"></script>
+<script src="assets/js/player-articles.js?v=1778680034"></script>
+<script src="assets/js/heatmap.js?v=1778670000"></script>
+<script src="assets/js/legend-content.js?v=1780600000"></script>
+<script src="assets/js/legend.js?v=1778949514"></script>
+<script src="assets/js/team-helpers.js?v=1778680000"></script>
+<script src="assets/js/player-panel.js?v=1780500000" defer></script>
+
+<!-- Data bootstrap -->
+<script src="assets/js/data-bootstrap.js?v=1780200000"></script>
+
+<style>
+  /* ════════════════════════════════════════════════════════════════════
+     PAGE-SPECIFIC STYLES — live-draft only.
+     Brand variables (--red / --green / --pos-*-bg / --surface / etc.)
+     all come from assets/css/brand.css. No inline :root.
+     Mobile rules at @media (max-width: 768px) — one breakpoint per
+     site doctrine.
+     ════════════════════════════════════════════════════════════════════ */
+
+  /* ── LOGIN PANEL ──────────────────────────────────────────────────── */
+  .ld-login {
+    max-width: 480px; margin: 60px auto 0;
+    text-align: center; padding: 0 16px;
+  }
+  .ld-login-label {
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 13px; color: var(--red);
+    text-transform: uppercase; letter-spacing: .08em;
+    margin-bottom: 14px;
+  }
+  .ld-login-title {
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 26px; color: var(--white);
+    text-transform: uppercase; letter-spacing: -.01em;
+    line-height: 1.1; margin-bottom: 6px;
+  }
+  .ld-login-sub {
+    font-family: 'Mulish', sans-serif; font-size: 12px;
+    color: rgba(255,255,255,0.55); margin-bottom: 24px;
+  }
+  .ld-login-form {
+    display: flex; gap: 0;
+    border: 2px solid var(--red); background: var(--surface);
+  }
+  .ld-login-input {
+    flex: 1; background: transparent; border: none; outline: none;
+    color: var(--white);
+    font-family: 'Mulish', sans-serif; font-size: 14px; font-weight: 700;
+    padding: 12px 14px;
+  }
+  .ld-login-input::placeholder { color: rgba(255,255,255,0.35); }
+  .ld-login-submit {
+    background: var(--red); border: none; color: var(--white);
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 13px; padding: 12px 22px;
+    text-transform: uppercase; letter-spacing: .05em;
+    cursor: pointer; transition: background .15s;
+    min-height: 44px;
+  }
+  .ld-login-submit:hover { background: var(--orange); }
+  .ld-login-error {
+    margin-top: 14px; padding: 10px 14px;
+    background: rgba(224,82,82,0.12); border: 1px solid var(--pos-qb-bg);
+    color: var(--white);
+    font-family: 'Mulish', sans-serif; font-size: 12px;
+    display: none;
+  }
+  .ld-login-error.show { display: block; }
+
+  /* ── USER CHIP (signed-in indicator) ──────────────────────────────── */
+  .ld-user-chip {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 14px;
+    background: var(--surface); border: 1px solid var(--border);
+    margin-bottom: 14px;
+  }
+  .ld-user-chip-label {
+    font-family: 'Mulish', sans-serif; font-size: 10px; font-weight: 700;
+    color: rgba(255,255,255,0.55);
+    text-transform: uppercase; letter-spacing: .07em;
+  }
+  .ld-user-chip-name {
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 14px; color: var(--white);
+    text-transform: uppercase; letter-spacing: .02em;
+  }
+  .ld-user-chip-signout {
+    margin-left: auto;
+    background: none; border: 1px solid var(--border2);
+    color: var(--white);
+    font-family: 'Mulish', sans-serif; font-size: 10px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .06em;
+    padding: 5px 12px; cursor: pointer;
+    transition: border-color .15s, color .15s;
+    min-height: 32px;
+  }
+  .ld-user-chip-signout:hover { border-color: var(--red); color: var(--red); }
+
+  /* ── CASCADING PICKERS (year / league / draft) ────────────────────── */
+  .ld-pickers {
+    display: grid; grid-template-columns: 100px 1fr 1fr; gap: 8px;
+    background: var(--surface); border: 1px solid var(--border);
+    padding: 12px 14px; margin-bottom: 18px;
+  }
+  .ld-picker-group { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+  .ld-picker-label {
+    font-family: 'Mulish', sans-serif; font-size: 9px; font-weight: 800;
+    color: rgba(255,255,255,0.55);
+    text-transform: uppercase; letter-spacing: .07em;
+  }
+  .ld-select {
+    background: var(--surface2); color: var(--white);
+    border: 1px solid var(--border2);
+    font-family: 'Mulish', sans-serif; font-size: 12px; font-weight: 700;
+    padding: 8px 26px 8px 10px;
+    appearance: none; -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23ED810C'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 8px center;
+    cursor: pointer;
+    text-overflow: ellipsis; overflow: hidden; white-space: nowrap;
+    min-height: 36px;
+  }
+  .ld-select:disabled { opacity: .45; cursor: not-allowed; }
+  .ld-select:focus { outline: none; border-color: var(--red); }
+
+  /* ── DRAFT INFO BAR ───────────────────────────────────────────────── */
+  .ld-draft-info {
+    display: flex; gap: 18px; flex-wrap: wrap;
+    background: var(--surface2); border: 1px solid var(--border);
+    padding: 10px 14px; margin-bottom: 14px;
+  }
+  .ld-info-stat { display: flex; flex-direction: column; gap: 2px; }
+  .ld-info-label {
+    font-family: 'Mulish', sans-serif; font-size: 9px; font-weight: 800;
+    color: rgba(255,255,255,0.55);
+    text-transform: uppercase; letter-spacing: .07em;
+  }
+  .ld-info-val {
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 14px; color: var(--white);
+  }
+  .ld-info-val.status-active     { color: var(--green); }
+  .ld-info-val.status-complete   { color: var(--white); }
+  .ld-info-val.status-paused     { color: var(--yellow); }
+  .ld-info-val.status-pre-draft  { color: var(--red); }
+
+  /* ── DRAFT BOARD ─────────────────────────────────────────────────── */
+  .ld-board-wrap {
+    overflow-x: auto; overflow-y: visible;
+    -webkit-overflow-scrolling: touch;
+    background: var(--surface); border: 1px solid var(--border);
+  }
+  .ld-grid {
+    display: grid; gap: 3px;
+    background: var(--border);    /* shows through as cell separators */
+    padding: 3px;
+  }
+  /* Top-left intersection — sticks to both top + left while board scrolls */
+  .ld-corner {
+    position: sticky; top: 0; left: 0; z-index: 3;
+    background: var(--surface2);
+    min-height: 32px;
+  }
+  /* Column headers (TEAM 1, TEAM 2, ...) — sticky to top while vertical scroll */
+  .ld-col-head {
+    position: sticky; top: 0; z-index: 2;
+    background: var(--surface2);
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 10px; color: var(--red);
+    text-transform: uppercase; letter-spacing: .04em;
+    text-align: center;
+    padding: 7px 4px;
+    border-bottom: 1px solid var(--border);
+    min-height: 32px;
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .ld-col-head.col-mine {
+    background: var(--red); color: var(--white);
+  }
+  /* Row headers (R1, R2, ... with snake arrows) — sticky to left while horizontal scroll */
+  .ld-row-head {
+    position: sticky; left: 0; z-index: 2;
+    background: var(--surface2);
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 11px; color: var(--red);
+    text-align: center;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 1px;
+    padding: 4px 0;
+    border-right: 1px solid var(--border);
+  }
+  .ld-row-head-arrow {
+    font-family: 'Mulish', sans-serif; font-size: 10px; font-weight: 800;
+    color: rgba(255,255,255,0.55);
+    line-height: 1;
+  }
+  /* Pick cells */
+  .ld-cell {
+    background: var(--surface); color: var(--white);
+    padding: 5px 7px;
+    height: 76px;
+    display: flex; flex-direction: column; gap: 2px;
+    overflow: hidden;
+    position: relative;
+    cursor: pointer;
+    transition: transform .12s;
+  }
+  .ld-cell:hover { transform: translateY(-1px); }
+  .ld-cell-top {
+    display: flex; align-items: center; gap: 4px; justify-content: space-between;
+    font-family: 'Mulish', sans-serif; font-size: 8px; font-weight: 800;
+    letter-spacing: .04em;
+  }
+  .ld-cell-pick {
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 10px;
+    color: rgba(255,255,255,0.7);
+  }
+  .ld-cell-pos {
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 8px; padding: 1px 5px;
+    background: rgba(0,0,0,0.22); color: var(--white);
+    letter-spacing: .04em;
+  }
+  .ld-cell-name {
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    line-height: 1.05;
+    overflow: hidden;
+  }
+  .ld-cell-fname {
+    font-size: 9px; opacity: .85;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .ld-cell-lname {
+    font-size: 12px;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  /* Position-colored cells */
+  .ld-cell.QB  { background: var(--pos-qb-bg); color: var(--white); }
+  .ld-cell.RB  { background: var(--pos-rb-bg); color: var(--white); }
+  .ld-cell.WR  { background: var(--pos-wr-bg); color: var(--white); }
+  .ld-cell.TE  { background: var(--pos-te-bg); color: var(--white); }
+  .ld-cell.K   { background: var(--pos-k-bg);  color: var(--white); }
+  .ld-cell.DEF, .ld-cell.PICK { background: var(--pos-pick-bg); color: var(--white); }
+
+  /* Empty future-pick cells */
+  .ld-cell.empty {
+    background: transparent; border: 1px dashed var(--border2);
+    opacity: .35; cursor: default;
+  }
+  .ld-cell.empty:hover { transform: none; }
+
+  /* User's own picks: brand-orange outline (with white text already from bright bgs above) */
+  .ld-cell.mine {
+    outline: 2px solid var(--red); outline-offset: -2px;
+    z-index: 1;
+  }
+
+  /* ── LOADING / EMPTY STATES ───────────────────────────────────────── */
+  .ld-loading {
+    display: flex; align-items: center; justify-content: center;
+    gap: 8px; padding: 28px 20px;
+    font-family: 'Mulish', sans-serif; font-size: 12px;
+    color: rgba(255,255,255,0.55);
+  }
+  .ld-loading-dot {
+    width: 8px; height: 8px; background: var(--red);
+    animation: ld-pulse 1.2s ease-in-out infinite;
+  }
+  .ld-loading-dot:nth-child(2) { animation-delay: .2s; }
+  .ld-loading-dot:nth-child(3) { animation-delay: .4s; }
+  @keyframes ld-pulse {
+    0%, 80%, 100% { opacity: .3; transform: scale(.85); }
+    40%           { opacity: 1;  transform: scale(1); }
+  }
+  .ld-empty {
+    padding: 40px 20px; text-align: center;
+    font-family: 'Mulish', sans-serif; font-size: 13px;
+    color: rgba(255,255,255,0.55);
+    background: var(--surface); border: 1px solid var(--border);
+  }
+  .ld-empty strong { color: var(--white); font-weight: 900; }
+
+  /* ════════════════════════════════════════════════════════════════════
+     MOBILE — designed from a 390px touch baseline.
+     Pickers stack vertically. Login form gets touch-friendly heights.
+     Draft-board cells shrink slightly so more columns fit at once.
+     ════════════════════════════════════════════════════════════════════ */
+  @media (max-width: 768px) {
+    .ld-login { margin-top: 32px; }
+    .ld-login-title { font-size: 20px; }
+    .ld-login-input { font-size: 16px; padding: 10px 12px; }   /* iOS won't zoom-in on focus when >= 16px */
+    .ld-login-submit { padding: 10px 18px; font-size: 12px; }
+
+    .ld-user-chip { padding: 6px 10px; gap: 8px; }
+    .ld-user-chip-name { font-size: 12px; }
+
+    .ld-pickers {
+      grid-template-columns: 1fr;
+      gap: 8px; padding: 10px 12px;
+    }
+    .ld-picker-label { font-size: 9px; }
+    .ld-select { font-size: 12px; padding: 9px 26px 9px 10px; }
+
+    .ld-draft-info { gap: 12px; padding: 8px 12px; }
+    .ld-info-label { font-size: 8px; }
+    .ld-info-val { font-size: 12px; }
+
+    /* Smaller cells so 12-team grids are usable on phone (still requires
+       horizontal swipe — sticky row + col headers from the desktop CSS
+       keep R# and TEAM labels visible while you scroll). */
+    .ld-cell { height: 64px; padding: 4px 5px; }
+    .ld-cell-lname { font-size: 11px; }
+    .ld-cell-fname { font-size: 8px; }
+    .ld-col-head { font-size: 9px; min-height: 28px; padding: 6px 3px; }
+    .ld-row-head { font-size: 10px; }
+  }
+</style>
+</head>
+
+<body>
+
+<div id="_fp-loading">Loading…</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     TOP NAV — Live Draft is the active page (link omitted from its own nav)
+     ═══════════════════════════════════════════════════════════════════════ -->
+<div style="background:var(--nav-bg);border-bottom:2px solid var(--red);position:sticky;top:0;z-index:100"><nav class="topnav" style="border:none;position:static">
+  <div class="wordmark-group">
+  <div class="wordmark" id="wordmark-svg">
+    <svg viewBox="0 0 878 90" xmlns="http://www.w3.org/2000/svg" style="fill-rule:evenodd;clip-rule:evenodd">
+      <path d="M508.084,47.801l-8.983,41.534c0,0 -75.276,-0.036 -85.237,-0.002l0.015,-0.067c0,0 2.533,-17.352 5.641,-25.475c3.708,-9.689 16.604,-32.658 16.604,-32.658c12.902,8.212 8.658,21.025 7.099,27.21c11.719,-8.962 11.012,-17.186 11.003,-28.608c-0.006,-7.356 4.797,-23.375 17.858,-28.257c-4.305,14.678 3.971,24.95 7.333,30.494c6.362,10.492 1.397,21.17 1.397,21.17c0,0 9.268,-3.36 8.863,-15.254c-0.117,-3.424 -1.714,-14.283 8.012,-18.422c-0.754,9.397 5.495,18.682 10.395,28.336Z" fill="var(--red)"/>
+      <path d="M19.856,0.761l47.225,0l-3.757,16.803l-22.539,0l-4.159,18.236l19.99,0l-3.757,16.933l-19.99,0l-8.184,36.602l-24.686,0l19.856,-88.573Z" fill="var(--white)" fill-rule="nonzero"/>
+      <path d="M82.991,0.761l28.577,0l-1.207,88.573l-24.954,0l0.939,-14.589l-16.234,0l-5.635,14.589l-19.99,0l38.505,-88.573Zm4.293,58.745l2.147,-34.648l-13.416,34.648l11.27,0Z" fill="var(--white)" fill-rule="nonzero"/>
+      <path d="M135.036,0.761l26.698,0l3.757,47.804l10.733,-47.804l17.709,0l-19.856,88.573l-26.564,0l-3.891,-47.413l-10.599,47.413l-17.844,0l19.856,-88.573Z" fill="var(--white)" fill-rule="nonzero"/>
+      <path d="M211.755,18.215l-15.831,0l3.891,-17.454l55.678,0l-3.891,17.454l-15.295,0l-15.965,71.119l-24.552,0l15.965,-71.119Z" fill="var(--white)" fill-rule="nonzero"/>
+      <path d="M270.166,0.884l28.537,0l-1.206,88.451l-24.92,0l0.938,-14.568l-16.211,0l-5.627,14.568l-19.963,0l38.451,-88.451Zm4.287,58.664l2.144,-34.6l-13.398,34.6l11.254,0Z" fill="var(--white)" fill-rule="nonzero"/>
+      <path d="M316.507,17.764c2.387,-11.843 10.165,-17.764 23.335,-17.764l16.971,0c6.718,0 11.623,1.888 14.717,5.664c3.094,3.776 3.933,8.753 2.519,14.932l-1.989,10.298l-23.865,0l2.387,-10.427c0.707,-3.433 -0.53,-5.149 -3.712,-5.149l-1.326,0c-1.591,0 -2.828,0.365 -3.712,1.094c-0.884,0.729 -1.547,2.038 -1.989,3.926l-1.326,6.05c-0.354,1.802 -0.243,3.24 0.331,4.312c0.575,1.073 1.746,1.995 3.514,2.768l11.933,4.377c5.038,1.974 8.508,4.72 10.408,8.238c1.9,3.518 2.232,7.981 0.994,13.387l-2.652,12.1c-2.387,11.843 -10.209,17.764 -23.468,17.764l-17.369,0c-6.718,0 -11.623,-1.909 -14.717,-5.728c-3.094,-3.819 -3.933,-8.903 -2.519,-15.254l2.254,-10.942l24.263,0l-2.519,11.456c-0.707,3.433 0.486,5.149 3.58,5.149l1.591,0c1.591,0 2.806,-0.386 3.646,-1.159c0.84,-0.772 1.436,-2.06 1.79,-3.862l1.856,-7.723c0.442,-1.888 0.354,-3.347 -0.265,-4.377c-0.619,-1.03 -1.812,-1.931 -3.58,-2.703l-12.198,-4.634c-9.9,-3.776 -13.656,-11.027 -11.27,-21.754l2.387,-10.04Z" fill="var(--white)" fill-rule="nonzero"/>
+      <path d="M411.302,62.129l-6.16,27.043l-25.31,0l6.294,-27.954l-5.223,-60.458l26.382,0l0.536,33.414l15.4,-33.414l20.623,0l-32.542,61.368Z" fill="var(--white)" fill-rule="nonzero"/>
+      <path d="M526.915,0.761l37.555,0c6.861,0 11.828,1.91 14.902,5.731c3.074,3.821 3.853,9.075 2.339,15.761l-3.475,16.933c-1.515,6.513 -4.232,11.311 -8.152,14.393c-3.92,3.083 -9.222,4.624 -15.904,4.624l-15.503,0l-6.95,31.131l-24.591,0l19.78,-88.575Zm21.651,41.291c1.604,0 2.851,-0.369 3.742,-1.107c0.891,-0.738 1.515,-2.062 1.871,-3.973l3.341,-14.849c0.713,-3.474 -0.445,-5.21 -3.475,-5.21l-6.148,0l-5.613,25.14l6.281,0Z" fill="var(--white)" fill-rule="nonzero"/>
+      <path d="M591.621,18.118c2.541,-11.572 10.254,-17.357 23.136,-17.357l17.747,0c6.573,0 11.437,1.893 14.592,5.679c3.155,3.786 3.988,8.87 2.498,15.251l-11.305,50.285c-2.541,11.572 -10.254,17.357 -23.136,17.357l-17.747,0c-6.66,0 -11.524,-1.893 -14.592,-5.679c-3.067,-3.786 -3.9,-8.87 -2.498,-15.251l11.305,-50.285Zm34.047,3.574c0.438,-1.617 0.329,-2.872 -0.329,-3.765c-0.657,-0.893 -1.731,-1.34 -3.221,-1.34l-1.84,0c-3.067,0 -4.952,1.659 -5.653,4.977l-10.517,46.839c-0.351,1.617 -0.175,2.872 0.526,3.765c0.701,0.893 1.753,1.34 3.155,1.34l1.84,0c2.98,0 4.82,-1.659 5.521,-4.977l10.517,-46.839Z" fill="var(--white)" fill-rule="nonzero"/>
+      <path d="M663.756,0.884l24.652,0l-19.829,88.452l-24.652,0l19.829,-88.452Z" fill="var(--white)" fill-rule="nonzero"/>
+      <path d="M697.921,0.884l26.662,0l3.751,47.738l10.718,-47.738l17.685,0l-19.829,88.452l-26.528,0l-3.885,-47.348l-10.584,47.348l-17.819,0l19.829,-88.452Z" fill="var(--white)" fill-rule="nonzero"/>
+      <path d="M774.557,18.314l-15.809,0l3.885,-17.43l55.601,0l-3.885,17.43l-15.274,0l-15.943,71.022l-24.518,0l15.943,-71.022Z" fill="var(--white)" fill-rule="nonzero"/>
+      <path d="M819.769,18.472c2.363,-11.725 10.064,-17.588 23.104,-17.588l16.803,0c6.651,0 11.508,1.869 14.571,5.608c3.063,3.739 3.894,8.667 2.494,14.784l-1.969,10.196l-23.629,0l2.363,-10.324c0.7,-3.399 -0.525,-5.098 -3.676,-5.098l-1.313,0c-1.575,0 -2.801,0.361 -3.676,1.083c-0.875,.722 -1.532,2.018 -1.969,3.887l-1.313,5.99c-0.35,1.784 -0.241,3.208 0.328,4.27c0.569,1.062 1.728,1.975 3.479,2.74l11.815,4.333c4.988,1.954 8.423,4.673 10.305,8.157c1.882,3.484 2.21,7.902 0.985,13.255l-2.625,11.98c-2.363,11.725 -10.108,17.588 -23.236,17.588l-17.197,0c-6.651,0 -11.508,-1.891 -14.571,-5.672c-3.063,-3.781 -3.894,-8.815 -2.494,-15.103l2.232,-10.833l24.023,0l-2.494,11.343c-0.7,3.399 0.481,5.098 3.544,5.098l1.575,0c1.575,0 2.779,-0.382 3.61,-1.147c0.831,-0.765 1.422,-2.039 1.772,-3.824l1.838,-7.647c0.438,-1.869 0.35,-3.314 -0.263,-4.333c-0.613,-1.02 -1.794,-1.912 -3.544,-2.676l-12.077,-4.588c-9.802,-3.739 -13.521,-10.918 -11.158,-21.539l2.363,-9.941Z" fill="var(--white)" fill-rule="nonzero"/>
+    </svg>
+  </div>
+  <span class="wordmark-tag">Front Office</span>
+  </div>
+  <nav class="nav-links">
+    <a class="nav-link" href="index.html">Database</a>
+    <a class="nav-link" href="trade-calculator.html">Calculator</a>
+    <a class="nav-link" href="my-leagues.html">My Leagues</a>
+    <a class="nav-link" href="tiers.html">Tiers</a>
+    <a class="nav-link" href="adp-tool.html">ADP</a>
+    <a class="nav-link" href="rankings.html">Rankings</a>
+    <a class="nav-link" href="formulas.html">Formulas</a>
+  </nav>
+  <div class="nav-right">
+    <select class="mobile-nav-select" onchange="if(this.value)window.location.href=this.value">
+      <option value="">— Pages —</option>
+      <option value="index.html">Database</option>
+      <option value="trade-calculator.html">Calculator</option>
+      <option value="my-leagues.html">My Leagues</option>
+      <option value="tiers.html">Tiers</option>
+      <option value="adp-tool.html">ADP</option>
+      <option value="rankings.html">Rankings</option>
+      <option value="formulas.html">Formulas</option>
+      <option value="live-draft.html" selected>Live Draft</option>
+    </select>
+    <span class="nav-badge" id="nav-season-badge">SEASON 2026</span>
+    <button id="theme-toggle" onclick="toggleTheme()"
+      style="background:none;border:1px solid var(--border2);color:var(--white);font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:11px;padding:5px 12px;cursor:pointer;transition:all .2s;letter-spacing:.04em;display:flex;align-items:center;gap:6px"
+      onmouseover="this.style.borderColor='var(--red)';this.style.color='var(--red)'"
+      onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--white)'">
+      <span id="theme-icon">☀️</span>
+      <span id="theme-label">LIGHT</span>
+    </button>
+  </div>
+</nav></div>
+
+<main id="page-body" class="page">
+
+  <div class="page-header">
+    <div>
+      <div class="page-title">Live <span>Draft</span></div>
+      <div class="page-subtitle">Follow your Sleeper draft in real time. Sign in with your Sleeper username to start.</div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════════════════
+       LOGIN PANEL — shown when no Sleeper username in localStorage
+       ════════════════════════════════════════════════════════════════════ -->
+  <div id="ld-login" class="ld-login">
+    <div class="ld-login-label">Connect Sleeper</div>
+    <div class="ld-login-title">Sign in to track your draft</div>
+    <div class="ld-login-sub">Username only — no password. We use Sleeper's public API to read your leagues + drafts.</div>
+    <form class="ld-login-form" onsubmit="event.preventDefault();ldLoginSubmit();">
+      <input id="ld-username-input" class="ld-login-input" type="text"
+        placeholder="Sleeper username" autocomplete="username"
+        autocapitalize="none" autocorrect="off" spellcheck="false">
+      <button type="submit" class="ld-login-submit">Connect</button>
+    </form>
+    <div id="ld-login-error" class="ld-login-error"></div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════════════════
+       CONNECTED PANEL — shown when signed in
+       ════════════════════════════════════════════════════════════════════ -->
+  <div id="ld-connected" style="display:none">
+
+    <!-- Signed-in chip + sign-out -->
+    <div class="ld-user-chip">
+      <span class="ld-user-chip-label">Signed in</span>
+      <span class="ld-user-chip-name" id="ld-user-display"></span>
+      <button class="ld-user-chip-signout" onclick="ldLogout()">Sign out</button>
+    </div>
+
+    <!-- Year / League / Draft picker row -->
+    <div class="ld-pickers">
+      <div class="ld-picker-group">
+        <label class="ld-picker-label" for="ld-year-select">Season</label>
+        <select id="ld-year-select" class="ld-select" onchange="ldOnYearChange()"></select>
+      </div>
+      <div class="ld-picker-group">
+        <label class="ld-picker-label" for="ld-league-select">League</label>
+        <select id="ld-league-select" class="ld-select" onchange="ldOnLeagueChange()" disabled>
+          <option value="">— pick a season —</option>
+        </select>
+      </div>
+      <div class="ld-picker-group">
+        <label class="ld-picker-label" for="ld-draft-select">Draft</label>
+        <select id="ld-draft-select" class="ld-select" onchange="ldOnDraftChange()" disabled>
+          <option value="">— pick a league —</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Draft info bar (status + type + teams + rounds) -->
+    <div id="ld-draft-info" class="ld-draft-info" style="display:none"></div>
+
+    <!-- Draft board -->
+    <div id="ld-board-host"></div>
+  </div>
+
+</main>
+
+<!-- Required mount divs for the shared player drawer -->
+<div id="pp-mvs-extras"></div>
+<div id="pp-articles-mount"></div>
+<div id="pp-league-context"></div>
+
+<script>
+  // ════════════════════════════════════════════════════════════════════
+  // THEME TOGGLE (standard across pages)
+  // ════════════════════════════════════════════════════════════════════
+  function toggleTheme() {
+    const cur = document.documentElement.getAttribute('data-theme') || 'dark';
+    const next = cur === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    document.getElementById('theme-icon').textContent = next === 'dark' ? '☀️' : '🌙';
+    document.getElementById('theme-label').textContent = next === 'dark' ? 'LIGHT' : 'DARK';
+    try { localStorage.setItem('fpts-theme', next); } catch (e) {}
+  }
+  (function _initTheme() {
+    try {
+      const saved = localStorage.getItem('fpts-theme');
+      if (saved === 'light') toggleTheme();
+    } catch (e) {}
+  })();
+
+  // ════════════════════════════════════════════════════════════════════
+  // SLEEPER API HELPERS — local versions of my-leagues.html patterns.
+  // Future refactor will extract these into a shared sleeper-helpers
+  // module so my-leagues.html + live-draft.html share one implementation.
+  // ════════════════════════════════════════════════════════════════════
+  const SLEEPER_API = 'https://api.sleeper.app/v1';
+  async function apiFetch(url) {
+    const r = await fetch(url);
+    if (!r.ok) throw new Error('HTTP ' + r.status + ' — ' + url);
+    return r.json();
+  }
+
+  // ════════════════════════════════════════════════════════════════════
+  // DRAFT STATE — in-memory cache + persisted-session metadata
+  // ════════════════════════════════════════════════════════════════════
+  const DRAFT = {
+    // Sleeper auth
+    username: null, userId: null, displayName: null,
+    // Cached fetches
+    leaguesByYear: {},        // year → [leagues]
+    draftsByLeague: {},       // leagueId → [drafts]
+    detailsByDraft: {},       // draftId → { meta, picks }
+    players: null,            // /players/nfl cache (~5 MB)
+    _playersPromise: null,
+    // Active selection
+    year: null,
+    leagueId: null, league: null,
+    draftId: null, draft: null,
+    myRosterId: null,         // user's roster_id in the selected league (for highlighting picks)
+  };
+
+  // localStorage keys
+  const LS = {
+    USERNAME: 'fpts-sleeper-username',
+    USER_ID:  'fpts-sleeper-user-id',
+    DISPLAY:  'fpts-sleeper-display-name',
+    LAST_YEAR:   'fpts-ld-last-year',
+    LAST_LEAGUE: 'fpts-ld-last-league',
+    LAST_DRAFT:  'fpts-ld-last-draft',
+  };
+
+  // Player catalog — fetch once per session, dedupe concurrent calls.
+  function getPlayers() {
+    if (DRAFT.players) return Promise.resolve(DRAFT.players);
+    if (DRAFT._playersPromise) return DRAFT._playersPromise;
+    DRAFT._playersPromise = apiFetch(SLEEPER_API + '/players/nfl')
+      .then(p => { DRAFT.players = p || {}; return DRAFT.players; })
+      .catch(e => { DRAFT._playersPromise = null; throw e; });
+    return DRAFT._playersPromise;
+  }
+
+  // ════════════════════════════════════════════════════════════════════
+  // LOGIN FLOW
+  // ════════════════════════════════════════════════════════════════════
+  async function ldLoginSubmit() {
+    const inp = document.getElementById('ld-username-input');
+    const err = document.getElementById('ld-login-error');
+    const raw = (inp.value || '').trim();
+    err.classList.remove('show');
+    err.textContent = '';
+    if (!raw) {
+      err.textContent = 'Enter a Sleeper username.';
+      err.classList.add('show');
+      return;
+    }
+    inp.disabled = true;
+    try {
+      const user = await apiFetch(SLEEPER_API + '/user/' + encodeURIComponent(raw));
+      if (!user || !user.user_id) {
+        err.textContent = 'No Sleeper user found for "' + raw + '". Double-check the spelling.';
+        err.classList.add('show');
+        inp.disabled = false;
+        return;
+      }
+      DRAFT.username   = user.username || raw;
+      DRAFT.userId     = user.user_id;
+      DRAFT.displayName = user.display_name || user.username || raw;
+      try {
+        localStorage.setItem(LS.USERNAME, DRAFT.username);
+        localStorage.setItem(LS.USER_ID,  DRAFT.userId);
+        localStorage.setItem(LS.DISPLAY,  DRAFT.displayName);
+      } catch (e) { /* localStorage may be disabled */ }
+      ldShowConnected();
+    } catch (e) {
+      err.textContent = 'Network error talking to Sleeper. ' + (e.message || e);
+      err.classList.add('show');
+      inp.disabled = false;
+    }
+  }
+
+  function ldLogout() {
+    DRAFT.username = null; DRAFT.userId = null; DRAFT.displayName = null;
+    DRAFT.year = null; DRAFT.leagueId = null; DRAFT.league = null;
+    DRAFT.draftId = null; DRAFT.draft = null; DRAFT.myRosterId = null;
+    try {
+      [LS.USERNAME, LS.USER_ID, LS.DISPLAY, LS.LAST_YEAR, LS.LAST_LEAGUE, LS.LAST_DRAFT]
+        .forEach(k => localStorage.removeItem(k));
+    } catch (e) {}
+    ldShowLogin();
+  }
+
+  function ldShowLogin() {
+    document.getElementById('ld-login').style.display = '';
+    document.getElementById('ld-connected').style.display = 'none';
+    const inp = document.getElementById('ld-username-input');
+    inp.disabled = false; inp.value = '';
+  }
+
+  async function ldShowConnected() {
+    document.getElementById('ld-login').style.display = 'none';
+    document.getElementById('ld-connected').style.display = '';
+    document.getElementById('ld-user-display').textContent = DRAFT.displayName || DRAFT.username || '—';
+    // Build year dropdown (current season + 2 prior). Current season comes
+    // from ADP_PAYLOAD.season once data-bootstrap fires; fallback to JS Date.
+    const adpSeason = (window.ADP_PAYLOAD && window.ADP_PAYLOAD.season)
+      ? window.ADP_PAYLOAD.season
+      : (new Date()).getFullYear();
+    const years = [adpSeason, adpSeason - 1, adpSeason - 2];
+    const yearSel = document.getElementById('ld-year-select');
+    yearSel.innerHTML = years.map(y => '<option value="' + y + '">' + y + '</option>').join('');
+    // Restore last selection if any, else default to current season
+    let initYear = adpSeason;
+    try {
+      const saved = parseInt(localStorage.getItem(LS.LAST_YEAR), 10);
+      if (years.indexOf(saved) >= 0) initYear = saved;
+    } catch (e) {}
+    yearSel.value = initYear;
+    DRAFT.year = initYear;
+    await ldFetchLeagues(initYear);
+  }
+
+  // ════════════════════════════════════════════════════════════════════
+  // CASCADING PICKERS — year → leagues → drafts → board
+  // ════════════════════════════════════════════════════════════════════
+  async function ldOnYearChange() {
+    const yearSel = document.getElementById('ld-year-select');
+    DRAFT.year = parseInt(yearSel.value, 10);
+    try { localStorage.setItem(LS.LAST_YEAR, String(DRAFT.year)); } catch (e) {}
+    // Reset downstream pickers
+    DRAFT.leagueId = null; DRAFT.league = null;
+    DRAFT.draftId  = null; DRAFT.draft  = null;
+    DRAFT.myRosterId = null;
+    document.getElementById('ld-draft-info').style.display = 'none';
+    document.getElementById('ld-board-host').innerHTML = '';
+    await ldFetchLeagues(DRAFT.year);
+  }
+
+  async function ldFetchLeagues(year) {
+    const leagueSel = document.getElementById('ld-league-select');
+    const draftSel  = document.getElementById('ld-draft-select');
+    leagueSel.disabled = true;
+    leagueSel.innerHTML = '<option value="">Loading…</option>';
+    draftSel.disabled = true;
+    draftSel.innerHTML = '<option value="">— pick a league —</option>';
+
+    let leagues = DRAFT.leaguesByYear[year];
+    if (!leagues) {
+      try {
+        leagues = await apiFetch(
+          SLEEPER_API + '/user/' + encodeURIComponent(DRAFT.userId) + '/leagues/nfl/' + year
+        );
+        DRAFT.leaguesByYear[year] = leagues || [];
+        leagues = DRAFT.leaguesByYear[year];
+      } catch (e) {
+        leagueSel.innerHTML = '<option value="">Error: ' + (e.message || e) + '</option>';
+        return;
+      }
+    }
+    if (!leagues.length) {
+      leagueSel.innerHTML = '<option value="">No leagues found for ' + year + '</option>';
+      return;
+    }
+    leagueSel.innerHTML = '<option value="">— select league —</option>'
+      + leagues.map(l => '<option value="' + l.league_id + '">'
+          + _escapeHtml(l.name) + '</option>').join('');
+    leagueSel.disabled = false;
+
+    // Restore last-selected league for this year
+    try {
+      const savedLeague = localStorage.getItem(LS.LAST_LEAGUE);
+      if (savedLeague && leagues.some(l => l.league_id === savedLeague)) {
+        leagueSel.value = savedLeague;
+        await ldOnLeagueChange();
+      }
+    } catch (e) {}
+  }
+
+  async function ldOnLeagueChange() {
+    const leagueSel = document.getElementById('ld-league-select');
+    const id = leagueSel.value || null;
+    DRAFT.leagueId = id;
+    DRAFT.league = id ? (DRAFT.leaguesByYear[DRAFT.year] || []).find(l => l.league_id === id) : null;
+    // Reset downstream
+    DRAFT.draftId = null; DRAFT.draft = null; DRAFT.myRosterId = null;
+    document.getElementById('ld-draft-info').style.display = 'none';
+    document.getElementById('ld-board-host').innerHTML = '';
+    try { if (id) localStorage.setItem(LS.LAST_LEAGUE, id); } catch (e) {}
+    if (!id) {
+      const draftSel = document.getElementById('ld-draft-select');
+      draftSel.disabled = true;
+      draftSel.innerHTML = '<option value="">— pick a league —</option>';
+      return;
+    }
+    // Fetch the user's roster_id for this league (used to highlight their picks)
+    try {
+      const rosters = await apiFetch(SLEEPER_API + '/league/' + encodeURIComponent(id) + '/rosters');
+      const mine = (rosters || []).find(r => r.owner_id === DRAFT.userId);
+      DRAFT.myRosterId = mine ? mine.roster_id : null;
+    } catch (e) { DRAFT.myRosterId = null; }
+    await ldFetchDrafts(id);
+  }
+
+  async function ldFetchDrafts(leagueId) {
+    const draftSel = document.getElementById('ld-draft-select');
+    draftSel.disabled = true;
+    draftSel.innerHTML = '<option value="">Loading…</option>';
+
+    let drafts = DRAFT.draftsByLeague[leagueId];
+    if (!drafts) {
+      try {
+        drafts = await apiFetch(SLEEPER_API + '/league/' + encodeURIComponent(leagueId) + '/drafts');
+        DRAFT.draftsByLeague[leagueId] = drafts || [];
+        drafts = DRAFT.draftsByLeague[leagueId];
+      } catch (e) {
+        draftSel.innerHTML = '<option value="">Error: ' + (e.message || e) + '</option>';
+        return;
+      }
+    }
+    if (!drafts.length) {
+      draftSel.innerHTML = '<option value="">No drafts in this league</option>';
+      return;
+    }
+    // Sort newest first by start_time (or created if missing)
+    drafts.sort((a, b) => (b.start_time || b.created || 0) - (a.start_time || a.created || 0));
+    draftSel.innerHTML = '<option value="">— select draft —</option>'
+      + drafts.map(d => {
+          const lbl = (d.metadata && d.metadata.name) || _draftLabel(d);
+          return '<option value="' + d.draft_id + '">' + _escapeHtml(lbl) + '</option>';
+        }).join('');
+    draftSel.disabled = false;
+
+    // Restore last-selected draft for this league
+    try {
+      const savedDraft = localStorage.getItem(LS.LAST_DRAFT);
+      if (savedDraft && drafts.some(d => d.draft_id === savedDraft)) {
+        draftSel.value = savedDraft;
+        await ldOnDraftChange();
+      }
+    } catch (e) {}
+  }
+
+  function _draftLabel(d) {
+    const parts = [];
+    parts.push((d.type || 'snake').toUpperCase());
+    if (d.season) parts.push(d.season);
+    if (d.status) parts.push('(' + d.status.replace(/_/g, ' ') + ')');
+    return parts.join(' · ');
+  }
+
+  async function ldOnDraftChange() {
+    const draftSel = document.getElementById('ld-draft-select');
+    const id = draftSel.value || null;
+    DRAFT.draftId = id;
+    DRAFT.draft = null;
+    document.getElementById('ld-draft-info').style.display = 'none';
+    document.getElementById('ld-board-host').innerHTML = '';
+    try { if (id) localStorage.setItem(LS.LAST_DRAFT, id); } catch (e) {}
+    if (!id) return;
+    await ldLoadDraft(id);
+  }
+
+  async function ldLoadDraft(draftId) {
+    const host = document.getElementById('ld-board-host');
+    host.innerHTML = '<div class="ld-loading">'
+      + '<div class="ld-loading-dot"></div>'
+      + '<div class="ld-loading-dot"></div>'
+      + '<div class="ld-loading-dot"></div>'
+      + 'Loading draft board…</div>';
+
+    try {
+      const [meta, picks, players] = await Promise.all([
+        apiFetch(SLEEPER_API + '/draft/' + encodeURIComponent(draftId)),
+        apiFetch(SLEEPER_API + '/draft/' + encodeURIComponent(draftId) + '/picks'),
+        getPlayers(),
+      ]);
+      DRAFT.draft = meta;
+      DRAFT.detailsByDraft[draftId] = { meta, picks };
+      ldRenderInfo(meta, picks);
+      ldRenderBoard(meta, picks, players);
+    } catch (e) {
+      host.innerHTML = '<div class="ld-empty"><strong>Couldn\'t load draft.</strong><br>'
+        + _escapeHtml(e.message || String(e)) + '</div>';
+    }
+  }
+
+  // ════════════════════════════════════════════════════════════════════
+  // RENDERERS — info bar + draft board grid
+  // ════════════════════════════════════════════════════════════════════
+  function ldRenderInfo(meta, picks) {
+    const settings = meta.settings || {};
+    const teams  = settings.teams || (meta.draft_order ? Object.keys(meta.draft_order).length : 12);
+    const rounds = settings.rounds || 0;
+    const type   = (meta.type || 'snake').toUpperCase();
+    const status = meta.status || 'unknown';
+    const made   = (picks || []).length;
+    const total  = teams * rounds;
+
+    const statusCls = 'status-' + status.replace(/_/g, '-');
+    const statusLabel = status.replace(/_/g, ' ').toUpperCase();
+
+    const bar = document.getElementById('ld-draft-info');
+    bar.innerHTML = ''
+      + '<div class="ld-info-stat"><span class="ld-info-label">Status</span>'
+      +   '<span class="ld-info-val ' + statusCls + '">' + statusLabel + '</span></div>'
+      + '<div class="ld-info-stat"><span class="ld-info-label">Type</span>'
+      +   '<span class="ld-info-val">' + type + '</span></div>'
+      + '<div class="ld-info-stat"><span class="ld-info-label">Teams</span>'
+      +   '<span class="ld-info-val">' + teams + '</span></div>'
+      + '<div class="ld-info-stat"><span class="ld-info-label">Rounds</span>'
+      +   '<span class="ld-info-val">' + (rounds || '—') + '</span></div>'
+      + '<div class="ld-info-stat"><span class="ld-info-label">Picks made</span>'
+      +   '<span class="ld-info-val">' + made + (total ? ' / ' + total : '') + '</span></div>';
+    bar.style.display = '';
+  }
+
+  // Build the draft board grid. Snake-aware: even rounds (0-indexed) go
+  // left-to-right, odd rounds reverse. Linear drafts always go left-to-right.
+  // Pick cells are looked up from the picks array by (round, slot).
+  function ldRenderBoard(meta, picks, players) {
+    const host = document.getElementById('ld-board-host');
+    const settings = meta.settings || {};
+    const teams  = settings.teams || (meta.draft_order ? Object.keys(meta.draft_order).length : 12);
+    const rounds = settings.rounds || (picks && picks.length ? Math.ceil(picks.length / teams) : 0);
+    const isSnake = (meta.type || 'snake') === 'snake';
+
+    if (!rounds) {
+      host.innerHTML = '<div class="ld-empty"><strong>Draft hasn\'t started yet.</strong><br>'
+        + 'Once picks start coming in, the board renders here.</div>';
+      return;
+    }
+
+    // Build a pick lookup by pick_no (1-indexed across the whole draft)
+    const pickByNo = {};
+    (picks || []).forEach(p => { pickByNo[p.pick_no] = p; });
+
+    // slot_to_roster_id maps draft slot (1-indexed) → league roster_id.
+    // We need this to highlight the user's picks (slots they own).
+    const slotToRoster = meta.slot_to_roster_id || {};
+    const mySlots = new Set();
+    if (DRAFT.myRosterId != null) {
+      Object.keys(slotToRoster).forEach(slot => {
+        if (slotToRoster[slot] === DRAFT.myRosterId) mySlots.add(parseInt(slot, 10));
+      });
+    }
+
+    // Column header widths sized to teams count (similar to ADP Box view)
+    const cellMin = teams >= 14 ? 90 : teams >= 12 ? 110 : teams >= 10 ? 120 : 135;
+    const headW   = teams >= 14 ? 30 : 36;
+    const gridStyle = 'grid-template-columns:' + headW + 'px repeat(' + teams + ', minmax(' + cellMin + 'px, 1fr));'
+                    + 'min-width:' + (headW + teams * cellMin + (teams + 1) * 3) + 'px';
+
+    const parts = ['<div class="ld-board-wrap"><div class="ld-grid" style="' + gridStyle + '">'];
+    // Top-left corner
+    parts.push('<div class="ld-corner"></div>');
+    // Column headers — TEAM 1 .. TEAM N
+    for (let t = 1; t <= teams; t++) {
+      const cls = 'ld-col-head' + (mySlots.has(t) ? ' col-mine' : '');
+      parts.push('<div class="' + cls + '" title="Slot ' + t + '">TEAM ' + t + '</div>');
+    }
+    // Body rows
+    for (let r = 1; r <= rounds; r++) {
+      const isReverse = isSnake && (r % 2 === 0);
+      const arrow = isReverse ? '←' : '→';
+      parts.push('<div class="ld-row-head">'
+        + '<span>R' + r + '</span>'
+        + '<span class="ld-row-head-arrow">' + arrow + '</span>'
+        + '</div>');
+      for (let slot = 1; slot <= teams; slot++) {
+        // For snake reverse rounds, the slot column visually stays the same
+        // (Team 1 always rendered leftmost), but the draft position is
+        // computed differently. pick_no = ((r-1)*teams) + draft_slot for
+        // forward rounds; reversed rounds use (teams - slot + 1).
+        const draftSlot = isReverse ? (teams - slot + 1) : slot;
+        const pickNo = (r - 1) * teams + draftSlot;
+        const pick   = pickByNo[pickNo];
+        const isMine = mySlots.has(slot);
+
+        if (!pick || !pick.player_id) {
+          // Empty future pick — but if isMine, still surface a subtle hint
+          const cls = 'ld-cell empty' + (isMine ? ' mine' : '');
+          parts.push('<div class="' + cls + '" data-pick-no="' + pickNo + '">'
+            + '<div class="ld-cell-top">'
+            +   '<span class="ld-cell-pick">' + r + '.' + _padPick(draftSlot) + '</span>'
+            + '</div>'
+            + '<div class="ld-cell-name"><span style="opacity:.45;font-size:11px">—</span></div>'
+            + '</div>');
+          continue;
+        }
+
+        const player = (players && players[pick.player_id]) || {};
+        const pos     = (player.position || 'PICK').toUpperCase();
+        const fullName = _playerName(player, pick);
+        const split = _splitName(fullName);
+        const cls = 'ld-cell ' + pos + (isMine ? ' mine' : '');
+        const safeName = fullName.replace(/'/g, "\\'");
+        const onclickAttr = ' onclick="ldOpenPlayer(\'' + safeName + '\')"';
+
+        parts.push('<div class="' + cls + '" data-pick-no="' + pickNo + '"' + onclickAttr + '>'
+          + '<div class="ld-cell-top">'
+          +   '<span class="ld-cell-pick">' + r + '.' + _padPick(draftSlot) + '</span>'
+          +   '<span class="ld-cell-pos">' + pos + '</span>'
+          + '</div>'
+          + '<div class="ld-cell-name">'
+          +   (split.first ? '<div class="ld-cell-fname">' + _escapeHtml(split.first) + '</div>' : '')
+          +   '<div class="ld-cell-lname">' + _escapeHtml(split.last || fullName) + '</div>'
+          + '</div>'
+          + '</div>');
+      }
+    }
+    parts.push('</div></div>');
+    host.innerHTML = parts.join('');
+  }
+
+  function _playerName(player, pick) {
+    if (player.full_name) return player.full_name;
+    if (player.first_name || player.last_name) return (player.first_name || '') + ' ' + (player.last_name || '');
+    if (pick.metadata && (pick.metadata.first_name || pick.metadata.last_name)) {
+      return (pick.metadata.first_name || '') + ' ' + (pick.metadata.last_name || '');
+    }
+    return 'Player ' + pick.player_id;
+  }
+
+  function _splitName(name) {
+    const idx = (name || '').indexOf(' ');
+    if (idx < 0) return { first: '', last: name || '' };
+    return { first: name.slice(0, idx), last: name.slice(idx + 1) };
+  }
+
+  function _padPick(n) { return n < 10 ? '0' + n : String(n); }
+
+  function _escapeHtml(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  // Open the shared player drawer when a pick is tapped.
+  function ldOpenPlayer(name) {
+    if (typeof window.openPanel === 'function') {
+      try { window.openPanel(name); } catch (e) { /* swallow */ }
+    }
+  }
+
+  // ════════════════════════════════════════════════════════════════════
+  // BOOT — restore session from localStorage if present
+  // ════════════════════════════════════════════════════════════════════
+  document.addEventListener('fpts:data-ready', function () {
+    const overlay = document.getElementById('_fp-loading');
+    if (overlay) overlay.style.display = 'none';
+
+    try {
+      const u = localStorage.getItem(LS.USERNAME);
+      const id = localStorage.getItem(LS.USER_ID);
+      const name = localStorage.getItem(LS.DISPLAY);
+      if (u && id) {
+        DRAFT.username = u;
+        DRAFT.userId = id;
+        DRAFT.displayName = name || u;
+        ldShowConnected();
+        return;
+      }
+    } catch (e) {}
+    ldShowLogin();
+  });
+</script>
+
+</body>
+</html>
