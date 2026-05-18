@@ -5801,6 +5801,18 @@ async function loadRoster(leagueId, season) {
     const league = ML.selectedLeague || {};
     const scoringType = league.scoring_settings?.rec === 1 ? 'ppr'
                       : league.scoring_settings?.rec === 0.5 ? 'half_ppr' : 'std';
+    // Tight End Premium: bonus_rec_te is the extra points TEs get per reception.
+    // Sleeper's pts_* fields don't bake this in, so we add receptions × bonus
+    // to TE projections at read time — matches the live-draft TEP logic so
+    // both pages produce the same projection numbers for the same league.
+    const tepBonus = +(league.scoring_settings?.bonus_rec_te) || 0;
+    const applyTep = (pid, basePts, stats) => {
+      if (!tepBonus || !stats) return basePts;
+      const pos = players[pid]?.position;
+      if (pos !== 'TE') return basePts;
+      const rec = +(stats.rec) || 0;
+      return basePts + (rec * tepBonus);
+    };
 
     // Fetch projections for current display week.
     // Sleeper's correct path is /v1/projections/nfl/regular/{year}/{week} —
@@ -5817,7 +5829,8 @@ async function loadRoster(leagueId, season) {
         Object.entries(projData).forEach(([pid, stats]) => {
           if (!stats || typeof stats !== 'object') return;
           const proj = stats[`pts_${scoringType}`] ?? stats.pts_ppr ?? stats.pts_half_ppr ?? stats.pts_std ?? 0;
-          if (proj > 0) projections[pid] = +proj;
+          const adjusted = applyTep(pid, +proj, stats);
+          if (adjusted > 0) projections[pid] = adjusted;
         });
       }
     } catch(e) { /* projections not available this week */ }
@@ -5840,7 +5853,8 @@ async function loadRoster(leagueId, season) {
         Object.entries(seasonProjData).forEach(([pid, stats]) => {
           if (!stats || typeof stats !== 'object') return;
           const proj = stats[`pts_${scoringType}`] ?? stats.pts_ppr ?? stats.pts_half_ppr ?? stats.pts_std ?? 0;
-          if (proj > 0) seasonProj[pid] = +proj;
+          const adjusted = applyTep(pid, +proj, stats);
+          if (adjusted > 0) seasonProj[pid] = adjusted;
         });
       }
       window.ML_SEASON_PROJ = seasonProj;
