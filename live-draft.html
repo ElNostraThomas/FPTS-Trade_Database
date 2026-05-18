@@ -929,7 +929,7 @@
     }
     // Populate dropdown WITHOUT active-draft markers first (instant render),
     // then progressively enhance — fetch each league's drafts in parallel
-    // and prepend "🔴 " to leagues with at least one in-progress draft. This
+    // and prepend "🔥 " to leagues with at least one in-progress draft. This
     // way the picker is usable immediately even if probing takes a beat.
     leagueSel.innerHTML = '<option value="">— select league —</option>'
       + leagues.map(l => '<option value="' + l.league_id + '">'
@@ -946,7 +946,7 @@
     } catch (e) {}
 
     // ── Progressive enhancement: probe drafts for each league to mark
-    // those currently in-progress with a 🔴 prefix. Done AFTER the
+    // those currently in-progress with a 🔥 prefix. Done AFTER the
     // dropdown is already usable so it doesn't block.
     _probeActiveLeagues(leagues, leagueSel);
   }
@@ -969,7 +969,7 @@
     // dropdown — easier for the user to find what they actually need to
     // act on RIGHT NOW. Within each group (active / inactive) preserve
     // Sleeper's original order so leagues don't shuffle randomly between
-    // year switches. 🔴 marker still applied so the active block is also
+    // year switches. 🔥 marker still applied so the active block is also
     // visually distinguished, not just positionally.
     const activeLeagues   = leagues.filter(l =>  activeIds.has(l.league_id));
     const inactiveLeagues = leagues.filter(l => !activeIds.has(l.league_id));
@@ -978,7 +978,7 @@
     const currentVal = leagueSel.value;
     leagueSel.innerHTML = '<option value="">— select league —</option>'
       + sorted.map(l => {
-          const marker = activeIds.has(l.league_id) ? '🔴 ' : '';
+          const marker = activeIds.has(l.league_id) ? '🔥 ' : '';
           return '<option value="' + l.league_id + '">'
             + marker + _escapeHtml(l.name) + '</option>';
         }).join('');
