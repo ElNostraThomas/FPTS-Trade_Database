@@ -141,7 +141,7 @@
 }
 
 /* Phone — drawer becomes full-screen, trigger button moves to bottom-center */
-@media (max-width: 700px) {
+@media (max-width: 768px) {
   .lg-drawer { max-width: 100%; border-left: none; border-top: 2px solid var(--red); }
   .lg-trigger { left: 50%; right: auto; transform: translateX(-50%); bottom: 12px; padding: 8px 14px; font-size: 11px; }
   .lg-trigger:hover { transform: translateX(-50%) translateY(-1px); }

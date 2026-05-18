@@ -151,3 +151,137 @@ When adding a new formula entry to `formulas-content.js`, also:
 - For heuristics (hand-tuned constants), add `whyThisNumber` with the actual reasoning or the literal string "Analyst input requested" if origin is undocumented
 
 The renderer (`assets/js/formulas.js`) auto-generates a "View source on GitHub" deep-link from every `location: 'file:line'` value, so the link stays valid as long as the file:line is correct.
+
+---
+
+## Mobile-first recipes: design from 390px, never patch desktop
+
+The site is being migrated from desktop-first-with-mobile-patches to mobile-first-blocks-under-untouched-desktop. The full doctrine lives in `assets/css/brand.css` ("THE MOBILE-FIRST RULES"). These recipes are the canonical conversions when adapting a desktop component to a mobile-first mobile block.
+
+**The constraint:** desktop CSS is sacred. Every mobile change ships behind `@media (max-width: 768px)`. Desktop output stays byte-equivalent.
+
+### Recipe 1 — Table → card mode
+
+Desktop tables with many columns (5+) become a stack of cards on mobile. Each row's data becomes one card; columns become labeled fields inside the card.
+
+```css
+/* Desktop: standard table */
+.my-table { width: 100%; min-width: 800px; }
+
+/* Mobile: same data, card layout */
+@media (max-width: 768px) {
+  .my-table, .my-table thead, .my-table tbody, .my-table tr, .my-table td {
+    display: block;
+  }
+  .my-table thead { display: none; }  /* headers move into each cell as ::before label */
+  .my-table tr {
+    background: var(--surface); border: 1px solid var(--border);
+    margin-bottom: 8px; padding: 10px 12px;
+  }
+  .my-table td { padding: 4px 0; border: none; text-align: left; }
+  .my-table td::before {
+    content: attr(data-label); display: inline-block; min-width: 80px;
+    font-size: 9px; font-weight: 700; text-transform: uppercase;
+    color: rgba(255,255,255,0.55); letter-spacing: .06em;
+  }
+}
+```
+
+Mark each `<td>` with `data-label="Player"` etc. so the mobile card mode can show the field name as a `::before` prefix. Alternatively (better for complex layouts): render a parallel `_renderCard(row)` function and switch via `window.matchMedia('(max-width: 768px)')` at render time. The rankings.html Phase 2A work uses this pattern.
+
+### Recipe 2 — Side drawer → bottom sheet
+
+The desktop player panel slides in from the right edge as a 1360px-wide drawer. On mobile that's not viable — it becomes a full-viewport modal that takes over the screen.
+
+```css
+/* Desktop: side drawer */
+.player-panel {
+  position: fixed; top: 0; right: 0; bottom: 0;
+  width: min(1360px, 95vw);
+  transform: translateX(100%);
+  transition: transform .3s ease;
+}
+.player-panel.open { transform: translateX(0); }
+
+/* Mobile: full-screen sheet sliding up from bottom */
+@media (max-width: 768px) {
+  .player-panel {
+    top: auto; right: 0; left: 0; bottom: 0;
+    width: 100vw; height: 92vh; max-height: 92vh;
+    transform: translateY(100%);
+    border-top: 2px solid var(--red);
+    box-shadow: 0 -8px 24px rgba(0,0,0,.5);
+  }
+  .player-panel.open { transform: translateY(0); }
+}
+```
+
+The transform-axis flip is the key — desktop slides on X, mobile slides on Y. Keeps both interaction patterns native to their viewport.
+
+### Recipe 3 — Multi-column grid → swipeable card carousel
+
+Desktop multi-column grids (ADP Box view's 12 columns, contributor rankings grid) become a single-column swipe carousel on mobile. The user swipes horizontally through the cards one at a time.
+
+```css
+/* Desktop: 12-column grid */
+.box-grid {
+  display: grid; gap: 6px;
+  grid-template-columns: 34px repeat(12, minmax(118px, 1fr));
+  min-width: 1500px;
+}
+
+/* Mobile: single-column horizontal carousel */
+@media (max-width: 768px) {
+  .box-grid {
+    display: flex; gap: 8px; padding: 0 8px;
+    min-width: 0;
+    overflow-x: auto; scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+  }
+  .box-grid > .box-card {
+    flex: 0 0 calc(100vw - 32px); scroll-snap-align: center;
+  }
+}
+```
+
+`scroll-snap-type: x mandatory` + `scroll-snap-align: center` makes the carousel click-stop on each card centered, instead of free-scrolling. iOS smooth-scroll via `-webkit-overflow-scrolling: touch`.
+
+### Recipe 4 — Hover state → tap state
+
+Mobile devices have no `:hover` — a tap fires `:hover` once then sticks until the user taps elsewhere, which is usually wrong UX. Replace hover-dependent reveals with tap-toggles.
+
+```css
+/* Desktop: hover reveals */
+.card .card-actions { opacity: 0; transition: opacity .15s; }
+.card:hover .card-actions { opacity: 1; }
+
+/* Mobile: actions always visible, no hover state */
+@media (max-width: 768px) {
+  .card .card-actions { opacity: 1; }
+  .card:hover .card-actions { opacity: 1; }  /* override desktop :hover so it doesn't flicker */
+}
+```
+
+For tooltips on hover: replace with a small `(?)` icon that toggles a panel on tap. The Legend drawer's mobile mode is the reference implementation — same content, different trigger.
+
+### Recipe 5 — Tap-target sizing
+
+iOS HIG says tap targets should be ≥44×44 px. Many desktop buttons are smaller (e.g. icon buttons at 24×24). Ensure mobile sizes meet the minimum.
+
+```css
+@media (max-width: 768px) {
+  .icon-btn, .tab, .nav-link {
+    min-height: 44px;
+    /* Combine with flex centering so visual content stays small but tap surface is large */
+    display: inline-flex; align-items: center; justify-content: center;
+  }
+}
+```
+
+### Verification
+
+After every mobile-first change:
+1. Open `start.bat` → http://localhost:8000 → DevTools → toggle device toolbar → iPhone 14 Pro (390×844). Verify no horizontal scroll, no overlapping content, tap targets feel right.
+2. Open same page at desktop (1440px wide window). Confirm zero visual change versus before the edit. **This is the load-bearing constraint.**
+3. `python scripts/check-colors.py` — must stay CLEAN.
+4. Count `!important` in the touched mobile block. If it went UP, the design isn't mobile-first; rewrite without leaning on !important.

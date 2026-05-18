@@ -37,6 +37,33 @@
   │    push.bat runs it automatically and aborts on drift.               │
   └──────────────────────────────────────────────────────────────────────┘
 
+  ┌──────────────────────────────────────────────────────────────────────┐
+  │ MOBILE-FIRST RULES — read before adding ANY mobile @media block.     │
+  │ Full doctrine is at the top of assets/css/brand.css ("THE MOBILE-    │
+  │ FIRST RULES") and conversion recipes are in CLAUDE.md ("Mobile-      │
+  │ first recipes"). The 5 must-knows:                                   │
+  │                                                                      │
+  │ 1. ONE BREAKPOINT — 768px. Mobile = @media (max-width: 768px).       │
+  │    No 700px, no 480px. New pages use 768px only.                     │
+  │                                                                      │
+  │ 2. MOBILE BLOCKS ARE SELF-CONTAINED DESIGNS, NOT PATCHES on desktop. │
+  │    Author the mobile block as if no desktop layout existed. Don't    │
+  │    string together overrides like flex-direction: column !important  │
+  │    flipping a desktop row layout — write the mobile layout fresh.    │
+  │                                                                      │
+  │ 3. MINIMAL !important. Only when defeating a JS inline style. The    │
+  │    mobile block should express its design via selector specificity,  │
+  │    not !important flags.                                             │
+  │                                                                      │
+  │ 4. NO DESKTOP PIXEL REFERENCES inside mobile blocks (no 1100px,      │
+  │    1500px, 1360px). Derive constraints from the mobile viewport      │
+  │    (width:100%, max-width:100vw, min-width:0).                       │
+  │                                                                      │
+  │ 5. DESKTOP CSS IS SACRED. Every mobile-first edit is gated behind    │
+  │    @media (max-width: 768px). Desktop pixel output must stay         │
+  │    byte-equivalent to before the edit.                               │
+  └──────────────────────────────────────────────────────────────────────┘
+
   COPY THIS FILE WHEN STARTING A NEW PAGE OR TOOL.
 
   Steps:
@@ -85,13 +112,13 @@
 <link href="https://fonts.googleapis.com/css2?family=Kanit:ital,wght@0,400;0,700;1,800&family=Mulish:wght@400;700;900&display=swap" rel="stylesheet">
 
 <!-- Brand-level styles: fonts, color variables, nav, page chrome, pos pills. -->
-<link rel="stylesheet" href="assets/css/brand.css?v=1780100000">
+<link rel="stylesheet" href="assets/css/brand.css?v=1780300000">
 
 <!-- Shared UI component modules (CSS). -->
 <link rel="stylesheet" href="assets/css/mvs-extras.css?v=1780000000">
-<link rel="stylesheet" href="assets/css/heatmap.css?v=1779990000">
-<link rel="stylesheet" href="assets/css/legend.css?v=1779990000">
-<link rel="stylesheet" href="assets/css/player-panel.css?v=1780200000">
+<link rel="stylesheet" href="assets/css/heatmap.css?v=1780300000">
+<link rel="stylesheet" href="assets/css/legend.css?v=1780300000">
+<link rel="stylesheet" href="assets/css/player-panel.css?v=1780300000">
 
 <!-- Page identity + data layer config (must run BEFORE data-bootstrap.js). -->
 <script>
@@ -106,7 +133,7 @@
 <script src="assets/js/mvs-extras.js?v=1778642255"></script>
 <script src="assets/js/player-articles.js?v=1778680034"></script>
 <script src="assets/js/heatmap.js?v=1778670000"></script>
-<script src="assets/js/legend-content.js?v=1779840000"></script>
+<script src="assets/js/legend-content.js?v=1780300000"></script>
 <script src="assets/js/legend.js?v=1778949514"></script>
 <!-- Team logo helpers — load BEFORE player-panel.js so modal-hero badge works. -->
 <script src="assets/js/team-helpers.js?v=1778680000"></script>

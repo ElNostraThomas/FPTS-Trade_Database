@@ -9,7 +9,7 @@
      sizing). Loaded BEFORE this page's inline <style> so existing per-page
      overrides still win on duplicate selectors; the new .team-logo /
      .player-hs-team rules add cleanly. -->
-<link rel="stylesheet" href="assets/css/brand.css?v=1780100000">
+<link rel="stylesheet" href="assets/css/brand.css?v=1780300000">
 <style>
   /* Brand fonts (local TTFs from Fantasy-Design-Prompt kit) override Google Fonts
      for the canonical brand weights so on-page text matches the wordmark exactly. */
@@ -38,7 +38,7 @@
   /* Site-wide 1.25x layout zoom — see brand.css for the full comment. */
   body { zoom: 1.25; }
   @media print { body { zoom: 1; } }
-  @media (max-width: 700px) { body { zoom: 1; } }
+  @media (max-width: 768px) { body { zoom: 1; } }
   html, body { overflow-x: hidden !important; }
 
   /* NAV */
@@ -518,10 +518,10 @@
 <link rel="stylesheet" href="assets/css/mvs-extras.css?v=1780000000">
 <script src="assets/js/mvs-extras.js?v=1778642255"></script>
 <script src="assets/js/player-articles.js?v=1778680034"></script>
-<link rel="stylesheet" href="assets/css/heatmap.css?v=1779990000">
+<link rel="stylesheet" href="assets/css/heatmap.css?v=1780300000">
 <script src="assets/js/heatmap.js?v=1778670000"></script>
-<link rel="stylesheet" href="assets/css/legend.css?v=1779990000">
-<script src="assets/js/legend-content.js?v=1779840000"></script>
+<link rel="stylesheet" href="assets/css/legend.css?v=1780300000">
+<script src="assets/js/legend-content.js?v=1780300000"></script>
 <script src="assets/js/legend.js?v=1778949514"></script>
 <script>document.addEventListener('DOMContentLoaded', function(){ if (window.Legend) Legend.init('adp-tool'); });</script>
 <!-- Shared player panel — DB's slide-in drawer, used identically on every page -->
@@ -531,7 +531,7 @@
      fires 'fpts:data-ready'. The small inline bootstrap below adds adp-prev
      (not loaded by data-bootstrap) and runs the page-specific init. -->
 <script src="assets/js/data-bootstrap.js?v=1780200000"></script>
-<link rel="stylesheet" href="assets/css/player-panel.css?v=1780200000">
+<link rel="stylesheet" href="assets/css/player-panel.css?v=1780300000">
 <!-- Team logo helpers — must load BEFORE player-panel.js so the modal-hero
      badge wiring finds window.TeamHelpers. -->
 <script src="assets/js/team-helpers.js?v=1778680002"></script>

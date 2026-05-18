@@ -46,6 +46,61 @@
       Extend BRAND_HEXES if you add a new brand color.
 
    ───────────────────────────────────────────────────────────────────────
+   THE MOBILE-FIRST RULES (read this before adding ANY mobile @media block)
+   ───────────────────────────────────────────────────────────────────────
+
+   The site is currently desktop-first with mobile patches layered on via
+   @media (max-width: ...) blocks. Going forward, every NEW mobile block
+   should be designed from a 390px iPhone viewport baseline as if no desktop
+   layout existed, then sit underneath the existing desktop rules untouched.
+   The desktop CSS rules above the media query are sacred — never modified
+   to "make mobile work better."
+
+   1. ONE BREAKPOINT — 768px.
+      Mobile = `@media (max-width: 768px)`. No 700px, no 480px. All legacy
+      700px usage across brand.css / legend.css / heatmap.css / player-panel.css
+      and the 7 HTML pages was swept to 768px in the Phase 0 foundation pass.
+      A few 480px sub-breakpoints remain in player-panel.css and heatmap.css
+      pending Phase 1 cleanup; once removed, 768px will be the only mobile
+      breakpoint in the entire codebase.
+
+   2. MOBILE BLOCKS ARE SELF-CONTAINED DESIGNS, NOT PATCHES.
+      A mobile @media block should read like a from-scratch layout for a
+      touch viewport, not a series of overrides flipping desktop properties.
+      If a mobile rule is just `flex-direction: column !important;` undoing
+      a desktop `flex-direction: row`, the design isn't mobile-first — it's
+      a band-aid. Rewrite the block as: explicit grid/flex with the mobile
+      layout in mind, not "the desktop layout with mobile changes."
+
+   3. MINIMAL !important.
+      Mobile blocks today rely heavily on !important to defeat desktop
+      cascade specificity (97 instances in player-panel.css mobile section
+      alone). A mobile-first block should NOT need !important to express
+      its intent. Use selector specificity instead. The exception: when
+      defeating an inline `style="..."` attribute from JS — that legitimately
+      requires !important.
+
+   4. NO DESKTOP-PIXEL REFERENCES IN MOBILE BLOCKS.
+      Don't reference desktop widths (1100px, 1500px, 1360px, 1440px) inside
+      a mobile @media block. If the mobile design needs a constraint, derive
+      it from the mobile viewport (e.g. `width: 100%`, `max-width: 100vw`,
+      `min-width: 0`).
+
+   5. DESKTOP CSS NEVER CHANGES.
+      Every mobile-first edit is gated behind `@media (max-width: 768px)`.
+      Desktop visual output stays byte-equivalent. This is the load-bearing
+      constraint of the entire mobile-first refactor.
+
+   6. RECIPES.
+      Common mobile-first conversions live in CLAUDE.md ("Mobile-first
+      recipes" section):
+        - Table → card mode (rankings, my-leagues roster, etc.)
+        - Side drawer → bottom sheet (player panel on mobile)
+        - Multi-column grid → swipeable carousel (adp-tool Box view)
+        - Hover state → tap state (no :hover-only interactions)
+      Use the recipes instead of inventing new patterns.
+
+   ───────────────────────────────────────────────────────────────────────
 
    PURPOSE
      Single source of truth for:
@@ -205,7 +260,7 @@ html, body { overflow-x: hidden !important; }
    <700px layout was already designed for small screens). */
 body { zoom: 1.25; }
 @media print { body { zoom: 1; } }
-@media (max-width: 700px) { body { zoom: 1; } }
+@media (max-width: 768px) { body { zoom: 1; } }
 
 /* ── NAV ──────────────────────────────────────────────────────────────── */
 .topnav { max-width:1440px; margin:0 auto; padding:0 16px; display:flex; align-items:center; gap:20px; height:60px; }

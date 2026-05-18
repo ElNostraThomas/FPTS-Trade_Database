@@ -20,7 +20,7 @@
 .hm-flash-label.show { visibility:visible; }
 .hm-empty { padding:24px; text-align:center; font-family:'Mulish',sans-serif; font-size:12px; color:var(--white); opacity:.55; background:var(--surface2); border:1px solid var(--border); }
 
-@media (max-width: 700px) {
+@media (max-width: 768px) {
   .hm-callout { gap: 12px; flex-wrap: wrap; padding: 8px 12px; }
   .hm-callout .hm-co-v { font-size: 16px; }
   .hm-callout .hm-co-note { display: none; }

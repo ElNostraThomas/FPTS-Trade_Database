@@ -11,7 +11,33 @@ This file is the **resume-where-we-left-off** doc.
 
 ---
 
-## Where we are (end of 2026-05-17 — fourth session)
+## Where we are (end of 2026-05-17 — fifth session)
+
+**Five sessions on 2026-05-17.** The fifth one (covered here) was **Phase 0 of a mobile-first refactor**: codified the mobile-first doctrine in `brand.css` and `CLAUDE.md`, added a MOBILE-FIRST RULES block to `templates/page-template.html`, and swept the codebase's 700px breakpoints to 768px (user-approved tradeoff). The plan file at `~/.claude/plans/i-have-a-deeper-golden-wadler.md` covers the full multi-phase refactor.
+
+**The strategic shift.** After the fourth session shipped four targeted mobile fixes, user raised the concern that mobile work feels like half measures. A codebase audit confirmed it: `body { zoom: 1.25 }` is the structural foundation; 97 `!important` overrides in player-panel.css mobile section alone; tables hard-coded at `min-width: 1100px` and `min-width: 1500px` (ADP Box view literally disabled on mobile); 27% of shared CSS lives inside mobile media-query blocks. Direction: rebuild the mobile experience from a 390px touch-first baseline. **Hard constraint**: desktop CSS stays byte-equivalent — only mobile blocks change.
+
+**1. MOBILE-FIRST RULES codified in `brand.css`.** Sixth top-of-file comment block alongside BRANDING HARD RULES + COLOR USAGE RULE. Six rules: (1) one breakpoint — 768px, (2) mobile blocks are self-contained designs not patches, (3) minimal `!important`, (4) no desktop-pixel references in mobile blocks, (5) desktop CSS never changes, (6) use the recipes.
+
+**2. Mobile-first recipes added to `CLAUDE.md`.** Five copy-paste conversions: table → card mode, side drawer → bottom sheet (transform-axis flip from X to Y), multi-column grid → swipeable carousel with scroll-snap, hover state → tap state, tap-target sizing (44px iOS HIG minimum). Each recipe has worked CSS + verification checklist.
+
+**3. Template scaffold updated.** `templates/page-template.html` got a second comment box (MOBILE-FIRST RULES) directly below the existing BRANDING + ALIGNMENT RULES box. New pages inherit the doctrine on copy.
+
+**4. Breakpoint swept 700px → 768px.** User-confirmed tradeoff: viewports 700–768px wide (rare narrow desktop windows, iPad portrait at exactly 768px) flip from desktop-zoom 1.25 to mobile-zoom 1.0. Typical desktops at 1200px+ unaffected. Swept across: `brand.css` zoom reset, `player-panel.css`, `legend.css`, `heatmap.css`, the 5 page-level inline zoom resets (`index`, `my-leagues`, `adp-tool`, `tiers`, `trade-calculator`), and `legend-content.js` doc strings. Zero `max-width: 700px` remaining in deployed code (the only remaining hits are in `docs/function-reference.html`, which is the legacy printable PDF source not deployed CSS).
+
+**5. Baseline metric for Phase 1 tracking.** `!important` count in `assets/css/player-panel.css` = 97 today. Phase 1 target: drop to <30 by rebuilding the mobile section as a self-contained bottom-sheet design rather than a thicket of overrides.
+
+**Cache tokens bumped:** brand.css, player-panel.css, legend.css, heatmap.css, legend-content.js all → `?v=1780300000` across all 8 consumers.
+
+**Audit:** `python scripts/check-colors.py` — CLEAN across 24 files.
+
+**Phase 1 next.** Rebuild the 5 shared-module mobile blocks (player-panel.css, heatmap.css, legend.css, mvs-extras.css, brand.css topnav-mobile) as from-scratch mobile designs. Desktop untouched.
+
+See [`docs/CHANGES.md`](docs/CHANGES.md) 2026-05-17 (fifth session) for full per-edit detail.
+
+---
+
+## Where we were (end of 2026-05-17 — fourth session)
 
 **Four sessions on 2026-05-17.** The fourth one (covered here) was mobile fixes pass: nav dropdown sync to current page, player drawer compare-search dropdown solidity + count-wrap, Fantasy Points hero block reflow next to the headshot (saved an ~80px vertical band), and rankings By Analyst table compact-fit so all 5 analyst cells render without horizontal scroll on iPhone. Plus a standalone interactive `docs/analyst-heuristics-review.html` for the 14 analyst-flagged heuristics so the user can hand it to the data analyst.
 

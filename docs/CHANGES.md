@@ -6,6 +6,79 @@ the operator manual see [`WORKFLOW.md`](WORKFLOW.md).
 
 ---
 
+## 2026-05-17 (fifth session) — Mobile-first refactor Phase 0: foundation + doctrine
+
+User raised a strategic concern after the fourth session: each session's mobile work feels like half measures — band-aids on top of desktop-first code rather than a coherent design. A codebase audit confirmed it: `body { zoom: 1.25 }` is the structural foundation; 97 `!important` overrides in player-panel.css mobile section alone; tables hard-coded at `min-width: 1100px` and `min-width: 1500px` (ADP Box view literally disabled on mobile via JS); breakpoint drift across 700px / 768px / 480px; 27% of all shared CSS sits inside mobile media-query blocks.
+
+The decision: **mobile-first refactor** with one hard constraint — desktop CSS stays byte-equivalent. Every mobile change ships behind `@media (max-width: 768px)`, with the mobile block authored as a from-scratch design for a 390px viewport rather than as overrides on the desktop layout. Phased rollout: foundation (this session) → shared modules (Phase 1) → per-page rebuilds (Phase 2) → ongoing doctrine.
+
+Plan file: `C:\Users\deons\.claude\plans\i-have-a-deeper-golden-wadler.md`.
+
+### Phase 0.1 — MOBILE-FIRST RULES codified in brand.css
+
+Added a sixth comment block at the top of `assets/css/brand.css` alongside the existing BRANDING HARD RULES, COLOR USAGE RULE, and PURPOSE blocks. Six rules:
+
+1. **One breakpoint — 768px.** No 700px, no 480px (480px sub-breakpoints in player-panel.css + heatmap.css remain pending Phase 1).
+2. **Mobile blocks are self-contained designs, not patches.** A mobile @media block should read like a from-scratch layout for a touch viewport — not a series of `flex-direction: column !important` overrides flipping desktop properties.
+3. **Minimal `!important`.** Use selector specificity instead. The exception: defeating a JS inline `style="..."` attribute.
+4. **No desktop-pixel references in mobile blocks.** Don't reference 1100px, 1500px, 1360px, 1440px inside a mobile block. Derive constraints from the viewport.
+5. **Desktop CSS never changes.** Every mobile-first edit is gated behind `@media (max-width: 768px)`. Desktop pixel output stays byte-equivalent.
+6. **Recipes.** Reference the canonical conversions in CLAUDE.md.
+
+### Phase 0.2 — Mobile-first recipes section added to CLAUDE.md
+
+Five copy-paste recipes for the conversions that come up over and over:
+
+- **Table → card mode** — full CSS for converting a desktop table to a stack of labeled cards on mobile. Includes the `display: block` cascade on table/thead/tbody/tr/td and the `data-label` + `::before` pattern for showing column headers inside each card. Alternative: parallel `_renderCard()` function selected via `window.matchMedia`.
+- **Side drawer → bottom sheet** — `transform: translateX(100%)` (desktop) → `transform: translateY(100%)` (mobile). Same animation primitive, different axis. Drawer slides in from the right on desktop, up from the bottom on phone.
+- **Multi-column grid → swipeable carousel** — `display: grid; grid-template-columns: repeat(12, ...)` (desktop) → `display: flex; scroll-snap-type: x mandatory` (mobile). One card per swipe, snap-to-center.
+- **Hover state → tap state** — replace `:hover` reveals with always-visible content on mobile. Tooltips become tap-toggled `(?)` icons.
+- **Tap-target sizing** — `min-height: 44px` on all interactive elements per iOS HIG. Flex centering keeps visual content small while expanding the tap surface.
+
+Each recipe has a worked CSS example and a verification checklist (DevTools at 390×844, desktop visual regression check, brand audit, `!important` count check).
+
+### Phase 0.3 — Template scaffold updated
+
+`templates/page-template.html` got a second comment box (MOBILE-FIRST RULES) directly below the existing BRANDING + ALIGNMENT RULES box. Any new page copied from the template sees the rules immediately.
+
+### Phase 0.5 — Breakpoint swept from 700px to 768px
+
+User confirmed the tradeoff before the sweep: viewports in the 700–768px range (rare narrow desktop windows, iPad portrait at exactly 768px) flip from desktop-zoom 1.25 to mobile-zoom 1.0. Typical desktops at 1200px+ are unaffected. The cleaner mobile story going forward justifies the change.
+
+Files swept:
+- `assets/css/brand.css` — zoom reset (`@media (max-width: 700px) { body { zoom: 1; } }`)
+- `assets/css/player-panel.css` — late mobile block at line ~716
+- `assets/css/legend.css` — drawer-becomes-full-screen rule at line 144
+- `assets/css/heatmap.css` — callout mobile rules at line 23
+- `index.html`, `my-leagues.html`, `adp-tool.html`, `tiers.html`, `trade-calculator.html` — each had an inline `@media (max-width: 700px) { body { zoom: 1; } }` zoom reset in their `<style>` block. All swept.
+- `assets/js/legend-content.js` — doc-string references to "@media (max-width: 700px)" in 4 legend entries.
+
+Verified: zero `max-width: 700px` references remaining in deployed code. The only remaining 700px references are in `docs/function-reference.html` (legacy printable PDF source, not deployed CSS) and in this very CHANGES.md file (historical). Brand audit CLEAN.
+
+### Phase 0 baseline metric for tracking
+
+`!important` count in `assets/css/player-panel.css` = **97**. Phase 1 target: drop to <30 by rebuilding the mobile section as a self-contained bottom-sheet design rather than a thicket of overrides.
+
+### Cache tokens bumped this session
+
+- `brand.css ?v=1780100000 → ?v=1780300000`
+- `player-panel.css ?v=1780200000 → ?v=1780300000`
+- `legend.css ?v=1779990000 → ?v=1780300000`
+- `heatmap.css ?v=1779990000 → ?v=1780300000`
+- `legend-content.js ?v=1779840000 → ?v=1780300000`
+
+All bumped across the 7 consumer pages + `templates/page-template.html`. `data-bootstrap.js` was already at `?v=1780200000` and was NOT touched this session (no functional change).
+
+### Audit status
+
+`python scripts/check-colors.py` — CLEAN across 24 files. Desktop CSS rules unmodified; only mobile-block content changed (breakpoint number) plus new comment blocks (zero CSS rule emit).
+
+### Next session — Phase 1 starts
+
+Rebuild the 5 shared-module mobile blocks (`player-panel.css`, `heatmap.css`, `legend.css`, `mvs-extras.css`, `brand.css` topnav-mobile) as clean from-scratch mobile designs. Target: drop player-panel `!important` count from 97 to <30. Desktop CSS untouched.
+
+---
+
 ## 2026-05-17 (fourth session) — Mobile fixes: nav sync, compare-search overlap, hero reflow, analyst table fit
 
 User-driven mobile pass. Four distinct iPhone issues surfaced from on-device screenshots; each got a targeted fix plus a cache-token bump on the affected shared module.
