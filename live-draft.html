@@ -1403,17 +1403,39 @@
   }
 
   // Lookup projected season points for a Sleeper player_id under the
-  // active league's scoring type. Falls through to other pts_* fields
-  // when the preferred key is missing, then null when no projection
-  // exists at all (rookies pre-projection, inactive players, etc.).
+  // active league's scoring type. Two-tier resolution:
   //
-  // position (optional): when 'TE' and the league is TEP (DRAFT.tepBonus
-  // > 0), add receptions × bonus to the base points. Sleeper's pts_*
-  // fields don't bake in TEP — for a 80-rec TE in a 0.5 TEP league
-  // that's an extra 40 season points that materially changes Team Needs
-  // sorting.
+  //   1. PREFERRED — SLEEPER.projectPlayer reads window.STATS_DATA (data-
+  //      suite stats) and applies the league's full scoring overlay
+  //      (TEP / PPC / pass-TD bonus / half-PPR / std) via
+  //      SLEEPER.adjustStatsForLeague. Same engine as my-leagues, so
+  //      both pages produce identical numbers for the same league.
+  //
+  //   2. FALLBACK — Sleeper's /projections endpoint (DRAFT.projections),
+  //      with the inline TEP application that was here originally.
+  //      Used when STATS_DATA misses the player (rookies pre-stats,
+  //      pre-season before the data-suite refresh, IDP, K, etc.).
+  //
+  // Returns null when both sources miss so downstream renderers can
+  // show '—' rather than 0.
   function _projForPlayerId(sleeperId, position) {
-    if (!sleeperId || !DRAFT.projections) return null;
+    if (!sleeperId) return null;
+
+    // Tier 1: data suite via shared engine
+    if (window.SLEEPER && DRAFT.league) {
+      const p = (DRAFT.players || {})[sleeperId] || {};
+      const name = _playerName(p, { player_id: sleeperId });
+      const scoring = DRAFT.league.scoring_settings || {};
+      const dataPts = SLEEPER.projectPlayer(
+        { sleeperId, name },
+        scoring,
+        { position: position || p.position }
+      );
+      if (dataPts != null) return dataPts;
+    }
+
+    // Tier 2: Sleeper /projections fallback (existing logic)
+    if (!DRAFT.projections) return null;
     const stats = DRAFT.projections[sleeperId];
     if (!stats || typeof stats !== 'object') return null;
     const key = DRAFT.projScoring === 'half_ppr' ? 'pts_half_ppr'
@@ -2190,10 +2212,45 @@
                      WR: { value: 0, ppg: 0, proj: 0, count: 0 },
                      TE: { value: 0, ppg: 0, proj: 0, count: 0 } },
       total: 0,
+      lineupTotal: 0,   // sum of optimal-lineup starters' projections — feeds archetype
     };
     if (!DRAFT.myRosterId) return out;
-    const seen = new Set();
 
+    // Collect dedup'd roster IDs (pre-existing + this draft's picks) FIRST,
+    // then compute the optimal lineup once. Per-position `totals.proj` then
+    // sums only the lineup-starter projections — matches the Start-N
+    // assumption (a 25-player roster's projected total isn't what they
+    // score; the lineup is). Per-player display still shows each player's
+    // real projection so the user sees "backup QB projected 280 but isn't
+    // starting".
+    const rosters = DRAFT.rostersByLeague[sourceLeagueId] || [];
+    const myRoster = rosters.find(r => r.roster_id === DRAFT.myRosterId);
+    const baseIds = (myRoster && myRoster.players) || [];
+    const draftedIds = (picks || [])
+      .filter(pk => pk && pk.roster_id === DRAFT.myRosterId && pk.player_id)
+      .map(pk => pk.player_id);
+    const allIds = [];
+    const _seen = new Set();
+    baseIds.concat(draftedIds).forEach(id => {
+      if (id && !_seen.has(id)) { _seen.add(id); allIds.push(id); }
+    });
+
+    // Per-player projection dict (real value, used for both display + lineup)
+    const projections = {};
+    allIds.forEach(pid => {
+      const p = players[pid] || {};
+      const pos = (p.position || '').toUpperCase();
+      const pts = _projForPlayerId(pid, pos);
+      if (pts != null) projections[pid] = pts;
+    });
+
+    // Optimal-lineup membership set
+    const rosterPositions = (DRAFT.league && DRAFT.league.roster_positions) || [];
+    const starters = (window.SLEEPER && rosterPositions.length)
+      ? SLEEPER.optimalLineup(allIds, players, projections, rosterPositions)
+      : new Set();
+
+    const seen = new Set();
     function add(pid, p, pickRow) {
       if (!pid || seen.has(pid)) return;
       seen.add(pid);
@@ -2202,21 +2259,24 @@
       if (!out.byPos[pos]) return;
       const name  = _playerName(p, pickRow || { player_id: pid });
       const stats = _fpStatsForName(name);
-      const proj  = _projForPlayerId(pid, pos);
+      const proj  = projections[pid] != null ? projections[pid] : null;
       const value = stats.value != null ? Number(stats.value) : 0;
       const ppg   = stats.ppg   != null ? Number(stats.ppg)   : 0;
       out.byPos[pos].push({ name, team: p.team || '', value: stats.value, ppg: stats.ppg, proj });
       out.totalsByPos[pos].value += value;
       out.totalsByPos[pos].ppg   += ppg;
-      out.totalsByPos[pos].proj  += (proj != null ? Number(proj) : 0);
+      // Group-level proj total counts only lineup-starters — this is the
+      // lineup's contribution at each position (a Start-10 league's QB
+      // total is just 1 QB's projection unless it's SF; bench QBs are 0).
+      if (starters.has(pid) && proj != null) {
+        out.totalsByPos[pos].proj += Number(proj);
+        out.lineupTotal += Number(proj);
+      }
       out.totalsByPos[pos].count++;
       out.total++;
     }
 
     // 1. Pre-existing roster.players from /league/{id}/rosters
-    const rosters = DRAFT.rostersByLeague[sourceLeagueId] || [];
-    const myRoster = rosters.find(r => r.roster_id === DRAFT.myRosterId);
-    const baseIds = (myRoster && myRoster.players) || [];
     baseIds.forEach(pid => add(pid, players[pid]));
 
     // 2. This draft's picks where pick.roster_id === DRAFT.myRosterId
@@ -2252,6 +2312,9 @@
       teams: 0,
       byPos: { QB: { myRank: null }, RB: { myRank: null },
                WR: { myRank: null }, TE: { myRank: null } },
+      teamData:    [],       // per-team aggregate, used by Phase 7 archetype
+      myProjTotal: 0,        // user's lineup-projected total (convenience)
+      leagueAvg:   null,     // medians for archetype composite
     };
     const rosters = DRAFT.rostersByLeague[sourceLeagueId] || [];
     if (!rosters.length || DRAFT.myRosterId == null) return out;
@@ -2259,18 +2322,23 @@
 
     const teamTotals = {};          // roster_id → { QB: {value}, RB: ..., ... }
     const seenByRoster = {};        // roster_id → Set of player_ids already counted
+    const rosterPlayerIds = {};     // roster_id → [pid] (post-merge with picks)
     rosters.forEach(r => {
       teamTotals[r.roster_id] = { QB: { value: 0 }, RB: { value: 0 },
                                   WR: { value: 0 }, TE: { value: 0 } };
       seenByRoster[r.roster_id] = new Set();
+      rosterPlayerIds[r.roster_id] = [];
+      (r.players || []).forEach(pid => {
+        if (pid && !seenByRoster[r.roster_id].has(pid)) {
+          seenByRoster[r.roster_id].add(pid);
+          rosterPlayerIds[r.roster_id].push(pid);
+        }
+      });
     });
 
     function addToTeam(rosterId, pid, p, pickRow) {
       const tt = teamTotals[rosterId];
       if (!tt || !pid) return;
-      const seen = seenByRoster[rosterId];
-      if (seen.has(pid)) return;
-      seen.add(pid);
       if (!p) return;
       const pos = (p.position || '').toUpperCase();
       if (!tt[pos]) return;
@@ -2281,12 +2349,18 @@
 
     // 1. Existing roster.players[] on every team
     rosters.forEach(r => {
-      (r.players || []).forEach(pid => addToTeam(r.roster_id, pid, players[pid]));
+      (r.players || []).forEach(pid => {
+        if (pid) addToTeam(r.roster_id, pid, players[pid]);
+      });
     });
     // 2. Augment with this draft's picks — pk.roster_id is the CURRENT owner,
     //    already traded-pick-resolved by Sleeper.
     (picks || []).forEach(pk => {
       if (pk && pk.player_id && pk.roster_id != null) {
+        if (!seenByRoster[pk.roster_id].has(pk.player_id)) {
+          seenByRoster[pk.roster_id].add(pk.player_id);
+          rosterPlayerIds[pk.roster_id].push(pk.player_id);
+        }
         addToTeam(pk.roster_id, pk.player_id, players[pk.player_id] || {}, pk);
       }
     });
@@ -2300,6 +2374,50 @@
       const idx = sorted.indexOf(myKey);
       out.byPos[pos].myRank = idx >= 0 ? idx + 1 : null;
     });
+
+    // PHASE 6 — per-team team-level aggregates for archetype detection.
+    // projTotal uses lineupProjection (Start-N optimal lineup only, not
+    // sum-of-roster) so the archetype composite calibrates the same way
+    // my-leagues does for the same league.
+    const scoring = (DRAFT.league && DRAFT.league.scoring_settings) || {};
+    const rosterPositions = (DRAFT.league && DRAFT.league.roster_positions) || [];
+    rosters.forEach(r => {
+      const ids = rosterPlayerIds[r.roster_id] || [];
+      const tt = teamTotals[r.roster_id];
+      const totalValue = (tt.QB.value || 0) + (tt.RB.value || 0)
+                       + (tt.WR.value || 0) + (tt.TE.value || 0);
+      // Average age across rostered players that have an age field
+      let ageSum = 0, ageCount = 0;
+      ids.forEach(pid => {
+        const p = players[pid];
+        if (p && p.age && p.age > 0) { ageSum += p.age; ageCount++; }
+      });
+      const avgAge = ageCount ? (ageSum / ageCount) : 0;
+      // Lineup-only projection — falls to 0 when SLEEPER or roster_positions
+      // aren't ready yet (defensive cold-load behavior).
+      let projTotal = 0;
+      if (window.SLEEPER && typeof SLEEPER.lineupProjection === 'function'
+          && rosterPositions.length) {
+        projTotal = SLEEPER.lineupProjection(ids, players, scoring, rosterPositions);
+      }
+      const entry = { rosterId: r.roster_id, isMe: r.roster_id === DRAFT.myRosterId,
+                      totalValue, avgAge, projTotal };
+      out.teamData.push(entry);
+      if (entry.isMe) out.myProjTotal = projTotal;
+    });
+
+    // Compute league medians (used as the archetype composite's denominators)
+    const median = arr => {
+      if (!arr.length) return 0;
+      const s = arr.slice().sort((a, b) => a - b);
+      const m = Math.floor(s.length / 2);
+      return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2;
+    };
+    out.leagueAvg = {
+      age:   median(out.teamData.filter(t => t.avgAge > 0).map(t => t.avgAge)),
+      value: median(out.teamData.map(t => t.totalValue)),
+      proj:  median(out.teamData.map(t => t.projTotal).filter(v => v > 0)),
+    };
 
     return out;
   }
