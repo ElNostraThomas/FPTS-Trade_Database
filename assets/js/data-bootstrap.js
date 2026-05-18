@@ -114,20 +114,31 @@
   //      12-draft player at ADP 20 sits at rank 18, ahead of 1000s of
   //      "actually drafted" players at higher ADPs.
   //
-  // Filter rule: keep records where position ∈ {QB,RB,WR,TE} AND
-  // drafts >= 25 (matches live-draft BPA_MIN_DRAFTS — the threshold
-  // already tested against kickers + small-school QBs).
+  // Filter rule per (month, format) bucket:
+  //   1. Position ∈ {QB, RB, WR, TE} — drops K / DEF / IDP from fantasy
+  //      rankings.
+  //   2. drafts >= max(ADP_FILTER_ABS_FLOOR, floor(corpus_max × 10%))
+  //      — scale-aware floor. A player drafted in fewer than 10% of the
+  //      leagues that drafted this corpus's top player is fringe noise.
+  //      The 10% rule self-adjusts per format: rookie_draft_sf (max
+  //      10,919 drafts) → floor ≈ 1,091; rookie_draft_1qb (max ~586)
+  //      → floor ≈ 58. Auto-handles the corpus-size disparity between
+  //      SF (~10K leagues scraped) and 1QB (~hundreds).
+  //   3. Absolute floor of 25 catches tiny corpora that 10% would zero
+  //      out (1QB startup max is ~50 drafts — corpus barely usable as
+  //      consensus signal but the floor preserves some signal).
   //
   // Filtered list is what every consumer sees via window.ADP_PAYLOAD.
   // The raw, un-filtered version stays available under
   // window.ADP_PAYLOAD_RAW for the ADP tool's "show fringe players"
-  // research mode (toggleable in the UI).
+  // research mode.
   //
-  // Re-rank within each (month, format) bucket so visible "rank"
-  // reflects the cleaned ordering.
+  // Re-rank within each filtered bucket so visible "rank" reflects the
+  // cleaned ordering (1 = lowest ADP = drafted earliest in consensus).
   // ──────────────────────────────────────────────────────────────────
-  const ADP_FILTER_MIN_DRAFTS = 25;
-  const ADP_FILTER_KEEP_POS = new Set(['QB','RB','WR','TE']);
+  const ADP_FILTER_ABS_FLOOR  = 25;
+  const ADP_FILTER_RATIO      = 0.10;   // 10% of corpus max
+  const ADP_FILTER_KEEP_POS   = new Set(['QB','RB','WR','TE']);
 
   function _cleanAdpPayload(raw) {
     if (!raw || !raw.byMonth) return raw;
@@ -136,12 +147,23 @@
       out.byMonth[month] = {};
       Object.keys(raw.byMonth[month] || {}).forEach(fmt => {
         const lst = raw.byMonth[month][fmt] || [];
-        // Clone each record so re-rank doesn't mutate the raw payload's records.
+        // Determine this bucket's draft floor: 10% of the bucket's max
+        // drafts (after position-filter), with an absolute minimum.
+        let maxDrafts = 0;
+        for (const r of lst) {
+          if (!r) continue;
+          const pos = (r.position || r.pos || '').toUpperCase();
+          if (!ADP_FILTER_KEEP_POS.has(pos)) continue;
+          const d = +(r.drafts) || 0;
+          if (d > maxDrafts) maxDrafts = d;
+        }
+        const floor = Math.max(ADP_FILTER_ABS_FLOOR, Math.floor(maxDrafts * ADP_FILTER_RATIO));
+        // Filter + clone each record so re-rank doesn't mutate raw records.
         const filtered = lst.filter(r => {
           if (!r) return false;
           const pos = (r.position || r.pos || '').toUpperCase();
           if (!ADP_FILTER_KEEP_POS.has(pos)) return false;
-          if (r.drafts != null && r.drafts < ADP_FILTER_MIN_DRAFTS) return false;
+          if (r.drafts != null && r.drafts < floor) return false;
           return true;
         }).map(r => Object.assign({}, r));
         // Re-rank by ADP asc (1 = lowest ADP = drafted earliest)
