@@ -327,6 +327,123 @@
     })[key] || 'Tweener';
   }
 
+  // ──────────────────────────────────────────────────────────────────
+  // SCORING OVERLAY — turn a raw stat line into league-adjusted fantasy
+  // points. Single source of truth so live-draft + my-leagues (and any
+  // future page) produce identical numbers for the same league.
+  //
+  // Base scoring is full-PPR + 4-pt pass TD. The overlay applies:
+  //   - half-PPR / standard adjustment: subtract receptions as needed
+  //   - pass-TD bonus: (pass_td_pts - 4) × passTd  →  5pt = +1, 6pt = +2
+  //   - PPC (points-per-carry): rush_att × rushAtt for any league with
+  //     a per-attempt bonus on rushing
+  //   - TEP (tight-end premium): bonus_rec_te × rec when position === 'TE'
+  //
+  // Sleeper scoring_settings field names used:
+  //   rec, pass_td, bonus_rec_te, rush_att (PPC bonus per attempt)
+  //
+  // Returns { fantasyPts, breakdown } — breakdown is useful for tooltips
+  // / debugging. Always returns a finite number (defaults to 0 on null
+  // inputs so callers can chain freely).
+  // ──────────────────────────────────────────────────────────────────
+  function adjustStatsForLeague(rawStats, scoring) {
+    const s = rawStats || {};
+    const sc = scoring || {};
+    const num = v => (typeof v === 'number' && !isNaN(v)) ? v : 0;
+
+    // Volume — all default to 0 so missing fields don't blow up.
+    const passYards = num(s.passYards);
+    const passTd    = num(s.passTd);
+    const passInts  = num(s.passInts);
+    const rushAtt   = num(s.rushAtt);
+    const rushYards = num(s.rushYards);
+    const rushTd    = num(s.rushTd);
+    const rec       = num(s.rec);
+    const recYards  = num(s.recYards);
+    const recTd     = num(s.recTd);
+    const fumbles   = num(s.fumbles);
+    const pos       = (s.pos || s.position || '').toUpperCase();
+
+    // Base: full PPR, 4-pt pass TD
+    const base =
+        0.04 * passYards
+      + 4    * passTd
+      - 2    * passInts
+      + 0.1  * rushYards
+      + 6    * rushTd
+      + 0.1  * recYards
+      + 1    * rec
+      + 6    * recTd
+      - 2    * fumbles;
+
+    // Reception scoring adjustment off the full-PPR base.
+    // Sleeper rec field: 1.0=PPR, 0.5=half, 0=standard. Default to 1.0
+    // (PPR) when the scoring_settings is missing entirely.
+    let recBonus = 0;
+    const recPpr = (sc.rec != null) ? Number(sc.rec) : 1;
+    if (recPpr !== 1) {
+      recBonus = (recPpr - 1) * rec;     // half → -0.5*rec ; std → -1*rec
+    }
+
+    // Pass-TD bonus. Sleeper pass_td default is 4. If scoring is set
+    // (typically to 5 or 6), add the delta × passTd.
+    let passTdBonus = 0;
+    if (sc.pass_td != null) {
+      passTdBonus = (Number(sc.pass_td) - 4) * passTd;
+    }
+
+    // PPC — Sleeper field is rush_att (points per rushing attempt).
+    // Common values: 0.1, 0.25, 0.5. Default 0.
+    let ppc = 0;
+    if (sc.rush_att != null) {
+      ppc = Number(sc.rush_att) * rushAtt;
+    }
+
+    // TEP — only applies when player is a TE.
+    let tep = 0;
+    if (pos === 'TE' && sc.bonus_rec_te != null) {
+      tep = Number(sc.bonus_rec_te) * rec;
+    }
+
+    const fantasyPts = base + recBonus + passTdBonus + ppc + tep;
+    return {
+      fantasyPts,
+      breakdown: { base, recBonus, passTdBonus, ppc, tep },
+    };
+  }
+
+  // ──────────────────────────────────────────────────────────────────
+  // Per-player season-projected points for a specific league. Pulls the
+  // raw stat line from window.STATS_DATA and runs it through the
+  // scoring overlay. Returns null when no stats record exists so
+  // callers can fall back to Sleeper /projections.
+  //
+  // playerKey accepts any of:
+  //   - { sleeperId: '1234' }
+  //   - { name: 'CeeDee Lamb' }
+  //   - { sleeperId: '1234', name: 'CeeDee Lamb' } (tries sid first)
+  // opts: { position } (overrides position from STATS_DATA — useful for
+  //   cases where the data-suite pos field is stale or missing).
+  // ──────────────────────────────────────────────────────────────────
+  function projectPlayer(playerKey, scoring, opts) {
+    const STATS = window.STATS_DATA;
+    if (!STATS) return null;
+    const k = playerKey || {};
+    let rec = null;
+    if (k.sleeperId) rec = STATS['sid:' + k.sleeperId] || null;
+    if (!rec && k.name) {
+      const norm = (typeof window.normalizePlayerName === 'function')
+        ? window.normalizePlayerName
+        : (s => String(s || '').trim().toLowerCase().replace(/\./g, '').replace(/\s+/g, ' '));
+      rec = STATS['name:' + norm(k.name)] || null;
+    }
+    if (!rec) return null;
+    if (opts && opts.position) {
+      rec = Object.assign({}, rec, { pos: opts.position });
+    }
+    return adjustStatsForLeague(rec, scoring).fantasyPts;
+  }
+
   window.SLEEPER = {
     pickValue,
     getValueByName,
@@ -335,5 +452,7 @@
     generateTradeSuggestions,
     archetypeFromTotals,
     archetypeLabel,
+    adjustStatsForLeague,
+    projectPlayer,
   };
 })();
