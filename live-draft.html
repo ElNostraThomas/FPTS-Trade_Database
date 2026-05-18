@@ -317,17 +317,54 @@
   .ld-cell.K   { background: var(--pos-k-bg);  color: var(--white); }
   .ld-cell.DEF, .ld-cell.PICK { background: var(--pos-pick-bg); color: var(--white); }
 
-  /* Empty future-pick cells */
+  /* Empty future-pick cells. .empty handles the visual "no player yet"
+     state; opacity is on the cell ONLY when it's neither mine nor
+     traded (those carry actionable meaning the user should still see).
+     Without that gate, a future pick the user just traded for would
+     render as muted-with-orange-outline — useful but visually crowded.
+     With .traded the empty cell stays at full opacity so the trade
+     chip is clearly visible. */
   .ld-cell.empty {
     background: transparent; border: 1px dashed var(--border2);
     opacity: .35; cursor: default;
   }
+  .ld-cell.empty.mine,
+  .ld-cell.empty.traded { opacity: 1; }
   .ld-cell.empty:hover { transform: none; }
 
   /* User's own picks: brand-orange outline (with white text already from bright bgs above) */
   .ld-cell.mine {
     outline: 2px solid var(--red); outline-offset: -2px;
     z-index: 1;
+  }
+
+  /* Trade indicator — small chip in bottom-right of any cell where the
+     pick has been traded away from its slot owner. Arrow + the new
+     owner's 16px avatar (or first-initial fallback). Tooltip via the
+     title attribute shows the full new-owner team_name / display_name.
+     Uses rgba on color directly (not opacity:) per branding rule #2. */
+  .ld-cell-traded {
+    position: absolute; bottom: 3px; right: 3px;
+    display: inline-flex; align-items: center; gap: 2px;
+    padding: 1px 4px 1px 3px;
+    background: rgba(0,0,0,.45);
+    color: var(--white);
+    font-family: 'Mulish', sans-serif; font-size: 8px; font-weight: 800;
+    letter-spacing: .04em;
+    pointer-events: none;       /* clicks pass through to the parent .ld-cell */
+  }
+  .ld-cell-traded-arrow { line-height: 1; }
+  .ld-cell-traded img,
+  .ld-cell-traded .ld-cell-traded-initial {
+    width: 14px; height: 14px; border-radius: 50%;
+    display: inline-flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .ld-cell-traded img { object-fit: cover; background: var(--surface); }
+  .ld-cell-traded-initial {
+    background: var(--surface); color: var(--white);
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 8px;
   }
 
   /* ── LOADING / EMPTY STATES ───────────────────────────────────────── */
@@ -577,14 +614,18 @@
     detailsByDraft: {},       // draftId → { meta, picks }
     usersByLeague: {},        // leagueId → [users] (Sleeper /league/{id}/users response)
     rostersByLeague: {},      // leagueId → [rosters]
+    tradedPicksByLeague: {},  // leagueId → [traded_picks] from /league/{id}/traded_picks
     players: null,            // /players/nfl cache (~5 MB)
     _playersPromise: null,
     // Active selection
     year: null,
     leagueId: null, league: null,
     draftId: null, draft: null,
-    myRosterId: null,         // user's roster_id in the selected league (for highlighting picks)
+    myRosterId: null,         // user's ACTUAL post-trade roster_id in the active draft (for highlighting picks)
     slotUserMap: null,        // slot (1..N) → user object for the active draft's column headers
+    userByRosterId: null,     // roster_id → user (for resolving trade-indicator avatars)
+    slotToRoster: null,       // slot (1..N) → original-owner roster_id (constant, from draft.slot_to_roster_id)
+    tradedPicksMap: null,     // 'round.slot' → currentOwnerRosterId for any traded pick in the active draft
   };
 
   // localStorage keys
@@ -642,38 +683,95 @@
   }
 
   // ════════════════════════════════════════════════════════════════════
-  // SLOT → USER MAP — combines /league/{id}/users + /league/{id}/rosters
-  // + draft.slot_to_roster_id to map each draft slot (1..N) to a user
-  // object with display_name + avatar + metadata. Used to render owner
-  // names + avatars in the board's column headers (replacing "TEAM N").
+  // OWNERSHIP RESOLVER — combines /league/{id}/users + /league/{id}/rosters
+  // + /league/{id}/traded_picks + draft.slot_to_roster_id into a single
+  // bundle so the board renderer can answer "who actually owns this
+  // (round, slot) pick right now?"
+  //
+  // Sleeper's data shape:
+  //   - draft.slot_to_roster_id[slot] → roster_id (ORIGINAL slot owner;
+  //     constant for the life of the draft, even after trades)
+  //   - pick.roster_id (on a completed pick) → the post-trade owner of
+  //     that specific pick (authoritative when the pick has been made)
+  //   - traded_picks[]: each entry has { season, round, roster_id (the
+  //     ORIGINAL owner — i.e. slot owner), owner_id (the CURRENT owner
+  //     after trades), previous_owner_id }. Sleeper does NOT include a
+  //     slot field — we translate via reverse of slot_to_roster_id.
+  //
+  // Returns:
+  //   slotUserMap[slot]        → user object (for column headers)
+  //   userByRosterId[rosterId] → user object (for trade-indicator avatars)
+  //   slotToRoster[slot]       → original-owner roster_id (slot owner)
+  //   tradedPicksMap['R.S']    → current-owner roster_id (only present
+  //                              for traded picks; absent = use slot owner)
+  //   rosters                  → raw /league/{id}/rosters response (so the
+  //                              caller can find myRosterId via owner_id)
   //
   // The draft's home league may be a HISTORIC league instance (e.g.
-  // startup draft from 2020 living in a 2020 league). We resolve users
-  // against that draft's league_id, not the currently-selected league
-  // (which is whichever the user picked in the dropdown).
+  // startup draft from 2020 living in a 2020 league); we resolve users
+  // against THAT league_id, not whichever the user picked in the dropdown.
   // ════════════════════════════════════════════════════════════════════
-  async function _buildSlotUserMap(leagueId, draftMeta) {
-    if (!draftMeta || !draftMeta.slot_to_roster_id) return {};
-    let users   = DRAFT.usersByLeague[leagueId];
-    let rosters = DRAFT.rostersByLeague[leagueId];
-    if (!users || !rosters) {
-      const [u, r] = await Promise.all([
+  async function _buildOwnership(leagueId, draftMeta) {
+    if (!draftMeta || !draftMeta.slot_to_roster_id) {
+      return { slotUserMap: {}, userByRosterId: {}, slotToRoster: {}, tradedPicksMap: {}, rosters: [] };
+    }
+    let users        = DRAFT.usersByLeague[leagueId];
+    let rosters      = DRAFT.rostersByLeague[leagueId];
+    let tradedPicks  = DRAFT.tradedPicksByLeague[leagueId];
+    if (!users || !rosters || !tradedPicks) {
+      const [u, r, tp] = await Promise.all([
         apiFetch(SLEEPER_API + '/league/' + encodeURIComponent(leagueId) + '/users').catch(() => []),
         apiFetch(SLEEPER_API + '/league/' + encodeURIComponent(leagueId) + '/rosters').catch(() => []),
+        apiFetch(SLEEPER_API + '/league/' + encodeURIComponent(leagueId) + '/traded_picks').catch(() => []),
       ]);
-      users = DRAFT.usersByLeague[leagueId]   = u || [];
-      rosters = DRAFT.rostersByLeague[leagueId] = r || [];
+      users       = DRAFT.usersByLeague[leagueId]       = u  || [];
+      rosters     = DRAFT.rostersByLeague[leagueId]     = r  || [];
+      tradedPicks = DRAFT.tradedPicksByLeague[leagueId] = tp || [];
     }
+    // user_id → user
     const userById = {};
     users.forEach(u => { userById[u.user_id] = u; });
-    const ownerByRoster = {};
-    rosters.forEach(r => { ownerByRoster[r.roster_id] = r.owner_id; });
-    const map = {};
-    Object.entries(draftMeta.slot_to_roster_id).forEach(([slot, rosterId]) => {
-      const ownerId = ownerByRoster[rosterId];
-      map[parseInt(slot, 10)] = userById[ownerId] || null;
+    // roster_id → user
+    const userByRosterId = {};
+    rosters.forEach(r => { userByRosterId[r.roster_id] = userById[r.owner_id] || null; });
+    // slot → original-owner roster_id + slot → user
+    const slotToRoster = {};
+    const slotUserMap  = {};
+    Object.entries(draftMeta.slot_to_roster_id).forEach(([slot, rid]) => {
+      const s = parseInt(slot, 10);
+      slotToRoster[s] = rid;
+      slotUserMap[s]  = userByRosterId[rid] || null;
     });
-    return map;
+    // Reverse of slot_to_roster_id so we can translate traded_picks
+    // entries (which key by original-owner roster_id) back to slot.
+    const rosterToSlot = {};
+    Object.entries(draftMeta.slot_to_roster_id).forEach(([slot, rid]) => {
+      rosterToSlot[rid] = parseInt(slot, 10);
+    });
+    // Build (round.slot) → current-owner roster_id map. Only include picks
+    // whose season matches this draft (a league with multiple historic
+    // drafts will have traded_picks entries for every season's draft).
+    const tradedPicksMap = {};
+    const draftSeason = (draftMeta.season || '').toString();
+    (tradedPicks || []).forEach(tp => {
+      if (draftSeason && String(tp.season) !== draftSeason) return;
+      const slot = rosterToSlot[tp.roster_id];
+      if (slot == null) return;
+      tradedPicksMap[tp.round + '.' + slot] = tp.owner_id;
+    });
+    return { slotUserMap, userByRosterId, slotToRoster, tradedPicksMap, rosters };
+  }
+
+  // Pick-cell ownership resolver. Order of precedence:
+  //   1. pick.roster_id (post-trade owner of a completed pick) — authoritative
+  //   2. tradedPicksMap[round.slot] (pre-draft / mid-draft current owner)
+  //   3. slot_to_roster_id (the slot's original owner — fallback when
+  //      nothing has been traded for this round.slot)
+  function _resolveCellOwner(pick, round, slot, slotToRoster, tradedPicksMap) {
+    if (pick && pick.roster_id != null) return pick.roster_id;
+    const key = round + '.' + slot;
+    if (tradedPicksMap && tradedPicksMap[key] != null) return tradedPicksMap[key];
+    return (slotToRoster && slotToRoster[slot] != null) ? slotToRoster[slot] : null;
   }
 
   // Sleeper avatar CDN. Falls back to a brand-orange initial bubble when
@@ -691,6 +789,21 @@
     if (!user) return 'Team ' + slot;
     if (user.metadata && user.metadata.team_name) return user.metadata.team_name;
     return user.display_name || user.username || ('Team ' + slot);
+  }
+
+  // Small chip in the bottom-right corner of any pick cell where the
+  // pick has been traded away from its original slot owner. Shows an
+  // arrow + the new owner's 16px avatar (or first-initial fallback).
+  // Hovering shows the full owner name via the title attribute.
+  function _tradedChipHtml(user, slot) {
+    const label = _ownerLabel(user, slot);
+    const avatar = (user && user.avatar)
+      ? '<img src="https://sleepercdn.com/avatars/thumbs/' + encodeURIComponent(user.avatar) + '" alt="" loading="lazy">'
+      : '<span class="ld-cell-traded-initial">' + _escapeHtml((label || '?').charAt(0).toUpperCase()) + '</span>';
+    return '<div class="ld-cell-traded" title="Traded to ' + _escapeHtml(label) + '">'
+      + '<span class="ld-cell-traded-arrow">→</span>'
+      + avatar
+      + '</div>';
   }
 
   // ════════════════════════════════════════════════════════════════════
@@ -1000,14 +1113,19 @@
       ]);
       DRAFT.draft = meta;
       DRAFT.detailsByDraft[draftId] = { meta, picks };
-      // Build slot → user map from the SOURCE league so owner names + avatars
-      // line up with whoever was in the league at the time of that draft.
-      DRAFT.slotUserMap = await _buildSlotUserMap(sourceLeagueId, meta);
-      // Recompute myRosterId for the source league too — for historic
-      // startup drafts in older league instances the user's roster_id
-      // may differ from their current league's roster_id.
-      const sourceRosters = DRAFT.rostersByLeague[sourceLeagueId] || [];
-      const mine = sourceRosters.find(r => r.owner_id === DRAFT.userId);
+      // Build the full ownership bundle (users + rosters + traded_picks +
+      // slot mappings) from the SOURCE league so owner names + avatars +
+      // traded-pick resolution all reflect whoever was in the league at
+      // the time of THIS draft (not the current 2026 instance).
+      const ownership = await _buildOwnership(sourceLeagueId, meta);
+      DRAFT.slotUserMap    = ownership.slotUserMap;
+      DRAFT.userByRosterId = ownership.userByRosterId;
+      DRAFT.slotToRoster   = ownership.slotToRoster;
+      DRAFT.tradedPicksMap = ownership.tradedPicksMap;
+      // Recompute myRosterId against the SOURCE league's rosters too —
+      // for historic startup drafts in older league instances the user's
+      // roster_id may differ from the current 2026 league's roster_id.
+      const mine = ownership.rosters.find(r => r.owner_id === DRAFT.userId);
       DRAFT.myRosterId = mine ? mine.roster_id : DRAFT.myRosterId;
       ldRenderInfo(meta, picks);
       ldRenderBoard(meta, picks, players);
@@ -1067,9 +1185,18 @@
     const pickByNo = {};
     (picks || []).forEach(p => { pickByNo[p.pick_no] = p; });
 
-    // slot_to_roster_id maps draft slot (1-indexed) → league roster_id.
-    // We need this to highlight the user's picks (slots they own).
-    const slotToRoster = meta.slot_to_roster_id || {};
+    // slot_to_roster_id maps draft slot (1-indexed) → ORIGINAL league
+    // roster_id (constant for the draft's lifetime). Combined with
+    // tradedPicksMap (built in _buildOwnership) we can resolve the
+    // current owner of any (round, slot) cell — both for "is this
+    // pick mine right now?" and for the trade-indicator chip.
+    const slotToRoster    = DRAFT.slotToRoster   || meta.slot_to_roster_id || {};
+    const tradedPicksMap  = DRAFT.tradedPicksMap || {};
+    const userByRosterId  = DRAFT.userByRosterId || {};
+    // mySlots is now a misnomer kept only for the column-header highlight
+    // (the slot-owned-by-me block at the top of the column). The actual
+    // "my pick" highlight on each cell is computed per-cell against the
+    // resolved owner, not against this set.
     const mySlots = new Set();
     if (DRAFT.myRosterId != null) {
       Object.keys(slotToRoster).forEach(slot => {
@@ -1115,16 +1242,28 @@
         const draftSlot = isReverse ? (teams - slot + 1) : slot;
         const pickNo = (r - 1) * teams + draftSlot;
         const pick   = pickByNo[pickNo];
-        const isMine = mySlots.has(slot);
+
+        // Resolve who ACTUALLY owns this (round, slot) cell right now.
+        // Filled picks have pick.roster_id (post-trade); empty picks fall
+        // back to tradedPicksMap, then to slot_to_roster_id.
+        const slotOwnerRoster   = slotToRoster[slot] != null ? slotToRoster[slot] : null;
+        const actualOwnerRoster = _resolveCellOwner(pick, r, slot, slotToRoster, tradedPicksMap);
+        const isMine            = (actualOwnerRoster != null && actualOwnerRoster === DRAFT.myRosterId);
+        const isTraded          = (actualOwnerRoster != null && slotOwnerRoster != null
+                                   && actualOwnerRoster !== slotOwnerRoster);
+        const tradedChip        = isTraded ? _tradedChipHtml(userByRosterId[actualOwnerRoster], slot) : '';
 
         if (!pick || !pick.player_id) {
-          // Empty future pick — but if isMine, still surface a subtle hint
-          const cls = 'ld-cell empty' + (isMine ? ' mine' : '');
+          // Empty future pick. Highlight if user OWNS this future pick.
+          // Show traded chip too so user can see "this future pick now
+          // belongs to me / has been traded away from its slot owner".
+          const cls = 'ld-cell empty' + (isMine ? ' mine' : '') + (isTraded ? ' traded' : '');
           parts.push('<div class="' + cls + '" data-pick-no="' + pickNo + '">'
             + '<div class="ld-cell-top">'
             +   '<span class="ld-cell-pick">' + r + '.' + _padPick(draftSlot) + '</span>'
             + '</div>'
             + '<div class="ld-cell-name"><span style="opacity:.45;font-size:11px">—</span></div>'
+            + tradedChip
             + '</div>');
           continue;
         }
@@ -1133,7 +1272,7 @@
         const pos     = (player.position || 'PICK').toUpperCase();
         const fullName = _playerName(player, pick);
         const split = _splitName(fullName);
-        const cls = 'ld-cell ' + pos + (isMine ? ' mine' : '');
+        const cls = 'ld-cell ' + pos + (isMine ? ' mine' : '') + (isTraded ? ' traded' : '');
         const safeName = fullName.replace(/'/g, "\\'");
         const onclickAttr = ' onclick="ldOpenPlayer(\'' + safeName + '\')"';
 
@@ -1146,6 +1285,7 @@
           +   (split.first ? '<div class="ld-cell-fname">' + _escapeHtml(split.first) + '</div>' : '')
           +   '<div class="ld-cell-lname">' + _escapeHtml(split.last || fullName) + '</div>'
           + '</div>'
+          + tradedChip
           + '</div>');
       }
     }
