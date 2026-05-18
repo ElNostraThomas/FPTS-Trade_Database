@@ -200,6 +200,126 @@
   .ld-info-val.status-paused     { color: var(--yellow); }
   .ld-info-val.status-pre-draft  { color: var(--red); }
 
+  /* ── ANALYSIS CARDS (Phase 2) ─────────────────────────────────────
+     Three cards above the board: Most Recent Pick / Your Roster / Team
+     Needs. Desktop is a 3-up grid; mobile stacks vertically (handled in
+     the bottom @media block). Same card chrome reused across all three. */
+  .ld-analysis {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
+    margin-bottom: 14px;
+  }
+  .ld-card {
+    background: var(--surface); border: 1px solid var(--border);
+    padding: 12px 14px; min-width: 0;
+  }
+  .ld-card-label {
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 10px; color: var(--red);
+    text-transform: uppercase; letter-spacing: .07em;
+    margin-bottom: 10px;
+  }
+  .ld-card-body { font-family: 'Mulish', sans-serif; font-size: 12px; color: var(--white); }
+  .ld-card-empty { color: rgba(255,255,255,0.55); font-size: 12px; }
+
+  /* PICK ANALYSIS card — player name + pick number + ADP + delta badge */
+  .ld-pa-name {
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 16px; color: var(--white);
+    line-height: 1.1;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .ld-pa-meta {
+    display: flex; gap: 6px; align-items: center; margin-top: 4px;
+    font-size: 11px; color: rgba(255,255,255,0.7);
+  }
+  .ld-pa-pos {
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 10px; padding: 2px 7px; color: var(--white);
+  }
+  .ld-pa-pos.QB { background: var(--pos-qb-bg); }
+  .ld-pa-pos.RB { background: var(--pos-rb-bg); }
+  .ld-pa-pos.WR { background: var(--pos-wr-bg); }
+  .ld-pa-pos.TE { background: var(--pos-te-bg); }
+  .ld-pa-pos.K, .ld-pa-pos.DEF, .ld-pa-pos.PICK { background: var(--pos-pick-bg); }
+  .ld-pa-stats {
+    display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px;
+    margin-top: 12px;
+  }
+  .ld-pa-stat {
+    display: flex; flex-direction: column; align-items: center; gap: 2px;
+    padding: 8px 4px;
+    background: var(--surface2); border: 1px solid var(--border2);
+  }
+  .ld-pa-stat-label {
+    font-family: 'Mulish', sans-serif; font-size: 8px; font-weight: 800;
+    color: rgba(255,255,255,0.55);
+    text-transform: uppercase; letter-spacing: .06em;
+  }
+  .ld-pa-stat-val {
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 14px; color: var(--white);
+    font-variant-numeric: tabular-nums;
+  }
+  /* Delta badge — Value (green), Par (muted), Reach (orange) */
+  .ld-pa-badge {
+    display: inline-flex; align-items: center; justify-content: center; gap: 4px;
+    margin-top: 12px; padding: 6px 12px;
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 12px; letter-spacing: .06em; text-transform: uppercase;
+    width: 100%;
+  }
+  .ld-pa-badge.value  { background: var(--green);    color: var(--white); }
+  .ld-pa-badge.par    { background: var(--surface2); color: rgba(255,255,255,0.65); border: 1px solid var(--border2); }
+  .ld-pa-badge.reach  { background: var(--red);      color: var(--white); }
+  .ld-pa-badge.no-adp { background: var(--surface2); color: rgba(255,255,255,0.45); border: 1px dashed var(--border2); }
+
+  /* YOUR ROSTER card — position pills with player counts + chip list */
+  .ld-roster-row {
+    display: flex; align-items: center; gap: 8px;
+    margin-bottom: 6px; min-width: 0;
+  }
+  .ld-roster-row:last-child { margin-bottom: 0; }
+  .ld-roster-pos {
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 11px; padding: 3px 9px; color: var(--white);
+    flex-shrink: 0; min-width: 38px; text-align: center;
+  }
+  .ld-roster-pos.QB { background: var(--pos-qb-bg); }
+  .ld-roster-pos.RB { background: var(--pos-rb-bg); }
+  .ld-roster-pos.WR { background: var(--pos-wr-bg); }
+  .ld-roster-pos.TE { background: var(--pos-te-bg); }
+  .ld-roster-count {
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 14px; color: var(--white);
+    font-variant-numeric: tabular-nums; min-width: 18px;
+  }
+  .ld-roster-names {
+    font-family: 'Mulish', sans-serif; font-size: 11px; font-weight: 700;
+    color: rgba(255,255,255,0.7);
+    min-width: 0; flex: 1;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+
+  /* TEAM NEEDS card — pos pills for the weakest positions + shortfall text */
+  .ld-needs-row {
+    display: flex; align-items: center; gap: 10px; margin-bottom: 8px;
+  }
+  .ld-needs-row:last-child { margin-bottom: 0; }
+  .ld-needs-pill {
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 13px; padding: 4px 12px; color: var(--white);
+    flex-shrink: 0; min-width: 44px; text-align: center;
+  }
+  .ld-needs-pill.QB { background: var(--pos-qb-bg); }
+  .ld-needs-pill.RB { background: var(--pos-rb-bg); }
+  .ld-needs-pill.WR { background: var(--pos-wr-bg); }
+  .ld-needs-pill.TE { background: var(--pos-te-bg); }
+  .ld-needs-note {
+    font-family: 'Mulish', sans-serif; font-size: 11px;
+    color: rgba(255,255,255,0.65);
+  }
+  .ld-needs-note strong { color: var(--white); font-weight: 900; }
+
   /* ── DRAFT BOARD ─────────────────────────────────────────────────── */
   .ld-board-wrap {
     overflow-x: auto; overflow-y: visible;
@@ -417,6 +537,20 @@
     .ld-info-label { font-size: 8px; }
     .ld-info-val { font-size: 12px; }
 
+    /* Analysis cards stack vertically on mobile so each gets full width. */
+    .ld-analysis { grid-template-columns: 1fr; gap: 8px; }
+    .ld-card { padding: 10px 12px; }
+    .ld-pa-name { font-size: 15px; }
+    .ld-pa-stats { gap: 4px; }
+    .ld-pa-stat { padding: 6px 4px; }
+    .ld-pa-stat-val { font-size: 13px; }
+    .ld-pa-badge { font-size: 11px; padding: 5px 10px; }
+    .ld-roster-pos { font-size: 10px; padding: 3px 7px; min-width: 32px; }
+    .ld-roster-count { font-size: 13px; }
+    .ld-roster-names { font-size: 10px; }
+    .ld-needs-pill { font-size: 12px; padding: 4px 10px; min-width: 40px; }
+    .ld-needs-note { font-size: 10px; }
+
     /* Smaller cells so 12-team grids are usable on phone (still requires
        horizontal swipe — sticky row + col headers from the desktop CSS
        keep R# and TEAM labels visible while you scroll). */
@@ -557,6 +691,25 @@
 
     <!-- Draft info bar (status + type + teams + rounds) -->
     <div id="ld-draft-info" class="ld-draft-info" style="display:none"></div>
+
+    <!-- ════════════════════════════════════════════════════════════════
+         ANALYSIS PANELS — three cards above the board, hidden until a
+         draft is loaded. Mobile stacks vertically; desktop is a 3-up grid.
+         ════════════════════════════════════════════════════════════════ -->
+    <div id="ld-analysis" class="ld-analysis" style="display:none">
+      <div class="ld-card" id="ld-card-pick">
+        <div class="ld-card-label">Most Recent Pick</div>
+        <div class="ld-card-body" id="ld-card-pick-body"></div>
+      </div>
+      <div class="ld-card" id="ld-card-roster">
+        <div class="ld-card-label">Your Roster</div>
+        <div class="ld-card-body" id="ld-card-roster-body"></div>
+      </div>
+      <div class="ld-card" id="ld-card-needs">
+        <div class="ld-card-label">Team Needs</div>
+        <div class="ld-card-body" id="ld-card-needs-body"></div>
+      </div>
+    </div>
 
     <!-- Draft board -->
     <div id="ld-board-host"></div>
@@ -898,6 +1051,7 @@
     DRAFT.draftId  = null; DRAFT.draft  = null;
     DRAFT.myRosterId = null;
     document.getElementById('ld-draft-info').style.display = 'none';
+    document.getElementById('ld-analysis').style.display = 'none';
     document.getElementById('ld-board-host').innerHTML = '';
     await ldFetchLeagues(DRAFT.year);
   }
@@ -993,6 +1147,7 @@
     // Reset downstream
     DRAFT.draftId = null; DRAFT.draft = null; DRAFT.myRosterId = null;
     document.getElementById('ld-draft-info').style.display = 'none';
+    document.getElementById('ld-analysis').style.display = 'none';
     document.getElementById('ld-board-host').innerHTML = '';
     try { if (id) localStorage.setItem(LS.LAST_LEAGUE, id); } catch (e) {}
     if (!id) {
@@ -1083,6 +1238,7 @@
     DRAFT.draftId = id;
     DRAFT.draft = null;
     document.getElementById('ld-draft-info').style.display = 'none';
+    document.getElementById('ld-analysis').style.display = 'none';
     document.getElementById('ld-board-host').innerHTML = '';
     try { if (id) localStorage.setItem(LS.LAST_DRAFT, id); } catch (e) {}
     if (!id) return;
@@ -1128,11 +1284,217 @@
       const mine = ownership.rosters.find(r => r.owner_id === DRAFT.userId);
       DRAFT.myRosterId = mine ? mine.roster_id : DRAFT.myRosterId;
       ldRenderInfo(meta, picks);
+      ldRenderAnalysis(meta, picks, players);
       ldRenderBoard(meta, picks, players);
     } catch (e) {
       host.innerHTML = '<div class="ld-empty"><strong>Couldn\'t load draft.</strong><br>'
         + _escapeHtml(e.message || String(e)) + '</div>';
     }
+  }
+
+  // ════════════════════════════════════════════════════════════════════
+  // PHASE 2 — ANALYSIS HELPERS
+  //
+  //   _adpFmtKey(draftMeta, league) → 'startup_sf' | 'startup_1qb' |
+  //                                   'rookie_draft_sf' | 'rookie_draft_1qb'
+  //   _playerAdp(playerName, fmtKey) → numeric ADP or null
+  //   _pickDelta(actualPick, adp)    → { delta, label, cls }
+  //   _aggregateRoster(picks, sourceLeagueId)
+  //                                  → { byPos: {QB:[], RB:[], ...}, total }
+  //   _computeTeamNeeds(byPos)       → array of { pos, have, target, gap }
+  //
+  // All work offline against window.ADP_PAYLOAD + DRAFT cache — no extra
+  // Sleeper calls. The "minimum" targets are roster-construction defaults
+  // (1QB + 4RB + 5WR + 1TE = 11 starters across most formats); user can
+  // refine these later if leagues vary wildly.
+  // ════════════════════════════════════════════════════════════════════
+  const TEAM_NEED_TARGETS_STARTUP = { QB: 2, RB: 4, WR: 5, TE: 2 };
+  const TEAM_NEED_TARGETS_ROOKIE  = { QB: 1, RB: 1, WR: 2, TE: 1 };
+
+  function _adpFmtKey(draftMeta, league) {
+    const rounds = (draftMeta && draftMeta.settings && draftMeta.settings.rounds) || 0;
+    const isRookie = rounds && rounds <= 6;
+    // SF detection: prefer league.roster_positions, fall back to draft.settings
+    let isSF = false;
+    if (league && Array.isArray(league.roster_positions)) {
+      isSF = league.roster_positions.indexOf('SUPER_FLEX') >= 0;
+    } else if (draftMeta && draftMeta.settings && draftMeta.settings.slots_super_flex) {
+      isSF = draftMeta.settings.slots_super_flex > 0;
+    }
+    if (isRookie) return isSF ? 'rookie_draft_sf' : 'rookie_draft_1qb';
+    return isSF ? 'startup_sf' : 'startup_1qb';
+  }
+
+  function _adpLookupTable(fmtKey) {
+    const payload = window.ADP_PAYLOAD;
+    if (!payload || !payload.byMonth || !payload.byMonth.ALL) return null;
+    const list = payload.byMonth.ALL[fmtKey];
+    if (!Array.isArray(list)) return null;
+    const norm = (typeof window.normalizePlayerName === 'function')
+      ? window.normalizePlayerName
+      : (s => String(s || '').trim().toLowerCase());
+    const out = {};
+    list.forEach(p => {
+      if (!p || !p.name || p.adp == null) return;
+      out[norm(p.name)] = p.adp;
+    });
+    return out;
+  }
+
+  function _playerAdp(playerName, fmtKey) {
+    const table = _adpLookupTable(fmtKey);
+    if (!table) return null;
+    const norm = (typeof window.normalizePlayerName === 'function')
+      ? window.normalizePlayerName
+      : (s => String(s || '').trim().toLowerCase());
+    const key = norm(playerName);
+    return table[key] != null ? table[key] : null;
+  }
+
+  function _pickDelta(actualPick, adp) {
+    if (adp == null || !actualPick) return { delta: null, label: 'NO ADP', cls: 'no-adp' };
+    const delta = adp - actualPick;       // positive = picked AFTER ADP (value)
+    if (delta > 5)  return { delta, label: 'VALUE +' + Math.round(delta), cls: 'value' };
+    if (delta < -5) return { delta, label: 'REACH ' + Math.round(delta), cls: 'reach' };
+    return { delta, label: 'PAR', cls: 'par' };
+  }
+
+  // Aggregate user's owned players: pre-existing roster + this draft's picks.
+  // Returns { byPos: { QB: [names], RB: [...], WR: [...], TE: [...] }, total }
+  function _aggregateRoster(picks, sourceLeagueId, players) {
+    const out = { QB: [], RB: [], WR: [], TE: [], total: 0 };
+    if (!DRAFT.myRosterId) return out;
+    const seen = new Set();
+
+    // 1. Pre-existing roster.players from /league/{id}/rosters
+    const rosters = DRAFT.rostersByLeague[sourceLeagueId] || [];
+    const myRoster = rosters.find(r => r.roster_id === DRAFT.myRosterId);
+    const baseIds = (myRoster && myRoster.players) || [];
+    baseIds.forEach(pid => {
+      if (!pid || seen.has(pid)) return;
+      seen.add(pid);
+      const p = players[pid];
+      if (!p) return;
+      const pos = (p.position || '').toUpperCase();
+      if (out[pos]) {
+        out[pos].push(_playerName(p, { player_id: pid }));
+        out.total++;
+      }
+    });
+
+    // 2. This draft's picks where pick.roster_id === DRAFT.myRosterId
+    (picks || []).forEach(pk => {
+      if (!pk || pk.roster_id !== DRAFT.myRosterId) return;
+      const pid = pk.player_id;
+      if (!pid || seen.has(pid)) return;
+      seen.add(pid);
+      const p = players[pid] || {};
+      const pos = (p.position || '').toUpperCase();
+      if (out[pos]) {
+        out[pos].push(_playerName(p, pk));
+        out.total++;
+      }
+    });
+
+    return out;
+  }
+
+  function _computeTeamNeeds(byPos, draftMeta) {
+    const rounds = (draftMeta && draftMeta.settings && draftMeta.settings.rounds) || 0;
+    const targets = (rounds && rounds <= 6) ? TEAM_NEED_TARGETS_ROOKIE : TEAM_NEED_TARGETS_STARTUP;
+    const out = [];
+    ['QB', 'RB', 'WR', 'TE'].forEach(pos => {
+      const have   = byPos[pos] ? byPos[pos].length : 0;
+      const target = targets[pos] || 0;
+      const gap    = target - have;
+      out.push({ pos, have, target, gap });
+    });
+    // Sort by largest gap first (biggest shortfall = highest need)
+    out.sort((a, b) => b.gap - a.gap);
+    return out;
+  }
+
+  // Render the three analysis cards. recentPick is the cell whose pick
+  // info is shown in the Pick Analysis card (defaults to the most recent
+  // pick in the draft, but can be overridden by clicking any cell).
+  function ldRenderAnalysis(meta, picks, players, recentPick) {
+    const wrap = document.getElementById('ld-analysis');
+    if (!meta) { wrap.style.display = 'none'; return; }
+    wrap.style.display = '';
+
+    // Pick Analysis card
+    const fmtKey = _adpFmtKey(meta, DRAFT.league);
+    const pa = document.getElementById('ld-card-pick-body');
+    if (!recentPick && picks && picks.length) {
+      recentPick = picks[picks.length - 1];
+    }
+    if (!recentPick || !recentPick.player_id) {
+      pa.innerHTML = '<div class="ld-card-empty">No picks made yet.</div>';
+    } else {
+      const player = players[recentPick.player_id] || {};
+      const pos    = (player.position || 'PICK').toUpperCase();
+      const fullName = _playerName(player, recentPick);
+      const adp = _playerAdp(fullName, fmtKey);
+      const verdict = _pickDelta(recentPick.pick_no, adp);
+      pa.innerHTML = ''
+        + '<div class="ld-pa-name">' + _escapeHtml(fullName) + '</div>'
+        + '<div class="ld-pa-meta">'
+        +   '<span class="ld-pa-pos ' + pos + '">' + pos + '</span>'
+        +   (player.team ? '<span>' + _escapeHtml(player.team) + '</span>' : '')
+        + '</div>'
+        + '<div class="ld-pa-stats">'
+        +   '<div class="ld-pa-stat"><span class="ld-pa-stat-label">Pick</span><span class="ld-pa-stat-val">' + recentPick.pick_no + '</span></div>'
+        +   '<div class="ld-pa-stat"><span class="ld-pa-stat-label">ADP</span><span class="ld-pa-stat-val">' + (adp != null ? adp.toFixed(1) : '—') + '</span></div>'
+        +   '<div class="ld-pa-stat"><span class="ld-pa-stat-label">Delta</span><span class="ld-pa-stat-val">' + (verdict.delta != null ? (verdict.delta > 0 ? '+' : '') + Math.round(verdict.delta) : '—') + '</span></div>'
+        + '</div>'
+        + '<div class="ld-pa-badge ' + verdict.cls + '">' + verdict.label + '</div>';
+    }
+
+    // Your Roster card
+    const roster = _aggregateRoster(picks, _activeSourceLeagueId(), players);
+    const rosterEl = document.getElementById('ld-card-roster-body');
+    if (!DRAFT.myRosterId || roster.total === 0) {
+      rosterEl.innerHTML = '<div class="ld-card-empty">No players on your roster yet.</div>';
+    } else {
+      const rows = ['QB', 'RB', 'WR', 'TE'].map(p => {
+        const names = roster[p] || [];
+        return '<div class="ld-roster-row">'
+          + '<span class="ld-roster-pos ' + p + '">' + p + '</span>'
+          + '<span class="ld-roster-count">' + names.length + '</span>'
+          + '<span class="ld-roster-names" title="' + _escapeHtml(names.join(', ')) + '">'
+          +   (names.length ? _escapeHtml(names.join(' · ')) : '<span style="opacity:.45">—</span>')
+          + '</span>'
+          + '</div>';
+      }).join('');
+      rosterEl.innerHTML = rows;
+    }
+
+    // Team Needs card
+    const needs = _computeTeamNeeds(roster, meta);
+    const top = needs.filter(n => n.gap > 0).slice(0, 2);
+    const needsEl = document.getElementById('ld-card-needs-body');
+    if (!DRAFT.myRosterId) {
+      needsEl.innerHTML = '<div class="ld-card-empty">Sign in to a league with your roster to compute team needs.</div>';
+    } else if (!top.length) {
+      needsEl.innerHTML = '<div class="ld-card-empty">Roster meets typical starting-position targets. Best player available.</div>';
+    } else {
+      needsEl.innerHTML = top.map(n =>
+        '<div class="ld-needs-row">'
+        + '<span class="ld-needs-pill ' + n.pos + '">' + n.pos + '</span>'
+        + '<span class="ld-needs-note">Have <strong>' + n.have + '</strong> · Target <strong>' + n.target + '</strong> · Short <strong>' + n.gap + '</strong></span>'
+        + '</div>'
+      ).join('');
+    }
+  }
+
+  // Convenience accessor — figure out which league_id the current draft
+  // resolves users + rosters + traded_picks against. Mirrors the logic
+  // inside ldLoadDraft so analysis renderers can independently grab it.
+  function _activeSourceLeagueId() {
+    if (!DRAFT.draftId || !DRAFT.leagueId) return null;
+    const allDrafts = DRAFT.draftsByLeague[DRAFT.leagueId] || [];
+    const row = allDrafts.find(d => d.draft_id === DRAFT.draftId);
+    return (row && (row._sourceLeagueId || row.league_id)) || DRAFT.leagueId;
   }
 
   // ════════════════════════════════════════════════════════════════════
@@ -1273,8 +1635,10 @@
         const fullName = _playerName(player, pick);
         const split = _splitName(fullName);
         const cls = 'ld-cell ' + pos + (isMine ? ' mine' : '') + (isTraded ? ' traded' : '');
-        const safeName = fullName.replace(/'/g, "\\'");
-        const onclickAttr = ' onclick="ldOpenPlayer(\'' + safeName + '\')"';
+        // onclick passes pick_no — ldOnCellClick looks up the player and
+        // updates the Pick Analysis card BEFORE opening the drawer. The
+        // safe-name escape is no longer needed here (no string interp).
+        const onclickAttr = ' onclick="ldOnCellClick(' + pickNo + ')"';
 
         parts.push('<div class="' + cls + '" data-pick-no="' + pickNo + '"' + onclickAttr + '>'
           + '<div class="ld-cell-top">'
@@ -1324,6 +1688,28 @@
     if (typeof window.openPanel === 'function') {
       try { window.openPanel(name); } catch (e) { /* swallow */ }
     }
+  }
+
+  // Phase 2 — clicking a filled pick cell does two things:
+  //   1. update the Pick Analysis card to show that pick's ADP-delta
+  //   2. open the shared player drawer (existing behavior)
+  // Empty cells (no player_id) have no onclick attached, so this function
+  // is never called for them.
+  function ldOnCellClick(pickNo) {
+    const details = DRAFT.detailsByDraft[DRAFT.draftId];
+    if (!details) return;
+    const pick = (details.picks || []).find(p => p.pick_no === pickNo);
+    if (!pick || !pick.player_id) return;
+    // Re-render the analysis cards with this specific pick highlighted
+    // (only the Pick Analysis card content changes — the roster + needs
+    // cards re-render against the same data, harmless).
+    try {
+      ldRenderAnalysis(details.meta, details.picks, DRAFT.players || {}, pick);
+    } catch (e) { /* analysis is enhancement-only; never block the drawer */ }
+    // Open drawer
+    const player = (DRAFT.players || {})[pick.player_id] || {};
+    const name = _playerName(player, pick);
+    ldOpenPlayer(name);
   }
 
   // ════════════════════════════════════════════════════════════════════
