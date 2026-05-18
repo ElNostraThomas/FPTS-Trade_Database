@@ -63,6 +63,9 @@
 
 <!-- Data bootstrap -->
 <script src="assets/js/data-bootstrap.js?v=1780200000"></script>
+<!-- Shared Sleeper trade-engine + asset/pick/archetype utilities. Loads
+     after data-bootstrap so window.FP_VALUES + PICK_VALUES are populated. -->
+<script src="assets/js/sleeper-helpers.js?v=1780700000"></script>
 
 <style>
   /* ════════════════════════════════════════════════════════════════════
@@ -538,6 +541,81 @@
     font-variant-numeric: tabular-nums;
   }
 
+  /* ── TRADE SUGGESTIONS card (below roster panel) ───────────────────
+     Up to 3 fair-value packages for the user's next pick. Desktop: 3
+     columns side-by-side. Mobile: stacked vertical. Each card has a
+     label, 1-3 asset rows, and a footer with total + ratio-of-target. */
+  .ld-trades {
+    background: var(--surface); border: 1px solid var(--border);
+    padding: 14px 16px; margin-top: 14px;
+  }
+  .ld-trades-head {
+    display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap;
+    margin-bottom: 12px;
+  }
+  .ld-trades-target {
+    font-family: 'Mulish', sans-serif; font-size: 11px;
+    color: rgba(255,255,255,0.65);
+  }
+  .ld-trades-target strong {
+    color: var(--white); font-weight: 800;
+    font-variant-numeric: tabular-nums;
+  }
+  .ld-trades-body {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
+    align-items: start;
+  }
+  .ld-trade-card {
+    background: var(--surface2); border: 1px solid var(--border);
+    padding: 10px 12px;
+    display: flex; flex-direction: column; gap: 8px;
+    min-width: 0;
+  }
+  .ld-trade-label {
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 11px; color: var(--red);
+    letter-spacing: .04em;
+  }
+  .ld-trade-assets { display: flex; flex-direction: column; gap: 4px; }
+  .ld-trade-asset {
+    display: grid; grid-template-columns: 36px 1fr 48px;
+    align-items: center; gap: 8px;
+    padding: 4px 6px;
+    background: var(--surface); border: 1px solid var(--border2);
+    min-width: 0;
+  }
+  .ld-trade-pos {
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 10px; padding: 2px 0; color: var(--white);
+    text-align: center;
+  }
+  .ld-trade-pos.QB { background: var(--pos-qb-bg); }
+  .ld-trade-pos.RB { background: var(--pos-rb-bg); }
+  .ld-trade-pos.WR { background: var(--pos-wr-bg); }
+  .ld-trade-pos.TE { background: var(--pos-te-bg); }
+  .ld-trade-pos.PICK,
+  .ld-trade-pos.K, .ld-trade-pos.DEF { background: var(--pos-pick-bg); }
+  .ld-trade-name {
+    font-family: 'Mulish', sans-serif; font-size: 12px; font-weight: 700;
+    color: var(--white);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    min-width: 0;
+  }
+  .ld-trade-val {
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 13px; color: var(--white);
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+  }
+  .ld-trade-foot {
+    display: flex; justify-content: space-between; align-items: center;
+    padding-top: 6px;
+    border-top: 1px solid var(--border);
+    font-family: 'Mulish', sans-serif; font-size: 10px;
+    color: rgba(255,255,255,0.55);
+    font-variant-numeric: tabular-nums;
+  }
+
   /* ── DRAFT BOARD ─────────────────────────────────────────────────── */
   .ld-board-wrap {
     overflow-x: auto; overflow-y: visible;
@@ -809,6 +887,16 @@
        names + stats get tighter, but the user sees two positions per
        row without scrolling vertically — matches the "see more at
        once" goal. */
+    /* Trade Suggestions stack vertically on mobile so each package can be
+       inspected without horizontal squeeze. */
+    .ld-trades { padding: 10px 12px; margin-top: 10px; }
+    .ld-trades-body { grid-template-columns: 1fr; gap: 8px; }
+    .ld-trade-card { padding: 8px 10px; gap: 6px; }
+    .ld-trade-asset { grid-template-columns: 32px 1fr 42px; gap: 6px; padding: 3px 5px; }
+    .ld-trade-pos { font-size: 9px; }
+    .ld-trade-name { font-size: 11px; }
+    .ld-trade-val { font-size: 12px; }
+
     /* BPA shrinks to 1 column on mobile so each player row stays readable. */
     .ld-bpa { padding: 10px 12px; margin-top: 10px; }
     .ld-bpa-sub { font-size: 10px; }
@@ -1026,6 +1114,20 @@
         </div>
       </div>
       <div id="ld-roster-panel-body"></div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════════════
+         TRADE SUGGESTIONS — fair-value packages for the user's next pick.
+         Hidden until: a draft is loaded, user has a future pick in it, the
+         pick has a known MVS value, and the user has tradeable assets.
+         Uses the shared SLEEPER trade-engine (assets/js/sleeper-helpers.js).
+         ════════════════════════════════════════════════════════════════ -->
+    <div id="ld-trades" class="ld-trades" style="display:none">
+      <div class="ld-trades-head">
+        <div class="ld-card-label">Fair Value at Your Next Pick</div>
+        <div class="ld-trades-target" id="ld-trades-target"></div>
+      </div>
+      <div id="ld-trades-body" class="ld-trades-body"></div>
     </div>
   </div>
 
@@ -1455,6 +1557,7 @@
     document.getElementById('ld-analysis').style.display = 'none';
     document.getElementById('ld-bpa').style.display = 'none';
     document.getElementById('ld-roster-panel').style.display = 'none';
+    document.getElementById('ld-trades').style.display = 'none';
     document.getElementById('ld-board-host').innerHTML = '';
     await ldFetchLeagues(DRAFT.year);
   }
@@ -1553,6 +1656,7 @@
     document.getElementById('ld-analysis').style.display = 'none';
     document.getElementById('ld-bpa').style.display = 'none';
     document.getElementById('ld-roster-panel').style.display = 'none';
+    document.getElementById('ld-trades').style.display = 'none';
     document.getElementById('ld-board-host').innerHTML = '';
     try { if (id) localStorage.setItem(LS.LAST_LEAGUE, id); } catch (e) {}
     if (!id) {
@@ -1646,6 +1750,7 @@
     document.getElementById('ld-analysis').style.display = 'none';
     document.getElementById('ld-bpa').style.display = 'none';
     document.getElementById('ld-roster-panel').style.display = 'none';
+    document.getElementById('ld-trades').style.display = 'none';
     document.getElementById('ld-board-host').innerHTML = '';
     try { if (id) localStorage.setItem(LS.LAST_DRAFT, id); } catch (e) {}
     if (!id) return;
@@ -1707,6 +1812,7 @@
       ldRenderAnalysis(meta, picks, players);
       ldRenderBPA(meta, picks, players);
       ldRenderBoard(meta, picks, players);
+      ldRenderTrades(meta, picks, players);
       // PHASE 3 — kick off live polling while the draft is in any non-terminal
       // status. A completed draft has nothing to refresh; pre_draft / drafting /
       // paused all benefit from background refresh (pre_draft → drafting is the
@@ -1785,6 +1891,7 @@
         ldRenderAnalysis(meta, picks, DRAFT.players || {});
         ldRenderBPA(meta, picks, DRAFT.players || {});
         ldRenderBoard(meta, picks, DRAFT.players || {});
+        ldRenderTrades(meta, picks, DRAFT.players || {});
       }
       if (meta && meta.status === 'complete') ldStopPolling();
     } catch (e) {
@@ -2139,6 +2246,118 @@
         + '<span class="ld-bpa-name">' + _escapeHtml(p.name) + '</span>'
         + '<span class="ld-bpa-stat"><span class="ld-bpa-stat-l">Val</span><span class="ld-bpa-stat-v">' + valDisp + '</span></span>'
         + '<span class="ld-bpa-stat"><span class="ld-bpa-stat-l">ADP</span><span class="ld-bpa-stat-v">' + adpDisp + '</span></span>'
+        + '</div>';
+    }).join('');
+  }
+
+  // ════════════════════════════════════════════════════════════════════
+  // PHASE 4.2 — FAIR-VALUE TRADE SUGGESTIONS for the user's next pick
+  //
+  // Walks the snake order from the current next-pick forward, looking for
+  // the first pick the user actually owns (handles traded picks). Looks
+  // that pick's value up via SLEEPER.pickValue and feeds it to the shared
+  // trade-engine alongside the user's current asset pool (rostered players
+  // + future owned picks). Renders up to 3 packages.
+  //
+  // Hide conditions: no draft loaded, no myRosterId, draft complete, user
+  // has no remaining picks, no MVS coverage for the pick year, or the
+  // engine returns no packages within the ratio bounds. All of these
+  // produce a quiet `display:none` rather than a noisy empty state.
+  //
+  // Archetype: defaulted to 'tweener' (neutral) for v1. A future iteration
+  // can compute the user's real archetype using the per-team value data
+  // already collected by _computeLeagueRanks.
+  // ════════════════════════════════════════════════════════════════════
+  function _findMyNextPick(picks, meta) {
+    if (!meta || DRAFT.myRosterId == null) return null;
+    if (meta.status === 'complete') return null;
+    const settings = meta.settings || {};
+    const teams  = settings.teams || (meta.draft_order ? Object.keys(meta.draft_order).length : 12);
+    const rounds = settings.rounds || 0;
+    if (!rounds) return null;
+    const totalPicks = teams * rounds;
+    const nextPickNo = (picks || []).length + 1;
+    if (nextPickNo > totalPicks) return null;
+    const isSnake = (meta.type || 'snake') === 'snake';
+    const slotToRoster   = DRAFT.slotToRoster   || meta.slot_to_roster_id || {};
+    const tradedPicksMap = DRAFT.tradedPicksMap || {};
+    for (let p = nextPickNo; p <= totalPicks; p++) {
+      const round = Math.ceil(p / teams);
+      const draftSlot = ((p - 1) % teams) + 1;
+      const isReverse = isSnake && (round % 2 === 0);
+      const columnSlot = isReverse ? (teams - draftSlot + 1) : draftSlot;
+      const owner = _resolveCellOwner(null, round, columnSlot, slotToRoster, tradedPicksMap);
+      if (owner === DRAFT.myRosterId) {
+        return { pickNo: p, round, columnSlot, season: meta.season || (DRAFT.league && DRAFT.league.season) };
+      }
+    }
+    return null;
+  }
+
+  function _buildMyAssetPool(sourceLeagueId) {
+    if (DRAFT.myRosterId == null || !window.SLEEPER) return [];
+    return SLEEPER.buildAssetPool({
+      rosters:                DRAFT.rostersByLeague[sourceLeagueId] || [],
+      players:                DRAFT.players || {},
+      tradedPicks:            DRAFT.tradedPicksByLeague[sourceLeagueId] || [],
+      draftRounds:            (DRAFT.league && DRAFT.league.settings && DRAFT.league.settings.draft_rounds) || 4,
+      leagueSeason:           (DRAFT.league && DRAFT.league.season) || new Date().getFullYear(),
+      completedDraftSeasons:  new Set(),
+    }, DRAFT.myRosterId);
+  }
+
+  function ldRenderTrades(meta, picks, players) {
+    const card = document.getElementById('ld-trades');
+    if (!card) return;
+    if (!meta || DRAFT.myRosterId == null || !window.SLEEPER) {
+      card.style.display = 'none';
+      return;
+    }
+    const myNext = _findMyNextPick(picks, meta);
+    if (!myNext || !myNext.season) {
+      card.style.display = 'none';
+      return;
+    }
+    const targetValue = SLEEPER.pickValue(String(myNext.season), myNext.round);
+    if (!targetValue) {
+      // No MVS coverage for this season/round (e.g., 2027+ before
+      // sync-fp covers it). Better to hide than to render with a
+      // misleading "0" target.
+      card.style.display = 'none';
+      return;
+    }
+    const myAssets = _buildMyAssetPool(_activeSourceLeagueId());
+    if (!myAssets.length) {
+      card.style.display = 'none';
+      return;
+    }
+    const suggestions = SLEEPER.generateTradeSuggestions(myAssets, targetValue, 'tweener', 3);
+    if (!suggestions.length) {
+      card.style.display = 'none';
+      return;
+    }
+    card.style.display = '';
+    document.getElementById('ld-trades-target').innerHTML = ''
+      + 'Your next pick: <strong>' + myNext.round + '.' + _padPick(myNext.columnSlot) + '</strong>'
+      + ' · Target value: <strong>' + Math.round(targetValue) + '</strong>';
+    const body = document.getElementById('ld-trades-body');
+    body.innerHTML = suggestions.map(sug => {
+      const assetsHtml = (sug.sending || []).map(a => {
+        const pos = (a.pos || 'PICK').toUpperCase();
+        return '<div class="ld-trade-asset">'
+          + '<span class="ld-trade-pos ' + pos + '">' + pos + '</span>'
+          + '<span class="ld-trade-name" title="' + _escapeHtml(a.name) + '">' + _escapeHtml(a.name) + '</span>'
+          + '<span class="ld-trade-val">' + Math.round(a.value) + '</span>'
+          + '</div>';
+      }).join('');
+      const ratioPct = Math.round(sug.ratio * 100);
+      return '<div class="ld-trade-card">'
+        + '<div class="ld-trade-label">' + _escapeHtml(sug.label) + '</div>'
+        + '<div class="ld-trade-assets">' + assetsHtml + '</div>'
+        + '<div class="ld-trade-foot">'
+        +   '<span>Total: ' + Math.round(sug.totalSent) + '</span>'
+        +   '<span>' + ratioPct + '% of target</span>'
+        + '</div>'
         + '</div>';
     }).join('');
   }
