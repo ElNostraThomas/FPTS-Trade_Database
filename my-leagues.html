@@ -5000,10 +5000,28 @@ function mlComputeLeagueValueData(leagueId) {
     });
     const avgAge = ages.length ? ages.reduce((s,a)=>s+a,0)/ages.length : 0;
     const total  = posVals.QB + posVals.RB + posVals.WR + posVals.TE;
-    // Sum season projections across rostered players (fallback 0 when not loaded)
-    const _seasonProj = window.ML_SEASON_PROJ || {};
+    // Team projection now = sum of OPTIMAL STARTING LINEUP projected points,
+    // not sum-of-entire-roster. A 25-player roster's projected total isn't
+    // what they score — the Start-N lineup is. Uses SLEEPER.lineupProjection
+    // which reads STATS_DATA (data-suite stats) through the league's
+    // scoring_settings, then sums only the optimal-lineup players. Falls
+    // back gracefully (lineup-eligible-but-unprojected players contribute
+    // 0). This drives archetype's projValue input below — a calibrated
+    // composite for the contender/dynasty/rebuilder bucket assignment.
+    const league = (ML.leagues[ML.selectedSeason] || []).find(l => l.league_id === leagueId) || {};
     let projTotal = 0;
-    (r.players || []).forEach(pid => { projTotal += (+_seasonProj[pid] || 0); });
+    if (window.SLEEPER && typeof SLEEPER.lineupProjection === 'function') {
+      projTotal = SLEEPER.lineupProjection(
+        r.players || [], players,
+        league.scoring_settings || {},
+        league.roster_positions || []
+      );
+    } else {
+      // Defensive legacy fallback — preserves original sum-of-roster behavior
+      // for any cold-load timing where sleeper-helpers.js hasn't loaded yet.
+      const _seasonProj = window.ML_SEASON_PROJ || {};
+      (r.players || []).forEach(pid => { projTotal += (+_seasonProj[pid] || 0); });
+    }
     return { rosterId: r.roster_id, name, avatarUrl, isMe, posVals, total, avgAge, projTotal, pickValue: 0 };
   });
 
@@ -6049,89 +6067,10 @@ async function loadRoster(leagueId, season) {
   }
 }
 
-// ────────────────────────────────────────────────────────────────────────
-// Optimal lineup computer: given roster, projections, and league slots,
-// returns a Set of player IDs that SHOULD be starting based on max projected
-// points. Slot fill order: locked positions → narrow flexes → SUPER_FLEX
-// (so locked spots claim their best fits before flex absorbs leftovers).
-// ────────────────────────────────────────────────────────────────────────
+// Thin delegation — body moved to assets/js/sleeper-helpers.js so live-draft
+// can share the same optimal-lineup algorithm.
 function _mlComputeOptimalLineup(playerIds, players, projections, rosterPositions) {
-  if (!playerIds || !playerIds.length || !rosterPositions || !rosterPositions.length) {
-    return new Set();
-  }
-  const benchSlots = new Set(['BN', 'TAXI', 'IR', 'RES']);
-  const playableSlots = rosterPositions.filter(s => !benchSlots.has(s));
-  if (!playableSlots.length) return new Set();
-
-  // Decide which signal to rank by: projections (in-season) or trade value (pre-season fallback)
-  const hasProjData = projections && Object.values(projections).some(v => v > 0);
-  const signal = (id, name) => {
-    if (hasProjData) {
-      return (projections && projections[id]) ? +projections[id] : 0;
-    }
-    // Fallback: trade value — auto-switches to projections when those become available.
-    // Use SF-vs-1QB column based on the league's roster_positions so QB ranking is
-    // correct in 1QB leagues (otherwise SF-default would over-rank QBs there).
-    const ktc = (typeof FP_VALUES !== 'undefined') ? (FP_VALUES[name] || {}) : {};
-    const valKey = (Array.isArray(rosterPositions) && rosterPositions.indexOf('SUPER_FLEX') >= 0) ? 'valueSf' : 'value1qb';
-    return +((ktc[valKey] != null ? ktc[valKey] : ktc.value) || 0);
-  };
-
-  // Build candidate list ranked by whichever signal is active
-  const candidates = playerIds
-    .map(id => {
-      const p = players[id];
-      if (!p) return null;
-      const fullName = p.full_name || ((p.first_name || '') + ' ' + (p.last_name || '')).trim();
-      return {
-        id,
-        pos: p.position || '',
-        score: signal(id, fullName),
-      };
-    })
-    .filter(Boolean)
-    .sort((a, b) => b.score - a.score);
-
-  // Slot precedence: locked positions first, then narrower flexes, SUPER_FLEX last
-  const slotPrecedence = ['QB','RB','WR','TE','K','DEF','DL','LB','DB','WRRB_FLEX','WRRB','REC_FLEX','WRTE_FLEX','FLEX','IDP_FLEX','SUPER_FLEX'];
-  // Eligibility map per slot type
-  const eligibility = {
-    QB:          ['QB'],
-    RB:          ['RB'],
-    WR:          ['WR'],
-    TE:          ['TE'],
-    K:           ['K'],
-    DEF:         ['DEF'],
-    DL:          ['DL','DE','DT'],
-    LB:          ['LB'],
-    DB:          ['DB','CB','S','SS','FS'],
-    FLEX:        ['RB','WR','TE'],
-    WRRB_FLEX:   ['RB','WR'],
-    WRRB:        ['RB','WR'],
-    REC_FLEX:    ['WR','TE'],
-    WRTE_FLEX:   ['WR','TE'],
-    SUPER_FLEX:  ['QB','RB','WR','TE'],
-    IDP_FLEX:    ['DL','LB','DB','DE','DT','CB','S','SS','FS'],
-  };
-
-  // Order the slots by precedence
-  const ordered = playableSlots
-    .map((slot, origIdx) => ({ slot, origIdx, prec: slotPrecedence.indexOf(slot) }))
-    .sort((a, b) => {
-      if (a.prec === -1 && b.prec === -1) return a.origIdx - b.origIdx;
-      if (a.prec === -1) return 1;
-      if (b.prec === -1) return -1;
-      return a.prec - b.prec;
-    });
-
-  const claimed = new Set();
-  ordered.forEach(({ slot }) => {
-    const eligible = eligibility[slot] || [slot];
-    const pick = candidates.find(c => !claimed.has(c.id) && eligible.includes(c.pos));
-    if (pick) claimed.add(pick.id);
-  });
-
-  return claimed;
+  return SLEEPER.optimalLineup(playerIds, players, projections, rosterPositions);
 }
 
 function renderRoster(playerIds, players, starters, myPicks, rosterToTeam, projections, currentWeek, leagueStatus) {

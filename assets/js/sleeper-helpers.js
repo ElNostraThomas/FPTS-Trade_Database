@@ -444,6 +444,122 @@
     return adjustStatsForLeague(rec, scoring).fantasyPts;
   }
 
+  // ──────────────────────────────────────────────────────────────────
+  // OPTIMAL LINEUP — given a roster's players + a per-player projection
+  // dict + the league's roster_positions array, return the Set of player
+  // IDs that SHOULD be starting. Slot fill order: locked positions →
+  // narrower flexes → SUPER_FLEX, so locked spots claim their best fits
+  // before flex absorbs leftovers.
+  //
+  // Extracted from my-leagues.html's _mlComputeOptimalLineup so the
+  // live-draft + my-leagues archetype computations share one canonical
+  // lineup algorithm. The signature is preserved.
+  // ──────────────────────────────────────────────────────────────────
+  function optimalLineup(playerIds, players, projections, rosterPositions) {
+    if (!playerIds || !playerIds.length || !rosterPositions || !rosterPositions.length) {
+      return new Set();
+    }
+    const benchSlots = new Set(['BN', 'TAXI', 'IR', 'RES']);
+    const playableSlots = rosterPositions.filter(s => !benchSlots.has(s));
+    if (!playableSlots.length) return new Set();
+
+    // Rank signal: projections (in-season) or trade value (pre-season fallback)
+    const hasProjData = projections && Object.values(projections).some(v => v > 0);
+    const FP = window.FP_VALUES || {};
+    const valKey = (Array.isArray(rosterPositions) && rosterPositions.indexOf('SUPER_FLEX') >= 0)
+      ? 'valueSf' : 'value1qb';
+    const signal = (id, name) => {
+      if (hasProjData) {
+        return (projections && projections[id]) ? +projections[id] : 0;
+      }
+      const ktc = FP[name] || {};
+      return +((ktc[valKey] != null ? ktc[valKey] : ktc.value) || 0);
+    };
+
+    const candidates = playerIds
+      .map(id => {
+        const p = players[id];
+        if (!p) return null;
+        const fullName = p.full_name || ((p.first_name || '') + ' ' + (p.last_name || '')).trim();
+        return { id, pos: p.position || '', score: signal(id, fullName) };
+      })
+      .filter(Boolean)
+      .sort((a, b) => b.score - a.score);
+
+    const slotPrecedence = ['QB','RB','WR','TE','K','DEF','DL','LB','DB',
+                            'WRRB_FLEX','WRRB','REC_FLEX','WRTE_FLEX','FLEX',
+                            'IDP_FLEX','SUPER_FLEX'];
+    const eligibility = {
+      QB:          ['QB'],
+      RB:          ['RB'],
+      WR:          ['WR'],
+      TE:          ['TE'],
+      K:           ['K'],
+      DEF:         ['DEF'],
+      DL:          ['DL','DE','DT'],
+      LB:          ['LB'],
+      DB:          ['DB','CB','S','SS','FS'],
+      FLEX:        ['RB','WR','TE'],
+      WRRB_FLEX:   ['RB','WR'],
+      WRRB:        ['RB','WR'],
+      REC_FLEX:    ['WR','TE'],
+      WRTE_FLEX:   ['WR','TE'],
+      SUPER_FLEX:  ['QB','RB','WR','TE'],
+      IDP_FLEX:    ['DL','LB','DB','DE','DT','CB','S','SS','FS'],
+    };
+
+    const ordered = playableSlots
+      .map((slot, origIdx) => ({ slot, origIdx, prec: slotPrecedence.indexOf(slot) }))
+      .sort((a, b) => {
+        if (a.prec === -1 && b.prec === -1) return a.origIdx - b.origIdx;
+        if (a.prec === -1) return 1;
+        if (b.prec === -1) return -1;
+        return a.prec - b.prec;
+      });
+
+    const claimed = new Set();
+    ordered.forEach(({ slot }) => {
+      const eligible = eligibility[slot] || [slot];
+      const pick = candidates.find(c => !claimed.has(c.id) && eligible.includes(c.pos));
+      if (pick) claimed.add(pick.id);
+    });
+
+    return claimed;
+  }
+
+  // ──────────────────────────────────────────────────────────────────
+  // LINEUP PROJECTION — the load-bearing helper that turns a roster +
+  // a league's scoring + a league's roster_positions into a scalar
+  // "what this team is projected to score" using ONLY the optimal Start-N
+  // lineup (not the entire 25-player roster).
+  //
+  // This is what archetypeFromTotals' projValue argument should consume
+  // for a calibrated "contender/dynasty/rebuilder" composite — a 25-player
+  // roster's projected sum isn't what the team scores, the lineup is.
+  //
+  // Falls back gracefully when STATS_DATA misses a player: that player
+  // contributes 0 to the lineup projection (won't be ranked in the
+  // optimal lineup since their projection is null). For leagues with
+  // heavy IDP / K usage this is fine because the FP-value fallback
+  // inside optimalLineup picks up the slack on the lineup-selection
+  // side; only the SUM is conservative.
+  // ──────────────────────────────────────────────────────────────────
+  function lineupProjection(playerIds, players, scoring, rosterPositions) {
+    if (!playerIds || !playerIds.length) return 0;
+    const projections = {};
+    playerIds.forEach(pid => {
+      const p = players[pid];
+      if (!p) return;
+      const name = p.full_name || ((p.first_name || '') + ' ' + (p.last_name || '')).trim();
+      const pts = projectPlayer({ sleeperId: pid, name }, scoring, { position: p.position });
+      if (pts != null && !isNaN(pts)) projections[pid] = pts;
+    });
+    const starters = optimalLineup(playerIds, players, projections, rosterPositions);
+    let total = 0;
+    starters.forEach(pid => { total += +(projections[pid] || 0); });
+    return total;
+  }
+
   window.SLEEPER = {
     pickValue,
     getValueByName,
@@ -454,5 +570,7 @@
     archetypeLabel,
     adjustStatsForLeague,
     projectPlayer,
+    optimalLineup,
+    lineupProjection,
   };
 })();
