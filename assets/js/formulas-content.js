@@ -892,8 +892,66 @@ mpxPct = (maxPts > 0 && pf > 0) ? Math.round((pf / maxPts) * 100) : null;
 Team scored 1050.0; max possible 1380.5:
   mpxPct = round(76.1) = 76
   76 ≥ 75 → white color (decent, but room to improve)`,
-          notes: 'Measures how close to optimal lineup you played (actual points / theoretical max for that week).',
-          related: ['optimal-lineup']
+          notes: 'Measures how close to optimal lineup you played (actual points / theoretical max for that week). After the 2026-05-17 standings refresh this metric is no longer a column in the standings TABLE (replaced by raw Max PF) — still displayed in the Position Rankings card header as contextual efficiency.',
+          related: ['optimal-lineup', 'mpx-by-pos']
+        },
+        {
+          id: 'mpx-by-pos',
+          label: '57. Per-position Max PF contribution (MPX %)',
+          location: 'my-leagues.html:7211-7257',
+          provenance: { kind: 'derived-from-data', detail: 'Optimal-lineup simulation over Sleeper matchup data + league.roster_positions slot config.' },
+          inputs: 'team.players_points (per week, per team) — points scored by every roster player. league.roster_positions — array of starter slot tokens (QB / RB / WR / TE / FLEX / SUPER_FLEX / REC_FLEX / WRRB_FLEX / BN / IR / TAXI / K / DEF).',
+          math: `// For each week, simulate the optimal starting lineup for the team.
+// Greedy slot-fill: walk roster_positions in order, assign the highest-
+// scoring unassigned eligible player to each starter slot.  Skip BN/IR/
+// TAXI.  K and DEF slots are filled but NOT counted in the 4-position
+// breakdown (only QB/RB/WR/TE contribute to the percentages shown).
+
+const SLOT_ELIGIBILITY = {
+  QB: ['QB'], RB: ['RB'], WR: ['WR'], TE: ['TE'],
+  FLEX:       ['RB', 'WR', 'TE'],
+  SUPER_FLEX: ['QB', 'RB', 'WR', 'TE'],
+  REC_FLEX:   ['WR', 'TE'],
+  WRRB_FLEX:  ['WR', 'RB'],
+  WRRB:       ['WR', 'RB'],
+};
+
+// Sum optimal-lineup points by player position across all weeks:
+for each week, for each team:
+  sort all eligible (QB/RB/WR/TE) roster players by pts scored desc
+  for slot in roster_positions:
+    if slot not in SLOT_ELIGIBILITY: continue
+    eligible = SLOT_ELIGIBILITY[slot]
+    player = sorted.find(p => !assigned.has(p.pid) && eligible.includes(p.pos))
+    if player: assigned.add(player); rosterMaxByPos[rid][player.pos] += player.pts
+
+// Then normalize each team's per-position totals to sum to 100:
+const sum = m.QB + m.RB + m.WR + m.TE;
+mpxByPos = sum > 0 ? {
+  QB: Math.round(m.QB / sum * 100),
+  RB: Math.round(m.RB / sum * 100),
+  WR: Math.round(m.WR / sum * 100),
+  TE: Math.round(m.TE / sum * 100),
+} : null;`,
+          output: 'mpxByPos = { QB: %, RB: %, WR: %, TE: % }. Sum ≈ 100 (any K/DEF contribution excluded). Null if no matchup data exists yet (fresh out-of-season league).',
+          example: `Hypothetical team after 14 weeks in a 1QB / 2RB / 3WR / 1TE / 1FLEX league:
+
+  Position  optimal-lineup pts    % of total
+  ────────  ──────────────────    ──────────
+  QB           320.4                   19%
+  RB           482.1                   28%
+  WR           712.6                   41%
+  TE           198.9                   12%
+  ────────────────────────────────────────────
+  Total       1714.0                  100%
+
+QB Position Rankings card displays: MPX %19  of Max PF
+
+A SuperFlex team in the same league shape would shift dramatically:
+typically QB share jumps to ~38% because two QB slots pull a much
+bigger share of the optimal output.`,
+          notes: 'Displayed in the four Position Rankings cards at the top of the Standings tab (not in the table itself). For teams with no matchup data yet (fresh league pre-season), mpxByPos is null and the MPX % stat block is hidden. Discrepancies with Sleeper\'s fpts_max are normal — our percentages normalize to OUR computed total (QB+RB+WR+TE only), not Sleeper\'s full Max PF (which includes K/DEF). The shape of the breakdown is what tells the story; absolute totals are less important.',
+          related: ['mpx-pct', 'optimal-lineup', 'team-value-aggregation', 'pos-power-rankings']
         },
         {
           id: 'waiver-win-rate',

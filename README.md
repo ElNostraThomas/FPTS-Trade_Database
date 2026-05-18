@@ -11,7 +11,38 @@ This file is the **resume-where-we-left-off** doc.
 
 ---
 
-## Where we are (end of 2026-05-17 session)
+## Where we are (end of 2026-05-17 — second session)
+
+**Two sessions on 2026-05-17.** The second one (covered here) was a site-wide alignment + branding consistency pass, codified the branding rules into a 4-layer governance system that machine-enforces drift at push time, and shipped a long-deferred weekly-stats breakdown feature in the drawer. The first session (calc bug-fix arc + Formulas page) is documented below under "Where we were."
+
+**1. Site-wide alignment audit — closed.** Every table and table-like layout on every page now follows one rule: `text-align: center` on both `thead th` and `td`, except variable-length text columns (Player / Pick / Team / etc.) which stay `text-align: left` via `.col-name` + `th[data-col="name"]` overrides. Padding made symmetric (`8px 8px` not asymmetric `8px 12px 8px 0` — centered content needs balanced padding). Affected: rankings, tiers, my-leagues (5 tables), drawer Player Stats table (was the worst — built with inline-style strings forcing every header LEFT), MVS extras strip on index.html, Top Risers/Fallers headers. The ADP main Box/List view is the only excluded surface (data shape is intentionally unique); the drawer that opens FROM ADP follows the rule.
+
+**2. Site-wide branding consistency.** Every "bright colored fill" surface — pos pills, tier badges, heat tints, `.active` button states, mvs-vol indicators, Legend trigger — now uses `color: var(--white)` for text inside. Flipped the `--pos-qb / --pos-rb / --pos-wr / --pos-te / --pos-k / --pos-pick` text tokens from `#111111` → `#ffffff` in `brand.css` + 5 inline `:root` duplicates so every consumer auto-updates. Hand-edited 30+ remaining hardcoded `color: #111` rules across `brand.css` / `mvs-extras.css` / `heatmap.css` / `legend.css` / 5 HTML pages. Fixed 5 opacity-compounding bugs (parent `opacity: .X` was dimming colored children) by converting to `rgba(R,G,B,X)` on the `color` property directly. Then caught 3 more cases where a brand color itself was being rendered at reduced opacity and fixed those too.
+
+**3. Standings tab wired up + Max PF + per-position MPX%.** `loadStandings` had been fully built (data layer, archetype scoring, Position Rankings cards) but never wired to a UI button — added a 3rd tab next to Trade History / Waivers. Replaced the team-level MPX% column with raw Max PF (Sleeper's `fpts_max`). Added a NEW per-position MPX% formula — the 4 Position Rankings cards (QB / RB / WR / TE) now show a third stat block per card: what % of your team's Max PF comes from that position group, computed via optimal-lineup simulation that walks `league.roster_positions` and greedily assigns the highest-scoring eligible player to each starter slot. Handles FLEX, SUPER_FLEX, REC_FLEX, WRRB_FLEX variants. Normalized so QB+RB+WR+TE ≈ 100%.
+
+**4. Weekly stats breakdown in drawer Player Stats.** Each Year row in the Player Stats table is now clickable with a chevron (`▸` collapsed, `▾` expanded). Clicking fetches that (player, year) tuple's weekly stats from Sleeper (both regular + post-season in parallel), then inserts weekly child rows below the season row using the same column structure. Playoff weeks get a bright orange "PLAYOFF" chip. Result cached per `(sleeperId, year)` so re-expand is instant. Async-guard pattern per `CLAUDE.md` §1 — captures target player at fetch time, bails if user swapped to a different compared player.
+
+**5. Governance — 4-layer enforcement so future pages can't drift:**
+- **`templates/page-template.html`**: BRANDING + ALIGNMENT RULES box at the top of the comment block — first thing visible when copying the scaffold.
+- **`scripts/check-colors.py`**: extended with 2 new lint patterns. `dim-text-on-bright-bg` flags `color: #111` inside a rule whose body has a brand-color background. `opacity-on-pill-with-bright-bg` flags `opacity: < 1` on selectors matching pill/badge/chip/active patterns when the rule also has a bright fill. False positives suppressed via "last selector segment only" + state-transition exclusion + intentional-muted-variant skips (`.cold` / `.dim` / `.empty` etc.).
+- **`push.bat`**: brand-audit hard gate before commit. Drift aborts the push.
+- **`CLAUDE.md`**: new "Recipes for new components" section with copy-paste CSS for tables / pills / `.active` buttons / drawer tabs / section toggles / muted text. Every recipe references the canonical existing class so no one rolls their own.
+
+**The branding hard rule, codified at the top of `brand.css`:**
+1. White text on every bright fill — no `color: #111` on a `var(--pos-*-bg)` or `var(--red)/(--green)/(--yellow)/(--orange)` background.
+2. Never `opacity:` on a parent that contains colored children — use `color: rgba(255,255,255,X)` on the text directly.
+3. Brand color tokens are the source of truth in `brand.css`.
+4. Vibrant by default — muted text uses `rgba` alpha, never `opacity:` on a container.
+5. `python scripts/check-colors.py` must print CLEAN. `push.bat` aborts the deploy on drift.
+
+**Cache tokens bumped this session:** `brand.css` `?v=1779990000`, `mvs-extras.css` `?v=1780000000`, `heatmap.css` `?v=1779990000`, `legend.css` `?v=1779990000`, `player-panel.js` `?v=1780000100`, `player-panel.css` `?v=1779990000`.
+
+See [`docs/CHANGES.md`](docs/CHANGES.md) 2026-05-17 (second session) for full per-commit detail.
+
+---
+
+## Where we were (end of 2026-05-17 — first session)
 
 **The site is now 7 pages, not 6.** New `formulas.html` (top-nav "Formulas") catalogs every formula / threshold / heuristic on the site for data-analyst hand-off. Also: 11 trade-calculator + player-panel bug fixes shipped in a single session.
 
@@ -597,47 +628,59 @@ Nothing structural. Polish / nice-to-haves only:
 Paste this as the first message:
 
 ```
-Read README.md for current state. End-of-2026-05-17:
-- FORMULAS PAGE SHIPPED (formulas.html). New top-nav page that catalogs
-  every formula / threshold / heuristic on the site (56 entries across
-  14 sections). Each entry has file:line + GitHub source deep-link +
-  provenance chip + verbatim math + worked example + related cross-links
-  + (for heuristics) "why this number" callout with reasoning or
-  "Analyst input requested". Sticky TOC, live search, scroll-spy.
-  Source-of-truth pair: docs/FORMULAS.md (markdown handoff) +
-  assets/js/formulas-content.js (drives the page). CLAUDE.md documents
-  that both files MUST update together on any formula change.
-- TRADE CALC BUG-FIX ARC (11 commits 2026-05-17). Compare-player async
-  race in shared drawer fixed. Pick handling overhauled across 6
-  commits — picks now search, sort, display, total correctly across
-  all years (2025 via picks.json, 2026-28 via mvs.json overlay) and
-  formats (1QB/SF/TEP). Reset All Filters + presets now actually work
-  (renderPickTags null-guard). Visible f-* filters now actually drive
-  calc values (previously read hidden fmt-* selectors). Cross-page
-  handoff to calc fixed (was referencing nonexistent tradeState var).
-  149 lines of dead code removed from trade-calc (tradeSearchInput,
-  buildPickSlots, etc. — UIs that were removed in earlier refactors).
-- CLAUDE.md extended. Now documents: panel async-guard pattern (entries
-  in shared drawer must capture target player + bail in .then if
-  switched), formulas dual-file sync rule, cache-bump rule for shared
-  module changes across all 7 pages + page-template.
-- All 7 pages now have "Formulas" in nav strip + mobile select.
-- Cache tokens (this session): player-panel.js?v=1778985630,
-  formulas-content.js?v=1778994886, formulas.js?v=1778994886.
-- Color audit CLEAN across 24 files (added formulas.html + 2 JS modules).
-- RANKINGS PAGE (rankings.html, prior session) intact. Replaces external
-  FantasyPoints link. Two modes (Consensus / By Analyst). Brand color
-  standardization (prior session) intact across all 7 pages.
+Read README.md for current state. End-of-2026-05-17 (second session):
+- SITE-WIDE ALIGNMENT AUDIT CLOSED. Every table + drawer tab now uses
+  text-align:center on headers AND data. Variable-length text columns
+  (Player / Pick / Team) override to left via .col-name or
+  th[data-col="name"]. Padding symmetric. Affected files: rankings,
+  tiers, my-leagues (5 tables), drawer Player Stats table, mvs-extras
+  strip, Top Risers/Fallers headers.
+- SITE-WIDE BRANDING CONSISTENCY. Every bright-colored fill (pos pills,
+  tier badges, heat tints, .active button states, mvs-vol, lg-trigger)
+  uses color:var(--white) for text inside. brand.css token flip:
+  --pos-qb/rb/wr/te/k/pick from #111111 to #ffffff. Hand-edited 30+
+  hardcoded color:#111 cases. Fixed 5 opacity-compounding bugs +
+  3 dimmed-brand-color cases by converting opacity:.X to rgba(R,G,B,X).
+- STANDINGS WIRED + MPX%. loadStandings was complete dead code — now a
+  3rd tab next to Trade History / Waivers. MPX% column replaced with
+  raw Max PF. Per-position MPX% added to Position Rankings cards via
+  optimal-lineup simulation (greedy assign to roster_positions slots,
+  sum by player's actual position, normalize across QB+RB+WR+TE).
+- WEEKLY STATS BREAKDOWN. Click any year in drawer's Player Stats tab
+  to expand week-by-week (regular season + playoffs, playoff weeks
+  marked with bright orange "PLAYOFF" chip). Cached per (player, year).
+  Async-guard pattern per CLAUDE.md §1.
+- GOVERNANCE: 4-layer rule enforcement. Template comment block has the
+  rules. scripts/check-colors.py extended with 2 new lint patterns
+  (dim-text-on-bright-bg + opacity-on-pill-with-bright-bg). push.bat
+  runs the audit and aborts on drift. CLAUDE.md has Recipes for new
+  components (copy-paste CSS for tables / pills / .active buttons /
+  drawer tabs / section toggles / muted text).
+- THE BRANDING HARD RULE (codified at top of brand.css):
+  1) White text on every bright fill.
+  2) Never opacity: on a parent with colored children — use rgba on text.
+  3) Brand tokens are source of truth in brand.css.
+  4) Vibrant by default.
+  5) check-colors.py must stay CLEAN. push.bat enforces.
+- Cache tokens (this session): brand.css ?v=1779990000, mvs-extras.css
+  ?v=1780000000, heatmap.css ?v=1779990000, legend.css ?v=1779990000,
+  player-panel.js ?v=1780000100, player-panel.css ?v=1779990000.
+- Color audit CLEAN across 24 files (includes the 2 new lint patterns).
+- Prior session shipments (Formulas page, calc bug fixes, Rankings,
+  Analysts merge) all intact.
 
 Confirm by running `git log --oneline -20`.
 
-Punch list top: SF+TEP CSV when ready (drop into data/source/rankings/
-overall-sf-tep.csv + add config entry + run sync-rankings.py — the
-toggle auto-enables). Migrate remaining 3 pages (adp-tool, my-leagues,
-index) to data-bootstrap.js. 1QB scrape expansion. Analyst feedback
-loop: 14 heuristics in formulas.html flagged "Analyst input requested"
-— refine constants when analyst returns recommendations and update
-both docs/FORMULAS.md AND assets/js/formulas-content.js.
+Punch list top: SF+TEP CSV when ready. Migrate remaining 3 pages
+(adp-tool, my-leagues, index) off inline :root duplicates to canonical
+brand.css. 1QB scrape expansion. Analyst feedback loop: 14 heuristics
+in formulas.html flagged "Analyst input requested" — refine constants
+when analyst returns recommendations and update BOTH docs/FORMULAS.md
+AND assets/js/formulas-content.js. Deferred minor cleanup:
+loadStandings's orphan DOM ID references (#standings-content etc. are
+injected dynamically now, JS still calls them by hardcoded ID — works
+but slightly weird). Optional pedantic conversion of ~50 leaf-element
+opacity: rules to rgba() (visually identical, semantic consistency).
 ```
 
 If `data/*.json` is stale: run `push.bat` (handles all five sync steps +

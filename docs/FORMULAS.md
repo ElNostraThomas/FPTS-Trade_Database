@@ -1230,6 +1230,87 @@ s = keep only alphanumeric
 
 ---
 
+### 57. Per-position Max PF contribution (MPX%)
+`loadStandings` optimal-lineup simulation pass + `mpxByPos` per-roster computation — `my-leagues.html:7211-7257`. Displayed in the Position Rankings cards at the top of the **Standings** tab on My Leagues. *Related: §29 (team-level Max-points efficiency — still the basis for the MPX badge in the standings header), §36 (optimal lineup algorithm — same greedy slot-fill approach).*
+
+**The question this answers.** A team's Max PF (Sleeper's `fpts_max`) is the score they'd have scored had they played their optimal lineup every week. *Of that ceiling, how much comes from each position group?* A team where 38% of Max PF comes from RBs and only 14% from QB has a very different shape than a team where 42% comes from QB (likely SuperFlex) — even if both teams have the same total Max PF.
+
+**Math (JavaScript)**
+```js
+// For each week W in the season, for each team T:
+//   Build sorted list of all roster players by points scored this week (desc)
+//   Walk league.roster_positions in order, skipping BN / IR / TAXI
+//   For each STARTER slot, assign the highest-scoring unassigned player
+//   eligible for that slot. Sum the assigned player's points into the
+//   bucket keyed by the player's ACTUAL position (a WR in FLEX still
+//   counts as WR).
+
+const SLOT_ELIGIBILITY = {
+  QB: ['QB'], RB: ['RB'], WR: ['WR'], TE: ['TE'],
+  FLEX:       ['RB', 'WR', 'TE'],
+  SUPER_FLEX: ['QB', 'RB', 'WR', 'TE'],
+  REC_FLEX:   ['WR', 'TE'],
+  WRRB_FLEX:  ['WR', 'RB'],
+  WRRB:       ['WR', 'RB'],
+};
+// K / DEF / IDP_FLEX slots are intentionally NOT in SLOT_ELIGIBILITY;
+// players assigned to those don't contribute to the 4-position breakdown.
+
+const rosterMaxByPos = {};   // rid → { QB:0, RB:0, WR:0, TE:0 }
+for (const weekData of allMatchupWeeks) {
+  for (const team of weekData) {
+    const rid = team.roster_id;
+    rosterMaxByPos[rid] = rosterMaxByPos[rid] || {QB:0, RB:0, WR:0, TE:0};
+    const players = Object.entries(team.players_points || {})
+      .filter(([, pts]) => pts > 0)
+      .map(([pid, pts]) => ({ pid, pts, pos: playerById[pid]?.position }))
+      .filter(p => p.pos && rosterMaxByPos[rid].hasOwnProperty(p.pos))
+      .sort((a, b) => b.pts - a.pts);
+    const assigned = new Set();
+    for (const slot of league.roster_positions) {
+      const eligible = SLOT_ELIGIBILITY[slot];
+      if (!eligible) continue;
+      const player = players.find(p => !assigned.has(p.pid) && eligible.includes(p.pos));
+      if (player) {
+        assigned.add(player.pid);
+        rosterMaxByPos[rid][player.pos] += player.pts;
+      }
+    }
+  }
+}
+
+// Then per-team, normalize so QB+RB+WR+TE sum to 100:
+const sum = m.QB + m.RB + m.WR + m.TE;
+const mpxByPos = sum > 0 ? {
+  QB: Math.round(m.QB / sum * 100),
+  RB: Math.round(m.RB / sum * 100),
+  WR: Math.round(m.WR / sum * 100),
+  TE: Math.round(m.TE / sum * 100),
+} : null;
+```
+
+**Example** Hypothetical team in a 1QB / 2RB / 3WR / 1TE / 1FLEX league after 14 weeks:
+
+| Position | Optimal-lineup points | % of optimal total |
+|---|---|---|
+| QB | 320.4 | 19% |
+| RB | 482.1 | 28% |
+| WR | 712.6 | 41% |
+| TE | 198.9 | 12% |
+| Total | 1714.0 | 100% |
+
+QB Position Rankings card displays: **MPX 19%** below the "of Max PF" caption. A SuperFlex team would shift dramatically — QB share typically jumps to ~38% because two QB slots pull a much bigger share of the optimal output.
+
+**Edge cases**
+- **Out-of-season league (no matchups played yet):** all per-position contributions = 0, sum = 0. `mpxByPos` set to `null` and the MPX % card is hidden.
+- **K / DEF slots in `roster_positions`:** intentionally excluded from the 4-position breakdown. Sum of (QB+RB+WR+TE) ≈ 100% minus the K/DEF share — fine.
+- **Multi-position-eligible players:** Sleeper sets a single primary `position`; the player counts toward that bucket regardless of which slot they fill.
+- **Discrepancy with Sleeper's `fpts_max`:** the percentages are normalized to OUR computed total (sum of QB+RB+WR+TE optimal contributions), not Sleeper's `fpts_max`. If there's a small drift, the % distribution is still meaningful — the shape of the breakdown is what tells the story.
+
+**Provenance** Derived from data — straightforward optimal-lineup simulation following Sleeper's own slot-assignment convention.
+
+---
+
 ## Glossary
 
 ### 55. Magic-numbers glossary

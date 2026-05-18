@@ -6,7 +6,109 @@ the operator manual see [`WORKFLOW.md`](WORKFLOW.md).
 
 ---
 
-## 2026-05-17 — Calc bug-fix arc + Formulas page (12 commits)
+## 2026-05-17 (second session) — Site-wide alignment audit + branding consistency + governance + weekly stats (9 commits)
+
+Themes: every table and drawer-tab now follows one centering rule; every bright-colored fill uses white text (no more `color: #111` on a brand-color background, no more `opacity:` on a container that dims a colored child); the alignment + branding rules are now machine-enforced by `scripts/check-colors.py` wired into `push.bat`; and the drawer Player Stats tab gained a long-deferred weekly-breakdown feature.
+
+### 1. Rankings + tiers alignment + header shortening (`b92c8e3`)
+
+User flagged columns looking "off" on the rankings page (headers left-aligned, numeric data right-aligned — visible offset). Root cause: `.rk-table thead th { text-align: left }` had higher CSS specificity than `.rk-table .col-num { text-align: right }`, so headers stayed left even with the column-class applied. Fix: change `thead th` to `text-align: center` + `td` default to `text-align: center` + `.col-num` to `text-align: center`. Player name column overridden back to left via `.col-name` + `th[data-col="name"]` attribute selector. Same pattern applied to `tiers.html`. After centering shipped, columns still felt "spread out" on wide monitors because long headers (`TRADE VALUE`, `POS RANK`, `CURRENT ADP`, `AVG RANK`, `CHANGE`) set the column width while short numeric data floated centered in oversized cells — fixed by shortening header labels to `Val / PRK / ADP / Avg / Chg` (matches the FantasyPoints Data reference convention of short abbreviations).
+
+### 2. My Leagues alignment + Standings wiring + per-position MPX% (`bd0e8c2` + `89953f8`)
+
+Five tables on the My Leagues page (Roster / Picks / Waivers ×2 / Standings) all had the same pattern as rankings — headers forced left, numeric data inherited left. Same fix: `thead th` and `td` both centered, padding made symmetric (`9px 6px` not `9px 12px 9px 0` — asymmetric padding skews centered content), `:nth-child(2)` overrides keep Player / Pick / Team columns left.
+
+While auditing My Leagues, discovered **`loadStandings` was complete dead code** — defined but never wired into the UI. The function had a fully built data layer (rosters, users, matchup-week scoring, archetype scoring with composite formula), rendering logic (sortable table + Position Rankings cards), and CSS classes — just no button to invoke it. **Wired it up as a 3rd tab** next to Trade History / Waivers via a new `data-mode="standings"` branch in `mlHistorySetMode`. The handler injects the DOM scaffolding the function expects (`#standings-content`, `#standings-loading`, `#standings-section-meta`) into the shared content container before calling `loadStandings(leagueId)`.
+
+Two refinements requested after the initial standings wiring:
+
+- **MPX% column → Max PF**. The original MPX% column (Points For ÷ Max Possible Points × 100) is team-level lineup efficiency — not useful in a standings comparison. Swapped to the raw Max PF value Sleeper exposes via `r.settings.fpts_max` (the team's optimal-lineup ceiling including bench contribution). The efficiency MPX% still displays in the Position Rankings card header as contextual info.
+- **Position labels rendered as `.pos-pill` badges**, both in the Position Rankings cards and the standings table column headers. Previously rendered as colored TEXT on dark bg (per-position hex via inline style) — looked muted compared to the filled-pill treatment used elsewhere on the site. Swapping to `.pos-pill.QB|RB|WR|TE` from brand.css gives the bright-filled look everywhere.
+
+**Per-position MPX% (new formula).** User requested: of your team's Max PF, what share comes from each position group? Implemented as a per-team `mpxByPos = { QB: %, RB: %, WR: %, TE: % }` computed via optimal-lineup simulation. For each week per team:
+1. Build sorted list of all roster players by points scored that week (descending).
+2. Walk `league.roster_positions` in order, skipping `BN / IR / TAXI` slots.
+3. For each starter slot, assign the highest-scoring unassigned eligible player (FLEX = RB/WR/TE, SUPER_FLEX = QB/RB/WR/TE, REC_FLEX = WR/TE, WRRB_FLEX = RB/WR).
+4. Sum the assigned player's points into the bucket keyed by the player's actual position (a WR in FLEX still counts as WR).
+
+Result normalized so QB + RB + WR + TE ≈ 100% (any K/DEF contribution excluded from the four-position breakdown). Displayed as a third stat block in each Position Rankings card alongside Value Rank and Pts Rank.
+
+Also added CSS for `.ml-standings-sort-*` (Sort by row above the table) — the classes were referenced in JS but had zero CSS rules, so the buttons rendered as raw browser-default `<button>` elements (light grey rounded rectangles with dark text). Mirrors the `.ml-history-tab` pattern (transparent bg + white outline + Kanit italic + red-active).
+
+`89953f8` was a follow-up fix: `.ml-tbl-th-tight { opacity: .45 }` was compounding through the `.pos-pill` spans inside the table headers, making the standings header pills render duller than the same pills in the Position Rankings cards above. Converted the parent's muted-label fade from `opacity: .45` → `color: rgba(255,255,255,0.45)` so the alpha applies to the label text only, not to the child pills.
+
+### 3. Site-wide branding consistency: white text on every bright fill (`096c80d`)
+
+Found two different position-pill text-color conventions across the site: most surfaces (canonical `.pos-pill` in brand.css + duplicated `.pos-pill` blocks in 5 HTML pages + `.tier-badge.t-*` in tiers.html + various inline-styled chips) used dark text (`color: #111` / `color: var(--pos-qb)` resolving to dark) — looked dim. Two outlier surfaces (`rankings.html .pos-badge` and `my-leagues.html .ml-lr-bar-seg`) used white text — looked bright and matched what the user called "the brighter version."
+
+Decision: **standardize on white text everywhere** for vibrant, consistent branding. Architectural fix:
+
+- `brand.css` `:root` dark-theme tokens `--pos-qb / --pos-rb / --pos-wr / --pos-te / --pos-k / --pos-pick` flipped from `#111111` → `#ffffff`. Light-theme already used `#f0f0f0` so unchanged.
+- Same flip in all 5 inline `:root` duplicates (index, trade-calculator, adp-tool, my-leagues, tiers).
+- Hardcoded `color: #111` swept and replaced with `var(--white)` in 30+ rules across `brand.css` (.icon-btn.active), `mvs-extras.css` (.mvs-vol-hot/warm), `heatmap.css` (.hm-flash-label), `legend.css` (.lg-trigger), `tiers.html` (8 tier-badge variants + 5 pos-pill rules), `adp-tool.html` (.controls-btn/.date-presets/.icon-btn/.box-col-header/.box-row-head/.chip/.drawer-btn/.pp-fp-signin/.hm-flash-label active states), `rankings.html` (.rk-analyst-pos-btn.active + .rk-min / .rk-max bipolar heat tints), `formulas.html` (.fm-prov-chip), `index.html` + `trade-calculator.html` + `my-leagues.html` (inline `.mvs-vol-warm` duplicates), plus a JS-inline `color:#111` in my-leagues' posColor template.
+- Opacity-compounding bugs fixed in 5 places: `.side-total` / `.ml-calc-side-total` (parent opacity was dimming the red value inside), `.adp-tab` / `.rk-mode-tab` (parent opacity at .45 dimming the tab labels), `.tier-badge.t-am`. All converted from `opacity: .X` to `color: rgba(255,255,255,X)` (or rgba on bg for the tier-bsh chips).
+- **Codified the rule.** New "THE BRANDING HARD RULES" comment block at the top of `brand.css` (5 numbered rules: white text on bright fills / never opacity on parent with colored children / tokens are source of truth / vibrant by default / check-colors.py must stay CLEAN). Updated brand.css §7 BIPOLAR HIGHLIGHTS docs to reflect the new rule.
+- `CLAUDE.md` gained a "Branding" section (the rules) plus a sibling "Recipes for new components" section with copy-paste-ready CSS for tables / pills / badges / .active button states / drawer tabs / section toggles / muted text.
+
+Cache tokens bumped to `?v=1779990000` on `brand.css` + `mvs-extras.css` + `heatmap.css` + `legend.css` across all 7 consumer pages.
+
+`ed954ba` follow-up: caught 3 remaining cases where a brand color was being rendered at reduced opacity (the SAME pattern but applied to colored elements instead of white text). `.fm-src-link` (orange link at `opacity: .75`), `.tier-bsh.checking` (green bg at `opacity: .65`), `.tier-bsh.hold` (orange bg at `opacity: .8`). All converted to `rgba()` on color/bg so the white text inside stays full-bright. Added `(232, 115, 42)` (the tiers-specific `--orange`) to `LEGIT_RGBA_RGB` in `scripts/check-colors.py`.
+
+### 4. Drawer Player Stats centering (`8fa45d2`)
+
+The weekly stats table inside the Player Stats tab on the shared drawer (used on every page) was the worst remaining alignment drift — built with inline `style="..."` strings in `player-panel.js` `renderPlayerStats`, every `<th>` hardcoded `text-align: left` and every `<td>` had no alignment. Refactored 3 inline-style constants → 7 well-named ones (`_thBase`, `thStyle`, `thStyleName`, `_tdBase`, `tdStyle`, `tdNum`, `tdName`). Year column emits `thStyleName / tdName` (left + zero left-padding). Numeric columns emit `thStyle / tdNum` (centered, symmetric `6px` padding). Muted header color converted from `color: var(--muted) + opacity: .45` → `color: rgba(255,255,255,0.45)` per the brand rule. `.tf-side-val` (Trade Finder side totals) also gained `text-align: center`. Cache bumps for player-panel.{js,css} to `?v=1779990000` across all 7 pages.
+
+### 5. Index MVS extras + Top Risers/Fallers headers (`d82af75`)
+
+Closes the alignment audit. `mvs-extras.css` got `text-align: center` on `.mvs-extras-cell` (propagates to all 3 child text rows — label / value / diff) plus `justify-content: center` on `.mvs-rk-row` (centers the contributor rank chips). Three `opacity:` rules converted to `rgba(255,255,255,X)`. `index.html` `.value-chart-title` gained `justify-content: center` (it's a flex container, so `text-align` wouldn't have worked) — centers the "TOP RISERS" / "TOP FALLERS" labels inside their boxes.
+
+### 6. Governance layer — 4 mechanisms (`6b6705e`)
+
+Answers "how do we make every new page / drawer / tab follow these rules exactly — is it a build structure rule?" There's no build pipeline on this site (pure static HTML/CSS/JS, GitHub Pages), so enforcement comes from 4 mechanisms working together:
+
+- **`templates/page-template.html`**: added a BRANDING + ALIGNMENT RULES box as the FIRST thing in the top comment block — anyone copying the scaffold sees the 5 rules before anything else. Bumped 3 stale cache tokens (brand.css, heatmap.css, legend.css) to current generation.
+- **`scripts/check-colors.py`**: extended the existing hex-drift audit with two new lint patterns:
+  1. **dim-text-on-bright-bg** — `color: #111` (or `#111111` / `#000` / `#000000`) inside a CSS rule whose body has `background: var(--pos-*-bg) / var(--red) / var(--green) / var(--yellow) / var(--orange)` (or the literal brand hex).
+  2. **opacity-on-pill-with-bright-bg** — `opacity: < 1` on a selector whose LAST simple-selector matches `pill / badge / chip / bsh / vol- / .active` AND the rule body has a bright fill.
+
+  Heuristic refinements: only flags the LAST selector segment (so `.X .label` doesn't trip — `.label` is a leaf child). Skips `:hover / :focus / :disabled / @keyframes` (state transitions). Skips selectors with `.X` or `-X` for X ∈ {cold, cool, muted, dim, empty, disabled, placeholder, archived, na} (class name explicitly signals muting). Tested with 7 deliberate cases — all expected FLAG/PASS outcomes. Full repo still audits CLEAN.
+
+- **`push.bat`**: added a brand-audit gate after the changes-detection step. If `check-colors.py` returns nonzero, push aborts with `"BRAND AUDIT FAILED — fix the drift above and rerun push.bat."` Drift now caught at deploy time, not days later. `push.bat` is gitignored / local-only so this change stays on the dev machine, but documented in this changelog.
+- **`CLAUDE.md`**: added a "Recipes for new components" section with copy-paste CSS for: tables (centered headers + data, name column left override), pills/badges (use `.pos-pill.QB` directly, never `color: #111`), `.active` button states (`background: var(--red); color: var(--white)`), drawer tabs (reuse the inline-style constants from `renderPlayerStats`), section toggles (`.ml-section-toggle-btn` underline, `.ml-history-tab` pill, `.rk-mode-tab` mode), and muted text (always `color: rgba(255,255,255,X)`, never `opacity:` on a parent with colored children).
+
+### 7. Drawer Player Stats weekly breakdown (`3f1afda`)
+
+Deferred feature from Phase 2 — user wants each Year cell in the Player Stats table to be clickable, expanding inline to show every week's production (regular season + playoffs).
+
+Three new module-level helpers in `player-panel.js`:
+- **`_weeklyStatsCache`** — keyed by `${sleeperId}_${year}`. First click fetches, subsequent clicks expand instantly.
+- **`_fetchWeeklyStats(sleeperId, year)`** — fetches both regular + post-season in parallel via the existing Sleeper endpoint pattern (`api.sleeper.com` primary, `api.sleeper.app` fallback) with `grouping=week`. Merges + sorts so regular weeks come first, then playoffs.
+- **`_renderWeeklyRowsHtml(weeks, cols)`** — emits `<tr class="pp-weekly-row">` rows. Slightly smaller font + `rgba()`-muted text (not `opacity:` — preserves children) so weekly rows read as supplementary to the year row above. Playoff weeks get a bright orange "PLAYOFF" chip (white text on `var(--red)`) after the week number.
+- **`_toggleWeeklyExpand(yearCell, sleeperId, year, cols, colCount, capturedName)`** — collapse/expand logic with transient loading row + async-guard against player switches.
+
+`renderPlayerStats` wires it up by adding `cursor: pointer + chevron + data-pp-year` to each year cell, then attaching `addEventListener('click')` after `innerHTML` is set so the handler closes over `cols / sleeperId / targetName` cleanly (no inline `onclick` strings, no globals).
+
+Async-guard per `CLAUDE.md` §1: click captures `_currentPanelPlayer.label` at fetch time. Both `.then()` and `.catch()` check it on resolution and bail if the user switched — the late response can't overwrite the new player's tab. Cache bump `player-panel.js?v=1780000100` across all 7 pages + template.
+
+### Files touched this session
+
+- `rankings.html`, `tiers.html` — alignment fix + header shortening (Phase 0)
+- `my-leagues.html` — alignment fix for 5 tables, Standings tab wiring, per-position MPX%, sort-button styling, opacity-compounding fix (Phases 1 / 1.5 / 1.6 / 1.7)
+- `assets/css/brand.css` — token flip, hard rule comment block, `.icon-btn.active` text + BIPOLAR HIGHLIGHTS docs
+- `assets/css/mvs-extras.css` — `.mvs-vol-hot/warm` + `.mvs-extras-*` centering + rgba conversions
+- `assets/css/heatmap.css` — `.hm-flash-label` text
+- `assets/css/legend.css` — `.lg-trigger` text
+- `assets/css/player-panel.css` — `.tf-side-val` centering
+- `assets/js/player-panel.js` — Player Stats refactor + weekly stats breakdown
+- `index.html`, `trade-calculator.html`, `adp-tool.html`, `rankings.html`, `tiers.html`, `my-leagues.html`, `formulas.html` — `:root` token flips (where applicable), hardcoded `#111` sweep, cache token bumps
+- `scripts/check-colors.py` — 2 new lint patterns + `--orange` rgba in `LEGIT_RGBA_RGB`
+- `push.bat` — brand-audit gate (local file, not committed)
+- `templates/page-template.html` — BRANDING + ALIGNMENT RULES comment block + cache token bumps
+- `CLAUDE.md` — Branding section + Recipes for new components
+
+---
+
+## 2026-05-17 (first session) — Calc bug-fix arc + Formulas page (12 commits)
 
 Two distinct shipments in one session: a chain of fixes that unblocked the trade calculator after a user found multiple bugs while testing, then a brand-new Formulas page that catalogs every formula on the site for data-analyst hand-off.
 
