@@ -228,6 +228,77 @@
     .rk-table .col-analyst-rank { min-width: 30px !important; width: 34px; font-size: 12px !important; }
     .rk-table .col-analyst-consensus { min-width: 36px !important; width: 42px; font-size: 12px !important; }
 
+    /* ────────────────────────────────────────────────────────────────────
+       ANALYST MODE CARD LAYOUT — mobile-first.
+       Replaces the table rendering on phone widths via _renderAnalystCard
+       in JS. Each player becomes a card: name + team chip + consensus
+       value on the top row, 5 analyst rank cells in a horizontal strip
+       below. Bipolar heat tints (best/worst rank in row) survive as
+       .rk-min / .rk-max on the strip cells, same colors as the desktop
+       table.
+       ──────────────────────────────────────────────────────────────────── */
+    .rk-acards {
+      display: flex; flex-direction: column; gap: 8px;
+      background: transparent;
+    }
+    .rk-acard {
+      background: var(--surface); border: 1px solid var(--border);
+      padding: 10px 12px;
+    }
+    .rk-acard-head {
+      display: flex; align-items: center; gap: 10px;
+      margin-bottom: 8px;
+    }
+    .rk-acard-name {
+      flex: 1; min-width: 0;
+      font-family: 'Mulish', sans-serif; font-weight: 900;
+      font-size: 14px; color: var(--white);
+      cursor: pointer;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+      transition: color .15s;
+    }
+    .rk-acard-name:hover { color: var(--red); }
+    .rk-acard-team {
+      flex-shrink: 0; display: inline-flex; align-items: center;
+    }
+    .rk-acard-team img { width: 22px; height: 22px; }
+    .rk-acard-avg {
+      flex-shrink: 0; min-width: 38px; text-align: right;
+      font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+      font-size: 18px; color: var(--red);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .rk-acard-strip {
+      display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px;
+    }
+    .rk-acard-cell {
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: center; gap: 1px;
+      padding: 6px 0; min-height: 44px;
+      background: var(--surface2); border: 1px solid var(--border2);
+      color: var(--white);
+    }
+    .rk-acard-cell.rk-min {
+      background: var(--green); border-color: var(--green);
+      color: var(--white);
+    }
+    .rk-acard-cell.rk-max {
+      background: var(--red); border-color: var(--red);
+      color: var(--white);
+    }
+    .rk-acard-cell.rk-na { opacity: .55; }
+    .rk-acard-cell-l {
+      font-family: 'Mulish', sans-serif; font-size: 8px; font-weight: 800;
+      text-transform: uppercase; letter-spacing: .04em;
+      opacity: .8;
+    }
+    .rk-acard-cell-v {
+      font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+      font-size: 16px;
+      font-variant-numeric: tabular-nums;
+    }
+
     /* Bottom safe-area */
     body { padding-bottom: max(20px, env(safe-area-inset-bottom)) !important; }
     .page { padding-bottom: max(24px, calc(env(safe-area-inset-bottom) + 12px)) !important; }
@@ -809,6 +880,53 @@ function _renderAnalystRow(p) {
   return html;
 }
 
+function _renderAnalystCard(p) {
+  // Mobile-first card mode — same data as _renderAnalystRow but reflowed for
+  // a 390px touch viewport. Each player gets a card with name + team chip on
+  // the top row, the 5 analyst rank cells in a horizontal strip below, and
+  // the consensus value as a big red number on the right of the header.
+  // Bipolar heat tints (green = best rank in row, orange = worst) survive
+  // unchanged — they apply to .rk-acard-cell instead of <td>.
+  const ranksByKey = ANALYST_KEYS.map(k => p.ranks[k]).filter(r => r != null);
+  const minR = ranksByKey.length ? Math.min.apply(null, ranksByKey) : null;
+  const maxR = ranksByKey.length ? Math.max.apply(null, ranksByKey) : null;
+  const sameRank = (minR != null && minR === maxR);
+
+  const safeName = (p.name || '').replace(/'/g, "\\'");
+  const teamCell = (p.team && window.TeamHelpers)
+    ? window.TeamHelpers.logoImg(p.team, { size: 22, coin: true })
+    : (p.team || '');
+  const cons = (p.consensus != null) ? p.consensus.toFixed(1) : '—';
+
+  const strip = ANALYST_META.map(a => {
+    const r = p.ranks[a.key];
+    if (r == null) {
+      return '<span class="rk-acard-cell rk-na">'
+        + '<span class="rk-acard-cell-l">' + a.label.slice(0,3).toUpperCase() + '</span>'
+        + '<span class="rk-acard-cell-v">—</span>'
+        + '</span>';
+    }
+    let cls = 'rk-acard-cell';
+    if (!sameRank) {
+      if (r === minR) cls += ' rk-min';
+      else if (r === maxR) cls += ' rk-max';
+    }
+    return '<span class="' + cls + '">'
+      + '<span class="rk-acard-cell-l">' + a.label.slice(0,3).toUpperCase() + '</span>'
+      + '<span class="rk-acard-cell-v">' + r + '</span>'
+      + '</span>';
+  }).join('');
+
+  return '<article class="rk-acard">'
+    + '<header class="rk-acard-head">'
+    +   '<span class="rk-acard-name" onclick="_openPlayer(\'' + safeName + '\')">' + p.name + '</span>'
+    +   '<span class="rk-acard-team">' + teamCell + '</span>'
+    +   '<span class="rk-acard-avg">' + cons + '</span>'
+    + '</header>'
+    + '<div class="rk-acard-strip">' + strip + '</div>'
+    + '</article>';
+}
+
 function _applyAnalystFilters(players) {
   if (!STATE.analystSearch) return players;
   const q = STATE.analystSearch.toLowerCase();
@@ -839,6 +957,17 @@ function _sortAnalystPlayers(players) {
   });
 }
 
+// Mobile breakpoint — single source of truth, kept in lockstep with the
+// CSS @media (max-width: 768px) blocks. matchMedia listener at the bottom
+// of this file re-renders when the viewport crosses the breakpoint so a
+// desktop user resizing their window down to phone size gets the card
+// layout, and vice versa.
+const _MOBILE_MQ = window.matchMedia && window.matchMedia('(max-width: 768px)');
+
+function _isMobileView() {
+  return !!(_MOBILE_MQ && _MOBILE_MQ.matches);
+}
+
 function renderAnalystComparison() {
   const body = document.getElementById('rankings-body');
   if (!ACTIVE_ANALYST_PLAYERS.length) {
@@ -849,13 +978,42 @@ function renderAnalystComparison() {
   const filtered = _applyAnalystFilters(ACTIVE_ANALYST_PLAYERS);
   const sorted   = _sortAnalystPlayers(filtered);
 
-  body.innerHTML = '<div class="rk-table-wrap"><table class="rk-table">'
-    + '<thead>' + renderAnalystHeaderRow() + '</thead>'
-    + '<tbody>' + sorted.map(_renderAnalystRow).join('') + '</tbody>'
-  + '</table></div>';
+  if (_isMobileView()) {
+    // Card mode — designed for 390px touch viewport. The desktop table is
+    // unreachable here; the parallel render keeps interactions natural to
+    // the small screen (no horizontal swipe, larger tap targets, vertical
+    // scroll).
+    body.innerHTML = '<div class="rk-acards">' + sorted.map(_renderAnalystCard).join('') + '</div>';
+  } else {
+    // Desktop table mode — unchanged. _renderAnalystRow still builds rows
+    // for the .rk-table; sort headers + bipolar heat tints work exactly as
+    // they did before.
+    body.innerHTML = '<div class="rk-table-wrap"><table class="rk-table">'
+      + '<thead>' + renderAnalystHeaderRow() + '</thead>'
+      + '<tbody>' + sorted.map(_renderAnalystRow).join('') + '</tbody>'
+    + '</table></div>';
+  }
 
   document.getElementById('rk-stat-count').textContent =
     sorted.length + (sorted.length === ACTIVE_ANALYST_PLAYERS.length ? '' : ' of ' + ACTIVE_ANALYST_PLAYERS.length) + ' players';
+}
+
+// Re-render when the viewport crosses the mobile breakpoint (e.g. desktop
+// user resizes window to phone width). Only fires once per cross, not on
+// every resize event. STATE.mode check ensures we only re-render when the
+// analyst tab is the active view.
+if (_MOBILE_MQ) {
+  const _onMobileChange = () => {
+    if (STATE.mode === 'analyst' && ACTIVE_ANALYST_PLAYERS.length) {
+      renderAnalystComparison();
+    }
+  };
+  if (_MOBILE_MQ.addEventListener) {
+    _MOBILE_MQ.addEventListener('change', _onMobileChange);
+  } else if (_MOBILE_MQ.addListener) {
+    // Safari < 14 fallback
+    _MOBILE_MQ.addListener(_onMobileChange);
+  }
 }
 
 function setAnalystPosition(pos) {
