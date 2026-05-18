@@ -851,10 +851,20 @@
     const results = await Promise.all(probes);
     const activeIds = new Set(results.filter(r => r.active).map(r => r.id));
     if (!activeIds.size) return;
-    // Rewrite options preserving current selection
+
+    // Reorder so leagues with an active draft bubble to the top of the
+    // dropdown — easier for the user to find what they actually need to
+    // act on RIGHT NOW. Within each group (active / inactive) preserve
+    // Sleeper's original order so leagues don't shuffle randomly between
+    // year switches. 🔴 marker still applied so the active block is also
+    // visually distinguished, not just positionally.
+    const activeLeagues   = leagues.filter(l =>  activeIds.has(l.league_id));
+    const inactiveLeagues = leagues.filter(l => !activeIds.has(l.league_id));
+    const sorted = activeLeagues.concat(inactiveLeagues);
+
     const currentVal = leagueSel.value;
     leagueSel.innerHTML = '<option value="">— select league —</option>'
-      + leagues.map(l => {
+      + sorted.map(l => {
           const marker = activeIds.has(l.league_id) ? '🔴 ' : '';
           return '<option value="' + l.league_id + '">'
             + marker + _escapeHtml(l.name) + '</option>';
