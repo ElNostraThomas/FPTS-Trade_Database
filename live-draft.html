@@ -339,20 +339,35 @@
     color: var(--white); padding: 1px 5px;
   }
 
-  /* Position groups inside the panel */
+  /* Position-group COLUMN container — CSS multi-column layout flows the
+     four groups (QB / RB / WR / TE) as side-by-side columns instead of
+     stacked vertically. Each group block stays intact (break-inside:avoid)
+     and the browser distributes them across the column count. Desktop
+     gets 4 columns; mobile drops to 2 (handled in the @media block). */
+  #ld-roster-panel-body {
+    column-count: 4;
+    column-gap: 10px;
+  }
   .ld-rp-group {
-    margin-bottom: 14px; padding-bottom: 14px;
+    break-inside: avoid;
+    background: var(--surface2); border: 1px solid var(--border);
+    padding: 10px 12px;
+    margin: 0 0 10px;            /* gap between rows when columns wrap */
+    display: inline-block;        /* needed for break-inside in some browsers */
+    width: 100%;                  /* fill the column */
+  }
+  .ld-rp-group-head {
+    display: flex; flex-direction: column; gap: 8px;
+    margin-bottom: 8px; padding-bottom: 8px;
     border-bottom: 1px solid var(--border);
   }
-  .ld-rp-group:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
-  .ld-rp-group-head {
-    display: flex; align-items: center; gap: 10px;
-    margin-bottom: 8px;
+  .ld-rp-group-head-top {
+    display: flex; align-items: center; gap: 8px;
   }
   .ld-rp-pill {
     font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
-    font-size: 14px; padding: 5px 14px; color: var(--white);
-    min-width: 56px; text-align: center;
+    font-size: 13px; padding: 4px 12px; color: var(--white);
+    min-width: 50px; text-align: center;
   }
   .ld-rp-pill.QB { background: var(--pos-qb-bg); }
   .ld-rp-pill.RB { background: var(--pos-rb-bg); }
@@ -360,11 +375,15 @@
   .ld-rp-pill.TE { background: var(--pos-te-bg); }
   .ld-rp-count {
     font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
-    font-size: 16px; color: var(--white);
+    font-size: 18px; color: var(--white);
     font-variant-numeric: tabular-nums;
+    margin-left: auto;
   }
-  .ld-rp-totals { display: flex; gap: 14px; margin-left: auto; }
-  .ld-rp-total { display: flex; flex-direction: column; gap: 1px; align-items: flex-end; }
+  .ld-rp-totals { display: flex; flex-direction: column; gap: 2px; }
+  .ld-rp-total {
+    display: flex; align-items: baseline; justify-content: space-between;
+    gap: 8px;
+  }
   .ld-rp-total-l {
     font-family: 'Mulish', sans-serif; font-size: 8px; font-weight: 800;
     color: rgba(255,255,255,0.55);
@@ -372,51 +391,49 @@
   }
   .ld-rp-total-v {
     font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
-    font-size: 16px; color: var(--white);
+    font-size: 14px; color: var(--white);
     font-variant-numeric: tabular-nums;
   }
   .ld-rp-empty {
     font-family: 'Mulish', sans-serif; font-size: 11px;
     color: rgba(255,255,255,0.45);
-    margin-left: 10px; font-style: italic;
+    font-style: italic;
   }
 
-  /* Per-player rows under each position group */
+  /* Per-player rows. Narrower columns mean we drop the team column
+     entirely (position is in the group header; team can be inspected
+     by clicking through to the drawer). Name + Val + PPG fit cleanly. */
   .ld-rp-players {
     list-style: none;
-    display: grid; gap: 4px;
+    display: grid; gap: 3px;
   }
   .ld-rp-player {
     display: grid;
-    grid-template-columns: 1fr 50px 70px 60px;
-    align-items: center; gap: 10px;
-    padding: 6px 10px;
-    background: var(--surface2); border: 1px solid var(--border);
+    grid-template-columns: 1fr 48px 48px;
+    align-items: center; gap: 8px;
+    padding: 5px 8px;
+    background: var(--surface); border: 1px solid var(--border);
     cursor: pointer; transition: border-color .12s;
   }
   .ld-rp-player:hover { border-color: var(--red); }
   .ld-rp-player-name {
-    font-family: 'Mulish', sans-serif; font-weight: 800; font-size: 13px;
+    font-family: 'Mulish', sans-serif; font-weight: 800; font-size: 12px;
     color: var(--white);
     overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
     min-width: 0;
   }
-  .ld-rp-player-team {
-    font-family: 'Mulish', sans-serif; font-size: 10px; font-weight: 700;
-    color: rgba(255,255,255,0.55);
-    text-transform: uppercase; letter-spacing: .06em;
-  }
   .ld-rp-player-stat {
-    display: flex; flex-direction: column; gap: 1px; align-items: flex-end;
+    display: flex; flex-direction: column; gap: 0; align-items: flex-end;
+    line-height: 1.1;
   }
   .ld-rp-player-stat-l {
-    font-family: 'Mulish', sans-serif; font-size: 8px; font-weight: 800;
+    font-family: 'Mulish', sans-serif; font-size: 7px; font-weight: 800;
     color: rgba(255,255,255,0.45);
-    text-transform: uppercase; letter-spacing: .06em;
+    text-transform: uppercase; letter-spacing: .05em;
   }
   .ld-rp-player-stat-v {
     font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
-    font-size: 13px; color: var(--white);
+    font-size: 12px; color: var(--white);
     font-variant-numeric: tabular-nums;
   }
 
@@ -652,24 +669,27 @@
     .ld-needs-stat-v { font-size: 12px; }
     .ld-needs-tag { font-size: 8px; padding: 2px 5px; }
 
-    /* Roster panel — tighter padding, smaller pills, totals stack closer */
-    .ld-roster-panel { padding: 12px 14px; margin-top: 10px; }
-    .ld-roster-panel-head { gap: 8px; margin-bottom: 10px; }
+    /* Roster panel — tighter padding, multi-column drops from 4 to 2
+       columns so position groups stay side-by-side (2x2 grid) instead
+       of collapsing to a single tall vertical stack. Trade-off: player
+       names + stats get tighter, but the user sees two positions per
+       row without scrolling vertically — matches the "see more at
+       once" goal. */
+    .ld-roster-panel { padding: 10px 12px; margin-top: 10px; }
+    .ld-roster-panel-head { gap: 8px; margin-bottom: 8px; }
     .ld-roster-panel-sub { font-size: 10px; }
-    .ld-rp-group { margin-bottom: 12px; padding-bottom: 12px; }
-    .ld-rp-pill { font-size: 12px; padding: 4px 10px; min-width: 44px; }
-    .ld-rp-count { font-size: 14px; }
-    .ld-rp-totals { gap: 10px; }
+    #ld-roster-panel-body { column-count: 2; column-gap: 8px; }
+    .ld-rp-group { padding: 8px 10px; margin-bottom: 8px; }
+    .ld-rp-pill { font-size: 11px; padding: 3px 9px; min-width: 42px; }
+    .ld-rp-count { font-size: 16px; }
     .ld-rp-total-v { font-size: 13px; }
-    /* Player rows on mobile drop the team column to fit; team becomes a
-       small chip prefix on the name instead. Grid becomes 3-col. */
     .ld-rp-player {
-      grid-template-columns: 1fr 64px 56px;
-      gap: 8px; padding: 5px 8px;
+      grid-template-columns: 1fr 36px 36px;
+      gap: 5px; padding: 4px 6px;
     }
-    .ld-rp-player-team { display: none; }
-    .ld-rp-player-name { font-size: 12px; }
-    .ld-rp-player-stat-v { font-size: 12px; }
+    .ld-rp-player-name { font-size: 11px; }
+    .ld-rp-player-stat-v { font-size: 11px; }
+    .ld-rp-player-stat-l { font-size: 6px; }
 
     /* Smaller cells so 12-team grids are usable on phone (still requires
        horizontal swipe — sticky row + col headers from the desktop CSS
@@ -1684,13 +1704,18 @@
 
   function ldRenderRosterPanel(agg) {
     const host = document.getElementById('ld-roster-panel-body');
+    // Each position group is now a vertical card flowed via CSS column-
+    // count. Group head stacks: [pill + count row] [totals stacked]. Team
+    // column on player rows dropped to keep names readable in narrow cols.
     const groups = ['QB', 'RB', 'WR', 'TE'].map(pos => {
       const players  = agg.byPos[pos] || [];
       const totals   = agg.totalsByPos[pos] || { value: 0, ppg: 0, count: 0 };
       const head = ''
         + '<div class="ld-rp-group-head">'
-        +   '<span class="ld-rp-pill ' + pos + '">' + pos + '</span>'
-        +   '<span class="ld-rp-count">' + totals.count + '</span>'
+        +   '<div class="ld-rp-group-head-top">'
+        +     '<span class="ld-rp-pill ' + pos + '">' + pos + '</span>'
+        +     '<span class="ld-rp-count">' + totals.count + '</span>'
+        +   '</div>'
         +   '<div class="ld-rp-totals">'
         +     '<div class="ld-rp-total"><span class="ld-rp-total-l">Total Value</span><span class="ld-rp-total-v">' + Math.round(totals.value) + '</span></div>'
         +     '<div class="ld-rp-total"><span class="ld-rp-total-l">Total PPG</span><span class="ld-rp-total-v">' + (totals.ppg || 0).toFixed(1) + '</span></div>'
@@ -1699,9 +1724,9 @@
       const body = players.length
         ? '<ul class="ld-rp-players">' + players.map(p => {
             const safeName = (p.name || '').replace(/'/g, "\\'");
-            return '<li class="ld-rp-player" onclick="ldOpenPlayer(\'' + safeName + '\')">'
+            const teamTitle = p.team ? (_escapeHtml(p.name) + ' · ' + _escapeHtml(p.team)) : _escapeHtml(p.name);
+            return '<li class="ld-rp-player" onclick="ldOpenPlayer(\'' + safeName + '\')" title="' + teamTitle + '">'
               + '<span class="ld-rp-player-name">' + _escapeHtml(p.name) + '</span>'
-              + '<span class="ld-rp-player-team">' + _escapeHtml(p.team || '—') + '</span>'
               + '<span class="ld-rp-player-stat"><span class="ld-rp-player-stat-l">Val</span><span class="ld-rp-player-stat-v">' + (p.value != null ? Math.round(p.value) : '—') + '</span></span>'
               + '<span class="ld-rp-player-stat"><span class="ld-rp-player-stat-l">PPG</span><span class="ld-rp-player-stat-v">' + (p.ppg != null ? (+p.ppg).toFixed(1) : '—') + '</span></span>'
               + '</li>';
