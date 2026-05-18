@@ -98,10 +98,78 @@
 
   // ─── Payload appliers (canonical implementations) ────────────────────────
 
+  // ──────────────────────────────────────────────────────────────────
+  // ADP CLEANUP FILTER — applied at boot to drop two big sources of
+  // noise from the displayed ADP rankings:
+  //
+  //   1. Kickers / DEF / IDP in fantasy-position contexts. Rookie ADP
+  //      ships with kickers ranked alongside QBs because a tiny number
+  //      of leagues draft kickers in round 2-3 of rookie drafts. The
+  //      data is correct but pollutes "real prospect" rankings.
+  //
+  //   2. Tiny-sample entries: a player drafted in only 5-12 leagues
+  //      out of ~10,000+ in the corpus shows up with a respectable
+  //      ADP because those handful of leagues drafted them early. The
+  //      rank field is sorted by ADP regardless of sample size, so a
+  //      12-draft player at ADP 20 sits at rank 18, ahead of 1000s of
+  //      "actually drafted" players at higher ADPs.
+  //
+  // Filter rule: keep records where position ∈ {QB,RB,WR,TE} AND
+  // drafts >= 25 (matches live-draft BPA_MIN_DRAFTS — the threshold
+  // already tested against kickers + small-school QBs).
+  //
+  // Filtered list is what every consumer sees via window.ADP_PAYLOAD.
+  // The raw, un-filtered version stays available under
+  // window.ADP_PAYLOAD_RAW for the ADP tool's "show fringe players"
+  // research mode (toggleable in the UI).
+  //
+  // Re-rank within each (month, format) bucket so visible "rank"
+  // reflects the cleaned ordering.
+  // ──────────────────────────────────────────────────────────────────
+  const ADP_FILTER_MIN_DRAFTS = 25;
+  const ADP_FILTER_KEEP_POS = new Set(['QB','RB','WR','TE']);
+
+  function _cleanAdpPayload(raw) {
+    if (!raw || !raw.byMonth) return raw;
+    const out = Object.assign({}, raw, { byMonth: {} });
+    Object.keys(raw.byMonth).forEach(month => {
+      out.byMonth[month] = {};
+      Object.keys(raw.byMonth[month] || {}).forEach(fmt => {
+        const lst = raw.byMonth[month][fmt] || [];
+        // Clone each record so re-rank doesn't mutate the raw payload's records.
+        const filtered = lst.filter(r => {
+          if (!r) return false;
+          const pos = (r.position || r.pos || '').toUpperCase();
+          if (!ADP_FILTER_KEEP_POS.has(pos)) return false;
+          if (r.drafts != null && r.drafts < ADP_FILTER_MIN_DRAFTS) return false;
+          return true;
+        }).map(r => Object.assign({}, r));
+        // Re-rank by ADP asc (1 = lowest ADP = drafted earliest)
+        filtered.sort((a, b) => (a.adp != null ? a.adp : 9999) - (b.adp != null ? b.adp : 9999));
+        filtered.forEach((r, i) => { r.rank = i + 1; });
+        out.byMonth[month][fmt] = filtered;
+      });
+    });
+    return out;
+  }
+
   function _applyAdpPayload(j) {
     if (!j || !j.byMonth) return;
-    global.ADP_PAYLOAD = j;
-    if (global.applySeasonBadge) global.applySeasonBadge(j.season);
+    // Preserve raw payload for the ADP tool's research mode AND for the
+    // per-player FP_VALUES.adp overlay below — that overlay sets the
+    // single ADP scalar on each FP record by name, and we want every
+    // player who appears in the ADP corpus to get an ADP value (even
+    // fringe ones), so use RAW for the overlay's lookup. Only the
+    // ranked-display path (byMonth) gets the filter.
+    global.ADP_PAYLOAD_RAW = j;
+    // Default ADP_PAYLOAD is the cleaned version — every consumer that
+    // reads byMonth lists for ranking-display sees filtered ranks.
+    const j_clean = _cleanAdpPayload(j);
+    global.ADP_PAYLOAD = j_clean;
+    if (global.applySeasonBadge) global.applySeasonBadge(j_clean.season);
+    // Overlay onto FP_VALUES uses the RAW byMonth so per-player .adp
+    // gets set even for low-draft entries (display-side filter doesn't
+    // need to leak into the per-player value layer).
     const all = j.byMonth.ALL || {};
     const sfByKey  = _indexByNorm(all.startup_sf);
     const oneByKey = _indexByNorm(all.startup_1qb);
