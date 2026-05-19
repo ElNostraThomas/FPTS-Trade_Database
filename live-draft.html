@@ -184,6 +184,53 @@
   .ld-select:disabled { opacity: .45; cursor: not-allowed; }
   .ld-select:focus { outline: none; border-color: var(--red); }
 
+  /* ── Custom combobox wrapper (OBS / CEF compatibility) ───────────────
+     Native <select> popups don't render reliably in OBS Browser Source
+     (CEF's native-widget rendering bug; reproduces on OBS 32.x even after
+     ruling out iframe-scroll-fix.js as the cause). To make the live-draft
+     pickers work for streamers, each .ld-select <select> is hidden and
+     wrapped at runtime with a button + custom popup that mirrors the
+     <select>'s state. The native <select> stays in DOM (display:none)
+     so its full JS API (.value / .innerHTML / .disabled) keeps working
+     unchanged — the existing ldFetchLeagues / ldFetchDrafts / etc. code
+     touches the selects normally and the custom UI auto-syncs.
+     Works identically in direct browser AND OBS iframe contexts. */
+  .ld-cs-wrap { position: relative; min-width: 0; }
+  .ld-cs-btn {
+    /* Inherits .ld-select font / colors / arrow via the shared class. */
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+  }
+  .ld-cs-btn:disabled { opacity: .45; cursor: not-allowed; }
+  .ld-cs-popup {
+    position: absolute;
+    top: calc(100% + 2px);
+    left: 0; right: 0;
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    max-height: 280px;
+    overflow-y: auto;
+    z-index: 50;
+    box-shadow: 0 6px 14px rgba(0,0,0,.45);
+  }
+  .ld-cs-popup[hidden] { display: none; }
+  .ld-cs-option {
+    padding: 8px 12px;
+    cursor: pointer;
+    font-family: 'Mulish', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--white);
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .ld-cs-option:last-child { border-bottom: none; }
+  .ld-cs-option:hover { background: var(--surface2); }
+  .ld-cs-option[aria-selected="true"] { background: var(--surface2); color: var(--red); }
+
   /* ── DRAFT INFO BAR ───────────────────────────────────────────────── */
   .ld-draft-info {
     display: flex; gap: 18px; flex-wrap: wrap;
@@ -3199,6 +3246,109 @@
     } catch (e) {}
     ldShowLogin();
   });
+
+  // ════════════════════════════════════════════════════════════════════
+  // CUSTOM COMBOBOX — drop-in replacement for native <select> popups.
+  // CEF's native-widget rendering for <select> is unreliable inside OBS
+  // Browser Source iframes (popups don't open). This wraps each
+  // <select class="ld-select"> with a button + custom popup.
+  //
+  // KEY INVARIANT: the original <select> stays in DOM (display:none) and
+  // keeps its full JS API working — ldFetchLeagues() / ldFetchDrafts() /
+  // .value setters / .innerHTML / .disabled all work unchanged. The
+  // custom popup MIRRORS the <select> via MutationObserver (for innerHTML
+  // and disabled-attribute changes) + a value setter override (for
+  // programmatic .value assignment, which isn't reflected to attributes).
+  //
+  // When user picks an option in the custom popup, we set <select>.value
+  // and dispatch a 'change' event so the inline onchange="ldOnYearChange()"
+  // attribute fires normally.
+  // ════════════════════════════════════════════════════════════════════
+  (function () {
+    function wrapSelect(sel) {
+      sel.style.display = 'none';
+      var wrap = document.createElement('div');
+      wrap.className = 'ld-cs-wrap';
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = sel.className + ' ld-cs-btn';
+      btn.setAttribute('aria-haspopup', 'listbox');
+      btn.setAttribute('aria-expanded', 'false');
+      var popup = document.createElement('div');
+      popup.className = 'ld-cs-popup';
+      popup.setAttribute('role', 'listbox');
+      popup.hidden = true;
+      wrap.appendChild(btn);
+      wrap.appendChild(popup);
+      sel.parentNode.insertBefore(wrap, sel.nextSibling);
+
+      function sync() {
+        var opts = Array.prototype.slice.call(sel.options);
+        var cur = opts[sel.selectedIndex];
+        btn.textContent = cur ? cur.textContent : '';
+        btn.disabled = sel.disabled;
+        popup.innerHTML = '';
+        opts.forEach(function (opt, i) {
+          var item = document.createElement('div');
+          item.className = 'ld-cs-option';
+          item.setAttribute('role', 'option');
+          item.dataset.value = opt.value;
+          item.textContent = opt.textContent;
+          if (i === sel.selectedIndex) item.setAttribute('aria-selected', 'true');
+          item.addEventListener('click', function (e) {
+            e.stopPropagation();
+            sel.value = opt.value;
+            sel.dispatchEvent(new Event('change', { bubbles: true }));
+            close();
+          });
+          popup.appendChild(item);
+        });
+      }
+      function open()   { if (!sel.disabled) { popup.hidden = false; btn.setAttribute('aria-expanded', 'true'); } }
+      function close()  { popup.hidden = true; btn.setAttribute('aria-expanded', 'false'); }
+      function toggle() { popup.hidden ? open() : close(); }
+
+      // NB: no stopPropagation on the button click — let the event bubble
+      // so the document click handlers on the OTHER wrapped selects fire
+      // and close their popups (otherwise opening one popup while another
+      // is open leaves both visible).
+      btn.addEventListener('click', function () { toggle(); });
+      document.addEventListener('click', function (e) { if (!wrap.contains(e.target)) close(); });
+      document.addEventListener('keydown', function (e) { if (e.key === 'Escape') close(); });
+
+      // MutationObserver — catches .innerHTML (childList) and .disabled
+      // (attribute) changes from existing JS. Does NOT catch programmatic
+      // .value assignment because value isn't a reflected attribute; the
+      // setter override below handles that.
+      new MutationObserver(sync).observe(sel, {
+        childList: true, subtree: true,
+        attributes: true, attributeFilter: ['disabled'],
+      });
+
+      // Override .value setter on this instance so `sel.value = x`
+      // triggers sync(). Native getter/setter preserved via the prototype
+      // descriptor.
+      var desc = Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, 'value');
+      if (desc && desc.get && desc.set) {
+        Object.defineProperty(sel, 'value', {
+          get: function () { return desc.get.call(this); },
+          set: function (v) { desc.set.call(this, v); sync(); },
+          configurable: true,
+        });
+      }
+
+      sync();  // initial render
+    }
+
+    function initCustomSelects() {
+      document.querySelectorAll('select.ld-select').forEach(wrapSelect);
+    }
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initCustomSelects);
+    } else {
+      initCustomSelects();
+    }
+  })();
 </script>
 
 </body>
