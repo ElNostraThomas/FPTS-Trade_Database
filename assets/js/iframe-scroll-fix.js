@@ -142,6 +142,49 @@
   }
   window.addEventListener('wheel', onWheel, { passive: false, capture: true });
 
+  // ── Middle-click drag-scroll (Windows-style pan) ─────────────────────
+  // OBS Browser Source doesn't surface the native middle-click pan/
+  // auto-scroll gesture that desktop Chromium ships with. Re-implement
+  // it manually so streamers can press the mouse wheel down + drag in
+  // any direction to scroll the document. The board on live-draft and
+  // wide tables on tiers / my-leagues / adp-tool benefit most.
+  var pan = null;
+  window.addEventListener('mousedown', function (e) {
+    if (e.button !== 1) return;  // middle button only
+    e.preventDefault();
+    pan = {
+      startX: e.clientX,
+      startY: e.clientY,
+      scrollX: window.scrollX || window.pageXOffset || 0,
+      scrollY: window.scrollY || window.pageYOffset || 0,
+    };
+    document.body.style.cursor = 'all-scroll';
+  }, true);
+  window.addEventListener('mousemove', function (e) {
+    if (!pan) return;
+    var dx = e.clientX - pan.startX;
+    var dy = e.clientY - pan.startY;
+    // Drag-to-scroll convention: drag RIGHT moves content right →
+    // viewport scrolls LEFT (so scrollLeft DECREASES). Drag follows
+    // the page like a Google-Maps grab.
+    window.scrollTo({
+      left: pan.scrollX - dx,
+      top:  pan.scrollY - dy,
+      behavior: 'auto',
+    });
+  });
+  window.addEventListener('mouseup', function (e) {
+    if (e.button !== 1 || !pan) return;
+    pan = null;
+    document.body.style.cursor = '';
+  });
+  // Suppress the native auxclick fallback (some Chromium builds toggle
+  // auto-scroll cursor mode on middle-down, which conflicts with the
+  // drag-pan we just installed).
+  window.addEventListener('auxclick', function (e) {
+    if (e.button === 1) e.preventDefault();
+  }, true);
+
   // ── Wire up ──────────────────────────────────────────────────────────
   // Run fixContainers ASAP, then again at 400ms and 1500ms to catch
   // anything that mounts late (async data render). MutationObserver
