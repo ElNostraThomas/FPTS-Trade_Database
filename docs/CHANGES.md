@@ -6,6 +6,139 @@ the operator manual see [`WORKFLOW.md`](WORKFLOW.md).
 
 ---
 
+## 2026-05-19 (eighth session) — Drift cleanup finale + OBS compat suite + UX features
+
+Closure session. The last static-checkable hard-rules drift item (Drift #4 — `player-panel.css` `!important` refactor) closed in two diff-trusted passes; the lingering low-priority data item (Drift #6 — 2021/2022 rushing Basic CSV re-export) also shipped. With those two, the entire hard-rules audit punch list from session 7 is done.
+
+Plus a substantial **OBS Browser Source compatibility suite** that came up mid-session as the user started streaming the site, and **two user-driven UX features** (a Rookies tab in the my-leagues player-exposure sidebar, and a site-wide back-to-top floating button).
+
+### Drift #4 closure — `player-panel.css` `!important` 97 → 4 mobile-section
+
+Approved approach (Approach C): consolidate then refactor, two commits, diff-trusted between passes, single browser verification at the end.
+
+**Pass 1 — Consolidate (visual no-op)** — `4d9cd9c`. Merged 6 fragmented `@media (max-width: 768px)` blocks (at original lines 321 / 410 / 418 / 476 / 485 / 639) into ONE ordered block. Rules whose values were already overridden by a later block in the cascade were dropped as dead code; every effective rule preserved. Order: structural → header (close-bar / search-wrap / actions menu) → profile → trade-stats → tabs → trade finder → articles. Mobile-section `!important` count: 97 → 81 (-16 byte-identical duplicates removed). File size: 724 → 648 lines. Desktop CSS byte-equivalent (`git diff` starts at line 318).
+
+**Pass 2 — Refactor selector-by-selector** — `b309ccd`. Two patterns:
+- **Specificity escalation** for selectors with a corresponding higher-specificity desktop rule. Five selectors got their mobile rule upgraded from `.X` to `.player-panel .X` to match desktop's specificity (which uses `.player-panel .pp-close-bar` at line 306, `.player-panel .pp-profile` at line 308, `.player-panel .pp-avatar` at line 309, `.player-panel .pp-name` at line 310, `.player-panel .pp-tab` at line 313, `.player-panel .pp-value-val` at line 315). With matching specificity, the mobile rule wins via source order — no `!important` needed.
+- **Same-specificity source-order wins** for everything else. Removed `!important` from `.pp-search-wrap`, `.pp-ktc`, `.pp-info`, `.pp-trade-stats`, `.pp-meta`, `.pp-tabs`, `.pp-scroll`, `.panel-close`, `.tf-sides`, `.tf-side`, articles section, etc.
+
+Mobile-section `!important` count: 81 → **4**. The four remaining are doctrine-legitimate inline-style defenders (the ONLY way to defeat an inline `style="..."` from external CSS is `!important`), each annotated with an inline comment naming the JS line:
+- `.pp-close-bar > div:first-child { font-size: 10px !important; }` — defeats inline `font-size:13px` set by `player-panel.js:74`.
+- `.pp-search-input { min-width: 0 !important; }` — defeats inline `min-width:260px` set by `player-panel.js:86`.
+- `.player-panel .pp-profile { padding: 14px !important; }` — defeats inline `padding:28px 32px` set by `player-panel.js:105`.
+- `.pp-name { font-size: 20px !important; }` — defeats inline `font-size:32px` set by `player-panel.js:109`.
+
+Also dropped `#pp-player-tabs { min-height: 36px }` — it was dead code, overridden at runtime by JS:101's inline `min-height:44px` (which is the desired mobile value anyway).
+
+Desktop CSS byte-equivalent (lines 1-317 untouched). `check-colors.py` CLEAN. Cache token bumped: `player-panel.css?v=1780500000 → ?v=1781500000` across all 8 consumers + `templates/page-template.html`.
+
+### Drift #6 closure — 2021/2022 rushing Basic CSVs re-exported
+
+`3612da1`. User dropped fresh Basic-format CSVs at `data/source/stats/2021/rushing.csv` and `data/source/stats/2022/rushing.csv`. Headers verified to match the existing 2023+ Basic format (includes the Receiving section with TGT/REC/YDS/TD that the old Advanced exports lacked).
+
+`sync-stats.config.json` lines 61 and 65 swapped from `label: "rushing (Advanced)"` (with the trimmed Rushing-only field map) → `label: "rushing"` (with the full Basic field map mirroring the 2023+ rows: adds `targets: "Receiving/TGT"`, `rec: "Receiving/REC"`, `recYards: "Receiving/YDS"`, `recTd: "Receiving/TD"`). The stale `_comment` at the top of the config refreshed to drop the "Advanced rushing exception" note.
+
+`sync-stats.py` rerun regenerated `data/stats.json` (1,102 unique players × 5 seasons). Spot-check **Najee Harris 2021**: rushAtt 307, rushYards 1200, rushTd 7, targets 94, rec 74, recYards 467, recTd 3, 17 weeks + 1 playoff week — every number matches real NFL stats. Receiving stats for 2021/2022 RBs now flow from the rushing CSV's new Receiving section (in addition to the receiving CSV, which is still the primary source — the two should agree).
+
+The diff also bundled a routine site data refresh (`data/adp-*.json`, `data/auction-*.json`, `data/pick-availability-*.json`, `data/articles.json`, `data/values.json`, `data/mvs.json`, `data/picks.json`, `data/rank-history.json`, `tiers.html` Synced-timestamp, `docs/function-reference.pdf`) — pre-existing uncommitted changes from an earlier push.bat sync chain that hadn't been committed.
+
+### OBS Browser Source compatibility suite
+
+User started loading the deployed site as an OBS Browser Source overlay for streaming. Two issues surfaced and got fixed across a 4-commit arc plus 1 diagnostic round-trip:
+
+#### `ee9df70` — `assets/js/iframe-scroll-fix.js` shared module
+
+New module loaded by all 8 deployed pages + `templates/page-template.html`. The problem it solves: when the site is iframed in an OBS Browser Source (or any cross-origin parent), wheel events get trapped by inner scroll containers on our pages (player-panel drawer `.pp-scroll`, my-leagues table sections) and never bubble to the iframe document, so the parent can't scroll the iframe content.
+
+The fix has three parts (only runs when iframed; bails immediately for direct browser visitors):
+1. **CSS injection** — overflow-reset stylesheet that flattens common framework wrappers (`.page`, `.container`, `.layout`, etc.) to `overflow: visible !important; max-height: none !important;`. Forces html/body to `overflow-y: auto`.
+2. **`fixContainers` walker** — runs on DOMContentLoaded + 400ms + 1500ms. Walks all div/main/article/section elements; if any is wider than 50% viewport AND taller than 200px AND has `overflow-y: auto/scroll/hidden`, flattens to `overflow-y: visible` so it doesn't trap wheel events.
+3. **Capture-phase wheel handler** with `passive: false`. Walks up from `elementFromPoint(mouseX, mouseY)` to find a scrollable ancestor. If any ancestor still has room to scroll in the wheel direction → defer (return early — let native handle). If nothing wants the wheel event → `preventDefault()` and `window.scrollBy({ top: deltaY, left: deltaX })`.
+
+Hard guarantee for direct browser visitors: zero behavior change. The IIFE starts with `if (window.self === window.top) return;` (try/catch'd for cross-origin parents). Every site feature that relies on inner scrolling (player-panel drawer, my-leagues tables, every other inner-scrollable surface) is completely untouched for normal visits.
+
+#### `0b820b6` + `774bb57` — OBS dropdown diagnostic round-trip
+
+User reported the three cascading native `<select>` dropdowns on `live-draft.html` (year / league / draft pickers) do nothing when clicked in OBS Browser Source. Direct browser visits worked fine. Hypothesis: the just-shipped `iframe-scroll-fix.js` might be interfering with native widget interaction.
+
+Diagnostic (`0b820b6`): commented out the iframe-scroll-fix script tag on `live-draft.html` only (leaving it active on the other 8 consumers). User retested in OBS Interact mode — dropdowns still failed. **Conclusion: iframe-scroll-fix is innocent.** Real cause: CEF's native `<select>` rendering bug in cross-origin iframes, reproducible on OBS 32.1.2 even with the script removed.
+
+Restore (`774bb57`): re-enabled the script tag on `live-draft.html`. Byte-identical to pre-diagnostic state.
+
+#### `21eb03e` — Custom combobox wrapper for OBS compatibility
+
+Since the OBS bug is in CEF's native-widget rendering (not something we can fix server-side), the practical workaround is to STOP using a native widget for the dropdown popup. Custom combobox inline in `live-draft.html` (50 lines CSS + 99 lines JS, no existing code modified):
+
+- The original `<select class="ld-select">` element stays in DOM (display:none) and keeps its full JS API working — `.value`, `.innerHTML`, `.disabled` all continue to work for the existing `ldFetchLeagues` / `ldFetchDrafts` / `ldOnYearChange` / cascade logic. Zero modifications to the data-loading code.
+- A sibling `<div class="ld-cs-wrap">` with a button trigger + popup `<div role="listbox">` provides the visible UI.
+- The custom UI **mirrors** the `<select>` state via:
+  - **`MutationObserver`** on the `<select>` watching `childList` (catches `innerHTML` changes from `ldFetchLeagues` / `ldFetchDrafts` rebuilding the option list) + `attributeFilter: ['disabled']` (catches `disabled` toggling).
+  - **Per-instance `.value` setter override** via `Object.defineProperty` — programmatic `sel.value = x` doesn't reflect to an attribute, so MutationObserver alone misses it. The override calls the native setter (preserved via the prototype descriptor) then triggers `sync()`.
+- When user picks an option in the custom popup: set `<select>.value` + dispatch `new Event('change', { bubbles: true })` so the inline `onchange="ldOnYearChange()"` attribute on the original `<select>` fires normally. The existing cascading-picker logic runs without knowing the click came from a custom widget.
+- Multi-popup handling: clicking dropdown B closes dropdown A. The button click intentionally does NOT `stopPropagation` so the document handlers on sibling wraps fire and close their popups. Click-outside (document handler) + Escape key (keydown handler) both close all popups.
+- Visual styling: the button reuses the existing `.ld-select` class so it looks identical to the original native dropdown. Popup styled with brand surface/border tokens, max-height 280px with scroll for long lists, z-index 50.
+
+Works identically in direct browser AND OBS iframe contexts. No behavior change for direct visitors beyond the visual swap (popup is in-document instead of OS-level — slightly different look, same UX).
+
+#### `ace0025` — Horizontal scroll support for iframed contexts
+
+User reported the live-draft board (wider than the OBS viewport) couldn't be side-scrolled. Cause: `iframe-scroll-fix.js` forced `overflow-x: hidden !important` on html/body and the wheel handler only knew about vertical scrolling.
+
+Three coordinated changes:
+1. **CSS injection** — `overflow-x: hidden !important` → `overflow-x: auto !important` on html/body so the body can scroll horizontally when content overflows.
+2. **`fixContainers` walker** — matching change on `body.style.overflowX` (was inline-set to `hidden`, now `auto`).
+3. **`isScrollable` + `onWheel`** — both now detect horizontal scroll containers in addition to vertical. The wheel handler checks `canScrollY` AND `canScrollX` independently for each scrollable ancestor and defers to it when the wheel direction (deltaY or deltaX) still has room left.
+
+End result in iframed contexts: trackpad / Shift+Wheel left-right over the draft board defers to the board's horizontal scroll. Same gesture in empty page area falls through to `window.scrollBy` → page horizontal-scrolls if content overflows.
+
+#### `4c35b60` — Middle-click drag-scroll (Windows-style pan)
+
+User reported they couldn't click the mouse wheel down + drag to pan the page in OBS. CEF doesn't surface the native middle-click pan/auto-scroll cursor that desktop Chromium ships with. Re-implementing manually:
+
+- `mousedown` w/ `e.button === 1` (middle button) → enter pan mode. Capture (clientX, clientY) start position + current (scrollX, scrollY). Set cursor to `all-scroll` (4-arrow pan cursor).
+- `mousemove` while panning → `window.scrollTo` with start scroll minus drag delta. Drag-to-scroll convention: drag RIGHT pulls the page right (Google-Maps-style grab). Diagonal drag pans diagonally.
+- `mouseup` w/ `e.button === 1` → exit pan mode, restore default cursor.
+- `auxclick` w/ `e.button === 1` → `preventDefault()` to suppress the native auto-scroll cursor toggle some Chromium builds ship (would conflict with our drag-pan).
+
+Only runs when iframed (same guard as the rest of `iframe-scroll-fix.js`). Direct browser visitors continue to get the OS's native middle-click behavior unchanged.
+
+Cache tokens after the OBS suite: `iframe-scroll-fix.js?v=1781700000 → ?v=1781900000 → ?v=1782100000` (bumped per iteration). All 9 consumers aligned at each bump.
+
+### Rookies tab in my-leagues player exposure + sidebar widened
+
+`ce85d59`. Two coordinated additions to the player-exposure sidebar:
+
+1. **`ROOKIE` filter button** between TE and Picks (`ALL | QB | RB | WR | TE | Rookies | Picks`). Shows only current-year rookies on the user's rosters (`years_exp === 0` per Sleeper), scoped to skill positions (QB/RB/WR/TE) so K/DEF rookies don't pollute the list. Sleeper updates `years_exp` around April each year, so "rookie" here always tracks the most recent draft class.
+   - **Data wiring:** `computePlayerExposure()` (line 5610) now caches `yearsExp` on each `ML_EXPOSURE_DATA` entry (null if Sleeper data missing). Avoids a re-lookup at filter time.
+   - **Filter wiring:** `renderExposureList()` gets a `filter === 'ROOKIE'` branch BEFORE the existing position filter — applies `yearsExp === 0` + skill-pos scope.
+   - The search-augmentation block that surfaces non-rostered FP players on name search is intentionally **skipped** for `ROOKIE` filter — `FP_VALUES` records don't carry `years_exp`, so we can't tell which non-rostered players are rookies. Only rostered rookies (with Sleeper data) show up in this tab.
+
+2. **Sidebar widened 360px → 440px** (`.ml-columns` grid template). The fixed pixel columns (Pos / Shares / Value / Exp%) + image + padding consumed ~252px of the 360px container, leaving only ~108px for the player-name column — long names like "Christian McCaffrey" or "DeMario Douglas" were getting ellipsis-truncated. +80px on the sidebar gives the name column ~188px, fitting every full name in the FP catalog. Trade-off: the leagues list (left column) shrinks by 80px (on a 1440px viewport: 1062px → 982px, still comfortable). Collapsed state (`.ml-exposure-pinned` → `1fr 44px`) unchanged.
+
+### Back-to-top floating button
+
+`5422fa5`. New `assets/js/back-to-top.js` shared module loaded by all 8 deployed pages + `templates/page-template.html`. The user requested it for long scrolling pages (trade database, my-leagues exposure, tiers tables, etc.).
+
+- **Built at runtime** — single IIFE creates a 44×44 round button (brand-red bg, white ↑) and appends to `document.body`.
+- **Position:** fixed, `bottom: 70px; right: 18px` — stacked 12px above the existing Legend trigger (`.lg-trigger` at `bottom: 18px`, ~40px tall). The two floating buttons share the same right edge.
+- **Behavior:** hidden by default. Fades in (200ms) when `scrollY > 400`, fades back out when user scrolls back near top. Click → `window.scrollTo({ top: 0, behavior: 'smooth' })` with a graceful fallback for older browsers without options-object scrollTo.
+- **z-index 150** — above ordinary content but BELOW the player-panel drawer (z 200+) and Legend backdrop (z 8999), so it hides correctly behind any open modal.
+- **Hover state:** subtle 1px lift + box-shadow expand, matches the Legend trigger's hover pattern.
+- **Self-contained:** inline styles for full control, no `brand.css` load-order dependency. Uses `var(--red)` / `var(--white)` tokens pulled from whichever CSS the host page loads.
+- **Idempotent** init — exits early if the button already exists.
+
+Cache token: `back-to-top.js?v=1782200000` (new module).
+
+### Audit status
+
+`python scripts/check-colors.py` — CLEAN across 28 files after every commit. Two new shared JS modules (`iframe-scroll-fix.js`, `back-to-top.js`) added to the audit scope.
+
+### Next session — Player Comparison full page
+
+Still the headline unblocked initiative. New `compare.html`. Two visual references unchanged from prior sessions (Underdog stat-table at `Desktop/Player comparison page.jpg` + Hayden-Winks profile-matches at `Desktop/HIm4pBXaUAAsSMz.jpg`). Per-year career data ready from `STATS_DATA[key].seasons` (2021-2025). Real multi-session work — expect skeleton + Phase 1 in the next session.
+
+---
+
 ## 2026-05-18 (seventh session) — Live Draft Assistant + Data-Suite Migration
 
 Two major initiatives across ~30 commits.

@@ -1,9 +1,9 @@
 # Fantasy Points Front Office — Session Handoff
 
 A static fantasy-football site deployed via GitHub Pages from `main`.
-**Seven HTML pages, all live and shipping:** `index.html` (trade DB),
+**Eight HTML pages, all live and shipping:** `index.html` (trade DB),
 `trade-calculator.html`, `tiers.html`, `adp-tool.html`, `my-leagues.html`,
-`rankings.html`, `formulas.html`.
+`rankings.html`, `formulas.html`, `live-draft.html`.
 
 Full operator manual: [`docs/WORKFLOW.md`](docs/WORKFLOW.md).
 Session-by-session changelog: [`docs/CHANGES.md`](docs/CHANGES.md).
@@ -11,7 +11,59 @@ This file is the **resume-where-we-left-off** doc.
 
 ---
 
-## Where we are (end of 2026-05-18 — seventh session)
+## Where we are (end of 2026-05-19 — eighth session)
+
+**Closure session.** The last static-checkable hard-rules drift item (Drift #4 — `player-panel.css` `!important` refactor) closed in two diff-trusted passes; the lingering low-priority data item (Drift #6 — 2021/2022 rushing Basic CSV re-export) also shipped. With those two, the entire hard-rules audit punch list from session 7 is now done.
+
+Plus a substantial **OBS Browser Source compatibility suite** that came up mid-session as the user started streaming the site, and **two user-driven UX features** (a Rookies tab in the my-leagues player-exposure sidebar, and a site-wide back-to-top floating button).
+
+### Drift #4 — `player-panel.css` `!important` 97 → 4 mobile-section, in 2 diff-trusted passes
+
+Pass 1 (`4d9cd9c`) consolidated 6 fragmented `@media (max-width: 768px)` blocks at the original lines 321 / 410 / 418 / 476 / 485 / 639 into ONE ordered block, deduplicating rules whose values were already overridden by a later block in the cascade. Visual no-op: every effective rule from the prior cascade preserved; only dead-code duplicates dropped. Mobile-section `!important` count: 97 → 81.
+
+Pass 2 (`b309ccd`) refactored the remaining 81 via two patterns: (a) **specificity escalation** — selectors with a corresponding higher-specificity desktop rule (`.player-panel .pp-close-bar` line 306, `.player-panel .pp-profile` line 308, `.player-panel .pp-avatar` line 309, `.player-panel .pp-name` line 310, `.player-panel .pp-tab` line 313, `.player-panel .pp-value-val` line 315) got upgraded to match — no `!important` needed once specificity matches; (b) **same-specificity source-order wins** for everything else. Mobile-section `!important` count: 81 → **4**. The four kept are doctrine-legitimate **inline-style defenders** (the only thing in external CSS that beats inline is `!important`), each with an inline comment naming the JS line it defends: `.pp-close-bar > div:first-child font-size` (defeats JS:74 inline 13px), `.pp-search-input min-width` (defeats JS:86 inline 260px), `.player-panel .pp-profile padding` (defeats JS:105 inline 28px 32px), `.pp-name font-size` (defeats JS:109 inline 32px).
+
+Desktop CSS byte-equivalent — `git diff` shows only post-line-317 changes. Cache token bumped: `player-panel.css?v=1780500000 → ?v=1781500000` across all 8 consumers + template.
+
+### Drift #6 — 2021/2022 rushing Basic CSVs re-exported
+
+`3612da1`. User dropped fresh Basic-format CSVs at `data/source/stats/{2021,2022}/rushing.csv`. `sync-stats.config.json` lines 61 and 65 swapped from `label: "rushing (Advanced)"` (with the trimmed field map) → `label: "rushing"` (with the full Basic field map matching the 2023+ rows). The stale `_comment` at the top of the config was refreshed. `sync-stats.py` rerun regenerated `data/stats.json` (1,102 unique players × 5 seasons). Spot-check Najee Harris 2021: `rushAtt=307, rushYards=1200, rushTd=7, targets=94, rec=74, recYards=467, recTd=3` — every number matches real NFL stats; per-week breakdown intact + 1 playoff week.
+
+### OBS Browser Source compatibility suite — 4-commit arc + 1 diagnostic round-trip
+
+The user started loading the site as an OBS Browser Source overlay for streaming. Two issues surfaced — page-scroll-trapping inside iframe contexts, then native `<select>` dropdowns failing on `live-draft.html` — driving a multi-commit response:
+
+- `ee9df70` **`assets/js/iframe-scroll-fix.js`** — new shared module loaded by all 8 pages + template. When iframed (`window.self !== window.top`, with try/catch for cross-origin parents), it (1) injects an overflow-reset stylesheet, (2) flattens any oversized inner scrollable container that would trap wheel events, (3) installs a capture-phase wheel handler that defers to legitimate inner scrollers and falls through to `window.scrollBy` for the outer document. **Hard guarantee: direct browser visitors get zero behavior change** (the guard exits before doing anything).
+
+- `0b820b6` / `774bb57` **OBS dropdown diagnostic** — temporarily disabled the new script on `live-draft.html` only to isolate cause of the dropdown failure. Dropdowns still failed → confirmed the iframe-scroll-fix was innocent, real culprit was CEF's native `<select>` rendering in cross-origin iframes (a known regression on multiple CEF versions including OBS 32.1.2). Script restored.
+
+- `21eb03e` **Custom combobox wrapper for OBS** — added inline to `live-draft.html`. Hides each native `<select class="ld-select">` (display:none) and wraps with a button + custom popup that **mirrors** the `<select>` state. The native `<select>` stays in DOM and keeps its full JS API (`.value`, `.innerHTML`, `.disabled`) so the existing cascading-picker logic in `ldFetchLeagues` / `ldFetchDrafts` / `ldOnYearChange` / etc. is unchanged. The mirror updates via MutationObserver (childList + disabled attribute) + a per-instance `.value` setter override (programmatic value sets aren't reflected to attributes). When user picks an option, we set `<select>.value` and dispatch `new Event('change')` so the inline `onchange` attribute fires normally. Multi-popup management: clicking one dropdown closes the others (button click does NOT `stopPropagation`).
+
+- `ace0025` **Horizontal scroll** for iframe contexts — flipped `overflow-x: hidden !important` → `auto` on html/body in both the CSS injection and the `fixContainers` walker. `isScrollable` and the wheel handler both now detect horizontal-scroll containers and defer to them in the wheel `deltaX` direction.
+
+- `4c35b60` **Middle-click drag-scroll** — CEF doesn't surface the native middle-click pan/auto-scroll gesture in iframes. Re-implemented manually: mousedown w/ `e.button === 1` enters pan mode (`cursor: all-scroll`, captures start position); mousemove drags the page Google-Maps-style (drag right → page follows right); mouseup exits. `auxclick` suppression prevents CEF from toggling its own auto-scroll cursor over our handler.
+
+### Two user-driven UX additions
+
+- `ce85d59` **Rookies tab in my-leagues player exposure** — new `ROOKIE` filter button between TE and Picks. Shows only current-year rookies (`years_exp === 0` per Sleeper) scoped to QB/RB/WR/TE. `computePlayerExposure()` now caches `yearsExp` on each exposure entry; `renderExposureList()` has a `filter === 'ROOKIE'` branch BEFORE the position filter. Sidebar widened **360px → 440px** (`.ml-columns` grid template) so the long player names (Christian McCaffrey, etc.) no longer get ellipsis-truncated. The search-augmentation block that surfaces non-rostered FP players on name-search is intentionally skipped under ROOKIE filter — `FP_VALUES` records don't carry rookie status, so we can only show rostered rookies (which is the user's intent anyway).
+
+- `5422fa5` **Back-to-top floating button** — new `assets/js/back-to-top.js` shared module, loaded by all 8 pages + template. Round red 44×44 FAB-style button with ↑ arrow, positioned at `bottom: 70px; right: 18px` so it stacks 12px above the existing Legend trigger (`.lg-trigger` at `bottom: 18px`). Fades in when `scrollY > 400`, fades back out near top, smooth-scroll on click. `z-index: 150` — above ordinary content but below the player-panel drawer (z 200+) and Legend backdrop (z 8999) so it hides correctly behind open modals.
+
+### What's queued next
+
+- **Player Comparison full page** — still the headline unblocked initiative. New `compare.html`. Two visual references unchanged from prior sessions (Underdog stat-table + Hayden-Winks profile-matches). Per-year career data in `STATS_DATA[key].seasons`. Multi-session work.
+- External-blocked: 1QB scrape `SEED_USERS` (needs 1QB-active Sleeper usernames), analyst feedback loop (needs analyst recommendations on 14 heuristics in `formulas.html`).
+- Visual polish — open-ended; surface specific issues as they come up.
+
+**Cache tokens bumped this session:** `player-panel.css?v=1781500000`, `iframe-scroll-fix.js?v=1782100000` (created + iterated twice), `back-to-top.js?v=1782200000` (new module).
+
+**Audit:** `python scripts/check-colors.py` — CLEAN across 28 files after every commit.
+
+See [`docs/CHANGES.md`](docs/CHANGES.md) 2026-05-19 (eighth session) for full per-commit detail.
+
+---
+
+## Where we were (end of 2026-05-18 — seventh session)
 
 **The day the data suite became the source of truth.** Two major initiatives shipped across ~30 commits: (1) Live Draft Assistant page from skeleton through Phase 5 + polish, (2) Data-Suite Migration Phases 1-8 that replaces Sleeper-sourced stats / projections across the entire site with user-supplied CSVs from FantasyPoints' Data Suite.
 
@@ -886,37 +938,49 @@ Nothing structural. Polish / nice-to-haves only:
   applies bonuses on top of the base full-PPR / 4-pt-pass-TD line. Used
   by every projection consumer (live-draft Pick Analysis + Team Needs
   + Trade Suggestions; my-leagues PPG + ML_SEASON_PROJ + archetype).
-- [ ] **Re-export 2021 + 2022 rushing "Basic" CSVs** — current setup uses
-  the "Advanced" rushing exports for those years (the user's "Basic"
-  exports for 2021/2022 were mis-mapped to wrong year folders). Advanced
-  ships identical Rushing/ATT,YDS,TD,FUM but no Receiving section for
-  RBs in those years — so RBs in 2021/2022 only have receiving stats
-  from the receiving CSVs (which is authoritative anyway). Low priority
-  follow-up; functionally complete today.
-
-  **Concrete steps when you do it:**
-  1. From the FantasyPoints Data Suite, export **Basic** Rushing for
-     `2021` (weekly-split toggle ON — match the other years). Repeat for
-     `2022`. The Basic header you want includes a Receiving section
-     (TGT/REC/YDS/TD) — the current Advanced header has Zone Concept /
-     Man-Gap Concept / Advanced columns and NO Receiving block. Confirm
-     by opening the new CSV: row 1 group labels should read
-     `Player Details,...,Rushing,...,Receiving,...,FPTS`. Compare
-     against `data/source/stats/2023/rushing.csv` which is already Basic.
-  2. Overwrite `data/source/stats/2021/rushing.csv` and
-     `data/source/stats/2022/rushing.csv` with the new files. **Be
-     careful about year-folder mapping this time** — the original
-     attempt mis-mapped them, which is how we ended up on Advanced.
-  3. Edit `sync-stats.config.json` lines 61 and 65: change the `label`
-     from `"rushing (Advanced)"` → `"rushing"`, and replace the trimmed
-     fields map with the full one used on lines 69/73/77 (adds the
-     `targets`, `rec`, `recYards`, `recTd` Receiving/* mappings).
-  4. Run `python sync-stats.py`. Spot-check `data/stats.json` — pick a
-     2021/2022 RB (e.g. Najee Harris 2021) and confirm
-     `seasons["2021"]` now carries non-zero `targets` / `rec` /
-     `recYards` from the rushing CSV (matches what the receiving CSV
-     already provided — the values should agree).
-  5. `python scripts/check-colors.py` (CLEAN required) → `push.bat`.
+- [x] ~~**Re-export 2021 + 2022 rushing "Basic" CSVs**~~ — shipped
+  2026-05-19 (eighth session) in commit `3612da1`. User dropped fresh
+  Basic-format CSVs at `data/source/stats/{2021,2022}/rushing.csv`;
+  `sync-stats.config.json` lines 61 + 65 swapped from `"rushing (Advanced)"`
+  → `"rushing"` with the full Basic field map (adds targets / rec /
+  recYards / recTd from Receiving/*). `sync-stats.py` rerun regenerated
+  `data/stats.json`. Najee Harris 2021 spot-check passes (rushAtt 307,
+  rushYards 1200, targets 94, rec 74, recYards 467 — all real values).
+- [x] ~~**Drift #4 — `player-panel.css` `!important` refactor**~~ —
+  shipped 2026-05-19 (eighth session) in commits `4d9cd9c` (Pass 1
+  consolidation) + `b309ccd` (Pass 2 specificity refactor). Mobile-section
+  count dropped 97 → **4**, all 4 doctrine-legitimate inline-style
+  defenders. Desktop CSS byte-equivalent (lines 1-317 untouched). Cache
+  token bumped to `?v=1781500000` across all 8 consumers. Drift item
+  closed; the full hard-rules audit punch list from session 7 is now done.
+- [x] ~~**OBS Browser Source compatibility suite**~~ — shipped
+  2026-05-19 (eighth session) across 4 commits. (1) `ee9df70` new
+  `assets/js/iframe-scroll-fix.js` shared module (only runs when
+  iframed; zero behavior change for direct visitors). (2) `21eb03e`
+  custom combobox wrapper on `live-draft.html` — hides each native
+  `<select class="ld-select">` and mirrors state via MutationObserver +
+  per-instance `.value` setter override; native `<select>` keeps full
+  JS API so existing cascading-picker logic is unchanged. Works around
+  CEF's native-`<select>` rendering bug in cross-origin iframes on OBS
+  32.1.2. (3) `ace0025` horizontal-scroll support — `overflow-x:auto`
+  on html/body; `isScrollable` + wheel handler now detect horizontal
+  scroll containers and defer in the `deltaX` direction. (4) `4c35b60`
+  middle-click drag-scroll — manual Google-Maps-style pan since CEF
+  doesn't surface the native middle-click gesture in iframes.
+- [x] ~~**Rookies tab in my-leagues player exposure**~~ — shipped
+  2026-05-19 (eighth session) in commit `ce85d59`. New `ROOKIE` filter
+  button between TE and Picks; shows only `years_exp === 0` players
+  (current-year rookies) scoped to QB/RB/WR/TE. `computePlayerExposure()`
+  caches `yearsExp` on each entry; `renderExposureList()` adds a
+  ROOKIE branch. Sidebar widened 360px → 440px (`.ml-columns` grid
+  template) so long names like Christian McCaffrey no longer get
+  ellipsis-truncated.
+- [x] ~~**Back-to-top floating button**~~ — shipped 2026-05-19 (eighth
+  session) in commit `5422fa5`. New `assets/js/back-to-top.js` shared
+  module loaded by all 8 pages + template. Round red 44×44 button at
+  `bottom: 70px; right: 18px` (stacked 12px above the Legend trigger),
+  fades in when `scrollY > 400`, smooth-scroll on click, hides correctly
+  behind open modals via `z-index: 150`.
 
 ---
 
@@ -925,44 +989,47 @@ Nothing structural. Polish / nice-to-haves only:
 Paste this as the first message:
 
 ```
-Read README.md for current state. End-of-2026-05-18 (seventh session):
-- LIVE DRAFT ASSISTANT shipped end-to-end. All 5 phases + polish.
-- DATA-SUITE MIGRATION shipped Phases 1-8. data/stats.json (1,104
-  players × 5 seasons 2021-2025) is the source of truth. Cascade:
-  CSV → STATS_DATA → adjustStatsForLeague → projectPlayer →
-  lineupProjection → archetypeFromTotals → trade suggestions.
-- PLAYER DRAWER migrated to data suite (commits 8e45560 / 8e08aed).
-  Stats tab reads window.STATS_DATA via _toSleeperShape translator;
-  Sleeper /stats stays as fallback for IDP / K / pre-2021. Year
-  list cut to 2021-2025. Subtitle "Source: Data Suite". FPTS column
-  works site-wide now that sleeper-helpers.js loads on every page
-  with player-panel.js.
-- ADP CLEANUP shipped + user-confirmed "adp looks way better"
-  (commits 3fee1fd / 22f45dd / 1db152d). Consumer-side filter in
-  data-bootstrap.js _cleanAdpPayload: position ∈ {QB,RB,WR,TE} +
-  drafts >= max(25, corpus_max × 10%). Raw preserved under
-  window.ADP_PAYLOAD_RAW. Rookie display capped at 4 rounds.
-- WHAT STAYS SLEEPER (intentional): /league/{id}/*, /players/nfl,
-  scoring_settings, roster_positions, per-week /projections for
-  the in-season Proj Wk N column, live-draft tier-2 fallback for
-  IDP / K / unmapped rookies, player-drawer Stats tier-2 fallback.
-- SHARED MODULE assets/js/sleeper-helpers.js carries the trade
-  engine + scoring overlay + lineup math + archetype classifier.
-- SESSION PERSISTENCE: fpts-sleeper-* shared LS keys across
-  my-leagues + live-draft.
-- Cache tokens at session close: data-bootstrap.js ?v=1781000000,
-  sleeper-helpers.js ?v=1780800000, player-panel.js ?v=1781200000,
-  legend-content.js ?v=1781100000.
-- Color audit CLEAN across 26 files.
+Read README.md for current state. End-of-2026-05-19 (eighth session):
+- DRIFT #4 CLOSED — player-panel.css !important refactor in 2 passes
+  (commits 4d9cd9c + b309ccd). Mobile section: 97 → 4 !important.
+  All 4 remaining are doctrine-legitimate inline-style defenders
+  (each with an inline comment naming the JS line). Desktop CSS
+  byte-equivalent. Hard-rules audit punch list from session 7 = DONE.
+- DRIFT #6 CLOSED — 2021/2022 rushing Basic CSVs re-exported and
+  synced (commit 3612da1). Najee Harris 2021 spot-check verified.
+- OBS COMPATIBILITY SUITE shipped across 4 commits:
+  * iframe-scroll-fix.js (ee9df70) — shared module, only runs when
+    iframed, zero behavior change for direct visitors.
+  * custom combobox on live-draft.html (21eb03e) — hides native
+    <select> and mirrors state via MutationObserver + .value setter
+    override. Works around CEF native-<select> bug in cross-origin
+    iframes (OBS 32.1.2).
+  * horizontal scroll support (ace0025) — overflow-x:auto + wheel
+    handler aware of horizontal scrollers.
+  * middle-click drag-scroll (4c35b60) — manual Google-Maps-style
+    pan since CEF doesn't surface the native gesture in iframes.
+- ROOKIES TAB in my-leagues player exposure (ce85d59). New ROOKIE
+  filter button between TE and Picks; years_exp === 0 scoped to
+  QB/RB/WR/TE. Sidebar widened 360 → 440px so long names fit.
+- BACK-TO-TOP floating button (5422fa5) — new shared module on all
+  9 consumers. Bottom-right, stacked above the Legend trigger.
+- LIVE DRAFT ASSISTANT (session 7) + DATA-SUITE MIGRATION (session 7)
+  + PLAYER DRAWER stats migration (session 7) + ADP CLEANUP (session 7)
+  + SHARED sleeper-helpers.js trade engine (session 7) are all live
+  and still the source of truth — see prior session sections below.
+- Cache tokens at session close: player-panel.css ?v=1781500000,
+  iframe-scroll-fix.js ?v=1782100000, back-to-top.js ?v=1782200000.
+- Color audit CLEAN across 28 files.
 
-Confirm by running `git log --oneline -20`.
+Confirm by running `git log --oneline -25`.
 
 PUNCH LIST (present this to the user at session start — don't act
 on any item without explicit user direction):
   1. Player Comparison full page — UNBLOCKED, next big initiative.
-     Two visual refs in punch list (Underdog stat-table layout +
-     Hayden-Winks profile-matches layout). STATS_DATA[key].seasons
-     ready for career-trend rendering.
+     Two visual refs (Underdog stat-table layout + Hayden-Winks
+     profile-matches layout — Desktop/Player comparison page.jpg +
+     Desktop/HIm4pBXaUAAsSMz.jpg). STATS_DATA[key].seasons ready for
+     career-trend rendering.
   2. 1QB scrape SEED_USERS — external-blocked on user-supplied
      1QB-active Sleeper usernames.
   3. Analyst feedback loop — external-blocked on analyst input on
@@ -970,11 +1037,7 @@ on any item without explicit user direction):
   4. my-leagues inline-style cleanup — deferred (~280 1-off /
      JS-toggled, diminishing returns per
      docs/ml-inline-style-inventory.md).
-  5. Visual polish pass after live use — typography balance,
-     mobile viewport per page, theme toggle on accordion.
-  6. Re-export 2021 + 2022 rushing "Basic" CSVs — low priority;
-     current setup uses Advanced exports which work for the rushing
-     volume fields.
+  5. Visual polish — open-ended; surface specific issues as they come up.
 
 ALL of the above are either user-deferred, external-blocked, or
 require user direction. Don't auto-start work — present the list +
