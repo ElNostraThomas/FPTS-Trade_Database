@@ -894,6 +894,30 @@ Nothing structural. Polish / nice-to-haves only:
   from the receiving CSVs (which is authoritative anyway). Low priority
   follow-up; functionally complete today.
 
+  **Concrete steps when you do it:**
+  1. From the FantasyPoints Data Suite, export **Basic** Rushing for
+     `2021` (weekly-split toggle ON — match the other years). Repeat for
+     `2022`. The Basic header you want includes a Receiving section
+     (TGT/REC/YDS/TD) — the current Advanced header has Zone Concept /
+     Man-Gap Concept / Advanced columns and NO Receiving block. Confirm
+     by opening the new CSV: row 1 group labels should read
+     `Player Details,...,Rushing,...,Receiving,...,FPTS`. Compare
+     against `data/source/stats/2023/rushing.csv` which is already Basic.
+  2. Overwrite `data/source/stats/2021/rushing.csv` and
+     `data/source/stats/2022/rushing.csv` with the new files. **Be
+     careful about year-folder mapping this time** — the original
+     attempt mis-mapped them, which is how we ended up on Advanced.
+  3. Edit `sync-stats.config.json` lines 61 and 65: change the `label`
+     from `"rushing (Advanced)"` → `"rushing"`, and replace the trimmed
+     fields map with the full one used on lines 69/73/77 (adds the
+     `targets`, `rec`, `recYards`, `recTd` Receiving/* mappings).
+  4. Run `python sync-stats.py`. Spot-check `data/stats.json` — pick a
+     2021/2022 RB (e.g. Najee Harris 2021) and confirm
+     `seasons["2021"]` now carries non-zero `targets` / `rec` /
+     `recYards` from the rushing CSV (matches what the receiving CSV
+     already provided — the values should agree).
+  5. `python scripts/check-colors.py` (CLEAN required) → `push.bat`.
+
 ---
 
 ## How to start the next Claude Code session
