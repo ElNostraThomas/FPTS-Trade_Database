@@ -916,8 +916,8 @@
     text-transform:uppercase; letter-spacing:.06em; }
   .ml-sidebar-signout:hover { opacity:1; border-color:var(--red); color:var(--red); }
 
-  /* Two-column shell: leagues (left, flex) + exposure (right, fixed 360px) */
-  .ml-columns { display:grid; grid-template-columns:1fr 360px; gap:18px; align-items:flex-start; transition:grid-template-columns .2s ease; }
+  /* Two-column shell: leagues (left, flex) + exposure (right, fixed 440px) */
+  .ml-columns { display:grid; grid-template-columns:1fr 440px; gap:18px; align-items:flex-start; transition:grid-template-columns .2s ease; }
   /* When sidebar is collapsed, give all the space to the leagues column */
   .ml-columns.ml-exposure-pinned { grid-template-columns:1fr 44px; }
 
@@ -2366,6 +2366,7 @@
             <button class="ml-exposure-filter-btn" data-pos="RB" onclick="mlSetExposureFilter('RB')">RB</button>
             <button class="ml-exposure-filter-btn" data-pos="WR" onclick="mlSetExposureFilter('WR')">WR</button>
             <button class="ml-exposure-filter-btn" data-pos="TE" onclick="mlSetExposureFilter('TE')">TE</button>
+            <button class="ml-exposure-filter-btn" data-pos="ROOKIE" onclick="mlSetExposureFilter('ROOKIE')">Rookies</button>
             <button class="ml-exposure-filter-btn" data-pos="PICK" onclick="mlSetExposureFilter('PICK')">Picks</button>
           </div>
           <div class="ml-exposure-table-head">
@@ -5644,6 +5645,9 @@ function computePlayerExposure() {
       shares: info.count,
       exposure: (info.count / totalLeagues) * 100,
       leagueIds: info.leagueIds,
+      // years_exp from Sleeper: 0 = current-year rookie. Cached on the
+      // entry so the ROOKIE exposure filter doesn't need a re-lookup.
+      yearsExp: (typeof p.years_exp === 'number') ? p.years_exp : null,
     };
   }).filter(Boolean);
 
@@ -5759,7 +5763,15 @@ function renderExposureList() {
 
   // Apply position filter
   let filtered = data;
-  if (filter !== 'ALL') {
+  if (filter === 'ROOKIE') {
+    // Rookie tab — only current-year rookies (years_exp === 0 per Sleeper).
+    // Scoped to skill positions (QB/RB/WR/TE) so K/DEF rookies don't
+    // pollute the list. Sleeper updates years_exp around April each
+    // year, so 'rookie' here always means the most recent draft class.
+    filtered = data.filter(p =>
+      p.yearsExp === 0 && ['QB','RB','WR','TE'].includes(p.position)
+    );
+  } else if (filter !== 'ALL') {
     filtered = data.filter(p => p.position === filter);
   } else {
     // All — show only skill positions (QB/RB/WR/TE) by default to avoid clutter from K/DEF
@@ -5773,7 +5785,10 @@ function renderExposureList() {
     // (Josh Allen, etc. — players who aren't on any of your rosters yet).
     // These appear with 0 shares / 0% exposure so the user can still inspect
     // them and decide whether to trade for / waiver-claim them.
-    if (typeof FP_VALUES !== 'undefined' && FP_VALUES) {
+    // Skipped for ROOKIE filter — rookie status (years_exp) isn't available
+    // on FP_VALUES records, so we can't tell which non-rostered players are
+    // rookies. Only rostered rookies (with Sleeper years_exp data) show up.
+    if (filter !== 'ROOKIE' && typeof FP_VALUES !== 'undefined' && FP_VALUES) {
       const seenSids = new Set(filtered.map(p => p.sleeperId).filter(Boolean));
       const seenNames = new Set(filtered.map(p => (p.name || '').toLowerCase()));
       const posAllowed = filter === 'ALL' ? ['QB','RB','WR','TE'] : [filter];
