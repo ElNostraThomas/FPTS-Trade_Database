@@ -40,8 +40,14 @@
 
 <!-- Brand-level styles -->
 <link rel="stylesheet" href="assets/css/brand.css?v=1780600000">
-<!-- iframe scroll fix — only runs when embedded; no-op for direct visitors. -->
+<!-- iframe scroll fix — TEMPORARILY DISABLED on live-draft only as a diagnostic.
+     Native <select> dropdowns reported broken (click does nothing) in OBS
+     Browser Source. Comment-out isolates whether iframe-scroll-fix.js is the
+     culprit vs an OBS/CEF settings issue. Restore after retest.
+     See ~/.claude/plans/i-am-back-for-iterative-pizza.md.
 <script src="assets/js/iframe-scroll-fix.js?v=1781700000"></script>
+-->
+
 
 <!-- Shared UI component modules (CSS) -->
 <link rel="stylesheet" href="assets/css/mvs-extras.css?v=1780400000">
