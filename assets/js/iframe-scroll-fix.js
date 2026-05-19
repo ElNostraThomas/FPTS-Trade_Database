@@ -40,7 +40,7 @@
   var css = [
     'html, body {',
     '  overflow-y: auto !important;',
-    '  overflow-x: hidden !important;',
+    '  overflow-x: auto !important;',   /* was hidden — now allows horizontal scroll for wide content like the live-draft board */
     '  height: auto !important;',
     '  min-height: 100% !important;',
     '  max-height: none !important;',
@@ -73,7 +73,7 @@
   function fixContainers() {
     if (!document.body) return;
     document.body.style.overflowY = 'auto';
-    document.body.style.overflowX = 'hidden';
+    document.body.style.overflowX = 'auto';   /* was hidden — match the CSS reset above so the body can scroll horizontally when content overflows */
     document.body.style.height = 'auto';
     document.body.style.maxHeight = 'none';
     document.querySelectorAll('div, main, article, section').forEach(function (el) {
@@ -102,8 +102,11 @@
     if (!el || el === document.body || el === document.documentElement) return false;
     try {
       var cs = getComputedStyle(el);
-      if ((cs.overflowY === 'auto' || cs.overflowY === 'scroll') &&
-          el.scrollHeight > el.clientHeight) return true;
+      var vScroll = (cs.overflowY === 'auto' || cs.overflowY === 'scroll') &&
+                    el.scrollHeight > el.clientHeight;
+      var hScroll = (cs.overflowX === 'auto' || cs.overflowX === 'scroll') &&
+                    el.scrollWidth > el.clientWidth;
+      if (vScroll || hScroll) return true;
     } catch (_e) { /* ignore */ }
     return false;
   }
@@ -112,9 +115,24 @@
     var hops = 0;
     while (el && hops < 8) {
       if (isScrollable(el)) {
-        var atTop = el.scrollTop === 0;
-        var atBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 1;
-        if ((e.deltaY < 0 && !atTop) || (e.deltaY > 0 && !atBottom)) return;
+        var cs = getComputedStyle(el);
+        var canScrollY = (cs.overflowY === 'auto' || cs.overflowY === 'scroll') &&
+                         el.scrollHeight > el.clientHeight;
+        var canScrollX = (cs.overflowX === 'auto' || cs.overflowX === 'scroll') &&
+                         el.scrollWidth > el.clientWidth;
+        // Defer to this ancestor if it still has room to scroll in the
+        // wheel direction — vertical OR horizontal. The draft board is a
+        // common horizontal-scrolling case (Shift+Wheel or trackpad).
+        if (canScrollY) {
+          var atTop    = el.scrollTop === 0;
+          var atBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 1;
+          if ((e.deltaY < 0 && !atTop) || (e.deltaY > 0 && !atBottom)) return;
+        }
+        if (canScrollX) {
+          var atLeft  = el.scrollLeft === 0;
+          var atRight = el.scrollLeft + el.clientWidth >= el.scrollWidth - 1;
+          if ((e.deltaX < 0 && !atLeft) || (e.deltaX > 0 && !atRight)) return;
+        }
       }
       el = el.parentElement;
       hops++;
