@@ -77,6 +77,7 @@
 
 **My Leagues — performance + waivers**
 29. [Max-points efficiency (mpxPct)](#29-max-points-efficiency)
+57. [Per-position Max PF contribution (MPX %)](#57-per-position-max-pf-contribution-mpx)
 30. [Waiver bid win rate](#30-waiver-bid-win-rate)
 31. [Per-player waiver FAAB averages](#31-per-player-waiver-faab-averages)
 32. [Position scoring leader](#32-position-scoring-leader)
@@ -1159,6 +1160,8 @@ trend = baseline_rank - current_rank  # positive = moved up
 ---
 
 ### 49. `sync-fp.py` — article attachment
+`sync-fp.py:366-422`
+
 **Threshold** `BODY_MENTION_MIN = 2`. Player name must appear ≥2 times in article body (word-boundary regex) to attach. In title → always attach.
 
 ---
@@ -1193,6 +1196,8 @@ new_id   = f"ROOKIE_PICK_{rp_round}.{str(rp_pir).zfill(2)}"
 ---
 
 ### 52. `sync-adp.py` — weighted ADP aggregation
+`build_adp` — `sync-adp.py:174-294`
+
 **Math**
 ```python
 weighted_adp = adp * picks       # weight by number of picks contributing
@@ -1204,6 +1209,8 @@ aggregated   = sum(weighted_adp) / sum(picks)
 ---
 
 ### 53. `sync-adp.py` — availability matrix
+`sync-adp.py:642-693`
+
 See entry 37–39. Constants:
 - `HEATMAP_MAX_ROUNDS = 14`
 - Rookie heatmap capped at 6 rounds
