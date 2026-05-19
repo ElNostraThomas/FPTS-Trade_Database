@@ -318,12 +318,22 @@
    RESPONSIVE — mobile-friendly cascade (base rules above, media queries here)
    ════════════════════════════════════════════════════════════════════════ */
 
+/* ────────────────────────────────────────────────────────────────────────
+   ONE consolidated mobile block. Pass 1 of the !important refactor merged
+   6 fragmented @media (max-width: 768px) blocks into this single ordered
+   block, deduplicating rules whose values were already overridden by a
+   later block in the cascade. Visual no-op: every effective rule remains;
+   only dead-code duplicates were dropped. Pass 2 then refactors the
+   remaining !important declarations into mobile-first selector rewrites.
+   See plan: ~/.claude/plans/i-am-back-for-iterative-pizza.md
+   ──────────────────────────────────────────────────────────────────────── */
 @media (max-width: 768px) {
-  /* ─── Cross-page button bar ─── */
-  .fpts-xpage-bar { flex-wrap: wrap; gap: 4px; }
-  .fpts-xpage-btn { font-size: 9px; padding: 6px 8px; min-height: 32px; }
 
-  /* ─── PLAYER PANEL ─── */
+  /* ─── Cross-page button bar (mounts inside .pp-close-bar) ─── */
+  .fpts-xpage-bar { flex-wrap: wrap; gap: 4px; }
+  .fpts-xpage-btn { font-size: 9px; padding: 6px 8px; min-height: 36px !important; }
+
+  /* ─── Player panel container ─── */
   .player-panel {
     width: 100vw !important;
     max-width: 100vw !important;
@@ -331,26 +341,104 @@
     left: 0 !important;
     border-left: none !important;
     border-top: 2px solid var(--red);
+    padding-bottom: max(20px, env(safe-area-inset-bottom)) !important;
   }
-  .pp-close-bar { padding: 8px 12px; gap: 8px; flex-wrap: wrap; }
-  /* PP Close bar with new fpts buttons — let bar wrap to 2 rows on mobile */
-  .pp-close-bar { flex-wrap: wrap !important; gap: 6px !important; padding: 8px 10px !important; }
-  .pp-close-bar > div:first-child { font-size: 11px !important; }
-  .pp-search-wrap { order: 99; flex-basis: 100% !important; max-width: 100% !important; }
-  /* Move fpts bar between the title and Close — keep it on row 1 */
-  .pp-close-bar .fpts-xpage-bar { order: 50; }
-  .pp-close-bar .panel-close { order: 51; flex-shrink: 0; }
 
-  .pp-search-input { min-width: 0 !important; width: 100% !important; font-size: 12px; }
-  .pp-search-wrap { max-width: 100% !important; width: 100% !important; }
-  .panel-close { font-size: 11px; padding: 4px 10px; }
-  #pp-player-tabs { min-height: 36px; }
-  /* Profile reflow (Mobile-fixes session): put the FANTASY POINTS hero block
-     directly to the right of the 80px headshot so it fills the empty space
-     that would otherwise sit there. Then drop the rest of the player info
-     (name, meta grid, articles) onto a full-width second row below. Net
-     effect: kills an entire ~80px vertical band so the tab strip + trade
-     cards lift up into the viewport without scrolling. */
+  /* ─── Close bar (wraps to 2 rows; ⋯ trigger keeps row 1 compact) ─── */
+  .pp-close-bar {
+    flex-wrap: wrap !important;
+    gap: 8px 6px !important;
+    padding: 8px 10px !important;
+    align-items: stretch !important;
+    justify-content: space-between;
+  }
+  .pp-close-bar > div:first-child {
+    flex: 0 0 auto !important;
+    font-size: 10px !important;
+    align-self: center;
+  }
+  .pp-close-bar .fpts-xpage-bar {
+    order: 50;
+    flex: 1 1 auto !important;
+    justify-content: flex-start;
+  }
+  .pp-close-bar .panel-close {
+    order: 51;
+    flex-shrink: 0;
+    flex: 0 0 auto !important;
+    align-self: center;
+  }
+
+  /* ─── Search wrap + input (full-width, drops to own row, font-size 14px
+         prevents iOS Safari auto-zoom on focus) ─── */
+  .pp-search-wrap {
+    flex: 1 1 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    order: 99 !important;
+  }
+  .pp-search-input {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;  /* override inline min-width:260px from the template */
+    box-sizing: border-box !important;
+    font-size: 14px !important;
+  }
+  .panel-close {
+    font-size: 11px;
+    padding: 4px 10px;
+    min-height: 36px !important;
+  }
+
+  /* ─── Actions menu (⋯ trigger on mobile reveals the search + cross-page
+         buttons in an overlay dropdown so they don't push the player card down) ─── */
+  .pp-actions-trigger {
+    display: inline-flex !important;
+    align-items: center; justify-content: center;
+    width: 36px; min-height: 36px;
+    background: transparent;
+    color: var(--white);
+    border: 1px solid var(--border2);
+    border-radius: 2px;
+    font-size: 18px; line-height: 1;
+    cursor: pointer;
+    padding: 0;
+    flex-shrink: 0;
+  }
+  .pp-actions-area .pp-actions-collapsible { display: none; }
+  .pp-actions-area.pp-actions-open .pp-actions-collapsible {
+    display: flex !important;
+    flex-direction: column;
+    gap: 8px;
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    padding: 10px;
+    z-index: 100;
+    min-width: 240px;
+    max-width: calc(100vw - 20px);
+    box-shadow: 0 8px 20px rgba(0,0,0,.5);
+  }
+  .pp-actions-area.pp-actions-open .pp-search-wrap {
+    flex: 0 0 auto !important;
+    width: 100% !important;
+    order: 0 !important;
+  }
+  .pp-actions-area.pp-actions-open .fpts-xpage-bar {
+    display: flex !important;
+    flex-direction: column;
+    gap: 6px;
+    width: 100%;
+  }
+  .pp-actions-area.pp-actions-open .fpts-xpage-btn {
+    width: 100%; justify-content: center; font-size: 11px;
+  }
+
+  /* ─── Profile reflow: avatar + FP hero side-by-side on row 1, name+meta
+         on a full-width row 2. Saves ~80px of vertical band so the tab strip
+         lifts into the viewport without scrolling. ─── */
   .pp-profile {
     padding: 14px !important;
     flex-direction: row !important;
@@ -377,208 +465,82 @@
     min-width: 0;
     order: 3;
   }
-  .pp-name { font-size: 20px !important; }
-  .pp-value-val { font-size: 26px !important; line-height: 1; }
-  .pp-value-label { font-size: 9px; }
-  .pp-value-rank { font-size: 11px; }
-  .pp-value-trend { font-size: 11px; }
-  .pp-trade-stats { grid-template-columns: 1fr 1fr !important; }
-  .pp-ts { padding: 8px 12px; }
-  .pp-ts-val { font-size: 16px; }
-  .pp-ts-label { font-size: 8px; }
-  .pp-tabs { flex-wrap: nowrap; overflow-x: auto; }
-  .pp-scroll { padding: 10px; overflow-x: hidden; }
-  #pp-stats-tab { overflow-x: auto !important; -webkit-overflow-scrolling: touch; }
-  .pp-meta { flex-wrap: wrap !important; gap: 10px 14px !important; }
-  .pp-meta-item { min-width: 40px; }
-  .pp-meta-label { font-size: 8px; }
-  .pp-meta-val { font-size: 12px; }
-  /* Avatar + name sizes are set in the Profile reflow block above; the 48px
-     override that used to live here conflicted with the avatar-beside-FP
-     layout (made the avatar disappear) and has been removed. */
-  .pp-tab { font-size: 10px; padding: 8px 10px; white-space: nowrap; }
-
-  /* ─── TRADE FINDER ─── */
-  .tf-sides { display: block !important; }
-  .tf-side { width: 100% !important; margin-bottom: 8px; }
-  .tf-balance-bar { padding: 10px 12px; }
-  .tf-section-title { font-size: 10px; }
-  .tf-side-val { font-size: 20px; }
-  .tf-asset-name { font-size: 11px; }
-}
-
-@media (max-width: 768px) {
-  .pp-close-bar { justify-content: space-between; }
-  .pp-search-wrap { order: 3; width: 100% !important; }
-}
-
-/* ════════════════════════════════════════════════════════════════════════
-   MOBILE OVERFLOW + TAP TARGET FIXES
-   ════════════════════════════════════════════════════════════════════════ */
-@media (max-width: 768px) {
-
-  /* ─── 1. Bottom safe-area for tap dead zone ─── */
-  .player-panel {
-    padding-bottom: max(20px, env(safe-area-inset-bottom)) !important;
-  }
-  .pp-scroll {
-    padding-bottom: max(40px, calc(env(safe-area-inset-bottom) + 30px)) !important;
-  }
-  /* Tabs sit just above scroll area — also need safety */
-  .pp-tabs {
-    position: sticky;
-    bottom: env(safe-area-inset-bottom);
-    background: var(--black);
-    z-index: 5;
-  }
-
-  /* Allow horizontal scroll only on tab strips that explicitly need it */
-  .pp-tabs {
-    overflow-x: auto !important;
-    max-width: 100% !important;
-    /* Subtle fade on the right edge so users see there's more content to scroll to.
-       Without this, the ADP HEATMAP tab clips and looks like a broken layout. */
-    -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 24px), transparent 100%);
-            mask-image: linear-gradient(to right, #000 calc(100% - 24px), transparent 100%);
-  }
-
-  /* ─── Modal/panel overflow ─── */
-  .player-panel {
-    width: 100vw !important;
-    max-width: 100vw !important;
-    left: 0 !important;
-    right: 0 !important;
-  }
-
-  /* Long player names truncate gracefully */
   .pp-name {
+    font-size: 20px !important;
     max-width: 100%;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
+  .pp-value-val { font-size: 26px !important; line-height: 1; }
+  .pp-value-label { font-size: 9px; }
+  .pp-value-rank { font-size: 11px; }
+  .pp-value-trend { font-size: 11px; }
 
-  /* ─── Tap targets — minimum 36px height for clickables ─── */
-  .pp-tab,
-  .panel-close,
-  .fpts-xpage-btn,
-  .pp-player-tab {
-    min-height: 36px !important;
+  /* ─── Trade stats grid (2-col on mobile) + meta items wrap ─── */
+  .pp-trade-stats {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 1px !important;
   }
-  /* Player tabs need extra hit area on mobile */
-  .pp-tab {
-    padding: 12px 14px !important;
-    min-height: 44px !important;
-    font-size: 11px !important;
-  }
-}
-
-@media (max-width: 768px) {
-  .pp-tab { font-size: 10px !important; padding: 12px 10px !important; }
-  .pp-close-bar { padding: 6px 10px !important; }
-}
-
-/* ════════════════════════════════════════════════════════════════════════
-   PLAYER CARD MOBILE FIXES v11.5.1
-   Targeted fixes for the player panel internal layout on mobile.
-   ════════════════════════════════════════════════════════════════════════ */
-@media (max-width: 768px) {
-
-  /* ─── FIX 1: Close bar layout — stack into 2 rows cleanly ─── */
-  .pp-close-bar {
-    flex-wrap: wrap !important;
-    gap: 8px 6px !important;
-    padding: 8px 10px !important;
-    align-items: stretch !important;
-  }
-  /* Label takes its space, doesn't fight for width */
-  .pp-close-bar > div:first-child {
-    flex: 0 0 auto !important;
-    font-size: 11px !important;
-    align-self: center;
-  }
-  /* Search input wrap — let it shrink, drop to its own row if needed */
-  .pp-search-wrap {
-    flex: 1 1 100% !important;
-    max-width: 100% !important;
+  .pp-trade-stats > div {
+    padding: 8px 12px !important;
     min-width: 0 !important;
-    order: 99 !important;
   }
-  .pp-search-input {
-    width: 100% !important;
+  .pp-trade-stats .pp-stat-num { font-size: 18px !important; }
+  .pp-ts { padding: 8px 12px; }
+  .pp-ts-val { font-size: 16px; }
+  .pp-ts-label { font-size: 8px; }
+  .pp-meta { flex-wrap: wrap !important; gap: 10px 14px !important; }
+  .pp-meta-item { min-width: 40px; }
+  .pp-meta-label { font-size: 8px; }
+  .pp-meta-val { font-size: 12px; }
+
+  /* ─── Tab strip — sticky to bottom of viewport, horizontal scroll with
+         right-edge fade-mask so users see ADP HEATMAP isn't clipped ─── */
+  #pp-player-tabs { min-height: 36px; }
+  .pp-tabs {
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
     max-width: 100% !important;
-    min-width: 0 !important;  /* override inline min-width:260px from the template */
-    box-sizing: border-box !important;
-    font-size: 14px !important;
+    position: sticky;
+    bottom: env(safe-area-inset-bottom);
+    background: var(--black);
+    z-index: 5;
+    -webkit-overflow-scrolling: touch;
+    gap: 0 !important;
+    -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 24px), transparent 100%);
+            mask-image: linear-gradient(to right, #000 calc(100% - 24px), transparent 100%);
   }
-
-  /* ── Actions menu (Sub-plan A): collapse the drawer header's search + cross-page
-     buttons behind a single ⋯ trigger on mobile. The player card now shows at the
-     top of the drawer instead of being pushed below the fold by 4-5 rows of
-     buttons. ───────────────────────────────────────────────────────────────── */
-  .pp-actions-trigger {
-    display: inline-flex !important;
-    align-items: center; justify-content: center;
-    width: 36px; min-height: 36px;
-    background: transparent;
-    color: var(--white);
-    border: 1px solid var(--border2);
-    border-radius: 2px;
-    font-size: 18px; line-height: 1;
-    cursor: pointer;
-    padding: 0;
-    flex-shrink: 0;
-  }
-  /* Hide the search + cross-page bar by default on mobile; ⋯ trigger reveals them. */
-  .pp-actions-area .pp-actions-collapsible { display: none; }
-  /* When the user taps ⋯, drop the collapsible content as an overlay dropdown
-     so it doesn't push the player card down. */
-  .pp-actions-area.pp-actions-open .pp-actions-collapsible {
-    display: flex !important;
-    flex-direction: column;
-    gap: 8px;
-    position: absolute;
-    top: calc(100% + 6px);
-    right: 0;
-    background: var(--surface);
-    border: 1px solid var(--border2);
-    padding: 10px;
-    z-index: 100;
-    min-width: 240px;
-    max-width: calc(100vw - 20px);
-    box-shadow: 0 8px 20px rgba(0,0,0,.5);
-  }
-  /* Inside the dropdown, lay items out as a stack of full-width controls. */
-  .pp-actions-area.pp-actions-open .pp-search-wrap {
-    flex: 0 0 auto !important;
-    width: 100% !important;
-    order: 0 !important;
-  }
-  .pp-actions-area.pp-actions-open .fpts-xpage-bar {
-    display: flex !important;
-    flex-direction: column;
-    gap: 6px;
-    width: 100%;
-  }
-  .pp-actions-area.pp-actions-open .fpts-xpage-btn {
-    width: 100%; justify-content: center; font-size: 11px;
-  }
-  /* Cross-page bar takes whatever it needs */
-  .pp-close-bar .fpts-xpage-bar {
+  .pp-tab {
+    font-size: 10px !important;
+    padding: 10px 10px !important;
+    min-height: 44px !important;
+    white-space: nowrap !important;
     flex: 1 1 auto !important;
-    justify-content: flex-start;
+    min-width: max-content !important;
   }
-  /* Close button stays compact on the right */
-  .pp-close-bar .panel-close {
-    flex: 0 0 auto !important;
-    align-self: center;
+  .pp-player-tab { min-height: 36px !important; }
+
+  /* ─── Scroll body (tab content) + stats tab overflow ─── */
+  .pp-scroll {
+    padding: 10px;
+    overflow-x: hidden;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: max(40px, calc(env(safe-area-inset-bottom) + 30px)) !important;
+    max-height: calc(100vh - 260px) !important;
+  }
+  #pp-stats-tab {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
   }
 
-  /* ─── FIX 2: Articles empty state — stack vertically ─── */
+  /* ─── Articles section (stack vertically; tighter padding on tiny screens) ─── */
   .pp-articles-section .pp-article-inline > div {
     flex-direction: column !important;
     align-items: flex-start !important;
     gap: 8px !important;
+    padding: 6px 10px !important;
   }
   .pp-articles-section .pp-article-inline > div > span {
     width: 100% !important;
@@ -588,8 +550,6 @@
     align-self: flex-start;
     flex-shrink: 0;
   }
-
-  /* ─── FIX 3: Articles populated state — also stack ─── */
   .pp-articles-section .pp-article-inline {
     flex-direction: column !important;
     align-items: flex-start !important;
@@ -600,49 +560,13 @@
     max-width: 100% !important;
   }
 
-  /* ─── FIX 4: Player tabs — full-width tappable strip ─── */
-  .pp-tabs {
-    flex-wrap: nowrap !important;
-    overflow-x: auto !important;
-    -webkit-overflow-scrolling: touch;
-    gap: 0 !important;
-  }
-  .pp-tab {
-    flex: 1 1 auto !important;
-    min-width: max-content !important;
-    padding: 12px 14px !important;
-    font-size: 11px !important;
-    white-space: nowrap !important;
-  }
-
-  /* ─── FIX 5: Tab content overflow — content doesn't bleed below tabs ─── */
-  .pp-scroll {
-    overflow-y: auto !important;
-    max-height: calc(100vh - 280px) !important;
-    -webkit-overflow-scrolling: touch;
-  }
-  /* Trade stats grid 2-col clean layout */
-  .pp-trade-stats {
-    grid-template-columns: 1fr 1fr !important;
-    gap: 1px !important;
-  }
-  .pp-trade-stats > div {
-    padding: 8px 12px !important;
-    min-width: 0 !important;
-  }
-  .pp-trade-stats .pp-stat-num {
-    font-size: 22px !important;
-  }
-}
-
-/* Extra-narrow phones (≤480px) — additional tightening for player card */
-@media (max-width: 768px) {
-  .pp-close-bar > div:first-child { font-size: 10px !important; }
-  .pp-tab { font-size: 10px !important; padding: 10px 10px !important; }
-  .pp-scroll { max-height: calc(100vh - 260px) !important; }
-  .pp-trade-stats .pp-stat-num { font-size: 18px !important; }
-  /* Articles section — tighter padding on tiny screens */
-  .pp-articles-section .pp-article-inline > div { padding: 6px 10px !important; }
+  /* ─── TRADE FINDER (collapse 2-col → 1-col stack) ─── */
+  .tf-sides { display: block !important; }
+  .tf-side { width: 100% !important; margin-bottom: 8px; }
+  .tf-balance-bar { padding: 10px 12px; }
+  .tf-section-title { font-size: 10px; }
+  .tf-side-val { font-size: 20px; }
+  .tf-asset-name { font-size: 11px; }
 }
 
 /* Page-specific "league context" slot collapses to nothing when empty so
