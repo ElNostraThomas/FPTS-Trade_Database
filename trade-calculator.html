@@ -6,7 +6,7 @@
 <title>Fantasy Points Front Office — Trade Calculator</title>
 <link href="https://fonts.googleapis.com/css2?family=Kanit:ital,wght@0,400;0,700;1,800&family=Mulish:wght@400;700;900&display=swap" rel="stylesheet">
 <!-- Brand-level shared styles (loaded BEFORE inline <style> so page overrides win). -->
-<link rel="stylesheet" href="assets/css/brand.css?v=1780400000">
+<link rel="stylesheet" href="assets/css/brand.css?v=1780600000">
 <style>
   /* Brand fonts (local TTFs from Fantasy-Design-Prompt kit) override Google Fonts
      for the canonical brand weights so on-page text matches the wordmark exactly. */
@@ -731,12 +731,6 @@
      0,1,1 specificity beat the @media (max-width:768px) unhide rule below
      at 0,1,0. Removed 2026-05-18 after user report. */
 
-  @media (max-width:480px) {
-    
-    .balance-diff-row { flex-direction:column; gap:8px; }
-  }
-
-
   /* ════════════════════════════════════════════════════════════════════
      MOBILE — Cross-page handoff buttons (added with handoff system)
      ════════════════════════════════════════════════════════════════════ */
@@ -1182,7 +1176,7 @@
 <script>document.addEventListener('DOMContentLoaded', function(){ if (window.Legend) Legend.init('trade-calculator'); });</script>
 <!-- Shared player panel — DB's slide-in drawer used identically on every page -->
 <script>window.FPTS_CURRENT_PAGE = 'calc';</script>
-<link rel="stylesheet" href="assets/css/player-panel.css?v=1780400000">
+<link rel="stylesheet" href="assets/css/player-panel.css?v=1780500000">
 <!-- Team logo helpers — load BEFORE player-panel.js so modal-hero badge works. -->
 <script src="assets/js/team-helpers.js?v=1778680002"></script>
 <script src="assets/js/player-panel.js?v=1781200000" defer></script>
