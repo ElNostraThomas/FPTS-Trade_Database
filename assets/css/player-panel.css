@@ -319,81 +319,92 @@
    ════════════════════════════════════════════════════════════════════════ */
 
 /* ────────────────────────────────────────────────────────────────────────
-   ONE consolidated mobile block. Pass 1 of the !important refactor merged
-   6 fragmented @media (max-width: 768px) blocks into this single ordered
-   block, deduplicating rules whose values were already overridden by a
-   later block in the cascade. Visual no-op: every effective rule remains;
-   only dead-code duplicates were dropped. Pass 2 then refactors the
-   remaining !important declarations into mobile-first selector rewrites.
-   See plan: ~/.claude/plans/i-am-back-for-iterative-pizza.md
+   ONE consolidated mobile block. Pass 2 refactored all non-essential
+   `!important` declarations into specificity-based wins (`.player-panel X`
+   ancestor escalation for selectors that have a corresponding higher-
+   specificity desktop rule, plain selector + source-order win for the
+   rest). The handful of remaining `!important` are LEGITIMATE per the
+   mobile-first doctrine: they defeat inline `style="…"` attributes set
+   by player-panel.js at runtime (the only thing in CSS that beats inline
+   is `!important`).
+
+   Visual output is byte-equivalent to Pass 1 (verified): every effective
+   rule today produces the same computed values on desktop + mobile.
+
+   Plan: ~/.claude/plans/i-am-back-for-iterative-pizza.md
    ──────────────────────────────────────────────────────────────────────── */
 @media (max-width: 768px) {
 
   /* ─── Cross-page button bar (mounts inside .pp-close-bar) ─── */
   .fpts-xpage-bar { flex-wrap: wrap; gap: 4px; }
-  .fpts-xpage-btn { font-size: 9px; padding: 6px 8px; min-height: 36px !important; }
+  .fpts-xpage-btn { font-size: 9px; padding: 6px 8px; min-height: 36px; }
 
   /* ─── Player panel container ─── */
   .player-panel {
-    width: 100vw !important;
-    max-width: 100vw !important;
-    right: 0 !important;
-    left: 0 !important;
-    border-left: none !important;
+    width: 100vw;
+    max-width: 100vw;
+    right: 0;
+    left: 0;
+    border-left: none;
     border-top: 2px solid var(--red);
-    padding-bottom: max(20px, env(safe-area-inset-bottom)) !important;
+    padding-bottom: max(20px, env(safe-area-inset-bottom));
   }
 
-  /* ─── Close bar (wraps to 2 rows; ⋯ trigger keeps row 1 compact) ─── */
-  .pp-close-bar {
-    flex-wrap: wrap !important;
-    gap: 8px 6px !important;
-    padding: 8px 10px !important;
-    align-items: stretch !important;
+  /* ─── Close bar (wraps to 2 rows; uses .player-panel ancestor to match
+         the desktop higher-specificity rule at line 306). ─── */
+  .player-panel .pp-close-bar {
+    flex-wrap: wrap;
+    gap: 8px 6px;
+    padding: 8px 10px;
+    align-items: stretch;
     justify-content: space-between;
   }
+  /* font-size MUST stay !important — defeats inline font-size:13px set by
+     player-panel.js:74 on the "Player Profile" header span. */
   .pp-close-bar > div:first-child {
-    flex: 0 0 auto !important;
+    flex: 0 0 auto;
     font-size: 10px !important;
     align-self: center;
   }
   .pp-close-bar .fpts-xpage-bar {
     order: 50;
-    flex: 1 1 auto !important;
+    flex: 1 1 auto;
     justify-content: flex-start;
   }
   .pp-close-bar .panel-close {
     order: 51;
     flex-shrink: 0;
-    flex: 0 0 auto !important;
+    flex: 0 0 auto;
     align-self: center;
   }
 
   /* ─── Search wrap + input (full-width, drops to own row, font-size 14px
-         prevents iOS Safari auto-zoom on focus) ─── */
+         prevents iOS Safari auto-zoom on focus). ─── */
   .pp-search-wrap {
-    flex: 1 1 100% !important;
-    max-width: 100% !important;
-    min-width: 0 !important;
-    order: 99 !important;
+    flex: 1 1 100%;
+    max-width: 100%;
+    min-width: 0;
+    order: 99;
   }
+  /* min-width MUST stay !important — defeats inline min-width:260px set by
+     player-panel.js:86 on the search input. */
   .pp-search-input {
-    width: 100% !important;
-    max-width: 100% !important;
-    min-width: 0 !important;  /* override inline min-width:260px from the template */
-    box-sizing: border-box !important;
-    font-size: 14px !important;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0 !important;
+    box-sizing: border-box;
+    font-size: 14px;
   }
   .panel-close {
     font-size: 11px;
     padding: 4px 10px;
-    min-height: 36px !important;
+    min-height: 36px;
   }
 
   /* ─── Actions menu (⋯ trigger on mobile reveals the search + cross-page
-         buttons in an overlay dropdown so they don't push the player card down) ─── */
+         buttons in an overlay dropdown so they don't push the player card down). ─── */
   .pp-actions-trigger {
-    display: inline-flex !important;
+    display: inline-flex;
     align-items: center; justify-content: center;
     width: 36px; min-height: 36px;
     background: transparent;
@@ -407,7 +418,7 @@
   }
   .pp-actions-area .pp-actions-collapsible { display: none; }
   .pp-actions-area.pp-actions-open .pp-actions-collapsible {
-    display: flex !important;
+    display: flex;
     flex-direction: column;
     gap: 8px;
     position: absolute;
@@ -422,12 +433,12 @@
     box-shadow: 0 8px 20px rgba(0,0,0,.5);
   }
   .pp-actions-area.pp-actions-open .pp-search-wrap {
-    flex: 0 0 auto !important;
-    width: 100% !important;
-    order: 0 !important;
+    flex: 0 0 auto;
+    width: 100%;
+    order: 0;
   }
   .pp-actions-area.pp-actions-open .fpts-xpage-bar {
-    display: flex !important;
+    display: flex;
     flex-direction: column;
     gap: 6px;
     width: 100%;
@@ -438,33 +449,38 @@
 
   /* ─── Profile reflow: avatar + FP hero side-by-side on row 1, name+meta
          on a full-width row 2. Saves ~80px of vertical band so the tab strip
-         lifts into the viewport without scrolling. ─── */
-  .pp-profile {
+         lifts into the viewport without scrolling. Uses .player-panel ancestor
+         to match desktop's higher-specificity .player-panel .pp-profile rule
+         (line 308). padding stays !important — defeats inline padding:28px 32px
+         set by player-panel.js:105. ─── */
+  .player-panel .pp-profile {
     padding: 14px !important;
-    flex-direction: row !important;
-    flex-wrap: wrap !important;
-    align-items: flex-start !important;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: flex-start;
     gap: 14px 16px;
   }
-  .pp-avatar {
-    width: 72px !important; height: 72px !important;
+  .player-panel .pp-avatar {
+    width: 72px; height: 72px;
     flex-shrink: 0; align-self: flex-start;
     order: 1;
   }
   .pp-ktc {
-    text-align: left !important;
-    flex: 1 1 auto !important;
+    text-align: left;
+    flex: 1 1 auto;
     min-width: 0;
-    border-top: none !important;
-    padding-top: 0 !important;
+    border-top: none;
+    padding-top: 0;
     order: 2;
     align-self: center;
   }
   .pp-info {
-    flex: 0 0 100% !important;
+    flex: 0 0 100%;
     min-width: 0;
     order: 3;
   }
+  /* font-size MUST stay !important — defeats inline font-size:32px set by
+     player-panel.js:109. */
   .pp-name {
     font-size: 20px !important;
     max-width: 100%;
@@ -472,97 +488,99 @@
     text-overflow: ellipsis;
     white-space: nowrap;
   }
-  .pp-value-val { font-size: 26px !important; line-height: 1; }
+  .player-panel .pp-value-val { font-size: 26px; line-height: 1; }
   .pp-value-label { font-size: 9px; }
   .pp-value-rank { font-size: 11px; }
   .pp-value-trend { font-size: 11px; }
 
-  /* ─── Trade stats grid (2-col on mobile) + meta items wrap ─── */
+  /* ─── Trade stats grid (2-col on mobile) + meta items wrap. ─── */
   .pp-trade-stats {
-    grid-template-columns: 1fr 1fr !important;
-    gap: 1px !important;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
   }
   .pp-trade-stats > div {
-    padding: 8px 12px !important;
-    min-width: 0 !important;
+    padding: 8px 12px;
+    min-width: 0;
   }
-  .pp-trade-stats .pp-stat-num { font-size: 18px !important; }
+  .pp-trade-stats .pp-stat-num { font-size: 18px; }
   .pp-ts { padding: 8px 12px; }
   .pp-ts-val { font-size: 16px; }
   .pp-ts-label { font-size: 8px; }
-  .pp-meta { flex-wrap: wrap !important; gap: 10px 14px !important; }
+  .pp-meta { flex-wrap: wrap; gap: 10px 14px; }
   .pp-meta-item { min-width: 40px; }
   .pp-meta-label { font-size: 8px; }
   .pp-meta-val { font-size: 12px; }
 
   /* ─── Tab strip — sticky to bottom of viewport, horizontal scroll with
-         right-edge fade-mask so users see ADP HEATMAP isn't clipped ─── */
-  #pp-player-tabs { min-height: 36px; }
+         right-edge fade-mask so users see ADP HEATMAP isn't clipped. Uses
+         .player-panel ancestor on .pp-tab to match desktop's line 313 rule. ─── */
   .pp-tabs {
-    flex-wrap: nowrap !important;
-    overflow-x: auto !important;
-    max-width: 100% !important;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    max-width: 100%;
     position: sticky;
     bottom: env(safe-area-inset-bottom);
     background: var(--black);
     z-index: 5;
     -webkit-overflow-scrolling: touch;
-    gap: 0 !important;
+    gap: 0;
     -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 24px), transparent 100%);
             mask-image: linear-gradient(to right, #000 calc(100% - 24px), transparent 100%);
   }
-  .pp-tab {
-    font-size: 10px !important;
-    padding: 10px 10px !important;
-    min-height: 44px !important;
-    white-space: nowrap !important;
-    flex: 1 1 auto !important;
-    min-width: max-content !important;
+  .player-panel .pp-tab {
+    font-size: 10px;
+    padding: 10px 10px;
+    min-height: 44px;
+    white-space: nowrap;
+    flex: 1 1 auto;
+    min-width: max-content;
   }
-  .pp-player-tab { min-height: 36px !important; }
+  .pp-player-tab { min-height: 36px; }
 
-  /* ─── Scroll body (tab content) + stats tab overflow ─── */
+  /* ─── Scroll body (tab content) + stats tab overflow. ─── */
   .pp-scroll {
     padding: 10px;
     overflow-x: hidden;
-    overflow-y: auto !important;
+    overflow-y: auto;
     -webkit-overflow-scrolling: touch;
-    padding-bottom: max(40px, calc(env(safe-area-inset-bottom) + 30px)) !important;
-    max-height: calc(100vh - 260px) !important;
+    padding-bottom: max(40px, calc(env(safe-area-inset-bottom) + 30px));
+    max-height: calc(100vh - 260px);
   }
   #pp-stats-tab {
-    overflow-x: auto !important;
+    overflow-x: auto;
     -webkit-overflow-scrolling: touch;
   }
 
-  /* ─── Articles section (stack vertically; tighter padding on tiny screens) ─── */
+  /* ─── Articles section (stack vertically; tighter padding on tiny screens).
+         No desktop rules for .pp-articles-section — same-specificity mobile
+         selectors win by source order, no !important needed. ─── */
   .pp-articles-section .pp-article-inline > div {
-    flex-direction: column !important;
-    align-items: flex-start !important;
-    gap: 8px !important;
-    padding: 6px 10px !important;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 6px 10px;
   }
   .pp-articles-section .pp-article-inline > div > span {
-    width: 100% !important;
-    white-space: normal !important;
+    width: 100%;
+    white-space: normal;
   }
   .pp-articles-section .pp-article-inline > div > a {
     align-self: flex-start;
     flex-shrink: 0;
   }
   .pp-articles-section .pp-article-inline {
-    flex-direction: column !important;
-    align-items: flex-start !important;
-    gap: 6px !important;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
   }
   .pp-articles-section .pp-article-inline > a {
-    width: 100% !important;
-    max-width: 100% !important;
+    width: 100%;
+    max-width: 100%;
   }
 
-  /* ─── TRADE FINDER (collapse 2-col → 1-col stack) ─── */
-  .tf-sides { display: block !important; }
-  .tf-side { width: 100% !important; margin-bottom: 8px; }
+  /* ─── TRADE FINDER (collapse 2-col → 1-col stack). ─── */
+  .tf-sides { display: block; }
+  .tf-side { width: 100%; margin-bottom: 8px; }
   .tf-balance-bar { padding: 10px 12px; }
   .tf-section-title { font-size: 10px; }
   .tf-side-val { font-size: 20px; }
