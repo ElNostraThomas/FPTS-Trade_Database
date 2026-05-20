@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<!--
+═══════════════════════════════════════════════════════════════════════════
+  FPTS Front Office — Mock Draft
+═══════════════════════════════════════════════════════════════════════════
+
+  Practice-draft surface. User picks a slot (1-N where N = team count) and
+  drafts against AI opponents that follow one of 5 hand-tuned personality
+  archetypes (ADP Value, BPA, My Guys, Need-Based, Positional Scarcity).
+  AI logic spec at: docs/FORMULAS.md §51.
+
+  Visual recipe lifts wholesale from adp-tool.html's .box-grid + .box-card
+  so the experience feels native to the site.
+
+  Phase 1 (this commit): setup screen + state + nav linkage.
+  Phase 2: AI engine.
+  Phase 3: drafting UI.
+  Phase 4: mobile overrides.
+  Phase 5: docs.
+═══════════════════════════════════════════════════════════════════════════
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+
+<title>Fantasy Points Front Office — Mock Draft</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Kanit:ital,wght@0,400;0,700;1,800&family=Mulish:wght@400;700;900&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="assets/css/brand.css?v=1782600000">
+<script src="assets/js/iframe-scroll-fix.js?v=1782100000"></script>
+<script src="assets/js/back-to-top.js?v=1782200000" defer></script>
+<script src="assets/js/custom-select.js?v=1782700000" defer></script>
+
+<link rel="stylesheet" href="assets/css/mvs-extras.css?v=1782600000">
+<link rel="stylesheet" href="assets/css/heatmap.css?v=1782600000">
+<link rel="stylesheet" href="assets/css/legend.css?v=1782600000">
+<link rel="stylesheet" href="assets/css/player-panel.css?v=1782600000">
+
+<script>
+  window.FPTS_CURRENT_PAGE = 'mockdraft';
+</script>
+
+<script src="assets/js/mvs-extras.js?v=1778642255"></script>
+<script src="assets/js/player-articles.js?v=1778680034"></script>
+<script src="assets/js/heatmap.js?v=1778670000"></script>
+<script src="assets/js/legend-content.js?v=1782900000"></script>
+<script src="assets/js/legend.js?v=1778949514"></script>
+<script src="assets/js/team-helpers.js?v=1778680002"></script>
+<script src="assets/js/player-panel.js?v=1781200000" defer></script>
+
+<script src="assets/js/data-bootstrap.js?v=1781000000"></script>
+<script src="assets/js/sleeper-helpers.js?v=1780800000"></script>
+
+<style>
+  /* ═══════════════════════════════════════════════════════════════════════
+     SETUP SCREEN (pre-draft) — center-aligned form with toggle groups +
+     dropdowns. Uses .controls-btn / .controls-group from brand.css so the
+     toggles look identical to the ADP page chrome.
+     ═══════════════════════════════════════════════════════════════════════ */
+  .md-setup-wrap {
+    max-width: 720px; margin: 24px auto 60px; padding: 0 16px;
+  }
+  .md-setup-intro {
+    font-family: 'Mulish', sans-serif; font-size: 13px; color: var(--white);
+    opacity: .72; line-height: 1.55; margin-bottom: 22px;
+  }
+  .md-setup-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-top: 3px solid var(--red); padding: 24px 26px;
+  }
+  .md-setup-section { margin-bottom: 22px; }
+  .md-setup-section:last-of-type { margin-bottom: 0; }
+  .md-setup-label {
+    font-family: 'Mulish', sans-serif; font-size: 11px; font-weight: 800;
+    text-transform: uppercase; letter-spacing: .07em; color: var(--white);
+    opacity: .6; margin-bottom: 8px; display: block;
+  }
+  .md-setup-row {
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  }
+
+  /* Toggle group (reused recipe from adp-tool.html controls bar) */
+  .md-controls-group {
+    display: inline-flex; border: 1px solid var(--border2);
+  }
+  .md-controls-btn {
+    font-family: 'Mulish', sans-serif; font-size: 11px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .06em; color: var(--white);
+    background: var(--surface); border: none; padding: 9px 16px;
+    cursor: pointer; transition: all .15s;
+  }
+  .md-controls-btn + .md-controls-btn { border-left: 1px solid var(--border2); }
+  .md-controls-btn:hover { background: var(--surface2); }
+  .md-controls-btn.active { background: var(--red); color: #111111; }
+
+  /* Dropdown — wrapped by custom-select.js automatically */
+  .md-select {
+    background: var(--surface2); color: var(--white);
+    border: 1px solid var(--border2); padding: 9px 14px;
+    font-family: 'Mulish', sans-serif; font-size: 11px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .06em; cursor: pointer;
+    outline: none; min-width: 100px;
+  }
+  .md-select:focus { border-color: var(--red); }
+
+  /* Personality description block */
+  .md-personality-hint {
+    font-family: 'Mulish', sans-serif; font-size: 11px; color: var(--white);
+    opacity: .55; line-height: 1.5; margin-top: 6px; max-width: 540px;
+  }
+
+  /* Start button (matches drawer-btn.primary recipe) */
+  .md-start-btn {
+    width: 100%; margin-top: 18px; padding: 14px;
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 15px; text-transform: uppercase; letter-spacing: .06em;
+    cursor: pointer; background: var(--red); color: #111111;
+    border: 1px solid var(--red); transition: opacity .12s;
+  }
+  .md-start-btn:hover { opacity: .92; }
+  .md-start-btn:disabled { opacity: .5; cursor: not-allowed; }
+
+  /* In-progress restore banner (shown when localStorage has a draft) */
+  .md-restore-banner {
+    display: none; margin-bottom: 18px; padding: 14px 18px;
+    background: var(--red-bg-soft); border: 1px solid var(--red);
+    font-family: 'Mulish', sans-serif; font-size: 12px; color: var(--white);
+    line-height: 1.5;
+  }
+  .md-restore-banner.show { display: block; }
+  .md-restore-actions {
+    display: flex; gap: 10px; margin-top: 10px;
+  }
+  .md-restore-btn {
+    padding: 7px 14px; font-family: 'Mulish', sans-serif; font-size: 11px;
+    font-weight: 800; text-transform: uppercase; letter-spacing: .05em;
+    cursor: pointer; background: var(--surface2); border: 1px solid var(--border2);
+    color: var(--white); transition: all .12s;
+  }
+  .md-restore-btn:hover { border-color: var(--red); color: var(--red); }
+  .md-restore-btn.primary { background: var(--red); color: #111111; border-color: var(--red); }
+  .md-restore-btn.primary:hover { color: #111111; opacity: .92; }
+
+  /* Drafting screen — Phase 3 will fully populate this. For now it's a
+     placeholder shown after "Start Draft." */
+  .md-draft-screen {
+    display: none; padding: 18px 0 60px;
+  }
+  .md-draft-screen.show { display: block; }
+  .md-draft-placeholder {
+    background: var(--surface); border: 1px solid var(--border);
+    padding: 60px 30px; text-align: center;
+    font-family: 'Mulish', sans-serif; font-size: 13px; color: var(--white);
+    opacity: .7; line-height: 1.6;
+  }
+  .md-draft-placeholder strong {
+    display: block; margin-bottom: 8px; font-family: 'Kanit', sans-serif;
+    font-weight: 800; font-style: italic; font-size: 16px;
+    text-transform: uppercase; color: var(--red); opacity: 1;
+  }
+  .md-draft-placeholder code {
+    background: var(--surface2); padding: 2px 6px; border-radius: 2px;
+    font-family: 'Consolas', monospace; font-size: 12px;
+  }
+</style>
+
+</head>
+
+<body>
+
+<div id="_fp-loading">Loading…</div>
+
+<!-- TOP NAV -->
+<div style="background:var(--nav-bg);border-bottom:2px solid var(--red);position:sticky;top:0;z-index:100"><nav class="topnav" style="border:none;position:static">
+  <div class="wordmark-group">
+  <div class="wordmark" id="wordmark-svg">
+    <svg viewBox="0 0 878 90" xmlns="http://www.w3.org/2000/svg" style="fill-rule:evenodd;clip-rule:evenodd">
+      <path d="M508.084,47.801l-8.983,41.534c0,0 -75.276,-0.036 -85.237,-0.002l0.015,-0.067c0,0 2.533,-17.352 5.641,-25.475c3.708,-9.689 16.604,-32.658 16.604,-32.658c12.902,8.212 8.658,21.025 7.099,27.21c11.719,-8.962 11.012,-17.186 11.003,-28.608c-0.006,-7.356 4.797,-23.375 17.858,-28.257c-4.305,14.678 3.971,24.95 7.333,30.494c6.362,10.492 1.397,21.17 1.397,21.17c0,0 9.268,-3.36 8.863,-15.254c-0.117,-3.424 -1.714,-14.283 8.012,-18.422c-0.754,9.397 5.495,18.682 10.395,28.336Z" fill="var(--red)"/>
+      <path d="M19.856,0.761l47.225,0l-3.757,16.803l-22.539,0l-4.159,18.236l19.99,0l-3.757,16.933l-19.99,0l-8.184,36.602l-24.686,0l19.856,-88.573Z" fill="var(--white)" fill-rule="nonzero"/>
+      <path d="M82.991,0.761l28.577,0l-1.207,88.573l-24.954,0l0.939,-14.589l-16.234,0l-5.635,14.589l-19.99,0l38.505,-88.573Zm4.293,58.745l2.147,-34.648l-13.416,34.648l11.27,0Z" fill="var(--white)" fill-rule="nonzero"/>
+      <path d="M135.036,0.761l26.698,0l3.757,47.804l10.733,-47.804l17.709,0l-19.856,88.573l-26.564,0l-3.891,-47.413l-10.599,47.413l-17.844,0l19.856,-88.573Z" fill="var(--white)" fill-rule="nonzero"/>
+      <path d="M211.755,18.215l-15.831,0l3.891,-17.454l55.678,0l-3.891,17.454l-15.295,0l-15.965,71.119l-24.552,0l15.965,-71.119Z" fill="var(--white)" fill-rule="nonzero"/>
+      <path d="M270.166,0.884l28.537,0l-1.206,88.451l-24.92,0l0.938,-14.568l-16.211,0l-5.627,14.568l-19.963,0l38.451,-88.451Zm4.287,58.664l2.144,-34.6l-13.398,34.6l11.254,0Z" fill="var(--white)" fill-rule="nonzero"/>
+      <path d="M316.507,17.764c2.387,-11.843 10.165,-17.764 23.335,-17.764l16.971,0c6.718,0 11.623,1.888 14.717,5.664c3.094,3.776 3.933,8.753 2.519,14.932l-1.989,10.298l-23.865,0l2.387,-10.427c0.707,-3.433 -0.53,-5.149 -3.712,-5.149l-1.326,0c-1.591,0 -2.828,0.365 -3.712,1.094c-0.884,0.729 -1.547,2.038 -1.989,3.926l-1.326,6.05c-0.354,1.802 -0.243,3.24 0.331,4.312c0.575,1.073 1.746,1.995 3.514,2.768l11.933,4.377c5.038,1.974 8.508,4.72 10.408,8.238c1.9,3.518 2.232,7.981 0.994,13.387l-2.652,12.1c-2.387,11.843 -10.209,17.764 -23.468,17.764l-17.369,0c-6.718,0 -11.623,-1.909 -14.717,-5.728c-3.094,-3.819 -3.933,-8.903 -2.519,-15.254l2.254,-10.942l24.263,0l-2.519,11.456c-0.707,3.433 0.486,5.149 3.58,5.149l1.591,0c1.591,0 2.806,-0.386 3.646,-1.159c0.84,-0.772 1.436,-2.06 1.79,-3.862l1.856,-7.723c0.442,-1.888 0.354,-3.347 -0.265,-4.377c-0.619,-1.03 -1.812,-1.931 -3.58,-2.703l-12.198,-4.634c-9.9,-3.776 -13.656,-11.027 -11.27,-21.754l2.387,-10.04Z" fill="var(--white)" fill-rule="nonzero"/>
+      <path d="M411.302,62.129l-6.16,27.043l-25.31,0l6.294,-27.954l-5.223,-60.458l26.382,0l0.536,33.414l15.4,-33.414l20.623,0l-32.542,61.368Z" fill="var(--white)" fill-rule="nonzero"/>
+      <path d="M526.915,0.761l37.555,0c6.861,0 11.828,1.91 14.902,5.731c3.074,3.821 3.853,9.075 2.339,15.761l-3.475,16.933c-1.515,6.513 -4.232,11.311 -8.152,14.393c-3.92,3.083 -9.222,4.624 -15.904,4.624l-15.503,0l-6.95,31.131l-24.591,0l19.78,-88.575Zm21.651,41.291c1.604,0 2.851,-0.369 3.742,-1.107c0.891,-0.738 1.515,-2.062 1.871,-3.973l3.341,-14.849c0.713,-3.474 -0.445,-5.21 -3.475,-5.21l-6.148,0l-5.613,25.14l6.281,0Z" fill="var(--white)" fill-rule="nonzero"/>
+      <path d="M591.621,18.118c2.541,-11.572 10.254,-17.357 23.136,-17.357l17.747,0c6.573,0 11.437,1.893 14.592,5.679c3.155,3.786 3.988,8.87 2.498,15.251l-11.305,50.285c-2.541,11.572 -10.254,17.357 -23.136,17.357l-17.747,0c-6.66,0 -11.524,-1.893 -14.592,-5.679c-3.067,-3.786 -3.9,-8.87 -2.498,-15.251l11.305,-50.285Zm34.047,3.574c0.438,-1.617 0.329,-2.872 -0.329,-3.765c-0.657,-0.893 -1.731,-1.34 -3.221,-1.34l-1.84,0c-3.067,0 -4.952,1.659 -5.653,4.977l-10.517,46.839c-0.351,1.617 -0.175,2.872 0.526,3.765c0.701,0.893 1.753,1.34 3.155,1.34l1.84,0c2.98,0 4.82,-1.659 5.521,-4.977l10.517,-46.839Z" fill="var(--white)" fill-rule="nonzero"/>
+      <path d="M663.756,0.884l24.652,0l-19.829,88.452l-24.652,0l19.829,-88.452Z" fill="var(--white)" fill-rule="nonzero"/>
+      <path d="M697.921,0.884l26.662,0l3.751,47.738l10.718,-47.738l17.685,0l-19.829,88.452l-26.528,0l-3.885,-47.348l-10.584,47.348l-17.819,0l19.829,-88.452Z" fill="var(--white)" fill-rule="nonzero"/>
+      <path d="M774.557,18.314l-15.809,0l3.885,-17.43l55.601,0l-3.885,17.43l-15.274,0l-15.943,71.022l-24.518,0l15.943,-71.022Z" fill="var(--white)" fill-rule="nonzero"/>
+      <path d="M819.769,18.472c2.363,-11.725 10.064,-17.588 23.104,-17.588l16.803,0c6.651,0 11.508,1.869 14.571,5.608c3.063,3.739 3.894,8.667 2.494,14.784l-1.969,10.196l-23.629,0l2.363,-10.324c0.7,-3.399 -0.525,-5.098 -3.676,-5.098l-1.313,0c-1.575,0 -2.801,0.361 -3.676,1.083c-0.875,0.722 -1.532,2.018 -1.969,3.887l-1.313,5.99c-0.35,1.784 -0.241,3.208 0.328,4.27c0.569,1.062 1.728,1.975 3.479,2.74l11.815,4.333c4.988,1.954 8.423,4.673 10.305,8.157c1.882,3.484 2.21,7.902 0.985,13.255l-2.625,11.98c-2.363,11.725 -10.108,17.588 -23.236,17.588l-17.197,0c-6.651,0 -11.508,-1.891 -14.571,-5.672c-3.063,-3.781 -3.894,-8.815 -2.494,-15.103l2.232,-10.833l24.023,0l-2.494,11.343c-0.7,3.399 0.481,5.098 3.544,5.098l1.575,0c1.575,0 2.779,-0.382 3.61,-1.147c0.831,-0.765 1.422,-2.039 1.772,-3.824l1.838,-7.647c0.438,-1.869 0.35,-3.314 -0.263,-4.333c-0.613,-1.02 -1.794,-1.912 -3.544,-2.676l-12.077,-4.588c-9.802,-3.739 -13.521,-10.918 -11.158,-21.539l2.363,-9.941Z" fill="var(--white)" fill-rule="nonzero"/>
+    </svg>
+  </div>
+  <span class="wordmark-tag">Front Office</span>
+  </div>
+  <nav class="nav-links">
+    <a class="nav-link" href="index.html">Database</a>
+    <a class="nav-link" href="trade-calculator.html">Calculator</a>
+    <a class="nav-link" href="compare.html">Compare</a>
+    <a class="nav-link" href="my-leagues.html">My Leagues</a>
+    <a class="nav-link" href="live-draft.html">Live Draft</a>
+    <a class="nav-link" href="mock-draft.html">Mock Draft</a>
+    <a class="nav-link" href="tiers.html">Tiers</a>
+    <a class="nav-link" href="adp-tool.html">ADP</a>
+    <a class="nav-link" href="rankings.html">Rankings</a>
+    <a class="nav-link" href="formulas.html">Formulas</a>
+  </nav>
+  <div class="nav-right">
+    <select class="mobile-nav-select" onchange="if(this.value)window.location.href=this.value">
+      <option value="">— Pages —</option>
+      <option value="index.html">Database</option>
+      <option value="trade-calculator.html">Calculator</option>
+      <option value="compare.html">Compare</option>
+      <option value="my-leagues.html">My Leagues</option>
+      <option value="live-draft.html">Live Draft</option>
+      <option value="mock-draft.html">Mock Draft</option>
+      <option value="tiers.html">Tiers</option>
+      <option value="adp-tool.html">ADP</option>
+      <option value="rankings.html">Rankings</option>
+      <option value="formulas.html">Formulas</option>
+    </select>
+    <span class="nav-badge" id="nav-season-badge">SEASON 2026</span>
+    <button id="theme-toggle" onclick="toggleTheme()"
+      style="background:none;border:1px solid var(--border2);color:var(--white);font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:11px;padding:5px 12px;cursor:pointer;transition:all .2s;letter-spacing:.04em;display:flex;align-items:center;gap:6px"
+      onmouseover="this.style.borderColor='var(--red)';this.style.color='var(--red)'"
+      onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--white)'">
+      <span id="theme-icon">☀️</span>
+      <span id="theme-label">LIGHT</span>
+    </button>
+  </div>
+</nav></div>
+
+<main id="page-body" class="page">
+
+  <div class="page-header">
+    <div>
+      <div class="page-title">Mock <span>Draft</span></div>
+      <div class="page-subtitle">Practice drafting against AI opponents. Pick a slot, choose a format, draft a roster.</div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       SETUP SCREEN — shown until "Start Draft" is clicked or an in-progress
+       draft is restored from localStorage.
+       ═══════════════════════════════════════════════════════════════════════ -->
+  <section id="md-setup" class="md-setup-wrap">
+
+    <div id="md-restore" class="md-restore-banner">
+      <div><strong>Draft in progress.</strong> You have an unfinished mock draft from a previous session. Resume where you left off, or start a new one.</div>
+      <div class="md-restore-actions">
+        <button class="md-restore-btn primary" onclick="MockDraft.resume()">Resume draft</button>
+        <button class="md-restore-btn" onclick="MockDraft.discardSaved()">Discard &amp; start new</button>
+      </div>
+    </div>
+
+    <p class="md-setup-intro">
+      Pick a slot, format, and scoring rules, then practice drafting your team. Eleven (or 7 / 9) AI opponents will pick around you using one of five personality archetypes &mdash; some stick to ADP, others reach for their guys, one chases positional scarcity. AI logic spec lives at <code>docs/FORMULAS.md §51</code>.
+    </p>
+
+    <div class="md-setup-card">
+
+      <div class="md-setup-section">
+        <label class="md-setup-label" for="md-team-count">Team count</label>
+        <div class="md-controls-group" id="md-team-count" data-setup-key="teamCount">
+          <button class="md-controls-btn" data-value="8">8</button>
+          <button class="md-controls-btn" data-value="10">10</button>
+          <button class="md-controls-btn active" data-value="12">12</button>
+        </div>
+      </div>
+
+      <div class="md-setup-section">
+        <label class="md-setup-label" for="md-format">Format</label>
+        <div class="md-controls-group" id="md-format" data-setup-key="format">
+          <button class="md-controls-btn active" data-value="sf">Superflex</button>
+          <button class="md-controls-btn" data-value="1qb">1QB</button>
+        </div>
+      </div>
+
+      <div class="md-setup-section">
+        <label class="md-setup-label" for="md-scoring">Scoring</label>
+        <div class="md-controls-group" id="md-scoring" data-setup-key="scoring">
+          <button class="md-controls-btn active" data-value="ppr">PPR</button>
+          <button class="md-controls-btn" data-value="half_ppr">Half PPR</button>
+          <button class="md-controls-btn" data-value="td6">6pt TD</button>
+          <button class="md-controls-btn" data-value="tep">TEP</button>
+        </div>
+      </div>
+
+      <div class="md-setup-section">
+        <div class="md-setup-row">
+          <div>
+            <label class="md-setup-label" for="md-rounds">Rounds</label>
+            <select class="md-select" id="md-rounds">
+              <!-- options 8..20 injected by JS so default + persistence stay clean -->
+            </select>
+          </div>
+          <div>
+            <label class="md-setup-label" for="md-slot">Your draft slot</label>
+            <select class="md-select" id="md-slot">
+              <!-- options 1..teamCount injected by JS, rebuilt when teamCount changes -->
+            </select>
+          </div>
+          <div>
+            <label class="md-setup-label" for="md-personality-mix">Opponent personalities</label>
+            <select class="md-select" id="md-personality-mix">
+              <option value="surprise_me">Surprise me (random mix)</option>
+              <option value="variety">Variety (one of each)</option>
+              <option value="all_adp">All ADP Value (calmest)</option>
+            </select>
+          </div>
+        </div>
+        <div class="md-personality-hint" id="md-personality-hint">
+          A random mix of all 5 archetypes across the seats around you. The most realistic for practice.
+        </div>
+      </div>
+
+      <button class="md-start-btn" id="md-start-btn" type="button" onclick="MockDraft.startDraft()">
+        Start Draft
+      </button>
+
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       DRAFTING SCREEN — Phase 3 will fully populate this. For now Phase 1
+       hands off to a placeholder so the setup screen + state plumbing can
+       ship + be validated independently.
+       ═══════════════════════════════════════════════════════════════════════ -->
+  <section id="md-draft" class="md-draft-screen">
+    <div class="md-draft-placeholder">
+      <strong>Draft started</strong>
+      State persisted to <code>localStorage</code> under <code>fpts-mock-draft-state</code>.
+      The drafting board, AI opponents, search box, and BPA rail will render here in Phase 3.
+      <br><br>
+      <button class="md-restore-btn" onclick="MockDraft.backToSetup()">← Back to setup</button>
+    </div>
+  </section>
+
+</main>
+
+<!-- Required mount divs for player-panel.js compatibility (unused on this page
+     for now but kept for parity — Phase 3 may surface drawer access). -->
+<div id="pp-mvs-extras"></div>
+<div id="pp-articles-mount"></div>
+<div id="pp-league-context"></div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     PAGE-SPECIFIC JS
+     ═══════════════════════════════════════════════════════════════════════ -->
+<script>
+  // ───── Theme toggle (shared across all pages) ──────────────────────────
+  function toggleTheme() {
+    const cur = document.documentElement.getAttribute('data-theme') || 'dark';
+    const next = cur === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    document.getElementById('theme-icon').textContent = next === 'dark' ? '☀️' : '🌙';
+    document.getElementById('theme-label').textContent = next === 'dark' ? 'LIGHT' : 'DARK';
+    try { localStorage.setItem('fpts-theme', next); } catch (e) {}
+  }
+  (function _initTheme() {
+    try {
+      const saved = localStorage.getItem('fpts-theme');
+      if (saved === 'light') toggleTheme();
+    } catch (e) {}
+  })();
+
+  // ───── MockDraft namespace ─────────────────────────────────────────────
+  // Phase 1 surface: setup state + localStorage + start/restore/discard.
+  // Phases 2-4 will extend this with the AI engine, drafting UI, etc.
+  window.MockDraft = (function () {
+
+    const LS_SETUP = 'fpts-mock-draft-setup';
+    const LS_STATE = 'fpts-mock-draft-state';
+
+    // Setup defaults
+    const DEFAULT_SETUP = {
+      teamCount: 12,
+      format: 'sf',           // 'sf' | '1qb'
+      scoring: 'ppr',         // 'ppr' | 'half_ppr' | 'td6' | 'tep'
+      rounds: 15,             // 8-20
+      userSlot: 5,            // 1..teamCount
+      personalityMix: 'surprise_me',  // 'surprise_me' | 'variety' | 'all_adp'
+    };
+
+    let setup = { ...DEFAULT_SETUP };
+
+    // Personality-mix hint copy (shown beneath the dropdown)
+    const MIX_HINTS = {
+      surprise_me: 'A random mix of all 5 archetypes across the seats around you. The most realistic for practice.',
+      variety: 'One of each archetype rotated across the seats. Good for sampling personality differences in one draft.',
+      all_adp: 'Every opponent is the ADP Value archetype. Picks land close to consensus ADP; useful when you want a calm baseline.',
+    };
+
+    // ───── localStorage round-trip ──────────────────────────────────────
+    function loadSetup() {
+      try {
+        const raw = localStorage.getItem(LS_SETUP);
+        if (raw) setup = { ...DEFAULT_SETUP, ...JSON.parse(raw) };
+      } catch (e) { /* corrupt or missing — keep defaults */ }
+    }
+    function saveSetup() {
+      try { localStorage.setItem(LS_SETUP, JSON.stringify(setup)); } catch (e) {}
+    }
+    function loadSavedDraftState() {
+      try {
+        const raw = localStorage.getItem(LS_STATE);
+        if (!raw) return null;
+        return JSON.parse(raw);
+      } catch (e) { return null; }
+    }
+    function clearSavedDraftState() {
+      try { localStorage.removeItem(LS_STATE); } catch (e) {}
+    }
+
+    // ───── UI sync ──────────────────────────────────────────────────────
+    function syncUiFromSetup() {
+      // Toggle groups: highlight the .md-controls-btn whose data-value === setup[key]
+      ['md-team-count', 'md-format', 'md-scoring'].forEach(gid => {
+        const group = document.getElementById(gid);
+        if (!group) return;
+        const key = group.dataset.setupKey;
+        group.querySelectorAll('.md-controls-btn').forEach(b => {
+          b.classList.toggle('active', String(b.dataset.value) === String(setup[key]));
+        });
+      });
+
+      // Rounds dropdown — populate 8..20 if empty, then select current
+      const roundsSel = document.getElementById('md-rounds');
+      if (roundsSel && roundsSel.children.length === 0) {
+        for (let r = 8; r <= 20; r++) {
+          const opt = document.createElement('option');
+          opt.value = String(r); opt.textContent = r + ' rounds';
+          if (r === setup.rounds) opt.selected = true;
+          roundsSel.appendChild(opt);
+        }
+      } else if (roundsSel) {
+        roundsSel.value = String(setup.rounds);
+      }
+
+      // Slot dropdown — populate 1..teamCount; clamp setup.userSlot to range
+      rebuildSlotOptions();
+
+      // Personality mix
+      const mixSel = document.getElementById('md-personality-mix');
+      if (mixSel) mixSel.value = setup.personalityMix;
+      const hint = document.getElementById('md-personality-hint');
+      if (hint) hint.textContent = MIX_HINTS[setup.personalityMix] || MIX_HINTS.surprise_me;
+    }
+
+    function rebuildSlotOptions() {
+      const slotSel = document.getElementById('md-slot');
+      if (!slotSel) return;
+      slotSel.innerHTML = '';
+      if (setup.userSlot > setup.teamCount) setup.userSlot = Math.min(setup.userSlot, setup.teamCount);
+      for (let s = 1; s <= setup.teamCount; s++) {
+        const opt = document.createElement('option');
+        opt.value = String(s); opt.textContent = 'Slot ' + s;
+        if (s === setup.userSlot) opt.selected = true;
+        slotSel.appendChild(opt);
+      }
+      // Re-wrap with custom-select if it's already in play (handles option-list refresh)
+      if (window.CustomSelect && typeof window.CustomSelect.refresh === 'function') {
+        try { window.CustomSelect.refresh(slotSel); } catch (e) {}
+      }
+    }
+
+    // ───── Event wiring ─────────────────────────────────────────────────
+    function wireSetupHandlers() {
+      // Toggle groups (delegated)
+      ['md-team-count', 'md-format', 'md-scoring'].forEach(gid => {
+        const group = document.getElementById(gid);
+        if (!group) return;
+        const key = group.dataset.setupKey;
+        group.addEventListener('click', e => {
+          const btn = e.target.closest('.md-controls-btn');
+          if (!btn) return;
+          const newVal = (key === 'teamCount') ? parseInt(btn.dataset.value, 10) : btn.dataset.value;
+          setup[key] = newVal;
+          group.querySelectorAll('.md-controls-btn').forEach(b =>
+            b.classList.toggle('active', b === btn));
+          saveSetup();
+          // Team count change: rebuild slot options (1..N changes)
+          if (key === 'teamCount') rebuildSlotOptions();
+        });
+      });
+
+      // Rounds dropdown
+      const roundsSel = document.getElementById('md-rounds');
+      if (roundsSel) roundsSel.addEventListener('change', () => {
+        setup.rounds = parseInt(roundsSel.value, 10);
+        saveSetup();
+      });
+
+      // Slot dropdown
+      const slotSel = document.getElementById('md-slot');
+      if (slotSel) slotSel.addEventListener('change', () => {
+        setup.userSlot = parseInt(slotSel.value, 10);
+        saveSetup();
+      });
+
+      // Personality mix
+      const mixSel = document.getElementById('md-personality-mix');
+      if (mixSel) mixSel.addEventListener('change', () => {
+        setup.personalityMix = mixSel.value;
+        const hint = document.getElementById('md-personality-hint');
+        if (hint) hint.textContent = MIX_HINTS[setup.personalityMix] || MIX_HINTS.surprise_me;
+        saveSetup();
+      });
+    }
+
+    // ───── Public entry points ──────────────────────────────────────────
+    function startDraft() {
+      saveSetup();
+
+      // Build a fresh draft state. Phase 2 will flesh out opponents[] with
+      // personality assignments + favorite-player seeds. For now we just
+      // record the setup snapshot + an empty picks array so the placeholder
+      // screen has something to read.
+      const state = {
+        setup: { ...setup },
+        opponents: [],          // Phase 2 will populate
+        picks: [],              // appended as draft progresses
+        currentPick: 1,
+        status: 'drafting',
+        startedAt: new Date().toISOString(),
+      };
+      try { localStorage.setItem(LS_STATE, JSON.stringify(state)); } catch (e) {}
+
+      showDraftScreen();
+    }
+
+    function resume() {
+      const saved = loadSavedDraftState();
+      if (!saved) { hideRestoreBanner(); return; }
+      // Phase 1 just shows the placeholder; Phase 3 will rehydrate the board.
+      showDraftScreen();
+    }
+
+    function discardSaved() {
+      clearSavedDraftState();
+      hideRestoreBanner();
+    }
+
+    function backToSetup() {
+      document.getElementById('md-setup').style.display = '';
+      document.getElementById('md-draft').classList.remove('show');
+      // Check if a saved draft exists so the banner reappears if user backed out
+      maybeShowRestoreBanner();
+    }
+
+    function showDraftScreen() {
+      document.getElementById('md-setup').style.display = 'none';
+      document.getElementById('md-draft').classList.add('show');
+    }
+
+    function maybeShowRestoreBanner() {
+      const saved = loadSavedDraftState();
+      const banner = document.getElementById('md-restore');
+      if (saved && saved.status === 'drafting' && banner) {
+        banner.classList.add('show');
+      } else if (banner) {
+        banner.classList.remove('show');
+      }
+    }
+    function hideRestoreBanner() {
+      const banner = document.getElementById('md-restore');
+      if (banner) banner.classList.remove('show');
+    }
+
+    // ───── Init ─────────────────────────────────────────────────────────
+    function init() {
+      loadSetup();
+      syncUiFromSetup();
+      wireSetupHandlers();
+      maybeShowRestoreBanner();
+    }
+
+    return {
+      init,
+      startDraft,
+      resume,
+      discardSaved,
+      backToSetup,
+      _setup: () => setup,           // exposed for debugging
+    };
+  })();
+
+  // ───── Bootstrap-after-data-ready ──────────────────────────────────────
+  document.addEventListener('fpts:data-ready', function () {
+    const overlay = document.getElementById('_fp-loading');
+    if (overlay) overlay.style.display = 'none';
+    MockDraft.init();
+  });
+</script>
+
+</body>
+</html>
