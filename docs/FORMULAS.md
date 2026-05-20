@@ -1605,7 +1605,9 @@ function _pcAggregateWeeks(weeks) {
 
 **Example.** Player has weeks 1-12 with stats. `_pcLastNAggregate(name, 4)` → sums weeks 12, 11, 10, 9 (the four most recent). If the player only has 3 played weeks, `games: 3` is returned and the per-game row shows divisions over 3.
 
-**Notes.** **`Analyst input requested`** — should the default window be 4 (matches Underdog reference, short reactive) or 8 (more reliable per-game averages, longer signal)? Currently default = 4. Also: should playoff weeks be included in the N-most-recent window? Currently the function reads `.weeks` only, not `.playoffWeeks` — playoff games are excluded.
+**Locked decisions (2026-05-20):**
+1. **Default window = 4.** Matches the Underdog reference. Smallest sample but reflects most-recent form — answers the "how is this player playing right now" question better than smoothing across 8+ games. 8G and 16G remain available via the in-page toggle for users who want longer signal.
+2. **Playoff weeks excluded.** `_pcLastNAggregate` reads `.weeks` only, NOT `.playoffWeeks`. Regular-season-only keeps the comparison clean — playoff game scripts (better defenses, fewer touches in blowouts, weather, etc.) are systematically different from regular-season production. Playoff per-week stats are still visible in the per-week breakdown when a year row is expanded in the Career tab.
 
 ---
 

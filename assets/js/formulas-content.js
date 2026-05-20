@@ -2023,7 +2023,7 @@ function _pcAggregateWeeks(weeks) {
           output: 'Totals object with games set to the actual window size (may be less than N if the player has fewer than N weeks). Caller divides by games for per-game averages.',
           example: `Player has weeks 1-12 with stats. _pcLastNAggregate(name, 4) → sums weeks 12, 11, 10, 9 (the four most recent).
 If player only has 3 played weeks, returns { games: 3, ... }. The per-game row then divides over 3.`,
-          whyThisNumber: 'Analyst input requested. (1) Should the default window be 4 (matches the Underdog reference, short reactive signal) or 8 (more reliable per-game averages)? Currently default = 4. (2) Should playoff weeks be included in the N-most-recent window? The function reads .weeks only, NOT .playoffWeeks — playoff games are excluded. This might or might not be the right call depending on whether dynasty-decision context favors regular-season-only or all-games-played.',
+          whyThisNumber: 'Two decisions reviewed + locked on 2026-05-20: (1) Default window = 4 (matches Underdog reference, reflects most-recent form better than 8/16 smoothing). 8G and 16G remain available via in-page toggle. (2) Playoff weeks EXCLUDED. .weeks only; .playoffWeeks ignored in the rolling window. Playoff game scripts (better defenses, fewer blowout touches, weather) are systematically different from regular-season production; mixing them muddies the "how are they playing now" signal. Playoff per-week stats are still visible in the Career tab\'s expanded year view.',
           notes: 'PC_GAMES allowlist guards parsing. Window persists in URL hash as &games=N (4 omitted as default).',
           related: ['compare-std-fpts']
         },

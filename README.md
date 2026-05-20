@@ -1063,10 +1063,13 @@ Nothing structural. Polish / nice-to-haves only:
       all use yellow `is-tied` band when every valid cell shares the top
       value. Partial top ties (e.g. [40,40,35]) keep green `is-best` on
       the co-winners. No near-tied threshold (strict equality only).
-    - **Last-N games window default** (FORMULAS.md §48 / `compare-last-n-aggregate`).
-      Currently 4 — matches the Underdog reference; should it be 8 for more
-      reliable per-game averages? Should playoff weeks be included in the
-      window (currently `.weeks` only, `.playoffWeeks` excluded)?
+    - ~~**Last-N games window default** (FORMULAS.md §48)~~ — **LOCKED
+      2026-05-20 (twelfth session).** Default window = 4 games (matches
+      Underdog reference, reflects most-recent form). 8G/16G still
+      available via the in-page toggle. Playoff weeks EXCLUDED from the
+      rolling window — regular-season-only keeps the "playing now" signal
+      clean. Playoff per-week stats still visible in Career-tab expanded
+      year view.
     - **Multi-card metric comparison bands** (FORMULAS.md §49 /
       `compare-multi-metric-comparison`). Should the comparison emit a
       "near-tied" yellow band for values within 5% of each other, instead
