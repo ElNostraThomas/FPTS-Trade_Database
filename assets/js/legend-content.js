@@ -88,12 +88,26 @@
        called from each page's _applyAdpPayload()
 
    ──────────────────────────────────────────────────────────────────────
-   125% LAYOUT ZOOM (assets/css/brand.css)
+   ADAPTIVE LAYOUT ZOOM (assets/css/brand.css)
    ──────────────────────────────────────────────────────────────────────
-   body { zoom: 1.25 } on every page (desktop). Mobile (<700px) + print
-   render at 100%. Browser-native zoom — interactions work normally,
+   body { zoom: N } stepped via media queries so the site auto-fits any
+   window/zoom combination without horizontal chrome cutoff:
+     viewport ≥1600 CSS  →  zoom 1.75   (OBS canvas / wide monitors)
+     viewport 1300-1599  →  zoom 1.5
+     viewport 1100-1299  →  zoom 1.25
+     viewport 769-1099   →  zoom 1.0
+     viewport ≤768       →  zoom 1.0   (mobile, no zoom)
+   When a user Ctrl+wheel zooms in, the browser shrinks the layout viewport
+   in CSS px, the breakpoints fire, and base zoom steps down — net effect:
+   the chrome always fits. Wide surfaces (ADP grid, draft board) still scroll
+   horizontally inside their wrappers when content exceeds container width.
+   Print always renders at 100%. Browser-native zoom — interactions work normally,
    getBoundingClientRect coordinates are unzoomed in Chrome. If anything
-   feels mis-positioned, that's the first thing to check.
+   feels mis-positioned, that's the first thing to check. Wide layouts
+   (ADP Box grid, live-draft board, my-leagues) use horizontal scroll via
+   body's overflow-x:auto on desktop; .topnav / .page / footer have
+   max-width:none + padding-inline:32px so content fills the viewport with
+   a 32px breathing margin on each side.
 
    ──────────────────────────────────────────────────────────────────────
    FLEX-COLUMN SCROLL CHAIN RULE  (overflow-scroll inside a sticky panel)

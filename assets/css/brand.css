@@ -252,13 +252,76 @@
 html { background: var(--page-bg); transition: background .3s; overflow-y: scroll; }
 body { color-scheme: var(--color-scheme); color: var(--white); font-family: 'Mulish', sans-serif; min-height: 100vh; background: var(--page-bg); }
 html, body { overflow-x: hidden !important; }
+/* Desktop: release the horizontal-scroll lock so wide surfaces (ADP Box grid,
+   live-draft board, etc.) can scroll sideways. Mobile keeps the lock — its
+   layouts are designed to fit the viewport. */
+@media (min-width: 769px) {
+  html, body { overflow-x: auto !important; }
+  /* Lift the 1440px content cap so wide layouts use the full viewport instead
+     of leaving large empty side gutters at 2x zoom. Targets every wrapper that
+     auto-centers at 1440px — topnav, page body, footer. html-prefixed selector
+     beats inline duplicates via specificity (0,1,1 vs 0,1,0). padding-inline
+     preserves existing top/bottom padding (footer keeps 20px vertical, .page
+     keeps 60px bottom). 32px CSS = 64px visual at zoom 2 — content never
+     kisses the viewport edge. */
+  html .topnav, html .page, html footer {
+    max-width: none;
+    padding-inline: 32px;
+  }
+  /* Topnav: aggressively tight at desktop so the entire nav list + right-side
+     controls fit within the viewport even at the highest zoom (1.75). The
+     base values are sized to fit at viewport ~1600 CSS px. As the adaptive
+     body zoom steps down at narrower viewports, the topnav fits even better.
+     html-prefixed selectors beat inline duplicates in 5 pages via specificity
+     (0,1,1 vs 0,0,1 / 0,1,0). Explicit background defends against any case
+     where the parent .topnav-wrap inline-style fails to paint. */
+  html .topnav { height: 44px; gap: 8px; background: var(--nav-bg); }
+  html .topnav .wordmark svg { height: 20px; }
+  html .topnav .wordmark-group { gap: 8px; }
+  html .topnav .wordmark-tag { font-size: 18px; }
+  html .topnav .nav-link { font-size: 10px; padding: 0 6px; height: 44px; }
+  html .topnav .nav-right { gap: 8px; }
+  html .topnav .nav-stat { font-size: 9px; }
+  html .topnav .nav-badge { font-size: 9px; padding: 2px 6px; }
+}
+/* Topnav adaptive content-hiding — as the viewport narrows and the body zoom
+   steps down, drop non-essential topnav items + shrink the logo SVG so what
+   remains always fits. The "must-keep" set at any desktop width is: logo SVG
+   + 9 nav links (or dropdown at the narrowest band) + season badge + theme
+   toggle. FRONT OFFICE tag and Updated stamp are the first to go; below
+   1099px the inline nav-links collapse into the existing mobile-nav-select
+   dropdown so the topnav reads cleanly even at small desktop windows. */
+@media (min-width: 769px) and (max-width: 1599px) {
+  html .topnav .wordmark-tag { display: none; }
+  html .topnav .wordmark svg { height: 18px; }
+}
+@media (min-width: 769px) and (max-width: 1299px) {
+  html .topnav .nav-stat { display: none; }
+  html .topnav .nav-link { font-size: 9px; padding: 0 5px; }
+  html .topnav .wordmark svg { height: 16px; }
+}
+@media (min-width: 769px) and (max-width: 1099px) {
+  /* Collapse to mobile-style dropdown — !important defeats the legacy
+     per-page inline duplicates that set .nav-links { display: flex } and
+     .mobile-nav-select { display: none } in their <style> blocks. */
+  html .topnav .nav-links { display: none !important; }
+  html .topnav .mobile-nav-select { display: inline-block !important; min-height: 32px; }
+}
 
-/* Site-wide 1.25x layout zoom — every page renders as if the browser were
-   at 125% by default. Native browser zoom: text + images + spacing scale
-   together and interactions (click/drag/scroll) work normally. Skip on
-   print (function-reference PDF) and on mobile widths (the existing
-   <700px layout was already designed for small screens). */
-body { zoom: 1.25; }
+/* Adaptive site-wide layout zoom — sized for OBS Browser Source readability
+   on wide canvases, but steps down at narrower viewports so content always
+   fits without horizontal cutoffs. Native browser zoom: text + images +
+   spacing scale together; interactions work normally.
+   When a user Ctrl+wheel zooms in, the browser shrinks the layout viewport in
+   CSS px, our breakpoints fire, and the base zoom steps down — net effect:
+   the site auto-fits any window/zoom combination without horizontal scroll
+   on the chrome. Wide surfaces (ADP grid, draft board) still scroll
+   horizontally inside their wrappers when content exceeds container.
+   Print + mobile (≤768px) always reset to 1. */
+body { zoom: 1.75; }
+@media (max-width: 1600px) { body { zoom: 1.5; } }
+@media (max-width: 1300px) { body { zoom: 1.25; } }
+@media (max-width: 1100px) { body { zoom: 1.0; } }
 @media print { body { zoom: 1; } }
 @media (max-width: 768px) { body { zoom: 1; } }
 
