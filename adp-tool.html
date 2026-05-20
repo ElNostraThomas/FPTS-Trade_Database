@@ -141,9 +141,9 @@
   .pos-breakdown .pb-clear:hover { color:var(--red); border-color:var(--red); opacity:1; }
   /* Trend badge — black text-stroke outline instead of a dark overlay, so the
      coloured arrow + number reads on every position-coloured card without a chip background */
-  .trend { display:inline-flex; align-items:center; gap:2px; font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:11px; padding:0 2px; letter-spacing:.04em; margin-left:4px; background:transparent; border:none;
+  .trend { display:inline-flex; align-items:center; gap:2px; font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:13px; padding:0 2px; letter-spacing:.04em; background:transparent; border:none;
     text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, 0 -1px 0 #000, 0 1px 0 #000, -1px 0 0 #000, 1px 0 0 #000;
-    -webkit-text-stroke: 0.5px #000; }
+    -webkit-text-stroke: 1px #000; }
   .trend.up   { color:#66dd84; }      /* bright green */
   .trend.down { color:var(--red); }   /* brand orange */
   .trend.flat { color:#ffffff; }
@@ -222,7 +222,7 @@
   .box-card .card-pick { font-weight:800; }
   .box-card .card-posrank { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:8px; padding:1px 4px; letter-spacing:.04em; background:rgba(0,0,0,.22); color:inherit; }
   .box-card .card-adp { font-weight:700; opacity:.78; font-size:8px; }
-  .box-card .card-name { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; line-height:1; overflow:hidden; margin-top:1px; padding-right:34px; }
+  .box-card .card-name { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; line-height:1; overflow:hidden; margin-top:1px; padding-right:44px; }
   .box-card .card-fname { font-size:9px; line-height:1; opacity:.8; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   /* Last name forced to a single line so card heights stay uniform across the board */
   .box-card .card-lname { font-size:12px; line-height:1.1; margin-top:1px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
@@ -230,19 +230,23 @@
      offset = 30px) and headshot (bottom-right, 32px + 4px offset = 36px).
      Asymmetric on purpose — true center between the coin GAP, not the
      card width center. */
-  .box-card .card-meta { display:flex; align-items:center; gap:3px; font-family:'Mulish',sans-serif; font-size:8px; font-weight:800; letter-spacing:.04em; margin-top:auto; opacity:.85; padding-top:2px; padding-left:30px; padding-right:36px; justify-content:center; }
+  /* Layout-only spacer — trend chip now lives in .card-top (above). This
+     thin row preserves uniform card heights across years (rookie/historical
+     cards that lack trend data) without reserving horizontal slots for the
+     absolute-positioned coins below. */
+  .box-card .card-meta { display:flex; align-items:center; margin-top:auto; padding-top:2px; min-height:2px; }
   /* Small circular headshot pinned to the bottom-right corner — matches the reference layout */
-  .box-card .card-hs { position:absolute; bottom:4px; right:4px; width:32px; height:32px; border-radius:50%; object-fit:cover; object-position:top; border:1px solid rgba(0,0,0,.18); background:rgba(0,0,0,.1); }
+  .box-card .card-hs { position:absolute; bottom:4px; right:4px; width:40px; height:40px; border-radius:50%; object-fit:cover; object-position:top; border:1px solid rgba(0,0,0,.18); background:rgba(0,0,0,.1); }
   /* Fallback silhouette when Sleeper CDN has no headshot (common for
      retired players in past-year boards). Filled at opacity=.95 + 85%
      size so it reads with the same visual weight as an actual photo —
      matches the 2026 board's "solid presence" look for past years too. */
-  .box-card .card-hs-fallback { position:absolute; bottom:4px; right:4px; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:transparent; font-size:0; background:rgba(0,0,0,.12); border:1px solid rgba(0,0,0,.18); background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><circle cx="32" cy="22" r="10" fill="%23ffffff" opacity=".95"/><path d="M14 60 Q14 36 32 36 Q50 36 50 60 L14 60 Z" fill="%23ffffff" opacity=".95"/></svg>'); background-size:85% 85%; background-position:center 60%; background-repeat:no-repeat; }
+  .box-card .card-hs-fallback { position:absolute; bottom:4px; right:4px; width:40px; height:40px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:transparent; font-size:0; background:rgba(0,0,0,.12); border:1px solid rgba(0,0,0,.18); background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><circle cx="32" cy="22" r="10" fill="%23ffffff" opacity=".95"/><path d="M14 60 Q14 36 32 36 Q50 36 50 60 L14 60 Z" fill="%23ffffff" opacity=".95"/></svg>'); background-size:85% 85%; background-position:center 60%; background-repeat:no-repeat; }
   /* Team logo circle — mirrors .card-hs at the bottom-left of each card.
      Dark-surface backdrop matches the badge halo style; logo PNG fills the
      center with a small padding so it doesn't touch the circle edge. */
-  .box-card .card-team-logo { position:absolute; bottom:4px; left:4px; width:26px; height:26px; border-radius:50%; background:rgba(0,0,0,.1); border:1px solid rgba(0,0,0,.18); display:flex; align-items:center; justify-content:center; overflow:hidden; z-index:1; }
-  .box-card .card-team-logo img { width:19px; height:19px; object-fit:contain; display:block; }
+  .box-card .card-team-logo { position:absolute; bottom:4px; left:4px; width:32px; height:32px; border-radius:50%; background:rgba(0,0,0,.1); border:1px solid rgba(0,0,0,.18); display:flex; align-items:center; justify-content:center; overflow:hidden; z-index:1; }
+  .box-card .card-team-logo img { width:24px; height:24px; object-fit:contain; display:block; }
   .box-card.QB { background:var(--pos-qb-bg); color:var(--pos-qb); }
   .box-card.RB { background:var(--pos-rb-bg); color:var(--pos-rb); }
   .box-card.WR { background:var(--pos-wr-bg); color:var(--pos-wr); }
@@ -1481,32 +1485,35 @@ function renderBoxView(players) {
       const matchesRound     = !roundFilter.size || roundFilter.has(r + 1);
       const matchesTeam      = !teamFilter.size  || teamFilter.has(t + 1);
       const dimCls = (matchesPosSearch && matchesRound && matchesTeam) ? '' : ' dim';
-      // Trend chip — always rendered so card layouts stay identical across
-      // years (the empty .card-meta on historical years was making 2019
-      // cards look gutted vs 2026). Note: trendBadge() reads current-year
-      // FP_VALUES.trend; on historical years, players who are still active
-      // show their CURRENT trend overlaid on the historical card. Visually
-      // consistent with 2026; accept the slight data-recency mismatch.
+      // Trend chip — emitted inline in .card-top (right after the overall-
+      // pick number) so the chip has plenty of horizontal room. Previously
+      // it lived in .card-meta sandwiched between the bottom-row team-logo
+      // coin and headshot; after coin sizes were bumped (32→40 headshot,
+      // 26→32 team coin) that slot squeezed to ~12-30 CSS px which clipped
+      // the chip to invisibility. Top-row placement has the full card width
+      // minus the small pick/posrank/adp elements available (~40-60 CSS px).
+      // trendBadge() reads current-year FP_VALUES.trend; on historical years
+      // players who are still active show their CURRENT trend overlaid on
+      // the historical card — visually consistent, slight data-recency
+      // mismatch accepted.
       const trendHtml = trendBadge(p.name);
-      // The team identity now lives in the bottom-left circle (teamLogoCircle
-      // above), so card-meta is trend-only. ALWAYS render the meta div even
-      // when there's no trend (common for rookie players not yet in FP's
-      // current-week trend snapshot) so card heights stay uniform across
-      // every year and tab. Without this, rookie cards collapse to the
-      // min-height floor and look ~12px shorter than startup cards.
-      const metaHtml  = `<div class="card-meta">${trendHtml || '&nbsp;'}</div>`;
+      // .card-meta is now a layout-only spacer — preserves uniform card
+      // height across years (rookie/historical cards that lack trend data
+      // still need a bottom row so cards don't collapse) but no longer
+      // carries the trend chip.
       parts.push(`<div class="box-card ${pos}${dimCls}" data-id="${escapeHtml(p.sleeperId)}">
         <div class="card-content">
           <div class="card-top">
             <span class="card-pick">${pickLabel}</span>
             ${posRank ? `<span class="card-posrank">${escapeHtml(posRank)}</span>` : ''}
             <span class="card-adp">${overallPick}</span>
+            ${trendHtml}
           </div>
           <div class="card-name">
             ${nm.first ? `<div class="card-fname">${escapeHtml(nm.first)}</div>` : ''}
             <div class="card-lname">${escapeHtml(nm.last)}</div>
           </div>
-          ${metaHtml}
+          <div class="card-meta">&nbsp;</div>
         </div>
         ${teamLogoCircle}
         ${hsHtml}
