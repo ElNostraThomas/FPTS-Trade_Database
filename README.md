@@ -11,7 +11,42 @@ This file is the **resume-where-we-left-off** doc.
 
 ---
 
-## Where we are (end of 2026-05-19 — eighth session)
+## Where we are (end of 2026-05-19 — ninth session)
+
+**Two-thread session.** First, the OBS Browser Source dropdown bug that prompted the live-draft inline combobox in session 8 got promoted to a **site-wide shared module** (`assets/js/custom-select.js`) because every other native `<select>` on the site has the same CEF bug. Then, a **12-commit inline-style cleanup marathon on `my-leagues.html`** took the file from **293 → 46** inline `style="..."` attrs (84% reduction).
+
+### Site-wide custom combobox — `assets/js/custom-select.js` (`6e38c3d`)
+
+Auto-wraps every native `<select>` on every page (skip-list: `.mobile-nav-select`, `.no-fpts-cs`). Body-level MutationObserver with 100ms debounce catches dynamically-added selects (e.g., the my-leagues team-sort dropdown rendered inside a template literal). Mirrors native state via MutationObserver (childList + subtree + `attributeFilter:['disabled']`) and a per-instance `Object.defineProperty` override of the `.value` setter so programmatic value sets fire the mirror update. When the user picks an option, the native `<select>.value` is set + `new Event('change')` dispatched so existing `onchange` attributes fire normally. Loaded on all 8 pages + template with `?v=1782300000`.
+
+### Inline-style cleanup — `my-leagues.html` 293 → 46 inline `style="..."` attrs
+
+Sixteen commits ranging from 4 to 38 inline-style attrs each. Pattern: scoped CSS classes (`.ml-<region>-<purpose>`), CSS custom properties for per-element dynamic values (`--bar-width`, `--pos-color`, `--rank-color`, etc.), modifier classes for state (`is-mine`, `is-pick`, `is-fa`), and CSS `:hover` rules replacing ~15 `onmouseover`/`onmouseout` JS handlers.
+
+Biggest single wins:
+- `efcf777` — WORDMARK_LIGHT SVG string had 14 path `style="fill:...;fill-rule:..."` + 1 root style. All converted to **native SVG attributes** (`fill="..."`, `fill-rule="..."`). Identical rendering, zero audit hits. (−20 attrs.)
+- `85815da` — `posBadge`/`playerThumb`/`pickThumb` helpers + FantasyPoints articles row. Adds `.ml-pos-badge`/`.ml-thumb-32`/`.ml-pick-thumb-32` family + 13 `.pp-articles-*`/`.pp-article-*` classes; eliminates 8 `onmouseover`/`onmouseout` handlers. (−19 attrs.)
+- `99cb24a` — Trade-suggestion modal `.ml-tb-*` family with per-position pos-pill modifiers. (−38 attrs.)
+
+Full per-commit table in [`docs/CHANGES.md`](docs/CHANGES.md) ninth-session entry.
+
+Remaining 46 inline styles break down as: **7 × `display:none`** (JS-toggled initial-state idiom — would require class-toggle refactor across the JS to eliminate, deferred), **2 × CSS-comment false-positives** in the audit regex, and **37 × the CSS custom-property pattern** (`--bar-width`, `--pos-color`, `--archetype-bg/fg`, `--cell-value-color`, `--rp-stripe-color`, etc.) which IS the design end-state for dynamic per-element values.
+
+### What's queued next
+
+- **Player Comparison full page** — still the headline unblocked initiative. New `compare.html`. Two visual references unchanged (Underdog stat-table + Hayden-Winks profile-matches). Per-year career data in `STATS_DATA[key].seasons`.
+- External-blocked: 1QB scrape `SEED_USERS`, analyst feedback loop (14 heuristics in `formulas.html`).
+- The 7 remaining `display:none` inline styles in my-leagues could become a `.is-hidden` utility class + JS class-toggle refactor — small and tractable as a one-off when convenient, not urgent.
+
+**Cache tokens bumped this session:** `custom-select.js?v=1782300000` (new shared module across all 9 consumers). All other module versions inherited from session 8.
+
+**Audit:** `python scripts/check-colors.py` — CLEAN across 29 files after every commit. `python audit-ml-styles.py` — 293 → 46 inline-style attrs in `my-leagues.html`.
+
+See [`docs/CHANGES.md`](docs/CHANGES.md) 2026-05-19 (ninth session) for full per-commit detail.
+
+---
+
+## Where we were (end of 2026-05-19 — eighth session)
 
 **Closure session.** The last static-checkable hard-rules drift item (Drift #4 — `player-panel.css` `!important` refactor) closed in two diff-trusted passes; the lingering low-priority data item (Drift #6 — 2021/2022 rushing Basic CSV re-export) also shipped. With those two, the entire hard-rules audit punch list from session 7 is now done.
 

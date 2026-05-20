@@ -6,6 +6,55 @@ the operator manual see [`WORKFLOW.md`](WORKFLOW.md).
 
 ---
 
+## 2026-05-19 (ninth session) — Site-wide custom combobox + my-leagues inline-style cleanup marathon
+
+Two threads. The OBS dropdown story that started in session 8 got promoted from "live-draft only" to "site-wide shared module," because every other native `<select>` on the site hits the same CEF rendering bug when iframed. Then a 12-commit inline-style cleanup of `my-leagues.html` took the file from **293 → 46** inline `style="..."` attrs (84% reduction). The remaining 46 are: 7 × `display:none` (JS-toggled idiom), 2 × CSS-comment false-positives in the audit script, and 37 instances of the CSS custom-property pattern (`--bar-width`, `--pos-color`, `--rank-color`, `--archetype-bg/fg`, etc.) which is the design end-state for dynamic per-element values.
+
+### Site-wide custom combobox — `assets/js/custom-select.js`
+
+`6e38c3d`. After the OBS show, user reported that the my-leagues team-sort dropdown ("Total Value / Archetype / A-Z") had the same can't-click problem as the live-draft year/league/draft pickers — confirming the CEF bug isn't live-draft-specific. Extracted the inline combobox logic from `live-draft.html` into a shared module that auto-wraps every native `<select>` on every page.
+
+How it works: on `DOMContentLoaded` (and via a body-level MutationObserver with 100ms debounce so dynamically-added selects get wrapped too), the module finds every `<select>` element except `.mobile-nav-select` and `.no-fpts-cs`, marks it with `data-fpts-cs-wrapped` so it's idempotent, hides the native control via `display: none`, and inserts a sibling `<button>` + popup `<div>` that mirrors the select's state. Mirroring uses (a) MutationObserver on the native select watching `childList` + `subtree` + `attributeFilter:['disabled']`, and (b) a per-instance `Object.defineProperty` override of the native select's `value` setter so programmatic value sets (which don't reflect to attributes) also fire the mirror update. When the user picks an option, we set `<select>.value` + dispatch `new Event('change')` so any existing inline `onchange` attribute or `addEventListener('change')` fires normally.
+
+Loaded on all 8 deployed pages + `templates/page-template.html` with `?v=1782300000`. Skip-list pattern (`.mobile-nav-select`, `.no-fpts-cs`) gives consumers an opt-out for cases where the native dropdown UX is desirable.
+
+### Inline-style cleanup — 12 commits, 293 → 46 inline `style="..."` attrs on my-leagues.html
+
+`audit-ml-styles.py` ranks `style=...` occurrences by section and declaration set. Each commit picks one section, designs scoped CSS classes (with CSS custom properties for dynamic colors/widths), refactors the corresponding JS template literal, and re-runs the audit. `docs/ml-inline-style-inventory.md` regenerates each commit so the doc tracks progress. Pattern: `class="..."` for static styling, `style="--custom-prop:${value}"` for per-element dynamic values (color, width, etc.) — never raw inline declarations.
+
+Per-commit breakdown:
+
+| Commit | Section | Lines | Notes |
+|---|---|---|---|
+| `f26a32b` | Player-detail availability | 293→274 (−19) | `.ml-pd-avail-*` family for cross-league exposure rows |
+| `99cb24a` | Trade-suggestion modal | 274→236 (−38) | `.ml-tb-*` family with per-position pos-pill modifiers |
+| `944d5cc` | Team rows + roster headers | 236→211 (−25) | `.ml-team-*` family |
+| `63a75f9` | Standings table | 211→197 (−14) | `.ml-st-*` family |
+| `ba9cdef` | Own-roster panel | 197→172 (−25) | `.ml-rp-*` family (pos sections + picks section, trendHtml, playerRow) |
+| `b576b9a` | Standings position-rank cards | 172→161 (−11) | `.ml-stposrank-*` family with `--mpx-color`/`--pos-color`/`--rank-color` |
+| `d0f9bc8` | Waiver sub-views | 161→149 (−12) | extends `.ml-wv-*` with table cell color modifiers + recent-activity row hl |
+| `a422d70` | Recent-trades cards | 149→135 (−14) | `.ml-tc-*` family — full block to zero inline styles |
+| `0be1207` | Pick-exposure picker modal | 135→123 (−12) | `.ml-pep-*` family; `:hover` replaces `onmouseover`/`onmouseout` |
+| `acd2500` | League-row expansion header | 123→116 (−7) | `.ml-prank-*` + `.ml-sortby-*` (the sort dropdown now picks up `custom-select.js` too) |
+| `469cc87` | Traded Picks rendering | 116→112 (−4) | `.ml-pick-card.is-mine` + `.ml-pick-owner-from`/`-mine` |
+| `84e4c66` | Topnav chrome + loading overlay | 112→107 (−5) | `#_fp-loading`, `.ml-topnav-bar`, `#theme-toggle:hover` |
+| `85815da` | Article cards + thumb helpers | 107→88 (−19) | `.ml-pos-badge` / `.ml-thumb-32` / `.ml-pick-thumb-32` + `.pp-articles-*` / `.pp-article-*` family. Eliminates 8 `onmouseover`/`onmouseout` handlers via CSS `:hover` |
+| `efcf777` | Exposure sidebar + WORDMARK/FLAME SVGs | 88→68 (−20) | The big SVG win: 14 path `style="fill:...;fill-rule:..."` + 1 root style in WORDMARK_LIGHT converted to **native SVG attributes** (`fill="..."`, `fill-rule="..."`, `clip-rule="..."`). Identical rendering, zero audit hits. |
+| `0cf47e3` | Sleeper-CTA, roster summary, modal layering, PICKS row | 68→52 (−16) | `.ml-calc-sleeper-*`, `.ml-rs-*`, `#ml-ts-backdrop` / `#ml-pep-backdrop` z-index, `.ml-exposure-row-*.is-pick` |
+| `0809779` | Small static residues | 52→46 (−6) | `.ml-cv-yellow`/`-green` reused, `.ml-median-stat`, `.ml-mb-12` |
+
+Cumulative impact across the marathon:
+- Total inline-style attrs: **293 → 46** (−247, 84% reduction)
+- `onmouseover`/`onmouseout` JS hover handlers eliminated in favor of CSS `:hover`: **~15** (article cards, browse link, read link, more-button, title links, theme-toggle, sleeper-cta, more-row titles, pick-exposure league rows)
+- `audit-ml-styles.py` mode breakdown is now 35 dynamic / 10 static / 1 dynamic-context — the dynamic 35 are mostly `--custom-prop:${value}` patterns (irreducible by design); the static 10 break down as 7 × `display:none` (JS toggle idiom — would need `class` toggle refactor in JS to eliminate) + 2 × CSS-comment false positives + 1 small remaining; the 1 dynamic-context is also a CSS-var pattern.
+- `python scripts/check-colors.py` CLEAN across all 29 files after every commit.
+
+The pattern documented here is the standard going forward: design CSS classes scoped to the component (`body.fpts-ml-page .ml-<region>-<purpose>` form), use CSS custom properties for per-element dynamic values, use modifier classes (`is-mine`, `is-pick`, `is-sub`) for state toggles, and replace `onmouseover`/`onmouseout` JS handlers with CSS `:hover` rules.
+
+**Cache token state at session close:** `custom-select.js?v=1782300000` (new), all other module versions from session 8 unchanged.
+
+---
+
 ## 2026-05-19 (eighth session) — Drift cleanup finale + OBS compat suite + UX features
 
 Closure session. The last static-checkable hard-rules drift item (Drift #4 — `player-panel.css` `!important` refactor) closed in two diff-trusted passes; the lingering low-priority data item (Drift #6 — 2021/2022 rushing Basic CSV re-export) also shipped. With those two, the entire hard-rules audit punch list from session 7 is done.
