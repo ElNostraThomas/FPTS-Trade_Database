@@ -1337,6 +1337,23 @@
     }
     body.fpts-compare-page .pc-table-row-label { padding: 9px 10px; font-size: 10px; }
     body.fpts-compare-page .pc-table-row-cell { padding: 9px 6px; font-size: 13px; }
+
+    /* ── Session-12 mobile bleed patches ─────────────────────────────────
+       Desktop-CSS changes from the Madden-card / search-stability work
+       inherited into mobile without overrides. Tighten for narrow screens. */
+
+    /* Dropdown was raised to 480px desktop to fit ~20 results without
+       silent clipping. On a 700px phone that's 68% of viewport — cap it. */
+    body.fpts-compare-page .pc-search-results { max-height: 320px; }
+
+    /* Madden name strip: 16px Kanit italic uppercase fits desktop cards
+       fine but truncates early on a 320px mobile card. Slightly smaller. */
+    body.fpts-compare-page .pc-card-name { font-size: 14px; }
+    body.fpts-compare-page .pc-card-name-strip { padding: 8px 10px 4px; }
+
+    /* Hero photo 5:4 = ~400px tall on a 320px card. Shorten to 4:3 so
+       the stats grid is closer to the top of the viewport on phones. */
+    body.fpts-compare-page .pc-card-photo-wrap { aspect-ratio: 4 / 3; }
   }
 </style>
 
