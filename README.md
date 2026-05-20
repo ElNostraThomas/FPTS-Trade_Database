@@ -919,11 +919,23 @@ Nothing structural. Polish / nice-to-haves only:
   `_buildTradesFromMvs` (player-panel.js:688) dedupes + normalizes →
   `_trades()` (line 183) lazy-caches → `tradeCardHtml` renders. All
   5 pages route through the same chain.
-- [ ] **Analyst feedback loop** — 14 heuristics in `formulas.html` flagged
-  "Analyst input requested". **BLOCKED on analyst recommendations.** When
-  analyst returns constants/threshold revisions, update BOTH
-  `docs/FORMULAS.md` AND `assets/js/formulas-content.js` per the
-  dual-sync rule documented in `CLAUDE.md`.
+- [ ] **Analyst feedback loop** — heuristics flagged
+  "Analyst input requested" in `formulas.html` + `docs/FORMULAS.md`.
+  **BLOCKED on analyst recommendations.** When the analyst returns
+  constants/threshold revisions, update **THREE** sources per the
+  triple-sync rule:
+    1. `docs/FORMULAS.md` (canonical doc)
+    2. `assets/js/formulas-content.js` (in-app Formulas page)
+    3. `assets/js/legend-content.js` (in-app Legend drawer per page)
+  Current open items needing analyst input:
+    - 14 original heuristics (trade-value multipliers, age-curve constants,
+      buy/sell signal thresholds, tier assignments, etc. — see `formulas.html`)
+    - **NEW: Compare-page similarity scoring** (`compare-similarity` /
+      FORMULAS.md §44 / legend "Profile tab → Similarity scoring formula").
+      Three open questions: (1) weights 25/30/45 across age/PPG/value —
+      should value carry more or less? (2) delta windows ±8 yrs / ±14 ppg /
+      ±4500 value — should they scale with positional cohort? (3) tier-band
+      thresholds 90/75/60 — should "Loose" (<60) be excluded entirely?
 - [ ] Visual polish pass after live use — typography balance, mobile
   viewport on each page, dark/light theme toggle on the new accordion.
   **Next session focus: mobile issues.**

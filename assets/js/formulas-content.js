@@ -1865,6 +1865,87 @@ MIN_PLAYERS_PER_SECTION = 10 Per analyst per position (sync-analysts)`,
           related: ['val-color']
         }
       ]
+    },
+
+    // ── 15. COMPARE PAGE ──────────────────────────────────────────────────
+    {
+      id: 'compare-page',
+      name: 'Compare page',
+      entries: [
+        {
+          id: 'compare-similarity',
+          label: '44. Player Comparison — similarity scoring (Top Profile Matches)',
+          location: 'compare.html (_pcSimilarity, _pcTopMatches, _pcMatchTier)',
+          provenance: { kind: 'hand-tuned', detail: 'Three-feature weighted composite + linear closeness curves. Weights + delta windows are placeholder constants chosen to land realistic deltas in the 0.4-1.0 range without specific analyst calibration.' },
+          inputs: 'target = FP_VALUES[targetName]; iterate FP_VALUES, score each candidate. Inputs per candidate: pos, age, ppg, valueSf (or value1qb when PC.fmt === "1qb"). Position is a HARD GATE — different position = 0 score, filtered out.',
+          math: `// Closeness scores (each 1.0 at identical, decaying linearly to 0)
+const ageScore = Math.max(0, 1 - Math.abs(tAge - oAge) / 8);    // 0 at ±8 yrs
+const ppgScore = Math.max(0, 1 - Math.abs(tPpg - oPpg) / 14);   // 0 at ±14 ppg
+const valScore = Math.max(0, 1 - Math.abs(tVal - oVal) / 4500); // 0 at ±4,500 value
+
+// Weighted composite
+const composite = ageScore * 0.25 + ppgScore * 0.30 + valScore * 0.45;
+const score     = Math.round(composite * 100);
+
+// Tier banding
+if (score >= 90) tier = { label: 'Elite',    color: 'var(--yellow)' };
+else if (score >= 75) tier = { label: 'Strong',   color: 'var(--green)'  };
+else if (score >= 60) tier = { label: 'Moderate', color: '#5b9bd5'       };
+else                  tier = { label: 'Loose',    color: 'var(--muted)' };`,
+          output: 'Integer 0-100 per candidate. Sorted descending; top 5 rendered as match cards. Each card carries the tier (Elite/Strong/Moderate/Loose) which drives the top-stripe color + photo ring + score text color.',
+          example: `Josh Allen (QB, age 29.0, ppg 21.8, valueSf 10,500) vs Patrick Mahomes (QB, age 30.1, ppg 20.4, valueSf 9,200):
+  ageScore = 1 - |29.0 - 30.1| / 8 = 1 - 0.1375 = 0.8625
+  ppgScore = 1 - |21.8 - 20.4| / 14 = 1 - 0.10 = 0.9000
+  valScore = 1 - |10500 - 9200| / 4500 = 1 - 0.2889 = 0.7111
+  composite = 0.8625 × 0.25 + 0.9000 × 0.30 + 0.7111 × 0.45 = 0.7156
+  score = round(0.7156 × 100) = 72  → MODERATE tier`,
+          whyThisNumber: 'Analyst input requested. Specifically: (1) The three weights (25/30/45) reflect a guess that dynasty value is the strongest correlate of "similar player." Should value carry more (60%+) or less (33% even split)? (2) The delta windows (±8 yrs / ±14 ppg / ±4500 value) were tuned so realistic veteran-vs-veteran pairs land in 0.4-1.0 closeness. Should rookies use a different window? Should the window scale with the player\'s positional cohort (e.g., RB1s vs RB30s have very different value spreads)? (3) The tier-band thresholds (90/75/60) are also placeholder — should "Elite" be 85+? Should "Loose" be excluded from the top-5 list entirely?',
+          notes: 'Position is a HARD GATE — _pcSimilarity returns 0 for cross-position candidates so they never appear in matches. Players with valueSf === 0 (no MVS coverage) are filtered out before scoring so the "no data" tail doesn\'t crowd the top 5. The Hayden Winks reference scored matches by "weighted route, alignment & coverage fingerprint" — that data is not available yet. When prospect-score / route / coverage metrics ship, _pcSimilarity adds new weighted inputs; the consumer API (returns 0-100 score + tier) stays unchanged. Card UI in .pc-match-card uses --tier-color custom prop driven by _pcMatchTier output.',
+          related: []
+        },
+        {
+          id: 'compare-adp-history',
+          label: '45. Per-year ADP aggregate (Dynasty Startup ADP tab)',
+          location: 'compare.html (_pcGetAdpForYear, _pcAdpHistoryChart, _pcAdpHistoryRow)',
+          provenance: { kind: 'site-convention', detail: 'Direct read from data/adp-{YYYY}.json files. No transformation beyond name-match via normalizePlayerName.' },
+          inputs: 'window.PC_ADP_BY_YEAR (loaded lazily from data/adp-{2022..2026}.json via _pcEnsureYearAdp). Each year file: byMonth[monthKey][draftType][] of player records. Format toggle picks draftType = "startup_sf" or "startup_1qb".',
+          math: `// For each year 2022..2026, look up the target player in the "ALL"
+// month aggregate of the active format's startup draft type:
+const yearFile = window.PC_ADP_BY_YEAR[year];
+const draftType = (PC.fmt === '1qb') ? 'startup_1qb' : 'startup_sf';
+const arr = yearFile.byMonth.ALL[draftType] || [];
+const found = arr.find(p => normalizePlayerName(p.name) === normalizePlayerName(targetName));
+return found ? { adp: found.adp, rank: found.rank, posRank: found.posRank } : null;`,
+          output: '{ adp, rank, posRank } per year, or null when the player wasn\'t in that year\'s aggregate (rookies before draft year).',
+          example: `Bijan Robinson (RB, drafted 2023) ADP history:
+  2022: null (didn't exist in dynasty drafts)
+  2023: { adp: 2.1, rank: 2, posRank: 'RB1' }
+  2024: { adp: 1.4, rank: 1, posRank: 'RB1' }
+  2025: { adp: 1.5, rank: 1, posRank: 'RB1' }
+  2026: { adp: 1.2, rank: 1, posRank: 'RB1' }`,
+          notes: 'The "ALL" month aggregate is the per-year average across all months that year. If "ALL" is missing (shouldn\'t be in production), falls back to the most recent calendar month available. Year cells below the chart show the rank directly; chart only renders when ≥ 2 valid years exist (rookies with single year skip the chart).',
+          related: ['compare-fp-value-history']
+        },
+        {
+          id: 'compare-fp-value-history',
+          label: '46. FP Dynasty Value snapshots (Value tab)',
+          location: 'compare.html (_pcFpValueHistory, _pcFpValueSection)',
+          provenance: { kind: 'site-convention', detail: 'Direct read from MVS_PAYLOAD.players[name].history. No transformation.' },
+          inputs: 'window.MVS_PAYLOAD.players[name].history (SF, default) or .history1qb (when PC.fmt === "1qb"). Each entry: { date: "YYYY-MM-DD", mvs: integer }.',
+          math: `const mvs = window.MVS_PAYLOAD.players[name];
+const series = (PC.fmt === '1qb') ? (mvs.history1qb || []) : (mvs.history || []);
+// Rendered directly as chart points: { value: p.mvs, label: \`\${p.date}: \${p.mvs.toLocaleString()}\` }
+// Stats row: PEAK = max(mvs). LOWEST = min(mvs). AVG = mean(mvs). CURRENT = series[-1].mvs.`,
+          output: 'Time-series array. Chart points + 4-tile summary stats row beneath.',
+          example: `Josh Allen MVS history (SF):
+  [{ date: '2026-01-10', mvs: 9649 },
+   { date: '2026-01-17', mvs: 10317 },
+   { date: '2026-03-22', mvs: 10500 }]
+  PEAK = 10500. LOWEST = 9649. AVG = 10155. CURRENT = 10500.`,
+          notes: 'MVS data coverage is typically Jan-May (~4-month window of daily-ish snapshots). Don\'t promise multi-year value history. PEAK / LOWEST / AVG / CURRENT tiles are color-stripe-coded (green / red / muted / yellow) — same _pcChartStats helper used by the ADP chart, just with yInvert = false here.',
+          related: ['compare-adp-history']
+        }
+      ]
     }
 
   ]

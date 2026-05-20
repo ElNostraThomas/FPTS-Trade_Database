@@ -1022,4 +1022,76 @@ window.LegendContent = {
     ],
   },
 
+  // ════════════════════════════════════════════════════════════════════════
+  'compare': {
+    title: 'Player Comparison',
+    blurb: 'Per-player profile + similarity surface. Hero "trading-card" composition at top (photo, position pill, archetype, height/weight/value/PPG). Below: sticky 6-tab navigation — Profile · ADP · Heatmap · Value · Career · Trades — each tab renders one focused panel. Profile tab also carries the Top Profile Matches row (5 similar-player cards with 0-100 match scores). URL hash drives state (#player=, &tab=, &fmt=). Most data sources are reused from elsewhere on the site (data-bootstrap globals, player-panel renderers, heatmap module) — compare.html\'s own logic is mainly the layout shell, the chart helper, and the similarity-scoring formula.',
+    sections: [
+      {
+        name: 'Hero card (always-visible context)',
+        items: [
+          { label: 'Trading-card composition (.pc-card)', what: 'Left side of the hero row. Header strip (position pill + year + team-logo coin) → square player photo → archetype eyebrow row → 6-cell mini stat grid → footer (height | years exp | weight).', source: 'compare.html _pcRenderProfile + _pcMiniGridForPosition. Photo from sleepercdn.com/content/nfl/players/thumb/{sid}.jpg.', values: '6-cell mini grid is position-aware: QB shows CMP%/PASS Y-G/PASS TD/RUSH Y-G; RB shows ATT-G/RUSH Y-G/REC-G/REC Y-G; WR/TE show TGT-G/REC-G/REC Y-G. The remaining 2 cells in each are em-dash placeholders awaiting prospect/route data.', notes: 'Card border-color and footer accent driven by --pos-color custom prop (QB red, RB green, WR blue, TE yellow). Archetype value is currently FP_VALUES.posRank — marked data-pending="archetype-classifier" so the real classifier swaps in cleanly when ready.' },
+          { label: 'Info column + metric tiles', what: 'Right side of the hero. "NOW PROFILING" eyebrow, big Kanit-italic name, "\'25 Season · POS · TEAM" subtitle, then a 4x2 tile grid: Height / Weight / BMI / Age / Yrs Exp / Pos Rank / FP Value (SF or 1QB) / Current PPG. Below: two small muted links — "Pick a different player" + "Open full player drawer".', source: 'FP_VALUES[name] (pos/team/age/posRank/ppg/value/valueSf/value1qb) + window.SLEEPER_PLAYERS_DB[sid] (height/weight/years_exp/age) loaded lazily from /players/nfl via _pcEnsureSleeperDb.', values: 'BMI derived = (weight × 703) / (height²). Height stored in inches by Sleeper; reformatted to ft\'in" via _pcFmtHt.', notes: 'Tiles awaiting external data render with em-dash + data-pending attribute + small "pending data" caption. Layout stable so future-data wire-ups are class-only swaps.' },
+        ],
+      },
+      {
+        name: 'Tab bar (sticky sub-navigation)',
+        items: [
+          { label: 'Tabs allowlist', what: '6-tab horizontal bar pinned at top: 60px (desktop) / 48px (mobile) below the topnav. Order: Profile · ADP · Heatmap · Value · Career · Trades.', source: 'PC_TABS array in compare.html. Tab state persisted to URL hash (&tab=). _pcSetTab + hashchange listener trigger re-render.', values: 'profile (default) | adp | heatmap | value | career | trades', notes: 'Allowlist guards parsing — unknown tab keys fall back to profile. Each tab\'s panel is rendered fresh on switch (Career and Heatmap each have a post-innerHTML hook to mount their sub-renderers).' },
+        ],
+      },
+      {
+        name: 'Profile tab',
+        items: [
+          { label: 'Background tiles', what: '8-tile grid sourced from Sleeper /players/nfl record + FP_VALUES. Shows Class of \'YY (rookie year) / College / Born / Hometown / High School / Jersey / Status / Draft Pick (em-dash pending NFL-draft data source).', source: '_pcBackgroundTiles(data). Sleeper player record fields: metadata.rookie_year, college, birth_date, birth_city + birth_state, high_school, number, status. FP_VALUES.injury supplements Status.', values: '—', notes: 'Sleeper /players/nfl does NOT expose draft round/pick — only metadata.rookie_year. "Draft Pick" tile is em-dash + data-pending="nfl-draft-round-pick" until a different data source ships.' },
+          { label: 'Top Profile Matches row', what: '5 cards showing players most similar to the profiled player. Each card has a 3px top-stripe in the tier color, #1-#5 rank top-left, big match score (0-100) top-right with tier label below, circular photo with tier-colored ring, name + pos pill + team + posRank, and a mini stats grid (Age | PPG | SF/1QB value). Click any card → pivots the hero to that player.', source: '_pcRenderMatches → _pcTopMatches(name, 5) → _pcSimilarity per candidate. Position is a hard gate; players with no MVS coverage (value === 0) filtered out.', values: '90+ Elite (--yellow). 75-89 Strong (--green). 60-74 Moderate (#5b9bd5). <60 Loose (--muted).', notes: 'See "Similarity scoring formula" entry below for the full math. Format toggle (SF/1QB) switches the value column used in scoring + the displayed value per card.' },
+          { label: 'Similarity scoring formula', what: 'Weighted composite of three normalized closeness scores. Position match is a hard gate (cross-position → 0). Inside same position, the composite is: 45% FP dynasty value + 30% current PPG + 25% age. Each closeness score is 1.0 at identical values, decaying linearly to 0 over a tuned delta range.', source: '_pcSimilarity(target, other) in compare.html. Inputs: FP_VALUES[name].{pos, age, ppg, valueSf, value1qb, value}.', values: 'Delta windows (closeness → 0 when delta hits these): value ±4,500. ppg ±14. age ±8 years. Weights tuned so realistic deltas land in 0.4-1.0 (most candidates 60-80 score range).', notes: '⚠️ ANALYST INPUT REQUESTED on the weights AND the delta windows. The Hayden-Winks reference scored matches by "weighted route, alignment & coverage fingerprint" — we don\'t have that data yet, so the current scoring is a financial+production proxy. When prospect-score / route / coverage data lands, _pcSimilarity gets new weighted inputs without changing the consumer API. Update BOTH formulas-content.js entry "compare-similarity" AND docs/FORMULAS.md entry §44 when adjusting.' },
+        ],
+      },
+      {
+        name: 'ADP tab',
+        items: [
+          { label: 'Dynasty Startup ADP chart', what: 'Inline-SVG line chart showing per-year overall startup ADP rank, 2022-2026. Y axis inverted (rank #1 at top). 5 evenly-spaced Y-axis labels, dashed gridlines, gradient fill under, HTML-overlay floating data labels above each dot. Below the chart: PEAK / LOWEST / AVG / CURRENT 4-tile summary row.', source: '_pcAdpHistoryChart + _pcChart + _pcChartStats in compare.html. Data from window.PC_ADP_BY_YEAR[year].byMonth.ALL.{startup_sf or startup_1qb}, fetched lazily by _pcEnsureYearAdp from data/adp-{YYYY}.json files.', values: 'Per-year aggregate rank from the "ALL" month aggregate (mean across all months that year). Format toggle picks startup_sf vs startup_1qb.', notes: 'Players who didn\'t exist in earlier years (rookies) show em-dash for those years. Chart only renders when ≥ 2 valid data points exist; otherwise just the numeric year-cell row.' },
+          { label: 'Per-year cells', what: '5-cell horizontal grid below the chart showing the precise overall rank + positional rank per year.', source: 'Same data as the chart, rendered as named year-boxes. Border-left accent uses the position color (--pos-color custom prop).', values: 'Each cell: YYYY label + big "#N" rank + small posRank (e.g., "QB1"). Em-dash for missing years.', notes: 'Year cells redundant with the chart on purpose — they give a precise read for users who can\'t parse a chart at a glance.' },
+        ],
+      },
+      {
+        name: 'Heatmap tab',
+        items: [
+          { label: 'Pick-availability heatmap', what: 'Probability matrix showing how often the player is still on the board at each round × pick slot in real dynasty drafts. Cells colored by frequency — deeper red = more often available.', source: 'window.Heatmap.render(el, sleeperId) from assets/js/heatmap.js. Data from window.PICK_AVAILABILITY (data/pick-availability.json, top-300 ADP coverage). Same renderer as the player-panel drawer\'s Heatmap tab.', values: 'Cell value = % of drafts where the player was available at that slot. Coverage limited to top ~300 startup ADP (sub-300 players get a "isn\'t tracked" placeholder).', notes: 'window.PICK_AVAILABILITY_SOURCE flag flips between startup ("PICK_AVAILABILITY") and rookie ("PICK_AVAILABILITY_ROOKIE") datasets. compare.html doesn\'t set the flag — defaults to startup. Heatmap.render() only fires when PC.tab === "heatmap" (saves cycles when on other tabs).' },
+        ],
+      },
+      {
+        name: 'Value tab',
+        items: [
+          { label: 'Fantasy Points Dynasty Value chart', what: 'Time-series line chart of the player\'s MVS trade value snapshots over recent weeks. Same _pcChart helper as the ADP tab. Y axis is normal (not inverted) — higher = more valuable. X axis shows MMM-D date labels. Below the chart: PEAK / LOWEST / AVG / CURRENT 4-tile summary.', source: '_pcFpValueSection → _pcFpValueHistory(name) → window.MVS_PAYLOAD.players[name].history (SF) or .history1qb (1QB), each entry { date, mvs }.', values: 'Each snapshot is one row from the FantasyPoints dynasty data pull. Date range typically Jan-May (~4 months of daily snapshots). Values 0-12,000+ MVS units.', notes: 'When data is sparse (< 2 valid points), shows the dot only without a line. Empty state shows "No SF/1QB value history available" message.' },
+        ],
+      },
+      {
+        name: 'Career tab',
+        items: [
+          { label: 'Career Stats by Season', what: 'Per-season stat table 2021-2025 with position-aware columns. Click any year row to expand week-by-week splits for that season. Lifted directly from the player-panel.js drawer renderer — same UI, same data resolution path.', source: 'window.renderPlayerStats(containerId, player) from assets/js/player-panel.js. Reads window.STATS_DATA[name:normalized] (data suite) first, falls back to Sleeper /stats/nfl/player/{id} for years/players the suite doesn\'t cover.', values: 'QB cols: FPTS / GP / Pass Yds / Pass TD / INT / Cmp% / Att / Rush Yds / Rush TD / PPG. RB cols: FPTS / GP / Rush Yds / Rush Att / Rush TD / YPC / Rec / Rec Yds / Rec TD / PPG. WR + TE cols: similar receiving slice.', notes: 'compare.html mirrors global._currentPanelPlayer = { label, posKey } before calling so the renderer\'s "still the same player?" guard passes outside the drawer context. renderPlayerStats only fires when PC.tab === "career".' },
+        ],
+      },
+      {
+        name: 'Trades tab',
+        items: [
+          { label: 'Recent Trades panel', what: 'List of actual dynasty trades involving the profiled player. Each trade rendered as a 2-sided card with player photos + position badges + NFL team logos + format chips. Click any asset to drill into that player\'s drawer.', source: 'window._buildTradesFromMvs() + window.tradeCardHtml(t) from assets/js/player-panel.js. Builds the normalized trade list site-wide (dedupes by transaction_id), then filters to trades where the target player appears in t.players[].', values: 'Header shows "N trades found" eyebrow. Empty state when MVS_PAYLOAD has no recentTrades involving this player.', notes: 'Existing player-panel.css styles handle the card layout (.trade-card, .tc-*, .fmt-chip). No new CSS in compare.html for the trade cards themselves — only the outer card-styled wrapper (.pc-hist-trades-wrap).' },
+        ],
+      },
+      {
+        name: 'URL hash routing',
+        items: [
+          { label: 'Hash schema', what: 'compare.html state is fully URL-driven — sharing a hash reproduces the same view. Parsed on load + on hashchange; written on every state mutation.', source: '_pcParseHash + _pcWriteHash in compare.html.', values: 'mode=profile|table (table = phase 4+). fmt=sf|1qb. tab=profile|adp|heatmap|value|career|trades. player=Name+With+Plus+Spaces. players=A,B,C,D (table mode, phase 4).', notes: 'history.replaceState is used (no new history entry per tab swap) so the back button still works naturally.' },
+        ],
+      },
+      {
+        name: 'Format toggle (SF / 1QB)',
+        items: [
+          { label: 'Active format', what: 'Shared toggle in the page header. Drives which dynasty-value column is used everywhere: hero "FP Value SF/1QB" tile, ADP draft type (startup_sf vs startup_1qb), Value chart series (history vs history1qb), Matches scoring (valueSf vs value1qb), and the per-match-card displayed value.', source: 'PC.fmt + _pcSetFmt(fmt). Toggle UI in the page-header .pc-controls.', values: 'sf (default) | 1qb', notes: 'Format choice persisted in URL hash (&fmt=1qb). On format change, every tab re-renders so all displayed values/scores reflect the new format.' },
+        ],
+      },
+    ],
+  },
+
 };
