@@ -6,6 +6,62 @@ the operator manual see [`WORKFLOW.md`](WORKFLOW.md).
 
 ---
 
+## 2026-05-20 (twelfth session) — OBS polish, doctrine inversion, compare-page closeout
+
+12 substantive commits + 4 data-sync auto-commits, picking up immediately after session 11's UI overhaul ship. Two halves: a UI/visual iteration arc that tuned the just-shipped chrome to actual OBS-stream usage, plus a docs-driven closeout of every user-decidable analyst-input bullet from the compare-page punch list.
+
+### What shipped
+
+**Compare-page features:**
+- `459ffe8` — **Scoring toggle (§50)** — `compare.html` gets a 3rd toggle group in the page header alongside Mode (Profile/Table) and Format (SF/1QB). Four presets: PPR (default) / Half PPR / 6pt TD / TEP, wired through `SLEEPER.adjustStatsForLeague(stats, scoring)`. URL hash `?scoring=<key>` persistence. Position threaded per slot via `_pcPlayerPos(name)` so TEP fires only on TEs. Row-group titles reflect the active preset ("2025 Season Stats · Half PPR" etc.).
+- `493c427` — **Inline autocomplete for "+ Add comparison player"** — replaces the legacy `window.prompt()` popup with the same `.pc-search-*` autocomplete UX as the empty-state search. Click trigger → search input appears, debounced 60ms filter against `FP_VALUES`, excludes already-selected players, click result → adds player + re-renders to multi-card view. Esc / click-outside collapses.
+- `5e9272f` — **Promote inline search to full search bar** — when the user clicks the trigger, the entire secondary-link row hides and the search expands to a full-size input (14px / 12-16px padding matching empty-state styling) with widened dropdown (560px max). Clean visual focus; restores when closed.
+
+**Visual polish iteration:**
+- `7e15a42` — **Drop default zoom 1.75 → 1.25** — user found themselves Ctrl+wheel-zooming out at the session-11 1.75 default. Simpler 2-step ladder: `≥1100 → 1.25`, `≤1099 → 1.0`. OBS-readability gains from session 11 (lifted side gutters, tightened topnav, ADP fluid-fit) stay intact; only zoom changes.
+- `372f894` — **Invert text-on-bright-fill doctrine (white → black, both themes)** — the previous "WHITE text on every bright-colored fill" rule hurt readability on lighter pill colors (TE/yellow, WR/blue). Flipped to `color: #111111` on every bright fill. Light-mode `--pos-*-bg` tokens brightened to match dark-mode (so the same rule applies cleanly in both themes — no more dark-maroon QB pills in light mode). 19 files changed: position token redefinitions in `brand.css`, ~46 leaf CSS rules updated (`.nav-badge`, `.tier-badge.t-*`, `.mvs-vol-*`, `.lg-trigger`, `.icon-btn.active`, `.fpts-xpage-btn.primary`, `.ld-cell.{QB,RB,WR,TE,K,DEF}`, etc.), `BRANDING HARD RULES` block in `brand.css` rewritten, `CLAUDE.md` branding rule + badge recipe updated, `scripts/check-colors.py` `dim-text-on-bright-bg` detector removed (was enforcing the old doctrine).
+- `1c0b3a4` — **Restore ADP card aspect ratio at 1.25x zoom** — after the zoom drop, `minmax(88px, 1fr)` let cards stretch wider via 1fr expansion (height locked at 78px, width grew to 110-159 CSS); aspect drifted to 2:1. Restored taller-than-wide look via `height: 78px → 100px`, `minmax(88px, 130px)` cap on width, `justify-content: center` so the grid centers when content < container.
+- `ab7082d` — **ADP card content scaling + trend chip relocation** — headshot 32 → 40, team logo coin 26 → 32, logo img 19 → 24 (proportional to taller cards). Trend chip moved out of `.card-meta` (was squeezed to ~12-30 CSS px between the bottom-row coins) and INTO `.card-top` next to the overall-pick number where it has the full top row to render. `.card-meta` becomes a thin 2px spacer (still preserves uniform card heights for rookie years that lack trend data). Trend font 11 → 13, text-stroke 0.5px → 1px so colored arrows survive any pill bg.
+- `927884c` — **Dropdown widths + compare hero cap** — `custom-select.js` popup: `left:0; right:0` → `min-width: 100%; width: max-content; max-width: min(420px, 95vw)`; option-row `overflow: hidden; text-overflow: ellipsis` removed so labels like "2025" don't truncate to "20…". `compare.html` `.pc-search-name` lost its ellipsis too. `.pc-hero-row { max-width: 1100px; margin: 8px auto 0; }` caps multi-mode photos at ~530×330 (was ~600×600 on wide monitors after the lifted gutters).
+
+**Analyst-input punch list closeout (4 sections, all locked to current settings after product review):**
+- `127bdcc` — **§44 Compare similarity scoring** — weights 25 / 30 / 45 (age / PPG / FP value), delta windows ±8 yrs / ±14 PPG / ±4500 value, tier thresholds 90 / 75 / 60 / `<60`. All locked. Loose-tier matches stay in the top-5 list (muted styling signals "no great match" rather than hiding cards). Position-aware delta windows deferred until prospect/route data ships.
+- `ac816e3` — **§47 Best-in-row tie behavior** — unified across all three renderers. `_pcBestIdx` now returns `{ winners: number[], tied: boolean }` instead of a single integer. Table mode + Identity group + Profile multi-card metric table all apply the yellow `.is-tied` band when every valid cell shares the top value. Partial top ties (e.g. `[40, 40, 35]`) keep green `.is-best` on co-winners. New CSS for `.pc-table-row-cell.is-tied`. Strict equality only — no near-tied (within-5%) threshold.
+- `725a55f` — **§48 Last-N games window** — default = 4 (matches Underdog reference, reflects most-recent form). 8G / 16G still available via the in-page toggle. Playoff weeks EXCLUDED from the rolling window (regular-season-only keeps the "playing now" signal clean; playoff per-week stats stay visible in the Career-tab expanded year view).
+- `4c73112` — **§49 Multi-card metric comparison bands** — strict equality only, no near-tied threshold. Same call as §47. Tie behavior now fully unified across all four surfaces (Table mode rows + Identity group + multi metric-table) — the previous "behavioral difference" note in the FORMULAS doc is gone.
+
+### Diagnostic: OBS interactivity audit
+
+Mid-session the user asked for a full diagnostic to verify the site's click/interaction behavior in OBS Browser Source after all the sizing + color changes. Sweep verdict was **CLEAN**:
+- All `<select>` elements covered by `custom-select.js` (universal selector wraps every non-`.mobile-nav-select`, non-`.no-fpts-cs` select)
+- `iframe-scroll-fix.js` mousedown handler is gated on `e.button === 1` — never intercepts left-clicks
+- `pointer-events: none` only on decorative overlays (textures, headshot silhouettes, .ld-cell content)
+- Z-index 9999 only on the `_fp-loading` overlay which is `display:none`d on `fpts:data-ready` (and a few legend backdrops)
+- No bright-bg + white-text leftovers in production code (1 false-positive in `docs/analyst-heuristics-review.html` — out of scope)
+
+User to verify in OBS tech test later. Per-page punch list captured in conversation (not codified) for the walkthrough.
+
+### Cache token state at session close
+
+- `brand.css ?v=1782600000` — unchanged from text-color inversion commit
+- `mvs-extras.css ?v=1782600000` — same
+- `heatmap.css ?v=1782600000` — same
+- `legend.css ?v=1782600000` — same
+- `player-panel.css ?v=1782600000` — same
+- `custom-select.js ?v=1782700000` — dropdown width fix
+- `formulas-content.js ?v=1782800003` — bumped 4 times for §44/§47/§48/§49 doc updates
+- `legend-content.js ?v=1782900000` — bumped for §44 + best-in-row stale-entry fix
+
+### Audit
+
+`python scripts/check-colors.py` — CLEAN across 30 files after every commit. The `dim-text-on-bright-bg` detector was removed (it enforced the old doctrine that the inversion superseded); `opacity-on-pill-with-bright-bg` detector kept (independent of the rule change).
+
+### Memory
+
+No new persistent memories saved this session — design preferences and conventions captured in `docs/FORMULAS.md` + `assets/js/legend-content.js` + `assets/js/formulas-content.js` + `CLAUDE.md`.
+
+---
+
 ## 2026-05-20 (eleventh session) — UI overhaul for OBS Browser Source readability
 
 Site-wide rendering envelope re-tuned in **one bundled commit** (`fae0818`) after iterative A/B with the user on an actual OBS Browser Source canvas. The session opened as a "Production view toggle" but consolidated to a single default mid-session — the new design dominates the old in every relevant context (direct browser + OBS), so a permanent toggle would be maintenance burden, not UX gain.

@@ -12,7 +12,61 @@ This file is the **resume-where-we-left-off** doc.
 
 ---
 
-## Where we are (end of 2026-05-20 — eleventh session)
+## Where we are (end of 2026-05-20 — twelfth session)
+
+**OBS polish + doctrine inversion + compare-page closeout.** 12 substantive commits picking up immediately after session 11's UI overhaul ship — tuned the chrome to actual OBS-stream usage and locked every user-decidable analyst-input bullet on the compare page.
+
+### What shipped
+
+- **Default zoom dropped 1.75 → 1.25** (`7e15a42`). Session 11's 1.75 felt too aggressive at typical viewing distance. Simpler 2-step adaptive ladder: `≥1100 → 1.25`, `≤1099 → 1.0`. All other session-11 OBS-readability gains (lifted gutters, tightened topnav, ADP fluid-fit) stay intact.
+
+- **Text-on-bright-fill doctrine INVERTED: white → black, both themes** (`372f894`). The previous "white on bright" rule hurt readability on lighter pill colors (TE/yellow, WR/blue). Flipped to `color: #111111` on every bright fill. Light-mode `--pos-*-bg` tokens brightened to match dark-mode so the rule applies consistently. 19 files changed: token redefinitions, ~46 leaf CSS rules updated, `BRANDING HARD RULES` block rewritten, `CLAUDE.md` branding rule + badge recipe inverted, lint detector for old doctrine removed.
+
+- **ADP Box view card polish** (`1c0b3a4`, `ab7082d`). Card height 78 → 100 + width capped at 130 CSS via `minmax(88px, 130px)` so cards stay taller-than-wide on wide monitors. Headshot 32 → 40, team coin 26 → 32 (proportional to taller cards). **Trend chip relocated** out of `.card-meta` (was being squeezed to ~12-30 CSS px between the bottom-row coins, rendering invisible) into `.card-top` next to the overall-pick number — full top-row width available, arrows visible on every position.
+
+- **Compare page features**:
+  - **Scoring toggle (§50)** (`459ffe8`) — 3rd toggle group in the page header. 4 presets: PPR / Half PPR / 6pt TD / TEP. Wired through `SLEEPER.adjustStatsForLeague`; position threaded so TEP fires only on TEs.
+  - **"+ Add comparison player" inline autocomplete** (`493c427`, `5e9272f`) — replaces the legacy `window.prompt()` popup with a full-size search input that takes over the secondary-link row when activated. Wide dropdown (560px max) with full player names, click-outside or Esc to close.
+
+- **Dropdown + compare hero fixes** (`927884c`). `custom-select.js` popup widths now `min-width: 100%; width: max-content; max-width: min(420px, 95vw)` so option labels render in full (YEAR dropdown stopped truncating "2025" to "20…"). `.pc-search-name` dropped its ellipsis. `.pc-hero-row { max-width: 1100px; margin: 8px auto 0; }` caps multi-mode photos at ~530×330 (was ~600+ on wide monitors after lifted gutters).
+
+### Analyst-input punch list — ALL compare-page bullets CLOSED
+
+- ✅ **§44 Compare similarity scoring** (`127bdcc`) — weights 25/30/45, delta windows ±8/±14/±4500, tier thresholds 90/75/60. Loose-tier kept in top-5 with muted styling.
+- ✅ **§47 Best-in-row tie behavior** (`ac816e3`) — `_pcBestIdx` refactored to return `{ winners, tied }`. Table mode + Identity group + multi metric-table all use yellow `.is-tied` band for full ties. Partial top ties keep green co-winners. Strict equality, no near-tied threshold.
+- ✅ **§48 Last-N window default** (`725a55f`) — default 4 games (Underdog convention), playoff weeks excluded.
+- ✅ **§49 Multi-card metric comparison bands** (`4c73112`) — strict equality only, unified with §47.
+- ✅ **§50 Compare-page scoring toggle** — shipped earlier (`459ffe8`).
+
+### Diagnostic: OBS interactivity audit
+
+Mid-session sweep verified site-wide click parity in OBS Browser Source. Result: **CLEAN**. All `<select>` elements covered by `custom-select.js`; `iframe-scroll-fix.js` only intercepts middle-button (left-clicks pass through); `pointer-events: none` only on decorative overlays; z-index 9999 only on the `_fp-loading` overlay (auto-removed on `fpts:data-ready`). Per-page OBS walkthrough deferred to user's tech test.
+
+### Cache tokens at session close
+
+- `custom-select.js?v=1782700000` (dropdown width fix)
+- `formulas-content.js?v=1782800003` (bumped 4× for §44/§47/§48/§49 doc updates)
+- `legend-content.js?v=1782900000` (§44 + best-in-row stale-entry fix)
+- All other shared modules unchanged from session 11
+
+### What's queued next (external-blocked or deferred)
+
+1. Prospect-score classifier — waiting on prospect/route/coverage data
+2. NFL draft round/pick — Sleeper API doesn't expose
+3. 1QB scrape `SEED_USERS` expansion — needs user-supplied 1QB-active Sleeper usernames
+4. 14 original heuristics in `formulas.html` — external-blocked on analyst recommendations
+5. `my-leagues` inline-style cleanup — deferred (diminishing returns)
+6. Visual polish — open-ended
+
+**Audit:** `python scripts/check-colors.py` — CLEAN across 30 files. The `dim-text-on-bright-bg` lint detector was removed alongside the doctrine inversion (it enforced the old rule).
+
+**Tech-test follow-up:** user to load each page in OBS Browser Source per the punch list captured in session conversation and report any layout / interaction issues that surface there.
+
+See [`docs/CHANGES.md`](docs/CHANGES.md) 2026-05-20 (twelfth session) for full per-commit detail.
+
+---
+
+## Where we were (end of 2026-05-20 — eleventh session)
 
 **Site-wide UI overhaul shipped + pushed to GitHub Pages.** One bundled commit (`fae0818`) replaced the long-standing 1.25x zoom + 1440px max-width chrome with an adaptive design sized for OBS Browser Source readability.
 
@@ -1184,40 +1238,60 @@ Nothing structural. Polish / nice-to-haves only:
 Paste this as the first message:
 
 ```
-Read README.md for current state. End-of-2026-05-20 (eleventh session):
-- UI OVERHAUL SHIPPED — one bundled commit fae0818 replaced the long-
-  standing 1.25x zoom + 1440px max-width chrome with an adaptive design
-  sized for OBS Browser Source readability. Pushed to origin/main.
-  * body { zoom } stepped at 1600/1300/1100/768 viewport breakpoints
-    (1.75 / 1.5 / 1.25 / 1.0 / mobile 1.0)
-  * .topnav / .page / footer have max-width: none + padding-inline: 32px
-    on desktop. Mobile keeps the original 1440 cap.
-  * ADP 12-team grid fluid-fits: cellMin=88, headW=24, minWidth=0 with
-    minmax(88, 1fr) flex expansion. All 12 cols fit any viewport at 1.75x.
-    8/10/14-team unchanged.
-  * Topnav adaptive content-shedding: FRONT OFFICE tag hides ≤1599;
-    Updated stamp hides ≤1299; inline nav-links collapse into the existing
-    mobile-nav-select dropdown ≤1099. Logo SVG shrinks 20→18→16. All
-    html-prefixed selectors that beat 5 inline-duplicate .topnav blocks
-    via specificity (no per-page edits needed).
-- PHASE 0 CALIBRATION SCAFFOLD REMOVED — view-mode.js + html.production-
-  view selector layer + setProdScale console helpers all gone. Single
-  default, no toggle. Grep confirms zero leftover references.
-- PLAYER COMPARISON (session 10) — compare.html still the headline
-  feature page, 9 commits / 8 phases shipping Profile + Table modes
-  with side-by-side cards and similarity scoring (45/30/25 weights on
-  FP value / PPG / age).
-- Cache tokens at session close: brand.css ?v=1782400010 across all 10
-  consumers. Other shared module tokens unchanged from session 10.
-- Color audit CLEAN across 30 files (was 31; view-mode.js deleted).
+Read README.md for current state. End-of-2026-05-20 (twelfth session):
+- OBS POLISH ITERATION — picked up after session 11's UI overhaul ship
+  and tuned to actual OBS-stream usage. Key shifts:
+  * Default zoom dropped 1.75 → 1.25 (7e15a42). Adaptive ladder
+    simplified: ≥1100 → 1.25, ≤1099 → 1.0. All other session-11
+    OBS-readability wins (lifted gutters, tightened topnav, ADP
+    fluid-fit) stayed intact.
+  * TEXT-ON-BRIGHT-FILL DOCTRINE INVERTED (372f894): white → BLACK
+    on every bright fill, both themes. Light-mode --pos-*-bg tokens
+    brightened to match dark-mode. ~46 leaf rules updated;
+    BRANDING HARD RULES block in brand.css + CLAUDE.md branding rule
+    + badge recipe inverted. dim-text-on-bright-bg lint detector
+    removed from scripts/check-colors.py (it enforced the old rule).
+  * ADP CARD POLISH (1c0b3a4, ab7082d): height 78→100, max width
+    capped at 130 CSS via minmax(88,130), headshot 32→40, coin 26→32.
+    TREND CHIP RELOCATED out of .card-meta (was squeezed invisible
+    between the bottom-row coins) into .card-top next to the
+    overall-pick number where it has full top-row width.
+  * COMPARE PAGE: Scoring toggle shipped (459ffe8) — 4 presets PPR
+    Half-PPR 6pt-TD TEP wired through SLEEPER.adjustStatsForLeague.
+    "+ Add comparison player" search promoted from prompt() to
+    full inline search bar that takes over the link row when active.
+  * DROPDOWN FIXES (927884c): custom-select.js popups grow to fit
+    widest option (min-width:100%; width:max-content;
+    max-width:min(420px,95vw)). compare-hero capped at max-width:1100px
+    so multi-mode photos don't dominate wide monitors.
+- ANALYST-INPUT PUNCH LIST CLEARED for the compare page:
+  * §44 similarity — weights 25/30/45 locked; tier thresholds 90/75/60
+    locked; Loose-tier kept in top-5 with muted styling. 127bdcc
+  * §47 best-in-row tie — _pcBestIdx now returns {winners,tied}; tie
+    behavior unified across Table mode + Identity group + multi
+    metric-table (all use yellow .is-tied band for full ties; partial
+    top ties keep green co-winners). Strict equality only. ac816e3
+  * §48 Last-N — default 4 games locked; playoff weeks excluded. 725a55f
+  * §49 multi-card metric — strict equality only, same as §47. 4c73112
+  * §50 Scoring toggle — shipped (see compare-page section above).
+- OBS interactivity audit run mid-session: CLEAN. All <select>
+  elements wrapped by custom-select.js; iframe-scroll-fix.js only
+  intercepts middle-button (left-clicks pass through); pointer-events:
+  none only on decorative overlays. No click-blocking regressions.
+- Cache tokens at session close: custom-select.js ?v=1782700000;
+  formulas-content.js ?v=1782800003; legend-content.js ?v=1782800000;
+  brand/mvs-extras/heatmap/legend/player-panel.css all ?v=1782600000.
+- Color audit CLEAN across 30 files.
 
 Confirm by running `git log --oneline -25`.
 
 PUNCH LIST (present this to the user at session start — don't act
 on any item without explicit user direction):
-  1. compare.html refinements — open analyst questions in FORMULAS.md
-     §§44, 47, 48, 49, 50 (similarity weights, tie behavior, Last-N
-     window default, near-tied bands, per-page scoring toggle).
+  1. OBS TECH-TEST FOLLOW-UPS — user planned a tech test of OBS
+     Browser Source on all 9 pages after session 12 close. If issues
+     surfaced there, address them first. The static-analysis sweep
+     in session 12 found no regressions; only real-OBS issues remain
+     possible.
   2. Prospect-score classifier — replaces _pcArchetypeLabel(fp)
      placeholder when prospect/route/coverage data ships. Tile marked
      data-pending="archetype-classifier".
@@ -1226,7 +1300,8 @@ on any item without explicit user direction):
   4. 1QB scrape SEED_USERS — external-blocked on user-supplied 1QB-active
      Sleeper usernames.
   5. Analyst feedback loop — external-blocked on analyst recommendations
-     for the 14 original heuristics + the new compare-similarity formula.
+     for the 14 original heuristics in formulas.html. (All compare-page
+     analyst-input bullets are now LOCKED via session 12 product review.)
   6. my-leagues inline-style cleanup — deferred (~46 remaining are the
      --bar-width / display:none design end-state).
   7. Visual polish — open-ended; surface specific issues as they come up.
