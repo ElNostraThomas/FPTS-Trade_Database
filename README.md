@@ -1067,10 +1067,14 @@ Nothing structural. Polish / nice-to-haves only:
       `compare-multi-metric-comparison`). Should the comparison emit a
       "near-tied" yellow band for values within 5% of each other, instead
       of strict equality only?
-    - **Compare-page scoring variants** (FORMULAS.md §50 / `compare-std-fpts`).
-      Currently hardcoded full-PPR + 4-pt pass TDs. Should compare.html
-      get its own Scoring toggle (3rd toggle group in page header) wired
-      to `SLEEPER.adjustStatsForLeague(stats, scoring)`?
+    - ~~**Compare-page scoring variants** (FORMULAS.md §50)~~ — **SHIPPED
+      2026-05-20 (twelfth session).** `compare.html` now has a Scoring
+      toggle in the page header with 4 presets: PPR (default), Half PPR,
+      6pt TD, TEP. Wired through `SLEEPER.adjustStatsForLeague(stats,
+      scoring)`; URL hash persistence via `?scoring=<key>`. Position
+      threaded per slot via `_pcPlayerPos(name)` so TEP fires only on TEs.
+      Row-group titles reflect the active preset. PPC + combined variants
+      (TEP + 6pt TD) deferred — easy to add to PC_SCORING if requested.
 - [ ] Visual polish pass after live use — typography balance, mobile
   viewport on each page, dark/light theme toggle on the new accordion.
   **Next session focus: mobile issues.**

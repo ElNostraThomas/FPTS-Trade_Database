@@ -62,7 +62,7 @@
 <script src="assets/js/mvs-extras.js?v=1778642255"></script>
 <script src="assets/js/player-articles.js?v=1778680034"></script>
 <script src="assets/js/heatmap.js?v=1778670000"></script>
-<script src="assets/js/legend-content.js?v=1781100000"></script>
+<script src="assets/js/legend-content.js?v=1782500000"></script>
 <script src="assets/js/legend.js?v=1778949514"></script>
 <script src="assets/js/team-helpers.js?v=1778680002"></script>
 <script src="assets/js/player-panel.js?v=1781200000" defer></script>
@@ -1329,6 +1329,13 @@
           <button class="pc-toggle-btn is-active" data-fmt="sf" onclick="_pcSetFmt('sf')">SF</button>
           <button class="pc-toggle-btn" data-fmt="1qb" onclick="_pcSetFmt('1qb')">1QB</button>
         </div>
+        <div class="pc-control-group">
+          <span class="pc-control-label">Scoring</span>
+          <button class="pc-toggle-btn is-active" data-scoring="ppr" onclick="_pcSetScoring('ppr')">PPR</button>
+          <button class="pc-toggle-btn" data-scoring="half" onclick="_pcSetScoring('half')">Half PPR</button>
+          <button class="pc-toggle-btn" data-scoring="td6" onclick="_pcSetScoring('td6')">6pt TD</button>
+          <button class="pc-toggle-btn" data-scoring="tep" onclick="_pcSetScoring('tep')">TEP</button>
+        </div>
       </div>
     </div>
   </div>
@@ -1368,6 +1375,7 @@
   const PC = {
     mode: 'profile',       // 'profile' | 'table'
     fmt: 'sf',             // 'sf' | '1qb'
+    scoring: 'ppr',        // 'ppr' | 'half' | 'td6' | 'tep' — see PC_SCORING
     // Unified player slot list. Used by BOTH modes:
     //   Profile mode: 0 = empty/search state. 1 = single-player layout
     //                 (current). 2-3 = side-by-side compressed cards.
@@ -1385,6 +1393,25 @@
   };
   const PC_TABS = ['profile', 'adp', 'heatmap', 'value', 'career', 'trades'];
   const PC_GAMES = [4, 8, 16];
+  // Scoring presets fed to SLEEPER.adjustStatsForLeague(stats, scoring) so the
+  // FPTS row + per-game averages respond to the Scoring toggle in the page
+  // header. Field names match Sleeper's scoring_settings convention:
+  //   rec          — PPR multiplier (1.0 = full PPR, 0.5 = half, 0 = std)
+  //   pass_td      — pass-TD points (4 default; 5/6 common bonus)
+  //   bonus_rec_te — TEP bonus per TE reception (typically 0.5)
+  // PPR is the default; other dynasty variants are one button-tap away.
+  const PC_SCORING = {
+    ppr:  { rec: 1,   pass_td: 4 },
+    half: { rec: 0.5, pass_td: 4 },
+    td6:  { rec: 1,   pass_td: 6 },
+    tep:  { rec: 1,   pass_td: 4, bonus_rec_te: 0.5 },
+  };
+  const PC_SCORING_LABELS = {
+    ppr:  'PPR',
+    half: 'Half PPR',
+    td6:  '6pt TD',
+    tep:  'TEP',
+  };
 
   // ─── URL hash routing ──────────────────────────────────────────────
   function _pcParseHash() {
@@ -1393,6 +1420,8 @@
     const p = new URLSearchParams(h);
     PC.mode = p.get('mode') === 'table' ? 'table' : 'profile';
     PC.fmt  = p.get('fmt')  === '1qb'   ? '1qb'   : 'sf';
+    const sc = p.get('scoring');
+    PC.scoring = (sc && PC_SCORING[sc]) ? sc : 'ppr';
     const t = p.get('tab');
     PC.tab  = PC_TABS.indexOf(t) >= 0 ? t : 'profile';
     const g = parseInt(p.get('games'), 10);
@@ -1426,6 +1455,7 @@
     const p = new URLSearchParams();
     if (PC.mode !== 'profile') p.set('mode', PC.mode);
     if (PC.fmt  !== 'sf')      p.set('fmt',  PC.fmt);
+    if (PC.scoring !== 'ppr')  p.set('scoring', PC.scoring);
     if (PC.tab  !== 'profile') p.set('tab',  PC.tab);
     if (PC.games !== 4)        p.set('games', String(PC.games));
     // Prefer `player=` for clean single-player URLs (back-compat with
@@ -1651,6 +1681,21 @@
     PC.fmt = fmt;
     _pcWriteHash();
     _pcRender();
+  }
+
+  function _pcSetScoring(scoring) {
+    if (!PC_SCORING[scoring]) return;
+    PC.scoring = scoring;
+    _pcWriteHash();
+    _pcRender();
+  }
+
+  // Position lookup for the active player slot. Used by _pcStdFpts so TEP
+  // (bonus_rec_te) fires only when the player is a TE.
+  function _pcPlayerPos(name) {
+    if (!name) return null;
+    const fp = (window.FP_VALUES || {})[name];
+    return fp ? (fp.pos || fp.position || null) : null;
   }
 
   function _pcSetTab(tab) {
@@ -2647,10 +2692,20 @@
 
   // ─── Stat helpers for the row groups ──────────────────────────────
   // Full PPR + 4-pt pass TD baseline. Mirrors the data-suite's neutral
-  // scoring overlay used by renderPlayerStats; intentionally simple here
-  // so it's auditable in one place.
-  function _pcStdFpts(s) {
+  // Scoring overlay used by the Season + Last-N stat row groups. Delegates
+  // to SLEEPER.adjustStatsForLeague so the FPTS row + per-game averages
+  // respond to the Scoring toggle in the page header. `pos` is injected
+  // into the stats record so TEP (bonus_rec_te) fires only for TEs.
+  // Falls back to inline full-PPR / 4pt-TD if SLEEPER isn't loaded yet.
+  function _pcStdFpts(s, pos) {
     if (!s) return 0;
+    if (window.SLEEPER && typeof window.SLEEPER.adjustStatsForLeague === 'function') {
+      const scoring = PC_SCORING[PC.scoring] || PC_SCORING.ppr;
+      const enriched = pos ? Object.assign({}, s, { pos: pos }) : s;
+      const out = window.SLEEPER.adjustStatsForLeague(enriched, scoring);
+      return (out && typeof out.fantasyPts === 'number') ? out.fantasyPts : 0;
+    }
+    // Defensive fallback — full PPR + 4pt TD baseline.
     return (Number(s.passYards)  || 0) * 0.04
          + (Number(s.passTd)     || 0) * 4
          - (Number(s.passInts)   || 0) * 2
@@ -2696,7 +2751,7 @@
   function _pcSeasonStatRows() {
     return [
       { key: 'games',      label: 'Games',      mode: 'max', perGame: false, get: s => s.games || 0 },
-      { key: 'fpts',       label: 'FPTS',       mode: 'max', perGame: true,  get: s => _pcStdFpts(s) },
+      { key: 'fpts',       label: 'FPTS',       mode: 'max', perGame: true,  get: (s, pos) => _pcStdFpts(s, pos) },
       { key: 'passYards',  label: 'Pass Yds',   mode: 'max', perGame: true,  get: s => s.passYards || 0 },
       { key: 'passTd',     label: 'Pass TD',    mode: 'max', perGame: true,  get: s => s.passTd || 0 },
       { key: 'passInts',   label: 'INT',        mode: 'min', perGame: true,  get: s => s.passInts || 0 },
@@ -2787,8 +2842,9 @@
     while (seasons.length < 4) seasons.push(null);
 
     const rowDefs = _pcSeasonStatRows();
+    const positions = PC.players.map(n => _pcPlayerPos(n));
     const rows = rowDefs.map(def => {
-      const values = seasons.map(s => s ? def.get(s) : null);
+      const values = seasons.map((s, i) => s ? def.get(s, positions[i]) : null);
       // Skip the row if every player is null/zero
       const anyNonZero = values.some(v => v != null && v !== 0);
       if (!anyNonZero) return '';
@@ -2798,7 +2854,7 @@
 
     return `
       <div class="pc-table-rowgroup">
-        <div class="pc-table-rowgroup-title">${year} Season Stats · Full PPR</div>
+        <div class="pc-table-rowgroup-title">${year} Season Stats · ${PC_SCORING_LABELS[PC.scoring] || 'PPR'}</div>
         ${rows || `<div class="pc-table-row"><div class="pc-table-row-label">No ${year} stats</div><div class="pc-table-row-cell is-empty" style="grid-column:2 / -1">No season data for any selected player.</div></div>`}
       </div>`;
   }
@@ -2811,8 +2867,9 @@
 
     const games = aggs.map(a => a && a.games ? a.games : null);
     const rowDefs = _pcSeasonStatRows().filter(d => d.perGame); // skip "Games" row
+    const positions = PC.players.map(n => _pcPlayerPos(n));
     const rows = rowDefs.map(def => {
-      const totals = aggs.map(a => a ? def.get(a) : null);
+      const totals = aggs.map((a, i) => a ? def.get(a, positions[i]) : null);
       const perGame = totals.map((t, i) => {
         if (t == null || aggs[i] == null) return null;
         const g = aggs[i].games || 0;
@@ -2830,7 +2887,7 @@
 
     return `
       <div class="pc-table-rowgroup">
-        <div class="pc-table-rowgroup-title">Last ${n} Games · Per-Game · ${_pcCurrentSeason()} Season</div>
+        <div class="pc-table-rowgroup-title">Last ${n} Games · Per-Game · ${_pcCurrentSeason()} Season · ${PC_SCORING_LABELS[PC.scoring] || 'PPR'}</div>
         ${gamesRow}
         ${rows || `<div class="pc-table-row"><div class="pc-table-row-label">No splits</div><div class="pc-table-row-cell is-empty" style="grid-column:2 / -1">No weekly data in the last ${n} games for any selected player.</div></div>`}
       </div>`;
@@ -3233,6 +3290,9 @@
     });
     document.querySelectorAll('.pc-toggle-btn[data-fmt]').forEach(b => {
       b.classList.toggle('is-active', b.dataset.fmt === PC.fmt);
+    });
+    document.querySelectorAll('.pc-toggle-btn[data-scoring]').forEach(b => {
+      b.classList.toggle('is-active', b.dataset.scoring === PC.scoring);
     });
     if (PC.mode === 'profile') {
       if (PC.players.length === 0)      _pcRenderEmpty();

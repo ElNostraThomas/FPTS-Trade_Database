@@ -2035,32 +2035,31 @@ If player only has 3 played weeks, returns { games: 3, ... }. The per-game row t
         },
         {
           id: 'compare-std-fpts',
-          label: '50. Standard fantasy points scoring (_pcStdFpts)',
-          location: 'compare.html (_pcStdFpts, used by Table-mode FPTS row + multi Career table)',
-          provenance: { kind: 'hand-tuned', detail: 'Neutral full-PPR + 4-pt pass TD baseline. Mirrors the data-suite default scoring used by renderPlayerStats.' },
-          inputs: 's — a STATS_DATA record (season totals or week totals; both share the same numeric-key shape so the function is summable across either).',
-          math: `function _pcStdFpts(s) {
+          label: '50. Compare-page scoring overlay (_pcStdFpts → SLEEPER.adjustStatsForLeague)',
+          location: 'compare.html (_pcStdFpts, called from _pcSeasonStatRows FPTS row; consumed by Table mode Season Stats + Last-N Games groups)',
+          provenance: { kind: 'hand-tuned', detail: 'Delegates to the shared SLEEPER.adjustStatsForLeague overlay. Scoring preset is user-selectable via the Scoring toggle in the page header (PPR / Half PPR / 6pt TD / TEP).' },
+          inputs: 's — a STATS_DATA record (season totals or Last-N aggregate). pos — player position string, looked up via _pcPlayerPos(name); used to gate TEP so bonus_rec_te fires only when pos === "TE". PC.scoring — current preset key.',
+          math: `function _pcStdFpts(s, pos) {
   if (!s) return 0;
-  return (s.passYards  || 0) * 0.04
-       + (s.passTd     || 0) * 4
-       - (s.passInts   || 0) * 2
-       + (s.rushYards  || 0) * 0.1
-       + (s.rushTd     || 0) * 6
-       + (s.recYards   || 0) * 0.1
-       + (s.recTd      || 0) * 6
-       + (s.rec        || 0) * 1
-       - (s.fumbles    || 0) * 2;
-}`,
-          output: 'Fantasy points scalar (number).',
-          example: `Josh Allen 2024 season:
-  4,918 pass yds × 0.04 = 196.7
-  43 pass TDs × 4       = 172
-  -9 INTs × 2           = -18
-  201 rush yds × 0.1    = 20.1
-  2 rush TDs × 6        = 12
-  Total                 ≈ 382.8 FPTS`,
-          whyThisNumber: 'Analyst input requested. Should there be a per-page UI toggle for league-format variants (TEP / PPC / half-PPR / 6-pt pass TDs / kicker scoring)? Currently hardcoded to full PPR + 4-pt pass TDs. SLEEPER.adjustStatsForLeague(stats, scoring) in assets/js/sleeper-helpers.js already implements scoring-variant math — wiring a toggle on compare.html would mean adding a third toggle group (Mode / Format / Scoring) to the page header.',
-          notes: 'Centralized in compare.html so all FPTS computations (Table mode FPTS row, Career table FPTS column) use the same formula. Auditable in one place — swap here when TEP / PPC / pass-TD variants ship.',
+  const scoring = PC_SCORING[PC.scoring] || PC_SCORING.ppr;
+  const enriched = pos ? Object.assign({}, s, { pos }) : s;
+  return SLEEPER.adjustStatsForLeague(enriched, scoring).fantasyPts;
+}
+
+const PC_SCORING = {
+  ppr:  { rec: 1,   pass_td: 4 },                          // default
+  half: { rec: 0.5, pass_td: 4 },                          // half PPR
+  td6:  { rec: 1,   pass_td: 6 },                          // 6pt pass TDs
+  tep:  { rec: 1,   pass_td: 4, bonus_rec_te: 0.5 },       // tight-end premium
+};`,
+          output: 'Fantasy points scalar (number). The row-group title shows the active preset (e.g., "2025 Season Stats · Half PPR").',
+          example: `Travis Kelce 2024 (60 receptions):
+  PPR preset      → 60 rec × 1.0 = 60.0 reception pts
+  Half PPR preset → 60 rec × 0.5 = 30.0 reception pts
+  TEP preset      → 60 rec × (1.0 PPR + 0.5 TEP) = 90.0 reception pts
+TEP only fires when pos === 'TE' so QB/RB/WR are unaffected by that preset.`,
+          whyThisNumber: 'PPR is the dynasty industry default. The 4 presets (PPR / Half PPR / 6pt TD / TEP) cover the main dynasty variants without overwhelming the page header. PPC (per pass completion) and combined variants (TEP + 6pt TD) are not yet exposed — add to PC_SCORING if requested. Position threading via _pcPlayerPos(name) reads FP_VALUES[name].pos so TEP is per-player accurate (won\'t boost WRs even when toggled on).',
+          notes: 'Shipped 2026-05-20 (eleventh session). URL hash persistence via ?scoring=<key> (default ppr omitted). Page-header toggle row matches the existing Mode / Format pattern (.pc-toggle-btn with data-scoring attr). Falls back to inline full-PPR/4pt formula if SLEEPER helper isn\'t loaded yet.',
           related: ['compare-last-n-aggregate']
         }
       ]

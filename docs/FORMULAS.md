@@ -1623,34 +1623,43 @@ function _pcCmpClass(v, vOther, mode) {
 
 ---
 
-### 50. Standard fantasy points scoring (`_pcStdFpts`)
+### 50. Compare-page scoring overlay (`_pcStdFpts` → `SLEEPER.adjustStatsForLeague`)
 
-**Location:** `compare.html` (`_pcStdFpts(s)`, used by Table mode's `_pcSeasonStatRows` FPTS row + multi Career table).
+**Location:** `compare.html` (`_pcStdFpts(s, pos)`, called from `_pcSeasonStatRows` FPTS row; consumed by Table mode Season Stats + Last-N Games row groups).
 
-**Provenance:** hand-tuned — neutral full-PPR + 4-pt pass TD baseline. Mirrors the data-suite default scoring used by `renderPlayerStats`.
+**Provenance:** hand-tuned — delegates to the shared `SLEEPER.adjustStatsForLeague` overlay. Scoring preset is user-selectable via the Scoring toggle in the page header (PPR / Half PPR / 6pt TD / TEP).
 
-**Inputs:** `s` — a STATS_DATA record (season totals or week totals — both are summable shapes).
+**Inputs:**
+- `s` — a STATS_DATA record (season totals or Last-N aggregate).
+- `pos` — player position string, looked up via `_pcPlayerPos(name)`; gates TEP so `bonus_rec_te` fires only when `pos === 'TE'`.
+- `PC.scoring` — current preset key (`ppr` | `half` | `td6` | `tep`).
 
 ```js
-function _pcStdFpts(s) {
+function _pcStdFpts(s, pos) {
   if (!s) return 0;
-  return (s.passYards  || 0) * 0.04
-       + (s.passTd     || 0) * 4
-       - (s.passInts   || 0) * 2
-       + (s.rushYards  || 0) * 0.1
-       + (s.rushTd     || 0) * 6
-       + (s.recYards   || 0) * 0.1
-       + (s.recTd      || 0) * 6
-       + (s.rec        || 0) * 1
-       - (s.fumbles    || 0) * 2;
+  const scoring = PC_SCORING[PC.scoring] || PC_SCORING.ppr;
+  const enriched = pos ? Object.assign({}, s, { pos }) : s;
+  return SLEEPER.adjustStatsForLeague(enriched, scoring).fantasyPts;
 }
+
+const PC_SCORING = {
+  ppr:  { rec: 1,   pass_td: 4 },                       // default
+  half: { rec: 0.5, pass_td: 4 },                       // half PPR
+  td6:  { rec: 1,   pass_td: 6 },                       // 6pt pass TDs
+  tep:  { rec: 1,   pass_td: 4, bonus_rec_te: 0.5 },    // tight-end premium
+};
 ```
 
-**Output:** fantasy points scalar.
+**Output:** fantasy points scalar. Row-group titles show the active preset (e.g., "2025 Season Stats · Half PPR").
 
-**Example.** Josh Allen 2024 season: 4,918 pass yds (×0.04 = 196.7) + 43 pass TDs (×4 = 172) - 9 INTs (×2 = 18) + 201 rush yds (×0.1 = 20.1) + 2 rush TDs (×6 = 12). Total = 382.8 FPTS.
+**Example.** Travis Kelce 2024 with 60 receptions:
+- PPR preset      → `60 × 1.0 = 60.0` reception pts
+- Half PPR preset → `60 × 0.5 = 30.0` reception pts
+- TEP preset      → `60 × (1.0 PPR + 0.5 TEP) = 90.0` reception pts
 
-**Notes.** **`Analyst input requested`** — should there be a per-page UI toggle for league-format variants (TEP, PPC, half-PPR, 6-pt pass TDs, kicker scoring)? Currently the compare page hardcodes this baseline; in single-player Career, the drawer's `renderPlayerStats` lifts use the same neutral scoring. `SLEEPER.adjustStatsForLeague(stats, scoring)` in `assets/js/sleeper-helpers.js` already implements scoring-variant math — wiring a toggle on compare.html would mean adding a third toggle group (Mode / Format / Scoring) to the page header.
+TEP only fires when `pos === 'TE'`, so QB/RB/WR are unaffected by that preset (verified by `_pcPlayerPos` lookup against `FP_VALUES`).
+
+**Notes.** Shipped 2026-05-20 (eleventh session). URL hash persistence via `?scoring=<key>` (default `ppr` omitted). Page-header toggle row matches the existing Mode / Format pattern (`.pc-toggle-btn` with `data-scoring` attr). Falls back to inline full-PPR/4pt formula if `SLEEPER` helper isn't loaded yet. PPC (per pass completion) and combined variants (TEP + 6pt TD) are not yet exposed — add to `PC_SCORING` if requested.
 
 ---
 
