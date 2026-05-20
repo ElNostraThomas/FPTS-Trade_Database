@@ -331,27 +331,22 @@
     color: var(--red); opacity: .55;
     text-transform: uppercase; letter-spacing: .06em;
   }
-  body.fpts-compare-page .pc-cta-explore {
-    align-self: flex-start;
-    background: transparent; border: 1px solid var(--red); color: var(--red);
-    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
-    font-size: 11px; padding: 8px 16px; cursor: pointer;
-    text-transform: uppercase; letter-spacing: .06em;
-    transition: background .15s, color .15s;
+  /* Secondary links beneath the metric tiles — small, muted, paired. */
+  body.fpts-compare-page .pc-hero-secondary {
+    display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+    margin-top: 10px;
   }
-  body.fpts-compare-page .pc-cta-explore:hover {
-    background: var(--red); color: var(--white);
-  }
-  body.fpts-compare-page .pc-pick-different {
-    margin-top: 4px;
-  }
-  body.fpts-compare-page .pc-pick-different a {
-    font-family: 'Mulish', sans-serif; font-size: 11px;
-    color: var(--muted); text-decoration: none; opacity: .6;
+  body.fpts-compare-page .pc-hero-secondary a {
+    font-family: 'Mulish', sans-serif; font-size: 11px; font-weight: 700;
+    color: var(--muted); text-decoration: none; opacity: .65;
     transition: color .12s, opacity .12s;
+    text-transform: uppercase; letter-spacing: .06em;
   }
-  body.fpts-compare-page .pc-pick-different a:hover {
+  body.fpts-compare-page .pc-hero-secondary a:hover {
     color: var(--white); opacity: 1;
+  }
+  body.fpts-compare-page .pc-hero-secondary-sep {
+    width: 1px; height: 12px; background: var(--border2); opacity: .5;
   }
 
   /* ─── Historical area — tabbed sub-navigation ──────────────────────── */
@@ -549,6 +544,22 @@
     text-transform: uppercase; letter-spacing: .06em;
   }
 
+  /* ─── Heatmap panel (lifts Heatmap.render from heatmap.js) ─────────── */
+  body.fpts-compare-page .pc-hist-heatmap-wrap {
+    background:
+      radial-gradient(circle at top right, rgba(255,255,255,0.025) 0%, transparent 60%),
+      var(--surface2);
+    border: 1px solid var(--border2); border-radius: 6px;
+    padding: 18px 20px; min-height: 200px;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+  }
+  /* Strip the heatmap module's own outer margins/padding so it nests
+     cleanly inside our card-styled wrapper. The module emits a
+     .mvs-section container with default top margin; suppress here. */
+  body.fpts-compare-page .pc-hist-heatmap-wrap .mvs-section {
+    margin: 0; padding: 0; background: transparent; border: 0;
+  }
+
   /* ─── Recent Trades panel (lifts tradeCardHtml from player-panel) ──── */
   body.fpts-compare-page .pc-hist-trades-wrap {
     background:
@@ -646,6 +657,11 @@
     body.fpts-compare-page .pc-tabs-bar { top: 48px; }
     body.fpts-compare-page .pc-tab-panel { min-height: 360px; }
     body.fpts-compare-page .pc-panel-title { font-size: 18px; }
+    body.fpts-compare-page .pc-historical { margin-top: 20px; }
+    body.fpts-compare-page .pc-hero-secondary { gap: 10px; }
+    body.fpts-compare-page .pc-hero-secondary a { font-size: 10px; }
+    body.fpts-compare-page .pc-hist-trades-wrap { padding: 12px 12px; }
+    body.fpts-compare-page .pc-hist-trades-wrap .trade-card { margin-bottom: 8px; }
   }
 </style>
 
@@ -779,10 +795,10 @@
     fmt: 'sf',             // 'sf' | '1qb'
     player: null,          // single player name (profile mode)
     players: [],           // up to 4 names (table mode — phase 3)
-    tab: 'profile',        // 'profile' | 'adp' | 'value' | 'career' | 'trades'
+    tab: 'profile',        // 'profile' | 'adp' | 'heatmap' | 'value' | 'career' | 'trades'
     searchTimer: null,
   };
-  const PC_TABS = ['profile', 'adp', 'value', 'career', 'trades'];
+  const PC_TABS = ['profile', 'adp', 'heatmap', 'value', 'career', 'trades'];
 
   // ─── URL hash routing ──────────────────────────────────────────────
   function _pcParseHash() {
@@ -1135,9 +1151,10 @@
             ${_pcTile('FP Value ' + (PC.fmt === '1qb' ? '1QB' : 'SF'), value)}
             ${_pcTile(curYear + ' PPG', ppg)}
           </div>
-          <button class="pc-cta-explore" onclick="if(window.openPanel)openPanel('${safeName}')">Explore historical data →</button>
-          <div class="pc-pick-different">
+          <div class="pc-hero-secondary">
             <a href="#" onclick="event.preventDefault();_pcSwitchPlayer();">← Pick a different player</a>
+            <span class="pc-hero-secondary-sep"></span>
+            <a href="#" onclick="event.preventDefault();if(window.openPanel)openPanel('${safeName}');">Open full player drawer →</a>
           </div>
         </div>
       </div>
@@ -1148,6 +1165,15 @@
     // when the active tab is "career" (the mount div only exists then).
     if (PC.tab === 'career') {
       _pcRenderCareerStats(name, pos);
+    }
+    // Mount the pick-availability heatmap from heatmap.js into the
+    // Heatmap tab's mount div. Module handles the "not tracked" placeholder
+    // when sleeperId isn't in the top-300 coverage window.
+    if (PC.tab === 'heatmap' && window.Heatmap && typeof window.Heatmap.render === 'function') {
+      const el = document.getElementById('pc-hist-heatmap-mount');
+      if (el && data && data.sid) {
+        try { window.Heatmap.render(el, data.sid); } catch (e) {}
+      }
     }
   }
 
@@ -1559,6 +1585,19 @@
       ${_pcFpValueSection(name, data.fp)}`;
   }
 
+  // Pick-availability heatmap — lifts window.Heatmap.render from heatmap.js.
+  // Renders into #pc-hist-heatmap-mount after the panel HTML is in the DOM.
+  // Empty-state is handled by the module itself (renders a placeholder
+  // "isn't tracked for this player" card when the sleeperId isn't in the
+  // top-300 coverage window).
+  function _pcPanelHeatmap(name, data) {
+    return `
+      <div class="pc-panel-eyebrow">Pick-availability heatmap</div>
+      <div class="pc-panel-title">Where ${_escAttr(name)} goes in dynasty drafts</div>
+      <div class="pc-panel-sub">Per-pick probability of still being on the board at each round × slot. Cells colored by frequency from real FantasyPoints dynasty drafts; deeper red = more often available there.</div>
+      <div id="pc-hist-heatmap-mount" class="pc-hist-heatmap-wrap"></div>`;
+  }
+
   function _pcPanelCareer(name, data) {
     return `
       <div class="pc-panel-eyebrow">Career stats by season</div>
@@ -1612,6 +1651,7 @@
     const tabs = [
       { key: 'profile', label: 'Profile' },
       { key: 'adp',     label: 'ADP' },
+      { key: 'heatmap', label: 'Heatmap' },
       { key: 'value',   label: 'Value' },
       { key: 'career',  label: 'Career' },
       { key: 'trades',  label: 'Trades' },
@@ -1625,6 +1665,7 @@
     let panel = '';
     switch (PC.tab) {
       case 'adp':     panel = _pcPanelAdp(name, data);     break;
+      case 'heatmap': panel = _pcPanelHeatmap(name, data); break;
       case 'value':   panel = _pcPanelValue(name, data);   break;
       case 'career':  panel = _pcPanelCareer(name, data);  break;
       case 'trades':  panel = _pcPanelTrades(name, data);  break;
