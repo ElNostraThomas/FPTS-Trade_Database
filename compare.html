@@ -380,6 +380,61 @@
   }
   body.fpts-compare-page .pc-add-slot-results.is-open { display: block; }
 
+  /* Side-by-side tab panels — used by ADP / Value / Heatmap / Career
+     / Trades when in Profile multi mode. Each column = one player. */
+  body.fpts-compare-page .pc-panel-multi {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+    margin-top: 4px;
+  }
+  body.fpts-compare-page .pc-panel-multi-col {
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  body.fpts-compare-page .pc-panel-multi-col-head {
+    display: flex; align-items: center; gap: 8px;
+    padding-bottom: 8px; border-bottom: 1px solid var(--border);
+  }
+  body.fpts-compare-page .pc-panel-multi-col-head-photo {
+    width: 28px; height: 28px; border-radius: 50%;
+    object-fit: cover; object-position: top;
+    background: var(--surface); border: 1.5px solid var(--pos-color, var(--border));
+  }
+  body.fpts-compare-page .pc-panel-multi-col-head-name {
+    font-family: 'Mulish', sans-serif; font-weight: 900; font-size: 13px;
+    color: var(--white);
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    flex: 1; min-width: 0;
+  }
+  body.fpts-compare-page .pc-panel-multi-col-head-meta {
+    font-family: 'Mulish', sans-serif; font-size: 10px;
+    color: var(--muted); opacity: .7;
+    text-transform: uppercase; letter-spacing: .06em;
+  }
+  /* Charts inside multi columns: shrink heights so two fit cleanly */
+  body.fpts-compare-page .pc-panel-multi .pc-chart {
+    padding: 14px 14px 12px 14px;
+  }
+  body.fpts-compare-page .pc-panel-multi .pc-chart-body {
+    min-height: 180px;
+  }
+  body.fpts-compare-page .pc-panel-multi .pc-chart-svg {
+    min-height: 150px;
+  }
+  body.fpts-compare-page .pc-panel-multi .pc-chart-yaxis {
+    flex: 0 0 48px;
+  }
+  body.fpts-compare-page .pc-panel-multi .pc-chart-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  body.fpts-compare-page .pc-panel-multi .pc-hist-adp-row {
+    grid-template-columns: repeat(5, 1fr); gap: 4px;
+  }
+  body.fpts-compare-page .pc-panel-multi .pc-hist-adp-cell {
+    padding: 8px 4px;
+  }
+  body.fpts-compare-page .pc-panel-multi .pc-hist-adp-rank {
+    font-size: 16px;
+  }
+
   /* Profile tab Background tiles — render in N columns when multi */
   body.fpts-compare-page .pc-bg-columns {
     display: grid; gap: 14px;
@@ -1122,6 +1177,9 @@
     body.fpts-compare-page .pc-bg-columns.is-multi-2,
     body.fpts-compare-page .pc-bg-columns.is-multi-3 {
       grid-template-columns: 1fr;
+    }
+    body.fpts-compare-page .pc-panel-multi {
+      grid-template-columns: 1fr; gap: 14px;
     }
     body.fpts-compare-page .pc-add-slot { min-height: 200px; }
     body.fpts-compare-page .pc-table-picker {
@@ -2981,6 +3039,80 @@
     }, 60);
   }
 
+  // ─── Multi-player tab panels (Phase 6b) ────────────────────────────
+  // Each takes PC.players (2 names) and renders a 2-column grid.
+  // Shared header helper — small player chip above each column.
+
+  function _pcPanelMultiColHead(name) {
+    const fp = (window.FP_VALUES || {})[name] || {};
+    const sid = fp.sleeperId || (window.SLEEPER_IDS || {})[name];
+    const photo = sid ? `https://sleepercdn.com/content/nfl/players/thumb/${sid}.jpg` : '';
+    const pos = fp.pos || '?';
+    return `
+      <div class="pc-panel-multi-col-head" style="--pos-color:${_pcPosColor(pos)}">
+        ${photo
+          ? `<img class="pc-panel-multi-col-head-photo" src="${photo}" alt="${_escAttr(name)}" onerror="this.style.display='none'">`
+          : `<span class="pc-panel-multi-col-head-photo"></span>`}
+        <span class="pc-panel-multi-col-head-name">${_escAttr(name)}</span>
+        <span class="pc-panel-multi-col-head-meta">${pos}${fp.team ? ' · ' + fp.team : ''}</span>
+      </div>`;
+  }
+
+  function _pcPanelAdpMulti() {
+    const adpReady = !!window.PC_ADP_BY_YEAR;
+    const fmtLabel = (PC.fmt === '1qb') ? '1QB' : 'SF';
+    const cols = PC.players.map(name => {
+      const data = _pcCardData(name);
+      const body = adpReady
+        ? `${_pcAdpHistoryChart(name)}${_pcAdpHistoryRow(name, data && data.fp)}`
+        : `<div class="pc-hist-empty">Loading per-year ADP files…</div>`;
+      return `
+        <div class="pc-panel-multi-col">
+          ${_pcPanelMultiColHead(name)}
+          ${body}
+        </div>`;
+    }).join('');
+    return `
+      <div class="pc-panel-eyebrow">Dynasty startup ADP — ${fmtLabel}</div>
+      <div class="pc-panel-title">Per-year rank · side-by-side</div>
+      <div class="pc-panel-sub">Each column charts one player's annual overall startup-ADP rank. Compare trajectories at a glance.</div>
+      <div class="pc-panel-multi">${cols}</div>`;
+  }
+
+  function _pcPanelValueMulti() {
+    const fmtLabel = (PC.fmt === '1qb') ? '1QB' : 'SF';
+    const cols = PC.players.map(name => {
+      const data = _pcCardData(name);
+      return `
+        <div class="pc-panel-multi-col">
+          ${_pcPanelMultiColHead(name)}
+          ${_pcFpValueSection(name, data && data.fp)}
+        </div>`;
+    }).join('');
+    return `
+      <div class="pc-panel-eyebrow">FantasyPoints dynasty value — ${fmtLabel}</div>
+      <div class="pc-panel-title">Trade-value trend · side-by-side</div>
+      <div class="pc-panel-sub">Each column shows one player's recent value movement and their PEAK / LOW / AVG / CURRENT summary.</div>
+      <div class="pc-panel-multi">${cols}</div>`;
+  }
+
+  function _pcPanelHeatmapMulti() {
+    // Each column needs a unique mount ID for window.Heatmap.render —
+    // post-render hook walks the mounts after innerHTML is in the DOM.
+    const cols = PC.players.map((name, i) => {
+      return `
+        <div class="pc-panel-multi-col">
+          ${_pcPanelMultiColHead(name)}
+          <div id="pc-hist-heatmap-mount-${i}" class="pc-hist-heatmap-wrap"></div>
+        </div>`;
+    }).join('');
+    return `
+      <div class="pc-panel-eyebrow">Pick-availability heatmap</div>
+      <div class="pc-panel-title">Draft-board frequency · side-by-side</div>
+      <div class="pc-panel-sub">Per-pick probability matrices for both players. Deeper red = more often available there.</div>
+      <div class="pc-panel-multi">${cols}</div>`;
+  }
+
   // Profile tab Background in N columns (when multi). Per-player tiles
   // each live in their own .pc-bg-col with the player's pos-color stripe.
   function _pcPanelProfileMulti() {
@@ -3031,26 +3163,28 @@
               onclick="_pcSetTab('${t.key}')">${t.label}</button>
     `).join('');
 
-    // Tab panel content — Phase 6a renders Profile in N columns; other
-    // tabs render the first player only with a banner noting phase work.
+    // Tab panel content. Profile/ADP/Heatmap/Value render side-by-side
+    // (phase 6a + 6b). Career and Trades still render single-player
+    // with a banner; sub-phase 6c handles those.
     let panel = '';
-    if (PC.tab === 'profile') {
-      panel = _pcPanelProfileMulti();
-    } else {
-      const data = _pcCardData(PC.players[0]);
-      const placeholder = `
-        <div class="pc-hist-empty" style="padding:24px;margin-bottom:18px;background:rgba(237,129,12,0.06);border-color:var(--red);color:var(--red);opacity:.85">
-          Side-by-side rendering for the ${PC.tab.toUpperCase()} tab ships in phase 6b/6c. Showing ${_escAttr(PC.players[0])} for now.
-        </div>`;
-      let single = '';
-      switch (PC.tab) {
-        case 'adp':     single = _pcPanelAdp(PC.players[0], data);     break;
-        case 'heatmap': single = _pcPanelHeatmap(PC.players[0], data); break;
-        case 'value':   single = _pcPanelValue(PC.players[0], data);   break;
-        case 'career':  single = _pcPanelCareer(PC.players[0], data);  break;
-        case 'trades':  single = _pcPanelTrades(PC.players[0], data);  break;
+    switch (PC.tab) {
+      case 'profile': panel = _pcPanelProfileMulti(); break;
+      case 'adp':     panel = _pcPanelAdpMulti();     break;
+      case 'value':   panel = _pcPanelValueMulti();   break;
+      case 'heatmap': panel = _pcPanelHeatmapMulti(); break;
+      case 'career':
+      case 'trades': {
+        const data = _pcCardData(PC.players[0]);
+        const placeholder = `
+          <div class="pc-hist-empty" style="padding:24px;margin-bottom:18px;background:rgba(237,129,12,0.06);border-color:var(--red);color:var(--red);opacity:.85">
+            Side-by-side rendering for the ${PC.tab.toUpperCase()} tab ships in phase 6c. Showing ${_escAttr(PC.players[0])} for now.
+          </div>`;
+        panel = placeholder + (PC.tab === 'career'
+          ? _pcPanelCareer(PC.players[0], data)
+          : _pcPanelTrades(PC.players[0], data));
+        break;
       }
-      panel = placeholder + single;
+      default: panel = _pcPanelProfileMulti();
     }
 
     document.getElementById('pc-app').innerHTML = `
@@ -3060,21 +3194,23 @@
         <div class="pc-tab-panel">${panel}</div>
       </div>`;
 
-    // Same post-render hook chain as the single-player path. Only the
-    // first player's Career / Heatmap render until 6b/6c.
+    // Post-render mount hooks. Multi-Heatmap renders both players into
+    // their own mount IDs; multi-Career still renders single-player
+    // (sub-phase 6c will wire N parallel mounts).
     if (PC.tab === 'career') {
       const first = PC.players[0];
       const fp = (window.FP_VALUES || {})[first] || {};
       _pcRenderCareerStats(first, fp.pos);
     }
     if (PC.tab === 'heatmap' && window.Heatmap && typeof window.Heatmap.render === 'function') {
-      const el = document.getElementById('pc-hist-heatmap-mount');
-      const first = PC.players[0];
-      const fp = (window.FP_VALUES || {})[first] || {};
-      const sid = fp.sleeperId || (window.SLEEPER_IDS || {})[first];
-      if (el && sid) {
-        try { window.Heatmap.render(el, sid); } catch (e) {}
-      }
+      PC.players.forEach((name, i) => {
+        const el = document.getElementById('pc-hist-heatmap-mount-' + i);
+        const fp = (window.FP_VALUES || {})[name] || {};
+        const sid = fp.sleeperId || (window.SLEEPER_IDS || {})[name];
+        if (el && sid) {
+          try { window.Heatmap.render(el, sid); } catch (e) {}
+        }
+      });
     }
   }
 
