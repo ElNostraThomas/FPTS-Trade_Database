@@ -2252,6 +2252,43 @@
     color: var(--muted); opacity: .4; font-size: 11px;
   }
 
+  /* Standings — "Your Position Rankings" cards (above the table) */
+  .ml-stposrank-section { margin-bottom: 24px; }
+  .ml-stposrank-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 12px;
+  }
+  .ml-stposrank-title {
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 11px; color: var(--red); text-transform: uppercase; letter-spacing: .08em;
+  }
+  .ml-stposrank-mpx {
+    font-family: 'Mulish', sans-serif; font-size: 12px; color: var(--muted);
+  }
+  .ml-stposrank-mpx-pct {
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    color: var(--mpx-color, var(--white));
+  }
+  .ml-stposrank-mpx-raw { opacity: .5; }
+  .ml-stposrank-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px;
+  }
+  .ml-stposrank-card {
+    background: var(--surface2); border: 1px solid var(--border);
+    padding: 12px 14px; border-left: 3px solid var(--pos-color, var(--border));
+  }
+  .ml-stposrank-pos-row { margin-bottom: 6px; }
+  .ml-stposrank-stats { display: flex; gap: 12px; align-items: flex-end; }
+  .ml-stposrank-rank {
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 22px; color: var(--rank-color, var(--white));
+  }
+  .ml-stposrank-divider { border-left: 1px solid var(--border2); padding-left: 12px; }
+  .ml-stposrank-foot {
+    font-family: 'Mulish', sans-serif; font-size: 10px;
+    color: var(--muted); opacity: .35; margin-top: 4px;
+  }
+
   /* Calculator modal */
   .ml-calc-builder {
     display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;
@@ -7844,13 +7881,14 @@ async function loadStandings(leagueId) {
     const myTeam   = rosterValues.find(r => r.isMe);
     let posRankHtml = '';
     if (myTeam) {
+      const mpxColor = +myTeam.mpxPct >= 90 ? 'var(--green)' : +myTeam.mpxPct >= 75 ? 'var(--white)' : 'var(--red)';
       posRankHtml = `
-        <div style="margin-bottom:24px">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-            <div style="font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:11px;color:var(--red);text-transform:uppercase;letter-spacing:.08em">Your Position Rankings</div>
-            ${myTeam.maxPts > 0 ? `<div style="font-family:'Mulish',sans-serif;font-size:12px;color:var(--muted)">MPX: <span style="font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;color:${+myTeam.mpxPct>=90?'var(--green)':+myTeam.mpxPct>=75?'var(--white)':'var(--red)'}">${myTeam.mpxPct}%</span> efficiency · <span style="opacity:.5">${myTeam.pf} / ${myTeam.maxPts} pts</span></div>` : ''}
+        <div class="ml-stposrank-section">
+          <div class="ml-stposrank-header">
+            <div class="ml-stposrank-title">Your Position Rankings</div>
+            ${myTeam.maxPts > 0 ? `<div class="ml-stposrank-mpx">MPX: <span class="ml-stposrank-mpx-pct" style="--mpx-color:${mpxColor}">${myTeam.mpxPct}%</span> efficiency · <span class="ml-stposrank-mpx-raw">${myTeam.pf} / ${myTeam.maxPts} pts</span></div>` : ''}
           </div>
-          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px">
+          <div class="ml-stposrank-grid">
             ${['QB','RB','WR','TE'].map(pos => {
               const sorted = [...rosterValues].sort((a,b) => b.posVals[pos] - a.posVals[pos]);
               const rank   = sorted.findIndex(r => r.isMe) + 1;
@@ -7861,26 +7899,26 @@ async function loadStandings(leagueId) {
               const scoreRank = [...rosterValues].sort((a,b) => b.posScore[pos] - a.posScore[pos]).findIndex(r => r.isMe) + 1;
               const myScore   = myTeam.posScore[pos];
               const scoreColor = scoreRank <= 3 ? 'var(--green)' : scoreRank <= Math.ceil(total/2) ? 'var(--white)' : 'var(--red)';
-              return `<div style="background:var(--surface2);border:1px solid var(--border);padding:12px 14px;border-left:3px solid ${posColors[pos]}">
-                <div style="margin-bottom:6px"><span class="pos-pill ${pos}">${pos}</span></div>
-                <div style="display:flex;gap:12px;align-items:flex-end">
+              return `<div class="ml-stposrank-card" style="--pos-color:${posColors[pos]}">
+                <div class="ml-stposrank-pos-row"><span class="pos-pill ${pos}">${pos}</span></div>
+                <div class="ml-stposrank-stats">
                   <div>
                     <div class="ml-eyebrow-9">Value Rank</div>
-                    <div style="font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:22px;color:${color}">#${rank}</div>
+                    <div class="ml-stposrank-rank" style="--rank-color:${color}">#${rank}</div>
                     <div class="ml-kanit-mute-11">${val.toLocaleString()}</div>
                   </div>
-                  ${myScore > 0 ? `<div style="border-left:1px solid var(--border2);padding-left:12px">
+                  ${myScore > 0 ? `<div class="ml-stposrank-divider">
                     <div class="ml-eyebrow-9">Pts Rank</div>
-                    <div style="font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:22px;color:${scoreColor}">#${scoreRank}</div>
+                    <div class="ml-stposrank-rank" style="--rank-color:${scoreColor}">#${scoreRank}</div>
                     <div class="ml-kanit-mute-11">${myScore.toFixed(1)}</div>
                   </div>` : ''}
-                  ${myTeam.mpxByPos ? `<div style="border-left:1px solid var(--border2);padding-left:12px">
+                  ${myTeam.mpxByPos ? `<div class="ml-stposrank-divider">
                     <div class="ml-eyebrow-9">MPX %</div>
                     <div class="ml-kanit-stat-22">${myTeam.mpxByPos[pos]}%</div>
                     <div class="ml-kanit-mute-11">of Max PF</div>
                   </div>` : ''}
                 </div>
-                <div style="font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);opacity:.35;margin-top:4px">of ${total} teams</div>
+                <div class="ml-stposrank-foot">of ${total} teams</div>
               </div>`;
             }).join('')}
           </div>
