@@ -143,26 +143,88 @@
   .md-restore-btn.primary { background: var(--red); color: #111111; border-color: var(--red); }
   .md-restore-btn.primary:hover { color: #111111; opacity: .92; }
 
-  /* Drafting screen — Phase 3 will fully populate this. For now it's a
-     placeholder shown after "Start Draft." */
+  /* Drafting screen — Phase 2 renders a pick-log preview here. Phase 3
+     will replace this with the full snake-board + BPA rail + search. */
   .md-draft-screen {
     display: none; padding: 18px 0 60px;
   }
   .md-draft-screen.show { display: block; }
-  .md-draft-placeholder {
+
+  /* Header section above the per-team rosters */
+  .md-log-header { margin-bottom: 18px; }
+  .md-log-title {
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 18px; color: var(--red); text-transform: uppercase;
+    letter-spacing: .04em; margin-bottom: 4px;
+  }
+  .md-log-subtitle {
+    font-family: 'Mulish', sans-serif; font-size: 12px; color: var(--white);
+    opacity: .65; margin-bottom: 12px; line-height: 1.5;
+  }
+  .md-personality-summary {
+    display: flex; flex-wrap: wrap; gap: 6px;
+  }
+  .md-ps-chip {
+    font-family: 'Mulish', sans-serif; font-size: 10px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .05em; padding: 4px 10px;
+    background: var(--surface2); border: 1px solid var(--border2);
+    color: var(--white);
+  }
+  .md-ps-chip strong { color: var(--red); margin-left: 4px; }
+
+  /* Per-team roster grid — each seat is one narrow column */
+  .md-rosters-grid {
+    display: grid; gap: 6px; overflow-x: auto; padding-bottom: 8px;
+  }
+  .md-roster-col {
     background: var(--surface); border: 1px solid var(--border);
-    padding: 60px 30px; text-align: center;
-    font-family: 'Mulish', sans-serif; font-size: 13px; color: var(--white);
-    opacity: .7; line-height: 1.6;
+    padding: 8px 6px; min-width: 0; display: flex; flex-direction: column;
+    gap: 4px;
   }
-  .md-draft-placeholder strong {
-    display: block; margin-bottom: 8px; font-family: 'Kanit', sans-serif;
-    font-weight: 800; font-style: italic; font-size: 16px;
-    text-transform: uppercase; color: var(--red); opacity: 1;
+  .md-roster-col.is-user {
+    border-top: 3px solid var(--red);
   }
-  .md-draft-placeholder code {
-    background: var(--surface2); padding: 2px 6px; border-radius: 2px;
-    font-family: 'Consolas', monospace; font-size: 12px;
+  .md-roster-head {
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 11px; color: var(--red); text-transform: uppercase;
+    letter-spacing: .04em; text-align: center; padding-bottom: 6px;
+    border-bottom: 1px solid var(--border); margin-bottom: 4px; line-height: 1.2;
+  }
+  .md-roster-personality {
+    font-family: 'Mulish', sans-serif; font-size: 9px; font-weight: 700;
+    color: var(--white); opacity: .55; letter-spacing: .04em;
+    display: inline-block; margin-top: 3px;
+  }
+
+  /* Individual pick chip — color-coded by position */
+  .md-roster-pick {
+    display: flex; align-items: center; gap: 4px; padding: 4px 6px;
+    font-family: 'Mulish', sans-serif; font-size: 10px; font-weight: 700;
+    line-height: 1.15; min-width: 0;
+  }
+  .md-rp-pick {
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 9px; opacity: .75; flex-shrink: 0;
+  }
+  .md-rp-name {
+    flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis;
+    white-space: nowrap; font-weight: 800;
+  }
+  .md-rp-pos {
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 9px; flex-shrink: 0; opacity: .85;
+  }
+  /* Position color tokens (black text on bright fills — site doctrine) */
+  .md-pos-QB  { background: var(--pos-qb-bg);   color: var(--pos-qb); }
+  .md-pos-RB  { background: var(--pos-rb-bg);   color: var(--pos-rb); }
+  .md-pos-WR  { background: var(--pos-wr-bg);   color: var(--pos-wr); }
+  .md-pos-TE  { background: var(--pos-te-bg);   color: var(--pos-te); }
+  .md-pos-K   { background: var(--pos-k-bg);    color: var(--pos-k); }
+  .md-pos-DEF { background: var(--pos-pick-bg); color: var(--pos-pick); }
+
+  .md-log-footer {
+    display: flex; gap: 10px; margin-top: 22px; padding-top: 16px;
+    border-top: 1px solid var(--border);
   }
 </style>
 
@@ -324,18 +386,12 @@
   </section>
 
   <!-- ═══════════════════════════════════════════════════════════════════════
-       DRAFTING SCREEN — Phase 3 will fully populate this. For now Phase 1
-       hands off to a placeholder so the setup screen + state plumbing can
-       ship + be validated independently.
+       DRAFTING SCREEN — Phase 2 renders a pick-log preview here: every
+       seat's roster as a small column with one card per pick. Phase 3
+       replaces this with the full snake-board + BPA rail + search.
        ═══════════════════════════════════════════════════════════════════════ -->
   <section id="md-draft" class="md-draft-screen">
-    <div class="md-draft-placeholder">
-      <strong>Draft started</strong>
-      State persisted to <code>localStorage</code> under <code>fpts-mock-draft-state</code>.
-      The drafting board, AI opponents, search box, and BPA rail will render here in Phase 3.
-      <br><br>
-      <button class="md-restore-btn" onclick="MockDraft.backToSetup()">← Back to setup</button>
-    </div>
+    <div id="md-draft-log"></div>
   </section>
 
 </main>
@@ -392,6 +448,367 @@
       variety: 'One of each archetype rotated across the seats. Good for sampling personality differences in one draft.',
       all_adp: 'Every opponent is the ADP Value archetype. Picks land close to consensus ADP; useful when you want a calm baseline.',
     };
+
+    // ═══════════════════════════════════════════════════════════════════
+    // AI PERSONALITY ENGINE
+    // ═══════════════════════════════════════════════════════════════════
+    // Spec source: C:\Users\deons\Downloads\# Fantasy Draft Personality,
+    // Prediction & Availability System — Full….md (the LLM Handoff Spec).
+    // Five hand-tuned archetypes; weights documented in docs/FORMULAS.md §51
+    // and assets/js/legend-content.js 'mock-draft' entry. Locked decisions —
+    // first-pass calibration; expected to need analyst tuning (tracked in
+    // README "Analyst feedback loop" punch list).
+
+    const PERSONALITIES = {
+      adp_value: {
+        key: 'adp_value',
+        name: 'ADP Value',
+        blurb: "Strict to ADP. Won't reach more than ~3 picks past consensus.",
+        weights: { adp: 0.55, posNeed: 0.20, value: 0.15, scarcity: 0.10, favor: 0 },
+        reachTolerance: 3,
+        candidatePoolWindow: [12, 36],  // [aheadOfPick, behindPick]
+      },
+      bpa: {
+        key: 'bpa',
+        name: 'Best Player Available',
+        blurb: 'Picks the highest-value player regardless of roster need.',
+        weights: { adp: 0.30, posNeed: 0.05, value: 0.50, scarcity: 0.15, favor: 0 },
+        reachTolerance: 8,
+        candidatePoolWindow: [24, 48],
+      },
+      my_guys: {
+        key: 'my_guys',
+        name: 'My Guys',
+        blurb: "Reaches for players they like. Mostly ignores ADP.",
+        weights: { adp: 0.10, posNeed: 0.25, value: 0.30, scarcity: 0.10, favor: 0.25 },
+        reachTolerance: 18,
+        candidatePoolWindow: [36, 60],
+      },
+      need_based: {
+        key: 'need_based',
+        name: 'Need-Based',
+        blurb: 'Fills roster holes aggressively. Balanced builds.',
+        weights: { adp: 0.20, posNeed: 0.55, value: 0.15, scarcity: 0.10, favor: 0 },
+        reachTolerance: 6,
+        candidatePoolWindow: [18, 42],
+      },
+      scarcity: {
+        key: 'scarcity',
+        name: 'Positional Scarcity',
+        blurb: 'Attacks tier cliffs. Reaches when a tier is about to break.',
+        weights: { adp: 0.25, posNeed: 0.15, value: 0.20, scarcity: 0.40, favor: 0 },
+        reachTolerance: 12,
+        candidatePoolWindow: [24, 48],
+      },
+    };
+
+    function positionNeedTable(format) {
+      // Standard dynasty startup targets. K/DEF deferred to waivers.
+      return format === 'sf'
+        ? { QB: 2, RB: 4, WR: 5, TE: 2, K: 0, DEF: 0 }
+        : { QB: 1, RB: 4, WR: 5, TE: 2, K: 0, DEF: 0 };
+    }
+
+    function pickToRoundSlot(pickNo, teamCount) {
+      // 1-indexed round + slot. Slot 1..teamCount with snake reversal on even rounds.
+      const round = Math.floor((pickNo - 1) / teamCount) + 1;
+      const idx = (pickNo - 1) % teamCount;
+      const slot = (round % 2 === 1) ? (idx + 1) : (teamCount - idx);
+      return { round, slot };
+    }
+
+    // ───── Player universe ──────────────────────────────────────────────
+    function buildPlayerUniverse(setup) {
+      // Build a uniform { name, pos, team, adp, value, tier, sleeperId } record
+      // per player by joining FP_VALUES + ADP_PAYLOAD.byMonth.ALL[format].
+      const fp = window.FP_VALUES || {};
+      const adpRoot = (window.ADP_PAYLOAD && window.ADP_PAYLOAD.byMonth && window.ADP_PAYLOAD.byMonth.ALL) || {};
+      const adpBranch = setup.format === '1qb' ? 'startup_1qb' : 'startup_sf';
+      const adpList = adpRoot[adpBranch] || [];
+
+      // Build name → adp lookup for fast join
+      const norm = window.FPTS_DATA && window.FPTS_DATA.normalizePlayerName
+        ? window.FPTS_DATA.normalizePlayerName
+        : function (s) { return String(s).trim().toLowerCase().replace(/\./g, '').replace(/\s+/g, ' '); };
+      const adpByNorm = {};
+      adpList.forEach(p => { if (p && p.name) adpByNorm[norm(p.name)] = p.adp; });
+
+      const out = [];
+      Object.keys(fp).forEach(name => {
+        const r = fp[name];
+        if (!r) return;
+        const pos = (r.pos || '').toUpperCase();
+        if (!pos || pos === 'PICK' || pos === 'RDP') return;  // skip draft-pick assets (MVP: players only)
+        const valueField = setup.format === '1qb' ? (r.value1qb != null ? r.value1qb : r.value) : (r.valueSf != null ? r.valueSf : r.value);
+        out.push({
+          name,
+          pos,
+          team: r.team || '',
+          adp: adpByNorm[norm(name)] != null ? adpByNorm[norm(name)] : 999,
+          value: Number(valueField) || 0,
+          tier: r.tier || 0,
+          sleeperId: r.sleeperId || (window.SLEEPER_IDS && window.SLEEPER_IDS[name]) || null,
+          age: r.age != null ? r.age : null,
+        });
+      });
+
+      // Sort by trade value desc — gives us a sensible default BPA order
+      out.sort((a, b) => (b.value - a.value));
+      return out;
+    }
+
+    // ───── Personality assignment ───────────────────────────────────────
+    function assignOpponents(setup) {
+      // Build opponents[] for every slot 1..teamCount that isn't the user.
+      // personalityMix: 'surprise_me' (random) | 'variety' (rotating) | 'all_adp'
+      const archetypes = Object.keys(PERSONALITIES);
+      const opponents = [];
+
+      for (let slot = 1; slot <= setup.teamCount; slot++) {
+        if (slot === setup.userSlot) continue;
+
+        let pkey;
+        if (setup.personalityMix === 'all_adp') {
+          pkey = 'adp_value';
+        } else if (setup.personalityMix === 'variety') {
+          pkey = archetypes[(slot - 1) % archetypes.length];
+        } else {
+          pkey = archetypes[Math.floor(Math.random() * archetypes.length)];
+        }
+        opponents.push({
+          slot,
+          personality: pkey,
+          favoritePlayers: (pkey === 'my_guys') ? seedFavorites() : [],
+        });
+      }
+      return opponents;
+    }
+
+    function seedFavorites() {
+      // For "My Guys" archetypes: sample 8 random players from the top 80
+      // FP_VALUES by trade value. These get a +1.5 favor score bump when
+      // they appear in this opponent's candidate pool — produces visible
+      // reach behavior.
+      const fp = window.FP_VALUES || {};
+      const pool = Object.keys(fp)
+        .map(n => ({ n, v: Number((fp[n] && (fp[n].valueSf || fp[n].value)) || 0) }))
+        .filter(x => x.v > 0)
+        .sort((a, b) => b.v - a.v)
+        .slice(0, 80)
+        .map(x => x.n);
+      const picked = [];
+      const seen = new Set();
+      while (picked.length < 8 && seen.size < pool.length) {
+        const idx = Math.floor(Math.random() * pool.length);
+        if (!seen.has(idx)) { seen.add(idx); picked.push(pool[idx]); }
+      }
+      return picked;
+    }
+
+    // ───── Scoring helpers ──────────────────────────────────────────────
+    function clamp(x, lo, hi) { return Math.max(lo, Math.min(hi, x)); }
+
+    function computeTierScarcity(player, ctx) {
+      // Bonus when the player's tier has few players remaining at their
+      // position. 1.0 if ≤2 left, 0.5 if ≤4 left, 0 otherwise.
+      if (!player.tier) return 0;
+      const sameTierAtPos = ctx.universe.filter(p =>
+        p.pos === player.pos &&
+        p.tier === player.tier &&
+        !ctx.takenIds.has(p.name)
+      ).length;
+      if (sameTierAtPos <= 2) return 1.0;
+      if (sameTierAtPos <= 4) return 0.5;
+      return 0;
+    }
+
+    function recentRosterClump(myRoster, pos) {
+      // Penalty trigger: same position drafted 2 of last 3 picks.
+      const tail = myRoster.slice(-3);
+      const c = tail.filter(p => p.pos === pos).length;
+      return c >= 2;
+    }
+
+    function personalityDraftScore(player, ctx, personality) {
+      const w = personality.weights;
+      const needTable = ctx.positionNeedTable;
+
+      // 1. ADP value: positive when player is falling vs ADP, negative on reach.
+      const adpDelta = ctx.currentPick - (player.adp || 999);
+      const adpScore = clamp(adpDelta / 12, -2, 2);
+
+      // 2. Position need: target minus current count at that position.
+      const posCount = ctx.myRoster.filter(p => p.pos === player.pos).length;
+      const need = (needTable[player.pos] || 0) - posCount;  // positive = still want, negative = full
+      const posNeedScore = clamp(need / 3, -1, 1);
+
+      // 3. Value (player.value already format-aware, normalized to ~0-1).
+      const valScore = (player.value || 0) / 1000;
+
+      // 4. Tier scarcity: bonus for thinning tiers.
+      const scarcityScore = computeTierScarcity(player, ctx);
+
+      // 5. Favorite-player bump for My Guys archetypes.
+      const favorScore = (personality.favoritePlayers && personality.favoritePlayers.indexOf(player.name) >= 0) ? 1.5 : 0;
+
+      let composite =
+        (w.adp      || 0) * adpScore +
+        (w.posNeed  || 0) * posNeedScore +
+        (w.value    || 0) * valScore +
+        (w.scarcity || 0) * scarcityScore +
+        (w.favor    || 0) * favorScore;
+
+      // Hard reach penalty when player.adp is far ahead of current pick.
+      if (adpDelta < -personality.reachTolerance) {
+        composite -= Math.abs(adpDelta + personality.reachTolerance) * 0.05;
+      }
+
+      // Anti-clumping: light penalty for drafting same position 3rd time in 4 picks.
+      if (recentRosterClump(ctx.myRoster, player.pos)) {
+        composite -= 0.3;
+      }
+
+      // Jitter so identical-personality opponents don't make identical picks.
+      composite += (Math.random() - 0.5) * 0.15;
+
+      return composite;
+    }
+
+    function aiPick(personality, ctx) {
+      // 1. Candidate pool: available players with ADP near the current pick.
+      const [aheadWindow, behindWindow] = personality.candidatePoolWindow;
+      const available = ctx.universe.filter(p => !ctx.takenIds.has(p.name));
+      const candidates = available.filter(p =>
+        p.adp >= ctx.currentPick - behindWindow &&
+        p.adp <= ctx.currentPick + aheadWindow
+      );
+
+      // 1a. Augment with PICK_AVAILABILITY signal: include players whose
+      //     matrix[round][slot] >= 30% even if they're outside the ADP window.
+      const PA = window.PICK_AVAILABILITY || {};
+      const { round, slot } = pickToRoundSlot(ctx.currentPick, ctx.setup.teamCount);
+      const candidateNames = new Set(candidates.map(c => c.name));
+      available.forEach(p => {
+        if (candidateNames.has(p.name) || !p.sleeperId) return;
+        const rec = PA[p.sleeperId];
+        if (!rec || !rec.matrix) return;
+        const matRow = rec.matrix[round - 1];
+        if (!matRow) return;
+        const matVal = matRow[slot - 1];
+        if (matVal != null && matVal >= 30) {
+          candidates.push(p);
+          candidateNames.add(p.name);
+        }
+      });
+
+      // 1b. Fallback: if window produces nothing (late rounds, off-board picks),
+      //     just take top-20 available by value.
+      if (candidates.length === 0) {
+        return available.slice(0, 20)[Math.floor(Math.random() * Math.min(20, available.length))] || null;
+      }
+
+      // 2. Score every candidate.
+      const scored = candidates.map(p => ({ p, s: personalityDraftScore(p, ctx, personality) }));
+      scored.sort((a, b) => b.s - a.s);
+      const top = scored.slice(0, 8);
+
+      // 3. Softmax with temperature 0.5.
+      const max = top[0].s;
+      const expScores = top.map(({ s }) => Math.exp((s - max) / 0.5));
+      const expSum = expScores.reduce((a, b) => a + b, 0);
+      const probs = expScores.map(e => e / expSum);
+
+      // 4. Weighted random sample.
+      const r = Math.random();
+      let acc = 0;
+      for (let i = 0; i < probs.length; i++) {
+        acc += probs[i];
+        if (r <= acc) return top[i].p;
+      }
+      return top[0].p;
+    }
+
+    // ───── Draft loop ───────────────────────────────────────────────────
+    function rosterForSlot(picks, slot) {
+      return picks.filter(p => p.slot === slot).map(p => ({ pos: p.pos, name: p.player }));
+    }
+
+    function takenIdsFromPicks(picks) {
+      const s = new Set();
+      picks.forEach(p => { if (p && p.player) s.add(p.player); });
+      return s;
+    }
+
+    function advanceOneAiPick(state, universe) {
+      const { round, slot } = pickToRoundSlot(state.currentPick, state.setup.teamCount);
+      const opponent = state.opponents.find(o => o.slot === slot);
+      if (!opponent) return null;  // user's slot
+
+      const personality = PERSONALITIES[opponent.personality] || PERSONALITIES.adp_value;
+      const ctx = {
+        setup: state.setup,
+        currentPick: state.currentPick,
+        universe,
+        takenIds: takenIdsFromPicks(state.picks),
+        myRoster: rosterForSlot(state.picks, slot),
+        positionNeedTable: positionNeedTable(state.setup.format),
+      };
+      // Inject opponent's favorites onto the personality for this pick.
+      const personalityForPick = { ...personality, favoritePlayers: opponent.favoritePlayers || [] };
+
+      const player = aiPick(personalityForPick, ctx);
+      if (!player) return null;
+
+      const pickRecord = {
+        pickNo: state.currentPick,
+        round, slot,
+        player: player.name,
+        pos: player.pos,
+        team: player.team,
+        byAI: true,
+        personality: opponent.personality,
+      };
+      state.picks.push(pickRecord);
+      state.currentPick += 1;
+      return pickRecord;
+    }
+
+    function advanceUserAutoPick(state, universe) {
+      // Phase 2 testing helper: in lieu of an interactive picker, the user
+      // seat auto-picks BPA (highest available trade value). Phase 3 replaces
+      // this with a real on-clock pause + search/BPA-rail interaction.
+      const { round, slot } = pickToRoundSlot(state.currentPick, state.setup.teamCount);
+      const available = universe.filter(p => !takenIdsFromPicks(state.picks).has(p.name));
+      const player = available[0];
+      if (!player) return null;
+      const pickRecord = {
+        pickNo: state.currentPick,
+        round, slot,
+        player: player.name,
+        pos: player.pos,
+        team: player.team,
+        byAI: false,
+        personality: 'user_bpa_autopilot',
+      };
+      state.picks.push(pickRecord);
+      state.currentPick += 1;
+      return pickRecord;
+    }
+
+    function simulateFullDraft(state) {
+      const universe = buildPlayerUniverse(state.setup);
+      const totalPicks = state.setup.teamCount * state.setup.rounds;
+      while (state.currentPick <= totalPicks) {
+        const { slot } = pickToRoundSlot(state.currentPick, state.setup.teamCount);
+        if (slot === state.setup.userSlot) {
+          advanceUserAutoPick(state, universe);
+        } else {
+          advanceOneAiPick(state, universe);
+        }
+      }
+      state.status = 'finished';
+      return state;
+    }
 
     // ───── localStorage round-trip ──────────────────────────────────────
     function loadSetup() {
@@ -514,28 +931,31 @@
     function startDraft() {
       saveSetup();
 
-      // Build a fresh draft state. Phase 2 will flesh out opponents[] with
-      // personality assignments + favorite-player seeds. For now we just
-      // record the setup snapshot + an empty picks array so the placeholder
-      // screen has something to read.
+      // Build a fresh draft state, assign personalities, and (Phase 2) run
+      // the full simulation end-to-end with the user seat on autopilot
+      // (highest-value BPA each pick). Phase 3 will replace the user
+      // autopilot with a real on-clock pause + interactive picker.
       const state = {
         setup: { ...setup },
-        opponents: [],          // Phase 2 will populate
-        picks: [],              // appended as draft progresses
+        opponents: assignOpponents(setup),
+        picks: [],
         currentPick: 1,
         status: 'drafting',
         startedAt: new Date().toISOString(),
       };
+
+      simulateFullDraft(state);
       try { localStorage.setItem(LS_STATE, JSON.stringify(state)); } catch (e) {}
 
       showDraftScreen();
+      renderPickLog(state);
     }
 
     function resume() {
       const saved = loadSavedDraftState();
       if (!saved) { hideRestoreBanner(); return; }
-      // Phase 1 just shows the placeholder; Phase 3 will rehydrate the board.
       showDraftScreen();
+      renderPickLog(saved);
     }
 
     function discardSaved() {
@@ -569,6 +989,73 @@
       if (banner) banner.classList.remove('show');
     }
 
+    // ───── Pick log renderer (Phase 2 placeholder UI) ──────────────────
+    // Renders the completed draft as a vertical list of pick rows. Phase 3
+    // replaces this with the full snake-draft board + BPA rail + search.
+    function renderPickLog(state) {
+      const mount = document.getElementById('md-draft-log');
+      if (!mount) return;
+
+      const opponentByPersonality = {};
+      Object.keys(PERSONALITIES).forEach(k => {
+        opponentByPersonality[k] = state.opponents.filter(o => o.personality === k).length;
+      });
+      const personalitySummary = Object.keys(PERSONALITIES).map(k => {
+        const c = opponentByPersonality[k];
+        return c > 0 ? `<span class="md-ps-chip">${PERSONALITIES[k].name} <strong>×${c}</strong></span>` : '';
+      }).filter(Boolean).join('');
+
+      // Per-team roster summary block (12 small columns)
+      const teamRosters = {};
+      for (let s = 1; s <= state.setup.teamCount; s++) teamRosters[s] = [];
+      state.picks.forEach(p => { if (teamRosters[p.slot]) teamRosters[p.slot].push(p); });
+
+      const seatHeaderHtml = (slot) => {
+        if (slot === state.setup.userSlot) return `<strong>YOU</strong>`;
+        const opp = state.opponents.find(o => o.slot === slot);
+        return opp ? PERSONALITIES[opp.personality].name : 'Team ' + slot;
+      };
+
+      const rostersHtml = `
+        <div class="md-rosters-grid" style="grid-template-columns: repeat(${state.setup.teamCount}, minmax(0, 1fr));">
+          ${Array.from({ length: state.setup.teamCount }, (_, i) => i + 1).map(slot => `
+            <div class="md-roster-col ${slot === state.setup.userSlot ? 'is-user' : ''}">
+              <div class="md-roster-head">Slot ${slot}<br><span class="md-roster-personality">${seatHeaderHtml(slot)}</span></div>
+              ${teamRosters[slot].map(p => `
+                <div class="md-roster-pick md-pos-${p.pos}">
+                  <span class="md-rp-pick">${p.round}.${String((p.pickNo - 1) % state.setup.teamCount + 1).padStart(2, '0')}</span>
+                  <span class="md-rp-name">${escapeHtml(p.player)}</span>
+                  <span class="md-rp-pos">${p.pos}</span>
+                </div>
+              `).join('')}
+            </div>
+          `).join('')}
+        </div>
+      `;
+
+      mount.innerHTML = `
+        <div class="md-log-header">
+          <div class="md-log-title">Mock draft complete &mdash; ${state.picks.length} picks (Phase 2 preview: pick log)</div>
+          <div class="md-log-subtitle">
+            ${state.setup.teamCount}-team ${state.setup.format === '1qb' ? '1QB' : 'Superflex'}
+            &middot; ${state.setup.scoring.toUpperCase()}
+            &middot; ${state.setup.rounds} rounds
+            &middot; Your slot: ${state.setup.userSlot} (autopilot BPA in Phase 2; interactive in Phase 3)
+          </div>
+          <div class="md-personality-summary">${personalitySummary}</div>
+        </div>
+        ${rostersHtml}
+        <div class="md-log-footer">
+          <button class="md-restore-btn" onclick="MockDraft.backToSetup()">&larr; Back to setup</button>
+          <button class="md-restore-btn primary" onclick="MockDraft.discardSaved(); MockDraft.backToSetup();">Discard &amp; new draft</button>
+        </div>
+      `;
+    }
+
+    function escapeHtml(s) {
+      return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    }
+
     // ───── Init ─────────────────────────────────────────────────────────
     function init() {
       loadSetup();
@@ -583,7 +1070,35 @@
       resume,
       discardSaved,
       backToSetup,
-      _setup: () => setup,           // exposed for debugging
+      // ─── Debug surface (console-accessible) ───
+      _setup: () => setup,
+      _personalities: () => PERSONALITIES,
+      _buildUniverse: () => buildPlayerUniverse(setup),
+      _assignOpponents: () => assignOpponents(setup),
+      _pickOrder: (n) => pickToRoundSlot(n, setup.teamCount),
+      _aiPick: (personalityKey, currentPick, picks) => {
+        const universe = buildPlayerUniverse(setup);
+        const ctx = {
+          setup,
+          currentPick,
+          universe,
+          takenIds: takenIdsFromPicks(picks || []),
+          myRoster: [],
+          positionNeedTable: positionNeedTable(setup.format),
+        };
+        return aiPick(PERSONALITIES[personalityKey], ctx);
+      },
+      _simulate: () => {
+        const state = {
+          setup: { ...setup },
+          opponents: assignOpponents(setup),
+          picks: [],
+          currentPick: 1,
+          status: 'drafting',
+          startedAt: new Date().toISOString(),
+        };
+        return simulateFullDraft(state);
+      },
     };
   })();
 
