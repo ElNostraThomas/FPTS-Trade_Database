@@ -1,7 +1,7 @@
 # my-leagues.html inline-style inventory
 
-Generated from `my-leagues.html` (7910 lines).
-Total `style="..."` occurrences: **236**.
+Generated from `my-leagues.html` (8064 lines).
+Total `style="..."` occurrences: **211**.
 
 This is a read-only audit. No code was changed. The goal is to make the
 refactor safe to execute supervised by giving every occurrence a category,
@@ -13,12 +13,12 @@ a section assignment, and an actionability verdict.
 
 | Mode | Count | % | Refactorable to CSS class? |
 |---|---|---|---|
-| `dynamic` | 118 | 50.0% | Conditional - if the interpolated value is a discrete enum, use a modifier class (e.g. `.is-active`); otherwise leave inline |
-| `static` | 102 | 43.2% | Yes - pure HTML attribute, drop into a class |
-| `dynamic-context` | 10 | 4.2% | Conditional - inside a JS-built HTML string; refactor only if the declaration set is static |
-| `js-composed` | 6 | 2.5% | No - imperatively set at runtime; leave as-is |
+| `dynamic` | 103 | 48.8% | Conditional - if the interpolated value is a discrete enum, use a modifier class (e.g. `.is-active`); otherwise leave inline |
+| `static` | 94 | 44.5% | Yes - pure HTML attribute, drop into a class |
+| `dynamic-context` | 8 | 3.8% | Conditional - inside a JS-built HTML string; refactor only if the declaration set is static |
+| `js-composed` | 6 | 2.8% | No - imperatively set at runtime; leave as-is |
 
-**Headline:** ~102 are directly refactorable, ~128 require case-by-case judgement, ~6 must stay inline (JS-set).
+**Headline:** ~94 are directly refactorable, ~111 require case-by-case judgement, ~6 must stay inline (JS-set).
 
 ---
 
@@ -28,29 +28,29 @@ Which CSS properties carry most of the inline styling. Where one property domina
 
 | Property | Count |
 |---|---|
-| `color` | 97 |
-| `font-size` | 65 |
-| `font-family` | 63 |
-| `display` | 55 |
-| `font-weight` | 44 |
-| `font-style` | 38 |
-| `align-items` | 37 |
-| `width` | 35 |
-| `background` | 34 |
-| `flex-shrink` | 27 |
-| `padding` | 26 |
-| `gap` | 26 |
+| `color` | 82 |
+| `font-size` | 53 |
+| `font-family` | 50 |
+| `display` | 47 |
+| `font-style` | 33 |
+| `font-weight` | 32 |
+| `width` | 32 |
+| `align-items` | 30 |
+| `background` | 27 |
 | `opacity` | 26 |
-| `border` | 19 |
-| `margin-bottom` | 19 |
-| `letter-spacing` | 18 |
-| `border-radius` | 18 |
-| `height` | 17 |
-| `text-transform` | 16 |
+| `gap` | 23 |
+| `flex-shrink` | 23 |
+| `padding` | 18 |
+| `border` | 17 |
 | `fill-rule` | 15 |
+| `height` | 15 |
+| `margin-bottom` | 15 |
 | `fill` | 14 |
-| `justify-content` | 12 |
-| `margin-top` | 12 |
+| `border-radius` | 14 |
+| `letter-spacing` | 12 |
+| `text-transform` | 11 |
+| `margin-top` | 11 |
+| `justify-content` | 9 |
 | `min-width` | 8 |
 | `flex` | 7 |
 
@@ -72,11 +72,9 @@ Each row below is a strong refactor candidate: same declaration set appearing N 
 | 2 | `flex:1` |
 | 2 | `color:var(--muted); font-family:'Mulish',sans-serif; font-size:10px; opacity:.5` |
 | 2 | `color:var(--muted); flex-shrink:0; font-family:'Mulish',sans-serif; font-size:10px; opacity:.5` |
+| 2 | `--archetype-bg:${mlArchetypeBg(archetype)}; --archetype-fg:${mlArchetypeFg(archetype)}` |
 | 2 | `opacity:.5` |
 | 2 | `opacity:.3` |
-| 2 | `align-items:center; border-bottom:1px solid var(--border2); display:flex; justify-content:space-between; margin-bottom:2px; padding:6px 4px` |
-| 2 | `color:var(--muted); font-weight:700; margin-left:4px` |
-| 2 | `color:var(--muted); font-family:'Mulish',sans-serif; font-size:10px; font-weight:700` |
 | 2 | `color:${expoColor(p.exposure)}` |
 | 2 | `padding-right:8px; width:36px` |
 | 2 | `color:var(--white); font-size:12px` |
@@ -103,7 +101,6 @@ Sorted by count - the busiest regions are the highest-leverage refactor batches.
 
 | Count | Region (nearest banner-comment heading above the hit) |
 |---|---|
-| 27 | Save current scoped IDs so the existing loadRoster / loadAllTrades can target them |
 | 24 | Sort rosters by chosen key |
 | 22 | Render an archetype chip |
 | 21 | RIGHT: player exposure sidebar |
@@ -121,6 +118,7 @@ Sorted by count - the busiest regions are the highest-leverage refactor batches.
 | 4 | PICKS BRANCH |
 | 3 | Group transactions by roster |
 | 2 | Sort state for the leagues list |
+| 2 | Save current scoped IDs so the existing loadRoster / loadAllTrades can target them |
 | 2 | Color helpers |
 | 2 | Store per-league so multiple leagues can expand without collision |
 | 2 | Update section meta with archetype legend + league averages |
@@ -161,368 +159,343 @@ Each phase is one short, supervised session. Verify in-browser between phases.
 
 Every hit, grouped under the nearest banner-comment heading above it. Use this to find specific lines while refactoring.
 
-### Save current scoped IDs so the existing loadRoster / loadAllTrades can target them (27)
-
-| Line | Mode | Declaration |
-|---|---|---|
-| 5523 | dynamic | `font-family:'Mulish',sans-serif;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;padding:2px 6px;bor...` |
-| 5532 | dynamic-context | `display:inline-flex;align-items:center;gap:3px;padding:2px 6px;background:var(--surface2);border:1px solid var(--border);border...` |
-| 5533 | dynamic | `color:${color};letter-spacing:.04em` |
-| 5534 | dynamic | `color:${rankColor}` |
-| 5539 | dynamic-context | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:9px;color:var(--white);background:var(--red);padding...` |
-| 5545 | dynamic | `border:1px solid var(--border);background:var(--surface);margin-bottom:6px` |
-| 5547 | static | `display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;user-select:none` |
-| 5549 | static | `font-family:'Mulish',sans-serif;font-size:9px;color:var(--muted);width:14px;text-align:center;flex-shrink:0;transition:transfor...` |
-| 5551 | dynamic | `width:28px;height:28px;border-radius:3px;object-fit:cover;background:var(--surface2);flex-shrink:0` |
-| 5552 | dynamic | `width:28px;height:28px;border-radius:3px;background:var(--surface2);display:flex;align-items:center;justify-content:center;font...` |
-| 5556 | dynamic | `font-family:'Mulish',sans-serif;font-weight:800;font-size:13px;color:var(--white);white-space:nowrap;overflow:hidden;text-overf...` |
-| 5560 | static | `display:flex;align-items:center;gap:4px;flex-wrap:wrap;margin-top:5px` |
-| 5564 | static | `text-align:right;flex-shrink:0` |
-| 5565 | dynamic | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:14px;color:var(--white)` |
-| 5566 | static | `font-family:'Mulish',sans-serif;font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em` |
-| 5569 | dynamic | `display:none;border-top:1px solid var(--border);background:var(--surface2);padding:10px 14px` |
-| 5693 | static | `display:flex;align-items:center;justify-content:space-between;padding:6px 4px;border-bottom:1px solid var(--border2);margin-bot...` |
-| 5694 | dynamic | `color:var(--muted);font-weight:700;margin-left:4px` |
-| 5695 | dynamic | `font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);font-weight:700` |
-| 5706 | static | `display:flex;align-items:center;padding:6px 4px;border-bottom:1px solid var(--border2);margin-bottom:2px` |
-| 5707 | dynamic | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:11px;color:var(--muted);text-transform:uppercase;let...` |
-| 5707 | dynamic | `margin-left:4px` |
-| 5719 | static | `display:flex;align-items:center;justify-content:space-between;padding:6px 4px;border-bottom:1px solid var(--border2);margin-bot...` |
-| 5720 | dynamic | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:11px;color:var(--pos-pick-bg,#9b91d4);text-transform...` |
-| 5720 | dynamic | `color:var(--muted);font-weight:700;margin-left:4px` |
-| 5721 | dynamic | `font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);font-weight:700` |
-| 5731 | dynamic | `font-family:'Mulish',sans-serif` |
-
 ### Sort rosters by chosen key (24)
 
 | Line | Mode | Declaration |
 |---|---|---|
-| 7603 | js-composed | `width:26px;height:26px;border-radius:50%;object-fit:cover;margin-right:8px;flex-shrink:0;` |
-| 7604 | dynamic-context | `width:26px;height:26px;border-radius:50%;background:var(--border2);margin-right:8px;flex-shrink:0;` |
-| 7609 | dynamic | `height:100%;width:${w}%;background:${posColors[pos]};flex-shrink:0;` |
-| 7612 | dynamic | `${rowBg}` |
-| 7613 | dynamic | `color:var(--muted);opacity:.3;width:28px` |
-| 7617 | dynamic | `font-family:'Mulish',sans-serif;font-weight:900;font-size:13px;${r.isMe?'color:var(--red)':''}` |
-| 7618 | dynamic | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:9px;color:var(--red);border:1px solid var(--red);pad...` |
-| 7620 | dynamic | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:9px;color:${posColors[r.topScoringPos]};border:1px s...` |
-| 7622 | static | `height:4px;background:var(--border);margin-top:5px;border-radius:2px;overflow:hidden;display:flex` |
-| 7626 | dynamic | `color:var(--white)` |
-| 7628 | dynamic | `color:${posColors.QB}` |
-| 7629 | dynamic | `color:${posColors.RB}` |
-| 7630 | dynamic | `color:${posColors.WR}` |
-| 7631 | dynamic | `color:${posColors.TE}` |
-| 7632 | dynamic | `color:var(--green)` |
-| 7633 | dynamic | `color:var(--white);opacity:.5` |
-| 7634 | dynamic | `color:var(--white);opacity:.5` |
-| 7640 | static | `overflow-x:auto;-webkit-overflow-scrolling:touch` |
-| 7641 | static | `width:100%;border-collapse:collapse;min-width:560px` |
-| 7643 | static | `width:28px` |
-| 7703 | dynamic | `margin-top:20px` |
-| 7709 | dynamic | `border-left-color:var(--red)` |
-| 7711 | dynamic | `color:var(--white);opacity:.7` |
-| 7712 | dynamic | `${isMyPick?'color:var(--red)':''}` |
+| 7757 | js-composed | `width:26px;height:26px;border-radius:50%;object-fit:cover;margin-right:8px;flex-shrink:0;` |
+| 7758 | dynamic-context | `width:26px;height:26px;border-radius:50%;background:var(--border2);margin-right:8px;flex-shrink:0;` |
+| 7763 | dynamic | `height:100%;width:${w}%;background:${posColors[pos]};flex-shrink:0;` |
+| 7766 | dynamic | `${rowBg}` |
+| 7767 | dynamic | `color:var(--muted);opacity:.3;width:28px` |
+| 7771 | dynamic | `font-family:'Mulish',sans-serif;font-weight:900;font-size:13px;${r.isMe?'color:var(--red)':''}` |
+| 7772 | dynamic | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:9px;color:var(--red);border:1px solid var(--red);pad...` |
+| 7774 | dynamic | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:9px;color:${posColors[r.topScoringPos]};border:1px s...` |
+| 7776 | static | `height:4px;background:var(--border);margin-top:5px;border-radius:2px;overflow:hidden;display:flex` |
+| 7780 | dynamic | `color:var(--white)` |
+| 7782 | dynamic | `color:${posColors.QB}` |
+| 7783 | dynamic | `color:${posColors.RB}` |
+| 7784 | dynamic | `color:${posColors.WR}` |
+| 7785 | dynamic | `color:${posColors.TE}` |
+| 7786 | dynamic | `color:var(--green)` |
+| 7787 | dynamic | `color:var(--white);opacity:.5` |
+| 7788 | dynamic | `color:var(--white);opacity:.5` |
+| 7794 | static | `overflow-x:auto;-webkit-overflow-scrolling:touch` |
+| 7795 | static | `width:100%;border-collapse:collapse;min-width:560px` |
+| 7797 | static | `width:28px` |
+| 7857 | dynamic | `margin-top:20px` |
+| 7863 | dynamic | `border-left-color:var(--red)` |
+| 7865 | dynamic | `color:var(--white);opacity:.7` |
+| 7866 | dynamic | `${isMyPick?'color:var(--red)':''}` |
 
 ### Render an archetype chip (22)
 
 | Line | Mode | Declaration |
 |---|---|---|
-| 3287 | dynamic | `display:inline-flex;align-items:center;justify-content:center;font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;...` |
-| 3290 | dynamic | `display:inline-flex;align-items:center;justify-content:center;background:${c};color:#fff;font-family:'Kanit',sans-serif;font-we...` |
-| 3294 | dynamic-context | `width:32px;height:32px;flex-shrink:0;display:inline-block;` |
-| 3295 | js-composed | `width:32px;height:32px;border-radius:50%;object-fit:cover;flex-shrink:0;` |
-| 3300 | dynamic-context | `width:32px;height:32px;border-radius:50%;background:var(--surface2);display:inline-flex;align-items:center;justify-content:cent...` |
-| 3301 | static | `display:block` |
-| 3385 | static | `display:flex;align-items:center;gap:8px;margin-bottom:6px` |
-| 3387 | static | `font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);opacity:.5` |
-| 3389 | static | `display:flex;align-items:center;gap:10px;min-height:24px` |
-| 3390 | static | `display:none;margin-top:8px` |
-| 3392 | static | `background:none;border:none;color:var(--muted);font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:10px;...` |
-| 3396 | static | `font-size:8px;transition:transform .15s` |
-| 3398 | static | `display:none;margin-top:8px;padding-top:8px;border-top:1px solid var(--border)` |
-| 3432 | static | `display:flex;align-items:center;gap:10px;width:100%;padding:8px 12px;background:rgba(237,129,12,0.06);border:1px dashed var(--b...` |
-| 3433 | dynamic | `font-family:'Mulish',sans-serif;font-size:12px;color:var(--muted);font-style:italic;flex:1;min-width:0` |
-| 3435 | static | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:10px;color:var(--red);text-decoration:none;text-tran...` |
-| 3450 | static | `font-family:'Mulish',sans-serif;font-weight:900;font-size:13px;color:var(--white);text-decoration:none;flex:1;min-width:0;overf...` |
-| 3454 | dynamic | `font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);opacity:.5;flex-shrink:0` |
-| 3456 | static | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:10px;color:var(--red);text-decoration:none;text-tran...` |
-| 3466 | static | `display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--border)` |
-| 3468 | static | `font-family:'Mulish',sans-serif;font-weight:700;font-size:12px;color:var(--white);text-decoration:none;flex:1;min-width:0;overf...` |
-| 3472 | dynamic | `font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);opacity:.5;flex-shrink:0` |
+| 3439 | dynamic | `display:inline-flex;align-items:center;justify-content:center;font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;...` |
+| 3442 | dynamic | `display:inline-flex;align-items:center;justify-content:center;background:${c};color:#fff;font-family:'Kanit',sans-serif;font-we...` |
+| 3446 | dynamic-context | `width:32px;height:32px;flex-shrink:0;display:inline-block;` |
+| 3447 | js-composed | `width:32px;height:32px;border-radius:50%;object-fit:cover;flex-shrink:0;` |
+| 3452 | dynamic-context | `width:32px;height:32px;border-radius:50%;background:var(--surface2);display:inline-flex;align-items:center;justify-content:cent...` |
+| 3453 | static | `display:block` |
+| 3537 | static | `display:flex;align-items:center;gap:8px;margin-bottom:6px` |
+| 3539 | static | `font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);opacity:.5` |
+| 3541 | static | `display:flex;align-items:center;gap:10px;min-height:24px` |
+| 3542 | static | `display:none;margin-top:8px` |
+| 3544 | static | `background:none;border:none;color:var(--muted);font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:10px;...` |
+| 3548 | static | `font-size:8px;transition:transform .15s` |
+| 3550 | static | `display:none;margin-top:8px;padding-top:8px;border-top:1px solid var(--border)` |
+| 3584 | static | `display:flex;align-items:center;gap:10px;width:100%;padding:8px 12px;background:rgba(237,129,12,0.06);border:1px dashed var(--b...` |
+| 3585 | dynamic | `font-family:'Mulish',sans-serif;font-size:12px;color:var(--muted);font-style:italic;flex:1;min-width:0` |
+| 3587 | static | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:10px;color:var(--red);text-decoration:none;text-tran...` |
+| 3602 | static | `font-family:'Mulish',sans-serif;font-weight:900;font-size:13px;color:var(--white);text-decoration:none;flex:1;min-width:0;overf...` |
+| 3606 | dynamic | `font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);opacity:.5;flex-shrink:0` |
+| 3608 | static | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:10px;color:var(--red);text-decoration:none;text-tran...` |
+| 3618 | static | `display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--border)` |
+| 3620 | static | `font-family:'Mulish',sans-serif;font-weight:700;font-size:12px;color:var(--white);text-decoration:none;flex:1;min-width:0;overf...` |
+| 3624 | dynamic | `font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);opacity:.5;flex-shrink:0` |
 
 ### RIGHT: player exposure sidebar (21)
 
 | Line | Mode | Declaration |
 |---|---|---|
-| 2645 | static | `display:flex;align-items:center;gap:8px` |
-| 2646 | static | `font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);width:12px;text-align:center;flex-shrink:0;transition:transfo...` |
-| 2652 | static | `display:none` |
-| 2671 | static | `width:24px;flex-shrink:0` |
-| 2672 | static | `flex:1` |
-| 2687 | static | `fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;` |
-| 2687 | static | `fill:#c33;` |
-| 2687 | static | `fill:var(--black);fill-rule:nonzero;` |
-| 2687 | static | `fill:var(--black);fill-rule:nonzero;` |
-| 2687 | static | `fill:var(--black);fill-rule:nonzero;` |
-| 2687 | static | `fill:var(--black);fill-rule:nonzero;` |
-| 2687 | static | `fill:var(--black);fill-rule:nonzero;` |
-| 2687 | static | `fill:var(--black);fill-rule:nonzero;` |
-| 2687 | static | `fill:var(--black);fill-rule:nonzero;` |
-| 2687 | static | `fill:var(--black);fill-rule:nonzero;` |
-| 2687 | static | `fill:var(--black);fill-rule:nonzero;` |
-| 2687 | static | `fill:var(--black);fill-rule:nonzero;` |
-| 2687 | static | `fill:var(--black);fill-rule:nonzero;` |
-| 2687 | static | `fill:var(--black);fill-rule:nonzero;` |
-| 2687 | static | `fill:var(--black);fill-rule:nonzero;` |
-| 2689 | dynamic-context | `flex-shrink:0;vertical-align:middle;margin-right:4px` |
+| 2797 | static | `display:flex;align-items:center;gap:8px` |
+| 2798 | static | `font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);width:12px;text-align:center;flex-shrink:0;transition:transfo...` |
+| 2804 | static | `display:none` |
+| 2823 | static | `width:24px;flex-shrink:0` |
+| 2824 | static | `flex:1` |
+| 2839 | static | `fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;` |
+| 2839 | static | `fill:#c33;` |
+| 2839 | static | `fill:var(--black);fill-rule:nonzero;` |
+| 2839 | static | `fill:var(--black);fill-rule:nonzero;` |
+| 2839 | static | `fill:var(--black);fill-rule:nonzero;` |
+| 2839 | static | `fill:var(--black);fill-rule:nonzero;` |
+| 2839 | static | `fill:var(--black);fill-rule:nonzero;` |
+| 2839 | static | `fill:var(--black);fill-rule:nonzero;` |
+| 2839 | static | `fill:var(--black);fill-rule:nonzero;` |
+| 2839 | static | `fill:var(--black);fill-rule:nonzero;` |
+| 2839 | static | `fill:var(--black);fill-rule:nonzero;` |
+| 2839 | static | `fill:var(--black);fill-rule:nonzero;` |
+| 2839 | static | `fill:var(--black);fill-rule:nonzero;` |
+| 2839 | static | `fill:var(--black);fill-rule:nonzero;` |
+| 2839 | static | `fill:var(--black);fill-rule:nonzero;` |
+| 2841 | dynamic-context | `flex-shrink:0;vertical-align:middle;margin-right:4px` |
 
 ### Helpers (19)
 
 | Line | Mode | Declaration |
 |---|---|---|
-| 6474 | dynamic | `color:var(--green);font-family:'Kanit',sans-serif;font-weight:800;font-style:italic` |
-| 6475 | dynamic | `color:var(--red);font-family:'Kanit',sans-serif;font-weight:800;font-style:italic` |
-| 6476 | dynamic-context | `opacity:.3` |
-| 6481 | dynamic | `width:36px;padding-right:8px` |
-| 6486 | dynamic | `display:inline-flex;align-items:center` |
-| 6490 | dynamic | `color:var(--white)` |
-| 6491 | dynamic | `color:var(--white);font-size:12px` |
-| 6492 | dynamic | `color:${valColor(r.value)}` |
-| 6493 | dynamic | `color:var(--white);font-size:12px` |
-| 6494 | dynamic | `color:${r.seasonProj ? 'var(--white)' : 'var(--muted)'};opacity:${r.seasonProj ? '1' : '.3'}` |
-| 6495 | dynamic | `color:${r.proj ? (r.proj >= 20 ? 'var(--green)' : r.proj >= 12 ? 'var(--white)' : 'var(--muted)') : 'var(--muted)'};opacity:${r...` |
-| 6498 | dynamic | `color:var(--white)` |
-| 6511 | static | `display:flex;align-items:center;gap:10px` |
-| 6512 | dynamic | `width:4px;height:20px;background:${posColors[pos]};flex-shrink:0` |
-| 6514 | dynamic | `font-family:'Mulish',sans-serif;font-size:11px;color:var(--muted);opacity:.4` |
-| 6516 | dynamic | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:13px;color:${posColors[pos]}` |
-| 6518 | static | `overflow-x:auto;-webkit-overflow-scrolling:touch` |
-| 6519 | static | `width:100%;border-collapse:collapse;min-width:430px` |
-| 6521 | static | `width:36px` |
+| 6628 | dynamic | `color:var(--green);font-family:'Kanit',sans-serif;font-weight:800;font-style:italic` |
+| 6629 | dynamic | `color:var(--red);font-family:'Kanit',sans-serif;font-weight:800;font-style:italic` |
+| 6630 | dynamic-context | `opacity:.3` |
+| 6635 | dynamic | `width:36px;padding-right:8px` |
+| 6640 | dynamic | `display:inline-flex;align-items:center` |
+| 6644 | dynamic | `color:var(--white)` |
+| 6645 | dynamic | `color:var(--white);font-size:12px` |
+| 6646 | dynamic | `color:${valColor(r.value)}` |
+| 6647 | dynamic | `color:var(--white);font-size:12px` |
+| 6648 | dynamic | `color:${r.seasonProj ? 'var(--white)' : 'var(--muted)'};opacity:${r.seasonProj ? '1' : '.3'}` |
+| 6649 | dynamic | `color:${r.proj ? (r.proj >= 20 ? 'var(--green)' : r.proj >= 12 ? 'var(--white)' : 'var(--muted)') : 'var(--muted)'};opacity:${r...` |
+| 6652 | dynamic | `color:var(--white)` |
+| 6665 | static | `display:flex;align-items:center;gap:10px` |
+| 6666 | dynamic | `width:4px;height:20px;background:${posColors[pos]};flex-shrink:0` |
+| 6668 | dynamic | `font-family:'Mulish',sans-serif;font-size:11px;color:var(--muted);opacity:.4` |
+| 6670 | dynamic | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:13px;color:${posColors[pos]}` |
+| 6672 | static | `overflow-x:auto;-webkit-overflow-scrolling:touch` |
+| 6673 | static | `width:100%;border-collapse:collapse;min-width:430px` |
+| 6675 | static | `width:36px` |
 
 ### Renders draft picks in the same visual layout as a position section so the (15)
 
 | Line | Mode | Declaration |
 |---|---|---|
-| 6558 | static | `display:flex;align-items:center;gap:10px;margin-bottom:10px` |
-| 6559 | static | `width:4px;height:20px;background:var(--pos-pick-bg);flex-shrink:0` |
-| 6562 | static | `font-size:13px;opacity:.4;padding:12px 0;font-family:'Mulish',sans-serif` |
-| 6583 | dynamic | `border-bottom:1px solid var(--border)` |
-| 6584 | dynamic | `width:36px;padding-right:8px` |
-| 6588 | dynamic | `font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);opacity:.5` |
-| 6592 | dynamic | `color:${val > 3000 ? 'var(--green)' : val > 1000 ? 'var(--white)' : 'var(--muted)'}` |
-| 6593 | dynamic | `color:var(--muted);opacity:.4;font-size:11px` |
-| 6601 | static | `display:flex;align-items:center;gap:10px` |
-| 6602 | static | `width:4px;height:20px;background:var(--pos-pick-bg);flex-shrink:0` |
-| 6604 | dynamic | `font-family:'Mulish',sans-serif;font-size:11px;color:var(--muted);opacity:.4` |
-| 6606 | dynamic | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:13px;color:var(--pos-pick-bg)` |
-| 6608 | static | `overflow-x:auto` |
-| 6609 | static | `width:100%;border-collapse:collapse;min-width:520px` |
-| 6611 | static | `width:36px` |
+| 6712 | static | `display:flex;align-items:center;gap:10px;margin-bottom:10px` |
+| 6713 | static | `width:4px;height:20px;background:var(--pos-pick-bg);flex-shrink:0` |
+| 6716 | static | `font-size:13px;opacity:.4;padding:12px 0;font-family:'Mulish',sans-serif` |
+| 6737 | dynamic | `border-bottom:1px solid var(--border)` |
+| 6738 | dynamic | `width:36px;padding-right:8px` |
+| 6742 | dynamic | `font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);opacity:.5` |
+| 6746 | dynamic | `color:${val > 3000 ? 'var(--green)' : val > 1000 ? 'var(--white)' : 'var(--muted)'}` |
+| 6747 | dynamic | `color:var(--muted);opacity:.4;font-size:11px` |
+| 6755 | static | `display:flex;align-items:center;gap:10px` |
+| 6756 | static | `width:4px;height:20px;background:var(--pos-pick-bg);flex-shrink:0` |
+| 6758 | dynamic | `font-family:'Mulish',sans-serif;font-size:11px;color:var(--muted);opacity:.4` |
+| 6760 | dynamic | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:13px;color:var(--pos-pick-bg)` |
+| 6762 | static | `overflow-x:auto` |
+| 6763 | static | `width:100%;border-collapse:collapse;min-width:520px` |
+| 6765 | static | `width:36px` |
 
 ### Stash render context on window so the sort buttons can re-render (15)
 
 | Line | Mode | Declaration |
 |---|---|---|
-| 7505 | static | `margin-bottom:24px` |
-| 7506 | static | `display:flex;align-items:center;justify-content:space-between;margin-bottom:12px` |
-| 7507 | static | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:11px;color:var(--red);text-transform:uppercase;lette...` |
-| 7508 | dynamic | `font-family:'Mulish',sans-serif;font-size:12px;color:var(--muted)` |
-| 7508 | dynamic | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;color:${+myTeam.mpxPct>=90?'var(--green)':+myTeam.mpxPct>=75?'...` |
-| 7508 | dynamic | `opacity:.5` |
-| 7510 | static | `display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px` |
-| 7521 | dynamic | `background:var(--surface2);border:1px solid var(--border);padding:12px 14px;border-left:3px solid ${posColors[pos]}` |
-| 7522 | dynamic | `margin-bottom:6px` |
-| 7523 | static | `display:flex;gap:12px;align-items:flex-end` |
-| 7526 | dynamic | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:22px;color:${color}` |
-| 7529 | dynamic | `border-left:1px solid var(--border2);padding-left:12px` |
-| 7531 | dynamic | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:22px;color:${scoreColor}` |
-| 7534 | dynamic | `border-left:1px solid var(--border2);padding-left:12px` |
-| 7540 | dynamic | `font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);opacity:.35;margin-top:4px` |
+| 7659 | static | `margin-bottom:24px` |
+| 7660 | static | `display:flex;align-items:center;justify-content:space-between;margin-bottom:12px` |
+| 7661 | static | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:11px;color:var(--red);text-transform:uppercase;lette...` |
+| 7662 | dynamic | `font-family:'Mulish',sans-serif;font-size:12px;color:var(--muted)` |
+| 7662 | dynamic | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;color:${+myTeam.mpxPct>=90?'var(--green)':+myTeam.mpxPct>=75?'...` |
+| 7662 | dynamic | `opacity:.5` |
+| 7664 | static | `display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px` |
+| 7675 | dynamic | `background:var(--surface2);border:1px solid var(--border);padding:12px 14px;border-left:3px solid ${posColors[pos]}` |
+| 7676 | dynamic | `margin-bottom:6px` |
+| 7677 | static | `display:flex;gap:12px;align-items:flex-end` |
+| 7680 | dynamic | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:22px;color:${color}` |
+| 7683 | dynamic | `border-left:1px solid var(--border2);padding-left:12px` |
+| 7685 | dynamic | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:22px;color:${scoreColor}` |
+| 7688 | dynamic | `border-left:1px solid var(--border2);padding-left:12px` |
+| 7694 | dynamic | `font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);opacity:.35;margin-top:4px` |
 
 ### Aggregate per-roster (14)
 
 | Line | Mode | Declaration |
 |---|---|---|
-| 6931 | static | `width:30px` |
-| 6951 | dynamic | `color:var(--red);font-size:10px;font-style:italic` |
-| 6956 | dynamic | `color:var(--yellow)` |
-| 6957 | dynamic | `width:${maxSpent ? (r.spent/maxSpent*100).toFixed(0) : 0}%` |
-| 6958 | dynamic | `color:var(--green)` |
-| 6959 | dynamic | `width:${budget ? (r.left/budget*100).toFixed(0) : 0}%` |
-| 6961 | dynamic | `text-align:right;color:var(--muted)` |
-| 6963 | dynamic | `text-align:right;color:var(--yellow)` |
-| 7001 | static | `width:30px` |
-| 7036 | dynamic | `font-size:12px` |
-| 7036 | dynamic | `color:var(--red);font-style:italic` |
-| 7084 | dynamic | `color:var(--muted);opacity:.4;font-size:10px` |
-| 7087 | dynamic | `background:rgba(237,129,12,0.05)` |
-| 7091 | dynamic | `opacity:.4` |
+| 7085 | static | `width:30px` |
+| 7105 | dynamic | `color:var(--red);font-size:10px;font-style:italic` |
+| 7110 | dynamic | `color:var(--yellow)` |
+| 7111 | dynamic | `width:${maxSpent ? (r.spent/maxSpent*100).toFixed(0) : 0}%` |
+| 7112 | dynamic | `color:var(--green)` |
+| 7113 | dynamic | `width:${budget ? (r.left/budget*100).toFixed(0) : 0}%` |
+| 7115 | dynamic | `text-align:right;color:var(--muted)` |
+| 7117 | dynamic | `text-align:right;color:var(--yellow)` |
+| 7155 | static | `width:30px` |
+| 7190 | dynamic | `font-size:12px` |
+| 7190 | dynamic | `color:var(--red);font-style:italic` |
+| 7238 | dynamic | `color:var(--muted);opacity:.4;font-size:10px` |
+| 7241 | dynamic | `background:rgba(237,129,12,0.05)` |
+| 7245 | dynamic | `opacity:.4` |
 
 ### Build one side per roster_id (14)
 
 | Line | Mode | Declaration |
 |---|---|---|
-| 7271 | static | `display:flex;justify-content:space-between;align-items:center;margin-bottom:8px` |
-| 7272 | dynamic | `margin-bottom:0` |
-| 7278 | dynamic | `${s.isMe ? 'color:var(--red)' : ''}` |
-| 7281 | static | `width:28px;height:28px;flex-shrink:0;display:inline-flex;align-items:center;` |
-| 7283 | js-composed | `width:28px;height:28px;border-radius:50%;object-fit:cover;` |
-| 7287 | static | `min-width:0;flex:1` |
-| 7288 | static | `display:flex;align-items:center;gap:4px;flex-wrap:wrap` |
-| 7292 | dynamic | `display:flex;gap:8px;margin-top:2px` |
-| 7301 | static | `min-width:0;flex:1` |
-| 7303 | dynamic | `font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);opacity:.35;margin-left:4px` |
-| 7304 | dynamic | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:11px;color:var(--pos-pick-bg);margin-top:2px` |
-| 7308 | dynamic | `margin-top:4px` |
-| 7309 | static | `width:28px;flex-shrink:0;` |
-| 7310 | dynamic | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:12px;color:var(--green)` |
+| 7425 | static | `display:flex;justify-content:space-between;align-items:center;margin-bottom:8px` |
+| 7426 | dynamic | `margin-bottom:0` |
+| 7432 | dynamic | `${s.isMe ? 'color:var(--red)' : ''}` |
+| 7435 | static | `width:28px;height:28px;flex-shrink:0;display:inline-flex;align-items:center;` |
+| 7437 | js-composed | `width:28px;height:28px;border-radius:50%;object-fit:cover;` |
+| 7441 | static | `min-width:0;flex:1` |
+| 7442 | static | `display:flex;align-items:center;gap:4px;flex-wrap:wrap` |
+| 7446 | dynamic | `display:flex;gap:8px;margin-top:2px` |
+| 7455 | static | `min-width:0;flex:1` |
+| 7457 | dynamic | `font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);opacity:.35;margin-left:4px` |
+| 7458 | dynamic | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:11px;color:var(--pos-pick-bg);margin-top:2px` |
+| 7462 | dynamic | `margin-top:4px` |
+| 7463 | static | `width:28px;flex-shrink:0;` |
+| 7464 | dynamic | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:12px;color:var(--green)` |
 
 ### Temporarily assign global IDs so existing loadRoster can find them (12)
 
 | Line | Mode | Declaration |
 |---|---|---|
-| 5842 | static | `display:flex;align-items:center;gap:14px;padding:14px 16px;background:var(--surface);border:1px solid var(--border);margin-bott...` |
-| 5843 | static | `display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;flex-shrink:0;background:var(--surface2);b...` |
-| 5843 | static | `display:block` |
-| 5844 | static | `flex:1` |
-| 5846 | dynamic | `font-family:'Mulish',sans-serif;font-size:11px;color:var(--muted);margin-top:3px` |
-| 5849 | static | `font-family:'Mulish',sans-serif;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px` |
-| 5853 | js-composed | `display:flex;align-items:center;gap:12px;padding:11px 12px;background:var(--surface);border:1px solid var(--border);margin-bott...` |
-| 5854 | js-composed | `width:30px;height:30px;border-radius:2px;flex-shrink:0` |
-| 5854 | js-composed | `width:30px;height:30px;background:var(--surface2);border-radius:2px;flex-shrink:0` |
-| 5856 | dynamic | `font-family:'Mulish',sans-serif;font-weight:900;font-size:13px;color:var(--white);white-space:nowrap;overflow:hidden;text-overf...` |
-| 5857 | dynamic | `font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);opacity:.7;margin-top:1px` |
-| 5859 | static | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:11px;color:var(--red);text-transform:uppercase;lette...` |
+| 5996 | static | `display:flex;align-items:center;gap:14px;padding:14px 16px;background:var(--surface);border:1px solid var(--border);margin-bott...` |
+| 5997 | static | `display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;flex-shrink:0;background:var(--surface2);b...` |
+| 5997 | static | `display:block` |
+| 5998 | static | `flex:1` |
+| 6000 | dynamic | `font-family:'Mulish',sans-serif;font-size:11px;color:var(--muted);margin-top:3px` |
+| 6003 | static | `font-family:'Mulish',sans-serif;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px` |
+| 6007 | js-composed | `display:flex;align-items:center;gap:12px;padding:11px 12px;background:var(--surface);border:1px solid var(--border);margin-bott...` |
+| 6008 | js-composed | `width:30px;height:30px;border-radius:2px;flex-shrink:0` |
+| 6008 | js-composed | `width:30px;height:30px;background:var(--surface2);border-radius:2px;flex-shrink:0` |
+| 6010 | dynamic | `font-family:'Mulish',sans-serif;font-weight:900;font-size:13px;color:var(--white);white-space:nowrap;overflow:hidden;text-overf...` |
+| 6011 | dynamic | `font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);opacity:.7;margin-top:1px` |
+| 6013 | static | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:11px;color:var(--red);text-transform:uppercase;lette...` |
 
 ### Ensure roster/users/players are loaded and stashed on window for the modal layer (10)
 
 | Line | Mode | Declaration |
 |---|---|---|
-| 5397 | dynamic | `display:inline-flex;align-items:center;gap:6px;padding:6px 10px;background:var(--surface2);border:1px solid var(--border);borde...` |
-| 5398 | dynamic | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:11px;color:${color};text-transform:uppercase;letter-...` |
-| 5399 | dynamic | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:14px;color:${rankColor}` |
-| 5400 | dynamic | `font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);opacity:.6` |
-| 5410 | dynamic | `display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px` |
-| 5422 | static | `display:flex;align-items:center;justify-content:space-between` |
-| 5424 | static | `display:flex;align-items:center;gap:8px` |
-| 5425 | static | `font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em` |
-| 5427 | static | `background:var(--surface2);border:1px solid var(--border2);color:var(--white);font-family:'Kanit',sans-serif;font-weight:800;fo...` |
-| 5444 | dynamic | `display:none` |
+| 5549 | dynamic | `display:inline-flex;align-items:center;gap:6px;padding:6px 10px;background:var(--surface2);border:1px solid var(--border);borde...` |
+| 5550 | dynamic | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:11px;color:${color};text-transform:uppercase;letter-...` |
+| 5551 | dynamic | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:14px;color:${rankColor}` |
+| 5552 | dynamic | `font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);opacity:.6` |
+| 5562 | dynamic | `display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px` |
+| 5574 | static | `display:flex;align-items:center;justify-content:space-between` |
+| 5576 | static | `display:flex;align-items:center;gap:8px` |
+| 5577 | static | `font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em` |
+| 5579 | static | `background:var(--surface2);border:1px solid var(--border2);color:var(--white);font-family:'Kanit',sans-serif;font-weight:800;fo...` |
+| 5596 | dynamic | `display:none` |
 
 ### Team logo helpers — load BEFORE player-panel.js so modal-hero badge works. (8)
 
 | Line | Mode | Declaration |
 |---|---|---|
-| 2401 | static | `...` |
-| 2458 | static | `...` |
-| 2528 | static | `position:fixed;inset:0;background:var(--black);color:var(--white);display:flex;align-items:center;justify-content:center;font-f...` |
-| 2529 | static | `background:var(--nav-bg);border-bottom:2px solid var(--red);position:sticky;top:0;z-index:100` |
-| 2529 | static | `border:none;position:static` |
-| 2532 | static | `fill-rule:evenodd;clip-rule:evenodd` |
-| 2575 | static | `background:none;border:1px solid var(--border2);color:var(--white);font-family:'Kanit',sans-serif;font-weight:800;font-style:it...` |
-| 2604 | static | `display:none` |
+| 2553 | static | `...` |
+| 2610 | static | `...` |
+| 2680 | static | `position:fixed;inset:0;background:var(--black);color:var(--white);display:flex;align-items:center;justify-content:center;font-f...` |
+| 2681 | static | `background:var(--nav-bg);border-bottom:2px solid var(--red);position:sticky;top:0;z-index:100` |
+| 2681 | static | `border:none;position:static` |
+| 2684 | static | `fill-rule:evenodd;clip-rule:evenodd` |
+| 2727 | static | `background:none;border:1px solid var(--border2);color:var(--white);font-family:'Kanit',sans-serif;font-weight:800;font-style:it...` |
+| 2756 | static | `display:none` |
 
 ### Close player-detail modal if open (5)
 
 | Line | Mode | Declaration |
 |---|---|---|
-| 4701 | dynamic-context | `margin-top:14px;padding-top:14px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:8px;align-items:center` |
-| 4703 | static | `display:inline-block;font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:12px;color:var(--white);backgro...` |
-| 4705 | static | `font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);font-style:italic;text-align:center;line-height:1.5;max-width...` |
-| 4719 | dynamic | `color:${diff>0?'var(--red)':diff<0?'var(--green)':'var(--white)'}` |
-| 4779 | dynamic-context | `opacity:.5` |
+| 4853 | dynamic-context | `margin-top:14px;padding-top:14px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:8px;align-items:center` |
+| 4855 | static | `display:inline-block;font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:12px;color:var(--white);backgro...` |
+| 4857 | static | `font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);font-style:italic;text-align:center;line-height:1.5;max-width...` |
+| 4871 | dynamic | `color:${diff>0?'var(--red)':diff<0?'var(--green)':'var(--white)'}` |
+| 4931 | dynamic-context | `opacity:.5` |
 
 ### Total roster value (5)
 
 | Line | Mode | Declaration |
 |---|---|---|
-| 6641 | dynamic | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:13px;color:${_rankColor(rank)};padding:1px 6px;backg...` |
-| 6645 | static | `display:flex;gap:16px;flex-wrap:wrap;margin-bottom:24px;padding:16px;background:var(--surface2);border:1px solid var(--border)` |
-| 6646 | dynamic | `display:flex;align-items:center;gap:8px;margin-bottom:2px` |
-| 6648 | dynamic | `display:flex;align-items:center;gap:8px;margin-bottom:2px` |
-| 6651 | dynamic | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:22px;color:var(--green)` |
+| 6795 | dynamic | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:13px;color:${_rankColor(rank)};padding:1px 6px;backg...` |
+| 6799 | static | `display:flex;gap:16px;flex-wrap:wrap;margin-bottom:24px;padding:16px;background:var(--surface2);border:1px solid var(--border)` |
+| 6800 | dynamic | `display:flex;align-items:center;gap:8px;margin-bottom:2px` |
+| 6802 | dynamic | `display:flex;align-items:center;gap:8px;margin-bottom:2px` |
+| 6805 | dynamic | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:22px;color:var(--green)` |
 
 ### Trade Builder Modal — opens over the player detail modal (z-index 250) (5)
 
 | Line | Mode | Declaration |
 |---|---|---|
-| 7887 | static | `z-index:250` |
-| 7891 | static | `margin-right:8px` |
-| 7898 | static | `z-index:260` |
-| 7899 | static | `max-width:540px` |
-| 7902 | static | `margin-right:8px` |
+| 8041 | static | `z-index:250` |
+| 8045 | static | `margin-right:8px` |
+| 8052 | static | `z-index:260` |
+| 8053 | static | `max-width:540px` |
+| 8056 | static | `margin-right:8px` |
 
 ### PICKS BRANCH (4)
 
 | Line | Mode | Declaration |
 |---|---|---|
-| 6038 | static | `background:var(--surface2);display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--border)` |
-| 6038 | static | `display:block` |
-| 6040 | dynamic | `color:#9b91d4` |
-| 6043 | dynamic | `color:${expoColor(p.exposure)}` |
+| 6192 | static | `background:var(--surface2);display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--border)` |
+| 6192 | static | `display:block` |
+| 6194 | dynamic | `color:#9b91d4` |
+| 6197 | dynamic | `color:${expoColor(p.exposure)}` |
 
 ### Group transactions by roster (3)
 
 | Line | Mode | Declaration |
 |---|---|---|
-| 7152 | dynamic | `color:var(--red);font-size:10px;font-style:italic` |
-| 7153 | dynamic | `color:var(--yellow)` |
-| 7153 | dynamic | `color:var(--green)` |
+| 7306 | dynamic | `color:var(--red);font-size:10px;font-style:italic` |
+| 7307 | dynamic | `color:var(--yellow)` |
+| 7307 | dynamic | `color:var(--green)` |
 
 ### Sort state for the leagues list (2)
 
 | Line | Mode | Declaration |
 |---|---|---|
-| 5191 | dynamic | `width:${w}%;background:${s.color}` |
-| 5198 | dynamic-context | `opacity:.3` |
+| 5343 | dynamic | `width:${w}%;background:${s.color}` |
+| 5350 | dynamic-context | `opacity:.3` |
+
+### Save current scoped IDs so the existing loadRoster / loadAllTrades can target them (2)
+
+| Line | Mode | Declaration |
+|---|---|---|
+| 5677 | dynamic | `--archetype-bg:${mlArchetypeBg(archetype)};--archetype-fg:${mlArchetypeFg(archetype)}` |
+| 5688 | dynamic | `--pos-chip-color:${color};--rank-chip-color:${rankColor}` |
 
 ### Color helpers (2)
 
 | Line | Mode | Declaration |
 |---|---|---|
-| 6139 | dynamic | `color:${posColor(p.position)}` |
-| 6142 | dynamic | `color:${expoColor(p.exposure)}` |
+| 6293 | dynamic | `color:${posColor(p.position)}` |
+| 6296 | dynamic | `color:${expoColor(p.exposure)}` |
 
 ### Store per-league so multiple leagues can expand without collision (2)
 
 | Line | Mode | Declaration |
 |---|---|---|
-| 6799 | static | `margin-bottom:12px` |
-| 6800 | static | `display:none` |
+| 6953 | static | `margin-bottom:12px` |
+| 6954 | static | `display:none` |
 
 ### Update section meta with archetype legend + league averages (2)
 
 | Line | Mode | Declaration |
 |---|---|---|
-| 7553 | dynamic | `color:var(--white);font-family:'Kanit',sans-serif;font-weight:800;font-style:italic` |
-| 7553 | dynamic | `color:var(--white);font-family:'Kanit',sans-serif;font-weight:800;font-style:italic` |
+| 7707 | dynamic | `color:var(--white);font-family:'Kanit',sans-serif;font-weight:800;font-style:italic` |
+| 7707 | dynamic | `color:var(--white);font-family:'Kanit',sans-serif;font-weight:800;font-style:italic` |
 
 ### Columns: expandable league list (left) + player exposure (right) (1)
 
 | Line | Mode | Declaration |
 |---|---|---|
-| 2626 | static | `display:none` |
+| 2778 | static | `display:none` |
 
 ### Archetype lookup for the owning team (1)
 
 | Line | Mode | Declaration |
 |---|---|---|
-| 3741 | dynamic | `--archetype-bg:${mlArchetypeBg(r.ownerArchetype)};--archetype-fg:${mlArchetypeFg(r.ownerArchetype)}` |
+| 3893 | dynamic | `--archetype-bg:${mlArchetypeBg(r.ownerArchetype)};--archetype-fg:${mlArchetypeFg(r.ownerArchetype)}` |
 
 ### Render the current state of the suggestion pre-screener (1)
 
 | Line | Mode | Declaration |
 |---|---|---|
-| 4108 | dynamic | `--archetype-bg:${mlArchetypeBg(archetype)};--archetype-fg:${mlArchetypeFg(archetype)}` |
+| 4260 | dynamic | `--archetype-bg:${mlArchetypeBg(archetype)};--archetype-fg:${mlArchetypeFg(archetype)}` |
 
 ### Render the current suggestion as a single card (1)
 
 | Line | Mode | Declaration |
 |---|---|---|
-| 4238 | dynamic | `--balance-color:${balanceColor}` |
+| 4390 | dynamic | `--balance-color:${balanceColor}` |
 
 ### Close modals on Escape (1)
 
 | Line | Mode | Declaration |
 |---|---|---|
-| 4827 | dynamic | `color:${color};border-color:${color};background:${bg}` |
+| 4979 | dynamic | `color:${color};border-color:${color};background:${bg}` |

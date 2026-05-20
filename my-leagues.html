@@ -1924,6 +1924,158 @@
     color: var(--archetype-fg, var(--white));
   }
 
+  /* ── Team row (collapsed header) + expansion ────────────────────────────
+     Used inside each league row's expansion (mlBuildAllTeamsHtml). Shows
+     a collapsible row per opponent team: avatar + name + archetype chip +
+     per-position rank chips + total value. Clicking the row toggles
+     .ml-team-roster.is-open to reveal the team's roster underneath.
+     Migrated from inline styles to classes 2026-05-20. */
+
+  /* Outer container — bordered surface card per team. */
+  .ml-team-row {
+    border: 1px solid var(--border);
+    background: var(--surface);
+    margin-bottom: 6px;
+  }
+  /* Clickable header inside .ml-team-row that opens/closes the roster. */
+  .ml-team-row-trigger {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 14px;
+    cursor: pointer; user-select: none;
+    transition: background .12s;
+  }
+  .ml-team-row-trigger:hover { background: var(--surface2); }
+
+  .ml-team-caret {
+    font-family: 'Mulish', sans-serif; font-size: 9px;
+    color: var(--muted); width: 14px;
+    text-align: center; flex-shrink: 0;
+    transition: transform .15s;
+  }
+  .ml-team-caret.expanded { transform: rotate(90deg); }
+
+  .ml-team-avatar {
+    width: 28px; height: 28px;
+    border-radius: 3px; object-fit: cover;
+    background: var(--surface2); flex-shrink: 0;
+  }
+  /* Fallback span shown when team has no avatar — shows the owner's
+     first initial inside a Kanit-italic letter. */
+  .ml-team-avatar.is-fallback {
+    display: flex; align-items: center; justify-content: center;
+    object-fit: initial;
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 13px; color: var(--white);
+  }
+
+  .ml-team-name {
+    font-family: 'Mulish', sans-serif; font-weight: 800; font-size: 13px;
+    color: var(--white);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .ml-team-mebadge {
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 9px;
+    color: var(--white); background: var(--red);
+    padding: 2px 6px;
+    text-transform: uppercase; letter-spacing: .06em;
+    margin-left: 6px;
+  }
+  /* Archetype chip on the team header — same dynamic-bg/fg pattern as the
+     other archchips on the site, but with NO margin-left (it follows the
+     .ml-team-mebadge which already has margin-left:6px, so any extra
+     would double-space). */
+  .ml-team-archchip {
+    font-family: 'Mulish', sans-serif; font-size: 9px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .04em;
+    padding: 2px 6px; border-radius: 2px;
+    background: var(--archetype-bg, var(--surface2));
+    color: var(--archetype-fg, var(--white));
+  }
+
+  /* Per-position rank chips strip below the team name. */
+  .ml-team-rankchips {
+    display: flex; align-items: center; gap: 4px;
+    flex-wrap: wrap; margin-top: 5px;
+  }
+  .ml-team-rankchip {
+    display: inline-flex; align-items: center; gap: 3px;
+    padding: 2px 6px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    font-family: 'Mulish', sans-serif; font-size: 10px; font-weight: 700;
+  }
+  /* Colors on the inner spans come from CSS custom properties set inline
+     at render time (each position's color + each rank's color). Falls back
+     to white if unset. */
+  .ml-team-rankchip-pos {
+    color: var(--pos-chip-color, var(--white));
+    letter-spacing: .04em;
+  }
+  .ml-team-rankchip-rank {
+    color: var(--rank-chip-color, var(--white));
+  }
+
+  .ml-team-totals { text-align: right; flex-shrink: 0; }
+  .ml-team-total-val {
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 14px; color: var(--white);
+  }
+  .ml-team-total-label {
+    font-family: 'Mulish', sans-serif; font-size: 9px;
+    color: var(--muted);
+    text-transform: uppercase; letter-spacing: .06em;
+  }
+
+  /* Expandable roster body — display:none by default, .is-open shows it.
+     mlToggleTeamRoster toggles the class instead of mutating inline
+     styles. */
+  .ml-team-roster {
+    display: none;
+    border-top: 1px solid var(--border);
+    background: var(--surface2);
+    padding: 10px 14px;
+  }
+  .ml-team-roster.is-open { display: block; }
+
+  /* Section sub-headers INSIDE the expanded roster body — one per
+     position group (QB / RB / WR / TE / Other / Draft Picks). */
+  .ml-team-secthead {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 6px 4px;
+    border-bottom: 1px solid var(--border2);
+    margin-bottom: 2px;
+  }
+  .ml-team-secthead-count {
+    color: var(--muted); font-weight: 700; margin-left: 4px;
+  }
+  .ml-team-secthead-total {
+    font-family: 'Mulish', sans-serif; font-size: 10px;
+    color: var(--muted); font-weight: 700;
+  }
+  /* OTHER + Draft Picks use a different title style than QB/RB/WR/TE
+     (which use the red .ml-section-head). OTHER is muted; Picks uses
+     the pos-pick color. */
+  .ml-team-secthead-othertitle {
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 11px;
+    text-transform: uppercase; letter-spacing: .06em;
+    color: var(--muted);
+  }
+  .ml-team-secthead-pickstitle {
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 11px;
+    text-transform: uppercase; letter-spacing: .06em;
+    color: var(--pos-pick-bg, #9b91d4);
+  }
+
+  /* Outer wrapper around the sections inside the roster body — sets
+     font-family Mulish so children inherit it. */
+  .ml-team-roster-sections {
+    font-family: 'Mulish', sans-serif;
+  }
+
   /* Calculator modal */
   .ml-calc-builder {
     display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;
@@ -5519,71 +5671,73 @@ function renderLeagueTeamsSection(leagueId, ld, sortKey) {
   container.innerHTML = teams.map(t => {
     const totalVal = (t.total || 0) + (t.pickValue || 0);
     const archetype = t.archetype || '';
+    // Archetype chip — bg/fg via CSS custom properties; everything else
+    // in .ml-team-archchip.
     const archChip = archetype
-      ? `<span style="font-family:'Mulish',sans-serif;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;padding:2px 6px;border-radius:2px;background:${mlArchetypeBg(archetype)};color:${mlArchetypeFg(archetype)}">${archetype}</span>`
+      ? `<span class="ml-team-archchip" style="--archetype-bg:${mlArchetypeBg(archetype)};--archetype-fg:${mlArchetypeFg(archetype)}">${archetype}</span>`
       : '';
 
-    // Position rank chips
+    // Position rank chips — per-position color + per-rank color come from
+    // CSS custom properties (--pos-chip-color / --rank-chip-color); the
+    // chip wrapper + size + layout live in .ml-team-rankchip.
     const rankChips = posList.map(pos => {
       const r = ranksByPos[pos][t.rosterId];
       const color = posColors[pos];
       const label = pos === 'PICK' ? 'PK' : pos;
       const rankColor = (r <= 3) ? 'var(--green)' : (r <= Math.ceil(teamCount/2)) ? 'var(--white)' : 'var(--red)';
-      return `<span style="display:inline-flex;align-items:center;gap:3px;padding:2px 6px;background:var(--surface2);border:1px solid var(--border);border-radius:2px;font-family:'Mulish',sans-serif;font-size:10px;font-weight:700">
-        <span style="color:${color};letter-spacing:.04em">${label}</span>
-        <span style="color:${rankColor}">#${r}</span>
+      return `<span class="ml-team-rankchip" style="--pos-chip-color:${color};--rank-chip-color:${rankColor}">
+        <span class="ml-team-rankchip-pos">${label}</span>
+        <span class="ml-team-rankchip-rank">#${r}</span>
       </span>`;
     }).join('');
 
-    const meBadge = t.isMe
-      ? `<span style="font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:9px;color:var(--white);background:var(--red);padding:2px 6px;text-transform:uppercase;letter-spacing:.06em;margin-left:6px">You</span>`
-      : '';
+    const meBadge = t.isMe ? `<span class="ml-team-mebadge">You</span>` : '';
 
     const ownerInitial = (t.name || '?').charAt(0).toUpperCase();
 
     return `
-      <div class="ml-team-row" data-rid="${t.rosterId}" style="border:1px solid var(--border);background:var(--surface);margin-bottom:6px">
-        <div onclick="mlToggleTeamRoster('${leagueId}', ${t.rosterId})"
-          style="display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;user-select:none"
-          onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='transparent'">
-          <span style="font-family:'Mulish',sans-serif;font-size:9px;color:var(--muted);width:14px;text-align:center;flex-shrink:0;transition:transform .15s" class="ml-team-caret">▶</span>
+      <div class="ml-team-row" data-rid="${t.rosterId}">
+        <div class="ml-team-row-trigger" onclick="mlToggleTeamRoster('${leagueId}', ${t.rosterId})">
+          <span class="ml-team-caret">▶</span>
           ${t.avatarUrl
-            ? `<img src="${t.avatarUrl}" style="width:28px;height:28px;border-radius:3px;object-fit:cover;background:var(--surface2);flex-shrink:0" onerror="_avatarFallback(this,'${ownerInitial}')">`
-            : `<span style="width:28px;height:28px;border-radius:3px;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:13px;color:var(--white);flex-shrink:0">${ownerInitial}</span>`
+            ? `<img class="ml-team-avatar" src="${t.avatarUrl}" onerror="_avatarFallback(this,'${ownerInitial}')">`
+            : `<span class="ml-team-avatar is-fallback">${ownerInitial}</span>`
           }
           <div class="ml-flex1">
             <div class="ml-flex-wrap-row">
-              <span style="font-family:'Mulish',sans-serif;font-weight:800;font-size:13px;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${t.name || `Team ${t.rosterId}`}</span>
+              <span class="ml-team-name">${t.name || `Team ${t.rosterId}`}</span>
               ${meBadge}
               ${archChip}
             </div>
-            <div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;margin-top:5px">
+            <div class="ml-team-rankchips">
               ${rankChips}
             </div>
           </div>
-          <div style="text-align:right;flex-shrink:0">
-            <div style="font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:14px;color:var(--white)">${totalVal.toLocaleString()}</div>
-            <div style="font-family:'Mulish',sans-serif;font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em">Total Value</div>
+          <div class="ml-team-totals">
+            <div class="ml-team-total-val">${totalVal.toLocaleString()}</div>
+            <div class="ml-team-total-label">Total Value</div>
           </div>
         </div>
-        <div class="ml-team-roster" id="ml-team-roster-${leagueId}-${t.rosterId}" style="display:none;border-top:1px solid var(--border);background:var(--surface2);padding:10px 14px"></div>
+        <div class="ml-team-roster" id="ml-team-roster-${leagueId}-${t.rosterId}"></div>
       </div>
     `;
   }).join('');
 }
 
 // Toggle expand/collapse for a single opponent team's roster.
-// Lazy-builds the roster table the first time it expands.
+// Lazy-builds the roster table the first time it expands. Uses
+// .is-open class on the roster body + .expanded on the caret instead
+// of inline-style mutations; CSS handles the visual transitions.
 function mlToggleTeamRoster(leagueId, rosterId) {
   const rosterDiv = document.getElementById(`ml-team-roster-${leagueId}-${rosterId}`);
   if (!rosterDiv) return;
   const row = rosterDiv.closest('.ml-team-row');
   const caret = row ? row.querySelector('.ml-team-caret') : null;
 
-  const isOpen = rosterDiv.style.display !== 'none' && rosterDiv.style.display !== '';
+  const isOpen = rosterDiv.classList.contains('is-open');
   if (isOpen) {
-    rosterDiv.style.display = 'none';
-    if (caret) caret.style.transform = '';
+    rosterDiv.classList.remove('is-open');
+    if (caret) caret.classList.remove('expanded');
     return;
   }
 
@@ -5592,8 +5746,8 @@ function mlToggleTeamRoster(leagueId, rosterId) {
     rosterDiv.innerHTML = mlBuildTeamRosterHtml(leagueId, rosterId);
     rosterDiv.dataset.built = '1';
   }
-  rosterDiv.style.display = 'block';
-  if (caret) caret.style.transform = 'rotate(90deg)';
+  rosterDiv.classList.add('is-open');
+  if (caret) caret.classList.add('expanded');
 }
 
 // Build the inner HTML for a team's roster section (players grouped by position + picks)
@@ -5690,9 +5844,9 @@ function mlBuildTeamRosterHtml(leagueId, rosterId) {
     const total = groups[pos].reduce((s,p) => s + (p.value||0), 0);
     sections.push(`
       <div class="ml-mb-10">
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 4px;border-bottom:1px solid var(--border2);margin-bottom:2px">
-          <span class="ml-section-head">${pos === 'QB' ? 'Quarterbacks' : pos === 'RB' ? 'Running Backs' : pos === 'WR' ? 'Wide Receivers' : 'Tight Ends'} <span style="color:var(--muted);font-weight:700;margin-left:4px">${groups[pos].length}</span></span>
-          <span style="font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);font-weight:700">${total.toLocaleString()}</span>
+        <div class="ml-team-secthead">
+          <span class="ml-section-head">${pos === 'QB' ? 'Quarterbacks' : pos === 'RB' ? 'Running Backs' : pos === 'WR' ? 'Wide Receivers' : 'Tight Ends'} <span class="ml-team-secthead-count">${groups[pos].length}</span></span>
+          <span class="ml-team-secthead-total">${total.toLocaleString()}</span>
         </div>
         ${groups[pos].map(renderPlayerRow).join('')}
       </div>
@@ -5703,8 +5857,8 @@ function mlBuildTeamRosterHtml(leagueId, rosterId) {
   if (groups.OTHER.length) {
     sections.push(`
       <div class="ml-mb-10">
-        <div style="display:flex;align-items:center;padding:6px 4px;border-bottom:1px solid var(--border2);margin-bottom:2px">
-          <span style="font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em">Other <span style="margin-left:4px">${groups.OTHER.length}</span></span>
+        <div class="ml-team-secthead">
+          <span class="ml-team-secthead-othertitle">Other <span class="ml-team-secthead-count">${groups.OTHER.length}</span></span>
         </div>
         ${groups.OTHER.map(renderPlayerRow).join('')}
       </div>
@@ -5716,9 +5870,9 @@ function mlBuildTeamRosterHtml(leagueId, rosterId) {
     const totalPickVal = ownedPicks.reduce((s,p) => s + (mlPickValue(p.season, p.round, leagueId) || 0), 0);
     sections.push(`
       <div class="ml-mb-10">
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 4px;border-bottom:1px solid var(--border2);margin-bottom:2px">
-          <span style="font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:11px;color:var(--pos-pick-bg,#9b91d4);text-transform:uppercase;letter-spacing:.06em">Draft Picks <span style="color:var(--muted);font-weight:700;margin-left:4px">${ownedPicks.length}</span></span>
-          <span style="font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);font-weight:700">${totalPickVal.toLocaleString()}</span>
+        <div class="ml-team-secthead">
+          <span class="ml-team-secthead-pickstitle">Draft Picks <span class="ml-team-secthead-count">${ownedPicks.length}</span></span>
+          <span class="ml-team-secthead-total">${totalPickVal.toLocaleString()}</span>
         </div>
         ${ownedPicks.map(renderPickRow).join('')}
       </div>
@@ -5728,7 +5882,7 @@ function mlBuildTeamRosterHtml(leagueId, rosterId) {
   if (!sections.length) {
     return `<div class="ml-italic-note">No tracked assets on this roster</div>`;
   }
-  return `<div style="font-family:'Mulish',sans-serif">${sections.join('')}</div>`;
+  return `<div class="ml-team-roster-sections">${sections.join('')}</div>`;
 }
 
 
