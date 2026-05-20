@@ -213,21 +213,29 @@
     max-width: 1100px;
   }
   /* Multi-player Profile mode (2 players): cards side-by-side, info
-     column hidden. Each card is wider so it can carry a full metric
-     table with color-coded comparison values. */
+     column hidden. Each card is a fixed-width "trading card" matching the
+     single-player hero — Madden-aesthetic compact, NOT a stretched-wide
+     panel. Two 320px cards + 24px gap = 664px total content, centered in
+     the 1100px-max .pc-hero-row container with whitespace on either side.
+     justify-content: center keeps them visually balanced regardless of
+     viewport width. */
   body.fpts-compare-page .pc-hero-row.is-multi {
-    grid-template-columns: 1fr 1fr;
-    gap: 18px;
+    grid-template-columns: repeat(2, 320px);
+    gap: 24px;
+    justify-content: center;
   }
   body.fpts-compare-page .pc-hero-row.is-multi .pc-info { display: none; }
   /* Bigger photos + the mini-grid / footer / key strip drop out in
      favor of the comprehensive metric table built below. */
   body.fpts-compare-page .pc-hero-row.is-multi .pc-card-photo-wrap {
-    /* Multi-player Profile mode photo. Was 16/10 (~560×350 at 1100/2 card
-       width) — too tall on wide monitors; pushed the metric table below
-       the fold. Switched to 3/1 (~560×186) on 2026-05-20 — saves ~150px
-       per card so the comparison table is visible immediately. */
-    aspect-ratio: 3 / 1;
+    /* Multi-player Profile mode photo. Now inherits the 5/4 aspect from
+       the single-player rule above — both modes use the same Madden-card
+       proportions for visual consistency. At the new fixed 320px card
+       width, that's 320×256 per card. The wider 3/1 landscape banner
+       (previous iteration) was abandoned alongside the 1fr 1fr stretched
+       grid — now the cards stay compact and the metric table renders in
+       a focused column below the photo + name strip. */
+    aspect-ratio: 5 / 4;
   }
   body.fpts-compare-page .pc-hero-row.is-multi .pc-card-mini-grid,
   body.fpts-compare-page .pc-hero-row.is-multi .pc-card-footer,
@@ -526,12 +534,14 @@
     display: flex; align-items: center;
   }
   body.fpts-compare-page .pc-card-photo-wrap {
-    /* Single-player Profile mode photo. Was 1/1 (square — 320×320 at the
-       fixed 320px card column); switched to 16/9 (320×180) on 2026-05-20
-       so the rest of the page — metric tiles + tab bar + Background tiles
-       — moves up into view without scrolling. Multi-mode overrides this
-       aspect to a wider landscape (see .pc-hero-row.is-multi below). */
-    width: 100%; aspect-ratio: 16 / 9;
+    /* Single-player Profile mode photo. Aspect tuned to the Hayden Winks
+       Madden-card reference (Image #18) — gently portrait so the card
+       reads like a "trading card" stacked: photo on top, name strip,
+       stats grid, footer. Was 16/9 (too short, made card feel like a
+       wide banner); 5/4 (320×256 at the fixed 320px column) restores the
+       Madden aesthetic without the old 1:1 height-hog. Multi-mode uses
+       the same aspect for visual consistency. */
+    width: 100%; aspect-ratio: 5 / 4;
     background: var(--surface);
     display: flex; align-items: center; justify-content: center;
     position: relative; overflow: hidden;
