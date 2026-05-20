@@ -223,7 +223,11 @@
   /* Bigger photos + the mini-grid / footer / key strip drop out in
      favor of the comprehensive metric table built below. */
   body.fpts-compare-page .pc-hero-row.is-multi .pc-card-photo-wrap {
-    aspect-ratio: 16 / 10;
+    /* Multi-player Profile mode photo. Was 16/10 (~560×350 at 1100/2 card
+       width) — too tall on wide monitors; pushed the metric table below
+       the fold. Switched to 3/1 (~560×186) on 2026-05-20 — saves ~150px
+       per card so the comparison table is visible immediately. */
+    aspect-ratio: 3 / 1;
   }
   body.fpts-compare-page .pc-hero-row.is-multi .pc-card-mini-grid,
   body.fpts-compare-page .pc-hero-row.is-multi .pc-card-footer,
@@ -522,13 +526,25 @@
     display: flex; align-items: center;
   }
   body.fpts-compare-page .pc-card-photo-wrap {
-    width: 100%; aspect-ratio: 1 / 1;
+    /* Single-player Profile mode photo. Was 1/1 (square — 320×320 at the
+       fixed 320px card column); switched to 16/9 (320×180) on 2026-05-20
+       so the rest of the page — metric tiles + tab bar + Background tiles
+       — moves up into view without scrolling. Multi-mode overrides this
+       aspect to a wider landscape (see .pc-hero-row.is-multi below). */
+    width: 100%; aspect-ratio: 16 / 9;
     background: var(--surface);
     display: flex; align-items: center; justify-content: center;
     position: relative; overflow: hidden;
   }
   body.fpts-compare-page .pc-card-photo {
-    width: 100%; height: 100%; object-fit: cover; object-position: top;
+    /* object-position: top was correct for the old 1:1 square photo (kept
+       the head at the top of the frame, full face visible). After slimming
+       to 16:9 (single) / 3:1 (multi) on 2026-05-20 the same setting crops
+       to just the hair + forehead because the scaled image is now ~2.8x
+       container width. center 20% positions the face vertically near the
+       upper-middle (typical NFL headshot composition) so it stays visible
+       in the new narrow band. */
+    width: 100%; height: 100%; object-fit: cover; object-position: center 20%;
   }
   body.fpts-compare-page .pc-card-photo-fallback {
     font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
