@@ -1,7 +1,7 @@
 # my-leagues.html inline-style inventory
 
-Generated from `my-leagues.html` (8552 lines).
-Total `style="..."` occurrences: **52**.
+Generated from `my-leagues.html` (8559 lines).
+Total `style="..."` occurrences: **46**.
 
 This is a read-only audit. No code was changed. The goal is to make the
 refactor safe to execute supervised by giving every occurrence a category,
@@ -13,11 +13,11 @@ a section assignment, and an actionability verdict.
 
 | Mode | Count | % | Refactorable to CSS class? |
 |---|---|---|---|
-| `dynamic` | 40 | 76.9% | Conditional - if the interpolated value is a discrete enum, use a modifier class (e.g. `.is-active`); otherwise leave inline |
-| `static` | 11 | 21.2% | Yes - pure HTML attribute, drop into a class |
-| `dynamic-context` | 1 | 1.9% | Conditional - inside a JS-built HTML string; refactor only if the declaration set is static |
+| `dynamic` | 35 | 76.1% | Conditional - if the interpolated value is a discrete enum, use a modifier class (e.g. `.is-active`); otherwise leave inline |
+| `static` | 10 | 21.7% | Yes - pure HTML attribute, drop into a class |
+| `dynamic-context` | 1 | 2.2% | Conditional - inside a JS-built HTML string; refactor only if the declaration set is static |
 
-**Headline:** ~11 are directly refactorable, ~41 require case-by-case judgement, ~0 must stay inline (JS-set).
+**Headline:** ~10 are directly refactorable, ~36 require case-by-case judgement, ~0 must stay inline (JS-set).
 
 ---
 
@@ -27,23 +27,20 @@ Which CSS properties carry most of the inline styling. Where one property domina
 
 | Property | Count |
 |---|---|
-| `color` | 8 |
 | `display` | 7 |
 | `--rank-color` | 4 |
 | `--st-pos-color` | 4 |
 | `--archetype-bg` | 3 |
 | `--archetype-fg` | 3 |
+| `color` | 3 |
 | `width` | 3 |
 | `--rp-stripe-color` | 3 |
-| `font-style` | 3 |
 | `background` | 2 |
 | `--pos-color` | 2 |
 | `--cell-value-color` | 2 |
 | `--cell-proj-color` | 2 |
 | `--cell-proj-opacity` | 2 |
 | `--rp-total-color` | 2 |
-| `font-family` | 2 |
-| `font-weight` | 2 |
 | `--pos-bg` | 1 |
 | `--balance-color` | 1 |
 | `--net-color` | 1 |
@@ -52,6 +49,9 @@ Which CSS properties carry most of the inline styling. Where one property domina
 | `--pos-chip-color` | 1 |
 | `--rank-chip-color` | 1 |
 | `--expo-color` | 1 |
+| `--mpx-color` | 1 |
+| `--bar-width` | 1 |
+| `--bar-color` | 1 |
 
 ---
 
@@ -65,7 +65,6 @@ Each row below is a strong refactor candidate: same declaration set appearing N 
 | 2 | `...` |
 | 2 | `--archetype-bg:${mlArchetypeBg(archetype)}; --archetype-fg:${mlArchetypeFg(archetype)}` |
 | 2 | `--rp-stripe-color:var(--pos-pick-bg)` |
-| 2 | `color:var(--white); font-family:'Kanit',sans-serif; font-style:italic; font-weight:800` |
 
 ---
 
@@ -82,13 +81,10 @@ Sorted by count - the busiest regions are the highest-leverage refactor batches.
 | 3 | Team logo helpers — load BEFORE player-panel.js so modal-hero badge works. |
 | 3 | Render an archetype chip |
 | 3 | Ensure roster/users/players are loaded and stashed on window for the modal layer |
-| 3 | Group transactions by roster |
 | 2 | Sort state for the leagues list |
 | 2 | Save current scoped IDs so the existing loadRoster / loadAllTrades can target them |
 | 2 | Color helpers |
-| 2 | Store per-league so multiple leagues can expand without collision |
 | 2 | Aggregate per-roster |
-| 2 | Update section meta with archetype legend + league averages |
 | 1 | Columns: expandable league list (left) + player exposure (right) |
 | 1 | RIGHT: player exposure sidebar |
 | 1 | Archetype lookup for the owning team |
@@ -98,6 +94,7 @@ Sorted by count - the busiest regions are the highest-leverage refactor batches.
 | 1 | Close modals on Escape |
 | 1 | PICKS BRANCH |
 | 1 | Total roster value |
+| 1 | Store per-league so multiple leagues can expand without collision |
 
 ---
 
@@ -134,40 +131,40 @@ Every hit, grouped under the nearest banner-comment heading above it. Use this t
 
 | Line | Mode | Declaration |
 |---|---|---|
-| 8246 | dynamic | `--bar-width:${w}%;--bar-color:${posColors[pos]}` |
-| 8251 | dynamic | `--top-pos-color:${posColors[r.topScoringPos]}` |
-| 8270 | dynamic | `--st-pos-color:${posColors.QB}` |
-| 8271 | dynamic | `--st-pos-color:${posColors.RB}` |
-| 8272 | dynamic | `--st-pos-color:${posColors.WR}` |
-| 8273 | dynamic | `--st-pos-color:${posColors.TE}` |
+| 8253 | dynamic | `--bar-width:${w}%;--bar-color:${posColors[pos]}` |
+| 8258 | dynamic | `--top-pos-color:${posColors[r.topScoringPos]}` |
+| 8277 | dynamic | `--st-pos-color:${posColors.QB}` |
+| 8278 | dynamic | `--st-pos-color:${posColors.RB}` |
+| 8279 | dynamic | `--st-pos-color:${posColors.WR}` |
+| 8280 | dynamic | `--st-pos-color:${posColors.TE}` |
 
 ### Helpers (5)
 
 | Line | Mode | Declaration |
 |---|---|---|
-| 7121 | dynamic | `--cell-value-color:${valColor(r.value)}` |
-| 7123 | dynamic | `--cell-proj-color:${seasonProjColor};--cell-proj-opacity:${seasonProjOpacity}` |
-| 7124 | dynamic | `--cell-proj-color:${projColor};--cell-proj-opacity:${projOpacity}` |
-| 7141 | dynamic | `--rp-stripe-color:${posColors[pos]}` |
-| 7145 | dynamic | `--rp-total-color:${posColors[pos]}` |
+| 7128 | dynamic | `--cell-value-color:${valColor(r.value)}` |
+| 7130 | dynamic | `--cell-proj-color:${seasonProjColor};--cell-proj-opacity:${seasonProjOpacity}` |
+| 7131 | dynamic | `--cell-proj-color:${projColor};--cell-proj-opacity:${projOpacity}` |
+| 7148 | dynamic | `--rp-stripe-color:${posColors[pos]}` |
+| 7152 | dynamic | `--rp-total-color:${posColors[pos]}` |
 
 ### Renders draft picks in the same visual layout as a position section so the (4)
 
 | Line | Mode | Declaration |
 |---|---|---|
-| 7188 | static | `--rp-stripe-color:var(--pos-pick-bg)` |
-| 7225 | dynamic | `--cell-value-color:${valColor}` |
-| 7235 | static | `--rp-stripe-color:var(--pos-pick-bg)` |
-| 7239 | dynamic | `--rp-total-color:var(--pos-pick-bg)` |
+| 7195 | static | `--rp-stripe-color:var(--pos-pick-bg)` |
+| 7232 | dynamic | `--cell-value-color:${valColor}` |
+| 7242 | static | `--rp-stripe-color:var(--pos-pick-bg)` |
+| 7246 | dynamic | `--rp-total-color:var(--pos-pick-bg)` |
 
 ### Stash render context on window so the sort buttons can re-render (4)
 
 | Line | Mode | Declaration |
 |---|---|---|
-| 8142 | dynamic | `--mpx-color:${mpxColor}` |
-| 8155 | dynamic | `--pos-color:${posColors[pos]}` |
-| 8160 | dynamic | `--rank-color:${color}` |
-| 8165 | dynamic | `--rank-color:${scoreColor}` |
+| 8149 | dynamic | `--mpx-color:${mpxColor}` |
+| 8162 | dynamic | `--pos-color:${posColors[pos]}` |
+| 8167 | dynamic | `--rank-color:${color}` |
+| 8172 | dynamic | `--rank-color:${scoreColor}` |
 
 ### Team logo helpers — load BEFORE player-panel.js so modal-hero badge works. (3)
 
@@ -175,124 +172,108 @@ Every hit, grouped under the nearest banner-comment heading above it. Use this t
 |---|---|---|
 | 3017 | static | `...` |
 | 3074 | static | `...` |
-| 3240 | static | `display:none` |
+| 3247 | static | `display:none` |
 
 ### Render an archetype chip (3)
 
 | Line | Mode | Declaration |
 |---|---|---|
-| 3926 | dynamic | `--pos-bg:${c}` |
-| 4026 | static | `display:none` |
-| 4031 | static | `display:none` |
+| 3933 | dynamic | `--pos-bg:${c}` |
+| 4033 | static | `display:none` |
+| 4038 | static | `display:none` |
 
 ### Ensure roster/users/players are loaded and stashed on window for the modal layer (3)
 
 | Line | Mode | Declaration |
 |---|---|---|
-| 6016 | dynamic | `--pos-color:${color}` |
-| 6018 | dynamic | `--rank-color:${rankColor}` |
-| 6062 | dynamic | `display:none` |
-
-### Group transactions by roster (3)
-
-| Line | Mode | Declaration |
-|---|---|---|
-| 7785 | dynamic | `color:var(--red);font-size:10px;font-style:italic` |
-| 7786 | dynamic | `color:var(--yellow)` |
-| 7786 | dynamic | `color:var(--green)` |
+| 6023 | dynamic | `--pos-color:${color}` |
+| 6025 | dynamic | `--rank-color:${rankColor}` |
+| 6069 | dynamic | `display:none` |
 
 ### Sort state for the leagues list (2)
 
 | Line | Mode | Declaration |
 |---|---|---|
-| 5810 | dynamic | `width:${w}%;background:${s.color}` |
-| 5817 | dynamic-context | `opacity:.3` |
+| 5817 | dynamic | `width:${w}%;background:${s.color}` |
+| 5824 | dynamic-context | `opacity:.3` |
 
 ### Save current scoped IDs so the existing loadRoster / loadAllTrades can target them (2)
 
 | Line | Mode | Declaration |
 |---|---|---|
-| 6143 | dynamic | `--archetype-bg:${mlArchetypeBg(archetype)};--archetype-fg:${mlArchetypeFg(archetype)}` |
-| 6154 | dynamic | `--pos-chip-color:${color};--rank-chip-color:${rankColor}` |
+| 6150 | dynamic | `--archetype-bg:${mlArchetypeBg(archetype)};--archetype-fg:${mlArchetypeFg(archetype)}` |
+| 6161 | dynamic | `--pos-chip-color:${color};--rank-chip-color:${rankColor}` |
 
 ### Color helpers (2)
 
 | Line | Mode | Declaration |
 |---|---|---|
-| 6759 | dynamic | `color:${posColor(p.position)}` |
-| 6762 | dynamic | `color:${expoColor(p.exposure)}` |
-
-### Store per-league so multiple leagues can expand without collision (2)
-
-| Line | Mode | Declaration |
-|---|---|---|
-| 7432 | static | `margin-bottom:12px` |
-| 7433 | static | `display:none` |
+| 6766 | dynamic | `color:${posColor(p.position)}` |
+| 6769 | dynamic | `color:${expoColor(p.exposure)}` |
 
 ### Aggregate per-roster (2)
 
 | Line | Mode | Declaration |
 |---|---|---|
-| 7590 | dynamic | `width:${maxSpent ? (r.spent/maxSpent*100).toFixed(0) : 0}%` |
-| 7592 | dynamic | `width:${budget ? (r.left/budget*100).toFixed(0) : 0}%` |
-
-### Update section meta with archetype legend + league averages (2)
-
-| Line | Mode | Declaration |
-|---|---|---|
-| 8187 | dynamic | `color:var(--white);font-family:'Kanit',sans-serif;font-weight:800;font-style:italic` |
-| 8187 | dynamic | `color:var(--white);font-family:'Kanit',sans-serif;font-weight:800;font-style:italic` |
+| 7597 | dynamic | `width:${maxSpent ? (r.spent/maxSpent*100).toFixed(0) : 0}%` |
+| 7599 | dynamic | `width:${budget ? (r.left/budget*100).toFixed(0) : 0}%` |
 
 ### Columns: expandable league list (left) + player exposure (right) (1)
 
 | Line | Mode | Declaration |
 |---|---|---|
-| 3262 | static | `display:none` |
+| 3269 | static | `display:none` |
 
 ### RIGHT: player exposure sidebar (1)
 
 | Line | Mode | Declaration |
 |---|---|---|
-| 3288 | static | `display:none` |
+| 3295 | static | `display:none` |
 
 ### Archetype lookup for the owning team (1)
 
 | Line | Mode | Declaration |
 |---|---|---|
-| 4362 | dynamic | `--archetype-bg:${mlArchetypeBg(r.ownerArchetype)};--archetype-fg:${mlArchetypeFg(r.ownerArchetype)}` |
+| 4369 | dynamic | `--archetype-bg:${mlArchetypeBg(r.ownerArchetype)};--archetype-fg:${mlArchetypeFg(r.ownerArchetype)}` |
 
 ### Render the current state of the suggestion pre-screener (1)
 
 | Line | Mode | Declaration |
 |---|---|---|
-| 4729 | dynamic | `--archetype-bg:${mlArchetypeBg(archetype)};--archetype-fg:${mlArchetypeFg(archetype)}` |
+| 4736 | dynamic | `--archetype-bg:${mlArchetypeBg(archetype)};--archetype-fg:${mlArchetypeFg(archetype)}` |
 
 ### Render the current suggestion as a single card (1)
 
 | Line | Mode | Declaration |
 |---|---|---|
-| 4859 | dynamic | `--balance-color:${balanceColor}` |
+| 4866 | dynamic | `--balance-color:${balanceColor}` |
 
 ### Close player-detail modal if open (1)
 
 | Line | Mode | Declaration |
 |---|---|---|
-| 5338 | dynamic | `--net-color:${diff>0?'var(--red)':diff<0?'var(--green)':'var(--white)'}` |
+| 5345 | dynamic | `--net-color:${diff>0?'var(--red)':diff<0?'var(--green)':'var(--white)'}` |
 
 ### Close modals on Escape (1)
 
 | Line | Mode | Declaration |
 |---|---|---|
-| 5446 | dynamic | `color:${color};border-color:${color};background:${bg}` |
+| 5453 | dynamic | `color:${color};border-color:${color};background:${bg}` |
 
 ### PICKS BRANCH (1)
 
 | Line | Mode | Declaration |
 |---|---|---|
-| 6663 | dynamic | `--expo-color:${expoColor(p.exposure)}` |
+| 6670 | dynamic | `--expo-color:${expoColor(p.exposure)}` |
 
 ### Total roster value (1)
 
 | Line | Mode | Declaration |
 |---|---|---|
-| 7274 | dynamic | `--rank-color:${_rankColor(rank)}` |
+| 7281 | dynamic | `--rank-color:${_rankColor(rank)}` |
+
+### Store per-league so multiple leagues can expand without collision (1)
+
+| Line | Mode | Declaration |
+|---|---|---|
+| 7440 | static | `display:none` |

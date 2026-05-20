@@ -3136,7 +3136,14 @@
     text-transform: uppercase; letter-spacing: .06em;
   }
   body.fpts-ml-page .ml-mb-10          { margin-bottom: 10px; }
+  body.fpts-ml-page .ml-mb-12          { margin-bottom: 12px; }
   body.fpts-ml-page .ml-mb-28          { margin-bottom: 28px; }
+  body.fpts-ml-page .ml-cv-yellow      { color: var(--yellow); }
+  body.fpts-ml-page .ml-cv-green       { color: var(--green); }
+  body.fpts-ml-page .ml-median-stat    {
+    color: var(--white); font-family: 'Kanit', sans-serif;
+    font-weight: 800; font-style: italic;
+  }
 
   /* Loading overlay + topnav chrome (was inline style on the wrappers) */
   #_fp-loading {
@@ -7429,7 +7436,7 @@ async function mlHistorySetMode(leagueId, mode) {
     const contentEl = document.getElementById(`trades-content-${leagueId}`);
     if (contentEl) {
       contentEl.innerHTML = `
-        <div id="standings-section-meta" class="ml-section-meta" style="margin-bottom:12px"></div>
+        <div id="standings-section-meta" class="ml-section-meta ml-mb-12"></div>
         <div class="ml-spinner" id="standings-loading" style="display:none">
           <div class="ml-spinner-dot"></div>
           <div class="ml-spinner-dot"></div>
@@ -7782,8 +7789,8 @@ function renderWaiversByTeam(el, leagueId, data) {
     return `<div class="ml-wv-bt-team ${r.isMe ? 'me open' : ''}" data-rid="${r.rosterId}">
       <div class="ml-wv-bt-team-head" onclick="this.parentNode.classList.toggle('open')">
         ${r.avatar ? `<img class="ml-wv-team-avatar" src="${r.avatar}" onerror="this.style.visibility='hidden'">` : `<div class="ml-wv-team-avatar"></div>`}
-        <span class="ml-wv-bt-team-name">${r.teamName}${r.isMe ? ' <span style="color:var(--red);font-size:10px;font-style:italic">★ YOU</span>' : ''}</span>
-        <span class="ml-wv-bt-team-meta">${r.pickups} pickup${r.pickups !== 1 ? 's' : ''} · <span style="color:var(--yellow)">$${r.spent} spent</span> · <span style="color:var(--green)">$${r.left} left</span></span>
+        <span class="ml-wv-bt-team-name">${r.teamName}${r.isMe ? ' <span class="ml-wv-you-tag">★ YOU</span>' : ''}</span>
+        <span class="ml-wv-bt-team-meta">${r.pickups} pickup${r.pickups !== 1 ? 's' : ''} · <span class="ml-cv-yellow">$${r.spent} spent</span> · <span class="ml-cv-green">$${r.left} left</span></span>
         <span class="ml-wv-bt-caret">▼</span>
       </div>
       <div class="ml-wv-bt-body">${pickupHtml}</div>
@@ -8184,7 +8191,7 @@ async function loadStandings(leagueId) {
     // Update section meta with archetype legend + league averages
     const metaEl = document.getElementById('standings-section-meta');
     if (metaEl) {
-      metaEl.innerHTML = `Median value: <strong style="color:var(--white);font-family:'Kanit',sans-serif;font-weight:800;font-style:italic">${Math.round(leagueAvg.value).toLocaleString()}</strong> · Median age: <strong style="color:var(--white);font-family:'Kanit',sans-serif;font-weight:800;font-style:italic">${leagueAvg.age.toFixed(1)}</strong>`;
+      metaEl.innerHTML = `Median value: <strong class="ml-median-stat">${Math.round(leagueAvg.value).toLocaleString()}</strong> · Median age: <strong class="ml-median-stat">${leagueAvg.age.toFixed(1)}</strong>`;
     }
 
     renderStandingsTable();
