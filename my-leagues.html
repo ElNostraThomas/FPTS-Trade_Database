@@ -6,7 +6,7 @@
 <title>Fantasy Points Front Office — User Importer</title>
 <link href="https://fonts.googleapis.com/css2?family=Kanit:ital,wght@0,400;0,700;1,800&family=Mulish:wght@400;600;700;900&display=swap" rel="stylesheet">
 <!-- Brand-level shared styles (loaded BEFORE inline <style> so page overrides win). -->
-<link rel="stylesheet" href="assets/css/brand.css?v=1782500001">
+<link rel="stylesheet" href="assets/css/brand.css?v=1782600000">
 <!-- iframe scroll fix — only runs when embedded; no-op for direct visitors. -->
 <script src="assets/js/iframe-scroll-fix.js?v=1782100000"></script>
 <!-- Back-to-top floating button — appears when scrolled, click for smooth-scroll to top. -->
@@ -502,7 +502,7 @@
 
   /* ── SECTION HEADER ── */
   .section-hdr { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
-  .section-num { background: var(--red); color: var(--white); font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 11px; padding: 3px 9px; }
+  .section-num { background: var(--red); color: #111111; font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 11px; padding: 3px 9px; }
   .section-title { font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 17px; color: var(--white); text-transform: uppercase; letter-spacing: .04em; }
 
   /* ── TRADE CARDS ── */
@@ -882,7 +882,7 @@
   }
   .ml-search-input::placeholder { color:rgba(255,255,255,0.35); }
   .ml-search-btn {
-    background:var(--red); border:none; color:var(--white);
+    background:var(--red); border:none; color:#111111;
     font-family:'Kanit',sans-serif; font-weight:800; font-style:italic;
     font-size:13px; padding:12px 22px;
     text-transform:uppercase; letter-spacing:.05em;
@@ -1174,7 +1174,7 @@
     flex-shrink:0; padding:5px 10px; border:1px solid var(--red); border-radius:3px;
     transition: background .12s, color .12s;
   }
-  .pp-article-browse-link:hover { background:var(--red); color:var(--white); }
+  .pp-article-browse-link:hover { background:var(--red); color:#111111; }
   .pp-article-title {
     font-family:'Mulish',sans-serif; font-weight:900; font-size:13px;
     color:var(--white); text-decoration:none; flex:1; min-width:0;
@@ -1771,8 +1771,8 @@
   .ml-pd-avatar img { width: 100%; height: 100%; object-fit: cover; }
   .fpts-xpage-btn { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:10px; color:var(--white); background:transparent; border:1px solid var(--border2); padding:5px 10px; cursor:pointer; text-transform:uppercase; letter-spacing:.06em; text-decoration:none; display:inline-flex; align-items:center; gap:4px; transition:all .15s; white-space:nowrap; }
   .fpts-xpage-btn:hover { border-color:var(--red); color:var(--red); }
-  .fpts-xpage-btn.primary { background:var(--red); border-color:var(--red); color:var(--white); }
-  .fpts-xpage-btn.primary:hover { opacity:.85; color:var(--white); }
+  .fpts-xpage-btn.primary { background:var(--red); border-color:var(--red); color:#111111; }
+  .fpts-xpage-btn.primary:hover { opacity:.85; color:#111111; }
   .fpts-xpage-bar { display:flex; gap:6px; align-items:center; flex-wrap:wrap; }
 
   .ml-pd-avatar-initials {
@@ -1840,8 +1840,8 @@
     cursor: pointer; transition: all .15s; text-decoration: none;
   }
   .ml-pd-btn:hover { border-color: var(--red); color: var(--red); }
-  .ml-pd-btn.primary { background: var(--red); border-color: var(--red); color: var(--white); }
-  .ml-pd-btn.primary:hover { opacity: .85; color: var(--white); }
+  .ml-pd-btn.primary { background: var(--red); border-color: var(--red); color: #111111; }
+  .ml-pd-btn.primary:hover { opacity: .85; color: #111111; }
 
   /* ── Player-detail "Availability Across Your Leagues" section ────────
      Migrated from inline styles to classes 2026-05-20. Per-row breakdown
@@ -2022,7 +2022,7 @@
     padding: 10px 18px; border-radius: 3px;
   }
   .ml-tb-fullred-btn {
-    background: var(--red); border: none; color: var(--white);
+    background: var(--red); border: none; color: #111111;
     font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
     font-size: 13px;
     text-transform: uppercase; letter-spacing: .06em;
@@ -2921,8 +2921,8 @@
   .mvs-extras-diff.up   { color:#66dd84; }
   .mvs-extras-diff.down { color:var(--red); }
   .mvs-vol { display:inline-block; padding:2px 8px; font-size:10px; font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; letter-spacing:.06em; text-transform:uppercase; margin-left:6px; vertical-align:middle; }
-  .mvs-vol-hot  { background:var(--red); color:var(--white); }
-  .mvs-vol-warm { background:var(--pos-te-bg); color:var(--white); }
+  .mvs-vol-hot  { background:var(--red); color:#111111; }
+  .mvs-vol-warm { background:var(--pos-te-bg); color:#111111; }
   .mvs-vol-cool { background:var(--surface2); color:var(--white); border:1px solid var(--border2); }
   .mvs-vol-cold { background:transparent; color:var(--muted); border:1px solid var(--border2); opacity:.7; }
   .mvs-foot { padding:8px 24px 14px; font-family:'Mulish',sans-serif; font-size:10px; color:var(--muted); opacity:.55; text-align:right; letter-spacing:.04em; }
@@ -2945,15 +2945,15 @@
   .mvs-t-total { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:13px; color:var(--white); border-top:1px solid var(--border); padding-top:3px; text-align:right; }
   .mvs-t-vs { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; color:var(--red); font-size:16px; align-self:center; padding-top:18px; }
 </style>
-<link rel="stylesheet" href="assets/css/mvs-extras.css?v=1780400000">
+<link rel="stylesheet" href="assets/css/mvs-extras.css?v=1782600000">
 <script src="assets/js/mvs-extras.js?v=1778642255"></script>
 <script src="assets/js/player-articles.js?v=1778680034"></script>
-<link rel="stylesheet" href="assets/css/heatmap.css?v=1780400000">
+<link rel="stylesheet" href="assets/css/heatmap.css?v=1782600000">
 <script src="assets/js/heatmap.js?v=1778670000"></script>
-<link rel="stylesheet" href="assets/css/legend.css?v=1780400000">
+<link rel="stylesheet" href="assets/css/legend.css?v=1782600000">
 <script src="assets/js/legend-content.js?v=1782500000"></script>
 <script src="assets/js/legend.js?v=1778949514"></script>
-<link rel="stylesheet" href="assets/css/player-panel.css?v=1781500000">
+<link rel="stylesheet" href="assets/css/player-panel.css?v=1782600000">
 <script>window.FPTS_CURRENT_PAGE = 'ml';</script>
 <!-- Shared data layer: fetches data/*.json, populates FP_VALUES / PICK_VALUES /
      ADP_PAYLOAD / AUCTION_PAYLOAD / MVS_PAYLOAD / PLAYER_ARTICLES /

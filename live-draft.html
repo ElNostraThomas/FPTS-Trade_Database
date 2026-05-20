@@ -39,7 +39,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Kanit:ital,wght@0,400;0,700;1,800&family=Mulish:wght@400;700;900&display=swap" rel="stylesheet">
 
 <!-- Brand-level styles -->
-<link rel="stylesheet" href="assets/css/brand.css?v=1782500001">
+<link rel="stylesheet" href="assets/css/brand.css?v=1782600000">
 <!-- iframe scroll fix — only runs when embedded; no-op for direct visitors. -->
 <script src="assets/js/iframe-scroll-fix.js?v=1782100000"></script>
 <!-- Back-to-top floating button — appears when scrolled, click for smooth-scroll to top. -->
@@ -48,10 +48,10 @@
 <script src="assets/js/custom-select.js?v=1782300000" defer></script>
 
 <!-- Shared UI component modules (CSS) -->
-<link rel="stylesheet" href="assets/css/mvs-extras.css?v=1780400000">
-<link rel="stylesheet" href="assets/css/heatmap.css?v=1780400000">
-<link rel="stylesheet" href="assets/css/legend.css?v=1780400000">
-<link rel="stylesheet" href="assets/css/player-panel.css?v=1781500000">
+<link rel="stylesheet" href="assets/css/mvs-extras.css?v=1782600000">
+<link rel="stylesheet" href="assets/css/heatmap.css?v=1782600000">
+<link rel="stylesheet" href="assets/css/legend.css?v=1782600000">
+<link rel="stylesheet" href="assets/css/player-panel.css?v=1782600000">
 
 <!-- Page identity + data layer config -->
 <script>
@@ -115,7 +115,7 @@
   }
   .ld-login-input::placeholder { color: rgba(255,255,255,0.35); }
   .ld-login-submit {
-    background: var(--red); border: none; color: var(--white);
+    background: var(--red); border: none; color: #111111;
     font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
     font-size: 13px; padding: 12px 22px;
     text-transform: uppercase; letter-spacing: .05em;
@@ -287,9 +287,9 @@
     font-size: 12px; letter-spacing: .06em; text-transform: uppercase;
     width: 100%;
   }
-  .ld-pa-badge.value  { background: var(--green);    color: var(--white); }
+  .ld-pa-badge.value  { background: var(--green);    color: #111111; }
   .ld-pa-badge.par    { background: var(--surface2); color: rgba(255,255,255,0.65); border: 1px solid var(--border2); }
-  .ld-pa-badge.reach  { background: var(--red);      color: var(--white); }
+  .ld-pa-badge.reach  { background: var(--red);      color: #111111; }
   .ld-pa-badge.no-adp { background: var(--surface2); color: rgba(255,255,255,0.45); border: 1px dashed var(--border2); }
 
   /* TEAM NEEDS card — value-weighted ranking of positions by total
@@ -746,7 +746,7 @@
     overflow: hidden;
   }
   .ld-col-head.col-mine {
-    background: var(--red); color: var(--white);
+    background: var(--red); color: #111111;
   }
   .ld-col-head.col-mine .ld-col-head-avatar-fallback { background: var(--surface); color: var(--white); }
   .ld-col-head-avatar {
@@ -823,12 +823,12 @@
     overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   }
   /* Position-colored cells */
-  .ld-cell.QB  { background: var(--pos-qb-bg); color: var(--white); }
-  .ld-cell.RB  { background: var(--pos-rb-bg); color: var(--white); }
-  .ld-cell.WR  { background: var(--pos-wr-bg); color: var(--white); }
-  .ld-cell.TE  { background: var(--pos-te-bg); color: var(--white); }
-  .ld-cell.K   { background: var(--pos-k-bg);  color: var(--white); }
-  .ld-cell.DEF, .ld-cell.PICK { background: var(--pos-pick-bg); color: var(--white); }
+  .ld-cell.QB  { background: var(--pos-qb-bg); color: #111111; }
+  .ld-cell.RB  { background: var(--pos-rb-bg); color: #111111; }
+  .ld-cell.WR  { background: var(--pos-wr-bg); color: #111111; }
+  .ld-cell.TE  { background: var(--pos-te-bg); color: #111111; }
+  .ld-cell.K   { background: var(--pos-k-bg);  color: #111111; }
+  .ld-cell.DEF, .ld-cell.PICK { background: var(--pos-pick-bg); color: #111111; }
 
   /* Empty future-pick cells. .empty handles the visual "no player yet"
      state; opacity is on the cell ONLY when it's neither mine nor

@@ -6,7 +6,7 @@
 <title>Fantasy Points Front Office — Tiers</title>
 
 <!-- Brand-level shared styles (loaded BEFORE inline <style> so page overrides win). -->
-<link rel="stylesheet" href="assets/css/brand.css?v=1782500001">
+<link rel="stylesheet" href="assets/css/brand.css?v=1782600000">
 <!-- iframe scroll fix — only runs when embedded; no-op for direct visitors. -->
 <script src="assets/js/iframe-scroll-fix.js?v=1782100000"></script>
 <!-- Back-to-top floating button — appears when scrolled, click for smooth-scroll to top. -->
@@ -65,7 +65,7 @@
   .nav-link.active { opacity: 1; border-bottom-color: transparent; }
   .nav-right { margin-left:auto; display:flex; align-items:center; gap:16px; }
   .nav-stat { font-family:'Mulish',sans-serif; font-size:11px; color:var(--white); opacity:1; white-space:nowrap; }
-  .nav-badge { background:var(--red); color:var(--white); font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:11px; padding:3px 10px; letter-spacing:.04em; }
+  .nav-badge { background:var(--red); color:#111111; font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:11px; padding:3px 10px; letter-spacing:.04em; }
   .mobile-nav-select { display: none; background: var(--surface2); color: var(--white); border: 1px solid var(--border2); padding: 4px 22px 4px 8px; font-family: 'Mulish', sans-serif; font-size: 11px; font-weight: 700; text-transform: uppercase; cursor: pointer; }
 
   /* PAGE */
@@ -83,12 +83,12 @@
   .tier-toggle-btn { background:transparent; color:var(--white); border:1px solid var(--border2); font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:11px; text-transform:uppercase; letter-spacing:.06em; padding:6px 14px; cursor:pointer; transition:all .15s; }
   .tier-toggle-btn:not(:last-child) { border-right:none; }
   .tier-toggle-btn:hover { color:var(--red); }
-  .tier-toggle-btn.active { background:var(--red); border-color:var(--red); color:var(--white); }
+  .tier-toggle-btn.active { background:var(--red); border-color:var(--red); color:#111111; }
   .tier-filter-select { font-family:'Mulish',sans-serif; font-size:12px; background:var(--surface2); color:var(--white); border:1px solid var(--border2); padding:6px 22px 6px 10px; cursor:pointer; appearance:none; background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path d='M0 0l5 6 5-6z' fill='%23888'/></svg>"); background-repeat:no-repeat; background-position:right 8px center; }
 
   /* TIER GROUP HEADER */
   .tier-group { margin-bottom: 24px; }
-  .tier-group-header { background: var(--red); color: var(--white); padding: 8px 14px; font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:13px; text-transform:uppercase; letter-spacing:.06em; display:flex; align-items:center; gap:12px; }
+  .tier-group-header { background: var(--red); color: #111111; padding: 8px 14px; font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:13px; text-transform:uppercase; letter-spacing:.06em; display:flex; align-items:center; gap:12px; }
   .tier-group-letter { background: var(--white); color: var(--red); padding: 2px 10px; font-size:14px; }
   .tier-group-desc { opacity:.95; font-weight: 700; }
 
@@ -121,18 +121,18 @@
   .tiers-table .col-num { text-align: center; }
 
   /* TIER BADGE */
-  .tier-badge { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:12px; padding:3px 8px; display:inline-block; min-width:36px; text-align:center; background: var(--red); color: var(--white); }
+  .tier-badge { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:12px; padding:3px 8px; display:inline-block; min-width:36px; text-align:center; background: var(--red); color: #111111; }
   /* Tier-letter badges use brand-bright color spectrum for visual hierarchy.
      S/A/B/C tiers in vivid brand-aligned hues; D/E/F intentionally grayscale
      to signal "less valuable" with diminishing saturation. */
-  .tier-badge.t-spp { background: var(--red);         color: var(--white); }   /* dynasty orange */
-  .tier-badge.t-sp  { background: var(--pos-qb-bg);   color: var(--white); }   /* brand vivid red */
-  .tier-badge.t-s   { background: var(--yellow);      color: var(--white); }   /* brand bright gold */
-  .tier-badge.t-ap  { background: var(--orange);      color: var(--white); }   /* warm orange */
-  .tier-badge.t-a   { background: var(--pos-rb-bg);   color: var(--white); }   /* brand vivid green */
-  .tier-badge.t-am  { background: var(--pos-rb-bg);   color: rgba(255,255,255,0.85); }
-  .tier-badge.t-bp, .tier-badge.t-b, .tier-badge.t-bm { background: var(--pos-wr-bg);   color: var(--white); }   /* brand blue */
-  .tier-badge.t-cp, .tier-badge.t-c, .tier-badge.t-cm { background: var(--pos-pick-bg); color: var(--white); }   /* brand lavender */
+  .tier-badge.t-spp { background: var(--red);         color: #111111; }   /* dynasty orange */
+  .tier-badge.t-sp  { background: var(--pos-qb-bg);   color: #111111; }   /* brand vivid red */
+  .tier-badge.t-s   { background: var(--yellow);      color: #111111; }   /* brand bright gold */
+  .tier-badge.t-ap  { background: var(--orange);      color: #111111; }   /* warm orange */
+  .tier-badge.t-a   { background: var(--pos-rb-bg);   color: #111111; }   /* brand vivid green */
+  .tier-badge.t-am  { background: var(--pos-rb-bg);   color: rgba(17,17,17,0.85); }
+  .tier-badge.t-bp, .tier-badge.t-b, .tier-badge.t-bm { background: var(--pos-wr-bg);   color: #111111; }   /* brand blue */
+  .tier-badge.t-cp, .tier-badge.t-c, .tier-badge.t-cm { background: var(--pos-pick-bg); color: #111111; }   /* brand lavender */
   .tier-badge.t-dp, .tier-badge.t-d, .tier-badge.t-dm { background: #555; }
   .tier-badge.t-ep, .tier-badge.t-e, .tier-badge.t-em { background: #444; }
   .tier-badge.t-fp, .tier-badge.t-f, .tier-badge.t-fm { background: #333; color: var(--muted); }
@@ -164,11 +164,11 @@
 
   /* BUY/SELL/HOLD chip */
   .tier-bsh { font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 10px; padding: 2px 7px; text-transform: uppercase; letter-spacing: .04em; }
-  .tier-bsh.buying { background: var(--green); color: var(--white); }
-  .tier-bsh.checking { background: rgba(76,175,110,0.65); color: var(--white); }
-  .tier-bsh.selling { background: var(--red); color: var(--white); }
-  .tier-bsh.shopping { background: var(--orange); color: var(--white); }
-  .tier-bsh.hold { background: rgba(232,115,42,0.8); color: var(--white); }
+  .tier-bsh.buying { background: var(--green); color: #111111; }
+  .tier-bsh.checking { background: rgba(76,175,110,0.65); color: #111111; }
+  .tier-bsh.selling { background: var(--red); color: #111111; }
+  .tier-bsh.shopping { background: var(--orange); color: #111111; }
+  .tier-bsh.hold { background: rgba(232,115,42,0.8); color: #111111; }
 
   /* PRIORITY chip */
   .tier-priority { font-family: 'Mulish', sans-serif; font-size: 10px; font-weight: 700; padding: 2px 7px; text-transform: uppercase; letter-spacing: .04em; background: var(--surface2); color: var(--white); border: 1px solid var(--border2); }
@@ -331,18 +331,18 @@
   .pp-tab { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:12px; letter-spacing:.06em; color:var(--white); padding:10px 18px; cursor:pointer; border:none; background:none; border-bottom:2px solid transparent; margin-bottom:-1px; text-transform:uppercase; transition:color .15s, border-color .15s; }
   .pp-tab.active { color:var(--red); border-bottom-color:var(--red); }
 </style>
-<link rel="stylesheet" href="assets/css/mvs-extras.css?v=1780400000">
+<link rel="stylesheet" href="assets/css/mvs-extras.css?v=1782600000">
 <script src="assets/js/mvs-extras.js?v=1778642255"></script>
 <script src="assets/js/player-articles.js?v=1778680034"></script>
-<link rel="stylesheet" href="assets/css/heatmap.css?v=1780400000">
+<link rel="stylesheet" href="assets/css/heatmap.css?v=1782600000">
 <script src="assets/js/heatmap.js?v=1778670000"></script>
-<link rel="stylesheet" href="assets/css/legend.css?v=1780400000">
+<link rel="stylesheet" href="assets/css/legend.css?v=1782600000">
 <script src="assets/js/legend-content.js?v=1782500000"></script>
 <script src="assets/js/legend.js?v=1778949514"></script>
 <script>document.addEventListener('DOMContentLoaded', function(){ if (window.Legend) Legend.init('tiers'); });</script>
 <!-- Shared player panel — DB's slide-in drawer, used identically on every page -->
 <script>window.FPTS_CURRENT_PAGE = 'tiers';</script>
-<link rel="stylesheet" href="assets/css/player-panel.css?v=1781500000">
+<link rel="stylesheet" href="assets/css/player-panel.css?v=1782600000">
 <!-- Team logo helpers — load BEFORE player-panel.js so modal-hero badge works. -->
 <script src="assets/js/team-helpers.js?v=1778680002"></script>
 <script src="assets/js/player-panel.js?v=1781200000" defer></script>

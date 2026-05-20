@@ -1470,7 +1470,7 @@
     const tdBase = `padding:5px 6px;font-family:'Mulish',sans-serif;font-size:11px;border-bottom:1px solid var(--border);vertical-align:middle;`;
     const tdWk = `${tdBase}text-align:center;font-family:'Kanit',sans-serif;font-weight:700;font-style:italic;font-size:12px;color:rgba(255,255,255,0.85);`;
     const tdWkLabel = `${tdBase}text-align:left;padding-left:20px;font-family:'Kanit',sans-serif;font-weight:700;font-style:italic;font-size:12px;color:rgba(255,255,255,0.65);white-space:nowrap;`;
-    const playoffChip = `<span style="display:inline-block;background:var(--red);color:var(--white);font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:8px;padding:1px 5px;margin-left:6px;letter-spacing:.04em;vertical-align:middle">PLAYOFF</span>`;
+    const playoffChip = `<span style="display:inline-block;background:var(--red);color:#111111;font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:8px;padding:1px 5px;margin-left:6px;letter-spacing:.04em;vertical-align:middle">PLAYOFF</span>`;
     return weeks.map(w => {
       const isPost = w.season_type === 'post';
       const cells = cols.map(c => {

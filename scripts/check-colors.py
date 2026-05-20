@@ -95,6 +95,7 @@ LEGIT_RGBA_RGB = {
     (155, 145, 212),   # --pos-k-bg / --pos-pick-bg
     # Non-chromatic depth
     (0, 0, 0),         # shadows / overlays
+    (17, 17, 17),      # --white in light theme + muted text on bright fills (post-doctrine-inversion)
     (255, 255, 255),   # subtle highlights / outline / disabled fade
     (128, 128, 128),   # neutral fallback gray
 }
@@ -130,9 +131,6 @@ BRIGHT_BG_PATTERNS = [
     '#e05252', '#5b9bd5', '#e09a30', '#9b91d4',
 ]
 
-# Dark text values that would be a "dim text on bright fill" bug.
-DARK_TEXT_LITERALS = ('#111', '#111111', '#000', '#000000')
-
 # Selector substrings that mark a rule as targeting a pill / badge / chip /
 # active button — the compounding-bug risk class. opacity: < 1 on these
 # dims any nested colored content.
@@ -147,9 +145,6 @@ RULE_BLOCK_PAT = re.compile(r'([^{}\n][^{}]*?)\{([^{}]*?)\}', re.MULTILINE)
 # Matches opacity: 0.X or opacity: .X (less than 1).
 OPACITY_PAT = re.compile(r'opacity:\s*0?\.\d+')
 
-# Matches color: <dark>  — must NOT match border-color, background-color, etc.
-COLOR_DARK_PAT = re.compile(r'(?<![a-z-])color:\s*(#(?:1{3}|1{6}|0{3}|0{6}))\b', re.IGNORECASE)
-
 # State-transitions + intentionally-muted variant markers. Matches either
 # `.X` (standalone class) or `-X` (suffix), so `.mvs-vol-cold` triggers via
 # `-cold` and `.empty` triggers as itself. Also catches pseudo-classes.
@@ -160,15 +155,22 @@ SKIP_MARKER_PAT = re.compile(
 
 
 def find_brand_rule_violations(content):
-    """Walk CSS rule blocks and report two patterns:
-       1. Dim text (#111 / #000) on a bright-fill background — same block.
-       2. opacity: < 1 on a pill/badge/active-button container that also has a
-          bright-color background (the actual compounding hazard).
+    """Walk CSS rule blocks and report:
+       - opacity: < 1 on a pill/badge/active-button container that also has a
+         bright-color background (the actual compounding hazard).
 
-    Heuristic refinements to avoid false positives:
-      - Pattern 2 only fires when the LAST simple selector matches a pill
-        hint (so `.X .label` doesn't flag — `.label` is a leaf child of `.X`)
-        AND the rule body has a literal bright bg (surface / transparent /
+    NOTE: The previous "dim-text-on-bright-bg" pattern (which flagged
+    color: #111 on bright fills as drift against the "white on bright"
+    doctrine) was REMOVED on 2026-05-20 when the doctrine inverted to
+    "BLACK text on every bright fill". The new rule is documented in
+    brand.css + CLAUDE.md but not lint-enforced — adding a "white on bright"
+    detector would be straightforward if regression-prevention becomes
+    needed.
+
+    Heuristic refinements to avoid false positives on the opacity check:
+      - Only fires when the LAST simple selector matches a pill hint (so
+        `.X .label` doesn't flag — `.label` is a leaf child of `.X`) AND
+        the rule body has a literal bright bg (surface / transparent /
         border-only chips don't compound dangerously).
       - Selectors with intentional-muted suffixes (`.cold`, `.dim`, `.empty`,
         `.na`, `.muted`) are skipped — the class name itself signals
@@ -183,21 +185,11 @@ def find_brand_rule_violations(content):
         body_lower = body.lower()
         sel_lower = selector.lower()
 
-        # Pattern 1: dim text on bright fill (same rule block)
         has_bright_bg = any(p in body_lower for p in BRIGHT_BG_PATTERNS)
-        if has_bright_bg:
-            dark_match = COLOR_DARK_PAT.search(body)
-            if dark_match:
-                hits.append((
-                    line_no, 'dim-text-on-bright-bg', dark_match.group(1).lower(),
-                    f'{selector[:60]} has bright bg + dark text'
-                ))
 
-        # Pattern 2: opacity: < 1 on a pill/badge/active-button container
-        # WITH a bright-fill background in the same rule.
+        # opacity: < 1 on a pill/badge/active-button container WITH a
+        # bright-fill background in the same rule.
         # Skip state transitions and intentionally-muted variants.
-        # The regex matches both .X (standalone class) and -X (suffix in a
-        # compound class like .mvs-vol-cold).
         if SKIP_MARKER_PAT.search(sel_lower):
             continue
         # Get the LAST simple-selector segment (after the last whitespace /

@@ -4,15 +4,15 @@ Project conventions that aren't obvious from reading the code. Add to this file 
 
 ---
 
-## Branding: white text on every bright fill, never opacity on colored parents
+## Branding: black text on every bright fill, never opacity on colored parents
 
-The site has a strict branding rule, codified at the top of `assets/css/brand.css` ("THE BRANDING HARD RULES"). Summary:
+The site has a strict branding rule, codified at the top of `assets/css/brand.css` ("THE BRANDING HARD RULES"). Inverted on 2026-05-20 from a previous "white on bright" doctrine because white text washed out on the lighter pill colors (TE/yellow, WR/blue). Summary:
 
-1. **WHITE text on every bright-colored fill.** Position pills, tier badges, heat tints (`.rk-min`/`.rk-max`), `*.active` button states, `.mvs-vol-hot`/`.mvs-vol-warm`, `.hm-flash-label`, `.lg-trigger`, every place a bright brand color is a `background` — the text inside is `var(--white)`. Position text tokens (`--pos-qb`, `--pos-rb`, `--pos-wr`, `--pos-te`, `--pos-k`, `--pos-pick`) resolve to white in dark theme — `color: var(--pos-qb)` and `color: var(--white)` are equivalent. The one exception: bg is itself white/muted/surface (e.g. `.fm-prov-chip.prov-framework`) — then dark text is correct.
-2. **Never use `opacity:` on a parent that contains a colored child.** CSS opacity compounds down to all children and can't be overridden by `opacity: 1` on the child. To fade muted text, use `color: rgba(255,255,255,X)` directly on the text element. Reserve `opacity:` for leaf-only elements (placeholders, footnotes, disabled state on a standalone button with no children).
-3. **Brand tokens are the source of truth in `brand.css`.** 6 inline `:root` duplicates exist in HTML pages (index, trade-calculator, adp-tool, my-leagues, tiers) — they must match `brand.css` exactly. Never hardcode `color: #111` on a bright fill; reference the token.
-4. **Vibrant by default.** "Grey-looking" surfaces are a bug. The cause is always one of: (a) opacity compounding from a parent, (b) hardcoded `#111` text on a bright fill, (c) wrong token reference. Don't ship a "grey" surface that should be colored.
-5. **`python scripts/check-colors.py` must print CLEAN after any change.** Extend `BRAND_HEXES` if you add a new brand color.
+1. **BLACK text (`#111111`) on every bright-colored fill.** Position pills, tier badges, heat tints (`.rk-min`/`.rk-max`), `*.active` button states, `.mvs-vol-hot`/`.mvs-vol-warm`, `.hm-flash-label`, `.lg-trigger`, every place a bright brand color is a `background` — the text inside is `#111111` (or `var(--pos-qb)` / `var(--pos-rb)` etc. — those tokens now resolve to `#111111` in both themes). Light-mode pill backgrounds were brightened in the same change to match dark-mode values so the rule applies consistently across themes. The one exception: bg is itself white/muted/surface (e.g. `.fm-prov-chip.prov-framework`) — then theme-aware `var(--white)` text is correct (light in dark mode, dark in light mode).
+2. **Never use `opacity:` on a parent that contains a colored child.** CSS opacity compounds down to all children and can't be overridden by `opacity: 1` on the child. To fade muted text on a bright fill, use `color: rgba(17,17,17,X)`; on a dark surface, use `color: rgba(255,255,255,X)`. Reserve `opacity:` for leaf-only elements (placeholders, footnotes, disabled state on a standalone button with no children).
+3. **Brand tokens are the source of truth in `brand.css`.** `--pos-*` tokens live only in `brand.css`. The 5 inline `:root` blocks in HTML pages (index, trade-calculator, adp-tool, my-leagues, tiers) carry only page-specific texture tokens (`--tex-url/size/opacity`), not the color palette. Never hardcode `color: var(--white)` on a bright fill — use `#111111` literal.
+4. **Vibrant by default.** "Grey-looking" surfaces are a bug. The cause is always one of: (a) opacity compounding from a parent, (b) hardcoded `var(--white)` text on a lighter bright fill (now banned per rule #1), (c) wrong token reference. Don't ship a "grey" surface that should be colored.
+5. **`python scripts/check-colors.py` must print CLEAN after any change.** Extend `BRAND_HEXES` if you add a new brand color. The previous `dim-text-on-bright-bg` lint was removed alongside the doctrine inversion — the new rule is documented but not lint-enforced.
 
 **Cache bump:** any change to `brand.css`, `mvs-extras.css`, `heatmap.css`, `legend.css`, or `player-panel.css` requires bumping `?v=...` on the `<link>`/`<script>` tag in every page that loads it. Browsers cache hard.
 
@@ -50,19 +50,19 @@ The branding rules above tell you what NOT to do. These recipes tell you what TO
 - For a NEW categorical badge (not position), follow this pattern:
   ```css
   .my-badge { display:inline-block; padding:3px 9px; font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:11px; letter-spacing:.04em; }
-  .my-badge.success { background: var(--green); color: var(--white); }
-  .my-badge.warning { background: var(--pos-te-bg); color: var(--white); }
-  .my-badge.danger  { background: var(--red); color: var(--white); }
+  .my-badge.success { background: var(--green); color: #111111; }
+  .my-badge.warning { background: var(--pos-te-bg); color: #111111; }
+  .my-badge.danger  { background: var(--red); color: #111111; }
   ```
-  ALWAYS `color: var(--white)` on a bright fill. NEVER `color: #111` — that's the dim look we explicitly fixed across the site.
+  ALWAYS `color: #111111` on a bright fill. NEVER `color: var(--white)` — that washes out on the lighter pill colors (TE/yellow, WR/blue) and is the previous doctrine, now superseded.
 
 ### Adding a new "active" button state
 
 ```css
-.my-btn.active { background: var(--red); color: var(--white); border-color: var(--red); }
+.my-btn.active { background: var(--red); color: #111111; border-color: var(--red); }
 ```
 
-Match existing patterns: `.icon-btn.active`, `.rk-format-btn.active`, `.controls-btn.active`, `.tier-toggle-btn.active`. White text on the brand-orange fill.
+Match existing patterns: `.icon-btn.active`, `.rk-format-btn.active`, `.controls-btn.active`, `.tier-toggle-btn.active`. Black text on the brand-orange fill.
 
 ### Adding a new drawer tab
 

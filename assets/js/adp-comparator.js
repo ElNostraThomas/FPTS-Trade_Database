@@ -352,7 +352,7 @@
       +   'border-color: var(--red); color: var(--red);'
       + '}'
       + '.adp-cmp-cell.active {'
-      +   'background: var(--red); color: var(--white); border-color: var(--red);'
+      +   'background: var(--red); color: #111111; border-color: var(--red);'
       + '}'
       + '.adp-cmp-cell.disabled { opacity: .25; cursor: default; }'
       + '.adp-cmp-cell.no-data  { opacity: .45; cursor: default; color: var(--muted); }'

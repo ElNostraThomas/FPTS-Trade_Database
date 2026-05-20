@@ -8,7 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Kanit:ital,wght@0,400;0,700;1,800&family=Mulish:wght@400;700;900&display=swap" rel="stylesheet">
 
 <!-- Brand-level styles: fonts, color variables, nav, page chrome, pos pills. -->
-<link rel="stylesheet" href="assets/css/brand.css?v=1782500001">
+<link rel="stylesheet" href="assets/css/brand.css?v=1782600000">
 <!-- iframe scroll fix — only runs when embedded; no-op for direct visitors. -->
 <script src="assets/js/iframe-scroll-fix.js?v=1782100000"></script>
 <!-- Back-to-top floating button — appears when scrolled, click for smooth-scroll to top. -->
@@ -17,10 +17,10 @@
 <script src="assets/js/custom-select.js?v=1782300000" defer></script>
 
 <!-- Shared UI component modules (CSS). -->
-<link rel="stylesheet" href="assets/css/mvs-extras.css?v=1780400000">
-<link rel="stylesheet" href="assets/css/heatmap.css?v=1780400000">
-<link rel="stylesheet" href="assets/css/legend.css?v=1780400000">
-<link rel="stylesheet" href="assets/css/player-panel.css?v=1781500000">
+<link rel="stylesheet" href="assets/css/mvs-extras.css?v=1782600000">
+<link rel="stylesheet" href="assets/css/heatmap.css?v=1782600000">
+<link rel="stylesheet" href="assets/css/legend.css?v=1782600000">
+<link rel="stylesheet" href="assets/css/player-panel.css?v=1782600000">
 
 <!-- Page identity + data layer config (must run BEFORE data-bootstrap.js). -->
 <script>
@@ -91,7 +91,7 @@
   }
   .rk-format-btn:not(:last-child) { border-right: none; }
   .rk-format-btn:hover:not(.disabled) { color: var(--red); }
-  .rk-format-btn.active { background: var(--red); border-color: var(--red); color: var(--white); }
+  .rk-format-btn.active { background: var(--red); border-color: var(--red); color: #111111; }
   .rk-format-btn.disabled { opacity: .35; cursor: not-allowed; }
   .rk-filter-select {
     font-family: 'Mulish', sans-serif; font-size: 12px;
@@ -133,11 +133,11 @@
 
   /* POS BADGE */
   .pos-badge { font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 11px; padding: 2px 7px; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; min-width: 28px; }
-  .pos-qb { background: var(--pos-qb-bg); color: var(--white); }
-  .pos-rb { background: var(--pos-rb-bg); color: var(--white); }
-  .pos-wr { background: var(--pos-wr-bg); color: var(--white); }
-  .pos-te { background: var(--pos-te-bg); color: var(--white); }
-  .pos-k  { background: var(--pos-k-bg);  color: var(--white); }
+  .pos-qb { background: var(--pos-qb-bg); color: #111111; }
+  .pos-rb { background: var(--pos-rb-bg); color: #111111; }
+  .pos-wr { background: var(--pos-wr-bg); color: #111111; }
+  .pos-te { background: var(--pos-te-bg); color: #111111; }
+  .pos-k  { background: var(--pos-k-bg);  color: #111111; }
 
   /* PLAYER NAME — clickable to open shared drawer */
   .rk-player-name { font-family: 'Mulish', sans-serif; font-weight: 900; font-size: 13px; color: var(--white); cursor: pointer; transition: color .15s; }
@@ -164,7 +164,7 @@
   }
   .rk-analyst-pos-btn + .rk-analyst-pos-btn { border-left: 1px solid var(--border2); }
   .rk-analyst-pos-btn:hover:not(.disabled):not(.active) { background: var(--surface2); }
-  .rk-analyst-pos-btn.active { background: var(--red); color: var(--white); }
+  .rk-analyst-pos-btn.active { background: var(--red); color: #111111; }
   .rk-analyst-pos-btn.disabled { opacity: .35; cursor: not-allowed; }
 
   /* Analyst table cells: numeric (rank cells centered, Kanit italic) +

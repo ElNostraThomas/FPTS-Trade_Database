@@ -298,8 +298,8 @@
 /* ── Cross-page handoff buttons (mount inside .pp-close-bar) ─────────────── */
 .fpts-xpage-btn { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:10px; color:var(--white); background:transparent; border:1px solid var(--border2); padding:5px 10px; cursor:pointer; text-transform:uppercase; letter-spacing:.06em; text-decoration:none; display:inline-flex; align-items:center; gap:4px; transition:all .15s; white-space:nowrap; }
 .fpts-xpage-btn:hover { border-color:var(--red); color:var(--red); }
-.fpts-xpage-btn.primary { background:var(--red); border-color:var(--red); color:var(--white); }
-.fpts-xpage-btn.primary:hover { opacity:.85; color:var(--white); }
+.fpts-xpage-btn.primary { background:var(--red); border-color:var(--red); color:#111111; }
+.fpts-xpage-btn.primary:hover { opacity:.85; color:#111111; }
 .fpts-xpage-bar { display:flex; gap:6px; align-items:center; flex-wrap:wrap; }
 
 /* ── Phase 3: retheme to match adp-tool pp-modal pattern ─────────────────── */
