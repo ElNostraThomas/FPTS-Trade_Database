@@ -140,9 +140,232 @@
     border-color: var(--red); color: var(--red); opacity: 1;
   }
 
+  /* ─── Empty-state search ───────────────────────────────────────────── */
+  body.fpts-compare-page .pc-empty-search {
+    max-width: 560px; margin: 80px auto; padding: 0 20px; text-align: center;
+  }
+  body.fpts-compare-page .pc-empty-eyebrow {
+    font-family: 'Mulish', sans-serif; font-size: 11px;
+    color: var(--red); text-transform: uppercase; letter-spacing: .12em;
+    margin-bottom: 12px;
+  }
+  body.fpts-compare-page .pc-empty-search-title {
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 28px; color: var(--white); text-transform: uppercase;
+    letter-spacing: .04em; margin-bottom: 10px; line-height: 1.15;
+  }
+  body.fpts-compare-page .pc-empty-search-sub {
+    font-family: 'Mulish', sans-serif; font-size: 13px;
+    color: var(--muted); margin-bottom: 28px; line-height: 1.5;
+  }
+  body.fpts-compare-page .pc-search-wrap {
+    position: relative;
+  }
+  body.fpts-compare-page .pc-search-input {
+    width: 100%; box-sizing: border-box;
+    background: var(--surface2); border: 1px solid var(--border2);
+    color: var(--white); font-family: 'Mulish', sans-serif;
+    font-size: 14px; padding: 12px 16px; outline: none;
+    border-radius: 3px; transition: border-color .15s;
+  }
+  body.fpts-compare-page .pc-search-input:focus { border-color: var(--red); }
+  body.fpts-compare-page .pc-search-results {
+    position: absolute; top: calc(100% + 4px); left: 0; right: 0;
+    background: var(--surface2); border: 1px solid var(--border2);
+    max-height: 320px; overflow-y: auto;
+    z-index: 50; display: none; text-align: left; border-radius: 3px;
+  }
+  body.fpts-compare-page .pc-search-results.is-open { display: block; }
+  body.fpts-compare-page .pc-search-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 12px; cursor: pointer;
+    border-bottom: 1px solid var(--border);
+    transition: background .12s;
+  }
+  body.fpts-compare-page .pc-search-item:hover { background: var(--surface); }
+  body.fpts-compare-page .pc-search-item:last-child { border-bottom: none; }
+  body.fpts-compare-page .pc-search-item.is-empty {
+    cursor: default; opacity: .5; justify-content: center;
+  }
+  body.fpts-compare-page .pc-search-item.is-empty:hover { background: transparent; }
+  body.fpts-compare-page .pc-search-name {
+    flex: 1; min-width: 0; font-family: 'Mulish', sans-serif;
+    font-weight: 900; font-size: 13px; color: var(--white);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  body.fpts-compare-page .pc-search-meta {
+    font-family: 'Mulish', sans-serif; font-size: 10px;
+    color: var(--muted); opacity: .65; flex-shrink: 0;
+  }
+
+  /* ─── Hero row: trading-card left + info+tiles right ────────────────── */
+  body.fpts-compare-page .pc-hero-row {
+    display: grid; grid-template-columns: 320px 1fr; gap: 24px;
+    margin-top: 8px;
+  }
+
+  /* ─── Trading card (left) ──────────────────────────────────────────── */
+  body.fpts-compare-page .pc-card {
+    background: var(--surface2);
+    border: 2px solid var(--pos-color, var(--red));
+    border-radius: 6px; overflow: hidden;
+    display: flex; flex-direction: column;
+    position: relative;
+  }
+  body.fpts-compare-page .pc-card-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 10px;
+    background: linear-gradient(90deg, var(--surface) 0%, var(--surface2) 100%);
+    border-bottom: 1px solid var(--border);
+  }
+  body.fpts-compare-page .pc-card-year {
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 13px; color: var(--muted); opacity: .65;
+  }
+  body.fpts-compare-page .pc-card-team {
+    display: flex; align-items: center;
+  }
+  body.fpts-compare-page .pc-card-photo-wrap {
+    width: 100%; aspect-ratio: 1 / 1;
+    background: var(--surface);
+    display: flex; align-items: center; justify-content: center;
+    position: relative; overflow: hidden;
+  }
+  body.fpts-compare-page .pc-card-photo {
+    width: 100%; height: 100%; object-fit: cover; object-position: top;
+  }
+  body.fpts-compare-page .pc-card-photo-fallback {
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 48px; color: var(--muted); opacity: .25;
+  }
+  body.fpts-compare-page .pc-card-archetype-bar {
+    display: flex; justify-content: space-between; align-items: baseline;
+    padding: 8px 12px;
+    background: var(--surface);
+    border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+  }
+  body.fpts-compare-page .pc-card-arch-label {
+    font-family: 'Mulish', sans-serif; font-size: 9px;
+    color: var(--muted); text-transform: uppercase; letter-spacing: .12em;
+    opacity: .7;
+  }
+  body.fpts-compare-page .pc-card-arch-value {
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 12px; color: var(--white);
+    text-transform: uppercase; letter-spacing: .06em;
+  }
+  body.fpts-compare-page .pc-card-arch-value[data-pending] { opacity: .6; }
+  body.fpts-compare-page .pc-card-mini-grid {
+    display: grid; grid-template-columns: 1fr 1fr 1fr;
+    background: var(--surface2);
+  }
+  body.fpts-compare-page .pc-card-mini-cell {
+    padding: 8px 4px; text-align: center;
+    border-right: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+  body.fpts-compare-page .pc-card-mini-cell:nth-child(3n) { border-right: none; }
+  body.fpts-compare-page .pc-card-mini-cell:nth-last-child(-n+3) { border-bottom: none; }
+  body.fpts-compare-page .pc-mini-value {
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 14px; color: var(--white); line-height: 1.1;
+  }
+  body.fpts-compare-page .pc-mini-label {
+    font-family: 'Mulish', sans-serif; font-size: 8px;
+    color: var(--muted); text-transform: uppercase; letter-spacing: .06em;
+    margin-top: 2px; opacity: .7;
+  }
+  body.fpts-compare-page .pc-card-mini-cell.is-pending .pc-mini-value { opacity: .35; }
+  body.fpts-compare-page .pc-card-footer {
+    display: flex; justify-content: space-around; align-items: center;
+    padding: 8px 6px;
+    background: linear-gradient(0deg, var(--surface) 0%, var(--surface2) 100%);
+    border-top: 1px solid var(--border);
+    font-family: 'Mulish', sans-serif; font-size: 10px; font-weight: 700;
+    color: var(--white); opacity: .7;
+    text-transform: uppercase; letter-spacing: .06em;
+  }
+
+  /* ─── Info column (right) ──────────────────────────────────────────── */
+  body.fpts-compare-page .pc-info {
+    display: flex; flex-direction: column; gap: 14px;
+  }
+  body.fpts-compare-page .pc-now-profiling {
+    display: inline-block; align-self: flex-start;
+    padding: 4px 10px; border: 1px solid var(--border2); border-radius: 999px;
+    font-family: 'Mulish', sans-serif; font-size: 9px; font-weight: 700;
+    color: var(--muted); text-transform: uppercase; letter-spacing: .12em;
+  }
+  body.fpts-compare-page .pc-info-name {
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 44px; color: var(--white); line-height: 1; letter-spacing: -.01em;
+    text-transform: uppercase;
+  }
+  body.fpts-compare-page .pc-info-subtitle {
+    font-family: 'Mulish', sans-serif; font-size: 12px;
+    color: var(--muted); text-transform: uppercase; letter-spacing: .08em;
+    opacity: .7;
+  }
+  body.fpts-compare-page .pc-tiles {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;
+    margin-top: 6px;
+  }
+  body.fpts-compare-page .pc-tile {
+    background: var(--surface2); border: 1px solid var(--border);
+    padding: 10px 12px;
+  }
+  body.fpts-compare-page .pc-tile-label {
+    font-family: 'Mulish', sans-serif; font-size: 9px;
+    color: var(--muted); text-transform: uppercase; letter-spacing: .08em;
+    opacity: .7; margin-bottom: 4px;
+  }
+  body.fpts-compare-page .pc-tile-value {
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 18px; color: var(--white); line-height: 1.1;
+  }
+  body.fpts-compare-page .pc-tile.is-pending .pc-tile-value { opacity: .35; }
+  body.fpts-compare-page .pc-tile.is-pending::after {
+    content: 'pending data';
+    display: block; margin-top: 4px;
+    font-family: 'Mulish', sans-serif; font-size: 8px;
+    color: var(--red); opacity: .55;
+    text-transform: uppercase; letter-spacing: .06em;
+  }
+  body.fpts-compare-page .pc-cta-explore {
+    align-self: flex-start;
+    background: transparent; border: 1px solid var(--red); color: var(--red);
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 11px; padding: 8px 16px; cursor: pointer;
+    text-transform: uppercase; letter-spacing: .06em;
+    transition: background .15s, color .15s;
+  }
+  body.fpts-compare-page .pc-cta-explore:hover {
+    background: var(--red); color: var(--white);
+  }
+  body.fpts-compare-page .pc-pick-different {
+    margin-top: 4px;
+  }
+  body.fpts-compare-page .pc-pick-different a {
+    font-family: 'Mulish', sans-serif; font-size: 11px;
+    color: var(--muted); text-decoration: none; opacity: .6;
+    transition: color .12s, opacity .12s;
+  }
+  body.fpts-compare-page .pc-pick-different a:hover {
+    color: var(--white); opacity: 1;
+  }
+
+  /* ─── Mobile (768px) ───────────────────────────────────────────────── */
   @media (max-width: 768px) {
     body.fpts-compare-page .pc-controls { gap: 10px; }
     body.fpts-compare-page .pc-toggle-btn { padding: 4px 10px; font-size: 10px; }
+    body.fpts-compare-page .pc-hero-row {
+      grid-template-columns: 1fr; gap: 16px;
+    }
+    body.fpts-compare-page .pc-card { max-width: 320px; margin: 0 auto; }
+    body.fpts-compare-page .pc-info-name { font-size: 32px; }
+    body.fpts-compare-page .pc-tiles { grid-template-columns: repeat(2, 1fr); }
+    body.fpts-compare-page .pc-empty-search { margin-top: 40px; }
+    body.fpts-compare-page .pc-empty-search-title { font-size: 22px; }
   }
 </style>
 
@@ -227,24 +450,19 @@
       <div class="pc-controls">
         <div class="pc-control-group">
           <span class="pc-control-label">Mode</span>
-          <button class="pc-toggle-btn is-active" data-mode="profile">Profile</button>
-          <button class="pc-toggle-btn" data-mode="table">Table</button>
+          <button class="pc-toggle-btn is-active" data-mode="profile" onclick="_pcSetMode('profile')">Profile</button>
+          <button class="pc-toggle-btn" data-mode="table" onclick="_pcSetMode('table')">Table</button>
         </div>
         <div class="pc-control-group">
           <span class="pc-control-label">Format</span>
-          <button class="pc-toggle-btn is-active" data-fmt="sf">SF</button>
-          <button class="pc-toggle-btn" data-fmt="1qb">1QB</button>
+          <button class="pc-toggle-btn is-active" data-fmt="sf" onclick="_pcSetFmt('sf')">SF</button>
+          <button class="pc-toggle-btn" data-fmt="1qb" onclick="_pcSetFmt('1qb')">1QB</button>
         </div>
       </div>
     </div>
   </div>
 
-  <div class="pc-app" id="pc-app">
-    <div class="pc-empty">
-      <div class="pc-empty-title">Phase 1 in progress</div>
-      Profile-mode hero card and Top Profile Matches row ship next. Skeleton + nav link wired this commit.
-    </div>
-  </div>
+  <div class="pc-app" id="pc-app"></div>
 
 </main>
 
@@ -273,10 +491,350 @@
     } catch (e) {}
   })();
 
+  // ═══════════════════════════════════════════════════════════════════
+  // PC — Player Comparison page state + render pipeline.
+  // ═══════════════════════════════════════════════════════════════════
+  const PC = {
+    mode: 'profile',       // 'profile' | 'table'
+    fmt: 'sf',             // 'sf' | '1qb'
+    player: null,          // single player name (profile mode)
+    players: [],           // up to 4 names (table mode — phase 3)
+    searchTimer: null,
+  };
+
+  // ─── URL hash routing ──────────────────────────────────────────────
+  function _pcParseHash() {
+    const h = window.location.hash.slice(1);
+    if (!h) { PC.player = null; PC.players = []; return; }
+    const p = new URLSearchParams(h);
+    PC.mode = p.get('mode') === 'table' ? 'table' : 'profile';
+    PC.fmt  = p.get('fmt')  === '1qb'   ? '1qb'   : 'sf';
+    const player = p.get('player');
+    PC.player = player ? decodeURIComponent(player.replace(/\+/g, ' ')) : null;
+    const players = p.get('players');
+    PC.players = players ? players.split(',').map(s => decodeURIComponent(s.replace(/\+/g, ' '))) : [];
+  }
+
+  function _pcWriteHash() {
+    const p = new URLSearchParams();
+    if (PC.mode !== 'profile') p.set('mode', PC.mode);
+    if (PC.fmt  !== 'sf')      p.set('fmt',  PC.fmt);
+    if (PC.player)             p.set('player',  PC.player);
+    if (PC.players.length)     p.set('players', PC.players.join(','));
+    const s = p.toString();
+    const newHash = s ? '#' + s : '';
+    if (window.location.hash !== newHash) {
+      history.replaceState(null, '', window.location.pathname + newHash);
+    }
+  }
+
+  // ─── Sleeper /players/nfl loader (idempotent, shared cache) ──────
+  function _pcEnsureSleeperDb() {
+    if (window.SLEEPER_PLAYERS_DB) return Promise.resolve(window.SLEEPER_PLAYERS_DB);
+    if (window.SLEEPER_PLAYERS_DB_LOADING) return window.SLEEPER_PLAYERS_DB_LOADING;
+    window.SLEEPER_PLAYERS_DB_LOADING = fetch('https://api.sleeper.app/v1/players/nfl')
+      .then(r => r.ok ? r.json() : null)
+      .then(db => { if (db) window.SLEEPER_PLAYERS_DB = db; return db; })
+      .catch(() => null);
+    return window.SLEEPER_PLAYERS_DB_LOADING;
+  }
+
+  // ─── Helpers ───────────────────────────────────────────────────────
+  function _pcPhoto(sid) {
+    return sid ? `https://sleepercdn.com/content/nfl/players/thumb/${sid}.jpg` : '';
+  }
+  function _pcFmtHt(inches) {
+    if (!inches) return null;
+    const n = Number(inches);
+    if (!n) return null;
+    const ft = Math.floor(n / 12);
+    const inch = n % 12;
+    return `${ft}'${inch}"`;
+  }
+  function _pcBmi(heightIn, weightLb) {
+    if (!heightIn || !weightLb) return null;
+    const h = Number(heightIn), w = Number(weightLb);
+    if (!h || !w) return null;
+    return (w * 703) / (h * h);
+  }
+  function _pcPosColor(pos) {
+    return ({ QB:'var(--red)', RB:'var(--green)', WR:'#5b9bd5', TE:'var(--yellow)', K:'var(--muted)' })[pos] || 'var(--muted)';
+  }
+  function _pcArchetypeLabel(fp) {
+    // Phase 1 placeholder — show posRank until the prospect-score classifier
+    // ships. data-pending="archetype-classifier" marks the future wire-point.
+    return fp.posRank || fp.pos || '—';
+  }
+  function _pcCurrentSeason() {
+    return (window.STATS_DATA && window.STATS_DATA.currentSeason) || 2025;
+  }
+  function _pcGetStats(name) {
+    if (!window.STATS_DATA || !window.STATS_DATA.players) return null;
+    const key = 'name:' + (window.normalizePlayerName ? window.normalizePlayerName(name) : name.toLowerCase());
+    return window.STATS_DATA.players[key] || null;
+  }
+
+  function _pcCardData(name) {
+    const fp = (window.FP_VALUES || {})[name];
+    if (!fp) return null;
+    const sid = fp.sleeperId || (window.SLEEPER_IDS || {})[name];
+    const sleeper = sid && window.SLEEPER_PLAYERS_DB ? window.SLEEPER_PLAYERS_DB[sid] : null;
+    const stats = _pcGetStats(name);
+    return { name, fp, sid, sleeper, stats };
+  }
+
+  // ─── Render: empty-state search ────────────────────────────────────
+  function _pcRenderEmpty() {
+    document.getElementById('pc-app').innerHTML = `
+      <div class="pc-empty-search">
+        <div class="pc-empty-eyebrow">Player Comparison</div>
+        <div class="pc-empty-search-title">Pick a player to start profiling</div>
+        <div class="pc-empty-search-sub">Search by name. Profile mode shows a trading-card hero with archetype, physical stats, and current-season production. Table mode (coming in a later phase) compares 2-4 players side-by-side.</div>
+        <div class="pc-search-wrap">
+          <input class="pc-search-input" id="pc-search" type="text" placeholder="Search by player name..." autocomplete="off" spellcheck="false">
+          <div class="pc-search-results" id="pc-search-results"></div>
+        </div>
+      </div>`;
+    const inp = document.getElementById('pc-search');
+    if (inp) {
+      inp.addEventListener('input', _pcOnSearchInput);
+      inp.addEventListener('blur', () => setTimeout(() => {
+        const r = document.getElementById('pc-search-results');
+        if (r) r.classList.remove('is-open');
+      }, 200));
+      inp.focus();
+    }
+  }
+
+  function _pcOnSearchInput(e) {
+    clearTimeout(PC.searchTimer);
+    const q = (e.target.value || '').trim().toLowerCase();
+    PC.searchTimer = setTimeout(() => {
+      const resultsEl = document.getElementById('pc-search-results');
+      if (!resultsEl) return;
+      if (!q) { resultsEl.innerHTML = ''; resultsEl.classList.remove('is-open'); return; }
+      const names = Object.keys(window.FP_VALUES || {});
+      const matches = names
+        .filter(n => n.toLowerCase().includes(q))
+        .sort((a, b) => (window.FP_VALUES[a].rank || 9999) - (window.FP_VALUES[b].rank || 9999))
+        .slice(0, 12);
+      if (!matches.length) {
+        resultsEl.innerHTML = '<div class="pc-search-item is-empty">No matches</div>';
+        resultsEl.classList.add('is-open');
+        return;
+      }
+      resultsEl.innerHTML = matches.map(n => {
+        const fp = window.FP_VALUES[n];
+        const safeName = n.replace(/'/g, "\\'");
+        return `<div class="pc-search-item" onmousedown="_pcSelectPlayer('${safeName}')">
+          <span class="pos-pill ${fp.pos || ''}">${fp.pos || '?'}</span>
+          <span class="pc-search-name">${n}</span>
+          <span class="pc-search-meta">${fp.team || ''}${fp.posRank ? ' · ' + fp.posRank : ''}</span>
+        </div>`;
+      }).join('');
+      resultsEl.classList.add('is-open');
+    }, 60);
+  }
+
+  function _pcSelectPlayer(name) {
+    PC.player = name;
+    _pcWriteHash();
+    _pcRender();
+  }
+
+  function _pcSwitchPlayer() {
+    PC.player = null;
+    _pcWriteHash();
+    _pcRender();
+  }
+
+  function _pcSetMode(mode) {
+    PC.mode = mode;
+    _pcWriteHash();
+    _pcRender();
+  }
+
+  function _pcSetFmt(fmt) {
+    PC.fmt = fmt;
+    _pcWriteHash();
+    _pcRender();
+  }
+
+  // ─── Render: profile-mode hero card ────────────────────────────────
+  function _pcMiniCell(label, value, pending) {
+    const cls = 'pc-card-mini-cell' + (pending ? ' is-pending' : '');
+    const v = (value === null || value === undefined || value === '') ? '—' : value;
+    return `<div class="${cls}"><div class="pc-mini-value">${v}</div><div class="pc-mini-label">${label}</div></div>`;
+  }
+  function _pcTile(label, value, pending, pendingKey) {
+    const cls = 'pc-tile' + (pending ? ' is-pending' : '');
+    const dp = pending ? ` data-pending="${pendingKey || 'true'}"` : '';
+    const v = (value === null || value === undefined || value === '') ? '—' : value;
+    return `<div class="${cls}"${dp}><div class="pc-tile-label">${label}</div><div class="pc-tile-value">${v}</div></div>`;
+  }
+
+  function _pcMiniGridForPosition(pos, stats) {
+    const cs = _pcCurrentSeason();
+    const s = stats && stats.seasons && stats.seasons[cs];
+    const div = (n, d) => (d && d > 0) ? (n / d).toFixed(1) : '—';
+    if (!s) {
+      // No current-season data — fill with em-dashes for the 6 cells
+      const lbls = (pos === 'QB')
+        ? ['CMP %','PASS Y/G','PASS TD','RUSH Y/G','VS PRESS','PROSP']
+        : (pos === 'RB')
+          ? ['ATT/G','RUSH Y/G','REC/G','REC Y/G','ROUTES','PROSP']
+          : ['TGT/G','REC/G','REC Y/G','VS MAN','VS ZONE','VS PRESS'];
+      return lbls.map((l, i) => _pcMiniCell(l, '—', i >= 4)).join('');
+    }
+    if (pos === 'QB') {
+      const cmpPct = (s.passAtt > 0) ? ((s.passCmp / s.passAtt) * 100).toFixed(1) + '%' : '—';
+      return [
+        _pcMiniCell('CMP %', cmpPct),
+        _pcMiniCell('PASS Y/G', div(s.passYards, s.games)),
+        _pcMiniCell('PASS TD', s.passTd != null ? s.passTd : '—'),
+        _pcMiniCell('RUSH Y/G', div(s.rushYards, s.games)),
+        _pcMiniCell('VS PRESS', '—', true),
+        _pcMiniCell('PROSP', '—', true),
+      ].join('');
+    } else if (pos === 'RB') {
+      return [
+        _pcMiniCell('ATT/G',  div(s.rushAtt,  s.games)),
+        _pcMiniCell('RUSH Y/G', div(s.rushYards, s.games)),
+        _pcMiniCell('REC/G',  div(s.rec,      s.games)),
+        _pcMiniCell('REC Y/G', div(s.recYards, s.games)),
+        _pcMiniCell('ROUTES', '—', true),
+        _pcMiniCell('PROSP',  '—', true),
+      ].join('');
+    } else { // WR / TE
+      return [
+        _pcMiniCell('TGT/G',  div(s.targets, s.games)),
+        _pcMiniCell('REC/G',  div(s.rec,     s.games)),
+        _pcMiniCell('REC Y/G', div(s.recYards, s.games)),
+        _pcMiniCell('VS MAN',  '—', true),
+        _pcMiniCell('VS ZONE', '—', true),
+        _pcMiniCell('VS PRESS','—', true),
+      ].join('');
+    }
+  }
+
+  function _pcRenderProfile(name) {
+    const data = _pcCardData(name);
+    if (!data) {
+      document.getElementById('pc-app').innerHTML = `
+        <div class="pc-empty">
+          <div class="pc-empty-title">Player not found</div>
+          No data for "${name}". Use the search to pick from the FP value list.
+          <div style="margin-top:18px"><a href="#" onclick="event.preventDefault();_pcSwitchPlayer();" style="color:var(--red)">← Back to search</a></div>
+        </div>`;
+      return;
+    }
+    // If Sleeper DB hasn't arrived yet, kick it off + re-render when ready.
+    if (!data.sleeper && !window.SLEEPER_PLAYERS_DB) {
+      _pcEnsureSleeperDb().then(() => { if (PC.player === name) _pcRender(); });
+    }
+
+    const fp = data.fp;
+    const sp = data.sleeper || {};
+    const pos  = fp.pos  || (data.stats && data.stats.pos)  || '?';
+    const team = fp.team || (data.stats && data.stats.team) || '';
+    const valueRaw = (PC.fmt === '1qb') ? fp.value1qb : (fp.valueSf != null ? fp.valueSf : fp.value);
+    const value = (valueRaw != null) ? Number(valueRaw).toLocaleString() : '—';
+    const ht  = sp.height ? _pcFmtHt(sp.height) : '—';
+    const wt  = sp.weight ? (sp.weight + ' lbs') : '—';
+    const bmi = (sp.height && sp.weight) ? _pcBmi(sp.height, sp.weight).toFixed(1) : '—';
+    const age = (fp.age != null) ? Number(fp.age).toFixed(1) : (sp.age || '—');
+    const yrsRaw = sp.years_exp;
+    const yrs = (yrsRaw === 0) ? 'Rookie' : (yrsRaw != null ? (yrsRaw + ' yrs') : '—');
+    const ppg = (fp.ppg != null) ? Number(fp.ppg).toFixed(1) : '—';
+    const archetype = _pcArchetypeLabel(fp);
+    const photo = _pcPhoto(data.sid);
+    const teamLogo = (team && window.TeamHelpers && typeof window.TeamHelpers.logoImg === 'function')
+      ? window.TeamHelpers.logoImg(team, { size: 22, coin: true })
+      : (team || '');
+    const curYear = _pcCurrentSeason();
+    const yearShort = "'" + String(curYear).slice(-2);
+    const miniCells = _pcMiniGridForPosition(pos, data.stats);
+    const safeName = name.replace(/'/g, "\\'");
+
+    document.getElementById('pc-app').innerHTML = `
+      <div class="pc-hero-row">
+        <div class="pc-card" style="--pos-color: ${_pcPosColor(pos)}">
+          <div class="pc-card-header">
+            <span class="pos-pill ${pos}">${pos}</span>
+            <span class="pc-card-year">${yearShort}</span>
+            <span class="pc-card-team">${teamLogo}</span>
+          </div>
+          <div class="pc-card-photo-wrap">
+            ${photo
+              ? `<img class="pc-card-photo" src="${photo}" alt="${name}" onerror="this.style.display='none'; if(this.nextElementSibling)this.nextElementSibling.style.display='flex';">`
+              : ''}
+            <div class="pc-card-photo-fallback" ${photo ? 'style="display:none;position:absolute"' : ''}>${pos || '?'}</div>
+          </div>
+          <div class="pc-card-archetype-bar">
+            <span class="pc-card-arch-label">Archetype</span>
+            <span class="pc-card-arch-value" data-pending="archetype-classifier">${archetype}</span>
+          </div>
+          <div class="pc-card-mini-grid">${miniCells}</div>
+          <div class="pc-card-footer">
+            <span>${ht}</span>
+            <span>${yrs}</span>
+            <span>${wt}</span>
+          </div>
+        </div>
+        <div class="pc-info">
+          <div class="pc-now-profiling">Now profiling</div>
+          <div class="pc-info-name">${name}</div>
+          <div class="pc-info-subtitle">${yearShort} Season · ${pos}${team ? ' · ' + team : ''}</div>
+          <div class="pc-tiles">
+            ${_pcTile('Height', ht)}
+            ${_pcTile('Weight', wt)}
+            ${_pcTile('BMI', bmi)}
+            ${_pcTile('Age', age)}
+            ${_pcTile('Yrs Exp', yrs)}
+            ${_pcTile('Pos Rank', fp.posRank || '—')}
+            ${_pcTile('KTC ' + (PC.fmt === '1qb' ? '1QB' : 'SF'), value)}
+            ${_pcTile(curYear + ' PPG', ppg)}
+          </div>
+          <button class="pc-cta-explore" onclick="if(window.openPanel)openPanel('${safeName}')">Explore historical data →</button>
+          <div class="pc-pick-different">
+            <a href="#" onclick="event.preventDefault();_pcSwitchPlayer();">← Pick a different player</a>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  // ─── Main render dispatcher ────────────────────────────────────────
+  function _pcRender() {
+    // Sync toggle visual state
+    document.querySelectorAll('.pc-toggle-btn[data-mode]').forEach(b => {
+      b.classList.toggle('is-active', b.dataset.mode === PC.mode);
+    });
+    document.querySelectorAll('.pc-toggle-btn[data-fmt]').forEach(b => {
+      b.classList.toggle('is-active', b.dataset.fmt === PC.fmt);
+    });
+    if (PC.mode === 'profile') {
+      if (PC.player) _pcRenderProfile(PC.player);
+      else _pcRenderEmpty();
+    } else {
+      // Table mode lands in phase 3
+      document.getElementById('pc-app').innerHTML = `
+        <div class="pc-empty">
+          <div class="pc-empty-title">Table mode coming soon</div>
+          Side-by-side 2-4 player stat comparison ships in phase 3. Use Profile mode for now.
+        </div>`;
+    }
+  }
+
+  // ─── Bootstrap ─────────────────────────────────────────────────────
   document.addEventListener('fpts:data-ready', function () {
     const overlay = document.getElementById('_fp-loading');
     if (overlay) overlay.style.display = 'none';
-    // Phase 1: hydrate PC state from window.location.hash + render().
+    _pcParseHash();
+    _pcRender();
+    window.addEventListener('hashchange', () => { _pcParseHash(); _pcRender(); });
+    // Eager-load the Sleeper player DB so subsequent profile renders have
+    // height / weight / years_exp without a second render-then-re-render.
+    _pcEnsureSleeperDb();
   });
 </script>
 
