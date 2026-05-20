@@ -1601,12 +1601,26 @@
     return fp.posRank || fp.pos || '—';
   }
   function _pcCurrentSeason() {
+    // STATS_DATA.currentSeason isn't currently exposed by data-bootstrap.js
+    // (only stats.players is merged in flat); fall back to a hardcoded
+    // 2025 until bootstrap surfaces the metadata. The data file at
+    // data/stats.json carries currentSeason at the top level; if the
+    // bootstrap contract changes to expose it (e.g. window.STATS_META),
+    // update this read. Until then the fallback covers the current year.
     return (window.STATS_DATA && window.STATS_DATA.currentSeason) || 2025;
   }
   function _pcGetStats(name) {
-    if (!window.STATS_DATA || !window.STATS_DATA.players) return null;
+    // data-bootstrap.js merges stats.players DIRECTLY into window.STATS_DATA
+    // (flat — keys are 'name:<normalized>' or 'sid:<sleeperId>' at the root,
+    // NOT nested under a .players sub-object). Matches the documented
+    // contract in data-bootstrap.js line 29 and the lookup pattern in
+    // player-panel.js. The previous nested-path read (STATS_DATA.players[key])
+    // silently returned null for every player — that's why 2025 stats were
+    // showing empty across the entire compare page (Table mode Season +
+    // Last-N row groups, Profile mode hero mini-grid). Fixed 2026-05-20.
+    if (!window.STATS_DATA) return null;
     const key = 'name:' + (window.normalizePlayerName ? window.normalizePlayerName(name) : name.toLowerCase());
-    return window.STATS_DATA.players[key] || null;
+    return window.STATS_DATA[key] || null;
   }
 
   function _pcCardData(name) {
