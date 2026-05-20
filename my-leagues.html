@@ -1060,7 +1060,13 @@
   .ml-exposure-row-value { width:50px; text-align:right; font-family:'Kanit',sans-serif;
     font-weight:800; font-style:italic; font-size:12px; color:var(--white); }
   .ml-exposure-row-expo { width:48px; text-align:right; font-family:'Kanit',sans-serif;
-    font-weight:800; font-style:italic; font-size:11px; }
+    font-weight:800; font-style:italic; font-size:11px;
+    color: var(--expo-color, var(--white)); }
+  .ml-exposure-row-img.is-pick {
+    background: var(--surface2); display: inline-flex;
+    align-items: center; justify-content: center; border: 1px solid var(--border);
+  }
+  .ml-exposure-row-posr.is-pick { color: #9b91d4; }
   .ml-exposure-empty { padding:40px 14px; text-align:center; font-family:'Mulish',sans-serif;
     font-size:12px; color:var(--muted); opacity:.45; }
 
@@ -2552,8 +2558,47 @@
   .ml-calc-balance-row { display: flex; justify-content: space-between; align-items: center; padding: 4px 0; font-family: 'Mulish', sans-serif; font-size: 13px; }
   .ml-calc-balance-row.diff { padding-top: 12px; border-top: 1px solid var(--border); margin-top: 8px; }
   .ml-calc-balance-label { color: var(--white); opacity: .65; }
-  .ml-calc-balance-val { font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 14px; color: var(--white); }
+  .ml-calc-balance-val { font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 14px; color: var(--white); color: var(--net-color, var(--white)); }
   .ml-calc-balance-row.diff .ml-calc-balance-val { font-size: 22px; }
+  .ml-calc-sleeper-cta {
+    margin-top:14px; padding-top:14px; border-top:1px solid var(--border);
+    display:flex; flex-direction:column; gap:8px; align-items:center;
+  }
+  .ml-calc-sleeper-btn {
+    display:inline-block; font-family:'Kanit',sans-serif; font-weight:800; font-style:italic;
+    font-size:12px; color:var(--white); background:var(--red); text-decoration:none;
+    text-transform:uppercase; letter-spacing:.06em; padding:10px 20px; border-radius:3px;
+    transition: opacity .12s;
+  }
+  .ml-calc-sleeper-btn:hover { opacity: .85; }
+  .ml-calc-sleeper-note {
+    font-family:'Mulish',sans-serif; font-size:10px; color:var(--muted); font-style:italic;
+    text-align:center; line-height:1.5; max-width:520px;
+  }
+  .ml-calc-search-empty { opacity: .5; }
+
+  /* Roster summary card (above the position sections) */
+  .ml-rs-summary {
+    display:flex; gap:16px; flex-wrap:wrap; margin-bottom:24px; padding:16px;
+    background:var(--surface2); border:1px solid var(--border);
+  }
+  .ml-rs-summary-row { display:flex; align-items:center; gap:8px; margin-bottom:2px; }
+  .ml-rs-summary-proj {
+    font-family:'Kanit',sans-serif; font-weight:800; font-style:italic;
+    font-size:22px; color:var(--green);
+  }
+  .ml-rs-rank-badge {
+    font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:13px;
+    color:var(--rank-color, var(--muted));
+    padding:1px 6px; background:var(--surface);
+    border:1px solid var(--border); border-radius:3px;
+  }
+
+  /* Trade-builder / pick-exposure modal layering + xpage spacing */
+  #ml-ts-backdrop { z-index: 250; }
+  #ml-pep-backdrop { z-index: 260; }
+  #ml-pep-backdrop .ml-modal { max-width: 540px; }
+  .fpts-xpage-btn { margin-right: 8px; }
   .ml-calc-verdict {
     margin-top: 10px; padding: 10px 14px; font-family: 'Kanit', sans-serif;
     font-weight: 800; font-style: italic; font-size: 13px; text-transform: uppercase;
@@ -5274,11 +5319,9 @@ function renderCalcModal() {
   // Sleeper deep-link CTA — shown whenever we know which league this trade belongs to.
   // /trade is broken on Sleeper, so we link to /team which works.
   const sleeperCta = MLCALC.leagueId
-    ? `<div class="ml-calc-sleeper-cta" style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:8px;align-items:center">
-         <a href="${_mlBuildSleeperLeagueUrl(MLCALC.leagueId)}" target="_blank" rel="noopener"
-           style="display:inline-block;font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:12px;color:var(--white);background:var(--red);text-decoration:none;text-transform:uppercase;letter-spacing:.06em;padding:10px 20px;border-radius:3px"
-           onmouseover="this.style.opacity=.85" onmouseout="this.style.opacity=1">Open My Team On Sleeper ↗</a>
-         <div style="font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);font-style:italic;text-align:center;line-height:1.5;max-width:520px">
+    ? `<div class="ml-calc-sleeper-cta">
+         <a class="ml-calc-sleeper-btn" href="${_mlBuildSleeperLeagueUrl(MLCALC.leagueId)}" target="_blank" rel="noopener">Open My Team On Sleeper ↗</a>
+         <div class="ml-calc-sleeper-note">
            Sleeper doesn't expose a write API, so you'll need to re-enter the package in their trade builder. The link opens your team page where Sleeper's trade button lives.
          </div>
        </div>`
@@ -5292,7 +5335,7 @@ function renderCalcModal() {
     <div class="ml-calc-balance">
       <div class="ml-calc-balance-row"><span class="ml-calc-balance-label">You Send</span><span class="ml-calc-balance-val">${totalA.toLocaleString()}</span></div>
       <div class="ml-calc-balance-row"><span class="ml-calc-balance-label">You Receive</span><span class="ml-calc-balance-val">${totalB.toLocaleString()}</span></div>
-      <div class="ml-calc-balance-row diff"><span class="ml-calc-balance-label">Net</span><span class="ml-calc-balance-val" style="color:${diff>0?'var(--red)':diff<0?'var(--green)':'var(--white)'}">${diff > 0 ? '−' : diff < 0 ? '+' : ''}${absDiff.toLocaleString()}</span></div>
+      <div class="ml-calc-balance-row diff"><span class="ml-calc-balance-label">Net</span><span class="ml-calc-balance-val" style="--net-color:${diff>0?'var(--red)':diff<0?'var(--green)':'var(--white)'}">${diff > 0 ? '−' : diff < 0 ? '+' : ''}${absDiff.toLocaleString()}</span></div>
       ${verdict ? `<div class="ml-calc-verdict ${verdict}">${verdictText}</div>` : ''}
     </div>
     ${sleeperCta}
@@ -5352,7 +5395,7 @@ function mlCalcSearch(sideId, query) {
     }
 
     if (!assets.length) {
-      resultsEl.innerHTML = `<div class="ml-calc-search-item" style="opacity:.5">No matches</div>`;
+      resultsEl.innerHTML = `<div class="ml-calc-search-item ml-calc-search-empty">No matches</div>`;
       resultsEl.classList.add('open');
       return;
     }
@@ -6612,12 +6655,12 @@ function renderExposureList() {
     listEl.innerHTML = filtered.map(p => {
       const label = `${p.season} ${ord(p.round)}`;
       return `<div class="ml-exposure-row pos-PK" onclick="openPickExposurePicker('${p.season}',${p.round})" title="Click to choose which league to trade in">
-        <span class="ml-exposure-row-img" style="background:var(--surface2);display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--border)"><svg xmlns="http://www.w3.org/2000/svg" viewBox="413 0 95 90" width="15" height="15" style="display:block"><path d="M508.084,47.801l-8.983,41.534c0,0 -75.276,-0.036 -85.237,-0.002l0.015,-0.067c0,0 2.533,-17.352 5.641,-25.475c3.708,-9.689 16.604,-32.658 16.604,-32.658c12.902,8.212 8.658,21.025 7.099,27.21c11.719,-8.962 11.012,-17.186 11.003,-28.608c-0.006,-7.356 4.797,-23.375 17.858,-28.257c-4.305,14.678 3.971,24.95 7.333,30.494c6.362,10.492 1.397,21.17 1.397,21.17c0,0 9.268,-3.36 8.863,-15.254c-0.117,-3.424 -1.714,-14.283 8.012,-18.422c-0.754,9.397 5.495,18.682 10.395,28.336Z" fill="var(--red)"/></svg></span>
+        <span class="ml-exposure-row-img is-pick"><svg xmlns="http://www.w3.org/2000/svg" viewBox="413 0 95 90" width="15" height="15"><path d="M508.084,47.801l-8.983,41.534c0,0 -75.276,-0.036 -85.237,-0.002l0.015,-0.067c0,0 2.533,-17.352 5.641,-25.475c3.708,-9.689 16.604,-32.658 16.604,-32.658c12.902,8.212 8.658,21.025 7.099,27.21c11.719,-8.962 11.012,-17.186 11.003,-28.608c-0.006,-7.356 4.797,-23.375 17.858,-28.257c-4.305,14.678 3.971,24.95 7.333,30.494c6.362,10.492 1.397,21.17 1.397,21.17c0,0 9.268,-3.36 8.863,-15.254c-0.117,-3.424 -1.714,-14.283 8.012,-18.422c-0.754,9.397 5.495,18.682 10.395,28.336Z" fill="var(--red)"/></svg></span>
         <span class="ml-exposure-row-name" title="${label}">${label}</span>
-        <span class="ml-exposure-row-posr" style="color:#9b91d4">R${p.round}</span>
+        <span class="ml-exposure-row-posr is-pick">R${p.round}</span>
         <span class="ml-exposure-row-shares">${p.shares}</span>
         <span class="ml-exposure-row-value">${p.value ? p.value.toLocaleString() : '—'}</span>
-        <span class="ml-exposure-row-expo" style="color:${expoColor(p.exposure)}">${p.exposure.toFixed(0)}%</span>
+        <span class="ml-exposure-row-expo" style="--expo-color:${expoColor(p.exposure)}">${p.exposure.toFixed(0)}%</span>
       </div>`;
     }).join('');
     return;
@@ -7228,17 +7271,17 @@ function renderRoster(playerIds, players, starters, myPicks, rosterToTeam, proje
                               : (typeof rank === 'number') ? 'var(--red)' : 'var(--muted)';
   const _rankBadge  = (rank) => {
     const rankText = typeof rank === 'number' ? '#'+rank : '—';
-    return `<span title="Rank ${rankText} of ${_teamCount}" style="font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:13px;color:${_rankColor(rank)};padding:1px 6px;background:var(--surface);border:1px solid var(--border);border-radius:3px">${rankText}</span>`;
+    return `<span class="ml-rs-rank-badge" title="Rank ${rankText} of ${_teamCount}" style="--rank-color:${_rankColor(rank)}">${rankText}</span>`;
   };
 
   const summary = `
-    <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:24px;padding:16px;background:var(--surface2);border:1px solid var(--border)">
-      <div><div style="display:flex;align-items:center;gap:8px;margin-bottom:2px"><span class="ml-eyebrow">Total Roster Value</span>${_rankBadge(_summaryLd && _summaryLd.myRanks && _summaryLd.myRanks.TOTAL)}</div>
+    <div class="ml-rs-summary">
+      <div><div class="ml-rs-summary-row"><span class="ml-eyebrow">Total Roster Value</span>${_rankBadge(_summaryLd && _summaryLd.myRanks && _summaryLd.myRanks.TOTAL)}</div>
            <div class="ml-kanit-stat-22">${grandTotal.toLocaleString()}</div></div>
-      <div><div style="display:flex;align-items:center;gap:8px;margin-bottom:2px"><span class="ml-eyebrow">Player Value</span>${_rankBadge(_summaryLd && _summaryLd.myRanks && _summaryLd.myRanks.PLAYER)}</div>
+      <div><div class="ml-rs-summary-row"><span class="ml-eyebrow">Player Value</span>${_rankBadge(_summaryLd && _summaryLd.myRanks && _summaryLd.myRanks.PLAYER)}</div>
            <div class="ml-kanit-stat-22">${totalPlayerVal.toLocaleString()}</div></div>
       ${projTotal > 0 ? `<div><div class="ml-eyebrow">Proj Starter Pts Wk${currentWeek||''}</div>
-           <div style="font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:22px;color:var(--green)">${projTotal.toFixed(1)}</div></div>` : ''}
+           <div class="ml-rs-summary-proj">${projTotal.toFixed(1)}</div></div>` : ''}
     </div>`;
 
   // ── Assemble ────────────────────────────────────────────────────────────
@@ -8483,22 +8526,22 @@ window._fptsApplyPendingHandoff = function() {
 </div>
 
 <!-- Trade Builder Modal — opens over the player detail modal (z-index 250) -->
-<div class="ml-modal-backdrop" id="ml-ts-backdrop" style="z-index:250" onclick="if(event.target===this) closeTradeSuggestModal()">
+<div class="ml-modal-backdrop" id="ml-ts-backdrop" onclick="if(event.target===this) closeTradeSuggestModal()">
   <div class="ml-modal ml-calc-modal" onclick="event.stopPropagation()">
     <div class="ml-modal-header">
       <span class="ml-modal-title" id="ml-ts-title">Trade Builder</span>
-      <button class="fpts-xpage-btn" onclick="event.stopPropagation();_fptsXpageMlTsToDb()" style="margin-right:8px" title="Open the trade database with this target player">Open in Database ↗</button>
+      <button class="fpts-xpage-btn" onclick="event.stopPropagation();_fptsXpageMlTsToDb()" title="Open the trade database with this target player">Open in Database ↗</button>
       <button class="ml-modal-close" onclick="closeTradeSuggestModal()">✕ Close</button>
     </div>
     <div class="ml-modal-body" id="ml-ts-body"></div>
   </div>
 </div>
 
-<div class="ml-modal-backdrop" id="ml-pep-backdrop" style="z-index:260" onclick="if(event.target===this) closePickExposurePicker()">
-  <div class="ml-modal" onclick="event.stopPropagation()" style="max-width:540px">
+<div class="ml-modal-backdrop" id="ml-pep-backdrop" onclick="if(event.target===this) closePickExposurePicker()">
+  <div class="ml-modal" onclick="event.stopPropagation()">
     <div class="ml-modal-header">
       <span class="ml-modal-title" id="ml-pep-title">Pick Exposure</span>
-      <button class="fpts-xpage-btn" onclick="event.stopPropagation();_fptsXpageMlPepToDb()" style="margin-right:8px" title="Open the trade database to research this pick">Open in Database ↗</button>
+      <button class="fpts-xpage-btn" onclick="event.stopPropagation();_fptsXpageMlPepToDb()" title="Open the trade database to research this pick">Open in Database ↗</button>
       <button class="ml-modal-close" onclick="closePickExposurePicker()">✕ Close</button>
     </div>
     <div class="ml-modal-body" id="ml-pep-body"></div>
