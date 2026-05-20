@@ -1630,6 +1630,124 @@
   .ml-pd-btn.primary { background: var(--red); border-color: var(--red); color: var(--white); }
   .ml-pd-btn.primary:hover { opacity: .85; color: var(--white); }
 
+  /* ── Player-detail "Availability Across Your Leagues" section ────────
+     Migrated from inline styles to classes 2026-05-20. Per-row breakdown
+     showing whether each of the user's leagues has this player owned
+     (★ You Own), trade-able (⇄ owner — Trade For →), or free-agent
+     (✓ Available — FA → Claim On Sleeper ↗). Mobile rules above at
+     line 1725 still use !important to defeat any residual inline styles
+     and to override these desktop classes for mobile-specific reflow. */
+  .ml-pd-avail-section {
+    padding: 0 18px; border-top: 1px solid var(--border); background: var(--surface);
+  }
+  .ml-pd-avail-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 0; cursor: pointer; user-select: none; gap: 10px;
+    transition: opacity .15s;
+  }
+  .ml-pd-avail-header:hover { opacity: .85; }
+  .ml-pd-avail-header-left {
+    display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0;
+  }
+  .ml-pd-avail-caret {
+    font-family: 'Mulish', sans-serif; font-size: 10px; color: var(--muted);
+    width: 14px; text-align: center; flex-shrink: 0;
+    transition: transform .15s;
+  }
+  .ml-pd-avail-caret.expanded { transform: rotate(90deg); }
+  .ml-pd-avail-count {
+    font-family: 'Mulish', sans-serif; font-size: 10px;
+    color: var(--muted); opacity: .7;
+  }
+  .ml-pd-avail-hideopts {
+    display: flex; align-items: center; gap: 6px; cursor: pointer;
+    font-family: 'Mulish', sans-serif; font-size: 10px; color: var(--muted);
+    user-select: none; flex-shrink: 0;
+  }
+  .ml-pd-avail-content { padding-bottom: 14px; }
+  .ml-pd-avail-content.collapsed { display: none; }
+
+  .ml-pd-avail-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--border);
+    border-radius: 3px; transition: background .12s;
+  }
+  .ml-pd-avail-row.is-clickable { cursor: pointer; }
+  .ml-pd-avail-row.is-clickable:hover { background: var(--surface2); }
+
+  .ml-pd-avail-avatar {
+    width: 24px; height: 24px; border-radius: 3px;
+    flex-shrink: 0; background: var(--surface2);
+  }
+  .ml-pd-avail-avatar.is-fallback { display: inline-block; }
+
+  .ml-pd-avail-name {
+    font-family: 'Mulish', sans-serif; font-weight: 800; font-size: 12px;
+    color: var(--white);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .ml-pd-avail-format {
+    font-family: 'Mulish', sans-serif; font-size: 10px;
+    color: var(--muted); opacity: .6;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+
+  /* Status badges — three variants for the three row states. */
+  .ml-pd-avail-status {
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 11px; text-transform: uppercase; letter-spacing: .05em;
+  }
+  .ml-pd-avail-status.mine { color: var(--green); }
+  .ml-pd-avail-status.free { color: #5b9bd5; }
+  /* "Taken" status reads as Mulish (not the Kanit pill the others use)
+     because it contains the owner's display name, which needs to read as
+     normal-text not as a pill label. */
+  .ml-pd-avail-status.taken {
+    font-family: 'Mulish', sans-serif; font-weight: 400;
+    font-style: normal; text-transform: none; letter-spacing: normal;
+    color: var(--white); opacity: .85;
+  }
+
+  /* Archetype mini-chip on the right of the owner's name. Background +
+     foreground colors come from --archetype-bg / --archetype-fg CSS custom
+     properties set inline (only the bg/fg are dynamic; everything else is
+     stable enough to live in a class). */
+  .ml-pd-avail-archchip {
+    font-family: 'Mulish', sans-serif; font-size: 9px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .04em;
+    padding: 1px 5px; border-radius: 2px;
+    margin-left: 6px;
+    background: var(--archetype-bg, var(--surface2));
+    color: var(--archetype-fg, var(--white));
+  }
+
+  .ml-pd-avail-trade-btn {
+    background: var(--red); border: none;
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 10px; color: var(--white);
+    text-transform: uppercase; letter-spacing: .06em;
+    flex-shrink: 0; padding: 5px 11px; border-radius: 3px; cursor: pointer;
+    transition: opacity .15s;
+  }
+  .ml-pd-avail-trade-btn:hover { opacity: .85; }
+
+  .ml-pd-avail-claim-link {
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 10px; color: var(--red); text-decoration: none;
+    text-transform: uppercase; letter-spacing: .06em;
+    flex-shrink: 0; padding: 4px 10px;
+    border: 1px solid var(--border2); border-radius: 3px;
+    transition: border-color .15s;
+  }
+  .ml-pd-avail-claim-link:hover { border-color: var(--red); }
+
+  .ml-pd-avail-noroster {
+    margin-top: 8px;
+    font-family: 'Mulish', sans-serif; font-size: 10px;
+    color: var(--muted); opacity: .5; font-style: italic;
+  }
+
   /* Calculator modal */
   .ml-calc-builder {
     display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;
@@ -3422,58 +3540,52 @@ function renderPlayerAvailability(sleeperId) {
 
   const CDN = 'https://sleepercdn.com';
   const avHtml = (av) => av
-    ? `<img src="${CDN}/avatars/thumbs/${av}" style="width:24px;height:24px;border-radius:3px;flex-shrink:0;background:var(--surface2)" onerror="this.style.visibility='hidden'">`
-    : `<span style="width:24px;height:24px;border-radius:3px;flex-shrink:0;background:var(--surface2);display:inline-block"></span>`;
+    ? `<img class="ml-pd-avail-avatar" src="${CDN}/avatars/thumbs/${av}" onerror="this.style.visibility='hidden'">`
+    : `<span class="ml-pd-avail-avatar is-fallback"></span>`;
 
   const rowHtml = orderedActive.map(r => {
     const av = avHtml(r.leagueAvatar);
     let statusBlock = '';
     let actionBlock = '';
-    // Per-row click handler (only set for 'taken' rows — opens trade builder)
+    // Per-row click handler (only set for 'taken' rows — opens trade builder).
+    // .is-clickable adds cursor:pointer + :hover background via CSS.
     let rowClickAttr = '';
-    let rowCursor = 'default';
-    let rowHoverIn = '';
-    let rowHoverOut = '';
+    let rowExtraClass = '';
 
     if (r.status === 'mine') {
       // Informational only — you own this player here, nothing to do
-      statusBlock = `<span style="font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:11px;color:var(--green);text-transform:uppercase;letter-spacing:.05em">★ You Own</span>`;
+      statusBlock = `<span class="ml-pd-avail-status mine">★ You Own</span>`;
       actionBlock = '';
     } else if (r.status === 'taken') {
       // Whole row is clickable → trade builder. Single visible action button reinforces affordance.
       const displayName = hideNames ? (ownerLabelMap[r.ownerName] || 'League Member') : r.ownerName;
+      // Archetype chip — bg/fg are the only dynamic bits; inject as CSS
+      // custom properties so the rest of the styling lives in .ml-pd-avail-archchip.
       const archChip = r.ownerArchetype
-        ? `<span style="font-family:'Mulish',sans-serif;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;padding:1px 5px;border-radius:2px;background:${mlArchetypeBg(r.ownerArchetype)};color:${mlArchetypeFg(r.ownerArchetype)};margin-left:6px">${r.ownerArchetype}</span>`
+        ? `<span class="ml-pd-avail-archchip" style="--archetype-bg:${mlArchetypeBg(r.ownerArchetype)};--archetype-fg:${mlArchetypeFg(r.ownerArchetype)}">${r.ownerArchetype}</span>`
         : '';
-      statusBlock = `<span style="font-family:'Mulish',sans-serif;font-size:11px;color:var(--white);opacity:.85">⇄ <span class="ml-pd-owner-name">${displayName}</span>${archChip}</span>`;
+      statusBlock = `<span class="ml-pd-avail-status taken">⇄ <span class="ml-pd-owner-name">${displayName}</span>${archChip}</span>`;
       actionBlock = `
-        <button type="button"
+        <button type="button" class="ml-pd-avail-trade-btn"
           onclick="event.stopPropagation();openTradeSuggestModal('${sid}','${r.leagueId}')"
-          style="background:var(--red);border:none;font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:10px;color:var(--white);text-transform:uppercase;letter-spacing:.06em;flex-shrink:0;padding:5px 11px;border-radius:3px;cursor:pointer"
-          onmouseover="this.style.opacity=.85" onmouseout="this.style.opacity=1"
           title="See suggested trade packages">Trade For →</button>`;
       rowClickAttr = `onclick="openTradeSuggestModal('${sid}','${r.leagueId}')"`;
-      rowCursor = 'pointer';
-      rowHoverIn = `onmouseover="this.style.background='var(--surface2)'"`;
-      rowHoverOut = `onmouseout="this.style.background='transparent'"`;
+      rowExtraClass = ' is-clickable';
     } else if (r.status === 'free') {
       // Sleeper claim — no trade flow possible since no one owns the player
-      statusBlock = `<span style="font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:11px;color:#5b9bd5;text-transform:uppercase;letter-spacing:.05em">✓ Available — FA</span>`;
-      actionBlock = `<a href="${_mlBuildSleeperLeagueUrl(r.leagueId)}" target="_blank" rel="noopener"
-        style="font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:10px;color:var(--red);text-decoration:none;text-transform:uppercase;letter-spacing:.06em;flex-shrink:0;padding:4px 10px;border:1px solid var(--border2);border-radius:3px"
-        onmouseover="this.style.borderColor='var(--red)'" onmouseout="this.style.borderColor='var(--border2)'"
+      statusBlock = `<span class="ml-pd-avail-status free">✓ Available — FA</span>`;
+      actionBlock = `<a class="ml-pd-avail-claim-link" href="${_mlBuildSleeperLeagueUrl(r.leagueId)}" target="_blank" rel="noopener"
         title="Opens this league on Sleeper — search for the player and submit your waiver claim there">Claim On Sleeper ↗</a>`;
     }
 
     return `
-      <div class="ml-pd-avail-row" ${rowClickAttr} ${rowHoverIn} ${rowHoverOut}
-        style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-bottom:1px solid var(--border);cursor:${rowCursor};border-radius:3px;transition:background .12s">
+      <div class="ml-pd-avail-row${rowExtraClass}" ${rowClickAttr}>
         ${av}
         <div class="ml-pd-avail-info ml-flex1">
-          <div style="font-family:'Mulish',sans-serif;font-weight:800;font-size:12px;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r.leagueName}</div>
-          <div style="font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);opacity:.6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r.format}</div>
+          <div class="ml-pd-avail-name">${r.leagueName}</div>
+          <div class="ml-pd-avail-format">${r.format}</div>
         </div>
-        <div class="ml-pd-avail-actions" style="display:flex;align-items:center;gap:8px;flex-shrink:0">
+        <div class="ml-pd-avail-actions">
           ${statusBlock}
           ${actionBlock}
         </div>
@@ -3482,31 +3594,30 @@ function renderPlayerAvailability(sleeperId) {
   }).join('');
 
   const noRosterHtml = noRosterRows.length
-    ? `<div style="margin-top:8px;font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);opacity:.5;font-style:italic">+ ${noRosterRows.length} league${noRosterRows.length!==1?'s':''} skipped (commissioner / spectator / not loaded)</div>`
+    ? `<div class="ml-pd-avail-noroster">+ ${noRosterRows.length} league${noRosterRows.length!==1?'s':''} skipped (commissioner / spectator / not loaded)</div>`
     : '';
 
-  // Read persisted collapsed state — default: collapsed (true)
+  // Read persisted collapsed state — default: collapsed (true).
+  // .expanded modifier on the caret rotates it 90deg; .collapsed on the
+  // content div hides it. Both via CSS — no inline-style toggling.
   const collapsed = mlGetAvailabilityCollapsed();
-  const caretRotation = collapsed ? '' : 'transform:rotate(90deg);';
-  const contentDisplay = collapsed ? 'display:none' : 'display:block';
+  const caretClass = collapsed ? 'ml-pd-avail-caret' : 'ml-pd-avail-caret expanded';
+  const contentClass = collapsed ? 'ml-pd-avail-content collapsed' : 'ml-pd-avail-content';
 
   mount.innerHTML = `
-    <div style="padding:0 18px;border-top:1px solid var(--border);background:var(--surface)">
-      <div onclick="mlToggleAvailability()"
-        style="display:flex;align-items:center;justify-content:space-between;padding:14px 0;cursor:pointer;user-select:none;gap:10px"
-        onmouseover="this.style.opacity=.85" onmouseout="this.style.opacity=1">
-        <div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0">
-          <span id="ml-pd-avail-caret" style="font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);width:14px;text-align:center;flex-shrink:0;transition:transform .15s;${caretRotation}">▶</span>
+    <div class="ml-pd-avail-section">
+      <div class="ml-pd-avail-header" onclick="mlToggleAvailability()">
+        <div class="ml-pd-avail-header-left">
+          <span id="ml-pd-avail-caret" class="${caretClass}">▶</span>
           <span class="ml-section-head">Availability Across Your Leagues</span>
-          <span style="font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);opacity:.7">${totalActive} of ${totalAll}</span>
+          <span class="ml-pd-avail-count">${totalActive} of ${totalAll}</span>
         </div>
-        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);user-select:none;flex-shrink:0"
-          onclick="event.stopPropagation()">
+        <label class="ml-pd-avail-hideopts" onclick="event.stopPropagation()">
           <input type="checkbox" ${hideNames ? 'checked' : ''} onchange="mlSetHideUsernames(this.checked)" class="ml-clickable">
           <span>Hide usernames</span>
         </label>
       </div>
-      <div id="ml-pd-avail-content" style="${contentDisplay};padding-bottom:14px">
+      <div id="ml-pd-avail-content" class="${contentClass}">
         <div>${rowHtml}</div>
         ${noRosterHtml}
       </div>
@@ -3531,14 +3642,16 @@ function mlToggleAvailability() {
   const content = document.getElementById('ml-pd-avail-content');
   const caret = document.getElementById('ml-pd-avail-caret');
   if (!content || !caret) return;
-  const isOpen = content.style.display !== 'none';
+  // Class-based toggle — .collapsed on content hides it,
+  // .expanded on caret rotates it 90deg. CSS handles the transition.
+  const isOpen = !content.classList.contains('collapsed');
   if (isOpen) {
-    content.style.display = 'none';
-    caret.style.transform = '';
+    content.classList.add('collapsed');
+    caret.classList.remove('expanded');
     mlSetAvailabilityCollapsed(true);
   } else {
-    content.style.display = 'block';
-    caret.style.transform = 'rotate(90deg)';
+    content.classList.remove('collapsed');
+    caret.classList.add('expanded');
     mlSetAvailabilityCollapsed(false);
   }
 }
