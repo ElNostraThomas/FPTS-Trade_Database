@@ -1258,10 +1258,13 @@
     gap:8px; }
   .ml-pick-card { background:var(--surface); border:1px solid var(--border);
     border-left:3px solid var(--pos-pick-bg); padding:12px 14px; }
+  .ml-pick-card.is-mine { border-left-color: var(--red); }
   .ml-pick-label { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic;
     font-size:14px; color:var(--white); }
   .ml-pick-owner { font-family:'Mulish',sans-serif; font-size:11px; color:var(--muted);
     opacity:.5; margin-top:3px; }
+  .ml-pick-owner-from { color: var(--white); opacity: .7; }
+  .ml-pick-owner-mine { color: var(--red); }
   /* Loading spinner */
   .ml-spinner { display:flex; align-items:center; justify-content:center;
     gap:10px; padding:40px 0; }
@@ -1275,6 +1278,7 @@
   .ml-section-hdr { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic;
     font-size:11px; color:var(--red); text-transform:uppercase; letter-spacing:.08em;
     margin-bottom:14px; }
+  .ml-section-hdr.is-spaced { margin-top: 20px; }
   /* History year selector */
   .ml-history-tabs { display:flex; gap:6px; margin-bottom:20px; flex-wrap:wrap; }
   .ml-history-tab { background:var(--surface); border:1px solid var(--border2);
@@ -8196,16 +8200,16 @@ async function loadPicks(leagueId) {
 
     let html = '';
     Object.entries(bySeason).sort((a,b) => a[0].localeCompare(b[0])).forEach(([season, picks]) => {
-      html += `<div class="ml-section-hdr" style="margin-top:20px">${season} Season</div>
+      html += `<div class="ml-section-hdr is-spaced">${season} Season</div>
         <div class="ml-picks-grid">
           ${picks.map(p => {
             const origOwner = rosterToUser[p.roster_id] || `Team ${p.roster_id}`;
             const currOwner = rosterToUser[p.owner_id]  || `Team ${p.owner_id}`;
             const isMyPick  = p.owner_id === (rosters.find(r => r.owner_id === ML.userId)?.roster_id);
-            return `<div class="ml-pick-card" ${isMyPick ? 'style="border-left-color:var(--red)"' : ''}>
+            return `<div class="ml-pick-card${isMyPick ? ' is-mine' : ''}">
               <div class="ml-pick-label">${season} Round ${p.round}</div>
-              <div class="ml-pick-owner">From: <span style="color:var(--white);opacity:.7">${origOwner}</span></div>
-              <div class="ml-pick-owner">Owner: <span style="${isMyPick?'color:var(--red)':''}"><strong>${currOwner}</strong></span></div>
+              <div class="ml-pick-owner">From: <span class="ml-pick-owner-from">${origOwner}</span></div>
+              <div class="ml-pick-owner">Owner: <span${isMyPick ? ' class="ml-pick-owner-mine"' : ''}><strong>${currOwner}</strong></span></div>
             </div>`;
           }).join('')}
         </div>`;
