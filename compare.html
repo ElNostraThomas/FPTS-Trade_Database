@@ -549,6 +549,30 @@
     text-transform: uppercase; letter-spacing: .06em;
   }
 
+  /* ─── Recent Trades panel (lifts tradeCardHtml from player-panel) ──── */
+  body.fpts-compare-page .pc-hist-trades-wrap {
+    background:
+      radial-gradient(circle at top right, rgba(255,255,255,0.025) 0%, transparent 60%),
+      var(--surface2);
+    border: 1px solid var(--border2); border-radius: 6px;
+    padding: 18px 20px;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+  }
+  body.fpts-compare-page .pc-hist-trades-wrap .trade-card {
+    margin-bottom: 12px;
+  }
+  body.fpts-compare-page .pc-hist-trades-wrap .trade-card:last-child { margin-bottom: 0; }
+  body.fpts-compare-page .pc-hist-trades-count {
+    font-family: 'Mulish', sans-serif; font-size: 10px; font-weight: 700;
+    color: var(--muted); text-transform: uppercase; letter-spacing: .08em;
+    opacity: .65; margin-bottom: 12px;
+  }
+  body.fpts-compare-page .pc-hist-trades-count strong {
+    color: var(--red); font-family: 'Kanit', sans-serif;
+    font-weight: 800; font-style: italic; font-size: 14px;
+    margin-right: 4px;
+  }
+
   /* ─── Career stats mount (lifts renderPlayerStats from player-panel) ─ */
   body.fpts-compare-page #pc-hist-stats-mount {
     background:
@@ -1545,12 +1569,39 @@
       </div>`;
   }
 
+  // Reuses _buildTradesFromMvs() + tradeCardHtml() from player-panel.js. The
+  // shared builder dedupes every trade across all players' recentTrades feeds
+  // (each trade typically appears in N players' lists). We filter the result
+  // to trades where the profiled player appears on either side.
   function _pcPanelTrades(name, data) {
+    let trades = [];
+    if (typeof window._buildTradesFromMvs === 'function') {
+      try {
+        const all = window._buildTradesFromMvs();
+        trades = (all || []).filter(t => (t.players || []).some(p => p && p.name === name));
+      } catch (e) { trades = []; }
+    }
+    let body = '';
+    if (!trades.length) {
+      body = `<div class="pc-hist-empty" style="padding:48px 14px">No recent trades involving ${_escAttr(name)} in the FantasyPoints transaction feed.</div>`;
+    } else if (typeof window.tradeCardHtml !== 'function') {
+      body = `<div class="pc-hist-empty" style="padding:48px 14px">tradeCardHtml renderer not loaded.</div>`;
+    } else {
+      const cards = trades.map(t => {
+        try { return window.tradeCardHtml(t); }
+        catch (e) { return ''; }
+      }).join('');
+      body = `
+        <div class="pc-hist-trades-wrap">
+          <div class="pc-hist-trades-count"><strong>${trades.length}</strong>${trades.length === 1 ? ' trade' : ' trades'} found</div>
+          ${cards}
+        </div>`;
+    }
     return `
       <div class="pc-panel-eyebrow">Recent trades</div>
       <div class="pc-panel-title">Trade activity</div>
-      <div class="pc-panel-sub">Actual dynasty-league trades involving this player from FantasyPoints' transaction feed. Wiring ships in phase 2d.</div>
-      <div class="pc-hist-empty" style="padding:60px 14px">Recent trades feed will mount here.</div>`;
+      <div class="pc-panel-sub">Actual dynasty-league trades involving ${_escAttr(name)} from FantasyPoints' transaction feed. Click any asset to drill into that player's drawer.</div>
+      ${body}`;
   }
 
   // ─── Tab bar + active panel ────────────────────────────────────────
