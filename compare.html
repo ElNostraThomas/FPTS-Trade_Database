@@ -17,7 +17,7 @@
 
   Data sources (existing — no new fetches):
     window.STATS_DATA[lookupKey].seasons[year]    → career stat lines
-    window.FP_VALUES[name]                        → KTC value SF + 1QB
+    window.FP_VALUES[name]                        → FantasyPoints dynasty value SF + 1QB
     window.SLEEPER_IDS[name]                      → photos
     window.ML_PLAYERS (loaded via my-leagues if visited; optional)
     SLEEPER.adjustStatsForLeague(stats, scoring)  → scoring overlay
@@ -379,6 +379,122 @@
     color: var(--muted); opacity: .65; font-style: italic;
   }
 
+  /* ─── Chart container — premium polish (taller, more padding) ──────── */
+  body.fpts-compare-page .pc-chart {
+    background:
+      radial-gradient(circle at top right, rgba(255,255,255,0.025) 0%, transparent 60%),
+      var(--surface2);
+    border: 1px solid var(--border2); border-radius: 6px;
+    padding: 22px 24px 20px 22px;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+  }
+  body.fpts-compare-page .pc-chart-legend {
+    display: flex; align-items: center; gap: 8px;
+    font-family: 'Mulish', sans-serif; font-size: 10px;
+    color: var(--muted); text-transform: uppercase; letter-spacing: .1em;
+    margin-bottom: 14px; opacity: .75;
+  }
+  body.fpts-compare-page .pc-chart-legend-dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    background: var(--legend-color, var(--red));
+    box-shadow: 0 0 0 2px var(--surface2), 0 0 0 3px var(--legend-color, var(--red));
+    opacity: .8;
+  }
+  body.fpts-compare-page .pc-chart-body {
+    display: flex; gap: 14px; align-items: stretch; min-height: 280px;
+  }
+  body.fpts-compare-page .pc-chart-yaxis {
+    flex: 0 0 64px;
+    display: flex; flex-direction: column; justify-content: space-between;
+    padding: 8px 0 32px 0;
+  }
+  body.fpts-compare-page .pc-chart-yaxis-label {
+    font-family: 'Mulish', sans-serif; font-weight: 700; font-size: 11px;
+    color: var(--muted);
+    text-align: right; padding-right: 10px; opacity: .55;
+    line-height: 1;
+  }
+  body.fpts-compare-page .pc-chart-svg-col {
+    flex: 1; min-width: 0; display: flex; flex-direction: column;
+    position: relative;
+  }
+  body.fpts-compare-page .pc-chart-svg-wrap {
+    flex: 1; position: relative;
+  }
+  body.fpts-compare-page .pc-chart-svg {
+    display: block; width: 100%; height: 100%; min-height: 240px;
+  }
+  body.fpts-compare-page .pc-chart-overlay {
+    position: absolute; inset: 0;
+    pointer-events: none;
+  }
+  body.fpts-compare-page .pc-chart-data-label {
+    position: absolute; transform: translate(-50%, -120%);
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 11px; color: var(--white);
+    background: var(--surface); padding: 2px 6px; border-radius: 2px;
+    white-space: nowrap; line-height: 1;
+    border: 1px solid var(--border2);
+  }
+  body.fpts-compare-page .pc-chart-gridline {
+    stroke: var(--white); stroke-width: 1; stroke-dasharray: 2 5; opacity: .08;
+  }
+  body.fpts-compare-page .pc-chart-baseline {
+    stroke: var(--border2); stroke-width: 1; opacity: .5;
+  }
+  body.fpts-compare-page .pc-chart-line {
+    stroke-width: 2.5; fill: none; stroke-linejoin: round; stroke-linecap: round;
+  }
+  body.fpts-compare-page .pc-chart-dot {
+    transition: r .15s ease-out;
+  }
+  body.fpts-compare-page .pc-chart-dot:hover { r: 7; }
+  body.fpts-compare-page .pc-chart-xaxis {
+    display: grid; gap: 0;
+    margin-top: 10px; padding-top: 10px;
+    border-top: 1px solid var(--border);
+  }
+  body.fpts-compare-page .pc-chart-xaxis-label {
+    font-family: 'Mulish', sans-serif; font-size: 10px;
+    color: var(--muted); opacity: .65;
+    text-transform: uppercase; letter-spacing: .08em;
+    text-align: center;
+  }
+  body.fpts-compare-page .pc-chart-empty {
+    text-align: center; padding: 60px 14px;
+    background: var(--surface2); border: 1px dashed var(--border2); border-radius: 6px;
+    font-family: 'Mulish', sans-serif; font-size: 12px;
+    color: var(--muted); opacity: .55; font-style: italic;
+  }
+
+  /* Summary stats row below chart — PEAK / LOW / AVG / CURRENT */
+  body.fpts-compare-page .pc-chart-stats {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;
+    margin-top: 18px;
+  }
+  body.fpts-compare-page .pc-chart-stat {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-top: 2px solid var(--stat-color, var(--muted));
+    padding: 10px 12px 12px;
+    border-radius: 3px;
+  }
+  body.fpts-compare-page .pc-chart-stat-label {
+    font-family: 'Mulish', sans-serif; font-size: 9px; font-weight: 700;
+    color: var(--stat-color, var(--muted));
+    text-transform: uppercase; letter-spacing: .12em;
+    opacity: .9; margin-bottom: 4px;
+  }
+  body.fpts-compare-page .pc-chart-stat-value {
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 22px; color: var(--white); line-height: 1.05;
+  }
+  body.fpts-compare-page .pc-chart-stat-meta {
+    font-family: 'Mulish', sans-serif; font-size: 9px;
+    color: var(--muted); margin-top: 3px; opacity: .55;
+    text-transform: uppercase; letter-spacing: .06em;
+  }
+
   /* ─── ADP History per-year row ─────────────────────────────────────── */
   body.fpts-compare-page .pc-hist-adp-row {
     display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px;
@@ -420,6 +536,15 @@
     body.fpts-compare-page .pc-historical { margin-top: 24px; gap: 22px; }
     body.fpts-compare-page .pc-hist-adp-row { grid-template-columns: repeat(3, 1fr); }
     body.fpts-compare-page .pc-hist-adp-rank { font-size: 18px; }
+    body.fpts-compare-page .pc-chart { padding: 16px 14px 14px 14px; }
+    body.fpts-compare-page .pc-chart-body { min-height: 200px; gap: 8px; }
+    body.fpts-compare-page .pc-chart-yaxis { flex: 0 0 44px; }
+    body.fpts-compare-page .pc-chart-yaxis-label { font-size: 10px; padding-right: 6px; }
+    body.fpts-compare-page .pc-chart-svg { min-height: 170px; }
+    body.fpts-compare-page .pc-chart-data-label { font-size: 10px; padding: 1px 4px; }
+    body.fpts-compare-page .pc-chart-xaxis-label { font-size: 9px; }
+    body.fpts-compare-page .pc-chart-stats { grid-template-columns: repeat(2, 1fr); gap: 6px; }
+    body.fpts-compare-page .pc-chart-stat-value { font-size: 18px; }
   }
 </style>
 
@@ -894,7 +1019,7 @@
             ${_pcTile('Age', age)}
             ${_pcTile('Yrs Exp', yrs)}
             ${_pcTile('Pos Rank', fp.posRank || '—')}
-            ${_pcTile('KTC ' + (PC.fmt === '1qb' ? '1QB' : 'SF'), value)}
+            ${_pcTile('FP Value ' + (PC.fmt === '1qb' ? '1QB' : 'SF'), value)}
             ${_pcTile(curYear + ' PPG', ppg)}
           </div>
           <button class="pc-cta-explore" onclick="if(window.openPanel)openPanel('${safeName}')">Explore historical data →</button>
@@ -906,9 +1031,213 @@
       ${_pcRenderHistorical(name)}`;
   }
 
+  // ─── Inline-SVG chart with Y-axis column + X-axis row (no library) ─
+  // Premium-feeling line chart for the historical sections:
+  //   - External Y-axis column (5 labels, no text clipping)
+  //   - Gradient fill under the line (rich, not flat)
+  //   - Horizontal dashed grid lines at every Y-axis level
+  //   - Rounded line caps/joins, 2.5px stroke
+  //   - Larger dots with surface-stroke ring for depth, :hover grow
+  //   - HTML overlay data-point value labels (sit above each dot)
+  //   - X-axis labels in dedicated grid row below the SVG
+  //
+  // points: [{ value: <number|null>, label: <string> }, ...]
+  //   Null values are skipped (line connects valid neighbors).
+  // opts:
+  //   color                — stroke + fill color (default var(--red))
+  //   yInvert              — flip Y axis (use for rank: lower = better → top)
+  //   xLabels              — array of one label per point for the X-axis row
+  //   gradientId           — unique id for the SVG gradient def
+  //   valueFmt             — function(v) → string for Y-axis + data labels
+  //   pointLabelFmt        — function(v) → string for the floating data labels
+  //                          (default = valueFmt)
+  //   yLabelCount          — number of Y-axis labels (default 5)
+  //   legend               — string shown in the top legend chip
+  //   showPointLabels      — render value labels above each dot (default true)
+  function _pcChart(points, opts) {
+    opts = opts || {};
+    const W = opts.width || 1000;
+    const H = opts.height || 240;
+    const padX = opts.padX != null ? opts.padX : 18;
+    const padY = opts.padY != null ? opts.padY : 24;
+    const color = opts.color || 'var(--red)';
+    const yInvert = !!opts.yInvert;
+    const xLabels = opts.xLabels || [];
+    const gradId = opts.gradientId || ('pc-grad-' + Math.random().toString(36).slice(2, 9));
+    const valueFmt = typeof opts.valueFmt === 'function' ? opts.valueFmt : (v => Number(v).toLocaleString());
+    const pointLabelFmt = typeof opts.pointLabelFmt === 'function' ? opts.pointLabelFmt : valueFmt;
+    const yLabelCount = opts.yLabelCount || 5;
+    const legend = opts.legend || '';
+    const showPointLabels = opts.showPointLabels !== false;
+
+    const valid = points.map((p, i) => ({ value: p && p.value, label: p && p.label, idx: i }))
+      .filter(p => p.value != null && !isNaN(p.value));
+    if (valid.length < 1) {
+      return `<div class="pc-chart-empty">No data to chart</div>`;
+    }
+
+    let vmin = Math.min(...valid.map(p => p.value));
+    let vmax = Math.max(...valid.map(p => p.value));
+    // Pad the Y range a bit so dots don't sit at the very edges
+    const rawRange = vmax - vmin;
+    if (rawRange === 0) {
+      // Single unique value — synthesize a range so the chart isn't a flat line
+      // at the very edge. Pad by ±5% of the value (or ±1 for tiny values).
+      const pad = Math.max(1, Math.abs(vmax) * 0.05);
+      vmax += pad; vmin -= pad;
+    } else {
+      const pad = rawRange * 0.12;
+      vmax += pad; vmin -= pad;
+    }
+    const vrange = (vmax - vmin) || 1;
+    const lastIdx = Math.max(1, points.length - 1);
+
+    const xForIdx = (idx) => padX + (idx / lastIdx) * (W - padX * 2);
+    const yForVal = (v) => {
+      const t = (v - vmin) / vrange;
+      return yInvert ? padY + t * (H - padY * 2) : padY + (1 - t) * (H - padY * 2);
+    };
+
+    // Gridlines at every Y-axis level (interior lines only — top + bottom are
+    // visually anchored by the chart edge + xaxis border).
+    const gridFracs = [];
+    for (let i = 1; i < yLabelCount - 1; i++) gridFracs.push(i / (yLabelCount - 1));
+    const gridlines = gridFracs.map(t => {
+      const y = (padY + t * (H - padY * 2)).toFixed(1);
+      return `<line class="pc-chart-gridline" x1="${padX}" y1="${y}" x2="${W - padX}" y2="${y}"/>`;
+    }).join('');
+    const baseline = `<line class="pc-chart-baseline" x1="${padX}" y1="${(H - padY).toFixed(1)}" x2="${W - padX}" y2="${(H - padY).toFixed(1)}"/>`;
+
+    // SVG body — gradient fill, line, dots
+    let svgBody = '';
+    if (valid.length === 1) {
+      const v = valid[0];
+      const x = xForIdx(v.idx).toFixed(1), y = yForVal(v.value).toFixed(1);
+      svgBody = `<circle class="pc-chart-dot" cx="${x}" cy="${y}" r="5.5" fill="${color}" stroke="var(--surface2)" stroke-width="2.5"><title>${_escAttr(v.label || '')}</title></circle>`;
+    } else {
+      const polyPts = valid.map(p => `${xForIdx(p.idx).toFixed(1)},${yForVal(p.value).toFixed(1)}`).join(' ');
+      const firstX = xForIdx(valid[0].idx).toFixed(1);
+      const lastX = xForIdx(valid[valid.length - 1].idx).toFixed(1);
+      const baseY = (H - padY).toFixed(1);
+      const fillPoly = `<polygon points="${firstX},${baseY} ${polyPts} ${lastX},${baseY}" fill="url(#${gradId})"/>`;
+      const line = `<polyline class="pc-chart-line" points="${polyPts}" stroke="${color}"/>`;
+      const dots = valid.map(p => {
+        const x = xForIdx(p.idx).toFixed(1);
+        const y = yForVal(p.value).toFixed(1);
+        return `<circle class="pc-chart-dot" cx="${x}" cy="${y}" r="5.5" fill="${color}" stroke="var(--surface2)" stroke-width="2.5"><title>${_escAttr(p.label || '')}</title></circle>`;
+      }).join('');
+      svgBody = `${fillPoly}${line}${dots}`;
+    }
+
+    // HTML overlay for floating data labels above each dot.
+    // SVG <text> distorts under preserveAspectRatio="none", so HTML labels
+    // positioned with % coords are the right tool.
+    let overlay = '';
+    if (showPointLabels) {
+      const overlayLabels = valid.map(p => {
+        const xPct = (xForIdx(p.idx) / W * 100).toFixed(2);
+        const yPct = (yForVal(p.value) / H * 100).toFixed(2);
+        return `<span class="pc-chart-data-label" style="left:${xPct}%;top:${yPct}%">${pointLabelFmt(p.value)}</span>`;
+      }).join('');
+      overlay = `<div class="pc-chart-overlay">${overlayLabels}</div>`;
+    }
+
+    // Y-axis labels — N evenly spaced values from top to bottom
+    const yLabels = [];
+    for (let i = 0; i < yLabelCount; i++) {
+      const t = i / (yLabelCount - 1);
+      // For yInvert: top = vmin, bot = vmax. Otherwise: top = vmax, bot = vmin.
+      const v = yInvert ? (vmin + t * vrange) : (vmax - t * vrange);
+      yLabels.push(v);
+    }
+    const yAxisHtml = `
+      <div class="pc-chart-yaxis">
+        ${yLabels.map(v => `<span class="pc-chart-yaxis-label">${valueFmt(v)}</span>`).join('')}
+      </div>`;
+
+    // X-axis labels (external grid row, evenly spaced) — only when provided
+    let xAxisHtml = '';
+    if (xLabels.length) {
+      const cols = `repeat(${xLabels.length}, 1fr)`;
+      const cells = xLabels.map(l => `<span class="pc-chart-xaxis-label">${l}</span>`).join('');
+      xAxisHtml = `<div class="pc-chart-xaxis" style="grid-template-columns:${cols}">${cells}</div>`;
+    }
+
+    const legendHtml = legend ? `
+      <div class="pc-chart-legend" style="--legend-color:${color}">
+        <span class="pc-chart-legend-dot"></span>
+        <span>${legend}</span>
+      </div>` : '';
+
+    return `
+      ${legendHtml}
+      <div class="pc-chart-body">
+        ${yAxisHtml}
+        <div class="pc-chart-svg-col">
+          <div class="pc-chart-svg-wrap">
+            <svg class="pc-chart-svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" role="img">
+              <defs>
+                <linearGradient id="${gradId}" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="${color}" stop-opacity="0.32"/>
+                  <stop offset="100%" stop-color="${color}" stop-opacity="0"/>
+                </linearGradient>
+              </defs>
+              ${gridlines}
+              ${baseline}
+              ${svgBody}
+            </svg>
+            ${overlay}
+          </div>
+          ${xAxisHtml}
+        </div>
+      </div>`;
+  }
+
+  // Summary stat boxes below the chart: PEAK / LOW / AVG / CURRENT
+  // For yInvert (rank), PEAK = lowest number (best). Otherwise PEAK = highest.
+  function _pcChartStats(points, opts) {
+    opts = opts || {};
+    const valid = points.filter(p => p && p.value != null && !isNaN(p.value));
+    if (!valid.length) return '';
+    const yInvert = !!opts.yInvert;
+    const fmt = typeof opts.valueFmt === 'function' ? opts.valueFmt : (v => Number(v).toLocaleString());
+
+    const vmin = Math.min(...valid.map(p => p.value));
+    const vmax = Math.max(...valid.map(p => p.value));
+    const avg = valid.reduce((s, p) => s + p.value, 0) / valid.length;
+    const cur = valid[valid.length - 1].value;
+
+    const peakLabel = yInvert ? 'PEAK RANK' : 'HIGH';
+    const lowLabel  = yInvert ? 'LOWEST RANK' : 'LOW';
+    const peakVal   = yInvert ? vmin : vmax;
+    const lowVal    = yInvert ? vmax : vmin;
+
+    const tile = (label, value, color, metaLabel) => `
+      <div class="pc-chart-stat" style="--stat-color:${color}">
+        <div class="pc-chart-stat-label">${label}</div>
+        <div class="pc-chart-stat-value">${fmt(value)}</div>
+        ${metaLabel ? `<div class="pc-chart-stat-meta">${metaLabel}</div>` : ''}
+      </div>`;
+
+    return `
+      <div class="pc-chart-stats">
+        ${tile(peakLabel, peakVal, 'var(--green)', '')}
+        ${tile(lowLabel,  lowVal,  'var(--red)',   '')}
+        ${tile('AVG',     avg,     'var(--muted)', '')}
+        ${tile('CURRENT', cur,     'var(--yellow)', '')}
+      </div>`;
+  }
+
+  // Tiny helper — escape value for SVG <title> / attr context
+  function _escAttr(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+
   // ─── Render: in-page Historical section (below hero) ──────────────
   // Phase 2a ships: Background tiles + ADP History numeric row.
-  // Phase 2b adds: sparkline charts (ADP trend, KTC value history).
+  // Phase 2b adds: charts (ADP trend, FP Dynasty value history).
   // Phase 2c adds: Career Stats by Season (lifts renderPlayerStats).
   // Phase 2d adds: Recent Trades (lifts tradeCardHtml).
 
@@ -977,6 +1306,82 @@
     return `<div class="pc-hist-adp-row">${cells}</div>`;
   }
 
+  function _pcAdpHistoryChart(name) {
+    const points = PC_ADP_YEARS.map(yr => {
+      const rec = _pcGetAdpForYear(name, yr);
+      if (!rec || rec.rank == null) return { value: null, label: `${yr}: —` };
+      const posRankPart = rec.posRank ? ` (${rec.posRank})` : '';
+      return { value: rec.rank, label: `${yr}: #${rec.rank}${posRankPart}` };
+    });
+    const validCount = points.filter(p => p.value != null).length;
+    if (validCount < 2) return ''; // Skip chart when only 0-1 data points
+    // yInvert: ADP rank is "lower is better" — render #1 at the top.
+    const yLabelFmt = v => '#' + Math.round(v);
+    const dotLabelFmt = v => '#' + Math.round(v);
+    return `<div class="pc-chart">
+      ${_pcChart(points, {
+        color: 'var(--green)',
+        yInvert: true,
+        xLabels: PC_ADP_YEARS.map(String),
+        gradientId: 'pc-grad-adp',
+        valueFmt: yLabelFmt,
+        pointLabelFmt: dotLabelFmt,
+        legend: 'Overall startup rank',
+      })}
+      ${_pcChartStats(points, {
+        yInvert: true,
+        valueFmt: yLabelFmt,
+      })}
+    </div>`;
+  }
+
+  // Pulls FantasyPoints dynasty value history for the active format.
+  // Internally backed by MVS_PAYLOAD.players[name].history / .history1qb.
+  function _pcFpValueHistory(name) {
+    const mvs = (window.MVS_PAYLOAD && window.MVS_PAYLOAD.players)
+      ? window.MVS_PAYLOAD.players[name]
+      : null;
+    if (!mvs) return null;
+    const series = (PC.fmt === '1qb') ? (mvs.history1qb || []) : (mvs.history || []);
+    if (!series.length) return null;
+    return series;
+  }
+
+  function _pcFpValueSection(name, fp) {
+    const series = _pcFpValueHistory(name);
+    const fmtLabel = (PC.fmt === '1qb') ? '1QB' : 'SF';
+    if (!series || series.length < 1) {
+      return `<div class="pc-chart-empty">No ${fmtLabel} value history available for this player.</div>`;
+    }
+    const points = series.map(p => ({
+      value: p.mvs,
+      label: `${p.date}: ${p.mvs != null ? p.mvs.toLocaleString() : '—'}`,
+    }));
+    // Build pretty MMM-DD labels for the X axis so users can read the
+    // time range without scanning ISO strings.
+    const xLabels = series.map(p => {
+      if (!p.date) return '';
+      const d = new Date(p.date);
+      if (isNaN(d.getTime())) return p.date;
+      return d.toLocaleString('en-US', { month: 'short', day: 'numeric' });
+    });
+    const yLabelFmt = v => Math.round(v).toLocaleString();
+    const ptLabelFmt = v => Math.round(v).toLocaleString();
+    return `<div class="pc-chart">
+      ${_pcChart(points, {
+        color: 'var(--red)',
+        gradientId: 'pc-grad-fp',
+        xLabels: xLabels,
+        valueFmt: yLabelFmt,
+        pointLabelFmt: ptLabelFmt,
+        legend: `Fantasy Points ${fmtLabel} value`,
+      })}
+      ${_pcChartStats(points, {
+        valueFmt: yLabelFmt,
+      })}
+    </div>`;
+  }
+
   function _pcRenderHistorical(name) {
     const data = _pcCardData(name);
     if (!data) return '';
@@ -998,8 +1403,14 @@
           <div class="pc-hist-section-title">Dynasty Startup ADP — ${fmtLabel}</div>
           <div class="pc-hist-section-sub">Per-year overall rank from FantasyPoints dynasty drafts</div>
           ${adpReady
-            ? _pcAdpHistoryRow(name, data.fp)
+            ? `${_pcAdpHistoryChart(name)}${_pcAdpHistoryRow(name, data.fp)}`
             : `<div class="pc-hist-empty">Loading per-year ADP files…</div>`}
+        </div>
+
+        <div class="pc-hist-section">
+          <div class="pc-hist-section-title">Fantasy Points Dynasty Value — ${fmtLabel}</div>
+          <div class="pc-hist-section-sub">Recent trade-value movement (FantasyPoints dynasty data · daily snapshots)</div>
+          ${_pcFpValueSection(name, data.fp)}
         </div>
 
       </div>`;
