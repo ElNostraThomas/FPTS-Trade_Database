@@ -544,6 +544,131 @@
     text-transform: uppercase; letter-spacing: .06em;
   }
 
+  /* ─── Table mode (Phase 4: skeleton — picker + Identity row group) ── */
+  body.fpts-compare-page .pc-table-mode {
+    display: flex; flex-direction: column; gap: 18px; margin-top: 8px;
+  }
+  body.fpts-compare-page .pc-table-picker {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;
+  }
+  body.fpts-compare-page .pc-table-slot {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-top: 3px solid var(--pos-color, var(--border));
+    border-radius: 4px;
+    padding: 14px; min-height: 200px;
+    display: flex; flex-direction: column; gap: 10px;
+    position: relative;
+  }
+  body.fpts-compare-page .pc-table-slot.is-empty {
+    border-top-color: var(--border);
+    background: var(--surface);
+    border-style: dashed; border-color: var(--border2);
+    align-items: center; justify-content: center; text-align: center;
+  }
+  body.fpts-compare-page .pc-table-slot-empty-label {
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 14px; color: var(--muted); opacity: .55;
+    text-transform: uppercase; letter-spacing: .06em;
+  }
+  body.fpts-compare-page .pc-table-slot-empty-sub {
+    font-family: 'Mulish', sans-serif; font-size: 10px;
+    color: var(--muted); opacity: .55;
+    text-transform: uppercase; letter-spacing: .08em;
+  }
+  body.fpts-compare-page .pc-table-slot-search {
+    width: 100%; box-sizing: border-box;
+    background: var(--surface2); border: 1px solid var(--border2);
+    color: var(--white); font-family: 'Mulish', sans-serif;
+    font-size: 12px; padding: 8px 10px; outline: none;
+    border-radius: 3px; transition: border-color .15s;
+  }
+  body.fpts-compare-page .pc-table-slot-search:focus { border-color: var(--red); }
+  body.fpts-compare-page .pc-table-slot-results {
+    position: absolute; top: calc(100% + 4px); left: 8px; right: 8px;
+    background: var(--surface2); border: 1px solid var(--border2);
+    max-height: 260px; overflow-y: auto; z-index: 60;
+    display: none; text-align: left; border-radius: 3px;
+  }
+  body.fpts-compare-page .pc-table-slot-results.is-open { display: block; }
+  body.fpts-compare-page .pc-table-slot-clear {
+    position: absolute; top: 6px; right: 6px;
+    background: none; border: none; color: var(--muted);
+    cursor: pointer; padding: 2px 6px; font-size: 14px; opacity: .6;
+    transition: color .12s, opacity .12s;
+    line-height: 1;
+  }
+  body.fpts-compare-page .pc-table-slot-clear:hover { color: var(--red); opacity: 1; }
+  body.fpts-compare-page .pc-table-slot-photo-wrap {
+    width: 72px; height: 72px; border-radius: 50%;
+    overflow: hidden; align-self: center;
+    background: var(--surface);
+    border: 2px solid var(--pos-color, var(--border));
+  }
+  body.fpts-compare-page .pc-table-slot-photo {
+    width: 100%; height: 100%; object-fit: cover; object-position: top;
+  }
+  body.fpts-compare-page .pc-table-slot-name {
+    font-family: 'Mulish', sans-serif; font-weight: 900; font-size: 13px;
+    color: var(--white); text-align: center; line-height: 1.2;
+  }
+  body.fpts-compare-page .pc-table-slot-meta {
+    display: flex; gap: 6px; justify-content: center; align-items: center;
+    font-family: 'Mulish', sans-serif; font-size: 10px;
+    color: var(--muted); opacity: .8;
+    text-transform: uppercase; letter-spacing: .06em;
+  }
+  body.fpts-compare-page .pc-table-slot-idx {
+    position: absolute; top: 6px; left: 10px;
+    font-family: 'Mulish', sans-serif; font-size: 9px; font-weight: 700;
+    color: var(--muted); opacity: .55;
+    text-transform: uppercase; letter-spacing: .1em;
+  }
+
+  /* Row groups + cells */
+  body.fpts-compare-page .pc-table-rowgroup {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 4px; overflow: hidden;
+  }
+  body.fpts-compare-page .pc-table-rowgroup-title {
+    background: linear-gradient(90deg, rgba(237,129,12,0.15) 0%, rgba(237,129,12,0.02) 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 9px 14px;
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 11px; color: var(--red);
+    text-transform: uppercase; letter-spacing: .1em;
+  }
+  body.fpts-compare-page .pc-table-row {
+    display: grid;
+    grid-template-columns: 180px repeat(4, 1fr);
+    border-bottom: 1px solid var(--border);
+  }
+  body.fpts-compare-page .pc-table-row:last-child { border-bottom: none; }
+  body.fpts-compare-page .pc-table-row-label {
+    padding: 11px 14px;
+    font-family: 'Mulish', sans-serif; font-size: 11px; font-weight: 700;
+    color: var(--muted); opacity: .85;
+    display: flex; align-items: center;
+  }
+  body.fpts-compare-page .pc-table-row-cell {
+    padding: 11px 14px;
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 15px; color: var(--white);
+    text-align: center;
+    display: flex; align-items: center; justify-content: center;
+    border-left: 1px solid var(--border);
+    position: relative;
+  }
+  body.fpts-compare-page .pc-table-row-cell.is-best {
+    background: rgba(76,175,110,0.12);
+  }
+  body.fpts-compare-page .pc-table-row-cell.is-best::before {
+    content: ''; position: absolute; inset: 0;
+    border: 1px solid var(--green); pointer-events: none;
+  }
+  body.fpts-compare-page .pc-table-row-cell.is-empty {
+    color: var(--muted); opacity: .35; font-style: normal;
+  }
+
   /* ─── Top Profile Matches (Phase 3) ────────────────────────────────── */
   body.fpts-compare-page .pc-matches-section { margin-top: 8px; }
   body.fpts-compare-page .pc-matches-header {
@@ -791,6 +916,20 @@
     body.fpts-compare-page .pc-match-card { scroll-snap-align: start; }
     body.fpts-compare-page .pc-matches-header { flex-direction: column; align-items: flex-start; gap: 8px; }
     body.fpts-compare-page .pc-matches-legend { gap: 10px; }
+    body.fpts-compare-page .pc-table-picker {
+      grid-template-columns: none;
+      grid-auto-flow: column;
+      grid-auto-columns: 180px;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      padding-bottom: 6px;
+    }
+    body.fpts-compare-page .pc-table-slot { scroll-snap-align: start; min-height: 170px; }
+    body.fpts-compare-page .pc-table-row {
+      grid-template-columns: 120px repeat(4, 1fr);
+    }
+    body.fpts-compare-page .pc-table-row-label { padding: 9px 10px; font-size: 10px; }
+    body.fpts-compare-page .pc-table-row-cell { padding: 9px 6px; font-size: 13px; }
   }
 </style>
 
@@ -1950,6 +2089,191 @@
       </div>`;
   }
 
+  // ─── Table mode (Phase 4) ───────────────────────────────────────────
+  // Up to 4 player slots side-by-side. Each empty slot exposes a search
+  // input; filled slots show a compact player card with × clear.
+  // Below the picker: stat-category row groups. Phase 4 ships just the
+  // Identity row group; phase 5 adds more groups + per-row best-in-row
+  // highlighting.
+
+  function _pcTableAddPlayer(slotIdx, name) {
+    if (!name) return;
+    PC.players = PC.players.slice();
+    while (PC.players.length < 4) PC.players.push(null);
+    PC.players[slotIdx] = name;
+    // Trim trailing nulls so the hash stays tidy
+    while (PC.players.length && !PC.players[PC.players.length - 1]) {
+      PC.players.pop();
+    }
+    _pcWriteHash();
+    _pcRender();
+  }
+
+  function _pcTableRemovePlayer(slotIdx) {
+    if (slotIdx >= PC.players.length) return;
+    PC.players = PC.players.slice();
+    PC.players[slotIdx] = null;
+    while (PC.players.length && !PC.players[PC.players.length - 1]) {
+      PC.players.pop();
+    }
+    _pcWriteHash();
+    _pcRender();
+  }
+
+  function _pcTableSlotSearchInput(slotIdx, e) {
+    clearTimeout(PC.searchTimer);
+    const q = (e.target.value || '').trim().toLowerCase();
+    PC.searchTimer = setTimeout(() => {
+      const resultsEl = document.getElementById('pc-table-slot-results-' + slotIdx);
+      if (!resultsEl) return;
+      if (!q) { resultsEl.innerHTML = ''; resultsEl.classList.remove('is-open'); return; }
+      const taken = new Set((PC.players || []).filter(Boolean));
+      const matches = Object.keys(window.FP_VALUES || {})
+        .filter(n => !taken.has(n) && n.toLowerCase().includes(q))
+        .sort((a, b) => (window.FP_VALUES[a].rank || 9999) - (window.FP_VALUES[b].rank || 9999))
+        .slice(0, 12);
+      if (!matches.length) {
+        resultsEl.innerHTML = '<div class="pc-search-item is-empty">No matches</div>';
+        resultsEl.classList.add('is-open');
+        return;
+      }
+      resultsEl.innerHTML = matches.map(n => {
+        const fp = window.FP_VALUES[n];
+        const safeName = n.replace(/'/g, "\\'");
+        return `<div class="pc-search-item" onmousedown="_pcTableAddPlayer(${slotIdx}, '${safeName}')">
+          <span class="pos-pill ${fp.pos || ''}">${fp.pos || '?'}</span>
+          <span class="pc-search-name">${n}</span>
+          <span class="pc-search-meta">${fp.team || ''}${fp.posRank ? ' · ' + fp.posRank : ''}</span>
+        </div>`;
+      }).join('');
+      resultsEl.classList.add('is-open');
+    }, 60);
+  }
+
+  function _pcTableSlot(idx) {
+    const name = PC.players[idx];
+    if (!name) {
+      return `
+        <div class="pc-table-slot is-empty">
+          <div class="pc-table-slot-idx">Slot ${idx + 1}</div>
+          <div class="pc-table-slot-empty-label">+ Add player</div>
+          <div class="pc-table-slot-empty-sub">Search by name</div>
+          <input class="pc-table-slot-search" type="text" placeholder="Search…"
+                 autocomplete="off" spellcheck="false"
+                 oninput="_pcTableSlotSearchInput(${idx}, event)">
+          <div class="pc-table-slot-results" id="pc-table-slot-results-${idx}"></div>
+        </div>`;
+    }
+    const fp = (window.FP_VALUES || {})[name] || {};
+    const sid = fp.sleeperId || (window.SLEEPER_IDS || {})[name];
+    const photo = sid ? `https://sleepercdn.com/content/nfl/players/thumb/${sid}.jpg` : '';
+    const posColor = _pcPosColor(fp.pos);
+    const safeName = name.replace(/'/g, "\\'");
+    return `
+      <div class="pc-table-slot" style="--pos-color:${posColor}">
+        <div class="pc-table-slot-idx">Slot ${idx + 1}</div>
+        <button class="pc-table-slot-clear" onclick="_pcTableRemovePlayer(${idx})" title="Remove">✕</button>
+        <div class="pc-table-slot-photo-wrap">
+          ${photo ? `<img class="pc-table-slot-photo" src="${photo}" alt="${_escAttr(name)}" onerror="this.style.display='none'">` : ''}
+        </div>
+        <div class="pc-table-slot-name">${_escAttr(name)}</div>
+        <div class="pc-table-slot-meta">
+          <span class="pos-pill ${fp.pos || ''}">${fp.pos || '?'}</span>
+          <span>${fp.team || ''}</span>
+          ${fp.posRank ? `<span>· ${fp.posRank}</span>` : ''}
+        </div>
+      </div>`;
+  }
+
+  // Row helpers — each takes the filled players, returns row HTML.
+  // best: optional function(values) → idx of best value (used for highlighting).
+  // fmt:  function(fpRecord) → display string for that player.
+  function _pcTableRow(label, players, fmt, opts) {
+    opts = opts || {};
+    const values = players.map(p => p ? fmt(p) : null);
+    const cells = values.map((v, i) => {
+      if (!players[i]) return `<div class="pc-table-row-cell is-empty">—</div>`;
+      const isBest = opts.bestIdx === i;
+      return `<div class="pc-table-row-cell${isBest ? ' is-best' : ''}">${v == null || v === '' ? '—' : v}</div>`;
+    }).join('');
+    return `
+      <div class="pc-table-row">
+        <div class="pc-table-row-label">${label}</div>
+        ${cells}
+      </div>`;
+  }
+
+  // Identity row group — pos, team, age, years exp, pos rank, FP value, PPG.
+  // "Best" is defined per row (high or low depending on metric).
+  function _pcTableIdentityGroup() {
+    const fps = PC.players.map(name => name ? (window.FP_VALUES || {})[name] : null);
+    // Pad to 4 slots
+    while (fps.length < 4) fps.push(null);
+
+    // Find best index per numeric row. min/max depending on metric.
+    const bestIdx = (vals, mode) => {
+      const numeric = vals.map((v, i) => ({ v: (v == null || isNaN(v)) ? null : Number(v), i })).filter(x => x.v != null);
+      if (numeric.length < 2) return -1;
+      const target = mode === 'min'
+        ? numeric.reduce((a, b) => a.v < b.v ? a : b)
+        : numeric.reduce((a, b) => a.v > b.v ? a : b);
+      return target.i;
+    };
+
+    const posVals  = fps.map(fp => fp ? fp.pos : null);
+    const teamVals = fps.map(fp => fp ? fp.team : null);
+    const ageVals  = fps.map(fp => fp ? (fp.age != null ? Number(fp.age) : null) : null);
+    const yrsVals  = fps.map(fp => fp ? null : null); // years_exp lives on SLEEPER_PLAYERS_DB, not FP_VALUES; defer
+    const prankVals = fps.map(fp => fp ? (fp.posRank || null) : null);
+    const ppgVals  = fps.map(fp => fp ? (fp.ppg != null ? Number(fp.ppg) : null) : null);
+    const valVals  = fps.map(fp => fp ? Number((PC.fmt === '1qb' ? fp.value1qb : (fp.valueSf != null ? fp.valueSf : fp.value)) || 0) : null);
+    // posRank parse — extract numeric tail (e.g. "WR1" → 1) for "lower is better"
+    const prankNumeric = prankVals.map(v => {
+      if (!v) return null;
+      const m = String(v).match(/(\d+)$/);
+      return m ? Number(m[1]) : null;
+    });
+
+    const fmt1 = v => v == null ? '—' : Number(v).toFixed(1);
+    const fmtInt = v => v == null ? '—' : Math.round(v).toLocaleString();
+    const fmtRaw = v => v == null || v === '' ? '—' : String(v);
+
+    const rows = [
+      // Pos + Team (categorical — no best)
+      _pcTableRow('Position',  PC.players, (n, i) => fps[i]?.pos ? `<span class="pos-pill ${fps[i].pos}">${fps[i].pos}</span>` : '—'),
+      _pcTableRow('Team',      PC.players, (n, i) => fmtRaw(teamVals[i])),
+      _pcTableRow('Pos rank',  PC.players, (n, i) => fmtRaw(prankVals[i]), { bestIdx: bestIdx(prankNumeric, 'min') }),
+      _pcTableRow('Age',       PC.players, (n, i) => fmt1(ageVals[i]),      { bestIdx: bestIdx(ageVals, 'min') }),
+      _pcTableRow('PPG',       PC.players, (n, i) => fmt1(ppgVals[i]),      { bestIdx: bestIdx(ppgVals, 'max') }),
+      _pcTableRow('FP ' + (PC.fmt === '1qb' ? '1QB' : 'SF') + ' value', PC.players, (n, i) => fmtInt(valVals[i]), { bestIdx: bestIdx(valVals, 'max') }),
+    ].join('');
+
+    return `
+      <div class="pc-table-rowgroup">
+        <div class="pc-table-rowgroup-title">Identity</div>
+        ${rows}
+      </div>`;
+  }
+
+  function _pcRenderTable() {
+    // Pad PC.players to 4 slots for rendering
+    const slots = PC.players.slice();
+    while (slots.length < 4) slots.push(null);
+    PC.players = slots;
+
+    const picker = slots.map((_, i) => _pcTableSlot(i)).join('');
+    const hasAny = slots.some(Boolean);
+
+    return `
+      <div class="pc-table-mode">
+        <div class="pc-table-picker">${picker}</div>
+        ${hasAny ? _pcTableIdentityGroup() : `
+          <div class="pc-chart-empty" style="min-height:140px;display:flex;align-items:center;justify-content:center">
+            Add up to 4 players above to compare side-by-side.
+          </div>`}
+      </div>`;
+  }
+
   // ─── Main render dispatcher ────────────────────────────────────────
   function _pcRender() {
     // Sync toggle visual state
@@ -1963,12 +2287,8 @@
       if (PC.player) _pcRenderProfile(PC.player);
       else _pcRenderEmpty();
     } else {
-      // Table mode lands in phase 3
-      document.getElementById('pc-app').innerHTML = `
-        <div class="pc-empty">
-          <div class="pc-empty-title">Table mode coming soon</div>
-          Side-by-side 2-4 player stat comparison ships in phase 3. Use Profile mode for now.
-        </div>`;
+      // Table mode: 2-4 player side-by-side comparison
+      document.getElementById('pc-app').innerHTML = _pcRenderTable();
     }
   }
 
