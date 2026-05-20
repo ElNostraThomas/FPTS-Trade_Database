@@ -1103,6 +1103,90 @@
     font-family:'Mulish',sans-serif; font-size:10px; color:var(--muted); opacity:.6;
   }
 
+  /* Position badge, player photo thumb, draft-pick thumb (32x32 helpers) */
+  .ml-pos-badge {
+    display:inline-flex; align-items:center; justify-content:center;
+    font-family:'Kanit',sans-serif; font-weight:800; font-style:italic;
+    font-size:10px; padding:1px 6px; flex-shrink:0;
+  }
+  .ml-pos-badge.is-unknown {
+    background: var(--pos-bg); color: #fff;
+  }
+  .ml-thumb-32 {
+    width:32px; height:32px; flex-shrink:0; display:inline-block;
+  }
+  .ml-thumb-32-img {
+    width:32px; height:32px; border-radius:50%; object-fit:cover; flex-shrink:0;
+  }
+  .ml-pick-thumb-32 {
+    width:32px; height:32px; border-radius:50%; background:var(--surface2);
+    display:inline-flex; align-items:center; justify-content:center;
+    flex-shrink:0; border:1px solid var(--border);
+  }
+
+  /* FantasyPoints articles row (player-detail modal) */
+  .pp-articles-header { display:flex; align-items:center; gap:8px; margin-bottom:6px; }
+  .pp-articles-source {
+    font-family:'Mulish',sans-serif; font-size:10px; color:var(--muted); opacity:.5;
+  }
+  .pp-article-inline { display:flex; align-items:center; gap:10px; min-height:24px; }
+  .pp-articles-more-wrap { margin-top:8px; }
+  .pp-articles-more-btn {
+    background:none; border:none; color:var(--muted);
+    font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:10px;
+    text-transform:uppercase; letter-spacing:.06em; cursor:pointer; padding:0;
+    display:flex; align-items:center; gap:4px; opacity:.7;
+    transition: color .12s, opacity .12s;
+  }
+  .pp-articles-more-btn:hover { opacity:1; color:var(--white); }
+  .pp-articles-more-arrow { font-size:8px; transition:transform .15s; }
+  .pp-articles-more-list {
+    margin-top:8px; padding-top:8px; border-top:1px solid var(--border);
+  }
+  .pp-article-empty-box {
+    display:flex; align-items:center; gap:10px; width:100%; padding:8px 12px;
+    background:rgba(237,129,12,0.06); border:1px dashed var(--border2); border-radius:3px;
+  }
+  .pp-article-empty-msg {
+    font-family:'Mulish',sans-serif; font-size:12px; color:var(--muted);
+    font-style:italic; flex:1; min-width:0;
+  }
+  .pp-article-browse-link {
+    font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:10px;
+    color:var(--red); text-decoration:none; text-transform:uppercase; letter-spacing:.06em;
+    flex-shrink:0; padding:5px 10px; border:1px solid var(--red); border-radius:3px;
+    transition: background .12s, color .12s;
+  }
+  .pp-article-browse-link:hover { background:var(--red); color:var(--white); }
+  .pp-article-title {
+    font-family:'Mulish',sans-serif; font-weight:900; font-size:13px;
+    color:var(--white); text-decoration:none; flex:1; min-width:0;
+    overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+    transition: color .12s;
+  }
+  .pp-article-title:hover { color:var(--red); }
+  .pp-article-date {
+    font-family:'Mulish',sans-serif; font-size:10px;
+    color:var(--muted); opacity:.5; flex-shrink:0;
+  }
+  .pp-article-read {
+    font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:10px;
+    color:var(--red); text-decoration:none; text-transform:uppercase; letter-spacing:.06em;
+    flex-shrink:0; transition: opacity .12s;
+  }
+  .pp-article-read:hover { opacity:.7; }
+  .pp-article-more-row {
+    display:flex; align-items:center; gap:10px; padding:6px 0;
+    border-bottom:1px solid var(--border);
+  }
+  .pp-article-more-title {
+    font-family:'Mulish',sans-serif; font-weight:700; font-size:12px;
+    color:var(--white); text-decoration:none; flex:1; min-width:0;
+    overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+    transition: color .12s;
+  }
+  .pp-article-more-title:hover { color:var(--red); }
+
   /* Archetype chip */
   .ml-archetype {
     display:inline-flex; align-items:center; justify-content:center;
@@ -3781,21 +3865,21 @@ function posBadge(pos) {
   const known = ['WR','RB','QB','TE','K'];
   const cls = known.includes(pos) ? `pos-${pos.toLowerCase()}` : '';
   if (cls) {
-    return `<span class="${cls}" style="display:inline-flex;align-items:center;justify-content:center;font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:10px;padding:1px 6px;flex-shrink:0;">${pos}</span>`;
+    return `<span class="${cls} ml-pos-badge">${pos}</span>`;
   }
   const c = posColor(pos);
-  return `<span style="display:inline-flex;align-items:center;justify-content:center;background:${c};color:#fff;font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:10px;padding:1px 6px;flex-shrink:0;">${pos}</span>`;
+  return `<span class="ml-pos-badge is-unknown" style="--pos-bg:${c}">${pos}</span>`;
 }
 
 function playerThumb(sleeperId) {
-  if (!sleeperId) return `<span style="width:32px;height:32px;flex-shrink:0;display:inline-block;"></span>`;
-  return `<img src="${CDN}/content/nfl/players/thumb/${sleeperId}.jpg" style="width:32px;height:32px;border-radius:50%;object-fit:cover;flex-shrink:0;" onerror="this.style.display='none'">`;
+  if (!sleeperId) return `<span class="ml-thumb-32"></span>`;
+  return `<img class="ml-thumb-32-img" src="${CDN}/content/nfl/players/thumb/${sleeperId}.jpg" onerror="this.style.display='none'">`;
 }
 
 // Flame icon thumbnail for draft picks — 32x32 to match player thumbs.
 function pickThumb() {
-  return `<span style="width:32px;height:32px;border-radius:50%;background:var(--surface2);display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;border:1px solid var(--border)">
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="413 0 95 90" width="20" height="20" style="display:block">
+  return `<span class="ml-pick-thumb-32">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="413 0 95 90" width="20" height="20">
       <path d="M508.084,47.801l-8.983,41.534c0,0 -75.276,-0.036 -85.237,-0.002l0.015,-0.067c0,0 2.533,-17.352 5.641,-25.475c3.708,-9.689 16.604,-32.658 16.604,-32.658c12.902,8.212 8.658,21.025 7.099,27.21c11.719,-8.962 11.012,-17.186 11.003,-28.608c-0.006,-7.356 4.797,-23.375 17.858,-28.257c-4.305,14.678 3.971,24.95 7.333,30.494c6.362,10.492 1.397,21.17 1.397,21.17c0,0 9.268,-3.36 8.863,-15.254c-0.117,-3.424 -1.714,-14.283 8.012,-18.422c-0.754,9.397 5.495,18.682 10.395,28.336Z" fill="var(--red)"/>
     </svg>
   </span>`;
@@ -3879,20 +3963,17 @@ function mountPlayerArticles(parentEl, playerName, opts) {
       ? 'display:none;padding:12px 32px;border-top:1px solid var(--border);background:var(--surface);flex-shrink:0'
       : 'display:none';
     row.innerHTML = `
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+      <div class="pp-articles-header">
         <span class="ml-section-head">Articles</span>
-        <span class="pp-articles-source" style="font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);opacity:.5">FantasyPoints.com</span>
+        <span class="pp-articles-source">FantasyPoints.com</span>
       </div>
-      <div class="pp-article-inline" style="display:flex;align-items:center;gap:10px;min-height:24px"></div>
-      <div class="pp-articles-more-wrap" style="display:none;margin-top:8px">
-        <button type="button" class="pp-articles-more-btn"
-          style="background:none;border:none;color:var(--muted);font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:10px;text-transform:uppercase;letter-spacing:.06em;cursor:pointer;padding:0;display:flex;align-items:center;gap:4px;opacity:.7"
-          onmouseover="this.style.opacity=1;this.style.color='var(--white)'"
-          onmouseout="this.style.opacity=.7;this.style.color='var(--muted)'">
+      <div class="pp-article-inline"></div>
+      <div class="pp-articles-more-wrap" style="display:none">
+        <button type="button" class="pp-articles-more-btn">
           <span class="pp-articles-more-label">See more articles</span>
-          <span class="pp-articles-more-arrow" style="font-size:8px;transition:transform .15s">▼</span>
+          <span class="pp-articles-more-arrow">▼</span>
         </button>
-        <div class="pp-articles-more-list" style="display:none;margin-top:8px;padding-top:8px;border-top:1px solid var(--border)"></div>
+        <div class="pp-articles-more-list" style="display:none"></div>
       </div>
     `;
     parentEl.appendChild(row);
@@ -3926,12 +4007,9 @@ function mountPlayerArticles(parentEl, playerName, opts) {
     row.style.display = '';
     // Visually distinct fallback box so users see something is here, not nothing
     row.querySelector('.pp-article-inline').innerHTML = `
-      <div style="display:flex;align-items:center;gap:10px;width:100%;padding:8px 12px;background:rgba(237,129,12,0.06);border:1px dashed var(--border2);border-radius:3px">
-        <span style="font-family:'Mulish',sans-serif;font-size:12px;color:var(--muted);font-style:italic;flex:1;min-width:0">No curated articles yet — browse FantasyPoints for ${playerName} coverage</span>
-        <a href="https://www.fantasypoints.com/articles#/" target="_blank" rel="noopener"
-           style="font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:10px;color:var(--red);text-decoration:none;text-transform:uppercase;letter-spacing:.06em;flex-shrink:0;padding:5px 10px;border:1px solid var(--red);border-radius:3px"
-           onmouseover="this.style.background='var(--red)';this.style.color='var(--white)'"
-           onmouseout="this.style.background='transparent';this.style.color='var(--red)'">Browse FantasyPoints ↗</a>
+      <div class="pp-article-empty-box">
+        <span class="pp-article-empty-msg">No curated articles yet — browse FantasyPoints for ${playerName} coverage</span>
+        <a class="pp-article-browse-link" href="https://www.fantasypoints.com/articles#/" target="_blank" rel="noopener">Browse FantasyPoints ↗</a>
       </div>
     `;
     // Hide the "See more" expander since there's nothing to expand
@@ -3943,16 +4021,10 @@ function mountPlayerArticles(parentEl, playerName, opts) {
 
   const first = articles[0];
   row.querySelector('.pp-article-inline').innerHTML = `
-    <a href="${first.url}" target="_blank" rel="noopener"
-       style="font-family:'Mulish',sans-serif;font-weight:900;font-size:13px;color:var(--white);text-decoration:none;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"
-       onmouseover="this.style.color='var(--red)'"
-       onmouseout="this.style.color='var(--white)'"
+    <a class="pp-article-title" href="${first.url}" target="_blank" rel="noopener"
        title="${(first.title||'').replace(/"/g,'&quot;')}">${first.title || '(untitled)'}</a>
-    ${first.date ? `<span style="font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);opacity:.5;flex-shrink:0">${ppFmtArticleDate(first.date)}</span>` : ''}
-    <a href="${first.url}" target="_blank" rel="noopener"
-       style="font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:10px;color:var(--red);text-decoration:none;text-transform:uppercase;letter-spacing:.06em;flex-shrink:0"
-       onmouseover="this.style.opacity=.7"
-       onmouseout="this.style.opacity=1">Read →</a>
+    ${first.date ? `<span class="pp-article-date">${ppFmtArticleDate(first.date)}</span>` : ''}
+    <a class="pp-article-read" href="${first.url}" target="_blank" rel="noopener">Read →</a>
   `;
 
   const rest = articles.slice(1, 5);
@@ -3960,13 +4032,10 @@ function mountPlayerArticles(parentEl, playerName, opts) {
   if (rest.length) {
     moreWrap.style.display = '';
     list.innerHTML = rest.map(a => `
-      <div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--border)">
-        <a href="${a.url}" target="_blank" rel="noopener"
-           style="font-family:'Mulish',sans-serif;font-weight:700;font-size:12px;color:var(--white);text-decoration:none;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"
-           onmouseover="this.style.color='var(--red)'"
-           onmouseout="this.style.color='var(--white)'"
+      <div class="pp-article-more-row">
+        <a class="pp-article-more-title" href="${a.url}" target="_blank" rel="noopener"
            title="${(a.title||'').replace(/"/g,'&quot;')}">${a.title || '(untitled)'}</a>
-        ${a.date ? `<span style="font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);opacity:.5;flex-shrink:0">${ppFmtArticleDate(a.date)}</span>` : ''}
+        ${a.date ? `<span class="pp-article-date">${ppFmtArticleDate(a.date)}</span>` : ''}
       </div>
     `).join('');
   } else {
