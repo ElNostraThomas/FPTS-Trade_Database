@@ -1134,6 +1134,33 @@
     color:var(--white); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .ml-tc-team { font-family:'Mulish',sans-serif; font-size:10px; color:var(--muted);
     opacity:.4; white-space:nowrap; margin-left:2px; }
+  .ml-tc-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
+  .ml-tc-header .ml-tc-date { margin-bottom:0; }
+  .ml-tc-side-label.is-mine { color: var(--red); }
+  .ml-tc-asset-thumb {
+    width:28px; height:28px; flex-shrink:0;
+    display:inline-flex; align-items:center;
+  }
+  .ml-tc-asset-thumb-img {
+    width:28px; height:28px; border-radius:50%; object-fit:cover;
+  }
+  .ml-tc-asset-name-col { min-width:0; flex:1; }
+  .ml-tc-asset-name-row { display:flex; align-items:center; gap:4px; flex-wrap:wrap; }
+  .ml-tc-asset-meta { display:flex; gap:8px; margin-top:2px; }
+  .ml-tc-pick-via {
+    font-family:'Mulish',sans-serif; font-size:10px;
+    color:var(--muted); opacity:.35; margin-left:4px;
+  }
+  .ml-tc-pick-val {
+    font-family:'Kanit',sans-serif; font-weight:800; font-style:italic;
+    font-size:11px; color:var(--pos-pick-bg); margin-top:2px;
+  }
+  .ml-tc-faab-row { margin-top:4px; }
+  .ml-tc-faab-spacer { width:28px; flex-shrink:0; }
+  .ml-tc-faab-amt {
+    font-family:'Kanit',sans-serif; font-weight:800; font-style:italic;
+    font-size:12px; color:var(--green);
+  }
   .ml-tc-chips { display:flex; flex-wrap:wrap; gap:6px; margin-top:12px; }
   .ml-chip { font-family:'Mulish',sans-serif; font-weight:700; font-size:11px;
     padding:3px 10px; border:1px solid var(--border2); color:var(--white); opacity:.7; }
@@ -7658,28 +7685,28 @@ async function renderTradeYear(leagueId, idx, allTradesByYear, players, leagueCh
     if (!hasAssets) return '';
 
     return `<div class="ml-trade-card">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-        <div class="ml-tc-date" style="margin-bottom:0">${date} · Week ${t.leg||'?'}</div>
+      <div class="ml-tc-header">
+        <div class="ml-tc-date">${date} · Week ${t.leg||'?'}</div>
         ${creatorName ? `<div class="ml-mulish-mute-10">Initiated by ${creatorName}</div>` : ''}
       </div>
       <div class="ml-tc-body">
         ${sides.map((s,i) => `
           <div class="ml-tc-side">
-            <div class="ml-tc-side-label" style="${s.isMe ? 'color:var(--red)' : ''}">${s.sideLabel} — ${s.teamName}${s.isMe ? ' 🫵' : ''}</div>
+            <div class="ml-tc-side-label${s.isMe ? ' is-mine' : ''}">${s.sideLabel} — ${s.teamName}${s.isMe ? ' 🫵' : ''}</div>
             ${s.assets.map(a => a.type === 'player'
               ? `<div class="ml-tc-asset" ${SLEEPER_IDS[a.name] ? `onclick="openPlayerDetail('${SLEEPER_IDS[a.name]}')" class="ml-clickable"` : ''}>
-                   <span style="width:28px;height:28px;flex-shrink:0;display:inline-flex;align-items:center;">
+                   <span class="ml-tc-asset-thumb">
                      ${SLEEPER_IDS[a.name]
-                       ? `<img src="${CDN}/content/nfl/players/thumb/${SLEEPER_IDS[a.name]}.jpg" style="width:28px;height:28px;border-radius:50%;object-fit:cover;" onerror="this.style.display='none'">`
+                       ? `<img class="ml-tc-asset-thumb-img" src="${CDN}/content/nfl/players/thumb/${SLEEPER_IDS[a.name]}.jpg" onerror="this.style.display='none'">`
                        : ''}
                    </span>
                    ${posBadge(a.pos)}
-                   <div style="min-width:0;flex:1">
-                     <div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap">
+                   <div class="ml-tc-asset-name-col">
+                     <div class="ml-tc-asset-name-row">
                        <span class="ml-tc-asset-name">${a.name}</span>
                        <span class="ml-tc-team">${(a.team && window.TeamHelpers) ? window.TeamHelpers.logoImg(a.team, { size: 18, coin: true }) : (a.team || '')}</span>
                      </div>
-                     ${(a.value || a.adp) ? `<div style="display:flex;gap:8px;margin-top:2px">
+                     ${(a.value || a.adp) ? `<div class="ml-tc-asset-meta">
                        ${a.value ? `<span class="ml-kanit-mute-11">${a.value.toLocaleString()}</span>` : ''}
                        ${a.adp ? `<span class="ml-mulish-mute-10">ADP ${a.adp}</span>` : ''}
                        ${a.posRank ? `<span class="ml-mulish-mute-10">${a.posRank}</span>` : ''}
@@ -7688,16 +7715,16 @@ async function renderTradeYear(leagueId, idx, allTradesByYear, players, leagueCh
                  </div>`
               : `<div class="ml-tc-asset">
                    ${pickThumb(28)}
-                   <div style="min-width:0;flex:1">
+                   <div class="ml-tc-asset-name-col">
                      <span class="ml-tc-asset-name">${a.label}</span>
-                     ${a.origOwner ? `<span style="font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);opacity:.35;margin-left:4px">via ${a.origOwner}</span>` : ''}
-                     ${a.value ? `<div style="font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:11px;color:var(--pos-pick-bg);margin-top:2px">${a.value.toLocaleString()}</div>` : ''}
+                     ${a.origOwner ? `<span class="ml-tc-pick-via">via ${a.origOwner}</span>` : ''}
+                     ${a.value ? `<div class="ml-tc-pick-val">${a.value.toLocaleString()}</div>` : ''}
                    </div>
                  </div>`
             ).join('')}
-            ${s.faab ? `<div class="ml-tc-asset" style="margin-top:4px">
-              <span style="width:28px;flex-shrink:0;"></span>
-              <span style="font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:12px;color:var(--green)">$${s.faab.amount} FAAB</span>
+            ${s.faab ? `<div class="ml-tc-asset ml-tc-faab-row">
+              <span class="ml-tc-faab-spacer"></span>
+              <span class="ml-tc-faab-amt">$${s.faab.amount} FAAB</span>
             </div>` : ''}
           </div>
           ${i < sides.length-1 ? '<div class="ml-tc-divider"></div>' : ''}`).join('')}
