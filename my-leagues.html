@@ -1073,6 +1073,35 @@
     font-size:13px; color:var(--white); text-transform:uppercase; letter-spacing:.06em; }
   .ml-section-meta { font-family:'Mulish',sans-serif; font-size:11px; color:var(--muted);
     opacity:.55; }
+  .ml-section-header-rt { display:flex; align-items:center; gap:8px; }
+  .ml-sortby-label {
+    font-family:'Mulish',sans-serif; font-size:10px; color:var(--muted);
+    text-transform:uppercase; letter-spacing:.06em;
+  }
+  .ml-sortby-select {
+    background:var(--surface2); border:1px solid var(--border2); color:var(--white);
+    font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:11px;
+    padding:5px 10px; cursor:pointer; text-transform:uppercase; letter-spacing:.04em;
+  }
+
+  /* Position-rank pills (above the league expansion body) */
+  .ml-prank-pills { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:14px; }
+  .ml-prank-pill {
+    display:inline-flex; align-items:center; gap:6px; padding:6px 10px;
+    background:var(--surface2); border:1px solid var(--border);
+    border-left:3px solid var(--pos-color, var(--border)); border-radius:3px;
+  }
+  .ml-prank-label {
+    font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:11px;
+    color:var(--pos-color, var(--white)); text-transform:uppercase; letter-spacing:.05em;
+  }
+  .ml-prank-rank {
+    font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:14px;
+    color:var(--rank-color, var(--white));
+  }
+  .ml-prank-val {
+    font-family:'Mulish',sans-serif; font-size:10px; color:var(--muted); opacity:.6;
+  }
 
   /* Archetype chip */
   .ml-archetype {
@@ -5838,10 +5867,10 @@ function renderExpandedLeagueContent(leagueId, bodyEl) {
                     : (typeof rank === 'number') ? 'var(--red)' : color;
     const label = isPick ? 'PICKS' : pos;
     const rankText = typeof rank === 'number' ? '#'+rank : rank;
-    return `<div class="ml-prank-pill" title="${label} rank: ${rankText} of ${teamCount} · ${val.toLocaleString()} pts" style="display:inline-flex;align-items:center;gap:6px;padding:6px 10px;background:var(--surface2);border:1px solid var(--border);border-left:3px solid ${color};border-radius:3px">
-      <span style="font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:11px;color:${color};text-transform:uppercase;letter-spacing:.05em">${label}</span>
-      <span style="font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:14px;color:${rankColor}">${rankText}</span>
-      <span style="font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);opacity:.6">${val.toLocaleString()}</span>
+    return `<div class="ml-prank-pill" title="${label} rank: ${rankText} of ${teamCount} · ${val.toLocaleString()} pts" style="--pos-color:${color}">
+      <span class="ml-prank-label">${label}</span>
+      <span class="ml-prank-rank" style="--rank-color:${rankColor}">${rankText}</span>
+      <span class="ml-prank-val">${val.toLocaleString()}</span>
     </div>`;
   }).join('');
 
@@ -5851,7 +5880,7 @@ function renderExpandedLeagueContent(leagueId, bodyEl) {
   const tradeYearTabsId = `ml-trade-year-tabs-${leagueId}`;
 
   bodyEl.innerHTML = `
-    <div class="ml-prank-pills" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px">${pillHtml}</div>
+    <div class="ml-prank-pills">${pillHtml}</div>
 
     <div class="ml-section">
       <div class="ml-section-header"><span class="ml-section-title">My Roster</span></div>
@@ -5863,12 +5892,11 @@ function renderExpandedLeagueContent(leagueId, bodyEl) {
     </div>
 
     <div class="ml-section">
-      <div class="ml-section-header" style="display:flex;align-items:center;justify-content:space-between">
+      <div class="ml-section-header">
         <span class="ml-section-title">All Teams In League (${teamCount})</span>
-        <div style="display:flex;align-items:center;gap:8px">
-          <span style="font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em">Sort by</span>
-          <select onchange="mlSortLeagueTeams('${leagueId}', this.value)"
-            style="background:var(--surface2);border:1px solid var(--border2);color:var(--white);font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:11px;padding:5px 10px;cursor:pointer;text-transform:uppercase;letter-spacing:.04em">
+        <div class="ml-section-header-rt">
+          <span class="ml-sortby-label">Sort by</span>
+          <select class="ml-sortby-select" onchange="mlSortLeagueTeams('${leagueId}', this.value)">
             <option value="value" selected>Total Value (high to low)</option>
             <option value="archetype">Archetype (most valuable first)</option>
             <option value="alpha">Team Name (A-Z)</option>
