@@ -1,9 +1,10 @@
 # Fantasy Points Front Office — Session Handoff
 
 A static fantasy-football site deployed via GitHub Pages from `main`.
-**Eight HTML pages, all live and shipping:** `index.html` (trade DB),
-`trade-calculator.html`, `tiers.html`, `adp-tool.html`, `my-leagues.html`,
-`rankings.html`, `formulas.html`, `live-draft.html`.
+**Nine HTML pages, all live and shipping:** `index.html` (trade DB),
+`trade-calculator.html`, `compare.html` (player comparison),
+`my-leagues.html`, `live-draft.html`, `tiers.html`, `adp-tool.html`,
+`rankings.html`, `formulas.html`.
 
 Full operator manual: [`docs/WORKFLOW.md`](docs/WORKFLOW.md).
 Session-by-session changelog: [`docs/CHANGES.md`](docs/CHANGES.md).
@@ -11,7 +12,84 @@ This file is the **resume-where-we-left-off** doc.
 
 ---
 
-## Where we are (end of 2026-05-19 — ninth session)
+## Where we are (end of 2026-05-20 — tenth session)
+
+**Player Comparison page shipped.** New `compare.html` slot in the top nav between Calculator and My Leagues. 9 commits across Phases 0-8 took the page from skeleton to full-featured player comparison surface — single-player deep dive (Profile mode) + 2-4 player stat comparison (Table mode), with side-by-side cards that contain tab content directly so each card is a self-contained mini-profile.
+
+### Architecture overview
+
+Two distinct modes selected via toggle in the page header:
+
+- **Profile mode (1-2 players)** — deep-dive comparison. With 1 player: hero trading-card on the left + info column on the right (8 metric tiles) + sub-tabs for ADP / Heatmap / Value / Career / Trades below. With 2 players: hero cards row turns into two side-by-side mini-profiles, the metric table swaps INTO each card, and the tab bar at the top swaps each card's body in lockstep (Profile / ADP / Heatmap / Value / Career / Trades). The 2nd card is added via "+ Add comparison player" link below the single-player hero.
+- **Table mode (2-4 players)** — broad stat-comparison grid. 4-slot picker row at the top (each empty slot shows its own search input), then stat-category row groups below (Identity / Trade value / 2025 season / Last-N games with a window toggle for 4 / 8 / 16). Best-in-row green-bordered cells per metric (min for INT and ranks, max for everything else). Position-specific stat rows hide automatically when every player has zero in that row.
+
+URL hash drives full state. Schema: `compare.html#mode=profile&fmt=sf&tab=adp&player=Josh+Allen` (single) or `&players=Josh+Allen,Lamar+Jackson` (multi). Hash parser enforces per-mode player cap (2 in Profile, 4 in Table) so hand-edited URLs degrade gracefully.
+
+### What lives in each tab (Profile-mode card body)
+
+- **Profile** — Identity / Trade value metric table (color-coded vs the other card: green/red/yellow) + position-specific sections (Passing or Rushing or Receiving with year subtitle) + Background tiles (Class / College / Born / Hometown / High School / Jersey / Status / Draft Pick) below.
+- **ADP** — `_pcChart` line chart with 5 Y-axis labels + dashed grid + gradient fill + HTML-overlay data point labels above each dot + 5 per-year cells below.
+- **Heatmap** — pick-availability matrix via `Heatmap.render(el, sid)` from `assets/js/heatmap.js` (per-card mount IDs `pc-card-heatmap-mount-{idx}`).
+- **Value** — FantasyPoints Dynasty Value line chart + PEAK / LOWEST / AVG / CURRENT 4-tile summary row beneath.
+- **Career** — slim per-year stat table (position-aware columns) reading `STATS_DATA[name:norm].seasons[year]` directly. Single-player Career still lifts `renderPlayerStats` for the click-to-expand-weeks; multi gets the streamlined year-over-year view.
+- **Trades** — actual trades involving that player via `_buildTradesFromMvs()` + `tradeCardHtml(t)` from `player-panel.js`.
+
+### Top Profile Matches row (Profile tab, single-player)
+
+5 similar-player cards below the Background tiles. Similarity scoring is hand-tuned: position hard-gate + weighted composite of 45% FP dynasty value + 30% PPG + 25% age. Tier-banded 0-100 score: 90+ Elite (yellow), 75-89 Strong (green), 60-74 Moderate (blue #5b9bd5), <60 Loose (muted). Click any match card → pivots the hero to that player. **Flagged "Analyst input requested"** in `formulas.html` §44 + `docs/FORMULAS.md` §44 + `legend-content.js` 'compare' entry. See "Analyst feedback loop" in the punch list.
+
+### Reusable existing modules lifted into the page
+
+No new shared modules. Compare.html reuses:
+- `assets/js/data-bootstrap.js` — every `data/*.json` payload is hydrated on `fpts:data-ready`.
+- `assets/js/player-panel.js` — `renderPlayerStats(containerId, player)` (Career single-player), `_buildTradesFromMvs()` + `tradeCardHtml(t)` (Trades), `openPanel(name)` (drawer access via "Open full player drawer →" secondary link).
+- `assets/js/heatmap.js` — `Heatmap.render(el, sleeperId)` (Heatmap tab).
+- `assets/js/sleeper-helpers.js` — `SLEEPER.archetypeFromTotals` (archetype label, currently a placeholder showing posRank until prospect-score data ships).
+- `assets/js/custom-select.js` — auto-wraps any `<select>` element for OBS Browser Source compat (no native `<select>` in compare.html beyond the topnav mobile-nav-select; the picker uses click handlers).
+- `assets/js/iframe-scroll-fix.js`, `assets/js/back-to-top.js`, `assets/js/legend.js` + `legend-content.js`, `assets/js/team-helpers.js` — standard chrome.
+
+### Sleeper player DB lazy-load
+
+`window.SLEEPER_PLAYERS_DB` is fetched from `https://api.sleeper.app/v1/players/nfl` on `fpts:data-ready` (via `_pcEnsureSleeperDb`, idempotent — shared cache with `player-panel.js`). Gives us `height`, `weight`, `years_exp`, `metadata.rookie_year`, `college`, `birth_date`, `birth_city`, `birth_state`, `high_school`, `number`, `status`. NFL draft round / pick isn't exposed by Sleeper — Background tile shows `—` with `data-pending="nfl-draft-round-pick"` until a separate source ships.
+
+### Per-year ADP lazy-load
+
+`window.PC_ADP_BY_YEAR` is fetched from `data/adp-{2022..2026}.json` (5 files in parallel) on first Profile render. Read via `_pcGetAdpForYear(name, year)` which pulls from `byMonth.ALL.{startup_sf | startup_1qb}` based on `PC.fmt`.
+
+### Phase-by-phase commits (all on `main`)
+
+| Phase | Commit | What |
+|---|---|---|
+| 0 | `28fb9b2` | Skeleton compare.html + nav link in 9 consumers |
+| 1 | `483d72f` | Profile-mode hero card (single player) + URL routing |
+| 2a-2e | `fe308aa` → `0e7b2cc` | In-page Historical section (Background / ADP / charts / Career / Trades / CTA + scroll). Premium chart redesign in 2b (Y-axis column, 5 labels, gradient fill, floating data labels, PEAK/LOW/AVG/CURRENT summary tiles, "KTC" → "FP Dynasty" rebrand). |
+| 3 | `944211a` | Top Profile Matches row + similarity scoring (45% value / 30% PPG / 25% age; tier banding) |
+| 3-docs | `b93d751` | Surface compare-page formulas in `formulas-content.js` + `docs/FORMULAS.md` + `legend-content.js` + README punch list. **Durable rule saved to memory** so future sessions auto-sync these whenever new logic ships. |
+| 4 | `406c48d` | Table mode skeleton — 4-slot picker + Identity row group |
+| 5 | `0f318a8` | Table mode full — Trade Value + 2025 Season + Last-N Games rows + 4G/8G/16G window toggle + best-in-row across all rows |
+| 6a | `19b21d6` | Side-by-side Profile mode (2 players, deep cards with metric tables) |
+| 6b | `897e373` | Multi-player ADP / Value / Heatmap panels (initial 2-column layout, later restructured in 6c) |
+| 6c | `a68c25c` | **Tab content INSIDE each card.** The biggest UX shift — each card becomes a self-contained mini-profile, the global tab bar swaps each card's body in lockstep. No more separate panels below the cards. |
+| 7 | `8a214b8` | Mobile polish + dead-code cleanup (240 lines removed — the 6b standalone panel wrappers got obsoleted by the 6c inside-card layout) |
+
+### What's queued next
+
+- **Player Comparison page refinements** as the user identifies them — the page is shipping and shipping clean as of today. Specific open items:
+  - **Similarity scoring weights** — three open analyst questions in FORMULAS.md §44 (composite weights 45/30/25, delta windows ±8 / ±14 / ±4500, tier-band thresholds 90/75/60).
+  - **Prospect-score classifier** — when prospect / route / coverage data ships, `_pcArchetypeLabel(fp)` swaps from posRank placeholder to a real classifier. Tile already marked `data-pending="archetype-classifier"`.
+  - **NFL draft round / pick** — Sleeper `/players/nfl` doesn't expose. Background tile marked `data-pending="nfl-draft-round-pick"` — drop a new data source in and the tile lights up.
+- External-blocked: 1QB scrape `SEED_USERS`, analyst feedback loop on the 14 original heuristics + the new compare-similarity formula.
+- Visual polish — open-ended; surface specific issues as they come up.
+
+**Cache tokens bumped this session:** none — compare.html is new, all shared modules unchanged. compare.html doesn't have its own cache token (it's a top-level HTML page, not a shared asset).
+
+**Audit:** `python scripts/check-colors.py` — CLEAN across 30 files after every commit.
+
+See [`docs/CHANGES.md`](docs/CHANGES.md) 2026-05-20 (tenth session) for full per-commit detail.
+
+---
+
+## Where we were (end of 2026-05-19 — ninth session)
 
 **Two-thread session.** First, the OBS Browser Source dropdown bug that prompted the live-draft inline combobox in session 8 got promoted to a **site-wide shared module** (`assets/js/custom-select.js`) because every other native `<select>` on the site has the same CEF bug. Then, a **12-commit inline-style cleanup marathon on `my-leagues.html`** took the file from **293 → 46** inline `style="..."` attrs (84% reduction).
 

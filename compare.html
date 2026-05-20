@@ -1408,6 +1408,18 @@
     } else {
       PC.players = [];
     }
+    // Enforce per-mode caps so a hand-edited URL like
+    // ?players=A,B,C,D&mode=profile doesn't break the 2-column hero
+    // layout. Profile cap = 2, Table cap = 4.
+    const cap = (PC.mode === 'table') ? 4 : 2;
+    if (PC.players.length > cap) {
+      PC.players = PC.players.slice(0, cap);
+    }
+    // Filter to names that exist in FP_VALUES; drops typos / deleted
+    // players gracefully so the rest of the URL still loads.
+    if (PC.players.length && window.FP_VALUES && Object.keys(window.FP_VALUES).length) {
+      PC.players = PC.players.filter(n => !!window.FP_VALUES[n]);
+    }
   }
 
   function _pcWriteHash() {

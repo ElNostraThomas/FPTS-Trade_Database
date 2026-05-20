@@ -6,6 +6,83 @@ the operator manual see [`WORKFLOW.md`](WORKFLOW.md).
 
 ---
 
+## 2026-05-20 (tenth session) — Player Comparison page (`compare.html`)
+
+New `compare.html` shipped end-to-end across **17 commits in 8 phases** (0-8). Slots into the top nav between Calculator and My Leagues. Two distinct modes (Profile / Table) with notably different shapes — Profile is the deep dive (1-2 players), Table is the broad scan (2-4 players).
+
+### Phase 0 (`28fb9b2`) — Skeleton + nav
+
+New `compare.html` at site root, plus the "Compare" nav link inserted in all 8 deployed pages + `templates/page-template.html` (both the desktop `<a class="nav-link">` row and the mobile `<select>`). All shared modules loaded with current cache tokens; `.pc-*` class prefix scoped to `body.fpts-compare-page`. SVG wordmark uses native attributes from day one (no inline `style="fill:..."`).
+
+### Phase 1 (`483d72f`) — Single-player Profile hero + URL routing
+
+Hayden-Winks-style hero composition: trading card on the left (header strip + photo + archetype bar + position-aware 6-cell mini-grid + footer), info column on the right (NOW PROFILING eyebrow + big Kanit-italic name + 4×2 metric tiles: Height / Weight / BMI / Age / Yrs Exp / Pos Rank / FP Value SF or 1QB / Current PPG). Format toggle wired. URL hash routing (`compare.html#player=Josh+Allen`).
+
+Data plumbing: `PC` state object + `_pcParseHash` / `_pcWriteHash`, `_pcEnsureSleeperDb()` lazy-loads `/players/nfl` and re-renders when ready, position-aware mini-grid for QB/RB/WR/TE with em-dash placeholders + `data-pending` attrs for future advanced metrics (route data / coverage splits).
+
+### Phase 2 — In-page Historical section (5 sub-commits)
+
+Restructured the bottom-of-page area from stacked sections into a sticky tab bar with one panel visible at a time. Six tabs total: Profile · ADP · **Heatmap** · Value · Career · Trades.
+
+- **2a** `fe308aa` — Background tiles (Class / College / Born / Hometown / High School / Jersey / Status / Draft Pick) sourced from Sleeper `metadata.rookie_year` + `college` + `birth_*` + `high_school` + `number` + `status`. Dynasty Startup ADP per-year cells (lazy-fetch `data/adp-{YYYY}.json` 2022-2026).
+- **2b** `0ed7113` — Premium chart redesign. External Y-axis column (no SVG text clipping), 5 evenly-spaced labels, dashed gridlines, gradient fill under, HTML-overlay floating data labels, 4-tile summary row (PEAK / LOWEST / AVG / CURRENT) with color stripes (green / red / muted / yellow). "KTC" terminology purged everywhere; rebranded as "Fantasy Points Dynasty Value." `_pcChart(points, opts)` helper used by both ADP and Value tabs.
+- **2c** `6848cff` — Tab bar restructure (moved from "stacked sections" to "sticky tab bar + active panel"). Career Stats lift — `window.renderPlayerStats(containerId, player)` from `player-panel.js` mounted into `#pc-hist-stats-mount`. We mirror `global._currentPanelPlayer = { label, posKey }` to satisfy the renderer's "still the same player?" guard outside the drawer.
+- **2d** `6d3d7fe` — Recent Trades panel — `window._buildTradesFromMvs()` + `window.tradeCardHtml(t)` from `player-panel.js`. Filter site-wide trades to ones involving the profiled player.
+- **2e** `0e7b2cc` — Heatmap tab (between ADP and Value), secondary links replacing the big "Explore historical data" CTA: `← Pick a different player` | `Open full player drawer →` for drawer-only features.
+
+### Phase 3 (`944211a`) — Top Profile Matches row
+
+5 similar-player cards below Background tiles in the Profile tab (single-player). Click any card pivots the hero. Similarity scoring: position hard-gate + 45% FP dynasty value + 30% PPG + 25% age, weighted composite × 100. Tier banding: 90+ Elite / 75-89 Strong / 60-74 Moderate / <60 Loose, color-coded card top-stripe + photo ring + score text.
+
+### Phase 3-docs (`b93d751`) — Surface formulas + analyst sync rule
+
+**Durable rule saved to memory** (`feedback_logic_legend_punch_list.md`): every new formula on this project automatically gets entries in `legend-content.js` + `formulas-content.js` + `docs/FORMULAS.md` + the README "Analyst feedback loop" punch-list item. Three new formula entries added (compare-similarity §44 / compare-adp-history §45 / compare-fp-value-history §46) with `whyThisNumber: 'Analyst input requested'` on the weights/windows/thresholds.
+
+### Phase 4 (`406c48d`) — Table mode skeleton
+
+Mode toggle activated. 4-slot picker row (each empty slot shows its own search input filtered to FP_VALUES; filled slots show photo + name + pos pill + team + posRank with × clear). URL hash `#mode=table&players=A,B,C,D`. Identity row group below the picker (Position / Team / Pos rank / Age / PPG / FP SF or 1QB value) with best-in-row green tint.
+
+### Phase 5 (`0f318a8`) — Table mode full
+
+Trade Value + 2025 Season + Last-N Games row groups. Window toggle (4G / 8G / 16G) for the Last-N group, persisted in URL hash (`&games=8`). Season rows hide when every player has 0 (cross-position compare doesn't show empty passing rows for all-WR comparisons). `_pcStdFpts(s)` centralized scoring helper (full PPR + 4-pt pass TD baseline).
+
+### Phase 6 — Side-by-side Profile mode (3 sub-commits)
+
+The big UX shift — Profile mode now supports comparing **2 players** (cap at 2 for room to build deep card content; 3+ would crowd).
+
+- **6a** `19b21d6` — 2-player hero row (was 1-player + info column). Each card has a comprehensive metric table with section-grouped rows: Identity · Trade value (Pos Rank / FP value / 30d trend / PPG / Age) + position-specific sections (QB: Passing + Rushing; RB: Rushing + Receiving; WR/TE: Receiving). **Color-coded comparison values** — green tint for winner, red for loser, yellow for tied, muted dash for N/A. INT and Age use mode='min'.
+- **6b** `897e373` — Initial side-by-side panel layout for ADP / Value / Heatmap (2-column wrappers below the cards). Each tab panel rendered in 2 columns, each column showing one player's chart + a small chip header.
+- **6c** `a68c25c` — **Tab content moved INSIDE each card.** The big UX win — cards become self-contained mini-profiles, the global tab bar swaps each card's body in lockstep. No more separate panels below the cards. `_pcCardTabContent(name, otherName)` dispatches by `PC.tab` to render the per-player content for the active tab. Career multi reads `STATS_DATA` directly (sync, no Sleeper fallback async, no `_currentPanelPlayer` guard issues). Trades multi filters per-player.
+
+### Phase 7 (`8a214b8`) — Mobile polish + dead-code cleanup
+
+240 lines removed — the standalone panel wrappers from 6b became unreachable once 6c moved content inside cards. Removed: `_pcPanelMultiColHead`, `_pcPanelAdpMulti`, `_pcPanelValueMulti`, `_pcPanelHeatmapMulti`, `_pcPanelCareerMulti`, `_pcPanelTradesMulti`, `_pcPanelProfileMulti`, `_pcMultiCareerColumn`, `_pcMultiTradesColumn`, plus their CSS (`.pc-panel-multi*`, `.pc-bg-columns*`).
+
+Mobile polish: multi-mode cards span full width (overriding the single-card 320px cap), metric-table padding tightened at narrow widths, identity meta + section headings shrunk for legibility.
+
+### Phase 8 (this commit) — Edge cases + session close
+
+Hash defensive caps: `_pcParseHash` enforces per-mode player cap (2 in Profile, 4 in Table) so a hand-edited URL like `?players=A,B,C,D&mode=profile` doesn't break the 2-column hero layout. Also filters `PC.players` to names that exist in `FP_VALUES` (drops typos and deleted players gracefully).
+
+Session-close: README updated to mark Player Comparison as shipped, this CHANGES.md entry, function-reference PDF regenerated.
+
+### Reusable shared modules consumed (no new modules built)
+
+- `assets/js/data-bootstrap.js` — `FP_VALUES`, `STATS_DATA`, `MVS_PAYLOAD`, `SLEEPER_IDS`, `PICK_AVAILABILITY` (via `fpts:data-ready` event)
+- `assets/js/player-panel.js` — `renderPlayerStats` (single-player Career), `_buildTradesFromMvs` + `tradeCardHtml` (Trades), `openPanel` (drawer link)
+- `assets/js/heatmap.js` — `Heatmap.render(el, sleeperId)` (Heatmap tab, per-card mount IDs in multi)
+- `assets/js/sleeper-helpers.js`, `team-helpers.js`, `legend-content.js`, `legend.js`, `custom-select.js`, `iframe-scroll-fix.js`, `back-to-top.js` — standard page chrome
+
+### Open items (flagged in punch list)
+
+- Similarity scoring constants (3 open analyst questions on weights, delta windows, tier thresholds)
+- Prospect-score / route / coverage data when it ships (replaces archetype placeholder + lights up the currently-em-dashed mini-grid cells)
+- NFL draft round / pick (Sleeper doesn't expose; needs different source)
+
+**Audit:** `python scripts/check-colors.py` — CLEAN across 30 files after every commit. compare.html final: ~3,250 lines with the Phase 7 cleanup.
+
+---
+
 ## 2026-05-19 (ninth session) — Site-wide custom combobox + my-leagues inline-style cleanup marathon
 
 Two threads. The OBS dropdown story that started in session 8 got promoted from "live-draft only" to "site-wide shared module," because every other native `<select>` on the site hits the same CEF rendering bug when iframed. Then a 12-commit inline-style cleanup of `my-leagues.html` took the file from **293 → 46** inline `style="..."` attrs (84% reduction). The remaining 46 are: 7 × `display:none` (JS-toggled idiom), 2 × CSS-comment false-positives in the audit script, and 37 instances of the CSS custom-property pattern (`--bar-width`, `--pos-color`, `--rank-color`, `--archetype-bg/fg`, etc.) which is the design end-state for dynamic per-element values.
