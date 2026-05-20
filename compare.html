@@ -450,60 +450,6 @@
   }
   body.fpts-compare-page .pc-add-slot-results.is-open { display: block; }
 
-  /* Side-by-side tab panels — used by ADP / Value / Heatmap / Career
-     / Trades when in Profile multi mode. Each column = one player. */
-  body.fpts-compare-page .pc-panel-multi {
-    display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
-    margin-top: 4px;
-  }
-  body.fpts-compare-page .pc-panel-multi-col {
-    display: flex; flex-direction: column; gap: 10px;
-  }
-  body.fpts-compare-page .pc-panel-multi-col-head {
-    display: flex; align-items: center; gap: 8px;
-    padding-bottom: 8px; border-bottom: 1px solid var(--border);
-  }
-  body.fpts-compare-page .pc-panel-multi-col-head-photo {
-    width: 28px; height: 28px; border-radius: 50%;
-    object-fit: cover; object-position: top;
-    background: var(--surface); border: 1.5px solid var(--pos-color, var(--border));
-  }
-  body.fpts-compare-page .pc-panel-multi-col-head-name {
-    font-family: 'Mulish', sans-serif; font-weight: 900; font-size: 13px;
-    color: var(--white);
-    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-    flex: 1; min-width: 0;
-  }
-  body.fpts-compare-page .pc-panel-multi-col-head-meta {
-    font-family: 'Mulish', sans-serif; font-size: 10px;
-    color: var(--muted); opacity: .7;
-    text-transform: uppercase; letter-spacing: .06em;
-  }
-  /* Charts inside multi columns: shrink heights so two fit cleanly */
-  body.fpts-compare-page .pc-panel-multi .pc-chart {
-    padding: 14px 14px 12px 14px;
-  }
-  body.fpts-compare-page .pc-panel-multi .pc-chart-body {
-    min-height: 180px;
-  }
-  body.fpts-compare-page .pc-panel-multi .pc-chart-svg {
-    min-height: 150px;
-  }
-  body.fpts-compare-page .pc-panel-multi .pc-chart-yaxis {
-    flex: 0 0 48px;
-  }
-  body.fpts-compare-page .pc-panel-multi .pc-chart-stats {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  body.fpts-compare-page .pc-panel-multi .pc-hist-adp-row {
-    grid-template-columns: repeat(5, 1fr); gap: 4px;
-  }
-  body.fpts-compare-page .pc-panel-multi .pc-hist-adp-cell {
-    padding: 8px 4px;
-  }
-  body.fpts-compare-page .pc-panel-multi .pc-hist-adp-rank {
-    font-size: 16px;
-  }
   /* Multi-career per-year stat table (slim variant; no week expand). */
   body.fpts-compare-page .pc-mc-table-wrap {
     overflow-x: auto;
@@ -543,38 +489,7 @@
     font-family: 'Mulish', sans-serif; font-weight: 800;
     font-size: 12px; color: var(--red);
   }
-  /* Multi-trades column wrapper — same card-bg as single trades */
-  body.fpts-compare-page .pc-panel-multi .pc-hist-trades-wrap {
-    padding: 12px 12px;
-  }
-  body.fpts-compare-page .pc-panel-multi .pc-hist-trades-wrap .trade-card {
-    margin-bottom: 8px;
-    padding: 10px 12px;
-  }
 
-  /* Profile tab Background tiles — render in N columns when multi */
-  body.fpts-compare-page .pc-bg-columns {
-    display: grid; gap: 14px;
-  }
-  body.fpts-compare-page .pc-bg-columns.is-multi-2 { grid-template-columns: repeat(2, 1fr); }
-  body.fpts-compare-page .pc-bg-columns.is-multi-3 { grid-template-columns: repeat(3, 1fr); }
-  body.fpts-compare-page .pc-bg-col {
-    background: var(--surface2); border: 1px solid var(--border);
-    border-top: 3px solid var(--pos-color, var(--border));
-    border-radius: 4px; padding: 14px;
-  }
-  body.fpts-compare-page .pc-bg-col-name {
-    font-family: 'Mulish', sans-serif; font-weight: 900; font-size: 13px;
-    color: var(--white); margin-bottom: 10px; text-align: center;
-  }
-  body.fpts-compare-page .pc-bg-columns .pc-tiles {
-    grid-template-columns: repeat(2, 1fr); gap: 6px;
-    margin-top: 0;
-  }
-  body.fpts-compare-page .pc-bg-columns .pc-tile {
-    padding: 8px 10px;
-  }
-  body.fpts-compare-page .pc-bg-columns .pc-tile-value { font-size: 14px; }
 
   /* ─── Trading card (left) ──────────────────────────────────────────── */
   body.fpts-compare-page .pc-card {
@@ -1289,14 +1204,23 @@
     body.fpts-compare-page .pc-matches-header { flex-direction: column; align-items: flex-start; gap: 8px; }
     body.fpts-compare-page .pc-matches-legend { gap: 10px; }
     body.fpts-compare-page .pc-hero-row.is-multi {
-      grid-template-columns: 1fr; gap: 12px;
-    }
-    body.fpts-compare-page .pc-bg-columns.is-multi-2,
-    body.fpts-compare-page .pc-bg-columns.is-multi-3 {
-      grid-template-columns: 1fr;
-    }
-    body.fpts-compare-page .pc-panel-multi {
       grid-template-columns: 1fr; gap: 14px;
+    }
+    /* Override the single-card 320px cap for multi-mode cards so they
+       use the full mobile viewport width. */
+    body.fpts-compare-page .pc-hero-row.is-multi .pc-card {
+      max-width: 100%;
+    }
+    /* Tighten metric-table padding for narrow widths */
+    body.fpts-compare-page .pc-cm-row { padding: 8px 12px; }
+    body.fpts-compare-page .pc-cm-label { font-size: 11px; }
+    body.fpts-compare-page .pc-cm-value { font-size: 13px; padding: 2px 8px; min-width: 56px; }
+    body.fpts-compare-page .pc-cm-identity-name { font-size: 18px; }
+    body.fpts-compare-page .pc-cm-identity-meta { font-size: 10px; gap: 6px; }
+    body.fpts-compare-page .pc-cm-section { padding: 6px 12px; font-size: 9px; }
+    body.fpts-compare-page .pc-card-subsection-title { padding: 6px 12px; font-size: 9px; }
+    body.fpts-compare-page .pc-card-tab-body .pc-tiles {
+      padding: 10px 12px; grid-template-columns: repeat(2, 1fr);
     }
     body.fpts-compare-page .pc-add-slot { min-height: 200px; }
     body.fpts-compare-page .pc-table-picker {
@@ -3243,246 +3167,6 @@
     }, 60);
   }
 
-  // ─── Multi-player tab panels (Phase 6b) ────────────────────────────
-  // Each takes PC.players (2 names) and renders a 2-column grid.
-  // Shared header helper — small player chip above each column.
-
-  function _pcPanelMultiColHead(name) {
-    const fp = (window.FP_VALUES || {})[name] || {};
-    const sid = fp.sleeperId || (window.SLEEPER_IDS || {})[name];
-    const photo = sid ? `https://sleepercdn.com/content/nfl/players/thumb/${sid}.jpg` : '';
-    const pos = fp.pos || '?';
-    return `
-      <div class="pc-panel-multi-col-head" style="--pos-color:${_pcPosColor(pos)}">
-        ${photo
-          ? `<img class="pc-panel-multi-col-head-photo" src="${photo}" alt="${_escAttr(name)}" onerror="this.style.display='none'">`
-          : `<span class="pc-panel-multi-col-head-photo"></span>`}
-        <span class="pc-panel-multi-col-head-name">${_escAttr(name)}</span>
-        <span class="pc-panel-multi-col-head-meta">${pos}${fp.team ? ' · ' + fp.team : ''}</span>
-      </div>`;
-  }
-
-  function _pcPanelAdpMulti() {
-    const adpReady = !!window.PC_ADP_BY_YEAR;
-    const fmtLabel = (PC.fmt === '1qb') ? '1QB' : 'SF';
-    const cols = PC.players.map(name => {
-      const data = _pcCardData(name);
-      const body = adpReady
-        ? `${_pcAdpHistoryChart(name)}${_pcAdpHistoryRow(name, data && data.fp)}`
-        : `<div class="pc-hist-empty">Loading per-year ADP files…</div>`;
-      return `
-        <div class="pc-panel-multi-col">
-          ${_pcPanelMultiColHead(name)}
-          ${body}
-        </div>`;
-    }).join('');
-    return `
-      <div class="pc-panel-eyebrow">Dynasty startup ADP — ${fmtLabel}</div>
-      <div class="pc-panel-title">Per-year rank · side-by-side</div>
-      <div class="pc-panel-sub">Each column charts one player's annual overall startup-ADP rank. Compare trajectories at a glance.</div>
-      <div class="pc-panel-multi">${cols}</div>`;
-  }
-
-  function _pcPanelValueMulti() {
-    const fmtLabel = (PC.fmt === '1qb') ? '1QB' : 'SF';
-    const cols = PC.players.map(name => {
-      const data = _pcCardData(name);
-      return `
-        <div class="pc-panel-multi-col">
-          ${_pcPanelMultiColHead(name)}
-          ${_pcFpValueSection(name, data && data.fp)}
-        </div>`;
-    }).join('');
-    return `
-      <div class="pc-panel-eyebrow">FantasyPoints dynasty value — ${fmtLabel}</div>
-      <div class="pc-panel-title">Trade-value trend · side-by-side</div>
-      <div class="pc-panel-sub">Each column shows one player's recent value movement and their PEAK / LOW / AVG / CURRENT summary.</div>
-      <div class="pc-panel-multi">${cols}</div>`;
-  }
-
-  // Career — slim per-year summary table per player. Reads STATS_DATA
-  // directly (sync, no Sleeper fallback async). Position-aware columns.
-  // Trades off the click-to-expand-weeks feature available in single-
-  // player Career (which lifts renderPlayerStats); multi gets a focused
-  // year-over-year view that fits cleanly in two columns.
-  function _pcMultiCareerColumns(pos) {
-    if (pos === 'QB') {
-      return [
-        { key: 'games',     label: 'GP' },
-        { key: 'fpts',      label: 'FPTS', compute: s => _pcStdFpts(s).toFixed(1) },
-        { key: 'ppg',       label: 'PPG',  compute: s => s.games ? (_pcStdFpts(s) / s.games).toFixed(1) : '—' },
-        { key: 'passYards', label: 'Pass Y' },
-        { key: 'passTd',    label: 'Pass TD' },
-        { key: 'passInts',  label: 'Int' },
-        { key: 'rushYards', label: 'Rush Y' },
-        { key: 'rushTd',    label: 'Rush TD' },
-      ];
-    }
-    if (pos === 'RB') {
-      return [
-        { key: 'games',     label: 'GP' },
-        { key: 'fpts',      label: 'FPTS', compute: s => _pcStdFpts(s).toFixed(1) },
-        { key: 'ppg',       label: 'PPG',  compute: s => s.games ? (_pcStdFpts(s) / s.games).toFixed(1) : '—' },
-        { key: 'rushAtt',   label: 'Att' },
-        { key: 'rushYards', label: 'Rush Y' },
-        { key: 'rushTd',    label: 'Rush TD' },
-        { key: 'rec',       label: 'Rec' },
-        { key: 'recYards',  label: 'Rec Y' },
-        { key: 'recTd',     label: 'Rec TD' },
-      ];
-    }
-    // WR / TE
-    return [
-      { key: 'games',    label: 'GP' },
-      { key: 'fpts',     label: 'FPTS', compute: s => _pcStdFpts(s).toFixed(1) },
-      { key: 'ppg',      label: 'PPG',  compute: s => s.games ? (_pcStdFpts(s) / s.games).toFixed(1) : '—' },
-      { key: 'targets',  label: 'Tgt' },
-      { key: 'rec',      label: 'Rec' },
-      { key: 'recYards', label: 'Rec Y' },
-      { key: 'recTd',    label: 'Rec TD' },
-    ];
-  }
-
-  function _pcMultiCareerColumn(name) {
-    const stats = _pcGetStats(name);
-    const fp = (window.FP_VALUES || {})[name] || {};
-    const pos = fp.pos || (stats && stats.pos) || '?';
-    const head = _pcPanelMultiColHead(name);
-
-    if (!stats || !stats.seasons) {
-      return `
-        <div class="pc-panel-multi-col">
-          ${head}
-          <div class="pc-hist-empty">No data-suite career stats available for ${_escAttr(name)}.</div>
-        </div>`;
-    }
-    const cols = _pcMultiCareerColumns(pos);
-    const years = Object.keys(stats.seasons).sort((a, b) => Number(b) - Number(a));
-    if (!years.length) {
-      return `
-        <div class="pc-panel-multi-col">
-          ${head}
-          <div class="pc-hist-empty">No yearly stats data available.</div>
-        </div>`;
-    }
-    const headerRow = `<thead><tr>
-      <th>Year</th>
-      ${cols.map(c => `<th>${c.label}</th>`).join('')}
-    </tr></thead>`;
-    const bodyRows = years.map(yr => {
-      const s = stats.seasons[yr];
-      if (!s || !s.games) return null;
-      const cells = cols.map(c => {
-        if (c.compute) return `<td>${c.compute(s)}</td>`;
-        const v = s[c.key];
-        const txt = (v == null) ? '—' : (typeof v === 'number' ? Number(v).toLocaleString() : v);
-        return `<td>${txt}</td>`;
-      }).join('');
-      return `<tr><td class="year-cell">${yr}</td>${cells}</tr>`;
-    }).filter(Boolean).join('');
-
-    return `
-      <div class="pc-panel-multi-col">
-        ${head}
-        <div class="pc-mc-table-wrap">
-          <table class="pc-mc-table">
-            ${headerRow}
-            <tbody>${bodyRows}</tbody>
-          </table>
-        </div>
-      </div>`;
-  }
-
-  function _pcPanelCareerMulti() {
-    const cols = PC.players.map(name => _pcMultiCareerColumn(name)).join('');
-    return `
-      <div class="pc-panel-eyebrow">Career stats by season</div>
-      <div class="pc-panel-title">Production history · side-by-side</div>
-      <div class="pc-panel-sub">Per-year totals from the data suite — full PPR scoring. Multi-mode shows a streamlined year-over-year view (single-player Career has the click-to-expand week-by-week splits).</div>
-      <div class="pc-panel-multi">${cols}</div>`;
-  }
-
-  // Trades — 2 columns, each player's recent trades via tradeCardHtml.
-  function _pcMultiTradesColumn(name) {
-    let trades = [];
-    if (typeof window._buildTradesFromMvs === 'function') {
-      try {
-        const all = window._buildTradesFromMvs();
-        trades = (all || []).filter(t => (t.players || []).some(p => p && p.name === name));
-      } catch (e) { trades = []; }
-    }
-    const head = _pcPanelMultiColHead(name);
-    let body = '';
-    if (!trades.length) {
-      body = `<div class="pc-hist-empty" style="padding:32px 14px">No recent trades involving ${_escAttr(name)}.</div>`;
-    } else if (typeof window.tradeCardHtml !== 'function') {
-      body = `<div class="pc-hist-empty">tradeCardHtml renderer not loaded.</div>`;
-    } else {
-      const cards = trades.map(t => {
-        try { return window.tradeCardHtml(t); } catch (e) { return ''; }
-      }).join('');
-      body = `
-        <div class="pc-hist-trades-count"><strong>${trades.length}</strong>${trades.length === 1 ? ' trade' : ' trades'} found</div>
-        <div class="pc-hist-trades-wrap">${cards}</div>`;
-    }
-    return `
-      <div class="pc-panel-multi-col">
-        ${head}
-        ${body}
-      </div>`;
-  }
-
-  function _pcPanelTradesMulti() {
-    const cols = PC.players.map(name => _pcMultiTradesColumn(name)).join('');
-    return `
-      <div class="pc-panel-eyebrow">Recent trades · side-by-side</div>
-      <div class="pc-panel-title">Trade activity per player</div>
-      <div class="pc-panel-sub">Each column shows actual dynasty-league trades involving that player from FantasyPoints' transaction feed. Click any asset to drill into that player's drawer.</div>
-      <div class="pc-panel-multi">${cols}</div>`;
-  }
-
-  function _pcPanelHeatmapMulti() {
-    // Each column needs a unique mount ID for window.Heatmap.render —
-    // post-render hook walks the mounts after innerHTML is in the DOM.
-    const cols = PC.players.map((name, i) => {
-      return `
-        <div class="pc-panel-multi-col">
-          ${_pcPanelMultiColHead(name)}
-          <div id="pc-hist-heatmap-mount-${i}" class="pc-hist-heatmap-wrap"></div>
-        </div>`;
-    }).join('');
-    return `
-      <div class="pc-panel-eyebrow">Pick-availability heatmap</div>
-      <div class="pc-panel-title">Draft-board frequency · side-by-side</div>
-      <div class="pc-panel-sub">Per-pick probability matrices for both players. Deeper red = more often available there.</div>
-      <div class="pc-panel-multi">${cols}</div>`;
-  }
-
-  // Profile tab Background in N columns (when multi). Per-player tiles
-  // each live in their own .pc-bg-col with the player's pos-color stripe.
-  function _pcPanelProfileMulti() {
-    const cols = PC.players.map(name => {
-      const data = _pcCardData(name);
-      if (!data) return '';
-      const fp = data.fp;
-      const pos = fp.pos || '?';
-      const sleeperReady = !!data.sleeper;
-      const tiles = sleeperReady
-        ? `<div class="pc-tiles">${_pcBackgroundTiles(data)}</div>`
-        : `<div class="pc-hist-empty">Loading background data…</div>`;
-      return `
-        <div class="pc-bg-col" style="--pos-color:${_pcPosColor(pos)}">
-          <div class="pc-bg-col-name">${_escAttr(name)}</div>
-          ${tiles}
-        </div>`;
-    }).join('');
-    const gridCls = PC.players.length === 3 ? 'is-multi-3' : 'is-multi-2';
-    return `
-      <div class="pc-panel-eyebrow">Player profiles · ${PC.players.length} compared</div>
-      <div class="pc-panel-title">Background & identity</div>
-      <div class="pc-panel-sub">Per-player class / college / hometown / draft slot. Side-by-side comparison.</div>
-      <div class="pc-bg-columns ${gridCls}">${cols}</div>`;
-  }
 
   // Render the multi-player profile view. Hero row of compressed cards
   // + "Add" slot when N < 3. Sub-tabs from PC.tab still drive content;
