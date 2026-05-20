@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<!--
+═══════════════════════════════════════════════════════════════════════════
+  compare.html — Player Comparison page
+
+  Two display modes:
+    1. PROFILE (default) — Hayden-Winks-style hero card + 5 similar-player
+       matches. Single-player deep-dive with trading-card composition.
+    2. TABLE — Underdog-style 2-4 player side-by-side stat table. Row-
+       grouped stat categories, green highlight on best-in-row.
+
+  URL hash routing:
+    compare.html                                  → empty landing
+    compare.html#player=Josh+Allen                → profile mode
+    compare.html#mode=table&players=A,B,C,D       → table mode
+    &fmt=sf|1qb  &season=2025  &games=4|8|16
+
+  Data sources (existing — no new fetches):
+    window.STATS_DATA[lookupKey].seasons[year]    → career stat lines
+    window.FP_VALUES[name]                        → KTC value SF + 1QB
+    window.SLEEPER_IDS[name]                      → photos
+    window.ML_PLAYERS (loaded via my-leagues if visited; optional)
+    SLEEPER.adjustStatsForLeague(stats, scoring)  → scoring overlay
+    SLEEPER.archetypeFromTotals(...)              → archetype label
+    SLEEPER.projectPlayer(key, scoring)           → projection
+
+  Future-data hooks (em-dash placeholders + data-pending attrs):
+    Prospect score · Routes run · Coverage splits (Man/Zone/Press)
+    · Catch% · Contested-catch% · Target rate (precision)
+═══════════════════════════════════════════════════════════════════════════
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+
+<title>Fantasy Points Front Office — Player Comparison</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Kanit:ital,wght@0,400;0,700;1,800&family=Mulish:wght@400;700;900&display=swap" rel="stylesheet">
+
+<!-- Brand-level styles: fonts, color variables, nav, page chrome, pos pills. -->
+<link rel="stylesheet" href="assets/css/brand.css?v=1780600000">
+<!-- iframe scroll fix — only runs when embedded; no-op for direct visitors. -->
+<script src="assets/js/iframe-scroll-fix.js?v=1782100000"></script>
+<!-- Back-to-top floating button. -->
+<script src="assets/js/back-to-top.js?v=1782200000" defer></script>
+<!-- Custom <select> wrapper — OBS/CEF compat. -->
+<script src="assets/js/custom-select.js?v=1782300000" defer></script>
+
+<!-- Shared UI component modules (CSS). -->
+<link rel="stylesheet" href="assets/css/mvs-extras.css?v=1780400000">
+<link rel="stylesheet" href="assets/css/heatmap.css?v=1780400000">
+<link rel="stylesheet" href="assets/css/legend.css?v=1780400000">
+<link rel="stylesheet" href="assets/css/player-panel.css?v=1781500000">
+
+<!-- Page identity + data layer config. -->
+<script>
+  window.FPTS_CURRENT_PAGE = 'compare';
+</script>
+
+<!-- Shared UI modules (JS). -->
+<script src="assets/js/mvs-extras.js?v=1778642255"></script>
+<script src="assets/js/player-articles.js?v=1778680034"></script>
+<script src="assets/js/heatmap.js?v=1778670000"></script>
+<script src="assets/js/legend-content.js?v=1781100000"></script>
+<script src="assets/js/legend.js?v=1778949514"></script>
+<script src="assets/js/team-helpers.js?v=1778680002"></script>
+<script src="assets/js/player-panel.js?v=1781200000" defer></script>
+
+<script src="assets/js/data-bootstrap.js?v=1781000000"></script>
+<script src="assets/js/sleeper-helpers.js?v=1780800000"></script>
+
+<style>
+  /* ═══════════════════════════════════════════════════════════════════
+     compare.html — page-scoped styles
+     Class prefix: .pc-* (player-compare). Mobile breakpoint: 768px.
+     All dynamic per-element values use CSS custom properties.
+     Brand colors only — check-colors.py must stay CLEAN.
+     ═══════════════════════════════════════════════════════════════════ */
+
+  /* Topnav chrome — wrapper bar (cleaner than the template's inline style) */
+  body.fpts-compare-page .pc-topnav-bar {
+    background: var(--nav-bg); border-bottom: 2px solid var(--red);
+    position: sticky; top: 0; z-index: 100;
+  }
+  body.fpts-compare-page .pc-topnav-bar > .topnav { border: none; position: static; }
+  body.fpts-compare-page #theme-toggle {
+    background: none; border: 1px solid var(--border2); color: var(--white);
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 11px; padding: 5px 12px; cursor: pointer;
+    transition: all .2s; letter-spacing: .04em;
+    display: flex; align-items: center; gap: 6px;
+  }
+  body.fpts-compare-page #theme-toggle:hover { border-color: var(--red); color: var(--red); }
+
+  /* Loading overlay (matches my-leagues pattern) */
+  body.fpts-compare-page #_fp-loading {
+    position: fixed; inset: 0;
+    background: var(--black); color: var(--white);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 28px; text-transform: uppercase; letter-spacing: .06em;
+    z-index: 9999;
+  }
+
+  /* Page app shell */
+  body.fpts-compare-page .pc-app { padding: 0; }
+  body.fpts-compare-page .pc-empty {
+    padding: 60px 20px; text-align: center;
+    font-family: 'Mulish', sans-serif; font-size: 14px;
+    color: var(--muted); opacity: .55;
+  }
+  body.fpts-compare-page .pc-empty-title {
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 18px; color: var(--white); text-transform: uppercase;
+    letter-spacing: .06em; margin-bottom: 8px;
+  }
+
+  /* Mode + format toggle bar (right of page-header) */
+  body.fpts-compare-page .pc-controls {
+    display: flex; gap: 16px; flex-wrap: wrap; align-items: center;
+    margin-top: 6px;
+  }
+  body.fpts-compare-page .pc-control-group {
+    display: flex; align-items: center; gap: 6px;
+  }
+  body.fpts-compare-page .pc-control-label {
+    font-family: 'Mulish', sans-serif; font-size: 10px;
+    color: var(--muted); text-transform: uppercase; letter-spacing: .07em;
+  }
+  body.fpts-compare-page .pc-toggle-btn {
+    background: transparent; border: 1px solid var(--border2);
+    color: var(--white); font-family: 'Kanit', sans-serif;
+    font-weight: 800; font-style: italic; font-size: 11px;
+    padding: 5px 12px; cursor: pointer; opacity: .55;
+    transition: all .15s; letter-spacing: .04em;
+  }
+  body.fpts-compare-page .pc-toggle-btn:hover { opacity: .85; }
+  body.fpts-compare-page .pc-toggle-btn.is-active {
+    border-color: var(--red); color: var(--red); opacity: 1;
+  }
+
+  @media (max-width: 768px) {
+    body.fpts-compare-page .pc-controls { gap: 10px; }
+    body.fpts-compare-page .pc-toggle-btn { padding: 4px 10px; font-size: 10px; }
+  }
+</style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    if (window.Legend) Legend.init('compare');
+    document.body.classList.add('fpts-compare-page');
+  });
+</script>
+</head>
+<body>
+
+<div id="_fp-loading">Loading…</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     TOP NAV — Compare is between Calculator and My Leagues in both the
+     desktop link row AND the mobile <select>.
+     ═══════════════════════════════════════════════════════════════════════ -->
+<div class="pc-topnav-bar"><nav class="topnav">
+  <div class="wordmark-group">
+  <div class="wordmark" id="wordmark-svg">
+    <svg viewBox="0 0 878 90" xmlns="http://www.w3.org/2000/svg" fill-rule="evenodd" clip-rule="evenodd">
+      <path d="M508.084,47.801l-8.983,41.534c0,0 -75.276,-0.036 -85.237,-0.002l0.015,-0.067c0,0 2.533,-17.352 5.641,-25.475c3.708,-9.689 16.604,-32.658 16.604,-32.658c12.902,8.212 8.658,21.025 7.099,27.21c11.719,-8.962 11.012,-17.186 11.003,-28.608c-0.006,-7.356 4.797,-23.375 17.858,-28.257c-4.305,14.678 3.971,24.95 7.333,30.494c6.362,10.492 1.397,21.17 1.397,21.17c0,0 9.268,-3.36 8.863,-15.254c-0.117,-3.424 -1.714,-14.283 8.012,-18.422c-0.754,9.397 5.495,18.682 10.395,28.336Z" fill="var(--red)"/>
+      <path d="M19.856,0.761l47.225,0l-3.757,16.803l-22.539,0l-4.159,18.236l19.99,0l-3.757,16.933l-19.99,0l-8.184,36.602l-24.686,0l19.856,-88.573Z" fill="var(--white)" fill-rule="nonzero"/>
+      <path d="M82.991,0.761l28.577,0l-1.207,88.573l-24.954,0l0.939,-14.589l-16.234,0l-5.635,14.589l-19.99,0l38.505,-88.573Zm4.293,58.745l2.147,-34.648l-13.416,34.648l11.27,0Z" fill="var(--white)" fill-rule="nonzero"/>
+      <path d="M135.036,0.761l26.698,0l3.757,47.804l10.733,-47.804l17.709,0l-19.856,88.573l-26.564,0l-3.891,-47.413l-10.599,47.413l-17.844,0l19.856,-88.573Z" fill="var(--white)" fill-rule="nonzero"/>
+      <path d="M211.755,18.215l-15.831,0l3.891,-17.454l55.678,0l-3.891,17.454l-15.295,0l-15.965,71.119l-24.552,0l15.965,-71.119Z" fill="var(--white)" fill-rule="nonzero"/>
+      <path d="M270.166,0.884l28.537,0l-1.206,88.451l-24.92,0l0.938,-14.568l-16.211,0l-5.627,14.568l-19.963,0l38.451,-88.451Zm4.287,58.664l2.144,-34.6l-13.398,34.6l11.254,0Z" fill="var(--white)" fill-rule="nonzero"/>
+      <path d="M316.507,17.764c2.387,-11.843 10.165,-17.764 23.335,-17.764l16.971,0c6.718,0 11.623,1.888 14.717,5.664c3.094,3.776 3.933,8.753 2.519,14.932l-1.989,10.298l-23.865,0l2.387,-10.427c0.707,-3.433 -0.53,-5.149 -3.712,-5.149l-1.326,0c-1.591,0 -2.828,0.365 -3.712,1.094c-0.884,0.729 -1.547,2.038 -1.989,3.926l-1.326,6.05c-0.354,1.802 -0.243,3.24 0.331,4.312c0.575,1.073 1.746,1.995 3.514,2.768l11.933,4.377c5.038,1.974 8.508,4.72 10.408,8.238c1.9,3.518 2.232,7.981 0.994,13.387l-2.652,12.1c-2.387,11.843 -10.209,17.764 -23.468,17.764l-17.369,0c-6.718,0 -11.623,-1.909 -14.717,-5.728c-3.094,-3.819 -3.933,-8.903 -2.519,-15.254l2.254,-10.942l24.263,0l-2.519,11.456c-0.707,3.433 0.486,5.149 3.58,5.149l1.591,0c1.591,0 2.806,-0.386 3.646,-1.159c0.84,-0.772 1.436,-2.06 1.79,-3.862l1.856,-7.723c0.442,-1.888 0.354,-3.347 -0.265,-4.377c-0.619,-1.03 -1.812,-1.931 -3.58,-2.703l-12.198,-4.634c-9.9,-3.776 -13.656,-11.027 -11.27,-21.754l2.387,-10.04Z" fill="var(--white)" fill-rule="nonzero"/>
+      <path d="M411.302,62.129l-6.16,27.043l-25.31,0l6.294,-27.954l-5.223,-60.458l26.382,0l0.536,33.414l15.4,-33.414l20.623,0l-32.542,61.368Z" fill="var(--white)" fill-rule="nonzero"/>
+      <path d="M526.915,0.761l37.555,0c6.861,0 11.828,1.91 14.902,5.731c3.074,3.821 3.853,9.075 2.339,15.761l-3.475,16.933c-1.515,6.513 -4.232,11.311 -8.152,14.393c-3.92,3.083 -9.222,4.624 -15.904,4.624l-15.503,0l-6.95,31.131l-24.591,0l19.78,-88.575Zm21.651,41.291c1.604,0 2.851,-0.369 3.742,-1.107c0.891,-0.738 1.515,-2.062 1.871,-3.973l3.341,-14.849c0.713,-3.474 -0.445,-5.21 -3.475,-5.21l-6.148,0l-5.613,25.14l6.281,0Z" fill="var(--white)" fill-rule="nonzero"/>
+      <path d="M591.621,18.118c2.541,-11.572 10.254,-17.357 23.136,-17.357l17.747,0c6.573,0 11.437,1.893 14.592,5.679c3.155,3.786 3.988,8.87 2.498,15.251l-11.305,50.285c-2.541,11.572 -10.254,17.357 -23.136,17.357l-17.747,0c-6.66,0 -11.524,-1.893 -14.592,-5.679c-3.067,-3.786 -3.9,-8.87 -2.498,-15.251l11.305,-50.285Zm34.047,3.574c0.438,-1.617 0.329,-2.872 -0.329,-3.765c-0.657,-0.893 -1.731,-1.34 -3.221,-1.34l-1.84,0c-3.067,0 -4.952,1.659 -5.653,4.977l-10.517,46.839c-0.351,1.617 -0.175,2.872 0.526,3.765c0.701,0.893 1.753,1.34 3.155,1.34l1.84,0c2.98,0 4.82,-1.659 5.521,-4.977l10.517,-46.839Z" fill="var(--white)" fill-rule="nonzero"/>
+      <path d="M663.756,0.884l24.652,0l-19.829,88.452l-24.652,0l19.829,-88.452Z" fill="var(--white)" fill-rule="nonzero"/>
+      <path d="M697.921,0.884l26.662,0l3.751,47.738l10.718,-47.738l17.685,0l-19.829,88.452l-26.528,0l-3.885,-47.348l-10.584,47.348l-17.819,0l19.829,-88.452Z" fill="var(--white)" fill-rule="nonzero"/>
+      <path d="M774.557,18.314l-15.809,0l3.885,-17.43l55.601,0l-3.885,17.43l-15.274,0l-15.943,71.022l-24.518,0l15.943,-71.022Z" fill="var(--white)" fill-rule="nonzero"/>
+      <path d="M819.769,18.472c2.363,-11.725 10.064,-17.588 23.104,-17.588l16.803,0c6.651,0 11.508,1.869 14.571,5.608c3.063,3.739 3.894,8.667 2.494,14.784l-1.969,10.196l-23.629,0l2.363,-10.324c0.7,-3.399 -0.525,-5.098 -3.676,-5.098l-1.313,0c-1.575,0 -2.801,0.361 -3.676,1.083c-0.875,0.722 -1.532,2.018 -1.969,3.887l-1.313,5.99c-0.35,1.784 -0.241,3.208 0.328,4.27c0.569,1.062 1.728,1.975 3.479,2.74l11.815,4.333c4.988,1.954 8.423,4.673 10.305,8.157c1.882,3.484 2.21,7.902 0.985,13.255l-2.625,11.98c-2.363,11.725 -10.108,17.588 -23.236,17.588l-17.197,0c-6.651,0 -11.508,-1.891 -14.571,-5.672c-3.063,-3.781 -3.894,-8.815 -2.494,-15.103l2.232,-10.833l24.023,0l-2.494,11.343c-0.7,3.399 0.481,5.098 3.544,5.098l1.575,0c1.575,0 2.779,-0.382 3.61,-1.147c0.831,-0.765 1.422,-2.039 1.772,-3.824l1.838,-7.647c0.438,-1.869 0.35,-3.314 -0.263,-4.333c-0.613,-1.02 -1.794,-1.912 -3.544,-2.676l-12.077,-4.588c-9.802,-3.739 -13.521,-10.918 -11.158,-21.539l2.363,-9.941Z" fill="var(--white)" fill-rule="nonzero"/>
+    </svg>
+  </div>
+  <span class="wordmark-tag">Front Office</span>
+  </div>
+  <nav class="nav-links">
+    <a class="nav-link" href="index.html">Database</a>
+    <a class="nav-link" href="trade-calculator.html">Calculator</a>
+    <a class="nav-link active" href="compare.html">Compare</a>
+    <a class="nav-link" href="my-leagues.html">My Leagues</a>
+    <a class="nav-link" href="live-draft.html">Live Draft</a>
+    <a class="nav-link" href="tiers.html">Tiers</a>
+    <a class="nav-link" href="adp-tool.html">ADP</a>
+    <a class="nav-link" href="rankings.html">Rankings</a>
+    <a class="nav-link" href="formulas.html">Formulas</a>
+  </nav>
+  <div class="nav-right">
+    <select class="mobile-nav-select" onchange="if(this.value)window.location.href=this.value">
+      <option value="index.html">Database</option>
+      <option value="trade-calculator.html">Calculator</option>
+      <option value="compare.html" selected>Compare</option>
+      <option value="my-leagues.html">My Leagues</option>
+      <option value="live-draft.html">Live Draft</option>
+      <option value="tiers.html">Tiers</option>
+      <option value="adp-tool.html">ADP</option>
+      <option value="rankings.html">Rankings</option>
+      <option value="formulas.html">Formulas</option>
+    </select>
+    <span class="nav-badge" id="nav-season-badge">SEASON 2026</span>
+    <button id="theme-toggle" onclick="toggleTheme()">
+      <span id="theme-icon">☀️</span>
+      <span id="theme-label">LIGHT</span>
+    </button>
+  </div>
+</nav></div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     PAGE BODY — phase 0 ships the skeleton + page chrome only.
+     Phase 1 populates the profile-mode hero card.
+     ═══════════════════════════════════════════════════════════════════════ -->
+<main id="page-body" class="page">
+
+  <div class="page-header">
+    <div>
+      <div class="page-title">Player <span>Comparison</span></div>
+      <div class="page-subtitle">Side-by-side dynasty player analysis · profile cards + 2-4 player stat tables</div>
+      <div class="pc-controls">
+        <div class="pc-control-group">
+          <span class="pc-control-label">Mode</span>
+          <button class="pc-toggle-btn is-active" data-mode="profile">Profile</button>
+          <button class="pc-toggle-btn" data-mode="table">Table</button>
+        </div>
+        <div class="pc-control-group">
+          <span class="pc-control-label">Format</span>
+          <button class="pc-toggle-btn is-active" data-fmt="sf">SF</button>
+          <button class="pc-toggle-btn" data-fmt="1qb">1QB</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="pc-app" id="pc-app">
+    <div class="pc-empty">
+      <div class="pc-empty-title">Phase 1 in progress</div>
+      Profile-mode hero card and Top Profile Matches row ship next. Skeleton + nav link wired this commit.
+    </div>
+  </div>
+
+</main>
+
+<!-- Required mount divs for player-panel drawer click-through. -->
+<div id="pp-mvs-extras"></div>
+<div id="pp-articles-mount"></div>
+<div id="pp-league-context"></div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     PAGE-SPECIFIC JS — phase 0 is just the theme toggle + data-ready hook.
+     Phase 1 fills out the PC state object and the render pipeline.
+     ═══════════════════════════════════════════════════════════════════════ -->
+<script>
+  function toggleTheme() {
+    const cur = document.documentElement.getAttribute('data-theme') || 'dark';
+    const next = cur === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    document.getElementById('theme-icon').textContent = next === 'dark' ? '☀️' : '🌙';
+    document.getElementById('theme-label').textContent = next === 'dark' ? 'LIGHT' : 'DARK';
+    try { localStorage.setItem('fpts-theme', next); } catch (e) {}
+  }
+  (function _initTheme() {
+    try {
+      const saved = localStorage.getItem('fpts-theme');
+      if (saved === 'light') toggleTheme();
+    } catch (e) {}
+  })();
+
+  document.addEventListener('fpts:data-ready', function () {
+    const overlay = document.getElementById('_fp-loading');
+    if (overlay) overlay.style.display = 'none';
+    // Phase 1: hydrate PC state from window.location.hash + render().
+  });
+</script>
+
+</body>
+</html>
