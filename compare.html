@@ -656,16 +656,22 @@
   body.fpts-compare-page .pc-add-comparison-search[hidden] {
     display: none;
   }
+  /* When the search is open, the parent .pc-hero-secondary row gets
+     .is-search-open. Hide everything else in the row so the search input
+     is the visual focus, and let it expand to a full search-bar size
+     (matches the empty-state search styling: 14px font, 12/16 padding,
+     prominent border). Closes restore the link row. */
+  body.fpts-compare-page .pc-hero-secondary.is-search-open > :not(.pc-add-comparison) {
+    display: none;
+  }
+  body.fpts-compare-page .pc-hero-secondary.is-search-open .pc-add-comparison {
+    flex: 1; display: flex;
+  }
+  body.fpts-compare-page .pc-hero-secondary.is-search-open .pc-add-comparison-search {
+    display: block; width: 100%;
+  }
   body.fpts-compare-page .pc-add-comparison .pc-search-wrap {
-    width: 420px; max-width: 60vw;
-  }
-  body.fpts-compare-page .pc-search-input.pc-search-input-compact {
-    font-size: 11px; padding: 6px 10px; letter-spacing: .04em;
-  }
-  /* Wider dropdown items don't need to ellipsis truncate at this size — let
-     long names like "Christian McCaffrey" / "Travis Etienne Jr." breathe. */
-  body.fpts-compare-page .pc-add-comparison .pc-search-name {
-    overflow: visible; text-overflow: clip; white-space: normal;
+    width: 100%; max-width: 560px;
   }
 
   /* ─── Historical area — tabbed sub-navigation ──────────────────────── */
@@ -1674,8 +1680,10 @@
   function _pcOpenAddComparison() {
     const trigger = document.querySelector('.pc-add-comparison-trigger');
     const search  = document.getElementById('pc-add-comparison-search');
+    const row     = document.querySelector('.pc-hero-secondary');
     if (!search) return;
     if (trigger) trigger.style.display = 'none';
+    if (row)     row.classList.add('is-search-open');
     search.hidden = false;
     const inp = document.getElementById('pc-add-search');
     if (inp) {
@@ -1691,8 +1699,10 @@
     const trigger = document.querySelector('.pc-add-comparison-trigger');
     const search  = document.getElementById('pc-add-comparison-search');
     const results = document.getElementById('pc-add-search-results');
+    const row     = document.querySelector('.pc-hero-secondary');
     if (trigger) trigger.style.display = '';
     if (search)  search.hidden = true;
+    if (row)     row.classList.remove('is-search-open');
     if (results) { results.classList.remove('is-open'); results.innerHTML = ''; }
   }
 
@@ -1953,7 +1963,7 @@
               <a class="pc-add-comparison-trigger" href="#" onclick="event.preventDefault();_pcOpenAddComparison();">+ Add comparison player</a>
               <span class="pc-add-comparison-search" id="pc-add-comparison-search" hidden>
                 <span class="pc-search-wrap">
-                  <input class="pc-search-input pc-search-input-compact" id="pc-add-search" type="text" placeholder="Type a player name…" autocomplete="off" spellcheck="false">
+                  <input class="pc-search-input" id="pc-add-search" type="text" placeholder="Search by player name…" autocomplete="off" spellcheck="false">
                   <div class="pc-search-results" id="pc-add-search-results"></div>
                 </span>
               </span>
