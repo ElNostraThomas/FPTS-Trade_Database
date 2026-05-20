@@ -210,12 +210,12 @@
   .box-row-head.active { background:var(--red); color:#111111; }
   .box-row-head .bc-arrow { font-family:'Mulish',sans-serif; font-size:11px; font-weight:800; font-style:normal; color:var(--white); opacity:.55; line-height:1; }
   .box-row-head.active .bc-arrow { color:var(--white); opacity:.85; }
-  /* Fixed height — every card is exactly 78px regardless of which year's
+  /* Fixed height — every card is exactly 100px regardless of which year's
      data it carries or whether it has a trend chip in .card-meta. Without
      this, rookie/historical cards (often lacking current trend data)
      collapse to a smaller min-height and look 'scrunched' compared to
      2026 cards that grow to fit their trend chip content. */
-  .box-card { position:relative; display:flex; flex-direction:column; height:78px; cursor:pointer; overflow:hidden; padding:5px 7px; transition:transform .12s, box-shadow .12s; }
+  .box-card { position:relative; display:flex; flex-direction:column; height:100px; cursor:pointer; overflow:hidden; padding:5px 7px; transition:transform .12s, box-shadow .12s; }
   .box-card:hover { transform:translateY(-1px); box-shadow:0 3px 8px rgba(0,0,0,.35); }
   .box-card .card-content { display:flex; flex-direction:column; gap:2px; position:relative; z-index:1; min-width:0; }
   .box-card .card-top { display:flex; align-items:center; gap:4px; justify-content:space-between; font-family:'Mulish',sans-serif; font-size:8px; font-weight:800; letter-spacing:.03em; }
@@ -1419,10 +1419,20 @@ function renderBoxView(players) {
   // horizontal scroll. 8/10/14 keep their explicit min-widths and may scroll
   // horizontally on narrower viewports.
   const cellMin = TC === 12 ? 88 : (TC >= 14 ? 92 : TC >= 10 ? 120 : 135);
+  // 12-team also caps the max so cards don't stretch wider than ~130 CSS
+  // (which becomes ~162 visual at 1.25x zoom) on wide viewports — keeps the
+  // card aspect ratio close to the original taller-than-wide look. Other team
+  // counts keep the 1fr expansion since their cellMin is already higher.
+  const cellMax = TC === 12 ? '130px' : '1fr';
   const headW   = TC === 12 ? 24 : (TC >= 14 ? 28 : 32);
   const gap     = 4;
   const minWidth = TC === 12 ? 0 : (headW + TC * cellMin + (TC + 1) * gap);
-  const parts = [`<div class="box-grid" style="grid-template-columns:${headW}px repeat(${TC}, minmax(${cellMin}px, 1fr)); gap:${gap}px; min-width:${minWidth}px">`];
+  // justify-content: center keeps the grid centered when its total width is
+  // less than the container (e.g. 12-team capped grid on a wide monitor).
+  // Without this the grid left-justifies and leaves a big empty band on the
+  // right. Only applied for 12-team where the cap can leave slack.
+  const justify = TC === 12 ? 'justify-content:center;' : '';
+  const parts = [`<div class="box-grid" style="grid-template-columns:${headW}px repeat(${TC}, minmax(${cellMin}px, ${cellMax})); gap:${gap}px; min-width:${minWidth}px; ${justify}">`];
   const roundFilter = STATE.filters.rounds;
   const teamFilter  = STATE.filters.teams;
   parts.push('<div class="box-corner" title="Click to clear round/team highlights"></div>');
