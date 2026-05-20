@@ -1949,29 +1949,44 @@ const series = (PC.fmt === '1qb') ? (mvs.history1qb || []) : (mvs.history || [])
           id: 'compare-best-in-row',
           label: '47. Best-in-row highlighting (Table mode + multi metric tables)',
           location: 'compare.html (_pcBestIdx, _pcTableStatRow, _pcTableIdentityGroup)',
-          provenance: { kind: 'site-convention', detail: 'Simple linear pass; null-safe; skips highlight on tie or single-cell row.' },
+          provenance: { kind: 'site-convention', detail: 'Linear pass; null-safe. Tie behavior unified across all three renderers on 2026-05-20 — Table mode now highlights ties with yellow .is-tied band, matching the Profile multi-card metric-table.' },
           inputs: 'values — array of numerics (one per slot, nulls allowed). mode — "max" or "min" (lower-is-better for Age / Int / Pos rank).',
-          math: `function _pcBestIdx(values, mode) {
-  let bestIdx = -1, bestVal = null;
-  values.forEach((v, i) => {
-    if (v == null || isNaN(v)) return;
-    if (bestVal == null) { bestIdx = i; bestVal = v; return; }
-    if (mode === 'min' ? v < bestVal : v > bestVal) {
-      bestIdx = i; bestVal = v;
-    }
-  });
-  // No highlight when all values are equal (tie) or only one valid cell
+          math: `// Returns { winners, tied }:
+//   winners = indices to highlight (1 cell unique winner; N cells when
+//             every valid cell shares the top value)
+//   tied    = true when every valid cell is equal — renderer applies
+//             .is-tied (yellow) instead of .is-best (green)
+function _pcBestIdx(values, mode) {
   const validVals = values.filter(v => v != null && !isNaN(v));
-  if (validVals.length < 2) return -1;
-  if (validVals.every(v => v === validVals[0])) return -1;
-  return bestIdx;
+  if (validVals.length < 2) return { winners: [], tied: false };
+  let topVal = null;
+  values.forEach(v => {
+    if (v == null || isNaN(v)) return;
+    if (topVal == null) { topVal = v; return; }
+    if (mode === 'min' ? v < topVal : v > topVal) topVal = v;
+  });
+  const winners = [];
+  values.forEach((v, i) => {
+    if (v != null && !isNaN(v) && v === topVal) winners.push(i);
+  });
+  const tied = winners.length === validVals.length && winners.length >= 2;
+  return { winners, tied };
 }`,
-          output: 'Index of the winning cell (0-3), or -1 to suppress highlighting entirely.',
-          example: `4 RBs on Rush Yds: [1450, 1320, 1100, null] with mode='max' → returns 0.
-All equal: [800, 800, 800, 800] → -1 (skip).
-Single cell: [null, null, 600, null] → -1 (no comparison possible).`,
-          whyThisNumber: 'Analyst input requested. Specifically: should ties surface as yellow ("equal") instead of disappearing entirely? The multi metric-table renderer (_pcCmpClass) DOES emit is-tied for equal values; Table mode\'s _pcBestIdx does NOT. The inconsistency is intentional (sparse 2-4-cell row vs dense 2-cell row) but should be revisited.',
-          notes: 'Null/undefined cells excluded from comparison so an empty slot doesn\'t accidentally become the "winner." Pos rank values are parsed for their numeric tail ("WR1" → 1) before comparison.',
+          output: '{ winners: number[], tied: boolean }. Empty winners array suppresses all highlighting (< 2 valid cells).',
+          example: `4 RBs on Rush Yds: [1450, 1320, 1100, null] with mode='max'
+  → { winners: [0], tied: false }   — index 0 wins (green)
+
+All equal: [800, 800, 800, 800]
+  → { winners: [0,1,2,3], tied: true }   — every cell yellow (is-tied)
+
+Partial top tie: [40, 40, 35]
+  → { winners: [0,1], tied: false }   — both 40s share green (co-winners,
+                                         third cell is genuinely lower)
+
+Single cell: [null, null, 600, null]
+  → { winners: [], tied: false }   — no comparison possible`,
+          whyThisNumber: 'Tie behavior locked 2026-05-20: when every valid cell shares the top value, all of them get yellow .is-tied band — same convention as the Profile multi-card metric-table. Partial top ties (e.g. [40,40,35]) keep the green .is-best on the co-winners since a third lower cell makes the top two legitimate winners, not a stalemate. Strict equality only — no near-tied threshold (within-5% etc.) — keeps the signal unambiguous.',
+          notes: 'Behavior unified across _pcTableStatRow (Season + Last-N), _pcTableRow (Identity group), and _pcCmpClass (Profile multi-card metric table). Backward compat: opts.bestIdx accepts the legacy integer OR the new { winners, tied } shape. Null/undefined cells excluded so an empty slot doesn\'t accidentally become the "winner." Pos rank values are parsed for their numeric tail ("WR1" → 1) before comparison.',
           related: ['compare-multi-metric-comparison']
         },
         {

@@ -990,6 +990,17 @@
     content: ''; position: absolute; inset: 0;
     border: 1px solid var(--green); pointer-events: none;
   }
+  /* Tied cells (§47, unified 2026-05-20): when every valid cell in a row
+     shares the top value, all of them get the yellow band instead of one
+     getting the green "best" overlay. Mirrors the Profile multi-card
+     metric-table .pc-cm-value.is-tied styling. */
+  body.fpts-compare-page .pc-table-row-cell.is-tied {
+    background: rgba(240,192,64,0.10);
+  }
+  body.fpts-compare-page .pc-table-row-cell.is-tied::before {
+    content: ''; position: absolute; inset: 0;
+    border: 1px solid rgba(240,192,64,0.4); pointer-events: none;
+  }
   body.fpts-compare-page .pc-table-row-cell.is-empty {
     color: var(--muted); opacity: .35; font-style: normal;
   }
@@ -2736,10 +2747,19 @@
   function _pcTableRow(label, players, fmt, opts) {
     opts = opts || {};
     const values = players.map(p => p ? fmt(p) : null);
+    // Backward compat: opts.bestIdx can be a legacy integer OR the new
+    // { winners, tied } shape returned by _pcBestIdx. Normalize both.
+    let result = { winners: [], tied: false };
+    if (typeof opts.bestIdx === 'number' && opts.bestIdx >= 0) {
+      result = { winners: [opts.bestIdx], tied: false };
+    } else if (opts.bestIdx && typeof opts.bestIdx === 'object' && Array.isArray(opts.bestIdx.winners)) {
+      result = opts.bestIdx;
+    }
     const cells = values.map((v, i) => {
       if (!players[i]) return `<div class="pc-table-row-cell is-empty">—</div>`;
-      const isBest = opts.bestIdx === i;
-      return `<div class="pc-table-row-cell${isBest ? ' is-best' : ''}">${v == null || v === '' ? '—' : v}</div>`;
+      const isWinner = result.winners.includes(i);
+      const cls = isWinner ? (result.tied ? ' is-tied' : ' is-best') : '';
+      return `<div class="pc-table-row-cell${cls}">${v == null || v === '' ? '—' : v}</div>`;
     }).join('');
     return `
       <div class="pc-table-row">
@@ -2755,14 +2775,12 @@
     // Pad to 4 slots
     while (fps.length < 4) fps.push(null);
 
-    // Find best index per numeric row. min/max depending on metric.
+    // Delegate to the unified _pcBestIdx so this group's rows also pick up
+    // tie detection (§47, locked 2026-05-20). Local wrapper just coerces
+    // values to Number for the comparison.
     const bestIdx = (vals, mode) => {
-      const numeric = vals.map((v, i) => ({ v: (v == null || isNaN(v)) ? null : Number(v), i })).filter(x => x.v != null);
-      if (numeric.length < 2) return -1;
-      const target = mode === 'min'
-        ? numeric.reduce((a, b) => a.v < b.v ? a : b)
-        : numeric.reduce((a, b) => a.v > b.v ? a : b);
-      return target.i;
+      const numeric = vals.map(v => (v == null || isNaN(v)) ? null : Number(v));
+      return _pcBestIdx(numeric, mode);
     };
 
     const posVals  = fps.map(fp => fp ? fp.pos : null);
@@ -2876,32 +2894,59 @@
   }
 
   // Pick the best index (lowest or highest) skipping null cells.
+  // Returns { winners: number[], tied: boolean }
+  //   winners = indices to highlight (1 cell when unique winner; N cells when
+  //             N cells share the top/bottom value)
+  //   tied    = true when multiple cells share the top — caller applies
+  //             .is-tied (yellow) instead of .is-best (green) on the cells
+  //   When fewer than 2 valid cells exist, returns empty winners (no
+  //   comparison possible — every cell renders as a plain value).
+  // Unified behavior with _pcCmpClass (Profile multi-card metric table) so
+  // both surfaces highlight ties the same way (§47, locked 2026-05-20).
   function _pcBestIdx(values, mode) {
-    let bestIdx = -1, bestVal = null;
-    values.forEach((v, i) => {
-      if (v == null || isNaN(v)) return;
-      if (bestVal == null) { bestIdx = i; bestVal = v; return; }
-      if (mode === 'min' ? v < bestVal : v > bestVal) {
-        bestIdx = i; bestVal = v;
-      }
-    });
-    // No highlight when all values are equal (tie) or only one valid cell
     const validVals = values.filter(v => v != null && !isNaN(v));
-    if (validVals.length < 2) return -1;
-    if (validVals.every(v => v === validVals[0])) return -1;
-    return bestIdx;
+    if (validVals.length < 2) return { winners: [], tied: false };
+    // Find the top value (max or min depending on mode)
+    let topVal = null;
+    values.forEach(v => {
+      if (v == null || isNaN(v)) return;
+      if (topVal == null) { topVal = v; return; }
+      if (mode === 'min' ? v < topVal : v > topVal) topVal = v;
+    });
+    // Collect every index that hits topVal
+    const winners = [];
+    values.forEach((v, i) => {
+      if (v != null && !isNaN(v) && v === topVal) winners.push(i);
+    });
+    // Tied when 2+ cells share the top AND that covers all valid cells —
+    // a partial tie at the top (e.g., [40, 40, 35]) is still a 2-way "best"
+    // since the third cell is lower. Only flag tied when EVERY valid cell
+    // is equal (no winner can be picked).
+    const tied = winners.length === validVals.length && winners.length >= 2;
+    return { winners, tied };
   }
 
   // Render a stat-table row from raw numeric values + a formatter.
   function _pcTableStatRow(label, values, opts) {
     opts = opts || {};
     const fmt = opts.fmt || (v => v == null ? '—' : Number(v).toLocaleString());
-    const bestIdx = opts.bestIdx != null ? opts.bestIdx : _pcBestIdx(values, opts.mode || 'max');
+    // Backward compat: opts.bestIdx as a plain integer still works (used by
+    // a few callers that compute their own winner index up-front). New
+    // return shape from _pcBestIdx is { winners, tied }.
+    let result;
+    if (opts.bestIdx == null) {
+      result = _pcBestIdx(values, opts.mode || 'max');
+    } else if (typeof opts.bestIdx === 'number') {
+      result = { winners: opts.bestIdx >= 0 ? [opts.bestIdx] : [], tied: false };
+    } else {
+      result = opts.bestIdx;
+    }
     const cells = values.map((v, i) => {
       const empty = (v == null || (typeof v === 'number' && v === 0 && opts.zeroAsEmpty !== false));
+      const isWinner = result.winners.includes(i);
       const cellClass = 'pc-table-row-cell'
         + (empty ? ' is-empty' : '')
-        + (i === bestIdx && !empty ? ' is-best' : '');
+        + (isWinner && !empty ? (result.tied ? ' is-tied' : ' is-best') : '');
       return `<div class="${cellClass}">${empty ? '—' : fmt(v)}</div>`;
     }).join('');
     return `

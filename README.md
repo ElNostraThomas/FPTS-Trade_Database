@@ -1057,10 +1057,12 @@ Nothing structural. Polish / nice-to-haves only:
       top-5 list (muted styling signals "no great match" rather than
       hiding cards). Position-aware delta windows deferred until more
       data ships.
-    - **Best-in-row tie behavior** (FORMULAS.md §47 / `compare-best-in-row`).
-      Table mode skips highlight on tie; the multi metric-table emits a
-      yellow `is-tied` band. Should both behave the same? Should "near-tied"
-      (e.g., within 5%) get a soft-yellow band?
+    - ~~**Best-in-row tie behavior** (FORMULAS.md §47)~~ — **LOCKED
+      2026-05-20 (twelfth session).** Tie behavior unified across all
+      three renderers — Table mode + Identity group + multi metric-table
+      all use yellow `is-tied` band when every valid cell shares the top
+      value. Partial top ties (e.g. [40,40,35]) keep green `is-best` on
+      the co-winners. No near-tied threshold (strict equality only).
     - **Last-N games window default** (FORMULAS.md §48 / `compare-last-n-aggregate`).
       Currently 4 — matches the Underdog reference; should it be 8 for more
       reliable per-game averages? Should playoff weeks be included in the
