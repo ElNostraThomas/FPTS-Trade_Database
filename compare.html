@@ -354,12 +354,66 @@
     color: var(--white); opacity: 1;
   }
 
-  /* ─── Historical section (below hero) ──────────────────────────────── */
+  /* ─── Historical area — tabbed sub-navigation ──────────────────────── */
   body.fpts-compare-page .pc-historical {
-    margin-top: 36px; display: flex; flex-direction: column; gap: 28px;
+    margin-top: 28px;
   }
+  body.fpts-compare-page .pc-tabs-bar {
+    display: flex; gap: 0; align-items: stretch;
+    border-bottom: 2px solid var(--border);
+    overflow-x: auto;
+    scrollbar-width: none;
+    margin-bottom: 18px;
+    position: sticky; top: 60px; z-index: 50;
+    background: var(--black);
+  }
+  body.fpts-compare-page .pc-tabs-bar::-webkit-scrollbar { display: none; }
+  body.fpts-compare-page .pc-tab-btn {
+    background: none; border: none; color: var(--white);
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 13px; padding: 13px 22px; cursor: pointer;
+    text-transform: uppercase; letter-spacing: .06em;
+    opacity: .5; transition: opacity .15s, color .15s, border-color .15s;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px; white-space: nowrap;
+  }
+  body.fpts-compare-page .pc-tab-btn:hover { opacity: .9; }
+  body.fpts-compare-page .pc-tab-btn.is-active {
+    color: var(--red); opacity: 1;
+    border-bottom-color: var(--red);
+  }
+  body.fpts-compare-page .pc-tab-btn .pc-tab-btn-meta {
+    display: inline-block; margin-left: 6px;
+    font-family: 'Mulish', sans-serif; font-size: 10px; font-weight: 700;
+    color: var(--muted); opacity: .7; vertical-align: baseline;
+  }
+  body.fpts-compare-page .pc-tab-btn.is-active .pc-tab-btn-meta {
+    color: var(--red); opacity: .8;
+  }
+  body.fpts-compare-page .pc-tab-panel {
+    min-height: 480px;
+    display: flex; flex-direction: column; gap: 14px;
+  }
+  body.fpts-compare-page .pc-panel-eyebrow {
+    font-family: 'Mulish', sans-serif; font-size: 10px;
+    color: var(--muted); text-transform: uppercase; letter-spacing: .1em;
+    opacity: .65; margin-bottom: -6px;
+  }
+  body.fpts-compare-page .pc-panel-title {
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 22px; color: var(--white);
+    text-transform: uppercase; letter-spacing: .02em; line-height: 1;
+  }
+  body.fpts-compare-page .pc-panel-sub {
+    font-family: 'Mulish', sans-serif; font-size: 11px;
+    color: var(--muted); opacity: .7; line-height: 1.5;
+    margin-top: -4px;
+  }
+
+  /* Legacy alias — keep _pcRenderHistorical's old class names rendering
+     reasonably during the transition (now used inside panels). */
   body.fpts-compare-page .pc-hist-section {
-    display: flex; flex-direction: column; gap: 10px;
+    display: flex; flex-direction: column; gap: 14px;
   }
   body.fpts-compare-page .pc-hist-section-title {
     font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
@@ -495,6 +549,24 @@
     text-transform: uppercase; letter-spacing: .06em;
   }
 
+  /* ─── Career stats mount (lifts renderPlayerStats from player-panel) ─ */
+  body.fpts-compare-page #pc-hist-stats-mount {
+    background:
+      radial-gradient(circle at top right, rgba(255,255,255,0.025) 0%, transparent 60%),
+      var(--surface2);
+    border: 1px solid var(--border2); border-radius: 6px;
+    padding: 22px 24px 18px 22px;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+    min-height: 200px;
+  }
+  body.fpts-compare-page #pc-hist-stats-mount .pp-year-row { transition: background .12s; }
+  body.fpts-compare-page #pc-hist-stats-mount .pp-year-row:hover { background: var(--surface); }
+  body.fpts-compare-page .pc-hist-stats-loading {
+    padding: 80px 20px; text-align: center;
+    font-family: 'Mulish', sans-serif; font-size: 12px;
+    color: var(--muted); opacity: .55; font-style: italic;
+  }
+
   /* ─── ADP History per-year row ─────────────────────────────────────── */
   body.fpts-compare-page .pc-hist-adp-row {
     display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px;
@@ -545,6 +617,11 @@
     body.fpts-compare-page .pc-chart-xaxis-label { font-size: 9px; }
     body.fpts-compare-page .pc-chart-stats { grid-template-columns: repeat(2, 1fr); gap: 6px; }
     body.fpts-compare-page .pc-chart-stat-value { font-size: 18px; }
+    body.fpts-compare-page #pc-hist-stats-mount { padding: 14px 14px 12px 14px; min-height: 160px; }
+    body.fpts-compare-page .pc-tab-btn { padding: 11px 14px; font-size: 12px; }
+    body.fpts-compare-page .pc-tabs-bar { top: 48px; }
+    body.fpts-compare-page .pc-tab-panel { min-height: 360px; }
+    body.fpts-compare-page .pc-panel-title { font-size: 18px; }
   }
 </style>
 
@@ -678,8 +755,10 @@
     fmt: 'sf',             // 'sf' | '1qb'
     player: null,          // single player name (profile mode)
     players: [],           // up to 4 names (table mode — phase 3)
+    tab: 'profile',        // 'profile' | 'adp' | 'value' | 'career' | 'trades'
     searchTimer: null,
   };
+  const PC_TABS = ['profile', 'adp', 'value', 'career', 'trades'];
 
   // ─── URL hash routing ──────────────────────────────────────────────
   function _pcParseHash() {
@@ -688,6 +767,8 @@
     const p = new URLSearchParams(h);
     PC.mode = p.get('mode') === 'table' ? 'table' : 'profile';
     PC.fmt  = p.get('fmt')  === '1qb'   ? '1qb'   : 'sf';
+    const t = p.get('tab');
+    PC.tab  = PC_TABS.indexOf(t) >= 0 ? t : 'profile';
     const player = p.get('player');
     PC.player = player ? decodeURIComponent(player.replace(/\+/g, ' ')) : null;
     const players = p.get('players');
@@ -698,6 +779,7 @@
     const p = new URLSearchParams();
     if (PC.mode !== 'profile') p.set('mode', PC.mode);
     if (PC.fmt  !== 'sf')      p.set('fmt',  PC.fmt);
+    if (PC.tab  !== 'profile') p.set('tab',  PC.tab);
     if (PC.player)             p.set('player',  PC.player);
     if (PC.players.length)     p.set('players', PC.players.join(','));
     const s = p.toString();
@@ -883,6 +965,13 @@
     _pcRender();
   }
 
+  function _pcSetTab(tab) {
+    if (PC_TABS.indexOf(tab) < 0) return;
+    PC.tab = tab;
+    _pcWriteHash();
+    _pcRender();
+  }
+
   // ─── Render: profile-mode hero card ────────────────────────────────
   function _pcMiniCell(label, value, pending) {
     const cls = 'pc-card-mini-cell' + (pending ? ' is-pending' : '');
@@ -1029,6 +1118,13 @@
         </div>
       </div>
       ${_pcRenderHistorical(name)}`;
+
+    // Mount the Career Stats by Season table from player-panel.js. Runs
+    // after innerHTML so #pc-hist-stats-mount exists in the DOM — but only
+    // when the active tab is "career" (the mount div only exists then).
+    if (PC.tab === 'career') {
+      _pcRenderCareerStats(name, pos);
+    }
   }
 
   // ─── Inline-SVG chart with Y-axis column + X-axis row (no library) ─
@@ -1382,37 +1478,113 @@
     </div>`;
   }
 
+  // Wires the existing renderPlayerStats(containerId, player) function from
+  // player-panel.js into our #pc-hist-stats-mount container. The drawer's
+  // renderer guards its result against `global._currentPanelPlayer.label !==
+  // targetName` (to prevent slow Sleeper responses for player A from
+  // overwriting player B once the user has swapped). We mirror that state
+  // here so the guard passes when called from compare.html — re-set on every
+  // _pcRender() so compare.html stays authoritative for the player it owns.
+  function _pcRenderCareerStats(name, pos) {
+    const mountId = 'pc-hist-stats-mount';
+    if (!document.getElementById(mountId)) return;
+    if (typeof window.renderPlayerStats !== 'function') return;
+    // Map FP_VALUES pos to renderer's expected posKey set.
+    const posKey = ({ QB: 'QB', RB: 'RB', WR: 'WR', TE: 'TE' })[pos] || 'WR';
+    window._currentPanelPlayer = { label: name, posKey: posKey };
+    try {
+      window.renderPlayerStats(mountId, { posKey: posKey, label: name });
+    } catch (e) {
+      const el = document.getElementById(mountId);
+      if (el) el.innerHTML = '<div class="pc-hist-stats-loading">Error loading season stats.</div>';
+    }
+  }
+
+  // ─── Per-tab panel renderers ───────────────────────────────────────
+  // Each takes (name, data) and returns HTML for one tab's content area.
+
+  function _pcPanelProfile(name, data) {
+    const sleeperReady = !!data.sleeper;
+    return `
+      <div class="pc-panel-eyebrow">Player profile</div>
+      <div class="pc-panel-title">Background & identity</div>
+      <div class="pc-panel-sub">Class, college, hometown, draft slot, jersey & status. The drafted-round/pick tile awaits a separate NFL-draft data source.</div>
+      ${sleeperReady
+        ? `<div class="pc-tiles" style="margin-top:8px">${_pcBackgroundTiles(data)}</div>`
+        : `<div class="pc-hist-empty">Loading background data…</div>`}`;
+  }
+
+  function _pcPanelAdp(name, data) {
+    const adpReady = !!window.PC_ADP_BY_YEAR;
+    const fmtLabel = (PC.fmt === '1qb') ? '1QB' : 'SF';
+    return `
+      <div class="pc-panel-eyebrow">Dynasty startup ADP — ${fmtLabel}</div>
+      <div class="pc-panel-title">Per-year overall rank</div>
+      <div class="pc-panel-sub">Annual overall startup-ADP rank from FantasyPoints dynasty drafts. Chart highlights the player's trajectory; year cells below show the precise rank + positional rank.</div>
+      ${adpReady
+        ? `${_pcAdpHistoryChart(name)}${_pcAdpHistoryRow(name, data.fp)}`
+        : `<div class="pc-hist-empty">Loading per-year ADP files…</div>`}`;
+  }
+
+  function _pcPanelValue(name, data) {
+    const fmtLabel = (PC.fmt === '1qb') ? '1QB' : 'SF';
+    return `
+      <div class="pc-panel-eyebrow">FantasyPoints dynasty value — ${fmtLabel}</div>
+      <div class="pc-panel-title">Trade-value trend</div>
+      <div class="pc-panel-sub">Recent dynasty trade-value movement — daily snapshots from FantasyPoints' dynasty data. PEAK / LOW / AVG / CURRENT summary below the chart.</div>
+      ${_pcFpValueSection(name, data.fp)}`;
+  }
+
+  function _pcPanelCareer(name, data) {
+    return `
+      <div class="pc-panel-eyebrow">Career stats by season</div>
+      <div class="pc-panel-title">Production history</div>
+      <div class="pc-panel-sub">Data Suite full-PPR scoring · 2021–2025. Click any year to expand week-by-week splits for that season.</div>
+      <div id="pc-hist-stats-mount">
+        <div class="pc-hist-stats-loading">Loading season stats…</div>
+      </div>`;
+  }
+
+  function _pcPanelTrades(name, data) {
+    return `
+      <div class="pc-panel-eyebrow">Recent trades</div>
+      <div class="pc-panel-title">Trade activity</div>
+      <div class="pc-panel-sub">Actual dynasty-league trades involving this player from FantasyPoints' transaction feed. Wiring ships in phase 2d.</div>
+      <div class="pc-hist-empty" style="padding:60px 14px">Recent trades feed will mount here.</div>`;
+  }
+
+  // ─── Tab bar + active panel ────────────────────────────────────────
   function _pcRenderHistorical(name) {
     const data = _pcCardData(name);
     if (!data) return '';
-    const adpReady = !!window.PC_ADP_BY_YEAR;
-    const sleeperReady = !!data.sleeper;
-    const fmtLabel = (PC.fmt === '1qb') ? '1QB' : 'SF';
+
+    const tabs = [
+      { key: 'profile', label: 'Profile' },
+      { key: 'adp',     label: 'ADP' },
+      { key: 'value',   label: 'Value' },
+      { key: 'career',  label: 'Career' },
+      { key: 'trades',  label: 'Trades' },
+    ];
+    const tabBar = tabs.map(t => `
+      <button class="pc-tab-btn${PC.tab === t.key ? ' is-active' : ''}"
+              data-tab="${t.key}"
+              onclick="_pcSetTab('${t.key}')">${t.label}</button>
+    `).join('');
+
+    let panel = '';
+    switch (PC.tab) {
+      case 'adp':     panel = _pcPanelAdp(name, data);     break;
+      case 'value':   panel = _pcPanelValue(name, data);   break;
+      case 'career':  panel = _pcPanelCareer(name, data);  break;
+      case 'trades':  panel = _pcPanelTrades(name, data);  break;
+      case 'profile':
+      default:        panel = _pcPanelProfile(name, data); break;
+    }
 
     return `
       <div class="pc-historical" id="pc-historical">
-
-        <div class="pc-hist-section">
-          <div class="pc-hist-section-title">Background</div>
-          ${sleeperReady ? `
-            <div class="pc-tiles">${_pcBackgroundTiles(data)}</div>
-          ` : `<div class="pc-hist-empty">Loading background data…</div>`}
-        </div>
-
-        <div class="pc-hist-section">
-          <div class="pc-hist-section-title">Dynasty Startup ADP — ${fmtLabel}</div>
-          <div class="pc-hist-section-sub">Per-year overall rank from FantasyPoints dynasty drafts</div>
-          ${adpReady
-            ? `${_pcAdpHistoryChart(name)}${_pcAdpHistoryRow(name, data.fp)}`
-            : `<div class="pc-hist-empty">Loading per-year ADP files…</div>`}
-        </div>
-
-        <div class="pc-hist-section">
-          <div class="pc-hist-section-title">Fantasy Points Dynasty Value — ${fmtLabel}</div>
-          <div class="pc-hist-section-sub">Recent trade-value movement (FantasyPoints dynasty data · daily snapshots)</div>
-          ${_pcFpValueSection(name, data.fp)}
-        </div>
-
+        <div class="pc-tabs-bar">${tabBar}</div>
+        <div class="pc-tab-panel">${panel}</div>
       </div>`;
   }
 
