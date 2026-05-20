@@ -6,6 +6,78 @@ the operator manual see [`WORKFLOW.md`](WORKFLOW.md).
 
 ---
 
+## 2026-05-20 (eleventh session) — UI overhaul for OBS Browser Source readability
+
+Site-wide rendering envelope re-tuned in **one bundled commit** (`fae0818`) after iterative A/B with the user on an actual OBS Browser Source canvas. The session opened as a "Production view toggle" but consolidated to a single default mid-session — the new design dominates the old in every relevant context (direct browser + OBS), so a permanent toggle would be maintenance burden, not UX gain.
+
+### What shipped
+
+**1. Adaptive base zoom**
+`body { zoom: N }` stepped via `@media (max-width: ...)` breakpoints:
+
+| Viewport CSS | Body zoom | Use case |
+|---|---|---|
+| ≥1600 | **1.75** | OBS canvas / wide monitor at 100% browser |
+| 1300-1599 | **1.5** | 1080p monitor / ~110-125% browser zoom |
+| 1100-1299 | **1.25** | Smaller laptop / ~130-150% browser zoom |
+| 769-1099 | **1.0** | Narrow window / aggressive Ctrl+wheel zoom |
+| ≤768 | **1.0** | Mobile (unchanged) |
+
+When a user Ctrl+wheel zooms in, the browser shrinks the layout viewport in CSS px, the breakpoints fire, and base zoom steps down — net effect: the chrome auto-fits any window/zoom combination without horizontal cutoff. Wide inner surfaces (ADP grid, draft board) still scroll horizontally within their wrappers when content exceeds container.
+
+**2. Lifted 1440px content cap on desktop**
+`.topnav`, `.page`, and `footer` get `max-width: none` + `padding-inline: 32px` inside `@media (min-width: 769px)`. Replaces the old 1440px cap that left large dead side gutters at higher zoom. 32px CSS = 64px visual at 1.75x — content fills the viewport with consistent breathing margin on each side. `html`-prefixed selectors beat the 5 inline-duplicate `.topnav` / `.page` blocks via specificity (0,1,1 vs 0,0,1) — no per-page edits needed.
+
+**3. ADP 12-team grid fluid-fit**
+`adp-tool.html` `renderBoxView` JS path simplified — for 12-team boards only: `cellMin=88, headW=24, minWidth=0` with `minmax(88px, 1fr)` flex expansion. All 12 columns now fit any viewport at 1.75x. 8/10/14-team keep their existing explicit min-widths and may scroll horizontally on narrower viewports (14-team was explicitly called out as "not for production" by the user).
+
+**4. Topnav adaptive content shedding**
+Progressive compression across breakpoints:
+
+| Viewport CSS | Logo SVG | FRONT OFFICE tag | Updated stamp | Nav links |
+|---|---|---|---|---|
+| ≥1600 | 20px | shown | shown | inline (9 links) |
+| 1300-1599 | 18px | hidden | shown | inline (9 links) |
+| 1100-1299 | 16px | hidden | hidden | inline (tighter font) |
+| 769-1099 | 16px | hidden | hidden | **collapse to mobile-nav-select dropdown** |
+| ≤768 | 20px | hidden | hidden | dropdown (mobile, unchanged) |
+
+The 769-1099 band reuses the existing mobile-nav-select `<select>` (same orange chevron) so the topnav always reads cleanly at any desktop width. Also defensive: explicit `background: var(--nav-bg)` on `.topnav` itself so the topnav has its own background regardless of what the parent `.topnav-wrap` div does (sticky-positioning edge-case insurance).
+
+### Phase 0 calibration scaffold (removed)
+
+The session opened with a Phase 0 calibration scaffold: `assets/js/view-mode.js` (synchronous head-loaded URL-param / localStorage applier) + `html.production-view` CSS class + console helpers (`setProdScale(n)` / `exitProdView()`). After the user A/B'd scales visually and locked 1.75x as the new default, the scaffold was deleted in one consolidation pass:
+
+- `assets/js/view-mode.js` removed
+- `<script src=".../view-mode.js">` head injections removed from 10 pages (9 deployed + `templates/page-template.html`)
+- `html.production-view` selector layer dropped from `brand.css` + 5 inline duplicates
+- `adp-tool.html` JS branch `inProd / prod12` simplified to `TC === 12`
+
+Grep verification: zero references to `view-mode | production-view | prod-zoom | setProdScale | exitProdView` anywhere in the codebase.
+
+### Files touched (commit `fae0818`)
+
+12 files, 143 insertions, 35 deletions:
+- `assets/css/brand.css` — zoom block + desktop @media block (overflow + max-width + topnav scaling + adaptive content-hiding)
+- `assets/js/legend-content.js` — doc comment updated to reflect adaptive zoom
+- `adp-tool.html` — JS box-view sizing simplified for 12-team
+- 5 pages with inline duplicates updated (`index`, `trade-calculator`, `tiers`, `adp-tool`, `my-leagues`) — zoom values + overflow rules
+- All 9 deployed pages + template — cache token bump, view-mode.js script tag removed
+
+Cache token: `brand.css ?v=1780600000 → ?v=1782400010` across all 10 consumers (single final state after all calibration iterations).
+
+### Per-page audit
+
+After commit, walked through every deployed page at the new defaults — **no issues**. Adaptive zoom + lifted side margins + auto-fitting topnav all work cleanly on: `index`, `trade-calculator`, `tiers`, `adp-tool`, `my-leagues`, `rankings`, `formulas`, `compare`, `live-draft`.
+
+Color audit CLEAN across 30 files (was 31 — `view-mode.js` deleted).
+
+### Memory
+
+New durable feedback saved: **"Single mode over toggles"** — for UI overhauls where the new design dominates the old, consolidate to a single default rather than shipping a permanent mode toggle. Captures the rationale (the consolidation was explicitly user-directed mid-session) so future Claude sessions default to "Phase 0 = calibration scaffold; Phase N = consolidate" as the rollout shape for any major UI shift.
+
+---
+
 ## 2026-05-20 (tenth session) — Player Comparison page (`compare.html`)
 
 New `compare.html` shipped end-to-end across **17 commits in 8 phases** (0-8). Slots into the top nav between Calculator and My Leagues. Two distinct modes (Profile / Table) with notably different shapes — Profile is the deep dive (1-2 players), Table is the broad scan (2-4 players).

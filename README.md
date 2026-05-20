@@ -12,7 +12,49 @@ This file is the **resume-where-we-left-off** doc.
 
 ---
 
-## Where we are (end of 2026-05-20 — tenth session)
+## Where we are (end of 2026-05-20 — eleventh session)
+
+**Site-wide UI overhaul shipped + pushed to GitHub Pages.** One bundled commit (`fae0818`) replaced the long-standing 1.25x zoom + 1440px max-width chrome with an adaptive design sized for OBS Browser Source readability.
+
+### What changed
+
+- **Adaptive base zoom** — `body { zoom: N }` stepped via @media breakpoints (1.75 default at viewport ≥1600 / 1.5 at 1300-1599 / 1.25 at 1100-1299 / 1.0 at ≤1099 + ≤768 mobile). When user Ctrl+wheel zooms in, browser shrinks layout viewport in CSS px, breakpoints fire, base zoom steps down — chrome auto-fits any window/zoom combination without horizontal cutoff.
+
+- **Lifted 1440px content cap on desktop** — `.topnav`, `.page`, `footer` get `max-width: none` + `padding-inline: 32px`. Content fills viewport with a consistent 32px breathing margin instead of leaving large dead side gutters at higher zoom. Mobile keeps the original cap.
+
+- **ADP 12-team grid fluid-fit** — `renderBoxView` JS simplified for `TC === 12`: `cellMin=88, headW=24, minWidth=0`. All 12 columns fit any viewport at 1.75x via `minmax(88, 1fr)` flex expansion. 8/10/14-team unchanged.
+
+- **Topnav adaptive content shedding** — FRONT OFFICE tag hides at ≤1599 viewport; Updated stamp hides at ≤1299; inline nav-links collapse into the existing mobile-nav-select dropdown at ≤1099. Logo SVG also shrinks 20→18→16 across breakpoints. All `html`-prefixed selectors that beat 5 inline-duplicate `.topnav` blocks via specificity — no per-page edits needed.
+
+### Phase 0 calibration scaffold removed
+
+Session opened with `assets/js/view-mode.js` + `html.production-view` class as a calibration tool for A/B-testing zoom values. After locking 1.75x, the scaffold was fully deleted (view-mode.js gone, 10 head injections removed, `html.production-view` selector dropped from `brand.css` + 5 inline duplicates). Grep verification: zero leftover references anywhere in the codebase.
+
+**Memory saved:** "Single mode over toggles" — for UI overhauls where the new design dominates the old, consolidate to a single default rather than shipping a permanent mode toggle.
+
+### Per-page audit
+
+Walked every deployed page (`index`, `trade-calculator`, `tiers`, `adp-tool`, `my-leagues`, `rankings`, `formulas`, `compare`, `live-draft`) at the new defaults — no issues. Adaptive zoom + lifted side margins + auto-fitting topnav all work cleanly.
+
+### What's queued next (unchanged from session 10)
+
+1. compare.html refinements — open analyst questions in FORMULAS.md §§44, 47, 48, 49, 50 (similarity weights, tie behavior, Last-N default, near-tied bands, per-page scoring toggle)
+2. Prospect-score classifier — replaces `_pcArchetypeLabel(fp)` placeholder when prospect/route/coverage data ships
+3. NFL draft round/pick — Sleeper doesn't expose; tile marked `data-pending="nfl-draft-round-pick"`
+4. 1QB scrape SEED_USERS — external-blocked on user-supplied 1QB-active Sleeper usernames
+5. Analyst feedback loop on 14 heuristics + the new compare-similarity formula — external-blocked
+
+**Cache tokens bumped this session:** `brand.css ?v=1780600000 → ?v=1782400010` across all 10 consumers (single bump capturing all calibration iterations).
+
+**Audit:** `python scripts/check-colors.py` — CLEAN across 30 files (was 31; `view-mode.js` deleted).
+
+**Commit:** `fae0818 ui: adaptive layout zoom + lifted side gutters + auto-fitting topnav`. Pushed to `origin/main`.
+
+See [`docs/CHANGES.md`](docs/CHANGES.md) 2026-05-20 (eleventh session) for full per-edit detail.
+
+---
+
+## Where we were (end of 2026-05-20 — tenth session)
 
 **Player Comparison page shipped.** New `compare.html` slot in the top nav between Calculator and My Leagues. 9 commits across Phases 0-8 took the page from skeleton to full-featured player comparison surface — single-player deep dive (Profile mode) + 2-4 player stat comparison (Table mode), with side-by-side cards that contain tab content directly so each card is a self-contained mini-profile.
 
@@ -1129,55 +1171,52 @@ Nothing structural. Polish / nice-to-haves only:
 Paste this as the first message:
 
 ```
-Read README.md for current state. End-of-2026-05-19 (eighth session):
-- DRIFT #4 CLOSED — player-panel.css !important refactor in 2 passes
-  (commits 4d9cd9c + b309ccd). Mobile section: 97 → 4 !important.
-  All 4 remaining are doctrine-legitimate inline-style defenders
-  (each with an inline comment naming the JS line). Desktop CSS
-  byte-equivalent. Hard-rules audit punch list from session 7 = DONE.
-- DRIFT #6 CLOSED — 2021/2022 rushing Basic CSVs re-exported and
-  synced (commit 3612da1). Najee Harris 2021 spot-check verified.
-- OBS COMPATIBILITY SUITE shipped across 4 commits:
-  * iframe-scroll-fix.js (ee9df70) — shared module, only runs when
-    iframed, zero behavior change for direct visitors.
-  * custom combobox on live-draft.html (21eb03e) — hides native
-    <select> and mirrors state via MutationObserver + .value setter
-    override. Works around CEF native-<select> bug in cross-origin
-    iframes (OBS 32.1.2).
-  * horizontal scroll support (ace0025) — overflow-x:auto + wheel
-    handler aware of horizontal scrollers.
-  * middle-click drag-scroll (4c35b60) — manual Google-Maps-style
-    pan since CEF doesn't surface the native gesture in iframes.
-- ROOKIES TAB in my-leagues player exposure (ce85d59). New ROOKIE
-  filter button between TE and Picks; years_exp === 0 scoped to
-  QB/RB/WR/TE. Sidebar widened 360 → 440px so long names fit.
-- BACK-TO-TOP floating button (5422fa5) — new shared module on all
-  9 consumers. Bottom-right, stacked above the Legend trigger.
-- LIVE DRAFT ASSISTANT (session 7) + DATA-SUITE MIGRATION (session 7)
-  + PLAYER DRAWER stats migration (session 7) + ADP CLEANUP (session 7)
-  + SHARED sleeper-helpers.js trade engine (session 7) are all live
-  and still the source of truth — see prior session sections below.
-- Cache tokens at session close: player-panel.css ?v=1781500000,
-  iframe-scroll-fix.js ?v=1782100000, back-to-top.js ?v=1782200000.
-- Color audit CLEAN across 28 files.
+Read README.md for current state. End-of-2026-05-20 (eleventh session):
+- UI OVERHAUL SHIPPED — one bundled commit fae0818 replaced the long-
+  standing 1.25x zoom + 1440px max-width chrome with an adaptive design
+  sized for OBS Browser Source readability. Pushed to origin/main.
+  * body { zoom } stepped at 1600/1300/1100/768 viewport breakpoints
+    (1.75 / 1.5 / 1.25 / 1.0 / mobile 1.0)
+  * .topnav / .page / footer have max-width: none + padding-inline: 32px
+    on desktop. Mobile keeps the original 1440 cap.
+  * ADP 12-team grid fluid-fits: cellMin=88, headW=24, minWidth=0 with
+    minmax(88, 1fr) flex expansion. All 12 cols fit any viewport at 1.75x.
+    8/10/14-team unchanged.
+  * Topnav adaptive content-shedding: FRONT OFFICE tag hides ≤1599;
+    Updated stamp hides ≤1299; inline nav-links collapse into the existing
+    mobile-nav-select dropdown ≤1099. Logo SVG shrinks 20→18→16. All
+    html-prefixed selectors that beat 5 inline-duplicate .topnav blocks
+    via specificity (no per-page edits needed).
+- PHASE 0 CALIBRATION SCAFFOLD REMOVED — view-mode.js + html.production-
+  view selector layer + setProdScale console helpers all gone. Single
+  default, no toggle. Grep confirms zero leftover references.
+- PLAYER COMPARISON (session 10) — compare.html still the headline
+  feature page, 9 commits / 8 phases shipping Profile + Table modes
+  with side-by-side cards and similarity scoring (45/30/25 weights on
+  FP value / PPG / age).
+- Cache tokens at session close: brand.css ?v=1782400010 across all 10
+  consumers. Other shared module tokens unchanged from session 10.
+- Color audit CLEAN across 30 files (was 31; view-mode.js deleted).
 
 Confirm by running `git log --oneline -25`.
 
 PUNCH LIST (present this to the user at session start — don't act
 on any item without explicit user direction):
-  1. Player Comparison full page — UNBLOCKED, next big initiative.
-     Two visual refs (Underdog stat-table layout + Hayden-Winks
-     profile-matches layout — Desktop/Player comparison page.jpg +
-     Desktop/HIm4pBXaUAAsSMz.jpg). STATS_DATA[key].seasons ready for
-     career-trend rendering.
-  2. 1QB scrape SEED_USERS — external-blocked on user-supplied
-     1QB-active Sleeper usernames.
-  3. Analyst feedback loop — external-blocked on analyst input on
-     14 heuristics flagged in formulas.html.
-  4. my-leagues inline-style cleanup — deferred (~280 1-off /
-     JS-toggled, diminishing returns per
-     docs/ml-inline-style-inventory.md).
-  5. Visual polish — open-ended; surface specific issues as they come up.
+  1. compare.html refinements — open analyst questions in FORMULAS.md
+     §§44, 47, 48, 49, 50 (similarity weights, tie behavior, Last-N
+     window default, near-tied bands, per-page scoring toggle).
+  2. Prospect-score classifier — replaces _pcArchetypeLabel(fp)
+     placeholder when prospect/route/coverage data ships. Tile marked
+     data-pending="archetype-classifier".
+  3. NFL draft round/pick — Sleeper /players/nfl doesn't expose. Tile
+     marked data-pending="nfl-draft-round-pick"; needs a different source.
+  4. 1QB scrape SEED_USERS — external-blocked on user-supplied 1QB-active
+     Sleeper usernames.
+  5. Analyst feedback loop — external-blocked on analyst recommendations
+     for the 14 original heuristics + the new compare-similarity formula.
+  6. my-leagues inline-style cleanup — deferred (~46 remaining are the
+     --bar-width / display:none design end-state).
+  7. Visual polish — open-ended; surface specific issues as they come up.
 
 ALL of the above are either user-deferred, external-blocked, or
 require user direction. Don't auto-start work — present the list +
