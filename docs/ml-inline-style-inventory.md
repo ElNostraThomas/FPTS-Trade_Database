@@ -1,7 +1,7 @@
 # my-leagues.html inline-style inventory
 
-Generated from `my-leagues.html` (8499 lines).
-Total `style="..."` occurrences: **88**.
+Generated from `my-leagues.html` (8509 lines).
+Total `style="..."` occurrences: **68**.
 
 This is a read-only audit. No code was changed. The goal is to make the
 refactor safe to execute supervised by giving every occurrence a category,
@@ -13,11 +13,11 @@ a section assignment, and an actionability verdict.
 
 | Mode | Count | % | Refactorable to CSS class? |
 |---|---|---|---|
-| `dynamic` | 44 | 50.0% | Conditional - if the interpolated value is a discrete enum, use a modifier class (e.g. `.is-active`); otherwise leave inline |
-| `static` | 40 | 45.5% | Yes - pure HTML attribute, drop into a class |
-| `dynamic-context` | 4 | 4.5% | Conditional - inside a JS-built HTML string; refactor only if the declaration set is static |
+| `dynamic` | 44 | 64.7% | Conditional - if the interpolated value is a discrete enum, use a modifier class (e.g. `.is-active`); otherwise leave inline |
+| `static` | 21 | 30.9% | Yes - pure HTML attribute, drop into a class |
+| `dynamic-context` | 3 | 4.4% | Conditional - inside a JS-built HTML string; refactor only if the declaration set is static |
 
-**Headline:** ~40 are directly refactorable, ~48 require case-by-case judgement, ~0 must stay inline (JS-set).
+**Headline:** ~21 are directly refactorable, ~47 require case-by-case judgement, ~0 must stay inline (JS-set).
 
 ---
 
@@ -27,31 +27,31 @@ Which CSS properties carry most of the inline styling. Where one property domina
 
 | Property | Count |
 |---|---|
-| `color` | 16 |
-| `display` | 15 |
-| `fill-rule` | 14 |
-| `fill` | 14 |
-| `font-family` | 7 |
+| `color` | 15 |
+| `display` | 14 |
 | `font-style` | 7 |
-| `font-size` | 6 |
+| `font-family` | 6 |
 | `background` | 6 |
-| `align-items` | 5 |
-| `gap` | 5 |
-| `width` | 5 |
 | `font-weight` | 5 |
+| `font-size` | 5 |
+| `gap` | 4 |
+| `align-items` | 4 |
 | `margin-bottom` | 4 |
 | `--st-pos-color` | 4 |
-| `flex-shrink` | 3 |
-| `margin-right` | 3 |
 | `--archetype-bg` | 3 |
 | `--archetype-fg` | 3 |
 | `padding` | 3 |
+| `width` | 3 |
 | `--rank-color` | 3 |
 | `border` | 3 |
 | `--rp-stripe-color` | 3 |
-| `text-align` | 2 |
 | `border-radius` | 2 |
 | `max-width` | 2 |
+| `opacity` | 2 |
+| `--pos-color` | 2 |
+| `--cell-value-color` | 2 |
+| `--cell-proj-color` | 2 |
+| `--cell-proj-opacity` | 2 |
 
 ---
 
@@ -61,7 +61,6 @@ Each row below is a strong refactor candidate: same declaration set appearing N 
 
 | Count | Normalized declaration set |
 |---|---|
-| 13 | `fill-rule:nonzero; fill:var(--black)` |
 | 7 | `display:none` |
 | 2 | `...` |
 | 2 | `--archetype-bg:${mlArchetypeBg(archetype)}; --archetype-fg:${mlArchetypeFg(archetype)}` |
@@ -79,7 +78,6 @@ Sorted by count - the busiest regions are the highest-leverage refactor batches.
 
 | Count | Region (nearest banner-comment heading above the hit) |
 |---|---|
-| 21 | RIGHT: player exposure sidebar |
 | 6 | Sort rosters by chosen key |
 | 5 | Close player-detail modal if open |
 | 5 | Helpers |
@@ -99,6 +97,7 @@ Sorted by count - the busiest regions are the highest-leverage refactor batches.
 | 2 | Aggregate per-roster |
 | 2 | Update section meta with archetype legend + league averages |
 | 1 | Columns: expandable league list (left) + player exposure (right) |
+| 1 | RIGHT: player exposure sidebar |
 | 1 | Archetype lookup for the owning team |
 | 1 | Render the current state of the suggestion pre-screener |
 | 1 | Render the current suggestion as a single card |
@@ -135,210 +134,190 @@ Each phase is one short, supervised session. Verify in-browser between phases.
 
 Every hit, grouped under the nearest banner-comment heading above it. Use this to find specific lines while refactoring.
 
-### RIGHT: player exposure sidebar (21)
-
-| Line | Mode | Declaration |
-|---|---|---|
-| 3226 | static | `display:flex;align-items:center;gap:8px` |
-| 3227 | static | `font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);width:12px;text-align:center;flex-shrink:0;transition:transfo...` |
-| 3233 | static | `display:none` |
-| 3252 | static | `width:24px;flex-shrink:0` |
-| 3253 | static | `flex:1` |
-| 3268 | static | `fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;` |
-| 3268 | static | `fill:#c33;` |
-| 3268 | static | `fill:var(--black);fill-rule:nonzero;` |
-| 3268 | static | `fill:var(--black);fill-rule:nonzero;` |
-| 3268 | static | `fill:var(--black);fill-rule:nonzero;` |
-| 3268 | static | `fill:var(--black);fill-rule:nonzero;` |
-| 3268 | static | `fill:var(--black);fill-rule:nonzero;` |
-| 3268 | static | `fill:var(--black);fill-rule:nonzero;` |
-| 3268 | static | `fill:var(--black);fill-rule:nonzero;` |
-| 3268 | static | `fill:var(--black);fill-rule:nonzero;` |
-| 3268 | static | `fill:var(--black);fill-rule:nonzero;` |
-| 3268 | static | `fill:var(--black);fill-rule:nonzero;` |
-| 3268 | static | `fill:var(--black);fill-rule:nonzero;` |
-| 3268 | static | `fill:var(--black);fill-rule:nonzero;` |
-| 3268 | static | `fill:var(--black);fill-rule:nonzero;` |
-| 3270 | dynamic-context | `flex-shrink:0;vertical-align:middle;margin-right:4px` |
-
 ### Sort rosters by chosen key (6)
 
 | Line | Mode | Declaration |
 |---|---|---|
-| 8193 | dynamic | `--bar-width:${w}%;--bar-color:${posColors[pos]}` |
-| 8198 | dynamic | `--top-pos-color:${posColors[r.topScoringPos]}` |
-| 8217 | dynamic | `--st-pos-color:${posColors.QB}` |
-| 8218 | dynamic | `--st-pos-color:${posColors.RB}` |
-| 8219 | dynamic | `--st-pos-color:${posColors.WR}` |
-| 8220 | dynamic | `--st-pos-color:${posColors.TE}` |
+| 8203 | dynamic | `--bar-width:${w}%;--bar-color:${posColors[pos]}` |
+| 8208 | dynamic | `--top-pos-color:${posColors[r.topScoringPos]}` |
+| 8227 | dynamic | `--st-pos-color:${posColors.QB}` |
+| 8228 | dynamic | `--st-pos-color:${posColors.RB}` |
+| 8229 | dynamic | `--st-pos-color:${posColors.WR}` |
+| 8230 | dynamic | `--st-pos-color:${posColors.TE}` |
 
 ### Close player-detail modal if open (5)
 
 | Line | Mode | Declaration |
 |---|---|---|
-| 5267 | dynamic-context | `margin-top:14px;padding-top:14px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:8px;align-items:center` |
-| 5269 | static | `display:inline-block;font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:12px;color:var(--white);backgro...` |
-| 5271 | static | `font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);font-style:italic;text-align:center;line-height:1.5;max-width...` |
-| 5285 | dynamic | `color:${diff>0?'var(--red)':diff<0?'var(--green)':'var(--white)'}` |
-| 5345 | dynamic-context | `opacity:.5` |
+| 5277 | dynamic-context | `margin-top:14px;padding-top:14px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:8px;align-items:center` |
+| 5279 | static | `display:inline-block;font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:12px;color:var(--white);backgro...` |
+| 5281 | static | `font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);font-style:italic;text-align:center;line-height:1.5;max-width...` |
+| 5295 | dynamic | `color:${diff>0?'var(--red)':diff<0?'var(--green)':'var(--white)'}` |
+| 5355 | dynamic-context | `opacity:.5` |
 
 ### Helpers (5)
 
 | Line | Mode | Declaration |
 |---|---|---|
-| 7068 | dynamic | `--cell-value-color:${valColor(r.value)}` |
-| 7070 | dynamic | `--cell-proj-color:${seasonProjColor};--cell-proj-opacity:${seasonProjOpacity}` |
-| 7071 | dynamic | `--cell-proj-color:${projColor};--cell-proj-opacity:${projOpacity}` |
-| 7088 | dynamic | `--rp-stripe-color:${posColors[pos]}` |
-| 7092 | dynamic | `--rp-total-color:${posColors[pos]}` |
+| 7078 | dynamic | `--cell-value-color:${valColor(r.value)}` |
+| 7080 | dynamic | `--cell-proj-color:${seasonProjColor};--cell-proj-opacity:${seasonProjOpacity}` |
+| 7081 | dynamic | `--cell-proj-color:${projColor};--cell-proj-opacity:${projOpacity}` |
+| 7098 | dynamic | `--rp-stripe-color:${posColors[pos]}` |
+| 7102 | dynamic | `--rp-total-color:${posColors[pos]}` |
 
 ### Total roster value (5)
 
 | Line | Mode | Declaration |
 |---|---|---|
-| 7221 | dynamic | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:13px;color:${_rankColor(rank)};padding:1px 6px;backg...` |
-| 7225 | static | `display:flex;gap:16px;flex-wrap:wrap;margin-bottom:24px;padding:16px;background:var(--surface2);border:1px solid var(--border)` |
-| 7226 | dynamic | `display:flex;align-items:center;gap:8px;margin-bottom:2px` |
-| 7228 | dynamic | `display:flex;align-items:center;gap:8px;margin-bottom:2px` |
-| 7231 | dynamic | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:22px;color:var(--green)` |
+| 7231 | dynamic | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:13px;color:${_rankColor(rank)};padding:1px 6px;backg...` |
+| 7235 | static | `display:flex;gap:16px;flex-wrap:wrap;margin-bottom:24px;padding:16px;background:var(--surface2);border:1px solid var(--border)` |
+| 7236 | dynamic | `display:flex;align-items:center;gap:8px;margin-bottom:2px` |
+| 7238 | dynamic | `display:flex;align-items:center;gap:8px;margin-bottom:2px` |
+| 7241 | dynamic | `font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:22px;color:var(--green)` |
 
 ### Trade Builder Modal — opens over the player detail modal (z-index 250) (5)
 
 | Line | Mode | Declaration |
 |---|---|---|
-| 8476 | static | `z-index:250` |
-| 8480 | static | `margin-right:8px` |
-| 8487 | static | `z-index:260` |
-| 8488 | static | `max-width:540px` |
-| 8491 | static | `margin-right:8px` |
+| 8486 | static | `z-index:250` |
+| 8490 | static | `margin-right:8px` |
+| 8497 | static | `z-index:260` |
+| 8498 | static | `max-width:540px` |
+| 8501 | static | `margin-right:8px` |
 
 ### PICKS BRANCH (4)
 
 | Line | Mode | Declaration |
 |---|---|---|
-| 6605 | static | `background:var(--surface2);display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--border)` |
-| 6605 | static | `display:block` |
-| 6607 | dynamic | `color:#9b91d4` |
-| 6610 | dynamic | `color:${expoColor(p.exposure)}` |
+| 6615 | static | `background:var(--surface2);display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--border)` |
+| 6615 | static | `display:block` |
+| 6617 | dynamic | `color:#9b91d4` |
+| 6620 | dynamic | `color:${expoColor(p.exposure)}` |
 
 ### Renders draft picks in the same visual layout as a position section so the (4)
 
 | Line | Mode | Declaration |
 |---|---|---|
-| 7135 | static | `--rp-stripe-color:var(--pos-pick-bg)` |
-| 7172 | dynamic | `--cell-value-color:${valColor}` |
-| 7182 | static | `--rp-stripe-color:var(--pos-pick-bg)` |
-| 7186 | dynamic | `--rp-total-color:var(--pos-pick-bg)` |
+| 7145 | static | `--rp-stripe-color:var(--pos-pick-bg)` |
+| 7182 | dynamic | `--cell-value-color:${valColor}` |
+| 7192 | static | `--rp-stripe-color:var(--pos-pick-bg)` |
+| 7196 | dynamic | `--rp-total-color:var(--pos-pick-bg)` |
 
 ### Stash render context on window so the sort buttons can re-render (4)
 
 | Line | Mode | Declaration |
 |---|---|---|
-| 8089 | dynamic | `--mpx-color:${mpxColor}` |
-| 8102 | dynamic | `--pos-color:${posColors[pos]}` |
-| 8107 | dynamic | `--rank-color:${color}` |
-| 8112 | dynamic | `--rank-color:${scoreColor}` |
+| 8099 | dynamic | `--mpx-color:${mpxColor}` |
+| 8112 | dynamic | `--pos-color:${posColors[pos]}` |
+| 8117 | dynamic | `--rank-color:${color}` |
+| 8122 | dynamic | `--rank-color:${scoreColor}` |
 
 ### Team logo helpers — load BEFORE player-panel.js so modal-hero badge works. (3)
 
 | Line | Mode | Declaration |
 |---|---|---|
-| 2962 | static | `...` |
-| 3019 | static | `...` |
-| 3185 | static | `display:none` |
+| 2972 | static | `...` |
+| 3029 | static | `...` |
+| 3195 | static | `display:none` |
 
 ### Render an archetype chip (3)
 
 | Line | Mode | Declaration |
 |---|---|---|
-| 3871 | dynamic | `--pos-bg:${c}` |
-| 3971 | static | `display:none` |
-| 3976 | static | `display:none` |
+| 3881 | dynamic | `--pos-bg:${c}` |
+| 3981 | static | `display:none` |
+| 3986 | static | `display:none` |
 
 ### Ensure roster/users/players are loaded and stashed on window for the modal layer (3)
 
 | Line | Mode | Declaration |
 |---|---|---|
-| 5963 | dynamic | `--pos-color:${color}` |
-| 5965 | dynamic | `--rank-color:${rankColor}` |
-| 6009 | dynamic | `display:none` |
+| 5973 | dynamic | `--pos-color:${color}` |
+| 5975 | dynamic | `--rank-color:${rankColor}` |
+| 6019 | dynamic | `display:none` |
 
 ### Group transactions by roster (3)
 
 | Line | Mode | Declaration |
 |---|---|---|
-| 7732 | dynamic | `color:var(--red);font-size:10px;font-style:italic` |
-| 7733 | dynamic | `color:var(--yellow)` |
-| 7733 | dynamic | `color:var(--green)` |
+| 7742 | dynamic | `color:var(--red);font-size:10px;font-style:italic` |
+| 7743 | dynamic | `color:var(--yellow)` |
+| 7743 | dynamic | `color:var(--green)` |
 
 ### Sort state for the leagues list (2)
 
 | Line | Mode | Declaration |
 |---|---|---|
-| 5757 | dynamic | `width:${w}%;background:${s.color}` |
-| 5764 | dynamic-context | `opacity:.3` |
+| 5767 | dynamic | `width:${w}%;background:${s.color}` |
+| 5774 | dynamic-context | `opacity:.3` |
 
 ### Save current scoped IDs so the existing loadRoster / loadAllTrades can target them (2)
 
 | Line | Mode | Declaration |
 |---|---|---|
-| 6090 | dynamic | `--archetype-bg:${mlArchetypeBg(archetype)};--archetype-fg:${mlArchetypeFg(archetype)}` |
-| 6101 | dynamic | `--pos-chip-color:${color};--rank-chip-color:${rankColor}` |
+| 6100 | dynamic | `--archetype-bg:${mlArchetypeBg(archetype)};--archetype-fg:${mlArchetypeFg(archetype)}` |
+| 6111 | dynamic | `--pos-chip-color:${color};--rank-chip-color:${rankColor}` |
 
 ### Color helpers (2)
 
 | Line | Mode | Declaration |
 |---|---|---|
-| 6706 | dynamic | `color:${posColor(p.position)}` |
-| 6709 | dynamic | `color:${expoColor(p.exposure)}` |
+| 6716 | dynamic | `color:${posColor(p.position)}` |
+| 6719 | dynamic | `color:${expoColor(p.exposure)}` |
 
 ### Store per-league so multiple leagues can expand without collision (2)
 
 | Line | Mode | Declaration |
 |---|---|---|
-| 7379 | static | `margin-bottom:12px` |
-| 7380 | static | `display:none` |
+| 7389 | static | `margin-bottom:12px` |
+| 7390 | static | `display:none` |
 
 ### Aggregate per-roster (2)
 
 | Line | Mode | Declaration |
 |---|---|---|
-| 7537 | dynamic | `width:${maxSpent ? (r.spent/maxSpent*100).toFixed(0) : 0}%` |
-| 7539 | dynamic | `width:${budget ? (r.left/budget*100).toFixed(0) : 0}%` |
+| 7547 | dynamic | `width:${maxSpent ? (r.spent/maxSpent*100).toFixed(0) : 0}%` |
+| 7549 | dynamic | `width:${budget ? (r.left/budget*100).toFixed(0) : 0}%` |
 
 ### Update section meta with archetype legend + league averages (2)
 
 | Line | Mode | Declaration |
 |---|---|---|
-| 8134 | dynamic | `color:var(--white);font-family:'Kanit',sans-serif;font-weight:800;font-style:italic` |
-| 8134 | dynamic | `color:var(--white);font-family:'Kanit',sans-serif;font-weight:800;font-style:italic` |
+| 8144 | dynamic | `color:var(--white);font-family:'Kanit',sans-serif;font-weight:800;font-style:italic` |
+| 8144 | dynamic | `color:var(--white);font-family:'Kanit',sans-serif;font-weight:800;font-style:italic` |
 
 ### Columns: expandable league list (left) + player exposure (right) (1)
 
 | Line | Mode | Declaration |
 |---|---|---|
-| 3207 | static | `display:none` |
+| 3217 | static | `display:none` |
+
+### RIGHT: player exposure sidebar (1)
+
+| Line | Mode | Declaration |
+|---|---|---|
+| 3243 | static | `display:none` |
 
 ### Archetype lookup for the owning team (1)
 
 | Line | Mode | Declaration |
 |---|---|---|
-| 4307 | dynamic | `--archetype-bg:${mlArchetypeBg(r.ownerArchetype)};--archetype-fg:${mlArchetypeFg(r.ownerArchetype)}` |
+| 4317 | dynamic | `--archetype-bg:${mlArchetypeBg(r.ownerArchetype)};--archetype-fg:${mlArchetypeFg(r.ownerArchetype)}` |
 
 ### Render the current state of the suggestion pre-screener (1)
 
 | Line | Mode | Declaration |
 |---|---|---|
-| 4674 | dynamic | `--archetype-bg:${mlArchetypeBg(archetype)};--archetype-fg:${mlArchetypeFg(archetype)}` |
+| 4684 | dynamic | `--archetype-bg:${mlArchetypeBg(archetype)};--archetype-fg:${mlArchetypeFg(archetype)}` |
 
 ### Render the current suggestion as a single card (1)
 
 | Line | Mode | Declaration |
 |---|---|---|
-| 4804 | dynamic | `--balance-color:${balanceColor}` |
+| 4814 | dynamic | `--balance-color:${balanceColor}` |
 
 ### Close modals on Escape (1)
 
 | Line | Mode | Declaration |
 |---|---|---|
-| 5393 | dynamic | `color:${color};border-color:${color};background:${bg}` |
+| 5403 | dynamic | `color:${color};border-color:${color};background:${bg}` |
