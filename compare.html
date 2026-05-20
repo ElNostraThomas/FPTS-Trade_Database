@@ -1064,9 +1064,11 @@
     player: null,          // single player name (profile mode)
     players: [],           // up to 4 names (table mode — phase 3)
     tab: 'profile',        // 'profile' | 'adp' | 'heatmap' | 'value' | 'career' | 'trades'
+    games: 4,              // last-N games window for Table mode: 4 | 8 | 16
     searchTimer: null,
   };
   const PC_TABS = ['profile', 'adp', 'heatmap', 'value', 'career', 'trades'];
+  const PC_GAMES = [4, 8, 16];
 
   // ─── URL hash routing ──────────────────────────────────────────────
   function _pcParseHash() {
@@ -1077,6 +1079,8 @@
     PC.fmt  = p.get('fmt')  === '1qb'   ? '1qb'   : 'sf';
     const t = p.get('tab');
     PC.tab  = PC_TABS.indexOf(t) >= 0 ? t : 'profile';
+    const g = parseInt(p.get('games'), 10);
+    PC.games = PC_GAMES.indexOf(g) >= 0 ? g : 4;
     const player = p.get('player');
     PC.player = player ? decodeURIComponent(player.replace(/\+/g, ' ')) : null;
     const players = p.get('players');
@@ -1088,6 +1092,7 @@
     if (PC.mode !== 'profile') p.set('mode', PC.mode);
     if (PC.fmt  !== 'sf')      p.set('fmt',  PC.fmt);
     if (PC.tab  !== 'profile') p.set('tab',  PC.tab);
+    if (PC.games !== 4)        p.set('games', String(PC.games));
     if (PC.player)             p.set('player',  PC.player);
     if (PC.players.length)     p.set('players', PC.players.join(','));
     const s = p.toString();
@@ -1276,6 +1281,14 @@
   function _pcSetTab(tab) {
     if (PC_TABS.indexOf(tab) < 0) return;
     PC.tab = tab;
+    _pcWriteHash();
+    _pcRender();
+  }
+
+  function _pcSetGames(n) {
+    n = Number(n);
+    if (PC_GAMES.indexOf(n) < 0) return;
+    PC.games = n;
     _pcWriteHash();
     _pcRender();
   }
@@ -2255,6 +2268,210 @@
       </div>`;
   }
 
+  // ─── Stat helpers for the row groups ──────────────────────────────
+  // Full PPR + 4-pt pass TD baseline. Mirrors the data-suite's neutral
+  // scoring overlay used by renderPlayerStats; intentionally simple here
+  // so it's auditable in one place.
+  function _pcStdFpts(s) {
+    if (!s) return 0;
+    return (Number(s.passYards)  || 0) * 0.04
+         + (Number(s.passTd)     || 0) * 4
+         - (Number(s.passInts)   || 0) * 2
+         + (Number(s.rushYards)  || 0) * 0.1
+         + (Number(s.rushTd)     || 0) * 6
+         + (Number(s.recYards)   || 0) * 0.1
+         + (Number(s.recTd)      || 0) * 6
+         + (Number(s.rec)        || 0) * 1
+         - (Number(s.fumbles)    || 0) * 2;
+  }
+
+  // Sum a list of weekly records into one totals object. Skips non-numeric
+  // fields (opponent, seasonType) so they don't break the addition.
+  function _pcAggregateWeeks(weeks) {
+    const sums = {};
+    weeks.forEach(w => {
+      Object.keys(w).forEach(k => {
+        if (typeof w[k] !== 'number') return;
+        sums[k] = (sums[k] || 0) + w[k];
+      });
+    });
+    sums.games = weeks.length;
+    return sums;
+  }
+
+  function _pcLastNAggregate(name, n) {
+    const stats = _pcGetStats(name);
+    const cur = _pcCurrentSeason();
+    const season = stats && stats.seasons && stats.seasons[cur];
+    if (!season || !season.weeks) return null;
+    const weekList = Object.keys(season.weeks)
+      .filter(k => season.weeks[k] && season.weeks[k].games)
+      .map(k => ({ wk: Number(k), ...season.weeks[k] }));
+    if (!weekList.length) return null;
+    weekList.sort((a, b) => b.wk - a.wk);
+    const slice = weekList.slice(0, n);
+    return _pcAggregateWeeks(slice);
+  }
+
+  // Row definitions for season-stat groups. Each row knows how to read its
+  // stat from a stats record, how to format the displayed value, whether
+  // higher or lower is better, and whether to divide by games for per-game.
+  function _pcSeasonStatRows() {
+    return [
+      { key: 'games',      label: 'Games',      mode: 'max', perGame: false, get: s => s.games || 0 },
+      { key: 'fpts',       label: 'FPTS',       mode: 'max', perGame: true,  get: s => _pcStdFpts(s) },
+      { key: 'passYards',  label: 'Pass Yds',   mode: 'max', perGame: true,  get: s => s.passYards || 0 },
+      { key: 'passTd',     label: 'Pass TD',    mode: 'max', perGame: true,  get: s => s.passTd || 0 },
+      { key: 'passInts',   label: 'INT',        mode: 'min', perGame: true,  get: s => s.passInts || 0 },
+      { key: 'rushAtt',    label: 'Rush Att',   mode: 'max', perGame: true,  get: s => s.rushAtt || 0 },
+      { key: 'rushYards',  label: 'Rush Yds',   mode: 'max', perGame: true,  get: s => s.rushYards || 0 },
+      { key: 'rushTd',     label: 'Rush TD',    mode: 'max', perGame: true,  get: s => s.rushTd || 0 },
+      { key: 'targets',    label: 'Targets',    mode: 'max', perGame: true,  get: s => s.targets || 0 },
+      { key: 'rec',        label: 'Rec',        mode: 'max', perGame: true,  get: s => s.rec || 0 },
+      { key: 'recYards',   label: 'Rec Yds',    mode: 'max', perGame: true,  get: s => s.recYards || 0 },
+      { key: 'recTd',      label: 'Rec TD',     mode: 'max', perGame: true,  get: s => s.recTd || 0 },
+    ];
+  }
+
+  // Pick the best index (lowest or highest) skipping null cells.
+  function _pcBestIdx(values, mode) {
+    let bestIdx = -1, bestVal = null;
+    values.forEach((v, i) => {
+      if (v == null || isNaN(v)) return;
+      if (bestVal == null) { bestIdx = i; bestVal = v; return; }
+      if (mode === 'min' ? v < bestVal : v > bestVal) {
+        bestIdx = i; bestVal = v;
+      }
+    });
+    // No highlight when all values are equal (tie) or only one valid cell
+    const validVals = values.filter(v => v != null && !isNaN(v));
+    if (validVals.length < 2) return -1;
+    if (validVals.every(v => v === validVals[0])) return -1;
+    return bestIdx;
+  }
+
+  // Render a stat-table row from raw numeric values + a formatter.
+  function _pcTableStatRow(label, values, opts) {
+    opts = opts || {};
+    const fmt = opts.fmt || (v => v == null ? '—' : Number(v).toLocaleString());
+    const bestIdx = opts.bestIdx != null ? opts.bestIdx : _pcBestIdx(values, opts.mode || 'max');
+    const cells = values.map((v, i) => {
+      const empty = (v == null || (typeof v === 'number' && v === 0 && opts.zeroAsEmpty !== false));
+      const cellClass = 'pc-table-row-cell'
+        + (empty ? ' is-empty' : '')
+        + (i === bestIdx && !empty ? ' is-best' : '');
+      return `<div class="${cellClass}">${empty ? '—' : fmt(v)}</div>`;
+    }).join('');
+    return `
+      <div class="pc-table-row">
+        <div class="pc-table-row-label">${label}</div>
+        ${cells}
+      </div>`;
+  }
+
+  // Trade Value row group — ADP overall, ADP pos rank, FP value, trend.
+  function _pcTableTradeValueGroup() {
+    const fps = PC.players.map(n => n ? (window.FP_VALUES || {})[n] : null);
+    while (fps.length < 4) fps.push(null);
+    const curYear = _pcCurrentSeason();
+    const adp = PC.players.map(n => n ? _pcGetAdpForYear(n, curYear) : null);
+
+    const fmtRank   = v => v == null ? '—' : '#' + Math.round(v);
+    const fmtVal    = v => v == null ? '—' : Math.round(v).toLocaleString();
+    const fmtTrend  = v => {
+      if (v == null) return '—';
+      const n = Number(v);
+      if (!n) return '0';
+      return (n > 0 ? '+' : '') + Math.round(n).toLocaleString();
+    };
+
+    const adpOverall = adp.map(a => a && a.rank != null ? a.rank : null);
+    const adpPosRk   = adp.map(a => a && a.posRank   ? a.posRank : null);
+    const fpVal      = fps.map(fp => fp ? Number((PC.fmt === '1qb' ? fp.value1qb : (fp.valueSf != null ? fp.valueSf : fp.value)) || 0) : null);
+    const trend      = fps.map(fp => fp ? (fp.trend != null ? Number(fp.trend) : null) : null);
+
+    return `
+      <div class="pc-table-rowgroup">
+        <div class="pc-table-rowgroup-title">Trade Value · ${PC.fmt === '1qb' ? '1QB' : 'SF'}</div>
+        ${_pcTableStatRow('FP value',     fpVal,      { fmt: fmtVal, mode: 'max' })}
+        ${_pcTableStatRow('30d trend',    trend,      { fmt: fmtTrend, mode: 'max', zeroAsEmpty: false })}
+        ${_pcTableStatRow(`${curYear} ADP overall`, adpOverall, { fmt: fmtRank, mode: 'min' })}
+        ${_pcTableStatRow(`${curYear} ADP pos rank`,
+          adpPosRk.map(v => v ? Number(String(v).match(/(\d+)$/)?.[1]) : null),
+          { fmt: (v, i) => adpPosRk[i] || '—', mode: 'min' })}
+      </div>`;
+  }
+
+  // Season-stats group for a given year. Skips rows where every player
+  // has zero — keeps the table tight for cross-position comparisons.
+  function _pcTableSeasonGroup(year) {
+    const stats = PC.players.map(n => n ? _pcGetStats(n) : null);
+    const seasons = stats.map(s => s && s.seasons && s.seasons[year]);
+    while (seasons.length < 4) seasons.push(null);
+
+    const rowDefs = _pcSeasonStatRows();
+    const rows = rowDefs.map(def => {
+      const values = seasons.map(s => s ? def.get(s) : null);
+      // Skip the row if every player is null/zero
+      const anyNonZero = values.some(v => v != null && v !== 0);
+      if (!anyNonZero) return '';
+      const fmt = def.key === 'fpts' ? (v => Number(v).toFixed(1)) : (v => Number(v).toLocaleString());
+      return _pcTableStatRow(def.label, values, { fmt, mode: def.mode });
+    }).filter(Boolean).join('');
+
+    return `
+      <div class="pc-table-rowgroup">
+        <div class="pc-table-rowgroup-title">${year} Season Stats · Full PPR</div>
+        ${rows || `<div class="pc-table-row"><div class="pc-table-row-label">No ${year} stats</div><div class="pc-table-row-cell is-empty" style="grid-column:2 / -1">No season data for any selected player.</div></div>`}
+      </div>`;
+  }
+
+  // Last-N games group. Shows per-game averages aggregated over the N
+  // most recent games in the current season's weeks.
+  function _pcTableLastNGroup(n) {
+    const aggs = PC.players.map(name => name ? _pcLastNAggregate(name, n) : null);
+    while (aggs.length < 4) aggs.push(null);
+
+    const games = aggs.map(a => a && a.games ? a.games : null);
+    const rowDefs = _pcSeasonStatRows().filter(d => d.perGame); // skip "Games" row
+    const rows = rowDefs.map(def => {
+      const totals = aggs.map(a => a ? def.get(a) : null);
+      const perGame = totals.map((t, i) => {
+        if (t == null || aggs[i] == null) return null;
+        const g = aggs[i].games || 0;
+        return g > 0 ? (t / g) : null;
+      });
+      const anyNonZero = perGame.some(v => v != null && v !== 0);
+      if (!anyNonZero) return '';
+      const fmt = v => Number(v).toFixed(1);
+      return _pcTableStatRow(def.label + '/G', perGame, { fmt, mode: def.mode });
+    }).filter(Boolean).join('');
+
+    // Also surface the actual games-counted (so the user knows when a slot
+    // had fewer than N games available)
+    const gamesRow = _pcTableStatRow('Games counted', games, { fmt: v => v + '', mode: 'max', zeroAsEmpty: false });
+
+    return `
+      <div class="pc-table-rowgroup">
+        <div class="pc-table-rowgroup-title">Last ${n} Games · Per-Game · ${_pcCurrentSeason()} Season</div>
+        ${gamesRow}
+        ${rows || `<div class="pc-table-row"><div class="pc-table-row-label">No splits</div><div class="pc-table-row-cell is-empty" style="grid-column:2 / -1">No weekly data in the last ${n} games for any selected player.</div></div>`}
+      </div>`;
+  }
+
+  // Window toggle UI (4 / 8 / 16) for the Last-N group.
+  function _pcTableGamesToggle() {
+    const btns = PC_GAMES.map(n => `
+      <button class="pc-toggle-btn${PC.games === n ? ' is-active' : ''}"
+              onclick="_pcSetGames(${n})">${n}G</button>
+    `).join('');
+    return `
+      <div class="pc-control-group">
+        <span class="pc-control-label">Window</span>
+        ${btns}
+      </div>`;
+  }
+
   function _pcRenderTable() {
     // Pad PC.players to 4 slots for rendering
     const slots = PC.players.slice();
@@ -2264,13 +2481,27 @@
     const picker = slots.map((_, i) => _pcTableSlot(i)).join('');
     const hasAny = slots.some(Boolean);
 
+    if (!hasAny) {
+      return `
+        <div class="pc-table-mode">
+          <div class="pc-table-picker">${picker}</div>
+          <div class="pc-chart-empty" style="min-height:140px;display:flex;align-items:center;justify-content:center">
+            Add up to 4 players above to compare side-by-side.
+          </div>
+        </div>`;
+    }
+
+    const curYear = _pcCurrentSeason();
     return `
       <div class="pc-table-mode">
         <div class="pc-table-picker">${picker}</div>
-        ${hasAny ? _pcTableIdentityGroup() : `
-          <div class="pc-chart-empty" style="min-height:140px;display:flex;align-items:center;justify-content:center">
-            Add up to 4 players above to compare side-by-side.
-          </div>`}
+        ${_pcTableIdentityGroup()}
+        ${_pcTableTradeValueGroup()}
+        ${_pcTableSeasonGroup(curYear)}
+        <div class="pc-controls" style="margin-top:0;margin-bottom:-8px">
+          ${_pcTableGamesToggle()}
+        </div>
+        ${_pcTableLastNGroup(PC.games)}
       </div>`;
   }
 
