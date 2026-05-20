@@ -635,6 +635,24 @@
   body.fpts-compare-page .pc-hero-secondary-sep {
     width: 1px; height: 12px; background: var(--border2); opacity: .5;
   }
+  /* Inline "Add comparison player" search — replaces the legacy window.prompt()
+     flow. Click the link, the link hides and an inline search input takes its
+     place with the same autocomplete dropdown UX as the empty-state search. */
+  body.fpts-compare-page .pc-add-comparison {
+    position: relative; display: inline-flex; align-items: center;
+  }
+  body.fpts-compare-page .pc-add-comparison-search {
+    display: inline-block;
+  }
+  body.fpts-compare-page .pc-add-comparison-search[hidden] {
+    display: none;
+  }
+  body.fpts-compare-page .pc-add-comparison .pc-search-wrap {
+    width: 260px;
+  }
+  body.fpts-compare-page .pc-search-input.pc-search-input-compact {
+    font-size: 11px; padding: 6px 10px; letter-spacing: .04em;
+  }
 
   /* ─── Historical area — tabbed sub-navigation ──────────────────────── */
   body.fpts-compare-page .pc-historical {
@@ -1635,19 +1653,81 @@
   }
 
   // Triggered from the single-player hero's "+ Add comparison player" link.
-  // We don't have a dedicated picker UI in single mode, so we ask via
-  // prompt() — once a second player is added, the layout shifts to the
-  // multi-card view which has its own search slot for the 3rd player.
-  function _pcPromptAddComparison() {
-    const name = window.prompt('Add a comparison player (exact name):', '');
-    if (!name) return;
-    const trimmed = name.trim();
-    if (!trimmed) return;
-    if (!(window.FP_VALUES || {})[trimmed]) {
-      alert('Player not found in FP_VALUES: ' + trimmed);
-      return;
+  // Click the trigger → the link hides and an inline search input appears
+  // with the same autocomplete dropdown UX as the empty-state search. Click
+  // a result → _pcAddProfilePlayer adds the 2nd player and the layout shifts
+  // to the multi-card view. Esc or blur collapses back to the link.
+  function _pcOpenAddComparison() {
+    const trigger = document.querySelector('.pc-add-comparison-trigger');
+    const search  = document.getElementById('pc-add-comparison-search');
+    if (!search) return;
+    if (trigger) trigger.style.display = 'none';
+    search.hidden = false;
+    const inp = document.getElementById('pc-add-search');
+    if (inp) {
+      inp.value = '';
+      inp.focus();
+      inp.addEventListener('input', _pcOnAddComparisonInput);
+      inp.addEventListener('keydown', _pcOnAddComparisonKeydown);
+      inp.addEventListener('blur', () => setTimeout(_pcCloseAddComparison, 200));
     }
-    _pcAddProfilePlayer(trimmed);
+  }
+
+  function _pcCloseAddComparison() {
+    const trigger = document.querySelector('.pc-add-comparison-trigger');
+    const search  = document.getElementById('pc-add-comparison-search');
+    const results = document.getElementById('pc-add-search-results');
+    if (trigger) trigger.style.display = '';
+    if (search)  search.hidden = true;
+    if (results) { results.classList.remove('is-open'); results.innerHTML = ''; }
+  }
+
+  function _pcOnAddComparisonInput(e) {
+    clearTimeout(PC.searchTimer);
+    const q = (e.target.value || '').trim().toLowerCase();
+    PC.searchTimer = setTimeout(() => {
+      const resultsEl = document.getElementById('pc-add-search-results');
+      if (!resultsEl) return;
+      if (!q) { resultsEl.innerHTML = ''; resultsEl.classList.remove('is-open'); return; }
+      // Exclude players already in PC.players so user can't pick a duplicate.
+      const taken = new Set(PC.players);
+      const names = Object.keys(window.FP_VALUES || {});
+      const matches = names
+        .filter(n => !taken.has(n) && n.toLowerCase().includes(q))
+        .sort((a, b) => (window.FP_VALUES[a].rank || 9999) - (window.FP_VALUES[b].rank || 9999))
+        .slice(0, 12);
+      if (!matches.length) {
+        resultsEl.innerHTML = '<div class="pc-search-item is-empty">No matches</div>';
+        resultsEl.classList.add('is-open');
+        return;
+      }
+      resultsEl.innerHTML = matches.map(n => {
+        const fp = window.FP_VALUES[n];
+        const safeName = n.replace(/'/g, "\\'");
+        return `<div class="pc-search-item" onmousedown="_pcSelectAddComparison('${safeName}')">
+          <span class="pos-pill ${fp.pos || ''}">${fp.pos || '?'}</span>
+          <span class="pc-search-name">${n}</span>
+          <span class="pc-search-meta">${fp.team || ''}${fp.posRank ? ' · ' + fp.posRank : ''}</span>
+        </div>`;
+      }).join('');
+      resultsEl.classList.add('is-open');
+    }, 60);
+  }
+
+  function _pcOnAddComparisonKeydown(e) {
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      _pcCloseAddComparison();
+    }
+  }
+
+  function _pcSelectAddComparison(name) {
+    if (!name) return;
+    if (!(window.FP_VALUES || {})[name]) return;
+    _pcAddProfilePlayer(name);
+    // _pcAddProfilePlayer triggers _pcRender which switches the layout to
+    // multi-card (2 players); the link + inline search are removed entirely.
+    // No explicit cleanup needed here.
   }
 
   // Add a comparison player to Profile mode (cap at 2, no duplicates).
@@ -1855,7 +1935,15 @@
           <div class="pc-hero-secondary">
             <a href="#" onclick="event.preventDefault();_pcSwitchPlayer();">← Pick a different player</a>
             <span class="pc-hero-secondary-sep"></span>
-            <a href="#" onclick="event.preventDefault();_pcPromptAddComparison();">+ Add comparison player</a>
+            <span class="pc-add-comparison">
+              <a class="pc-add-comparison-trigger" href="#" onclick="event.preventDefault();_pcOpenAddComparison();">+ Add comparison player</a>
+              <span class="pc-add-comparison-search" id="pc-add-comparison-search" hidden>
+                <span class="pc-search-wrap">
+                  <input class="pc-search-input pc-search-input-compact" id="pc-add-search" type="text" placeholder="Type a player name…" autocomplete="off" spellcheck="false">
+                  <div class="pc-search-results" id="pc-add-search-results"></div>
+                </span>
+              </span>
+            </span>
             <span class="pc-hero-secondary-sep"></span>
             <a href="#" onclick="event.preventDefault();if(window.openPanel)openPanel('${safeName}');">Open full player drawer →</a>
           </div>
