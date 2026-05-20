@@ -1424,7 +1424,7 @@ Flagging for analyst review — these are hand-tuned with no documented source d
 
 **Location:** `compare.html` (`_pcSimilarity`, `_pcTopMatches`, `_pcMatchTier`).
 
-**Provenance:** hand-tuned — three-feature weighted composite with linear closeness curves. Weights and delta windows are placeholder constants chosen so realistic deltas land in the 0.4-1.0 closeness range. **Not analyst-calibrated yet.**
+**Provenance:** hand-tuned — three-feature weighted composite with linear closeness curves. Weights and delta windows tuned so realistic deltas land in the 0.4-1.0 closeness range. **Locked as the official design on 2026-05-20** (twelfth session) after a product review of all three knobs — see Notes for the rationale.
 
 **Inputs:** `target = FP_VALUES[targetName]`; iterate `FP_VALUES`, score each candidate. Inputs per candidate: `pos`, `age`, `ppg`, `valueSf` (or `value1qb` when `PC.fmt === '1qb'`). Position is a hard gate — different position = 0 score, filtered out.
 
@@ -1454,12 +1454,14 @@ else                  tier = 'Loose';     // --muted
 - `composite = 0.8625×0.25 + 0.9000×0.30 + 0.7111×0.45 = 0.7156`
 - `score = 72` → **MODERATE** tier.
 
-> **`Analyst input requested`** on three things:
-> 1. **Weights (25/30/45)** reflect a guess that dynasty value is the strongest correlate of "similar player." Should value carry more (60%+) or less (33% even split)? Should the weights vary by position?
-> 2. **Delta windows (±8 yrs / ±14 ppg / ±4500 value)** were tuned for veteran-vs-veteran pairs. Should rookies use a different window? Should the window scale with the player's positional cohort (RB1s vs RB30s have very different value spreads)?
-> 3. **Tier-band thresholds (90 / 75 / 60)** are placeholder. Should "Elite" be 85+? Should "Loose" (`<60`) be excluded from the top-5 list entirely?
+**Locked design decisions (2026-05-20):**
+1. **Weights 25 / 30 / 45.** Dynasty value gets the most weight because it's the single best summary of consensus on a player. PPG is the second-strongest signal; age is the weakest because age deltas of 1-3 years matter much less than value/PPG deltas of similar magnitude.
+2. **Delta windows ±8 yrs / ±14 ppg / ±4500 value.** Kept uniform across positions rather than position-aware. Position-aware deltas (e.g. a tighter PPG window for TEs whose range is 8-15) is a future enhancement when more data is available; the current windows produce useful match orderings within each position cohort because position is a hard gate above the closeness curves.
+3. **Tier-band thresholds 90 / 75 / 60 / <60.** Elite is intentionally rare — reserved for near-clones (same position, similar age, similar production, similar market value). Loose-tier matches are kept in the top-5 list so the user always sees 5 cards; "no good comparable" is signalled by the muted styling on Loose tier, not by hiding cards.
 
-**Notes.** Position is a HARD GATE — `_pcSimilarity` returns 0 for cross-position candidates so they never appear in matches. Players with `valueSf === 0` (no MVS coverage) are filtered out before scoring so the "no data" tail doesn't crowd the top 5. The Hayden Winks reference scored matches by "weighted route, alignment & coverage fingerprint" — that data is not available yet. When prospect-score / route / coverage metrics ship, `_pcSimilarity` adds new weighted inputs; the consumer API (returns 0-100 score + tier) stays unchanged.
+When prospect-score / route / coverage data ships, `_pcSimilarity` can add new weighted inputs; the consumer API (returns 0-100 score + tier) stays unchanged.
+
+**Notes.** Position is a HARD GATE — `_pcSimilarity` returns 0 for cross-position candidates so they never appear in matches. Players with `valueSf === 0` (no MVS coverage) are filtered out before scoring so the "no data" tail doesn't crowd the top 5. The Hayden Winks reference scored matches by "weighted route, alignment & coverage fingerprint" — that data is not available yet.
 
 ---
 

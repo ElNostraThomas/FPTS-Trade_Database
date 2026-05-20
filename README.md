@@ -1050,11 +1050,13 @@ Nothing structural. Polish / nice-to-haves only:
   Current open items needing analyst input:
     - 14 original heuristics (trade-value multipliers, age-curve constants,
       buy/sell signal thresholds, tier assignments, etc. — see `formulas.html`)
-    - **Compare similarity scoring** (FORMULAS.md §44 / `compare-similarity`).
-      Three open questions: (1) weights 25/30/45 across age/PPG/value —
-      should value carry more or less? (2) delta windows ±8 yrs / ±14 ppg /
-      ±4500 value — should they scale with positional cohort?
-      (3) tier-band thresholds 90/75/60 — should "Loose" (<60) be excluded entirely?
+    - ~~**Compare similarity scoring** (FORMULAS.md §44)~~ — **LOCKED
+      2026-05-20 (twelfth session).** All three knobs (weights 25/30/45,
+      delta windows ±8/±14/±4500, tier thresholds 90/75/60) reviewed and
+      approved as the official design. Loose-tier matches stay in the
+      top-5 list (muted styling signals "no great match" rather than
+      hiding cards). Position-aware delta windows deferred until more
+      data ships.
     - **Best-in-row tie behavior** (FORMULAS.md §47 / `compare-best-in-row`).
       Table mode skips highlight on tie; the multi metric-table emits a
       yellow `is-tied` band. Should both behave the same? Should "near-tied"
