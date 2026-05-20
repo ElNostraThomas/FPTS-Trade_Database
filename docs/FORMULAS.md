@@ -1519,6 +1519,141 @@ const series = (PC.fmt === '1qb') ? (mvs.history1qb || []) : (mvs.history || [])
 
 ---
 
+### 47. Best-in-row highlighting (Table mode + multi metric tables)
+
+**Location:** `compare.html` (`_pcBestIdx(values, mode)`, used by `_pcTableStatRow` and `_pcTableIdentityGroup`).
+
+**Provenance:** site convention — simple linear pass.
+
+**Inputs:** `values` — array of numerics (one per player slot, nulls allowed). `mode` — `'max'` (higher = better) or `'min'` (lower = better, used for INT / Age / Pos rank).
+
+```js
+function _pcBestIdx(values, mode) {
+  let bestIdx = -1, bestVal = null;
+  values.forEach((v, i) => {
+    if (v == null || isNaN(v)) return;
+    if (bestVal == null) { bestIdx = i; bestVal = v; return; }
+    if (mode === 'min' ? v < bestVal : v > bestVal) {
+      bestIdx = i; bestVal = v;
+    }
+  });
+  // No highlight when all values are equal (tie) or only one valid cell
+  const validVals = values.filter(v => v != null && !isNaN(v));
+  if (validVals.length < 2) return -1;
+  if (validVals.every(v => v === validVals[0])) return -1;
+  return bestIdx;
+}
+```
+
+**Output:** index of the winning cell (0-3), or `-1` to suppress highlighting.
+
+**Example.** Comparing 4 RBs on Rush Yds: `[1450, 1320, 1100, null]` with `mode='max'` → returns `0` (player at index 0 has 1450). All-equal `[800, 800, 800, 800]` → returns `-1` (skip highlight). Single-cell `[null, null, 600, null]` → `-1` (no comparison possible).
+
+**Notes.** The "skip on tie" behavior was chosen so the user isn't visually nudged when there's no real comparison. **`Analyst input requested`** — should ties surface as yellow ("equal") instead of disappearing entirely? Currently `_pcCmpClass` in the multi metric-table renderer DOES emit `is-tied` for equal values (yellow tint); Table mode's `_pcBestIdx` does NOT. The inconsistency is intentional (sparse 2-4-cell row vs dense 2-cell row), but should be revisited.
+
+---
+
+### 48. Last-N games per-game aggregation (Table mode)
+
+**Location:** `compare.html` (`_pcLastNAggregate(name, n)`, `_pcAggregateWeeks(weeks)`).
+
+**Provenance:** site convention — direct read of `STATS_DATA[name:norm].seasons[year].weeks` plus a numeric-key sum.
+
+**Inputs:** `name` — player name. `n` — window size (`PC_GAMES = [4, 8, 16]`).
+
+```js
+function _pcLastNAggregate(name, n) {
+  const stats = _pcGetStats(name);
+  const cur = _pcCurrentSeason();
+  const season = stats?.seasons?.[cur];
+  if (!season?.weeks) return null;
+  const weekList = Object.keys(season.weeks)
+    .filter(k => season.weeks[k]?.games)
+    .map(k => ({ wk: Number(k), ...season.weeks[k] }));
+  if (!weekList.length) return null;
+  weekList.sort((a, b) => b.wk - a.wk);   // most recent first
+  const slice = weekList.slice(0, n);
+  return _pcAggregateWeeks(slice);        // sum numerics + games count
+}
+
+function _pcAggregateWeeks(weeks) {
+  const sums = {};
+  weeks.forEach(w => {
+    Object.keys(w).forEach(k => {
+      if (typeof w[k] !== 'number') return;  // skip opponent / seasonType
+      sums[k] = (sums[k] || 0) + w[k];
+    });
+  });
+  sums.games = weeks.length;
+  return sums;
+}
+```
+
+**Output:** totals object with `games` set to the actual window size (may be < N if the player has fewer than N weeks). Caller divides by `games` for per-game averages.
+
+**Example.** Player has weeks 1-12 with stats. `_pcLastNAggregate(name, 4)` → sums weeks 12, 11, 10, 9 (the four most recent). If the player only has 3 played weeks, `games: 3` is returned and the per-game row shows divisions over 3.
+
+**Notes.** **`Analyst input requested`** — should the default window be 4 (matches Underdog reference, short reactive) or 8 (more reliable per-game averages, longer signal)? Currently default = 4. Also: should playoff weeks be included in the N-most-recent window? Currently the function reads `.weeks` only, not `.playoffWeeks` — playoff games are excluded.
+
+---
+
+### 49. Multi-card metric-table comparison (winner / loser / tied bands)
+
+**Location:** `compare.html` (`_pcCmpClass(v, vOther, mode)`, consumed by `_pcMultiMetricTable`).
+
+**Provenance:** site convention — pairwise compare with three outcome bands.
+
+**Inputs:** `v` — this player's value. `vOther` — the other player's value. `mode` — `'max'` (higher = better) or `'min'` (lower = better).
+
+```js
+function _pcCmpClass(v, vOther, mode) {
+  if (v == null || isNaN(v))            return 'is-empty';  // muted dash
+  if (vOther == null || isNaN(vOther))  return '';          // no compare
+  if (v === vOther)                     return 'is-tied';   // yellow
+  if (mode === 'min') return v < vOther ? 'is-best' : 'is-worst';
+  return v > vOther ? 'is-best' : 'is-worst';
+}
+```
+
+**Output:** CSS class name. `is-best` → green border + tint. `is-worst` → red. `is-tied` → yellow. `is-empty` → muted dash. Empty string → no class (other side has no value to compare against).
+
+**Example.** Josh Allen vs Lamar Jackson, comparing INT (mode='min'): Allen has 7 INTs, Jackson has 4. `_pcCmpClass(7, 4, 'min')` → `'is-worst'` (red). `_pcCmpClass(4, 7, 'min')` → `'is-best'` (green).
+
+**Notes.** Unlike Table mode's `_pcBestIdx` which skips highlighting on ties, this helper emits `is-tied` (yellow). The semantic difference is intentional — a 2-card row needs SOMETHING in each cell, so equal values get a "tied" indicator rather than ambiguous neutral coloring. **`Analyst input requested`** — should the band thresholds expand to include "near-tied" (e.g., within 5% considered tied) instead of strict equality?
+
+---
+
+### 50. Standard fantasy points scoring (`_pcStdFpts`)
+
+**Location:** `compare.html` (`_pcStdFpts(s)`, used by Table mode's `_pcSeasonStatRows` FPTS row + multi Career table).
+
+**Provenance:** hand-tuned — neutral full-PPR + 4-pt pass TD baseline. Mirrors the data-suite default scoring used by `renderPlayerStats`.
+
+**Inputs:** `s` — a STATS_DATA record (season totals or week totals — both are summable shapes).
+
+```js
+function _pcStdFpts(s) {
+  if (!s) return 0;
+  return (s.passYards  || 0) * 0.04
+       + (s.passTd     || 0) * 4
+       - (s.passInts   || 0) * 2
+       + (s.rushYards  || 0) * 0.1
+       + (s.rushTd     || 0) * 6
+       + (s.recYards   || 0) * 0.1
+       + (s.recTd      || 0) * 6
+       + (s.rec        || 0) * 1
+       - (s.fumbles    || 0) * 2;
+}
+```
+
+**Output:** fantasy points scalar.
+
+**Example.** Josh Allen 2024 season: 4,918 pass yds (×0.04 = 196.7) + 43 pass TDs (×4 = 172) - 9 INTs (×2 = 18) + 201 rush yds (×0.1 = 20.1) + 2 rush TDs (×6 = 12). Total = 382.8 FPTS.
+
+**Notes.** **`Analyst input requested`** — should there be a per-page UI toggle for league-format variants (TEP, PPC, half-PPR, 6-pt pass TDs, kicker scoring)? Currently the compare page hardcodes this baseline; in single-player Career, the drawer's `renderPlayerStats` lifts use the same neutral scoring. `SLEEPER.adjustStatsForLeague(stats, scoring)` in `assets/js/sleeper-helpers.js` already implements scoring-variant math — wiring a toggle on compare.html would mean adding a third toggle group (Mode / Format / Scoring) to the page header.
+
+---
+
 ## Notes on this document
 
 - Compile / regenerate after any change to a formula, threshold, or sync-script constant.

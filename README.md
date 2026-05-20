@@ -1008,12 +1008,27 @@ Nothing structural. Polish / nice-to-haves only:
   Current open items needing analyst input:
     - 14 original heuristics (trade-value multipliers, age-curve constants,
       buy/sell signal thresholds, tier assignments, etc. — see `formulas.html`)
-    - **NEW: Compare-page similarity scoring** (`compare-similarity` /
-      FORMULAS.md §44 / legend "Profile tab → Similarity scoring formula").
+    - **Compare similarity scoring** (FORMULAS.md §44 / `compare-similarity`).
       Three open questions: (1) weights 25/30/45 across age/PPG/value —
       should value carry more or less? (2) delta windows ±8 yrs / ±14 ppg /
-      ±4500 value — should they scale with positional cohort? (3) tier-band
-      thresholds 90/75/60 — should "Loose" (<60) be excluded entirely?
+      ±4500 value — should they scale with positional cohort?
+      (3) tier-band thresholds 90/75/60 — should "Loose" (<60) be excluded entirely?
+    - **Best-in-row tie behavior** (FORMULAS.md §47 / `compare-best-in-row`).
+      Table mode skips highlight on tie; the multi metric-table emits a
+      yellow `is-tied` band. Should both behave the same? Should "near-tied"
+      (e.g., within 5%) get a soft-yellow band?
+    - **Last-N games window default** (FORMULAS.md §48 / `compare-last-n-aggregate`).
+      Currently 4 — matches the Underdog reference; should it be 8 for more
+      reliable per-game averages? Should playoff weeks be included in the
+      window (currently `.weeks` only, `.playoffWeeks` excluded)?
+    - **Multi-card metric comparison bands** (FORMULAS.md §49 /
+      `compare-multi-metric-comparison`). Should the comparison emit a
+      "near-tied" yellow band for values within 5% of each other, instead
+      of strict equality only?
+    - **Compare-page scoring variants** (FORMULAS.md §50 / `compare-std-fpts`).
+      Currently hardcoded full-PPR + 4-pt pass TDs. Should compare.html
+      get its own Scoring toggle (3rd toggle group in page header) wired
+      to `SLEEPER.adjustStatsForLeague(stats, scoring)`?
 - [ ] Visual polish pass after live use — typography balance, mobile
   viewport on each page, dark/light theme toggle on the new accordion.
   **Next session focus: mobile issues.**
