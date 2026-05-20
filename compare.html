@@ -45,7 +45,7 @@
 <!-- Back-to-top floating button. -->
 <script src="assets/js/back-to-top.js?v=1782200000" defer></script>
 <!-- Custom <select> wrapper — OBS/CEF compat. -->
-<script src="assets/js/custom-select.js?v=1782300000" defer></script>
+<script src="assets/js/custom-select.js?v=1782700000" defer></script>
 
 <!-- Shared UI component modules (CSS). -->
 <link rel="stylesheet" href="assets/css/mvs-extras.css?v=1782600000">
@@ -191,7 +191,10 @@
   body.fpts-compare-page .pc-search-name {
     flex: 1; min-width: 0; font-family: 'Mulish', sans-serif;
     font-weight: 900; font-size: 13px; color: var(--white);
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    white-space: nowrap;
+    /* No ellipsis — search dropdown is wide enough (420px on Add-comparison
+       inline search, 100% on empty-state full search). Truncated names like
+       "Amon-Ra St. Brown" → "Amon-Ra St…" hurt readability. */
   }
   body.fpts-compare-page .pc-search-meta {
     font-family: 'Mulish', sans-serif; font-size: 10px;
@@ -201,7 +204,13 @@
   /* ─── Hero row: trading-card left + info+tiles right ────────────────── */
   body.fpts-compare-page .pc-hero-row {
     display: grid; grid-template-columns: 320px 1fr; gap: 24px;
-    margin-top: 8px;
+    margin: 8px auto 0;
+    /* Cap so photos don't dominate the viewport on wide monitors after the
+       session-11 lifted-side-gutters change. In multi-mode (2 cards at 1fr 1fr
+       with 16:10 photo aspect) an uncapped hero on a 2000px viewport made
+       each photo ~600px tall. 1100px keeps photos at ~530×330 (multi) and
+       320×320 (single). */
+    max-width: 1100px;
   }
   /* Multi-player Profile mode (2 players): cards side-by-side, info
      column hidden. Each card is wider so it can carry a full metric
