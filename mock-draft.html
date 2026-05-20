@@ -143,89 +143,257 @@
   .md-restore-btn.primary { background: var(--red); color: #111111; border-color: var(--red); }
   .md-restore-btn.primary:hover { color: #111111; opacity: .92; }
 
-  /* Drafting screen — Phase 2 renders a pick-log preview here. Phase 3
-     will replace this with the full snake-board + BPA rail + search. */
-  .md-draft-screen {
-    display: none; padding: 18px 0 60px;
-  }
+  /* ═══════════════════════════════════════════════════════════════════
+     DRAFTING SCREEN (Phase 3) — main board, BPA rail, search, status
+     bar. CSS recipe for .box-grid / .box-card / .box-corner /
+     .box-col-header / .box-row-head / .card-* leaves is LIFTED VERBATIM
+     from adp-tool.html lines 199-260 so the visual identity matches the
+     ADP board. The mock-draft.html user explicitly asked for this.
+     ═══════════════════════════════════════════════════════════════════ */
+  .md-draft-screen { display: none; padding: 6px 0 60px; }
   .md-draft-screen.show { display: block; }
 
-  /* Header section above the per-team rosters */
-  .md-log-header { margin-bottom: 18px; }
-  .md-log-title {
-    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
-    font-size: 18px; color: var(--red); text-transform: uppercase;
-    letter-spacing: .04em; margin-bottom: 4px;
-  }
-  .md-log-subtitle {
-    font-family: 'Mulish', sans-serif; font-size: 12px; color: var(--white);
-    opacity: .65; margin-bottom: 12px; line-height: 1.5;
-  }
-  .md-personality-summary {
-    display: flex; flex-wrap: wrap; gap: 6px;
-  }
-  .md-ps-chip {
-    font-family: 'Mulish', sans-serif; font-size: 10px; font-weight: 700;
-    text-transform: uppercase; letter-spacing: .05em; padding: 4px 10px;
-    background: var(--surface2); border: 1px solid var(--border2);
-    color: var(--white);
-  }
-  .md-ps-chip strong { color: var(--red); margin-left: 4px; }
-
-  /* Per-team roster grid — each seat is one narrow column */
-  .md-rosters-grid {
-    display: grid; gap: 6px; overflow-x: auto; padding-bottom: 8px;
-  }
-  .md-roster-col {
+  /* Sticky status bar at the top of the drafting screen */
+  .md-status-bar {
+    position: sticky; top: 56px; z-index: 5;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 12px; padding: 10px 14px; margin-bottom: 14px;
     background: var(--surface); border: 1px solid var(--border);
-    padding: 8px 6px; min-width: 0; display: flex; flex-direction: column;
-    gap: 4px;
+    border-left: 3px solid var(--red);
   }
-  .md-roster-col.is-user {
-    border-top: 3px solid var(--red);
+  .md-status-left {
+    display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;
+    min-width: 0;
   }
-  .md-roster-head {
+  .md-status-pick {
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 16px; color: var(--red); text-transform: uppercase;
+    letter-spacing: .04em;
+  }
+  .md-status-state {
+    font-family: 'Mulish', sans-serif; font-size: 12px; font-weight: 700;
+    color: var(--white); opacity: .75; letter-spacing: .04em;
+    text-transform: uppercase;
+  }
+  .md-status-state.is-on-clock {
+    color: var(--red); opacity: 1; animation: md-blink 1.2s ease-in-out infinite;
+  }
+  .md-status-state.is-finished {
+    color: var(--green); opacity: 1;
+  }
+  @keyframes md-blink {
+    0%, 100% { opacity: .65; }
+    50%      { opacity: 1; }
+  }
+  .md-status-right { flex-shrink: 0; }
+
+  /* Board + BPA rail layout */
+  .md-board-and-rail {
+    display: grid; grid-template-columns: 1fr 230px; gap: 14px;
+    align-items: flex-start;
+  }
+  .md-board-section { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+
+  /* Search bar above the board */
+  .md-search-wrap { position: relative; }
+  .md-search-input {
+    width: 100%; padding: 10px 14px; background: var(--surface2);
+    border: 1px solid var(--border2); color: var(--white);
+    font-family: 'Mulish', sans-serif; font-size: 13px; font-weight: 700;
+    letter-spacing: .03em; outline: none; transition: border-color .12s;
+  }
+  .md-search-input::placeholder { opacity: .55; }
+  .md-search-input:focus { border-color: var(--red); }
+  .md-search-results {
+    display: none; position: absolute; top: calc(100% + 2px); left: 0; right: 0;
+    max-height: 320px; overflow-y: auto;
+    background: var(--surface); border: 1px solid var(--red); z-index: 4;
+  }
+  .md-search-results.open { display: block; }
+  .md-search-result {
+    display: flex; align-items: center; gap: 10px; padding: 9px 12px;
+    cursor: pointer; font-family: 'Mulish', sans-serif; font-size: 12px;
+    color: var(--white); border-bottom: 1px solid var(--border);
+  }
+  .md-search-result:last-child { border-bottom: none; }
+  .md-search-result:hover { background: var(--surface2); }
+  .md-sr-name { flex: 1; font-weight: 800; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .md-sr-meta { font-size: 10px; opacity: .6; flex-shrink: 0; }
+  .md-search-empty {
+    padding: 12px; font-family: 'Mulish', sans-serif; font-size: 12px;
+    color: var(--white); opacity: .55; text-align: center;
+  }
+
+  /* BOARD — same recipe as adp-tool.html lines 199-260 */
+  .md-board-wrap { overflow-x: auto; }
+  .box-grid.md-board {
+    display: grid; gap: 4px; min-width: 0;
+  }
+  .box-col-header {
     font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
     font-size: 11px; color: var(--red); text-transform: uppercase;
-    letter-spacing: .04em; text-align: center; padding-bottom: 6px;
-    border-bottom: 1px solid var(--border); margin-bottom: 4px; line-height: 1.2;
+    padding: 8px 4px 6px; text-align: center; border-bottom: 2px solid var(--red);
+    margin-bottom: 4px; letter-spacing: .04em; background: var(--surface);
+    position: sticky; top: 0; z-index: 2; line-height: 1.1; min-width: 0;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   }
-  .md-roster-personality {
-    font-family: 'Mulish', sans-serif; font-size: 9px; font-weight: 700;
-    color: var(--white); opacity: .55; letter-spacing: .04em;
-    display: inline-block; margin-top: 3px;
+  .box-col-header.md-col-user {
+    color: var(--white); background: var(--red);
+  }
+  .box-corner {
+    background: var(--surface); border-bottom: 2px solid var(--red);
+    border-right: 1px solid var(--border); margin-bottom: 4px;
+    position: sticky; top: 0; left: 0; z-index: 3;
+  }
+  .box-row-head {
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 11px; color: var(--red); text-align: center; padding: 2px 0;
+    letter-spacing: .04em; display: flex; align-items: center; justify-content: center;
+    background: var(--surface); border-right: 1px solid var(--border);
+    position: sticky; left: 0; z-index: 1;
   }
 
-  /* Individual pick chip — color-coded by position */
-  .md-roster-pick {
-    display: flex; align-items: center; gap: 4px; padding: 4px 6px;
-    font-family: 'Mulish', sans-serif; font-size: 10px; font-weight: 700;
-    line-height: 1.15; min-width: 0;
+  /* CARD — lifted from adp-tool.html .box-card recipe */
+  .box-card {
+    position: relative; display: flex; flex-direction: column; height: 100px;
+    overflow: hidden; padding: 5px 7px; transition: transform .12s, box-shadow .12s;
   }
-  .md-rp-pick {
+  .box-card .card-content {
+    display: flex; flex-direction: column; gap: 2px; position: relative; z-index: 1; min-width: 0;
+  }
+  .box-card .card-top {
+    display: flex; align-items: center; gap: 4px; justify-content: space-between;
+    font-family: 'Mulish', sans-serif; font-size: 8px; font-weight: 800; letter-spacing: .03em;
+  }
+  .box-card .card-pick { font-weight: 800; }
+  .box-card .card-adp { font-weight: 700; opacity: .78; font-size: 8px; }
+  .box-card .card-name {
     font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
-    font-size: 9px; opacity: .75; flex-shrink: 0;
+    line-height: 1; overflow: hidden; margin-top: 1px; padding-right: 44px;
   }
-  .md-rp-name {
-    flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis;
-    white-space: nowrap; font-weight: 800;
+  .box-card .card-fname { font-size: 9px; line-height: 1; opacity: .8; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .box-card .card-lname { font-size: 12px; line-height: 1.1; margin-top: 1px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .box-card .card-meta { display: flex; align-items: center; margin-top: auto; padding-top: 2px; min-height: 2px; }
+  .box-card .card-hs {
+    position: absolute; bottom: 4px; right: 4px; width: 40px; height: 40px;
+    border-radius: 50%; object-fit: cover; object-position: top;
+    border: 1px solid rgba(0,0,0,.18); background: rgba(0,0,0,.1);
   }
-  .md-rp-pos {
-    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
-    font-size: 9px; flex-shrink: 0; opacity: .85;
+  .box-card .card-hs-fallback {
+    position: absolute; bottom: 4px; right: 4px; width: 40px; height: 40px;
+    border-radius: 50%; background: rgba(0,0,0,.12); border: 1px solid rgba(0,0,0,.18);
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><circle cx="32" cy="22" r="10" fill="%23ffffff" opacity=".95"/><path d="M14 60 Q14 36 32 36 Q50 36 50 60 L14 60 Z" fill="%23ffffff" opacity=".95"/></svg>');
+    background-size: 85% 85%; background-position: center 60%; background-repeat: no-repeat;
   }
+  .box-card .card-team-logo {
+    position: absolute; bottom: 4px; left: 4px; width: 32px; height: 32px;
+    border-radius: 50%; background: rgba(0,0,0,.1); border: 1px solid rgba(0,0,0,.18);
+    display: flex; align-items: center; justify-content: center; overflow: hidden; z-index: 1;
+  }
+  .box-card .card-team-logo img { width: 24px; height: 24px; object-fit: contain; display: block; }
+
   /* Position color tokens (black text on bright fills — site doctrine) */
+  .box-card.QB  { background: var(--pos-qb-bg);   color: var(--pos-qb); }
+  .box-card.RB  { background: var(--pos-rb-bg);   color: var(--pos-rb); }
+  .box-card.WR  { background: var(--pos-wr-bg);   color: var(--pos-wr); }
+  .box-card.TE  { background: var(--pos-te-bg);   color: var(--pos-te); }
+  .box-card.K   { background: var(--pos-k-bg);    color: var(--pos-k); }
+  .box-card.DEF, .box-card.PICK { background: var(--pos-pick-bg); color: var(--pos-pick); }
+  .box-card.empty {
+    background: transparent; border: 1px dashed var(--border2); opacity: .35;
+  }
+
+  /* Mock-draft cell modifiers */
+  .box-card.md-cell-user {
+    box-shadow: inset 0 0 0 2px var(--red);
+  }
+  .box-card.empty.md-cell-user {
+    border-color: var(--red); opacity: .55;
+  }
+  .box-card.md-cell-onclock {
+    animation: md-pulse 1.2s ease-in-out infinite;
+    border: 2px solid var(--red); opacity: 1;
+  }
+  @keyframes md-pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(237,129,12,0); }
+    50%      { box-shadow: 0 0 0 4px rgba(237,129,12,.35); }
+  }
+
+  /* BPA rail — sticky right column */
+  .md-bpa-rail {
+    position: sticky; top: 116px;   /* clears topnav + status bar */
+    background: var(--surface); border: 1px solid var(--border);
+    padding: 10px 8px; max-height: calc(100vh - 140px); overflow-y: auto;
+  }
+  .md-bpa-header {
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 12px; color: var(--red); text-transform: uppercase;
+    letter-spacing: .05em; padding: 0 4px 8px; border-bottom: 1px solid var(--border);
+    margin-bottom: 8px;
+  }
+  .md-bpa-list { display: flex; flex-direction: column; gap: 5px; }
+  .md-bpa-card { height: 76px; padding: 4px 6px; cursor: default; }
+  .md-bpa-card.md-bpa-clickable { cursor: pointer; }
+  .md-bpa-card.md-bpa-clickable:hover {
+    transform: translateY(-1px); box-shadow: 0 3px 8px rgba(0,0,0,.35);
+  }
+  .md-bpa-card .card-hs { width: 30px; height: 30px; }
+  .md-bpa-card .card-hs-fallback { width: 30px; height: 30px; }
+  .md-bpa-card .card-team-logo { width: 24px; height: 24px; }
+  .md-bpa-card .card-team-logo img { width: 17px; height: 17px; }
+  .md-bpa-card .card-name { padding-right: 36px; }
+  .md-bpa-card .card-lname { font-size: 11px; }
+  .md-bpa-empty {
+    font-family: 'Mulish', sans-serif; font-size: 11px; color: var(--white);
+    opacity: .55; padding: 14px; text-align: center;
+  }
+
+  /* Position-pill recipe for search-result rows (lifted from adp-tool) */
+  .md-search-result .pos-pill {
+    display: inline-block; padding: 2px 6px; font-family: 'Kanit', sans-serif;
+    font-weight: 800; font-style: italic; font-size: 9px; letter-spacing: .04em;
+    flex-shrink: 0;
+  }
+  .pos-pill.QB { background: var(--pos-qb-bg); color: var(--pos-qb); }
+  .pos-pill.RB { background: var(--pos-rb-bg); color: var(--pos-rb); }
+  .pos-pill.WR { background: var(--pos-wr-bg); color: var(--pos-wr); }
+  .pos-pill.TE { background: var(--pos-te-bg); color: var(--pos-te); }
+  .pos-pill.K  { background: var(--pos-k-bg);  color: var(--pos-k); }
+  .pos-pill.DEF, .pos-pill.PICK { background: var(--pos-pick-bg); color: var(--pos-pick); }
+
+  /* Finish summary (shown in BPA rail slot after draft completes) */
+  .md-finish-summary { padding: 6px 4px; }
+  .md-finish-title {
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 14px; color: var(--red); text-transform: uppercase;
+    letter-spacing: .04em; margin-bottom: 4px;
+  }
+  .md-finish-meta {
+    font-family: 'Mulish', sans-serif; font-size: 11px; color: var(--white);
+    opacity: .7; margin-bottom: 12px; line-height: 1.4;
+  }
+  .md-finish-meta strong { color: var(--red); }
+  .md-finish-grid { display: flex; flex-direction: column; gap: 10px; }
+  .md-finish-poscol { display: flex; flex-direction: column; gap: 3px; }
+  .md-finish-poshead {
+    font-family: 'Mulish', sans-serif; font-size: 10px; font-weight: 800;
+    text-transform: uppercase; letter-spacing: .06em; color: var(--white);
+    opacity: .55;
+  }
+  .md-finish-row {
+    font-family: 'Mulish', sans-serif; font-size: 11px; font-weight: 700;
+    padding: 5px 8px; display: flex; align-items: center; justify-content: space-between;
+    gap: 6px;
+  }
+  .md-fr-pick { font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 10px; opacity: .85; }
+  .md-finish-actions { margin-top: 14px; }
+  /* Position chip recipes (reused for finish-state rows) */
   .md-pos-QB  { background: var(--pos-qb-bg);   color: var(--pos-qb); }
   .md-pos-RB  { background: var(--pos-rb-bg);   color: var(--pos-rb); }
   .md-pos-WR  { background: var(--pos-wr-bg);   color: var(--pos-wr); }
   .md-pos-TE  { background: var(--pos-te-bg);   color: var(--pos-te); }
   .md-pos-K   { background: var(--pos-k-bg);    color: var(--pos-k); }
   .md-pos-DEF { background: var(--pos-pick-bg); color: var(--pos-pick); }
-
-  .md-log-footer {
-    display: flex; gap: 10px; margin-top: 22px; padding-top: 16px;
-    border-top: 1px solid var(--border);
-  }
 </style>
 
 </head>
@@ -773,41 +941,99 @@
       return pickRecord;
     }
 
-    function advanceUserAutoPick(state, universe) {
-      // Phase 2 testing helper: in lieu of an interactive picker, the user
-      // seat auto-picks BPA (highest available trade value). Phase 3 replaces
-      // this with a real on-clock pause + search/BPA-rail interaction.
-      const { round, slot } = pickToRoundSlot(state.currentPick, state.setup.teamCount);
-      const available = universe.filter(p => !takenIdsFromPicks(state.picks).has(p.name));
-      const player = available[0];
-      if (!player) return null;
-      const pickRecord = {
-        pickNo: state.currentPick,
+    // ───── Draft driver (Phase 3) ───────────────────────────────────────
+    // Module-level state for the active draft. Universe and state are kept
+    // out of localStorage (universe is rebuildable from setup; state is
+    // persisted separately on each pick).
+    let _activeState = null;
+    let _activeUniverse = null;
+    let _aiTickHandle = null;
+
+    const AI_TICK_DELAY_MS = 150;   // brief pause between AI picks so the
+                                    // user can SEE the board fill rather
+                                    // than 11 picks landing in one frame.
+
+    function saveActiveState() {
+      if (!_activeState) return;
+      try { localStorage.setItem(LS_STATE, JSON.stringify(_activeState)); } catch (e) {}
+    }
+
+    function totalPicks() {
+      return _activeState ? _activeState.setup.teamCount * _activeState.setup.rounds : 0;
+    }
+
+    function driveDraft() {
+      // Inspect the current pick. If it's the user's slot → flip status to
+      // 'on_clock_user' and wait for an interaction. If it's an AI slot →
+      // advance one pick + reschedule for the next tick.
+      if (!_activeState) return;
+      if (_activeState.currentPick > totalPicks()) {
+        finishDraft();
+        return;
+      }
+      const { slot } = pickToRoundSlot(_activeState.currentPick, _activeState.setup.teamCount);
+      if (slot === _activeState.setup.userSlot) {
+        _activeState.status = 'on_clock_user';
+        saveActiveState();
+        updateStatusBar();
+        updateBpaRail();
+        return;
+      }
+      // AI seat — advance + reschedule
+      _activeState.status = 'drafting';
+      advanceOneAiPick(_activeState, _activeUniverse);
+      saveActiveState();
+      updateStatusBar();
+      updateBoard();
+      updateBpaRail();
+      _aiTickHandle = setTimeout(driveDraft, AI_TICK_DELAY_MS);
+    }
+
+    function onUserPick(playerName) {
+      if (!_activeState || _activeState.status !== 'on_clock_user') return;
+      const player = _activeUniverse.find(p => p.name === playerName);
+      if (!player) return;
+      // Reject if already drafted (defensive — UI should filter these out)
+      if (takenIdsFromPicks(_activeState.picks).has(playerName)) return;
+
+      const { round, slot } = pickToRoundSlot(_activeState.currentPick, _activeState.setup.teamCount);
+      _activeState.picks.push({
+        pickNo: _activeState.currentPick,
         round, slot,
         player: player.name,
         pos: player.pos,
         team: player.team,
         byAI: false,
-        personality: 'user_bpa_autopilot',
-      };
-      state.picks.push(pickRecord);
-      state.currentPick += 1;
-      return pickRecord;
+        personality: 'user',
+      });
+      _activeState.currentPick += 1;
+      _activeState.status = 'drafting';
+
+      // Clear search UI if open
+      const searchInput = document.getElementById('md-search-input');
+      const searchResults = document.getElementById('md-search-results');
+      if (searchInput) searchInput.value = '';
+      if (searchResults) searchResults.classList.remove('open');
+
+      saveActiveState();
+      updateBoard();
+      updateStatusBar();
+      // Brief pause before AI takes over so the user sees their pick land
+      _aiTickHandle = setTimeout(driveDraft, AI_TICK_DELAY_MS);
     }
 
-    function simulateFullDraft(state) {
-      const universe = buildPlayerUniverse(state.setup);
-      const totalPicks = state.setup.teamCount * state.setup.rounds;
-      while (state.currentPick <= totalPicks) {
-        const { slot } = pickToRoundSlot(state.currentPick, state.setup.teamCount);
-        if (slot === state.setup.userSlot) {
-          advanceUserAutoPick(state, universe);
-        } else {
-          advanceOneAiPick(state, universe);
-        }
+    function finishDraft() {
+      if (!_activeState) return;
+      _activeState.status = 'finished';
+      saveActiveState();
+      showFinishScreen();
+    }
+
+    function cancelAiTick() {
+      if (_aiTickHandle != null) {
+        clearTimeout(_aiTickHandle);
+        _aiTickHandle = null;
       }
-      state.status = 'finished';
-      return state;
     }
 
     // ───── localStorage round-trip ──────────────────────────────────────
@@ -930,12 +1156,9 @@
     // ───── Public entry points ──────────────────────────────────────────
     function startDraft() {
       saveSetup();
+      cancelAiTick();
 
-      // Build a fresh draft state, assign personalities, and (Phase 2) run
-      // the full simulation end-to-end with the user seat on autopilot
-      // (highest-value BPA each pick). Phase 3 will replace the user
-      // autopilot with a real on-clock pause + interactive picker.
-      const state = {
+      _activeState = {
         setup: { ...setup },
         opponents: assignOpponents(setup),
         picks: [],
@@ -943,19 +1166,39 @@
         status: 'drafting',
         startedAt: new Date().toISOString(),
       };
-
-      simulateFullDraft(state);
-      try { localStorage.setItem(LS_STATE, JSON.stringify(state)); } catch (e) {}
+      _activeUniverse = buildPlayerUniverse(_activeState.setup);
+      saveActiveState();
 
       showDraftScreen();
-      renderPickLog(state);
+      initDraftScreen();
+      updateBoard();
+      updateBpaRail();
+      updateStatusBar();
+
+      // Kick off the tick loop. If pick #1 is the user's seat, this just
+      // flips status to on_clock_user and waits for input.
+      driveDraft();
     }
 
     function resume() {
       const saved = loadSavedDraftState();
       if (!saved) { hideRestoreBanner(); return; }
+      cancelAiTick();
+
+      _activeState = saved;
+      _activeUniverse = buildPlayerUniverse(_activeState.setup);
+
       showDraftScreen();
-      renderPickLog(saved);
+      initDraftScreen();
+      updateBoard();
+      updateBpaRail();
+      updateStatusBar();
+
+      if (_activeState.status === 'finished' || _activeState.currentPick > totalPicks()) {
+        showFinishScreen();
+      } else {
+        driveDraft();
+      }
     }
 
     function discardSaved() {
@@ -964,6 +1207,7 @@
     }
 
     function backToSetup() {
+      cancelAiTick();
       document.getElementById('md-setup').style.display = '';
       document.getElementById('md-draft').classList.remove('show');
       // Check if a saved draft exists so the banner reappears if user backed out
@@ -989,71 +1233,356 @@
       if (banner) banner.classList.remove('show');
     }
 
-    // ───── Pick log renderer (Phase 2 placeholder UI) ──────────────────
-    // Renders the completed draft as a vertical list of pick rows. Phase 3
-    // replaces this with the full snake-draft board + BPA rail + search.
-    function renderPickLog(state) {
-      const mount = document.getElementById('md-draft-log');
-      if (!mount) return;
-
-      const opponentByPersonality = {};
-      Object.keys(PERSONALITIES).forEach(k => {
-        opponentByPersonality[k] = state.opponents.filter(o => o.personality === k).length;
-      });
-      const personalitySummary = Object.keys(PERSONALITIES).map(k => {
-        const c = opponentByPersonality[k];
-        return c > 0 ? `<span class="md-ps-chip">${PERSONALITIES[k].name} <strong>×${c}</strong></span>` : '';
-      }).filter(Boolean).join('');
-
-      // Per-team roster summary block (12 small columns)
-      const teamRosters = {};
-      for (let s = 1; s <= state.setup.teamCount; s++) teamRosters[s] = [];
-      state.picks.forEach(p => { if (teamRosters[p.slot]) teamRosters[p.slot].push(p); });
-
-      const seatHeaderHtml = (slot) => {
-        if (slot === state.setup.userSlot) return `<strong>YOU</strong>`;
-        const opp = state.opponents.find(o => o.slot === slot);
-        return opp ? PERSONALITIES[opp.personality].name : 'Team ' + slot;
-      };
-
-      const rostersHtml = `
-        <div class="md-rosters-grid" style="grid-template-columns: repeat(${state.setup.teamCount}, minmax(0, 1fr));">
-          ${Array.from({ length: state.setup.teamCount }, (_, i) => i + 1).map(slot => `
-            <div class="md-roster-col ${slot === state.setup.userSlot ? 'is-user' : ''}">
-              <div class="md-roster-head">Slot ${slot}<br><span class="md-roster-personality">${seatHeaderHtml(slot)}</span></div>
-              ${teamRosters[slot].map(p => `
-                <div class="md-roster-pick md-pos-${p.pos}">
-                  <span class="md-rp-pick">${p.round}.${String((p.pickNo - 1) % state.setup.teamCount + 1).padStart(2, '0')}</span>
-                  <span class="md-rp-name">${escapeHtml(p.player)}</span>
-                  <span class="md-rp-pos">${p.pos}</span>
-                </div>
-              `).join('')}
-            </div>
-          `).join('')}
-        </div>
-      `;
-
-      mount.innerHTML = `
-        <div class="md-log-header">
-          <div class="md-log-title">Mock draft complete &mdash; ${state.picks.length} picks (Phase 2 preview: pick log)</div>
-          <div class="md-log-subtitle">
-            ${state.setup.teamCount}-team ${state.setup.format === '1qb' ? '1QB' : 'Superflex'}
-            &middot; ${state.setup.scoring.toUpperCase()}
-            &middot; ${state.setup.rounds} rounds
-            &middot; Your slot: ${state.setup.userSlot} (autopilot BPA in Phase 2; interactive in Phase 3)
-          </div>
-          <div class="md-personality-summary">${personalitySummary}</div>
-        </div>
-        ${rostersHtml}
-        <div class="md-log-footer">
-          <button class="md-restore-btn" onclick="MockDraft.backToSetup()">&larr; Back to setup</button>
-          <button class="md-restore-btn primary" onclick="MockDraft.discardSaved(); MockDraft.backToSetup();">Discard &amp; new draft</button>
-        </div>
-      `;
-    }
+    // ═══════════════════════════════════════════════════════════════════
+    // DRAFTING UI (Phase 3)
+    // ═══════════════════════════════════════════════════════════════════
+    // The drafting screen has 4 sections, mounted by initDraftScreen():
+    //   1. Status bar (sticky top) — current pick + on-clock state + End
+    //   2. Search box (above board) — typeahead over available players
+    //   3. Board grid (left) — same .box-card recipe as adp-tool.html
+    //   4. BPA rail (right) — top-10 highest-value available players
+    //
+    // After init, three update*() functions re-render their slice on each
+    // pick (board cells, BPA cards, status text). No full re-render.
 
     function escapeHtml(s) {
       return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    }
+
+    function fmtPick(pickNo, teamCount) {
+      const { round } = pickToRoundSlot(pickNo, teamCount);
+      const idx = (pickNo - 1) % teamCount;
+      return round + '.' + String(idx + 1).padStart(2, '0');
+    }
+
+    function headshotUrl(sleeperId) {
+      return sleeperId ? `https://sleepercdn.com/content/nfl/players/thumb/${sleeperId}.jpg` : '';
+    }
+    function teamLogoUrl(team) {
+      return (team && window.TeamHelpers && typeof window.TeamHelpers.logoUrl === 'function')
+        ? window.TeamHelpers.logoUrl(team) : '';
+    }
+
+    function splitName(name) {
+      const idx = String(name || '').indexOf(' ');
+      if (idx < 0) return { first: '', last: name || '' };
+      return { first: name.slice(0, idx), last: name.slice(idx + 1) };
+    }
+
+    function pickCardHtml(pick, isUserSlot) {
+      // Build a .box-card element matching the ADP board recipe. Position
+      // class drives the background + text color.
+      const player = _activeUniverse.find(p => p.name === pick.player);
+      const sid = player ? player.sleeperId : null;
+      const team = pick.team || (player ? player.team : '');
+      const { first, last } = splitName(pick.player);
+      const hsHtml = sid
+        ? `<img class="card-hs" src="${headshotUrl(sid)}" alt="${escapeHtml(pick.player)}" loading="lazy" onerror="this.style.display='none'">`
+        : `<div class="card-hs-fallback" aria-hidden="true"></div>`;
+      const logoUrl = teamLogoUrl(team);
+      const logoHtml = logoUrl
+        ? `<div class="card-team-logo"><img src="${logoUrl}" alt="${escapeHtml(team)}" loading="lazy" onerror="this.style.display='none'"></div>`
+        : '';
+      const userCls = isUserSlot ? ' md-cell-user' : '';
+      return `<div class="box-card ${pick.pos}${userCls}" data-pick="${pick.pickNo}">
+        <div class="card-content">
+          <div class="card-top">
+            <span class="card-pick">${pick.round}.${String((pick.pickNo - 1) % _activeState.setup.teamCount + 1).padStart(2, '0')}</span>
+            <span class="card-adp">#${pick.pickNo}</span>
+          </div>
+          <div class="card-name">
+            ${first ? `<div class="card-fname">${escapeHtml(first)}</div>` : ''}
+            <div class="card-lname">${escapeHtml(last)}</div>
+          </div>
+          <div class="card-meta">&nbsp;</div>
+        </div>
+        ${logoHtml}
+        ${hsHtml}
+      </div>`;
+    }
+
+    function emptyCellHtml(pickNo, isOnClock, isUserSlot) {
+      const onClockCls = isOnClock ? ' md-cell-onclock' : '';
+      const userCls = isUserSlot ? ' md-cell-user' : '';
+      const slotCol = ((pickNo - 1) % (_activeState ? _activeState.setup.teamCount : 12)) + 1;
+      return `<div class="box-card empty${onClockCls}${userCls}" data-pick="${pickNo}">
+        <div class="card-content">
+          <div class="card-top">
+            <span class="card-pick" style="opacity:.5">${fmtPick(pickNo, _activeState.setup.teamCount)}</span>
+          </div>
+        </div>
+      </div>`;
+    }
+
+    function initDraftScreen() {
+      const mount = document.getElementById('md-draft-log');
+      if (!mount) return;
+      const tc = _activeState.setup.teamCount;
+      const seatHeader = (slot) => {
+        if (slot === _activeState.setup.userSlot) return 'YOU';
+        const opp = _activeState.opponents.find(o => o.slot === slot);
+        return opp ? PERSONALITIES[opp.personality].name : 'Team ' + slot;
+      };
+      const seatHeaderHtml = Array.from({ length: tc }, (_, i) => i + 1).map(slot => {
+        const userCls = slot === _activeState.setup.userSlot ? ' md-col-user' : '';
+        return `<div class="box-col-header${userCls}" data-team="${slot}">${escapeHtml(seatHeader(slot))}</div>`;
+      }).join('');
+
+      mount.innerHTML = `
+        <div class="md-status-bar" id="md-status-bar">
+          <div class="md-status-left">
+            <span class="md-status-pick" id="md-status-pick"></span>
+            <span class="md-status-state" id="md-status-state"></span>
+          </div>
+          <div class="md-status-right">
+            <button class="md-restore-btn" id="md-end-btn">End draft</button>
+          </div>
+        </div>
+
+        <div class="md-board-and-rail">
+          <div class="md-board-section">
+            <div class="md-search-wrap">
+              <input type="text" class="md-search-input" id="md-search-input"
+                placeholder="When you're on the clock, type a player name to draft them..."
+                autocomplete="off" spellcheck="false">
+              <div class="md-search-results" id="md-search-results"></div>
+            </div>
+            <div class="md-board-wrap">
+              <div class="box-grid md-board" id="md-board-grid"
+                   style="grid-template-columns: 36px repeat(${tc}, minmax(86px, 1fr));">
+                <div class="box-corner"></div>
+                ${seatHeaderHtml}
+                <div id="md-board-cells" style="display:contents"></div>
+              </div>
+            </div>
+          </div>
+          <div class="md-bpa-rail" id="md-bpa-rail">
+            <div class="md-bpa-header">Best Available</div>
+            <div class="md-bpa-list" id="md-bpa-list"></div>
+          </div>
+        </div>
+      `;
+
+      // Wire interactions
+      document.getElementById('md-end-btn').addEventListener('click', () => {
+        if (confirm('End the current draft? Your in-progress picks will be discarded.')) {
+          cancelAiTick();
+          clearSavedDraftState();
+          _activeState = null;
+          _activeUniverse = null;
+          backToSetup();
+        }
+      });
+      // BPA card click (event delegation — handles apostrophes in names cleanly)
+      const bpaList = document.getElementById('md-bpa-list');
+      if (bpaList) bpaList.addEventListener('click', e => {
+        const card = e.target.closest('.md-bpa-card.md-bpa-clickable');
+        if (!card) return;
+        const name = card.dataset.name;
+        if (name) onUserPick(name);
+      });
+      wireSearchInput();
+    }
+
+    function updateBoard() {
+      if (!_activeState) return;
+      const cellsMount = document.getElementById('md-board-cells');
+      if (!cellsMount) return;
+      const tc = _activeState.setup.teamCount;
+      const rounds = _activeState.setup.rounds;
+      const picksByNo = {};
+      _activeState.picks.forEach(p => { picksByNo[p.pickNo] = p; });
+
+      const html = [];
+      for (let r = 1; r <= rounds; r++) {
+        // Row header (round label) — left-sticky
+        html.push(`<div class="box-row-head">R${r}</div>`);
+        for (let col = 1; col <= tc; col++) {
+          // Snake-mapped pick number: row r, column col → pickNo
+          // Forward order on odd rounds, reverse on even rounds. col is 1-indexed.
+          const slot = col;
+          const pickNoInRound = (r % 2 === 1) ? slot : (tc - slot + 1);
+          const pickNo = (r - 1) * tc + pickNoInRound;
+          const pick = picksByNo[pickNo];
+          const isUserSlot = (slot === _activeState.setup.userSlot);
+          const isOnClock = (pickNo === _activeState.currentPick && _activeState.status !== 'finished');
+          if (pick) {
+            html.push(pickCardHtml(pick, isUserSlot));
+          } else {
+            html.push(emptyCellHtml(pickNo, isOnClock, isUserSlot));
+          }
+        }
+      }
+      // box-corner + col-headers stay in the grid; replace only the cells.
+      // We render row headers + cells as a flat sequence; CSS Grid auto-flows them.
+      cellsMount.innerHTML = html.join('');
+    }
+
+    function updateStatusBar() {
+      if (!_activeState) return;
+      const pickEl = document.getElementById('md-status-pick');
+      const stateEl = document.getElementById('md-status-state');
+      if (!pickEl || !stateEl) return;
+      if (_activeState.status === 'finished') {
+        pickEl.textContent = 'Draft complete';
+        stateEl.textContent = `— ${_activeState.picks.length} picks made.`;
+        stateEl.className = 'md-status-state is-finished';
+        return;
+      }
+      const tc = _activeState.setup.teamCount;
+      const { round, slot } = pickToRoundSlot(_activeState.currentPick, tc);
+      pickEl.textContent = `Round ${round}, Pick ${fmtPick(_activeState.currentPick, tc)}`;
+      if (slot === _activeState.setup.userSlot) {
+        stateEl.textContent = "— YOU'RE ON THE CLOCK";
+        stateEl.className = 'md-status-state is-on-clock';
+      } else {
+        const opp = _activeState.opponents.find(o => o.slot === slot);
+        const personalityName = opp ? PERSONALITIES[opp.personality].name : 'Team ' + slot;
+        stateEl.textContent = `— Team ${slot} drafting (${personalityName})…`;
+        stateEl.className = 'md-status-state';
+      }
+    }
+
+    function updateBpaRail() {
+      if (!_activeState || !_activeUniverse) return;
+      const mount = document.getElementById('md-bpa-list');
+      if (!mount) return;
+      const taken = takenIdsFromPicks(_activeState.picks);
+      const available = _activeUniverse.filter(p => !taken.has(p.name)).slice(0, 10);
+      const userOnClock = _activeState.status === 'on_clock_user';
+      const { slot } = pickToRoundSlot(_activeState.currentPick, _activeState.setup.teamCount);
+      const userTurn = userOnClock && slot === _activeState.setup.userSlot;
+
+      mount.innerHTML = available.map(p => {
+        const sid = p.sleeperId;
+        const hsHtml = sid
+          ? `<img class="card-hs" src="${headshotUrl(sid)}" alt="${escapeHtml(p.name)}" loading="lazy" onerror="this.style.display='none'">`
+          : `<div class="card-hs-fallback" aria-hidden="true"></div>`;
+        const logoUrl = teamLogoUrl(p.team);
+        const logoHtml = logoUrl
+          ? `<div class="card-team-logo"><img src="${logoUrl}" alt="${escapeHtml(p.team)}" loading="lazy" onerror="this.style.display='none'"></div>`
+          : '';
+        const { first, last } = splitName(p.name);
+        const interactiveCls = userTurn ? ' md-bpa-clickable' : '';
+        return `<div class="box-card ${p.pos} md-bpa-card${interactiveCls}" data-name="${escapeHtml(p.name)}">
+          <div class="card-content">
+            <div class="card-top">
+              <span class="card-pick">${p.pos}</span>
+              <span class="card-adp">ADP ${p.adp >= 999 ? '—' : p.adp.toFixed(1)}</span>
+            </div>
+            <div class="card-name">
+              ${first ? `<div class="card-fname">${escapeHtml(first)}</div>` : ''}
+              <div class="card-lname">${escapeHtml(last)}</div>
+            </div>
+            <div class="card-meta">&nbsp;</div>
+          </div>
+          ${logoHtml}
+          ${hsHtml}
+        </div>`;
+      }).join('') || '<div class="md-bpa-empty">No players available.</div>';
+    }
+
+    function wireSearchInput() {
+      const input = document.getElementById('md-search-input');
+      const results = document.getElementById('md-search-results');
+      if (!input || !results) return;
+
+      let debounceHandle = null;
+      const renderResults = () => {
+        const q = input.value.trim().toLowerCase();
+        if (!q || !_activeState || _activeState.status !== 'on_clock_user') {
+          results.classList.remove('open');
+          results.innerHTML = '';
+          return;
+        }
+        const taken = takenIdsFromPicks(_activeState.picks);
+        const matches = _activeUniverse
+          .filter(p => !taken.has(p.name) && p.name.toLowerCase().indexOf(q) >= 0)
+          .slice(0, 12);
+        if (matches.length === 0) {
+          results.classList.add('open');
+          results.innerHTML = '<div class="md-search-empty">No matches.</div>';
+          return;
+        }
+        results.innerHTML = matches.map(p =>
+          `<div class="md-search-result" data-name="${escapeHtml(p.name)}">
+            <span class="pos-pill ${p.pos}">${p.pos}</span>
+            <span class="md-sr-name">${escapeHtml(p.name)}</span>
+            <span class="md-sr-meta">${escapeHtml(p.team)} &middot; ADP ${p.adp >= 999 ? '—' : p.adp.toFixed(1)}</span>
+          </div>`
+        ).join('');
+        results.classList.add('open');
+      };
+
+      input.addEventListener('input', () => {
+        clearTimeout(debounceHandle);
+        debounceHandle = setTimeout(renderResults, 50);
+      });
+      input.addEventListener('focus', renderResults);
+      results.addEventListener('mousedown', e => {
+        // mousedown (not click) so the blur-then-hide race doesn't kill it
+        const row = e.target.closest('.md-search-result');
+        if (!row) return;
+        e.preventDefault();
+        onUserPick(row.dataset.name);
+      });
+      document.addEventListener('click', e => {
+        if (!e.target.closest('.md-search-wrap')) {
+          results.classList.remove('open');
+        }
+      });
+      // Esc clears
+      input.addEventListener('keydown', e => {
+        if (e.key === 'Escape') {
+          input.value = '';
+          results.classList.remove('open');
+        }
+      });
+    }
+
+    function showFinishScreen() {
+      const mount = document.getElementById('md-draft-log');
+      if (!mount) return;
+      // Render the board as-is (no on-clock state) + roster summary below
+      updateBoard();
+      updateStatusBar();
+      const tc = _activeState.setup.teamCount;
+      const userRoster = _activeState.picks.filter(p => p.slot === _activeState.setup.userSlot);
+      const byPos = { QB: [], RB: [], WR: [], TE: [], OTHER: [] };
+      userRoster.forEach(p => { (byPos[p.pos] || byPos.OTHER).push(p); });
+      const fp = window.FP_VALUES || {};
+      const totalValue = userRoster.reduce((acc, p) => {
+        const r = fp[p.player];
+        if (!r) return acc;
+        const v = _activeState.setup.format === '1qb' ? (r.value1qb || r.value) : (r.valueSf || r.value);
+        return acc + (Number(v) || 0);
+      }, 0);
+
+      const finishHtml = `
+        <div class="md-finish-summary">
+          <div class="md-finish-title">Your roster · Slot ${_activeState.setup.userSlot}</div>
+          <div class="md-finish-meta">${userRoster.length} picks · Total trade value <strong>${Math.round(totalValue)}</strong> (${_activeState.setup.format === '1qb' ? '1QB' : 'SF'})</div>
+          <div class="md-finish-grid">
+            ${['QB', 'RB', 'WR', 'TE', 'OTHER'].map(pos => {
+              const list = byPos[pos];
+              if (!list || list.length === 0) return '';
+              return `
+                <div class="md-finish-poscol">
+                  <div class="md-finish-poshead">${pos === 'OTHER' ? 'K / DEF / OTHER' : pos}</div>
+                  ${list.map(p => `<div class="md-finish-row md-pos-${p.pos}">${escapeHtml(p.player)} <span class="md-fr-pick">${p.round}.${String((p.pickNo - 1) % tc + 1).padStart(2, '0')}</span></div>`).join('')}
+                </div>
+              `;
+            }).filter(Boolean).join('')}
+          </div>
+          <div class="md-finish-actions">
+            <button class="md-restore-btn primary" onclick="MockDraft.discardSaved(); MockDraft.backToSetup();">New draft</button>
+          </div>
+        </div>
+      `;
+
+      // Insert finish summary into the BPA rail slot (replacing it for end state)
+      const rail = document.getElementById('md-bpa-rail');
+      if (rail) rail.innerHTML = finishHtml;
     }
 
     // ───── Init ─────────────────────────────────────────────────────────
@@ -1070,8 +1599,11 @@
       resume,
       discardSaved,
       backToSetup,
+      userPick: onUserPick,          // BPA card + search-result onclick targets
       // ─── Debug surface (console-accessible) ───
       _setup: () => setup,
+      _state: () => _activeState,
+      _universe: () => _activeUniverse,
       _personalities: () => PERSONALITIES,
       _buildUniverse: () => buildPlayerUniverse(setup),
       _assignOpponents: () => assignOpponents(setup),
@@ -1087,17 +1619,6 @@
           positionNeedTable: positionNeedTable(setup.format),
         };
         return aiPick(PERSONALITIES[personalityKey], ctx);
-      },
-      _simulate: () => {
-        const state = {
-          setup: { ...setup },
-          opponents: assignOpponents(setup),
-          picks: [],
-          currentPick: 1,
-          status: 'drafting',
-          startedAt: new Date().toISOString(),
-        };
-        return simulateFullDraft(state);
       },
     };
   })();
