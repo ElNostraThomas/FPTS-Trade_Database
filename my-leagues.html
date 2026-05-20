@@ -1748,6 +1748,182 @@
     color: var(--muted); opacity: .5; font-style: italic;
   }
 
+  /* ── Trade-builder suggestion modal (mltbRender) ───────────────────────
+     Migrated from inline styles to classes 2026-05-20. The "Trade For →"
+     button on the player-detail availability section opens this modal,
+     which walks the user through generated trade-suggestion templates
+     (You send ↔ You receive). Three states: edge-case messages
+     (free agent / you own / no suggestions / reviewed-all), the main
+     suggestion card with skip/accept CTAs, and the open-calculator CTA. */
+
+  /* Header strip — appears in every modal state */
+  .ml-tb-headstrip {
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface2);
+  }
+  .ml-tb-headstrip-row { display: flex; align-items: center; gap: 12px; }
+  .ml-tb-headstrip-thumb {
+    width: 48px; height: 48px;
+    border-radius: 3px; object-fit: cover; background: var(--surface);
+  }
+  .ml-tb-headstrip-name {
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 18px; color: var(--white);
+    text-transform: uppercase; line-height: 1.1;
+  }
+  .ml-tb-headstrip-meta {
+    font-family: 'Mulish', sans-serif; font-size: 11px;
+    color: var(--muted); margin-top: 2px;
+  }
+  .ml-tb-headstrip-owner {
+    font-family: 'Mulish', sans-serif; font-size: 11px;
+    color: var(--white); opacity: .8; margin-top: 2px;
+  }
+
+  /* Edge-case bodies */
+  .ml-tb-edge { padding: 24px 20px; text-align: center; }
+  .ml-tb-edge.is-fa { text-align: left; padding: 20px; }
+  .ml-tb-edge.is-own {
+    padding: 24px;
+    color: var(--muted); font-size: 13px;
+    font-family: 'Mulish', sans-serif;
+  }
+  .ml-tb-edge-msg {
+    font-family: 'Mulish', sans-serif; font-size: 13px;
+    color: var(--white); margin-bottom: 6px; line-height: 1.5;
+  }
+  .ml-tb-edge-msg.is-sub {
+    font-size: 11px; color: var(--muted); margin-bottom: 18px;
+  }
+  .ml-tb-edge-msg.is-fa-body { margin-bottom: 8px; }
+  .ml-tb-edge-msg.is-fa-sub {
+    font-size: 12px; color: var(--muted); margin-bottom: 16px;
+  }
+  .ml-tb-sleeper-link {
+    display: inline-block;
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 11px; color: var(--white); background: var(--red);
+    text-decoration: none;
+    text-transform: uppercase; letter-spacing: .06em;
+    padding: 10px 18px; border-radius: 3px;
+  }
+  .ml-tb-fullred-btn {
+    background: var(--red); border: none; color: var(--white);
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 13px;
+    text-transform: uppercase; letter-spacing: .06em;
+    padding: 12px 24px; cursor: pointer; border-radius: 3px;
+    transition: opacity .15s;
+  }
+  .ml-tb-fullred-btn:hover { opacity: .85; }
+
+  /* Main suggestion card */
+  .ml-tb-card { padding: 14px 18px; }
+  .ml-tb-card-balance {
+    font-family: 'Mulish', sans-serif; font-size: 10px; color: var(--muted);
+  }
+  .ml-tb-box {
+    border: 1px solid var(--border2); background: var(--surface2);
+    padding: 12px 14px; margin-bottom: 14px;
+  }
+  .ml-tb-side { margin-bottom: 8px; }
+  .ml-tb-side.is-recv {
+    border-top: 1px solid var(--border);
+    padding-top: 8px;
+    margin-top: 6px;
+  }
+  .ml-tb-eyebrow {
+    font-family: 'Mulish', sans-serif; font-size: 9px; font-weight: 700;
+    text-transform: uppercase; color: var(--muted);
+    letter-spacing: .06em; margin-bottom: 2px;
+  }
+  .ml-tb-asset {
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 0; border-bottom: 1px solid var(--border);
+  }
+  /* Position pill on each asset row — base class + per-position modifier.
+     The modifier names mirror the lowercase position values used by the
+     template literal: ml-tb-asset-pos--qb / --rb / --wr / --te / --k /
+     --pick. Adding a position? Add a corresponding rule below. */
+  .ml-tb-asset-pos {
+    font-family: 'Mulish', sans-serif; font-size: 9px; font-weight: 800;
+    text-transform: uppercase;
+    padding: 2px 5px; border-radius: 2px;
+    letter-spacing: .04em; flex-shrink: 0;
+  }
+  .ml-tb-asset-pos--qb { background: var(--pos-qb-bg); color: var(--pos-qb); }
+  .ml-tb-asset-pos--rb { background: var(--pos-rb-bg); color: var(--pos-rb); }
+  .ml-tb-asset-pos--wr { background: var(--pos-wr-bg); color: var(--pos-wr); }
+  .ml-tb-asset-pos--te { background: var(--pos-te-bg); color: var(--pos-te); }
+  .ml-tb-asset-pos--k  { background: var(--pos-k-bg);  color: var(--pos-k); }
+  .ml-tb-asset-pos--pick {
+    background: var(--surface2); color: var(--pos-pick-bg);
+    border: 1px solid var(--border);
+  }
+  .ml-tb-asset-name {
+    font-family: 'Mulish', sans-serif; font-size: 12px; font-weight: 700;
+    color: var(--white); flex: 1; min-width: 0;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .ml-tb-asset-val {
+    font-family: 'Mulish', sans-serif; font-size: 10px;
+    color: var(--muted); flex-shrink: 0;
+  }
+  .ml-tb-total {
+    display: flex; justify-content: space-between;
+    padding-top: 6px;
+    font-family: 'Mulish', sans-serif; font-size: 10px; color: var(--muted);
+  }
+  .ml-tb-total-val { color: var(--white); font-weight: 700; }
+  /* Fit-note color comes from a CSS custom property set inline at render
+     time (--balance-color). Falls back to white if unset. */
+  .ml-tb-fitnote {
+    margin-top: 10px; padding-top: 8px;
+    border-top: 1px solid var(--border);
+    font-family: 'Mulish', sans-serif; font-size: 11px;
+    color: var(--balance-color, var(--white));
+    font-style: italic;
+  }
+
+  /* CTA row + buttons. NB: .ml-tb-cta-row already has a mobile rule at
+     line ~1745 (flex-direction: column !important) — preserved untouched. */
+  .ml-tb-cta {
+    flex: 1;
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 14px;
+    text-transform: uppercase; letter-spacing: .06em;
+    padding: 14px; cursor: pointer; border-radius: 3px;
+    border-width: 2px; border-style: solid;
+    transition: background .15s, opacity .15s;
+  }
+  .ml-tb-cta.is-skip {
+    background: transparent; border-color: var(--red); color: var(--red);
+  }
+  .ml-tb-cta.is-skip:hover { background: rgba(237,129,12,.12); }
+  .ml-tb-cta.is-accept {
+    background: var(--green); border-color: var(--green); color: var(--black);
+  }
+  .ml-tb-cta.is-accept:hover { opacity: .85; }
+  .ml-tb-cta-hint {
+    text-align: center;
+    font-family: 'Mulish', sans-serif; font-size: 10px;
+    color: var(--muted); font-style: italic;
+  }
+
+  /* Archetype mini-chip used in the header — same pattern as
+     .ml-pd-avail-archchip in the player-detail modal but slightly larger
+     (padding 2px 6px vs 1px 5px) to fit the trade-builder modal scale.
+     Bg/fg come from --archetype-bg / --archetype-fg CSS custom properties
+     set inline at render time. */
+  .ml-tb-archchip {
+    font-family: 'Mulish', sans-serif; font-size: 9px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .04em;
+    padding: 2px 6px; border-radius: 2px; margin-left: 6px;
+    background: var(--archetype-bg, var(--surface2));
+    color: var(--archetype-fg, var(--white));
+  }
+
   /* Calculator modal */
   .ml-calc-builder {
     display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;
@@ -3927,18 +4103,18 @@ function mltbRender() {
   const hideNames = mlGetHideUsernames();
   const displayedOwnerName = hideNames && ownerName ? 'League Member' : ownerName;
 
-  // Header strip
+  // Header strip — archetype chip's bg/fg come from CSS custom properties.
   const archChip = archetype
-    ? `<span style="font-family:'Mulish',sans-serif;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;padding:2px 6px;border-radius:2px;background:${mlArchetypeBg(archetype)};color:${mlArchetypeFg(archetype)};margin-left:6px">${archetype}</span>`
+    ? `<span class="ml-tb-archchip" style="--archetype-bg:${mlArchetypeBg(archetype)};--archetype-fg:${mlArchetypeFg(archetype)}">${archetype}</span>`
     : '';
   const headerStrip = `
-    <div style="padding:14px 20px;border-bottom:1px solid var(--border);background:var(--surface2)">
-      <div style="display:flex;align-items:center;gap:12px">
-        ${targetSid ? `<img src="https://sleepercdn.com/content/nfl/players/thumb/${targetSid}.jpg" style="width:48px;height:48px;border-radius:3px;object-fit:cover;background:var(--surface)" onerror="this.style.visibility='hidden'">` : ''}
+    <div class="ml-tb-headstrip">
+      <div class="ml-tb-headstrip-row">
+        ${targetSid ? `<img class="ml-tb-headstrip-thumb" src="https://sleepercdn.com/content/nfl/players/thumb/${targetSid}.jpg" onerror="this.style.visibility='hidden'">` : ''}
         <div class="ml-flex1">
-          <div style="font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:18px;color:var(--white);text-transform:uppercase;line-height:1.1">${targetPlayer ? targetPlayer.name : 'Unknown'}</div>
-          <div style="font-family:'Mulish',sans-serif;font-size:11px;color:var(--muted);margin-top:2px">${targetPlayer ? (targetPlayer.pos + ' · Value ' + targetPlayer.value.toLocaleString()) : ''} · in ${leagueName}</div>
-          ${ownerName ? `<div style="font-family:'Mulish',sans-serif;font-size:11px;color:var(--white);opacity:.8;margin-top:2px">Owner: <span class="ml-pd-owner-name">${displayedOwnerName}</span>${archChip}</div>` : ''}
+          <div class="ml-tb-headstrip-name">${targetPlayer ? targetPlayer.name : 'Unknown'}</div>
+          <div class="ml-tb-headstrip-meta">${targetPlayer ? (targetPlayer.pos + ' · Value ' + targetPlayer.value.toLocaleString()) : ''} · in ${leagueName}</div>
+          ${ownerName ? `<div class="ml-tb-headstrip-owner">Owner: <span class="ml-pd-owner-name">${displayedOwnerName}</span>${archChip}</div>` : ''}
         </div>
       </div>
     </div>
@@ -3951,11 +4127,10 @@ function mltbRender() {
   }
   if (!ownerRosterId) {
     body.innerHTML = headerStrip + `
-      <div style="padding:20px">
-        <div style="font-family:'Mulish',sans-serif;font-size:13px;color:var(--white);margin-bottom:8px">This player is currently a free agent in this league.</div>
-        <div style="font-family:'Mulish',sans-serif;font-size:12px;color:var(--muted);margin-bottom:16px">No trade is needed — claim them via waivers or free agency on Sleeper.</div>
-        <a href="${_mlBuildSleeperLeagueUrl(leagueId)}" target="_blank" rel="noopener"
-          style="display:inline-block;font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:11px;color:var(--white);background:var(--red);text-decoration:none;text-transform:uppercase;letter-spacing:.06em;padding:10px 18px;border-radius:3px">Go To Your Team On Sleeper ↗</a>
+      <div class="ml-tb-edge is-fa">
+        <div class="ml-tb-edge-msg is-fa-body">This player is currently a free agent in this league.</div>
+        <div class="ml-tb-edge-msg is-fa-sub">No trade is needed — claim them via waivers or free agency on Sleeper.</div>
+        <a class="ml-tb-sleeper-link" href="${_mlBuildSleeperLeagueUrl(leagueId)}" target="_blank" rel="noopener">Go To Your Team On Sleeper ↗</a>
       </div>
     `;
     return;
@@ -3969,7 +4144,7 @@ function mltbRender() {
       : `You already own this player in this league.`;
     body.innerHTML = headerStrip + (targetPlayer && targetPlayer.type === 'pick'
       ? mltbCalcCtaBlock(ownLabel)
-      : `<div style="padding:24px;text-align:center;color:var(--muted);font-size:13px">${ownLabel}</div>`);
+      : `<div class="ml-tb-edge is-own">${ownLabel}</div>`);
     return;
   }
 
@@ -4008,27 +4183,27 @@ function mltbRender() {
     balanceColor = '#5b9bd5';
   }
 
+  // Render each "You send" asset row. The pos pill uses a modifier class
+  // (.ml-tb-asset-pos--<pos>) instead of inline background/color — see the
+  // .ml-tb-asset-pos--qb/--rb/--wr/--te/--k/--pick CSS rules.
   const sentList = t.sending.map(a => {
     const ageStr = a.type === 'player' && a.age ? ` · ${a.age}y` : '';
-    const posClass = (a.pos || 'WR').toLowerCase();
-    const posStyle = a.type === 'pick'
-      ? 'background:var(--surface2);color:var(--pos-pick-bg);border:1px solid var(--border)'
-      : `background:var(--pos-${posClass}-bg);color:var(--pos-${posClass})`;
+    const posSlug = a.type === 'pick' ? 'pick' : (a.pos || 'wr').toLowerCase();
     return `
-      <div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
-        <span style="font-family:'Mulish',sans-serif;font-size:9px;font-weight:800;text-transform:uppercase;padding:2px 5px;border-radius:2px;${posStyle};letter-spacing:.04em;flex-shrink:0">${a.pos || '—'}</span>
-        <span style="font-family:'Mulish',sans-serif;font-size:12px;font-weight:700;color:var(--white);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${a.name}${ageStr}</span>
-        <span style="font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);flex-shrink:0">${(a.value||0).toLocaleString()}</span>
+      <div class="ml-tb-asset">
+        <span class="ml-tb-asset-pos ml-tb-asset-pos--${posSlug}">${a.pos || '—'}</span>
+        <span class="ml-tb-asset-name">${a.name}${ageStr}</span>
+        <span class="ml-tb-asset-val">${(a.value||0).toLocaleString()}</span>
       </div>
     `;
   }).join('');
 
   const targetPosClass = (targetPlayer.pos || 'WR').toLowerCase();
   const targetRow = `
-    <div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
-      <span style="font-family:'Mulish',sans-serif;font-size:9px;font-weight:800;text-transform:uppercase;padding:2px 5px;border-radius:2px;background:var(--pos-${targetPosClass}-bg);color:var(--pos-${targetPosClass});letter-spacing:.04em;flex-shrink:0">${targetPlayer.pos || '—'}</span>
-      <span style="font-family:'Mulish',sans-serif;font-size:12px;font-weight:700;color:var(--white);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${targetPlayer.name}</span>
-      <span style="font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);flex-shrink:0">${targetPlayer.value.toLocaleString()}</span>
+    <div class="ml-tb-asset">
+      <span class="ml-tb-asset-pos ml-tb-asset-pos--${targetPosClass}">${targetPlayer.pos || '—'}</span>
+      <span class="ml-tb-asset-name">${targetPlayer.name}</span>
+      <span class="ml-tb-asset-val">${targetPlayer.value.toLocaleString()}</span>
     </div>
   `;
 
@@ -4039,41 +4214,37 @@ function mltbRender() {
   const acceptPayload = encodeURIComponent(JSON.stringify({ idx: currentIdx }));
 
   body.innerHTML = headerStrip + `
-    <div style="padding:14px 18px">
+    <div class="ml-tb-card">
       <div class="ml-row-between">
         <span class="ml-section-head">Suggestion ${counterPos} — ${t.label}</span>
-        <span style="font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted)">${balanceLabel}</span>
+        <span class="ml-tb-card-balance">${balanceLabel}</span>
       </div>
 
-      <div style="border:1px solid var(--border2);background:var(--surface2);padding:12px 14px;margin-bottom:14px">
-        <div style="margin-bottom:8px">
-          <div style="font-family:'Mulish',sans-serif;font-size:9px;font-weight:700;text-transform:uppercase;color:var(--muted);letter-spacing:.06em;margin-bottom:2px">You send</div>
+      <div class="ml-tb-box">
+        <div class="ml-tb-side">
+          <div class="ml-tb-eyebrow">You send</div>
           ${sentList}
-          <div style="display:flex;justify-content:space-between;padding-top:6px;font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted)">
-            <span>Total</span><span style="color:var(--white);font-weight:700">${totalSent.toLocaleString()}</span>
+          <div class="ml-tb-total">
+            <span>Total</span><span class="ml-tb-total-val">${totalSent.toLocaleString()}</span>
           </div>
         </div>
-        <div style="border-top:1px solid var(--border);padding-top:8px;margin-top:6px">
-          <div style="font-family:'Mulish',sans-serif;font-size:9px;font-weight:700;text-transform:uppercase;color:var(--muted);letter-spacing:.06em;margin-bottom:2px">You receive</div>
+        <div class="ml-tb-side is-recv">
+          <div class="ml-tb-eyebrow">You receive</div>
           ${targetRow}
-          <div style="display:flex;justify-content:space-between;padding-top:6px;font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted)">
-            <span>Total</span><span style="color:var(--white);font-weight:700">${targetPlayer.value.toLocaleString()}</span>
+          <div class="ml-tb-total">
+            <span>Total</span><span class="ml-tb-total-val">${targetPlayer.value.toLocaleString()}</span>
           </div>
         </div>
-        ${fitNote ? `<div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--border);font-family:'Mulish',sans-serif;font-size:11px;color:${balanceColor};font-style:italic">${fitNote}</div>` : ''}
+        ${fitNote ? `<div class="ml-tb-fitnote" style="--balance-color:${balanceColor}">${fitNote}</div>` : ''}
       </div>
 
-      <div class="ml-tb-cta-row" style="display:flex;gap:10px;margin-bottom:10px">
-        <button type="button" onclick="mltbReject()"
-          style="flex:1;background:transparent;border:2px solid var(--red);color:var(--red);font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:14px;text-transform:uppercase;letter-spacing:.06em;padding:14px;cursor:pointer;border-radius:3px"
-          onmouseover="this.style.background='rgba(237,129,12,.12)'" onmouseout="this.style.background='transparent'"
+      <div class="ml-tb-cta-row">
+        <button type="button" class="ml-tb-cta is-skip" onclick="mltbReject()"
           title="Skip — show next suggestion">✗ Skip Next Suggestion</button>
-        <button type="button" onclick="mltbAccept('${acceptPayload}')"
-          style="flex:1;background:var(--green);border:2px solid var(--green);color:var(--black);font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:14px;text-transform:uppercase;letter-spacing:.06em;padding:14px;cursor:pointer;border-radius:3px"
-          onmouseover="this.style.opacity=.85" onmouseout="this.style.opacity=1"
+        <button type="button" class="ml-tb-cta is-accept" onclick="mltbAccept('${acceptPayload}')"
           title="Open this offer in the trade calculator to edit">✓ Edit In Calculator</button>
       </div>
-      <div style="text-align:center;font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);font-style:italic">
+      <div class="ml-tb-cta-hint">
         ✓ opens our trade calculator with this package pre-loaded so you can edit. ✗ shows the next suggestion.
       </div>
     </div>
@@ -4083,12 +4254,10 @@ function mltbRender() {
 // Build the "open the calculator from scratch" CTA block (used when no/exhausted suggestions)
 function mltbCalcCtaBlock(message) {
   return `
-    <div style="padding:24px 20px;text-align:center">
-      <div style="font-family:'Mulish',sans-serif;font-size:13px;color:var(--white);margin-bottom:6px;line-height:1.5">${message}</div>
-      <div style="font-family:'Mulish',sans-serif;font-size:11px;color:var(--muted);margin-bottom:18px;line-height:1.5">The calculator will open with both your roster and ${MLTB.ownerName ? MLTB.ownerName + "'s" : "the owner's"} roster as searchable pools so you can construct any package.</div>
-      <button type="button" onclick="mltbOpenCalculatorBlank()"
-        style="background:var(--red);border:none;color:var(--white);font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:13px;text-transform:uppercase;letter-spacing:.06em;padding:12px 24px;cursor:pointer;border-radius:3px"
-        onmouseover="this.style.opacity=.85" onmouseout="this.style.opacity=1">Open Trade Calculator</button>
+    <div class="ml-tb-edge">
+      <div class="ml-tb-edge-msg">${message}</div>
+      <div class="ml-tb-edge-msg is-sub">The calculator will open with both your roster and ${MLTB.ownerName ? MLTB.ownerName + "'s" : "the owner's"} roster as searchable pools so you can construct any package.</div>
+      <button type="button" class="ml-tb-fullred-btn" onclick="mltbOpenCalculatorBlank()">Open Trade Calculator</button>
     </div>
   `;
 }
