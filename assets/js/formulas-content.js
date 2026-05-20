@@ -2044,8 +2044,8 @@ If player only has 3 played weeks, returns { games: 3, ... }. The per-game row t
           example: `Josh Allen vs Lamar Jackson, INT (mode='min'): Allen 7, Jackson 4.
   _pcCmpClass(7, 4, 'min') → 'is-worst' (red on Allen's card).
   _pcCmpClass(4, 7, 'min') → 'is-best'  (green on Jackson's card).`,
-          whyThisNumber: 'Analyst input requested. Should the band thresholds expand to include "near-tied" (e.g., within 5% considered tied) instead of strict equality? Strict equality is rare in real data so the yellow tier almost never fires — a soft-tie threshold would make the visual signal more meaningful.',
-          notes: 'Behavioral difference from Table-mode _pcBestIdx (FORMULAS §47): _pcCmpClass emits is-tied for equal values; _pcBestIdx skips highlighting on tie. The compare-row variant needs something in every cell so it emits is-tied; the table-row variant has 4 cells and can leave them neutral on tie.',
+          whyThisNumber: 'Locked 2026-05-20: strict equality only — NO near-tied threshold (within-5% etc.). Same call as §47. Keeps the "best in row" signal unambiguous; close races still show a clear green winner; only literal ties go yellow. Adding a soft-tied band would muddle the visual semantics.',
+          notes: 'Tie behavior is now UNIFIED with Table mode (§47, twelfth session). Both _pcCmpClass (this surface) and _pcBestIdx (Table mode + Identity group) apply the yellow is-tied band for equal values. The previous Table-mode "skip highlight on tie" behavior is gone — see §47 for the unified helper. Cross-position card pairs (RB vs WR) only color-code the Identity section; position-specific sections show different stats per card so direct comparison would be meaningless.',
           related: ['compare-best-in-row']
         },
         {

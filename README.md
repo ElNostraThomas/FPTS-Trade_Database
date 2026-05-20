@@ -1070,10 +1070,12 @@ Nothing structural. Polish / nice-to-haves only:
       rolling window — regular-season-only keeps the "playing now" signal
       clean. Playoff per-week stats still visible in Career-tab expanded
       year view.
-    - **Multi-card metric comparison bands** (FORMULAS.md §49 /
-      `compare-multi-metric-comparison`). Should the comparison emit a
-      "near-tied" yellow band for values within 5% of each other, instead
-      of strict equality only?
+    - ~~**Multi-card metric comparison bands** (FORMULAS.md §49)~~ —
+      **LOCKED 2026-05-20 (twelfth session).** Strict equality only —
+      no near-tied threshold. Same call as §47; both surfaces now unified
+      with yellow `is-tied` band for literal ties + green `is-best` for
+      clear winners. Close races (within 5%) still show a clear winner
+      rather than washing into ambiguous yellow.
     - ~~**Compare-page scoring variants** (FORMULAS.md §50)~~ — **SHIPPED
       2026-05-20 (twelfth session).** `compare.html` now has a Scoring
       toggle in the page header with 4 presets: PPR (default), Half PPR,

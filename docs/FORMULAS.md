@@ -1633,7 +1633,11 @@ function _pcCmpClass(v, vOther, mode) {
 
 **Example.** Josh Allen vs Lamar Jackson, comparing INT (mode='min'): Allen has 7 INTs, Jackson has 4. `_pcCmpClass(7, 4, 'min')` → `'is-worst'` (red). `_pcCmpClass(4, 7, 'min')` → `'is-best'` (green).
 
-**Notes.** Unlike Table mode's `_pcBestIdx` which skips highlighting on ties, this helper emits `is-tied` (yellow). The semantic difference is intentional — a 2-card row needs SOMETHING in each cell, so equal values get a "tied" indicator rather than ambiguous neutral coloring. **`Analyst input requested`** — should the band thresholds expand to include "near-tied" (e.g., within 5% considered tied) instead of strict equality?
+**Locked decisions (2026-05-20):**
+- **Strict equality only.** No "near-tied" threshold (within-5% etc.). Same call as §47 — keeps the "best in row" signal unambiguous; close races still show a clear green winner, only literal ties go yellow.
+- **Unified tie behavior with Table mode** (§47, twelfth session). Both `_pcCmpClass` (this surface) and `_pcBestIdx` (Table mode + Identity group) now apply the yellow `is-tied` band for equal values. The previous Table-mode "skip highlight on tie" behavior is gone.
+
+**Notes.** The 2-card surface always needs SOMETHING in each cell, so equal values get a "tied" indicator rather than ambiguous neutral coloring. Cross-position cards (e.g., RB vs WR pairs) only color-code the Identity section — position-specific sections show different stats per card so direct comparison would be meaningless.
 
 ---
 
