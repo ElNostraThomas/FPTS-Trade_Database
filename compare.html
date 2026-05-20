@@ -203,6 +203,206 @@
     display: grid; grid-template-columns: 320px 1fr; gap: 24px;
     margin-top: 8px;
   }
+  /* Multi-player Profile mode (2 players): cards side-by-side, info
+     column hidden. Each card is wider so it can carry a full metric
+     table with color-coded comparison values. */
+  body.fpts-compare-page .pc-hero-row.is-multi {
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+  }
+  body.fpts-compare-page .pc-hero-row.is-multi .pc-info { display: none; }
+  /* Bigger photos + the mini-grid / footer / key strip drop out in
+     favor of the comprehensive metric table built below. */
+  body.fpts-compare-page .pc-hero-row.is-multi .pc-card-photo-wrap {
+    aspect-ratio: 16 / 10;
+  }
+  body.fpts-compare-page .pc-hero-row.is-multi .pc-card-mini-grid,
+  body.fpts-compare-page .pc-hero-row.is-multi .pc-card-footer,
+  body.fpts-compare-page .pc-hero-row.is-multi .pc-card-key-strip {
+    display: none;
+  }
+
+  /* Metric table inside each comparison card — color-coded by winner */
+  body.fpts-compare-page .pc-cm-table {
+    display: flex; flex-direction: column;
+    border-top: 1px solid var(--border);
+  }
+  body.fpts-compare-page .pc-cm-section {
+    background: linear-gradient(90deg, rgba(237,129,12,0.12) 0%, rgba(237,129,12,0.02) 100%);
+    padding: 7px 14px;
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 10px; color: var(--red);
+    text-transform: uppercase; letter-spacing: .1em;
+    border-bottom: 1px solid var(--border); border-top: 1px solid var(--border);
+  }
+  body.fpts-compare-page .pc-cm-section:first-of-type { border-top: none; }
+  body.fpts-compare-page .pc-cm-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 9px 14px;
+    border-bottom: 1px dotted var(--border);
+  }
+  body.fpts-compare-page .pc-cm-row:last-child { border-bottom: none; }
+  body.fpts-compare-page .pc-cm-label {
+    font-family: 'Mulish', sans-serif; font-size: 12px; font-weight: 700;
+    color: var(--white); opacity: .8;
+  }
+  body.fpts-compare-page .pc-cm-value {
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 14px; color: var(--white);
+    padding: 3px 10px; border-radius: 3px; min-width: 64px; text-align: center;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+  }
+  body.fpts-compare-page .pc-cm-value.is-best {
+    color: var(--green);
+    background: rgba(76,175,110,0.12);
+    border-color: rgba(76,175,110,0.4);
+  }
+  body.fpts-compare-page .pc-cm-value.is-worst {
+    color: var(--red);
+    background: rgba(237,129,12,0.10);
+    border-color: rgba(237,129,12,0.35);
+  }
+  body.fpts-compare-page .pc-cm-value.is-tied {
+    color: var(--yellow);
+    background: rgba(240,192,64,0.08);
+    border-color: rgba(240,192,64,0.3);
+  }
+  body.fpts-compare-page .pc-cm-value.is-empty {
+    color: var(--muted); opacity: .35; font-style: normal;
+    background: transparent;
+  }
+  body.fpts-compare-page .pc-cm-identity {
+    padding: 12px 14px 14px;
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+  }
+  body.fpts-compare-page .pc-cm-identity-name {
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 22px; color: var(--white);
+    text-transform: uppercase; line-height: 1; letter-spacing: .01em;
+  }
+  body.fpts-compare-page .pc-cm-identity-meta {
+    font-family: 'Mulish', sans-serif; font-size: 11px; font-weight: 700;
+    color: var(--muted); opacity: .7; margin-top: 6px;
+    text-transform: uppercase; letter-spacing: .08em;
+    display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;
+  }
+  body.fpts-compare-page .pc-cm-identity-meta .sep {
+    color: var(--border2); opacity: .6;
+  }
+
+  /* Compressed-card extras shown only in multi mode (name + meta + clear) */
+  body.fpts-compare-page .pc-card-name-strip {
+    display: none; /* hidden in single mode */
+    padding: 10px 12px 4px;
+    text-align: center;
+  }
+  body.fpts-compare-page .pc-hero-row.is-multi .pc-card-name-strip {
+    display: block;
+  }
+  body.fpts-compare-page .pc-card-name {
+    font-family: 'Mulish', sans-serif; font-weight: 900; font-size: 15px;
+    color: var(--white); line-height: 1.15;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  body.fpts-compare-page .pc-card-sub {
+    font-family: 'Mulish', sans-serif; font-size: 10px;
+    color: var(--muted); opacity: .7; margin-top: 3px;
+    text-transform: uppercase; letter-spacing: .08em;
+  }
+  body.fpts-compare-page .pc-card-key-strip {
+    display: none;
+    padding: 8px 12px 10px;
+    background: linear-gradient(0deg, var(--surface) 0%, var(--surface2) 100%);
+    border-top: 1px solid var(--border);
+  }
+  body.fpts-compare-page .pc-hero-row.is-multi .pc-card-key-strip {
+    display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px;
+  }
+  body.fpts-compare-page .pc-card-key-tile {
+    text-align: center;
+  }
+  body.fpts-compare-page .pc-card-key-label {
+    font-family: 'Mulish', sans-serif; font-size: 8px; font-weight: 700;
+    color: var(--muted); text-transform: uppercase; letter-spacing: .1em;
+    opacity: .7; margin-bottom: 2px;
+  }
+  body.fpts-compare-page .pc-card-key-value {
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 13px; color: var(--white); line-height: 1;
+  }
+  body.fpts-compare-page .pc-card-remove {
+    position: absolute; top: 8px; right: 8px; z-index: 5;
+    background: rgba(0,0,0,0.4); border: 1px solid var(--border2);
+    color: var(--white); cursor: pointer; padding: 2px 6px;
+    font-size: 11px; opacity: .7; line-height: 1;
+    border-radius: 3px; display: none;
+    transition: opacity .12s, background .12s;
+  }
+  body.fpts-compare-page .pc-hero-row.is-multi .pc-card-remove { display: block; }
+  body.fpts-compare-page .pc-card-remove:hover {
+    background: var(--red); opacity: 1; border-color: var(--red);
+  }
+
+  /* "+ Add comparison" slot — appears in multi mode when N < 3 */
+  body.fpts-compare-page .pc-add-slot {
+    background: var(--surface); border: 1px dashed var(--border2);
+    border-radius: 6px; padding: 16px;
+    display: flex; flex-direction: column; gap: 8px;
+    align-items: center; justify-content: center;
+    text-align: center; min-height: 280px;
+    position: relative;
+  }
+  body.fpts-compare-page .pc-add-slot-label {
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 16px; color: var(--muted); opacity: .55;
+    text-transform: uppercase; letter-spacing: .06em;
+  }
+  body.fpts-compare-page .pc-add-slot-sub {
+    font-family: 'Mulish', sans-serif; font-size: 10px;
+    color: var(--muted); opacity: .55;
+    text-transform: uppercase; letter-spacing: .08em;
+  }
+  body.fpts-compare-page .pc-add-slot-input {
+    width: 100%; box-sizing: border-box;
+    background: var(--surface2); border: 1px solid var(--border2);
+    color: var(--white); font-family: 'Mulish', sans-serif;
+    font-size: 12px; padding: 8px 10px; outline: none;
+    border-radius: 3px; transition: border-color .15s;
+  }
+  body.fpts-compare-page .pc-add-slot-input:focus { border-color: var(--red); }
+  body.fpts-compare-page .pc-add-slot-results {
+    position: absolute; top: calc(100% + 4px); left: 8px; right: 8px;
+    background: var(--surface2); border: 1px solid var(--border2);
+    max-height: 260px; overflow-y: auto; z-index: 60;
+    display: none; text-align: left; border-radius: 3px;
+  }
+  body.fpts-compare-page .pc-add-slot-results.is-open { display: block; }
+
+  /* Profile tab Background tiles — render in N columns when multi */
+  body.fpts-compare-page .pc-bg-columns {
+    display: grid; gap: 14px;
+  }
+  body.fpts-compare-page .pc-bg-columns.is-multi-2 { grid-template-columns: repeat(2, 1fr); }
+  body.fpts-compare-page .pc-bg-columns.is-multi-3 { grid-template-columns: repeat(3, 1fr); }
+  body.fpts-compare-page .pc-bg-col {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-top: 3px solid var(--pos-color, var(--border));
+    border-radius: 4px; padding: 14px;
+  }
+  body.fpts-compare-page .pc-bg-col-name {
+    font-family: 'Mulish', sans-serif; font-weight: 900; font-size: 13px;
+    color: var(--white); margin-bottom: 10px; text-align: center;
+  }
+  body.fpts-compare-page .pc-bg-columns .pc-tiles {
+    grid-template-columns: repeat(2, 1fr); gap: 6px;
+    margin-top: 0;
+  }
+  body.fpts-compare-page .pc-bg-columns .pc-tile {
+    padding: 8px 10px;
+  }
+  body.fpts-compare-page .pc-bg-columns .pc-tile-value { font-size: 14px; }
 
   /* ─── Trading card (left) ──────────────────────────────────────────── */
   body.fpts-compare-page .pc-card {
@@ -916,6 +1116,14 @@
     body.fpts-compare-page .pc-match-card { scroll-snap-align: start; }
     body.fpts-compare-page .pc-matches-header { flex-direction: column; align-items: flex-start; gap: 8px; }
     body.fpts-compare-page .pc-matches-legend { gap: 10px; }
+    body.fpts-compare-page .pc-hero-row.is-multi {
+      grid-template-columns: 1fr; gap: 12px;
+    }
+    body.fpts-compare-page .pc-bg-columns.is-multi-2,
+    body.fpts-compare-page .pc-bg-columns.is-multi-3 {
+      grid-template-columns: 1fr;
+    }
+    body.fpts-compare-page .pc-add-slot { min-height: 200px; }
     body.fpts-compare-page .pc-table-picker {
       grid-template-columns: none;
       grid-auto-flow: column;
@@ -1061,11 +1269,20 @@
   const PC = {
     mode: 'profile',       // 'profile' | 'table'
     fmt: 'sf',             // 'sf' | '1qb'
-    player: null,          // single player name (profile mode)
-    players: [],           // up to 4 names (table mode — phase 3)
+    // Unified player slot list. Used by BOTH modes:
+    //   Profile mode: 0 = empty/search state. 1 = single-player layout
+    //                 (current). 2-3 = side-by-side compressed cards.
+    //   Table mode: 0 = empty. 1-4 = picker slots filled.
+    players: [],
     tab: 'profile',        // 'profile' | 'adp' | 'heatmap' | 'value' | 'career' | 'trades'
     games: 4,              // last-N games window for Table mode: 4 | 8 | 16
     searchTimer: null,
+    // Legacy alias — readers of PC.player still work via this getter.
+    get player()   { return this.players[0] || null; },
+    set player(v)  {
+      if (v) this.players = [v];
+      else   this.players = [];
+    },
   };
   const PC_TABS = ['profile', 'adp', 'heatmap', 'value', 'career', 'trades'];
   const PC_GAMES = [4, 8, 16];
@@ -1073,7 +1290,7 @@
   // ─── URL hash routing ──────────────────────────────────────────────
   function _pcParseHash() {
     const h = window.location.hash.slice(1);
-    if (!h) { PC.player = null; PC.players = []; return; }
+    if (!h) { PC.players = []; return; }
     const p = new URLSearchParams(h);
     PC.mode = p.get('mode') === 'table' ? 'table' : 'profile';
     PC.fmt  = p.get('fmt')  === '1qb'   ? '1qb'   : 'sf';
@@ -1081,10 +1298,17 @@
     PC.tab  = PC_TABS.indexOf(t) >= 0 ? t : 'profile';
     const g = parseInt(p.get('games'), 10);
     PC.games = PC_GAMES.indexOf(g) >= 0 ? g : 4;
-    const player = p.get('player');
-    PC.player = player ? decodeURIComponent(player.replace(/\+/g, ' ')) : null;
-    const players = p.get('players');
-    PC.players = players ? players.split(',').map(s => decodeURIComponent(s.replace(/\+/g, ' '))) : [];
+    // Unified player list: accept both legacy `player=` (single) and
+    // `players=A,B,C` (multi). Multi wins if both are present.
+    const playersParam = p.get('players');
+    const playerParam  = p.get('player');
+    if (playersParam) {
+      PC.players = playersParam.split(',').map(s => decodeURIComponent(s.replace(/\+/g, ' '))).filter(Boolean);
+    } else if (playerParam) {
+      PC.players = [decodeURIComponent(playerParam.replace(/\+/g, ' '))];
+    } else {
+      PC.players = [];
+    }
   }
 
   function _pcWriteHash() {
@@ -1093,8 +1317,11 @@
     if (PC.fmt  !== 'sf')      p.set('fmt',  PC.fmt);
     if (PC.tab  !== 'profile') p.set('tab',  PC.tab);
     if (PC.games !== 4)        p.set('games', String(PC.games));
-    if (PC.player)             p.set('player',  PC.player);
-    if (PC.players.length)     p.set('players', PC.players.join(','));
+    // Prefer `player=` for clean single-player URLs (back-compat with
+    // existing shared links); switch to `players=A,B,C` only when 2+.
+    const filled = PC.players.filter(Boolean);
+    if (filled.length === 1)      p.set('player',  filled[0]);
+    else if (filled.length >= 2)  p.set('players', filled.join(','));
     const s = p.toString();
     const newHash = s ? '#' + s : '';
     if (window.location.hash !== newHash) {
@@ -1261,7 +1488,44 @@
   }
 
   function _pcSwitchPlayer() {
-    PC.player = null;
+    PC.players = [];
+    _pcWriteHash();
+    _pcRender();
+  }
+
+  // Triggered from the single-player hero's "+ Add comparison player" link.
+  // We don't have a dedicated picker UI in single mode, so we ask via
+  // prompt() — once a second player is added, the layout shifts to the
+  // multi-card view which has its own search slot for the 3rd player.
+  function _pcPromptAddComparison() {
+    const name = window.prompt('Add a comparison player (exact name):', '');
+    if (!name) return;
+    const trimmed = name.trim();
+    if (!trimmed) return;
+    if (!(window.FP_VALUES || {})[trimmed]) {
+      alert('Player not found in FP_VALUES: ' + trimmed);
+      return;
+    }
+    _pcAddProfilePlayer(trimmed);
+  }
+
+  // Add a comparison player to Profile mode (cap at 2, no duplicates).
+  // 2-player layout gives each card the horizontal real estate for a
+  // full metric table; 3+ gets cramped fast.
+  function _pcAddProfilePlayer(name) {
+    if (!name) return;
+    if (PC.players.indexOf(name) >= 0) return;
+    if (PC.players.length >= 2) return;
+    PC.players = PC.players.concat([name]);
+    _pcWriteHash();
+    _pcRender();
+  }
+
+  // Remove a player from Profile mode by slot index.
+  function _pcRemoveProfilePlayer(idx) {
+    if (idx < 0 || idx >= PC.players.length) return;
+    PC.players = PC.players.slice();
+    PC.players.splice(idx, 1);
     _pcWriteHash();
     _pcRender();
   }
@@ -1434,6 +1698,8 @@
           </div>
           <div class="pc-hero-secondary">
             <a href="#" onclick="event.preventDefault();_pcSwitchPlayer();">← Pick a different player</a>
+            <span class="pc-hero-secondary-sep"></span>
+            <a href="#" onclick="event.preventDefault();_pcPromptAddComparison();">+ Add comparison player</a>
             <span class="pc-hero-secondary-sep"></span>
             <a href="#" onclick="event.preventDefault();if(window.openPanel)openPanel('${safeName}');">Open full player drawer →</a>
           </div>
@@ -2505,6 +2771,313 @@
       </div>`;
   }
 
+  // ─── Multi-player Profile mode (Phase 6a) ──────────────────────────
+  // Triggered when PC.mode === 'profile' AND PC.players.length >= 2.
+  // Cards compress: photo + name + meta inline, info column hidden.
+  // Up to 3 players, with a "+ Add comparison" empty slot when N < 3.
+
+  // Compare two values and return a CSS class for the winner/loser.
+  // mode = 'max' (higher = better) or 'min' (lower = better).
+  function _pcCmpClass(v, vOther, mode) {
+    if (v == null || isNaN(v))            return 'is-empty';
+    if (vOther == null || isNaN(vOther))  return ''; // other side missing this metric
+    if (v === vOther)                     return 'is-tied';
+    if (mode === 'min') return v < vOther ? 'is-best' : 'is-worst';
+    return v > vOther ? 'is-best' : 'is-worst';
+  }
+
+  // Build the position-aware metric-table HTML for one player, color-
+  // coded against the OTHER player in PC.players.
+  function _pcMultiMetricTable(name, otherName) {
+    const data = _pcCardData(name);
+    const otherData = otherName ? _pcCardData(otherName) : null;
+    if (!data) return '';
+    const fp = data.fp, fpOther = otherData ? otherData.fp : null;
+    const stats = data.stats, statsOther = otherData ? otherData.stats : null;
+    const cur = _pcCurrentSeason();
+    const season = stats && stats.seasons && stats.seasons[cur];
+    const seasonOther = statsOther && statsOther.seasons && statsOther.seasons[cur];
+    const pos = fp.pos || '?';
+
+    // Row helper — formats + compares + emits HTML.
+    const row = (label, val, valOther, mode, formatter) => {
+      const cls = _pcCmpClass(val, valOther, mode);
+      const empty = (val == null || isNaN(val));
+      const txt = empty ? '—' : (formatter ? formatter(val) : Number(val).toLocaleString());
+      return `<div class="pc-cm-row">
+        <span class="pc-cm-label">${label}</span>
+        <span class="pc-cm-value ${cls}">${txt}</span>
+      </div>`;
+    };
+    const section = (title) => `<div class="pc-cm-section">${title}</div>`;
+    const s = (rec, key) => rec ? (rec[key] != null ? Number(rec[key]) : null) : null;
+
+    // ─── Identity section (universal) ─────────────────────────────
+    const valKey = PC.fmt === '1qb' ? 'value1qb' : 'valueSf';
+    const fpVal      = fp ? Number((fp[valKey] != null ? fp[valKey] : fp.value) || 0) : null;
+    const fpValOther = fpOther ? Number((fpOther[valKey] != null ? fpOther[valKey] : fpOther.value) || 0) : null;
+    const age       = (fp.age != null) ? Number(fp.age) : null;
+    const ageOther  = (fpOther && fpOther.age != null) ? Number(fpOther.age) : null;
+    const ppg       = (fp.ppg != null) ? Number(fp.ppg) : null;
+    const ppgOther  = (fpOther && fpOther.ppg != null) ? Number(fpOther.ppg) : null;
+    const trend      = (fp.trend != null) ? Number(fp.trend) : null;
+    const trendOther = (fpOther && fpOther.trend != null) ? Number(fpOther.trend) : null;
+    const posRankN      = fp.posRank ? Number(String(fp.posRank).match(/(\d+)$/) ? String(fp.posRank).match(/(\d+)$/)[1] : null) : null;
+    const posRankOtherN = fpOther && fpOther.posRank ? Number(String(fpOther.posRank).match(/(\d+)$/) ? String(fpOther.posRank).match(/(\d+)$/)[1] : null) : null;
+
+    let html = section('Identity · Trade value');
+    // Pos Rank — display the string ("QB1") but compare on the numeric tail
+    html += `<div class="pc-cm-row">
+      <span class="pc-cm-label">Pos Rank</span>
+      <span class="pc-cm-value ${_pcCmpClass(posRankN, posRankOtherN, 'min')}">${fp.posRank || '—'}</span>
+    </div>`;
+    html += row(`FP ${PC.fmt === '1qb' ? '1QB' : 'SF'} Value`, fpVal, fpValOther, 'max');
+    html += row('30d trend', trend, trendOther, 'max', v => (v > 0 ? '+' : '') + Math.round(v).toLocaleString());
+    html += row('PPG (overall)', ppg, ppgOther, 'max', v => Number(v).toFixed(1));
+    html += row('Age', age, ageOther, 'min', v => Number(v).toFixed(1));
+
+    // ─── Position-specific sections (current season totals) ───────
+    if (pos === 'QB') {
+      const cmpPct      = (season && season.passAtt > 0)      ? (season.passCmp      / season.passAtt      * 100) : null;
+      const cmpPctOther = (seasonOther && seasonOther.passAtt > 0) ? (seasonOther.passCmp / seasonOther.passAtt * 100) : null;
+      html += section('Passing · ' + cur);
+      html += row('Games',     s(season,'games'),     s(seasonOther,'games'),     'max');
+      html += row('Pass Yds',  s(season,'passYards'), s(seasonOther,'passYards'), 'max');
+      html += row('Pass TDs',  s(season,'passTd'),    s(seasonOther,'passTd'),    'max');
+      html += row('Int',       s(season,'passInts'),  s(seasonOther,'passInts'),  'min');
+      html += row('Cmp %',     cmpPct,                cmpPctOther,                'max', v => Number(v).toFixed(1) + '%');
+      html += section('Rushing · ' + cur);
+      html += row('Rush Att',  s(season,'rushAtt'),   s(seasonOther,'rushAtt'),   'max');
+      html += row('Rush Yds',  s(season,'rushYards'), s(seasonOther,'rushYards'), 'max');
+      html += row('Rush TDs',  s(season,'rushTd'),    s(seasonOther,'rushTd'),    'max');
+    } else if (pos === 'RB') {
+      const ypc      = (season      && season.rushAtt > 0)      ? (season.rushYards      / season.rushAtt)      : null;
+      const ypcOther = (seasonOther && seasonOther.rushAtt > 0) ? (seasonOther.rushYards / seasonOther.rushAtt) : null;
+      html += section('Rushing · ' + cur);
+      html += row('Games',     s(season,'games'),     s(seasonOther,'games'),     'max');
+      html += row('Rush Att',  s(season,'rushAtt'),   s(seasonOther,'rushAtt'),   'max');
+      html += row('Rush Yds',  s(season,'rushYards'), s(seasonOther,'rushYards'), 'max');
+      html += row('YPC',       ypc,                   ypcOther,                   'max', v => Number(v).toFixed(2));
+      html += row('Rush TDs',  s(season,'rushTd'),    s(seasonOther,'rushTd'),    'max');
+      html += section('Receiving · ' + cur);
+      html += row('Targets',   s(season,'targets'),   s(seasonOther,'targets'),   'max');
+      html += row('Rec',       s(season,'rec'),       s(seasonOther,'rec'),       'max');
+      html += row('Rec Yds',   s(season,'recYards'),  s(seasonOther,'recYards'),  'max');
+      html += row('Rec TDs',   s(season,'recTd'),     s(seasonOther,'recTd'),     'max');
+    } else { // WR / TE
+      const catchPct      = (season      && season.targets > 0)      ? (season.rec      / season.targets      * 100) : null;
+      const catchPctOther = (seasonOther && seasonOther.targets > 0) ? (seasonOther.rec / seasonOther.targets * 100) : null;
+      const ypt           = (season      && season.targets > 0)      ? (season.recYards      / season.targets)      : null;
+      const yptOther      = (seasonOther && seasonOther.targets > 0) ? (seasonOther.recYards / seasonOther.targets) : null;
+      const ypr           = (season      && season.rec > 0)          ? (season.recYards      / season.rec)          : null;
+      const yprOther      = (seasonOther && seasonOther.rec > 0)     ? (seasonOther.recYards / seasonOther.rec)     : null;
+      html += section('Receiving · ' + cur);
+      html += row('Games',       s(season,'games'),    s(seasonOther,'games'),    'max');
+      html += row('Targets',     s(season,'targets'),  s(seasonOther,'targets'),  'max');
+      html += row('Rec',         s(season,'rec'),      s(seasonOther,'rec'),      'max');
+      html += row('Rec Yds',     s(season,'recYards'), s(seasonOther,'recYards'), 'max');
+      html += row('Rec TDs',     s(season,'recTd'),    s(seasonOther,'recTd'),    'max');
+      html += row('Catch %',     catchPct,             catchPctOther,             'max', v => Number(v).toFixed(1) + '%');
+      html += row('Yards/Tgt',   ypt,                  yptOther,                  'max', v => Number(v).toFixed(2));
+      html += row('Yards/Rec',   ypr,                  yprOther,                  'max', v => Number(v).toFixed(2));
+    }
+
+    return `<div class="pc-cm-table">${html}</div>`;
+  }
+
+  function _pcRenderCardMulti(name) {
+    const data = _pcCardData(name);
+    if (!data) {
+      return `<div class="pc-card"><div class="pc-empty">Not found: ${_escAttr(name)}</div></div>`;
+    }
+    const idx = PC.players.indexOf(name);
+    const otherName = PC.players.find(n => n && n !== name) || null;
+    const fp = data.fp;
+    const sp = data.sleeper || {};
+    const pos  = fp.pos || (data.stats && data.stats.pos)  || '?';
+    const team = fp.team || (data.stats && data.stats.team) || '';
+    const ht   = sp.height ? _pcFmtHt(sp.height) : '—';
+    const wt   = sp.weight ? (sp.weight + ' lbs') : '—';
+    const age  = (fp.age != null) ? Number(fp.age).toFixed(1) : '—';
+    const yrsRaw = sp.years_exp;
+    const yrs  = (yrsRaw === 0) ? 'Rookie' : (yrsRaw != null ? (yrsRaw + ' yrs') : '—');
+    const photo = _pcPhoto(data.sid);
+    const teamLogo = (team && window.TeamHelpers && typeof window.TeamHelpers.logoImg === 'function')
+      ? window.TeamHelpers.logoImg(team, { size: 22, coin: true })
+      : (team || '');
+    const yearShort = "'" + String(_pcCurrentSeason()).slice(-2);
+
+    return `
+      <div class="pc-card" style="--pos-color: ${_pcPosColor(pos)}">
+        <button class="pc-card-remove" onclick="_pcRemoveProfilePlayer(${idx})" title="Remove">✕</button>
+        <div class="pc-card-header">
+          <span class="pos-pill ${pos}">${pos}</span>
+          <span class="pc-card-year">${yearShort}</span>
+          <span class="pc-card-team">${teamLogo}</span>
+        </div>
+        <div class="pc-card-photo-wrap">
+          ${photo
+            ? `<img class="pc-card-photo" src="${photo}" alt="${_escAttr(name)}" onerror="this.style.display='none'; if(this.nextElementSibling)this.nextElementSibling.style.display='flex';">`
+            : ''}
+          <div class="pc-card-photo-fallback" ${photo ? 'style="display:none;position:absolute"' : ''}>${pos || '?'}</div>
+        </div>
+        <div class="pc-cm-identity">
+          <div class="pc-cm-identity-name">${_escAttr(name)}</div>
+          <div class="pc-cm-identity-meta">
+            <span class="pos-pill ${pos}">${pos}</span>
+            <span>${team || '—'}</span>
+            <span class="sep">·</span>
+            <span>Age ${age}</span>
+            <span class="sep">·</span>
+            <span>${ht} / ${wt}</span>
+            <span class="sep">·</span>
+            <span>${yrs}</span>
+          </div>
+        </div>
+        ${_pcMultiMetricTable(name, otherName)}
+      </div>`;
+  }
+
+  function _pcRenderAddSlot() {
+    return `
+      <div class="pc-add-slot">
+        <div class="pc-add-slot-label">+ Add comparison</div>
+        <div class="pc-add-slot-sub">Up to 3 total</div>
+        <input class="pc-add-slot-input" type="text" placeholder="Search player…"
+               autocomplete="off" spellcheck="false"
+               oninput="_pcAddSlotSearchInput(event)"
+               onblur="setTimeout(() => { const r = document.getElementById('pc-add-slot-results'); if (r) r.classList.remove('is-open'); }, 200)">
+        <div class="pc-add-slot-results" id="pc-add-slot-results"></div>
+      </div>`;
+  }
+
+  function _pcAddSlotSearchInput(e) {
+    clearTimeout(PC.searchTimer);
+    const q = (e.target.value || '').trim().toLowerCase();
+    PC.searchTimer = setTimeout(() => {
+      const resultsEl = document.getElementById('pc-add-slot-results');
+      if (!resultsEl) return;
+      if (!q) { resultsEl.innerHTML = ''; resultsEl.classList.remove('is-open'); return; }
+      const taken = new Set(PC.players || []);
+      const matches = Object.keys(window.FP_VALUES || {})
+        .filter(n => !taken.has(n) && n.toLowerCase().includes(q))
+        .sort((a, b) => (window.FP_VALUES[a].rank || 9999) - (window.FP_VALUES[b].rank || 9999))
+        .slice(0, 12);
+      if (!matches.length) {
+        resultsEl.innerHTML = '<div class="pc-search-item is-empty">No matches</div>';
+        resultsEl.classList.add('is-open');
+        return;
+      }
+      resultsEl.innerHTML = matches.map(n => {
+        const fp = window.FP_VALUES[n];
+        const safeName = n.replace(/'/g, "\\'");
+        return `<div class="pc-search-item" onmousedown="_pcAddProfilePlayer('${safeName}')">
+          <span class="pos-pill ${fp.pos || ''}">${fp.pos || '?'}</span>
+          <span class="pc-search-name">${n}</span>
+          <span class="pc-search-meta">${fp.team || ''}${fp.posRank ? ' · ' + fp.posRank : ''}</span>
+        </div>`;
+      }).join('');
+      resultsEl.classList.add('is-open');
+    }, 60);
+  }
+
+  // Profile tab Background in N columns (when multi). Per-player tiles
+  // each live in their own .pc-bg-col with the player's pos-color stripe.
+  function _pcPanelProfileMulti() {
+    const cols = PC.players.map(name => {
+      const data = _pcCardData(name);
+      if (!data) return '';
+      const fp = data.fp;
+      const pos = fp.pos || '?';
+      const sleeperReady = !!data.sleeper;
+      const tiles = sleeperReady
+        ? `<div class="pc-tiles">${_pcBackgroundTiles(data)}</div>`
+        : `<div class="pc-hist-empty">Loading background data…</div>`;
+      return `
+        <div class="pc-bg-col" style="--pos-color:${_pcPosColor(pos)}">
+          <div class="pc-bg-col-name">${_escAttr(name)}</div>
+          ${tiles}
+        </div>`;
+    }).join('');
+    const gridCls = PC.players.length === 3 ? 'is-multi-3' : 'is-multi-2';
+    return `
+      <div class="pc-panel-eyebrow">Player profiles · ${PC.players.length} compared</div>
+      <div class="pc-panel-title">Background & identity</div>
+      <div class="pc-panel-sub">Per-player class / college / hometown / draft slot. Side-by-side comparison.</div>
+      <div class="pc-bg-columns ${gridCls}">${cols}</div>`;
+  }
+
+  // Render the multi-player profile view. Hero row of compressed cards
+  // + "Add" slot when N < 3. Sub-tabs from PC.tab still drive content;
+  // Phase 6a only multi-rendered Profile tab. Other tabs render the
+  // first player only (placeholder) until phases 6b/6c.
+  function _pcRenderProfileMulti() {
+    const cards = PC.players.map(name => _pcRenderCardMulti(name)).join('');
+    // Cap is 2 in Profile mode. When length===2 we're at the max; no add slot.
+    const addSlot = '';
+
+    // Build tab bar (reuse the existing tab definitions)
+    const tabs = [
+      { key: 'profile', label: 'Profile' },
+      { key: 'adp',     label: 'ADP' },
+      { key: 'heatmap', label: 'Heatmap' },
+      { key: 'value',   label: 'Value' },
+      { key: 'career',  label: 'Career' },
+      { key: 'trades',  label: 'Trades' },
+    ];
+    const tabBar = tabs.map(t => `
+      <button class="pc-tab-btn${PC.tab === t.key ? ' is-active' : ''}"
+              data-tab="${t.key}"
+              onclick="_pcSetTab('${t.key}')">${t.label}</button>
+    `).join('');
+
+    // Tab panel content — Phase 6a renders Profile in N columns; other
+    // tabs render the first player only with a banner noting phase work.
+    let panel = '';
+    if (PC.tab === 'profile') {
+      panel = _pcPanelProfileMulti();
+    } else {
+      const data = _pcCardData(PC.players[0]);
+      const placeholder = `
+        <div class="pc-hist-empty" style="padding:24px;margin-bottom:18px;background:rgba(237,129,12,0.06);border-color:var(--red);color:var(--red);opacity:.85">
+          Side-by-side rendering for the ${PC.tab.toUpperCase()} tab ships in phase 6b/6c. Showing ${_escAttr(PC.players[0])} for now.
+        </div>`;
+      let single = '';
+      switch (PC.tab) {
+        case 'adp':     single = _pcPanelAdp(PC.players[0], data);     break;
+        case 'heatmap': single = _pcPanelHeatmap(PC.players[0], data); break;
+        case 'value':   single = _pcPanelValue(PC.players[0], data);   break;
+        case 'career':  single = _pcPanelCareer(PC.players[0], data);  break;
+        case 'trades':  single = _pcPanelTrades(PC.players[0], data);  break;
+      }
+      panel = placeholder + single;
+    }
+
+    document.getElementById('pc-app').innerHTML = `
+      <div class="pc-hero-row is-multi">${cards}${addSlot}</div>
+      <div class="pc-historical" id="pc-historical">
+        <div class="pc-tabs-bar">${tabBar}</div>
+        <div class="pc-tab-panel">${panel}</div>
+      </div>`;
+
+    // Same post-render hook chain as the single-player path. Only the
+    // first player's Career / Heatmap render until 6b/6c.
+    if (PC.tab === 'career') {
+      const first = PC.players[0];
+      const fp = (window.FP_VALUES || {})[first] || {};
+      _pcRenderCareerStats(first, fp.pos);
+    }
+    if (PC.tab === 'heatmap' && window.Heatmap && typeof window.Heatmap.render === 'function') {
+      const el = document.getElementById('pc-hist-heatmap-mount');
+      const first = PC.players[0];
+      const fp = (window.FP_VALUES || {})[first] || {};
+      const sid = fp.sleeperId || (window.SLEEPER_IDS || {})[first];
+      if (el && sid) {
+        try { window.Heatmap.render(el, sid); } catch (e) {}
+      }
+    }
+  }
+
   // ─── Main render dispatcher ────────────────────────────────────────
   function _pcRender() {
     // Sync toggle visual state
@@ -2515,10 +3088,11 @@
       b.classList.toggle('is-active', b.dataset.fmt === PC.fmt);
     });
     if (PC.mode === 'profile') {
-      if (PC.player) _pcRenderProfile(PC.player);
-      else _pcRenderEmpty();
+      if (PC.players.length === 0)      _pcRenderEmpty();
+      else if (PC.players.length === 1) _pcRenderProfile(PC.players[0]);
+      else                              _pcRenderProfileMulti();
     } else {
-      // Table mode: 2-4 player side-by-side comparison
+      // Table mode: 2-4 player side-by-side stat-row comparison
       document.getElementById('pc-app').innerHTML = _pcRenderTable();
     }
   }
