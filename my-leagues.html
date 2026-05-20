@@ -2076,6 +2076,91 @@
     font-family: 'Mulish', sans-serif;
   }
 
+  /* ── Standings table (renderStandingsTable) ────────────────────────────
+     The standings tab's per-team row table. Each row shows rank +
+     avatar/name/badges + position-rank progress bar + total value +
+     avg age + per-position totals + W-L + PF + Max PF.
+     Migrated from inline styles to classes 2026-05-20. NB: the per-
+     position color values come from a local posColors map in JS (literal
+     hex values that differ from the brand --pos-X-bg palette by design —
+     they're tuned for table-cell readability against dark backgrounds).
+     Dynamic colors travel through CSS custom properties (--st-pos-color,
+     --top-pos-color, --bar-color, --bar-width) set inline at render time. */
+
+  .ml-st-table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .ml-st-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 560px;
+  }
+  .ml-st-th-rank { width: 28px; }
+
+  /* Per-row + rank cell */
+  .ml-st-row.is-mine { background: rgba(237, 129, 12, .06); }
+  .ml-st-rank {
+    color: var(--muted); opacity: .3; width: 28px;
+  }
+
+  /* Avatar — round 26x26; fallback variant has solid border2 fill */
+  .ml-st-avatar {
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-right: 8px; flex-shrink: 0;
+  }
+  .ml-st-avatar.is-fallback {
+    background: var(--border2);
+    object-fit: initial;
+  }
+
+  /* Team name + badges in the Team cell */
+  .ml-st-team-name {
+    font-family: 'Mulish', sans-serif; font-weight: 900; font-size: 13px;
+  }
+  .ml-st-team-name.is-mine { color: var(--red); }
+  .ml-st-you-badge {
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 9px;
+    color: var(--red); border: 1px solid var(--red);
+    padding: 0 4px;
+  }
+  /* Top-scoring-pos chip — color comes from --top-pos-color inline so
+     the same class handles all positions. */
+  .ml-st-toppos {
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 9px;
+    color: var(--top-pos-color, var(--white));
+    border: 1px solid var(--top-pos-color, var(--white));
+    padding: 0 4px;
+    opacity: .7;
+  }
+
+  /* Position-value horizontal progress bar below the team name */
+  .ml-st-pos-bar {
+    height: 4px;
+    background: var(--border);
+    margin-top: 5px;
+    border-radius: 2px;
+    overflow: hidden;
+    display: flex;
+  }
+  .ml-st-pos-bar-seg {
+    height: 100%;
+    width: var(--bar-width, 0);
+    background: var(--bar-color, var(--border));
+    flex-shrink: 0;
+  }
+
+  /* Numeric cells — color via CSS custom property for position cells,
+     or class variants for total / W-L / Points. */
+  .ml-st-cell-pos { color: var(--st-pos-color, var(--white)); }
+  .ml-st-cell-total { color: var(--white); }
+  .ml-st-cell-wl { color: var(--green); }
+  .ml-st-cell-pts { color: var(--white); opacity: .5; }
+
   /* Calculator modal */
   .ml-calc-builder {
     display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;
@@ -7752,49 +7837,57 @@ function renderStandingsTable() {
 
   // Build rows
   const valueRows = sorted.map((r, i) => {
-    const rowBg  = r.isMe ? 'background:rgba(237,129,12,.06)' : '';
+    const rowClass = r.isMe ? 'ml-st-row is-mine' : 'ml-st-row';
     const avHtml = r.avatar
-      ? `<img src="${r.avatar}" style="width:26px;height:26px;border-radius:50%;object-fit:cover;margin-right:8px;flex-shrink:0;" onerror="this.style.display='none'">`
-      : `<div style="width:26px;height:26px;border-radius:50%;background:var(--border2);margin-right:8px;flex-shrink:0;"></div>`;
+      ? `<img class="ml-st-avatar" src="${r.avatar}" onerror="this.style.display='none'">`
+      : `<div class="ml-st-avatar is-fallback"></div>`;
 
+    // Position-value progress-bar segments. Per-segment width + color
+    // come from CSS custom properties (--bar-width / --bar-color) on the
+    // segment span so .ml-st-pos-bar-seg can handle the rest of styling.
     const barTotal = r.posVals.QB + r.posVals.RB + r.posVals.WR + r.posVals.TE;
     const barSegs  = barTotal > 0 ? ['QB','RB','WR','TE'].map(pos => {
       const w = (r.posVals[pos] / maxVal * 100).toFixed(1);
-      return `<div style="height:100%;width:${w}%;background:${posColors[pos]};flex-shrink:0;" title="${pos}: ${r.posVals[pos].toLocaleString()}"></div>`;
+      return `<div class="ml-st-pos-bar-seg" style="--bar-width:${w}%;--bar-color:${posColors[pos]}" title="${pos}: ${r.posVals[pos].toLocaleString()}"></div>`;
     }).join('') : '';
 
-    return `<tr style="${rowBg}">
-      <td class="ml-tbl-num-tight" style="color:var(--muted);opacity:.3;width:28px">${i+1}</td>
+    const nameClass = r.isMe ? 'ml-st-team-name is-mine' : 'ml-st-team-name';
+    const topPosBadge = r.topScoringPos !== '—'
+      ? `<span class="ml-st-toppos" style="--top-pos-color:${posColors[r.topScoringPos]}" title="Top scoring position">${r.topScoringPos}↑</span>`
+      : '';
+
+    return `<tr class="${rowClass}">
+      <td class="ml-tbl-num-tight ml-st-rank">${i+1}</td>
       <td class="ml-tbl-td-tight">
         <div class="ml-flex-wrap-row">
           ${avHtml}
-          <span style="font-family:'Mulish',sans-serif;font-weight:900;font-size:13px;${r.isMe?'color:var(--red)':''}">${r.name}</span>
-          ${r.isMe ? `<span style="font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:9px;color:var(--red);border:1px solid var(--red);padding:0 4px">YOU</span>` : ''}
+          <span class="${nameClass}">${r.name}</span>
+          ${r.isMe ? `<span class="ml-st-you-badge">YOU</span>` : ''}
           ${mlArchetypeChip(r.archetype)}
-          ${r.topScoringPos !== '—' ? `<span style="font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:9px;color:${posColors[r.topScoringPos]};border:1px solid ${posColors[r.topScoringPos]};padding:0 4px;opacity:.7" title="Top scoring position">${r.topScoringPos}↑</span>` : ''}
+          ${topPosBadge}
         </div>
-        <div style="height:4px;background:var(--border);margin-top:5px;border-radius:2px;overflow:hidden;display:flex">
+        <div class="ml-st-pos-bar">
           ${barSegs}
         </div>
       </td>
-      <td class="ml-tbl-num-tight" style="color:var(--white)">${r.total.toLocaleString()}</td>
+      <td class="ml-tbl-num-tight ml-st-cell-total">${r.total.toLocaleString()}</td>
       <td class="ml-tbl-num-tight ml-mute-half">${r.avgAge ? r.avgAge.toFixed(1) : '—'}</td>
-      <td class="ml-tbl-num-tight" style="color:${posColors.QB}">${r.posVals.QB.toLocaleString()}</td>
-      <td class="ml-tbl-num-tight" style="color:${posColors.RB}">${r.posVals.RB.toLocaleString()}</td>
-      <td class="ml-tbl-num-tight" style="color:${posColors.WR}">${r.posVals.WR.toLocaleString()}</td>
-      <td class="ml-tbl-num-tight" style="color:${posColors.TE}">${r.posVals.TE.toLocaleString()}</td>
-      <td class="ml-tbl-num-tight" style="color:var(--green)">${r.wins}-${r.losses}${r.ties?`-${r.ties}`:''}</td>
-      <td class="ml-tbl-num-tight" style="color:var(--white);opacity:.5">${r.pf}</td>
-      <td class="ml-tbl-num-tight" style="color:var(--white);opacity:.5">${r.maxPts || '—'}</td>
+      <td class="ml-tbl-num-tight ml-st-cell-pos" style="--st-pos-color:${posColors.QB}">${r.posVals.QB.toLocaleString()}</td>
+      <td class="ml-tbl-num-tight ml-st-cell-pos" style="--st-pos-color:${posColors.RB}">${r.posVals.RB.toLocaleString()}</td>
+      <td class="ml-tbl-num-tight ml-st-cell-pos" style="--st-pos-color:${posColors.WR}">${r.posVals.WR.toLocaleString()}</td>
+      <td class="ml-tbl-num-tight ml-st-cell-pos" style="--st-pos-color:${posColors.TE}">${r.posVals.TE.toLocaleString()}</td>
+      <td class="ml-tbl-num-tight ml-st-cell-wl">${r.wins}-${r.losses}${r.ties?`-${r.ties}`:''}</td>
+      <td class="ml-tbl-num-tight ml-st-cell-pts">${r.pf}</td>
+      <td class="ml-tbl-num-tight ml-st-cell-pts">${r.maxPts || '—'}</td>
     </tr>`;
   }).join('');
 
   document.getElementById('standings-content').innerHTML = (window.ML_STANDINGS_POSRANK_HTML || '') + `
     ${sortBar}
-    <div style="overflow-x:auto;-webkit-overflow-scrolling:touch">
-      <table style="width:100%;border-collapse:collapse;min-width:560px">
+    <div class="ml-st-table-wrap">
+      <table class="ml-st-table">
         <thead><tr>
-          <th class="ml-tbl-th-tight" style="width:28px">#</th>
+          <th class="ml-tbl-th-tight ml-st-th-rank">#</th>
           <th class="ml-tbl-th-tight">Team</th>
           <th class="ml-tbl-th-tight">Total</th>
           <th class="ml-tbl-th-tight">Avg Age</th>
