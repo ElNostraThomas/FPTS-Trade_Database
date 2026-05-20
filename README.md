@@ -14,7 +14,7 @@ This file is the **resume-where-we-left-off** doc.
 
 ## Where we are (end of 2026-05-20 — twelfth session)
 
-**OBS polish + doctrine inversion + compare-page closeout.** 12 substantive commits picking up immediately after session 11's UI overhaul ship — tuned the chrome to actual OBS-stream usage and locked every user-decidable analyst-input bullet on the compare page.
+**OBS polish + doctrine inversion + compare-page closeout + Madden-card hero refinement.** 17 substantive commits picking up immediately after session 11's UI overhaul ship — tuned the chrome to actual OBS-stream usage, locked every user-decidable analyst-input bullet on the compare page, then iterated the hero card into a Madden-Ultimate-Team-style trading card with proper mobile fallbacks.
 
 ### What shipped
 
@@ -29,6 +29,16 @@ This file is the **resume-where-we-left-off** doc.
   - **"+ Add comparison player" inline autocomplete** (`493c427`, `5e9272f`) — replaces the legacy `window.prompt()` popup with a full-size search input that takes over the secondary-link row when activated. Wide dropdown (560px max) with full player names, click-outside or Esc to close.
 
 - **Dropdown + compare hero fixes** (`927884c`). `custom-select.js` popup widths now `min-width: 100%; width: max-content; max-width: min(420px, 95vw)` so option labels render in full (YEAR dropdown stopped truncating "2025" to "20…"). `.pc-search-name` dropped its ellipsis. `.pc-hero-row { max-width: 1100px; margin: 8px auto 0; }` caps multi-mode photos at ~530×330 (was ~600+ on wide monitors after lifted gutters).
+
+### Late-session refinements (post-handoff commits)
+
+Compare-page hero card iteration after the handoff doc was first written. All single-file edits to `compare.html`:
+
+- **Critical bug fix: 2025 seasonal data showing empty** (`03e73b5`) — `_pcGetStats` was reading `STATS_DATA.players[key]` but `data-bootstrap.js` flattens stats via `Object.assign(global.STATS_DATA, stats.players)`. Path `.players[key]` → `[key]` restored visibility of every player's 2025 season block on the compare page.
+- **Hero photo slimming + face recenter** (`3626462`) — capped `.pc-hero-row` photos to slimmer aspect, changed headshot `object-position` from `top` to `center 20%` so the face frames properly instead of cropping to the forehead.
+- **Madden-card hero aesthetic** (`f20fee2`) — single-mode hero photo aspect tightened to 5:4 portrait; multi-mode grid pinned to `grid-template-columns: repeat(2, 320px)` (fixed-width cards centered) so two players don't stretch wide on large monitors. Visual reference: Hayden Winks Madden-Ultimate-Team-style player cards.
+- **In-card name strip** (`8a24115`) — added `.pc-card-name-strip` between the photo wrap and archetype bar, rendering the player name in 16px Kanit italic uppercase with `.02em` letter-spacing. Card stack now reads Header → Photo → Name strip → Archetype bar → Stats grid → Footer, like an actual trading card. Page-level big "PLAYER NAME" heading to the right of the card stays (dual placement matches reference).
+- **Mobile bleed patches** (`532ac8d`) — static mobile diagnostic sweep found 4 desktop CSS changes that inherited into mobile without overrides. Added to `@media (max-width: 768px)`: `.pc-search-results { max-height: 320px }` (was 480 — too tall on a 700px phone), `.pc-card-name { font-size: 14px }` (16px truncates earlier on a 320px card), `.pc-card-name-strip { padding: 8px 10px 4px }` (tighter to match smaller name), `.pc-card-photo-wrap { aspect-ratio: 4 / 3 }` (was 5/4 — too tall, pushed stats grid below the fold on phones). Adp-tool, brand.css zoom, and text-color inversion already had proper mobile coverage.
 
 ### Analyst-input punch list — ALL compare-page bullets CLOSED
 
@@ -1274,6 +1284,29 @@ Read README.md for current state. End-of-2026-05-20 (twelfth session):
   * §48 Last-N — default 4 games locked; playoff weeks excluded. 725a55f
   * §49 multi-card metric — strict equality only, same as §47. 4c73112
   * §50 Scoring toggle — shipped (see compare-page section above).
+- LATE-SESSION COMPARE HERO REFINEMENT (Madden-card aesthetic +
+  mobile fallbacks):
+  * STATS_DATA path bug fix (03e73b5) — _pcGetStats was reading
+    .players[key] but data-bootstrap flattens via Object.assign(
+    STATS_DATA, stats.players); path corrected, 2025 seasonal data
+    now visible (previously empty for every player).
+  * Slim hero photos + face recenter (3626462) — object-position
+    top → center 20% so the face frames properly.
+  * Madden-card hero (f20fee2) — .pc-card-photo-wrap aspect 5/4;
+    multi-mode grid pinned to repeat(2, 320px) centered so two
+    cards don't stretch wide on large monitors.
+  * In-card name strip (8a24115) — .pc-card-name-strip element
+    between photo wrap and archetype bar; 16px Kanit italic
+    uppercase. Card stack: Header → Photo → Name → Archetype →
+    Stats → Footer (like an actual trading card).
+  * Mobile bleed patches (532ac8d) — static mobile diagnostic
+    surfaced 4 desktop CSS changes that inherited into mobile
+    without @media (max-width: 768px) overrides. Added: search
+    dropdown max-height 320 (was 480); name strip font 14px (was
+    16px); name strip padding 8/10/4 (was 10/12/6); photo aspect
+    4/3 on mobile (was 5/4 — too tall, pushed stats below the fold).
+    Text-color inversion stays global; ADP card sizing already had
+    mobile overrides; brand.css already resets zoom:1 on mobile.
 - OBS interactivity audit run mid-session: CLEAN. All <select>
   elements wrapped by custom-select.js; iframe-scroll-fix.js only
   intercepts middle-button (left-clicks pass through); pointer-events:
