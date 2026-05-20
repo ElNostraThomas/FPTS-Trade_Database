@@ -2161,6 +2161,97 @@
   .ml-st-cell-wl { color: var(--green); }
   .ml-st-cell-pts { color: var(--white); opacity: .5; }
 
+  /* ── Roster panel — per-position section + picks section ──────────────
+     Used inside the user's own roster view (renderRoster + helpers). Each
+     position group (Quarterbacks / Running Backs / Wide Receivers / Tight
+     Ends) + the Draft Picks section gets a header (color stripe + title +
+     count + total) followed by a table of rows. Per-cell colors for
+     valColor / seasonProj / proj flow via CSS custom properties so the
+     cell decision logic stays in JS but the cell shell stays class-based.
+     Migrated from inline styles to classes 2026-05-20. */
+
+  /* Section header: left color stripe + title + count + total */
+  .ml-rp-secthead-left { display: flex; align-items: center; gap: 10px; }
+  .ml-rp-stripe {
+    width: 4px; height: 20px;
+    background: var(--rp-stripe-color, var(--border));
+    flex-shrink: 0;
+  }
+  .ml-rp-secthead-count {
+    font-family: 'Mulish', sans-serif; font-size: 11px;
+    color: var(--muted); opacity: .4;
+  }
+  .ml-rp-secthead-total {
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 13px;
+    color: var(--rp-total-color, var(--white));
+  }
+
+  /* Table wrapper + table — picks variant has wider min-width */
+  .ml-rp-table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .ml-rp-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 430px;
+  }
+  .ml-rp-table.is-picks { min-width: 520px; }
+  .ml-rp-th-thumb,
+  .ml-rp-thumb-cell { width: 36px; }
+  .ml-rp-thumb-cell { padding-right: 8px; }
+
+  /* Empty state shown by the picks section when no picks owned */
+  .ml-rp-empty {
+    font-size: 13px; opacity: .4;
+    padding: 12px 0;
+    font-family: 'Mulish', sans-serif;
+  }
+
+  /* Row hover — :hover replaces the onmouseover/onmouseout JS handlers */
+  .ml-rp-prow { transition: background .12s; }
+  .ml-rp-prow:hover { background: var(--surface2); }
+  /* Team-cell wrapper around the small team-logo coin (inline-flex so
+     the coin centers vertically inside the player-name row). */
+  .ml-rp-prow-team { display: inline-flex; align-items: center; }
+
+  /* Per-cell color overrides. Static white/12px variants use simple
+     classes; dynamic value/proj/season-proj colors flow via CSS custom
+     properties (--cell-value-color, --cell-proj-color, --cell-proj-
+     opacity). */
+  .ml-rp-cell-w { color: var(--white); }
+  .ml-rp-cell-w12 { color: var(--white); font-size: 12px; }
+  .ml-rp-cell-value { color: var(--cell-value-color, var(--white)); }
+  .ml-rp-cell-proj {
+    color: var(--cell-proj-color, var(--muted));
+    opacity: var(--cell-proj-opacity, .3);
+  }
+  /* Small green arrow next to the projected total when this player is
+     in the user's optimal starting lineup (▲ indicator). */
+  .ml-rp-cell-flame {
+    font-size: 9px;
+    color: var(--green);
+    margin-left: 3px;
+  }
+
+  /* Trend chip (small +N / -N indicator in trendHtml helper) */
+  .ml-rp-trend {
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+  }
+  .ml-rp-trend.is-up { color: var(--green); }
+  .ml-rp-trend.is-down { color: var(--red); }
+  .ml-rp-trend.is-flat { opacity: .3; }
+
+  /* Pick row text bits — "Your pick" / "Via X" label and "Rd N" cell */
+  .ml-rp-pick-source {
+    font-family: 'Mulish', sans-serif; font-size: 10px;
+    color: var(--muted); opacity: .5;
+  }
+  .ml-rp-pick-round {
+    color: var(--muted); opacity: .4; font-size: 11px;
+  }
+
   /* Calculator modal */
   .ml-calc-builder {
     display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;
@@ -6710,31 +6801,40 @@ function renderRoster(playerIds, players, starters, myPicks, rosterToTeam, proje
 
   function trendHtml(t) {
     const n = parseInt(t) || 0;
-    if (n > 0) return `<span style="color:var(--green);font-family:'Kanit',sans-serif;font-weight:800;font-style:italic">+${n}</span>`;
-    if (n < 0) return `<span style="color:var(--red);font-family:'Kanit',sans-serif;font-weight:800;font-style:italic">${n}</span>`;
-    return `<span style="opacity:.3">—</span>`;
+    if (n > 0) return `<span class="ml-rp-trend is-up">+${n}</span>`;
+    if (n < 0) return `<span class="ml-rp-trend is-down">${n}</span>`;
+    return `<span class="ml-rp-trend is-flat">—</span>`;
   }
 
+  // Per-row dynamic colors travel through CSS custom properties on the
+  // cell (--cell-value-color, --cell-proj-color, --cell-proj-opacity) so
+  // .ml-rp-cell-value / .ml-rp-cell-proj can be plain classes. valColor
+  // and the per-stat proj-color logic stay in JS (they encode tier
+  // thresholds the user can read in formulas.html).
   function playerRow(r) {
-    return `<tr class="ml-clickable" onclick="openPlayerDetail('${r.sid || ''}')" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background=''">
-      <td class="ml-tbl-td" style="width:36px;padding-right:8px">${playerThumb(r.sid)}</td>
+    const seasonProjColor   = r.seasonProj ? 'var(--white)' : 'var(--muted)';
+    const seasonProjOpacity = r.seasonProj ? 1 : .3;
+    const projColor   = r.proj ? (r.proj >= 20 ? 'var(--green)' : r.proj >= 12 ? 'var(--white)' : 'var(--muted)') : 'var(--muted)';
+    const projOpacity = r.proj ? 1 : .3;
+    return `<tr class="ml-clickable ml-rp-prow" onclick="openPlayerDetail('${r.sid || ''}')">
+      <td class="ml-tbl-td ml-rp-thumb-cell">${playerThumb(r.sid)}</td>
       <td class="ml-tbl-td">
         <div class="ml-flex-wrap-row">
           ${(r.shouldStart && !r.isStart) ? FLAME_ICON : ''}
           <span class="ml-player-name">${r.name}</span>
-          <span style="display:inline-flex;align-items:center">${(r.team && window.TeamHelpers) ? window.TeamHelpers.logoImg(r.team, { size: 18, coin: true }) : `<span class="ml-mulish-mute-10">${r.team || ''}</span>`}</span>
+          <span class="ml-rp-prow-team">${(r.team && window.TeamHelpers) ? window.TeamHelpers.logoImg(r.team, { size: 18, coin: true }) : `<span class="ml-mulish-mute-10">${r.team || ''}</span>`}</span>
 
         </div>
       </td>
-      <td class="ml-tbl-num" style="color:var(--white)">${r.age}</td>
-      <td class="ml-tbl-num" style="color:var(--white);font-size:12px">${r.exp === null ? '—' : r.exp === 0 ? 'R' : r.exp+'y'}</td>
-      <td class="ml-tbl-num" style="color:${valColor(r.value)}">${r.value ? r.value.toLocaleString() : '—'}</td>
-      <td class="ml-tbl-num" style="color:var(--white);font-size:12px">${r.posRank}</td>
-      <td class="ml-tbl-num" style="color:${r.seasonProj ? 'var(--white)' : 'var(--muted)'};opacity:${r.seasonProj ? '1' : '.3'}" title="Season-long projected points">${r.seasonProj ? r.seasonProj.toFixed(1) : '—'}</td>
-      <td class="ml-tbl-num" style="color:${r.proj ? (r.proj >= 20 ? 'var(--green)' : r.proj >= 12 ? 'var(--white)' : 'var(--muted)') : 'var(--muted)'};opacity:${r.proj ? '1' : '.3'}" title="Projected points this week">
-        ${r.proj ? r.proj.toFixed(1) + (r.isStart ? '<span style=\"font-size:9px;color:var(--green);margin-left:3px\">▲</span>' : '') : '—'}
+      <td class="ml-tbl-num ml-rp-cell-w">${r.age}</td>
+      <td class="ml-tbl-num ml-rp-cell-w12">${r.exp === null ? '—' : r.exp === 0 ? 'R' : r.exp+'y'}</td>
+      <td class="ml-tbl-num ml-rp-cell-value" style="--cell-value-color:${valColor(r.value)}">${r.value ? r.value.toLocaleString() : '—'}</td>
+      <td class="ml-tbl-num ml-rp-cell-w12">${r.posRank}</td>
+      <td class="ml-tbl-num ml-rp-cell-proj" style="--cell-proj-color:${seasonProjColor};--cell-proj-opacity:${seasonProjOpacity}" title="Season-long projected points">${r.seasonProj ? r.seasonProj.toFixed(1) : '—'}</td>
+      <td class="ml-tbl-num ml-rp-cell-proj" style="--cell-proj-color:${projColor};--cell-proj-opacity:${projOpacity}" title="Projected points this week">
+        ${r.proj ? r.proj.toFixed(1) + (r.isStart ? '<span class="ml-rp-cell-flame">▲</span>' : '') : '—'}
       </td>
-      <td class="ml-tbl-num" style="color:var(--white)">${r.ppg !== null ? r.ppg.toFixed(1) : '—'}</td>
+      <td class="ml-tbl-num ml-rp-cell-w">${r.ppg !== null ? r.ppg.toFixed(1) : '—'}</td>
     </tr>`;
   }
 
@@ -6747,17 +6847,17 @@ function renderRoster(playerIds, players, starters, myPicks, rosterToTeam, proje
     return `
       <div class="ml-mb-28">
         <div class="ml-row-between">
-          <div style="display:flex;align-items:center;gap:10px">
-            <div style="width:4px;height:20px;background:${posColors[pos]};flex-shrink:0"></div>
+          <div class="ml-rp-secthead-left">
+            <div class="ml-rp-stripe" style="--rp-stripe-color:${posColors[pos]}"></div>
             <span class="ml-section-title">${posNames[pos]}</span>
-            <span style="font-family:'Mulish',sans-serif;font-size:11px;color:var(--muted);opacity:.4">${rows.length} players</span>
+            <span class="ml-rp-secthead-count">${rows.length} players</span>
           </div>
-          <span style="font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:13px;color:${posColors[pos]}">${totalVal.toLocaleString()}</span>
+          <span class="ml-rp-secthead-total" style="--rp-total-color:${posColors[pos]}">${totalVal.toLocaleString()}</span>
         </div>
-        <div style="overflow-x:auto;-webkit-overflow-scrolling:touch">
-          <table style="width:100%;border-collapse:collapse;min-width:430px">
+        <div class="ml-rp-table-wrap">
+          <table class="ml-rp-table">
             <thead><tr>
-              <th class="ml-tbl-th" style="width:36px"></th>
+              <th class="ml-tbl-th ml-rp-th-thumb"></th>
               <th class="ml-tbl-th">Player</th>
               <th class="ml-tbl-th">Age</th>
               <th class="ml-tbl-th" title="Years of NFL experience (R = Rookie)">EXP</th>
@@ -6794,11 +6894,11 @@ function renderRoster(playerIds, players, starters, myPicks, rosterToTeam, proje
   function picksSection(picks, rosterToTeam) {
     if (!picks || !picks.length) return `
       <div class="ml-mb-28">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
-          <div style="width:4px;height:20px;background:var(--pos-pick-bg);flex-shrink:0"></div>
+        <div class="ml-rp-secthead-left ml-mb-10">
+          <div class="ml-rp-stripe" style="--rp-stripe-color:var(--pos-pick-bg)"></div>
           <span class="ml-section-title">Draft Picks</span>
         </div>
-        <div style="font-size:13px;opacity:.4;padding:12px 0;font-family:'Mulish',sans-serif">No draft picks owned</div>
+        <div class="ml-rp-empty">No draft picks owned</div>
       </div>`;
 
     // Group by season for a slight visual break (sorted)
@@ -6814,22 +6914,26 @@ function renderRoster(playerIds, players, starters, myPicks, rosterToTeam, proje
 
     const ordinal = n => ({1:'1st', 2:'2nd', 3:'3rd', 4:'4th', 5:'5th'})[n] || `${n}th`;
 
+    // Pick rows reuse .ml-rp-cell-value for the value column. The
+    // value-color threshold logic stays in JS (matches the row's
+    // value display logic in playerRow).
     const pickRows = seasons.map(yr => {
       return bySeason[yr].map(p => {
         const val   = pickValue(p.season, p.round);
         const orig  = rosterToTeam[p.originalRosterId] || `Team ${p.originalRosterId}`;
         const sourceLabel = p.isNatural ? 'Your pick' : `Via ${orig}`;
-        return `<tr class="ml-clickable" onclick="openPickExposurePicker('${p.season}',${p.round})" style="border-bottom:1px solid var(--border)">
-          <td class="ml-tbl-td" style="width:36px;padding-right:8px">${pickThumb()}</td>
+        const valColor = val > 3000 ? 'var(--green)' : val > 1000 ? 'var(--white)' : 'var(--muted)';
+        return `<tr class="ml-clickable ml-rp-prow" onclick="openPickExposurePicker('${p.season}',${p.round})">
+          <td class="ml-tbl-td ml-rp-thumb-cell">${pickThumb()}</td>
           <td class="ml-tbl-td">
             <div class="ml-flex-wrap-row">
               <span class="ml-player-name">${p.season} ${ordinal(p.round)}</span>
-              <span style="font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);opacity:.5">${sourceLabel}</span>
+              <span class="ml-rp-pick-source">${sourceLabel}</span>
             </div>
           </td>
           <td class="ml-tbl-num ml-mute-half">${p.season}</td>
-          <td class="ml-tbl-num" style="color:${val > 3000 ? 'var(--green)' : val > 1000 ? 'var(--white)' : 'var(--muted)'}">${val ? val.toLocaleString() : '—'}</td>
-          <td class="ml-tbl-num" style="color:var(--muted);opacity:.4;font-size:11px">Rd ${p.round}</td>
+          <td class="ml-tbl-num ml-rp-cell-value" style="--cell-value-color:${valColor}">${val ? val.toLocaleString() : '—'}</td>
+          <td class="ml-tbl-num ml-rp-pick-round">Rd ${p.round}</td>
         </tr>`;
       }).join('');
     }).join('');
@@ -6837,17 +6941,17 @@ function renderRoster(playerIds, players, starters, myPicks, rosterToTeam, proje
     return `
       <div class="ml-mb-28">
         <div class="ml-row-between">
-          <div style="display:flex;align-items:center;gap:10px">
-            <div style="width:4px;height:20px;background:var(--pos-pick-bg);flex-shrink:0"></div>
+          <div class="ml-rp-secthead-left">
+            <div class="ml-rp-stripe" style="--rp-stripe-color:var(--pos-pick-bg)"></div>
             <span class="ml-section-title">Draft Picks</span>
-            <span style="font-family:'Mulish',sans-serif;font-size:11px;color:var(--muted);opacity:.4">${picks.length} picks</span>
+            <span class="ml-rp-secthead-count">${picks.length} picks</span>
           </div>
-          <span style="font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:13px;color:var(--pos-pick-bg)">${totalPickVal ? totalPickVal.toLocaleString() : '—'}</span>
+          <span class="ml-rp-secthead-total" style="--rp-total-color:var(--pos-pick-bg)">${totalPickVal ? totalPickVal.toLocaleString() : '—'}</span>
         </div>
-        <div style="overflow-x:auto">
-          <table style="width:100%;border-collapse:collapse;min-width:520px">
+        <div class="ml-rp-table-wrap">
+          <table class="ml-rp-table is-picks">
             <thead><tr>
-              <th class="ml-tbl-th" style="width:36px"></th>
+              <th class="ml-tbl-th ml-rp-th-thumb"></th>
               <th class="ml-tbl-th">Pick</th>
               <th class="ml-tbl-th">Season</th>
               <th class="ml-tbl-th">Value</th>
