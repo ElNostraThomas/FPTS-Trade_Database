@@ -1,6 +1,26 @@
 {
-  "version": "2026-05-20T17:41:53.365329+00:00",
+  "version": "2026-05-20T18:01:05.630967+00:00",
   "players": {
+    "Kenyon Sadiq": [
+      {
+        "title": "2026 NFL Rookie Player Props",
+        "url": "https://www.fantasypoints.com/nfl/articles/nfl-rookie-player-props",
+        "date": "2026-04-30T21:30:00.000Z",
+        "author": "Tom Brolley"
+      },
+      {
+        "title": "Scott Barrett's 2026 Dynasty Rookie Rankings",
+        "url": "https://www.fantasypoints.com/nfl/articles/scott-barretts-dynasty-rookie-rankings",
+        "date": "2026-04-27T13:59:36.453Z",
+        "author": "Scott Barrett"
+      },
+      {
+        "title": "Barrett's Pre-Draft Top 50 Rookie Rankings",
+        "url": "https://www.fantasypoints.com/nfl/articles/barretts-pre-draft-top-50-rookie-rankings",
+        "date": "2026-04-09T18:18:19.531Z",
+        "author": "Scott Barrett"
+      }
+    ],
     "Dontayvion Wicks": [
       {
         "title": "Brain Trust: 2026 Darkhorse #1 Position Finish",
@@ -1217,26 +1237,6 @@
         "url": "https://www.fantasypoints.com/nfl/articles/nfl-rookie-of-the-year-awards",
         "date": "2026-04-28T17:00:00.000Z",
         "author": "Tom Brolley"
-      }
-    ],
-    "Kenyon Sadiq": [
-      {
-        "title": "2026 NFL Rookie Player Props",
-        "url": "https://www.fantasypoints.com/nfl/articles/nfl-rookie-player-props",
-        "date": "2026-04-30T21:30:00.000Z",
-        "author": "Tom Brolley"
-      },
-      {
-        "title": "Scott Barrett's 2026 Dynasty Rookie Rankings",
-        "url": "https://www.fantasypoints.com/nfl/articles/scott-barretts-dynasty-rookie-rankings",
-        "date": "2026-04-27T13:59:36.453Z",
-        "author": "Scott Barrett"
-      },
-      {
-        "title": "Barrett's Pre-Draft Top 50 Rookie Rankings",
-        "url": "https://www.fantasypoints.com/nfl/articles/barretts-pre-draft-top-50-rookie-rankings",
-        "date": "2026-04-09T18:18:19.531Z",
-        "author": "Scott Barrett"
       }
     ],
     "De'Zhaun Stribling": [
