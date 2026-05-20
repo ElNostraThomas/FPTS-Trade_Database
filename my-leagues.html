@@ -1164,6 +1164,48 @@
   .ml-tc-chips { display:flex; flex-wrap:wrap; gap:6px; margin-top:12px; }
   .ml-chip { font-family:'Mulish',sans-serif; font-weight:700; font-size:11px;
     padding:3px 10px; border:1px solid var(--border2); color:var(--white); opacity:.7; }
+  /* Pick-exposure picker modal */
+  .ml-pep-header {
+    display:flex; align-items:center; gap:14px; padding:14px 16px;
+    background:var(--surface); border:1px solid var(--border); margin-bottom:14px;
+  }
+  .ml-pep-pick-icon {
+    display:inline-flex; align-items:center; justify-content:center;
+    width:36px; height:36px; flex-shrink:0;
+    background:var(--surface2); border:1px solid var(--border); border-radius:50%;
+  }
+  .ml-pep-pick-icon svg { display:block; }
+  .ml-pep-pick-info { flex:1; }
+  .ml-pep-pick-meta {
+    font-family:'Mulish',sans-serif; font-size:11px; color:var(--muted); margin-top:3px;
+  }
+  .ml-pep-pick-instr {
+    font-family:'Mulish',sans-serif; font-size:11px; color:var(--muted);
+    text-transform:uppercase; letter-spacing:.07em; margin-bottom:8px;
+  }
+  .ml-pep-lg-row {
+    display:flex; align-items:center; gap:12px; padding:11px 12px;
+    background:var(--surface); border:1px solid var(--border);
+    margin-bottom:6px; cursor:pointer; transition: background .12s;
+  }
+  .ml-pep-lg-row:hover { background:var(--surface2); }
+  .ml-pep-lg-avatar { width:30px; height:30px; border-radius:2px; flex-shrink:0; }
+  .ml-pep-lg-avatar-empty {
+    width:30px; height:30px; background:var(--surface2);
+    border-radius:2px; flex-shrink:0;
+  }
+  .ml-pep-lg-name {
+    font-family:'Mulish',sans-serif; font-weight:900; font-size:13px; color:var(--white);
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  .ml-pep-lg-source {
+    font-family:'Mulish',sans-serif; font-size:10px;
+    color:var(--muted); opacity:.7; margin-top:1px;
+  }
+  .ml-pep-lg-open {
+    font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:11px;
+    color:var(--red); text-transform:uppercase; letter-spacing:.05em;
+  }
   /* Standings */
   /* Sort by button bar — brand palette only (no grey tokens) */
   .ml-standings-sort { display:flex; align-items:center; gap:6px; margin-bottom:16px; flex-wrap:wrap; }
@@ -6243,24 +6285,24 @@ function openPickExposurePicker(season, round) {
   titleEl.textContent = `${data.season} ${ord(data.round)} — owned in ${data.shares} league${data.shares !== 1 ? 's' : ''}`;
   const allLeagues = Object.values(ML.leagues || {}).flat();
   bodyEl.innerHTML = `
-    <div style="display:flex;align-items:center;gap:14px;padding:14px 16px;background:var(--surface);border:1px solid var(--border);margin-bottom:14px">
-      <span style="display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;flex-shrink:0;background:var(--surface2);border:1px solid var(--border);border-radius:50%"><svg xmlns="http://www.w3.org/2000/svg" viewBox="413 0 95 90" width="20" height="20" style="display:block"><path d="M508.084,47.801l-8.983,41.534c0,0 -75.276,-0.036 -85.237,-0.002l0.015,-0.067c0,0 2.533,-17.352 5.641,-25.475c3.708,-9.689 16.604,-32.658 16.604,-32.658c12.902,8.212 8.658,21.025 7.099,27.21c11.719,-8.962 11.012,-17.186 11.003,-28.608c-0.006,-7.356 4.797,-23.375 17.858,-28.257c-4.305,14.678 3.971,24.95 7.333,30.494c6.362,10.492 1.397,21.17 1.397,21.17c0,0 9.268,-3.36 8.863,-15.254c-0.117,-3.424 -1.714,-14.283 8.012,-18.422c-0.754,9.397 5.495,18.682 10.395,28.336Z" fill="var(--red)"/></svg></span>
-      <div style="flex:1">
+    <div class="ml-pep-header">
+      <span class="ml-pep-pick-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="413 0 95 90" width="20" height="20"><path d="M508.084,47.801l-8.983,41.534c0,0 -75.276,-0.036 -85.237,-0.002l0.015,-0.067c0,0 2.533,-17.352 5.641,-25.475c3.708,-9.689 16.604,-32.658 16.604,-32.658c12.902,8.212 8.658,21.025 7.099,27.21c11.719,-8.962 11.012,-17.186 11.003,-28.608c-0.006,-7.356 4.797,-23.375 17.858,-28.257c-4.305,14.678 3.971,24.95 7.333,30.494c6.362,10.492 1.397,21.17 1.397,21.17c0,0 9.268,-3.36 8.863,-15.254c-0.117,-3.424 -1.714,-14.283 8.012,-18.422c-0.754,9.397 5.495,18.682 10.395,28.336Z" fill="var(--red)"/></svg></span>
+      <div class="ml-pep-pick-info">
         <div class="ml-player-name">${data.season} ${ord(data.round)} Round Pick</div>
-        <div style="font-family:'Mulish',sans-serif;font-size:11px;color:var(--muted);margin-top:3px">Trade Value: ${data.value ? data.value.toLocaleString() : '—'} · Exposure: ${data.exposure.toFixed(0)}%</div>
+        <div class="ml-pep-pick-meta">Trade Value: ${data.value ? data.value.toLocaleString() : '—'} · Exposure: ${data.exposure.toFixed(0)}%</div>
       </div>
     </div>
-    <div style="font-family:'Mulish',sans-serif;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px">Choose a league to open in the trade calculator</div>
+    <div class="ml-pep-pick-instr">Choose a league to open in the trade calculator</div>
     ${data.leaguesOwned.map(lg => {
       const leagueObj = allLeagues.find(l => l.league_id === lg.leagueId);
       const av = leagueObj && leagueObj.avatar ? `${CDN}/avatars/thumbs/${leagueObj.avatar}` : '';
-      return `<div onclick="_mlPepGoToCalc('${data.season}',${data.round},'${lg.leagueId}')" style="display:flex;align-items:center;gap:12px;padding:11px 12px;background:var(--surface);border:1px solid var(--border);margin-bottom:6px;cursor:pointer" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='var(--surface)'">
-        ${av ? `<img src="${av}" style="width:30px;height:30px;border-radius:2px;flex-shrink:0" onerror="this.style.visibility='hidden'">` : `<div style="width:30px;height:30px;background:var(--surface2);border-radius:2px;flex-shrink:0"></div>`}
+      return `<div class="ml-pep-lg-row" onclick="_mlPepGoToCalc('${data.season}',${data.round},'${lg.leagueId}')">
+        ${av ? `<img class="ml-pep-lg-avatar" src="${av}" onerror="this.style.visibility='hidden'">` : `<div class="ml-pep-lg-avatar-empty"></div>`}
         <div class="ml-flex1">
-          <div style="font-family:'Mulish',sans-serif;font-weight:900;font-size:13px;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${lg.leagueName}</div>
-          <div style="font-family:'Mulish',sans-serif;font-size:10px;color:var(--muted);opacity:.7;margin-top:1px">${lg.isNatural ? 'Your natural pick' : 'Acquired via trade'}</div>
+          <div class="ml-pep-lg-name">${lg.leagueName}</div>
+          <div class="ml-pep-lg-source">${lg.isNatural ? 'Your natural pick' : 'Acquired via trade'}</div>
         </div>
-        <span style="font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:11px;color:var(--red);text-transform:uppercase;letter-spacing:.05em">Open →</span>
+        <span class="ml-pep-lg-open">Open →</span>
       </div>`;
     }).join('')}
   `;
