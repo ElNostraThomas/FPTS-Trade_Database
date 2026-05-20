@@ -2998,15 +2998,38 @@
   }
   body.fpts-ml-page .ml-mb-10          { margin-bottom: 10px; }
   body.fpts-ml-page .ml-mb-28          { margin-bottom: 28px; }
+
+  /* Loading overlay + topnav chrome (was inline style on the wrappers) */
+  #_fp-loading {
+    position: fixed; inset: 0;
+    background: var(--black); color: var(--white);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 28px; text-transform: uppercase; letter-spacing: .06em;
+    z-index: 9999;
+  }
+  .ml-topnav-bar {
+    background: var(--nav-bg); border-bottom: 2px solid var(--red);
+    position: sticky; top: 0; z-index: 100;
+  }
+  .ml-topnav-bar > .topnav { border: none; position: static; }
+  #theme-toggle {
+    background: none; border: 1px solid var(--border2); color: var(--white);
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 11px; padding: 5px 12px; cursor: pointer;
+    transition: all .2s; letter-spacing: .04em;
+    display: flex; align-items: center; gap: 6px;
+  }
+  #theme-toggle:hover { border-color: var(--red); color: var(--red); }
 </style>
 <script>document.addEventListener('DOMContentLoaded', function(){ if (window.Legend) Legend.init('my-leagues'); document.body.classList.add('fpts-ml-page'); });</script>
 </head>
 <body>
-<div id="_fp-loading" style="position:fixed;inset:0;background:var(--black);color:var(--white);display:flex;align-items:center;justify-content:center;font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:28px;text-transform:uppercase;letter-spacing:.06em;z-index:9999;">Loading…</div>
-<div style="background:var(--nav-bg);border-bottom:2px solid var(--red);position:sticky;top:0;z-index:100"><nav class="topnav" style="border:none;position:static">
+<div id="_fp-loading">Loading…</div>
+<div class="ml-topnav-bar"><nav class="topnav">
   <div class="wordmark-group">
   <div class="wordmark" id="wordmark-svg">
-    <svg viewBox="0 0 878 90" xmlns="http://www.w3.org/2000/svg" style="fill-rule:evenodd;clip-rule:evenodd">
+    <svg viewBox="0 0 878 90" xmlns="http://www.w3.org/2000/svg" fill-rule="evenodd" clip-rule="evenodd">
       <path d="M508.084,47.801l-8.983,41.534c0,0 -75.276,-0.036 -85.237,-0.002l0.015,-0.067c0,0 2.533,-17.352 5.641,-25.475c3.708,-9.689 16.604,-32.658 16.604,-32.658c12.902,8.212 8.658,21.025 7.099,27.21c11.719,-8.962 11.012,-17.186 11.003,-28.608c-0.006,-7.356 4.797,-23.375 17.858,-28.257c-4.305,14.678 3.971,24.95 7.333,30.494c6.362,10.492 1.397,21.17 1.397,21.17c0,0 9.268,-3.36 8.863,-15.254c-0.117,-3.424 -1.714,-14.283 8.012,-18.422c-0.754,9.397 5.495,18.682 10.395,28.336Z" fill="var(--red)"/>
       <path d="M19.856,0.761l47.225,0l-3.757,16.803l-22.539,0l-4.159,18.236l19.99,0l-3.757,16.933l-19.99,0l-8.184,36.602l-24.686,0l19.856,-88.573Z" fill="var(--white)" fill-rule="nonzero"/>
       <path d="M82.991,0.761l28.577,0l-1.207,88.573l-24.954,0l0.939,-14.589l-16.234,0l-5.635,14.589l-19.99,0l38.505,-88.573Zm4.293,58.745l2.147,-34.648l-13.416,34.648l11.27,0Z" fill="var(--white)" fill-rule="nonzero"/>
@@ -3048,10 +3071,7 @@
     </select>
     <span class="nav-stat">Updated <strong>Apr 2026</strong></span>
     <span class="nav-badge" id="nav-season-badge">SEASON 2026</span>
-    <button id="theme-toggle" onclick="toggleTheme()"
-      style="background:none;border:1px solid var(--border2);color:var(--white);font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:11px;padding:5px 12px;cursor:pointer;transition:all .2s;letter-spacing:.04em;display:flex;align-items:center;gap:6px"
-      onmouseover="this.style.borderColor='var(--red)';this.style.color='var(--red)'"
-      onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--white)'">
+    <button id="theme-toggle" onclick="toggleTheme()">
       <span id="theme-icon">☀️</span>
       <span id="theme-label">LIGHT</span>
     </button>
