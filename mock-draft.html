@@ -394,6 +394,98 @@
   .md-pos-TE  { background: var(--pos-te-bg);   color: var(--pos-te); }
   .md-pos-K   { background: var(--pos-k-bg);    color: var(--pos-k); }
   .md-pos-DEF { background: var(--pos-pick-bg); color: var(--pos-pick); }
+
+  /* ═══════════════════════════════════════════════════════════════════
+     MOBILE @media (max-width: 768px)
+     Self-contained mobile design — not a patch on top of desktop. The
+     two-column board+rail layout collapses to a single column, with the
+     BPA rail becoming a horizontal scroll strip above the board so the
+     user can still see "best available" without scrolling away from
+     the on-clock cell.
+     ═══════════════════════════════════════════════════════════════════ */
+  @media (max-width: 768px) {
+
+    /* Setup screen — comfortable touch targets, full-width controls */
+    .md-setup-wrap { padding: 0 12px; margin: 14px auto 40px; }
+    .md-setup-intro { font-size: 12px; margin-bottom: 14px; }
+    .md-setup-card { padding: 16px 14px; }
+    .md-setup-section { margin-bottom: 16px; }
+    .md-controls-btn { padding: 9px 12px; min-height: 38px; font-size: 11px; }
+    .md-select { padding: 9px 12px; min-height: 38px; font-size: 16px; }  /* 16px prevents iOS zoom */
+    .md-setup-row { gap: 10px; }
+    .md-setup-row > div { flex: 1 1 130px; min-width: 0; }
+    .md-start-btn { padding: 14px; font-size: 14px; min-height: 44px; }
+
+    /* Drafting screen — single-column stack */
+    .md-draft-screen { padding: 4px 0 40px; }
+    .md-status-bar {
+      top: 48px;                  /* clears the shorter mobile topnav */
+      padding: 9px 12px; margin-bottom: 10px; gap: 8px;
+      flex-wrap: wrap;
+    }
+    .md-status-pick { font-size: 13px; }
+    .md-status-state { font-size: 10px; flex: 1 1 100%; }
+    .md-status-right { flex: 0 0 auto; }
+    .md-status-right .md-restore-btn { padding: 6px 12px; min-height: 36px; font-size: 10px; }
+
+    .md-search-input { padding: 10px 12px; font-size: 16px; min-height: 40px; }
+    .md-search-results { max-height: 260px; }
+    .md-search-result { padding: 10px 12px; }
+    .md-sr-meta { display: none; }    /* room is tight; drop the team/ADP suffix */
+
+    /* Single-column stack — BPA horizontal strip on top of the board */
+    .md-board-and-rail {
+      display: flex; flex-direction: column; gap: 10px;
+    }
+    .md-bpa-rail {
+      position: static;           /* sticky doesn't help in a flex column */
+      max-height: none; padding: 8px 8px 10px;
+    }
+    .md-bpa-header { padding: 0 4px 6px; font-size: 11px; }
+    .md-bpa-list {
+      flex-direction: row;        /* horizontal scroll strip */
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      padding-bottom: 4px;
+    }
+    .md-bpa-card {
+      flex: 0 0 130px;            /* fixed-width cards in the scroll strip */
+      scroll-snap-align: start;
+      height: 70px; padding: 4px 6px;
+    }
+    .md-bpa-card .card-hs { width: 26px; height: 26px; }
+    .md-bpa-card .card-hs-fallback { width: 26px; height: 26px; }
+    .md-bpa-card .card-team-logo { width: 22px; height: 22px; }
+    .md-bpa-card .card-team-logo img { width: 15px; height: 15px; }
+    .md-bpa-card .card-name { padding-right: 30px; }
+    .md-bpa-card .card-lname { font-size: 10px; }
+    .md-bpa-card .card-fname { font-size: 8px; }
+
+    /* BOARD — same downscaling as adp-tool.html mobile @media block */
+    .box-grid.md-board {
+      grid-template-columns: 30px repeat(var(--md-team-count, 12), 80px) !important;
+      gap: 3px;
+    }
+    .box-card {
+      height: 72px; padding: 4px 6px;
+    }
+    .box-card .card-lname { font-size: 11px; }
+    .box-card .card-fname { font-size: 8px; }
+    .box-card .card-top { font-size: 7px; gap: 3px; }
+    .box-card .card-pick, .box-card .card-adp { font-size: 7px; }
+    .box-card .card-name { padding-right: 30px; }
+    .box-card .card-hs { width: 26px; height: 26px; }
+    .box-card .card-hs-fallback { width: 26px; height: 26px; }
+    .box-card .card-team-logo { width: 22px; height: 22px; }
+    .box-card .card-team-logo img { width: 15px; height: 15px; }
+    .box-col-header { font-size: 9px; padding: 6px 2px 4px; }
+    .box-row-head { font-size: 10px; }
+
+    /* Finish summary fits the wider main column instead of the rail */
+    .md-finish-summary { padding: 12px 8px; }
+    .md-finish-title { font-size: 13px; }
+    .md-finish-row { font-size: 10px; padding: 4px 6px; }
+  }
 </style>
 
 </head>
@@ -1349,7 +1441,7 @@
             </div>
             <div class="md-board-wrap">
               <div class="box-grid md-board" id="md-board-grid"
-                   style="grid-template-columns: 36px repeat(${tc}, minmax(86px, 1fr));">
+                   style="--md-team-count: ${tc}; grid-template-columns: 36px repeat(${tc}, minmax(86px, 1fr));">
                 <div class="box-corner"></div>
                 ${seatHeaderHtml}
                 <div id="md-board-cells" style="display:contents"></div>
