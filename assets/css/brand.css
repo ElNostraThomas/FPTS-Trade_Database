@@ -308,20 +308,14 @@ html, body { overflow-x: hidden !important; }
   html .topnav .mobile-nav-select { display: inline-block !important; min-height: 32px; }
 }
 
-/* Adaptive site-wide layout zoom — sized for OBS Browser Source readability
-   on wide canvases, but steps down at narrower viewports so content always
-   fits without horizontal cutoffs. Native browser zoom: text + images +
-   spacing scale together; interactions work normally.
-   When a user Ctrl+wheel zooms in, the browser shrinks the layout viewport in
-   CSS px, our breakpoints fire, and the base zoom steps down — net effect:
-   the site auto-fits any window/zoom combination without horizontal scroll
-   on the chrome. Wide surfaces (ADP grid, draft board) still scroll
-   horizontally inside their wrappers when content exceeds container.
-   Print + mobile (≤768px) always reset to 1. */
-body { zoom: 1.75; }
-@media (max-width: 1600px) { body { zoom: 1.5; } }
-@media (max-width: 1300px) { body { zoom: 1.25; } }
-@media (max-width: 1100px) { body { zoom: 1.0; } }
+/* Site-wide 1.25x layout zoom — the long-standing default that matches the
+   pre-overhaul feel for at-monitor viewing. At narrow desktop (≤1099 CSS px)
+   the zoom steps down to 1.0 so wide layouts always fit. Print + mobile
+   (≤768px) also reset to 1.0. OBS Browser Source still benefits from the
+   lifted side gutters + tightened topnav from session 11 — those changes
+   are independent of the zoom value. */
+body { zoom: 1.25; }
+@media (max-width: 1099px) { body { zoom: 1.0; } }
 @media print { body { zoom: 1; } }
 @media (max-width: 768px) { body { zoom: 1; } }
 

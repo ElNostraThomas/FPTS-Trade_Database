@@ -39,7 +39,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Kanit:ital,wght@0,400;0,700;1,800&family=Mulish:wght@400;700;900&display=swap" rel="stylesheet">
 
 <!-- Brand-level styles: fonts, color variables, nav, page chrome, pos pills. -->
-<link rel="stylesheet" href="assets/css/brand.css?v=1782400010">
+<link rel="stylesheet" href="assets/css/brand.css?v=1782500001">
 <!-- iframe scroll fix — only runs when embedded; no-op for direct visitors. -->
 <script src="assets/js/iframe-scroll-fix.js?v=1782100000"></script>
 <!-- Back-to-top floating button. -->
@@ -648,10 +648,15 @@
     display: none;
   }
   body.fpts-compare-page .pc-add-comparison .pc-search-wrap {
-    width: 260px;
+    width: 420px; max-width: 60vw;
   }
   body.fpts-compare-page .pc-search-input.pc-search-input-compact {
     font-size: 11px; padding: 6px 10px; letter-spacing: .04em;
+  }
+  /* Wider dropdown items don't need to ellipsis truncate at this size — let
+     long names like "Christian McCaffrey" / "Travis Etienne Jr." breathe. */
+  body.fpts-compare-page .pc-add-comparison .pc-search-name {
+    overflow: visible; text-overflow: clip; white-space: normal;
   }
 
   /* ─── Historical area — tabbed sub-navigation ──────────────────────── */
@@ -1944,8 +1949,6 @@
                 </span>
               </span>
             </span>
-            <span class="pc-hero-secondary-sep"></span>
-            <a href="#" onclick="event.preventDefault();if(window.openPanel)openPanel('${safeName}');">Open full player drawer →</a>
           </div>
         </div>
       </div>

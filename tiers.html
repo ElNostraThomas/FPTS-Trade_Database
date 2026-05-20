@@ -6,7 +6,7 @@
 <title>Fantasy Points Front Office — Tiers</title>
 
 <!-- Brand-level shared styles (loaded BEFORE inline <style> so page overrides win). -->
-<link rel="stylesheet" href="assets/css/brand.css?v=1782400010">
+<link rel="stylesheet" href="assets/css/brand.css?v=1782500001">
 <!-- iframe scroll fix — only runs when embedded; no-op for direct visitors. -->
 <script src="assets/js/iframe-scroll-fix.js?v=1782100000"></script>
 <!-- Back-to-top floating button — appears when scrolled, click for smooth-scroll to top. -->
@@ -26,11 +26,9 @@
   @media (min-width: 769px) {
     html, body { overflow-x: auto !important; }
   }
-  /* Adaptive site-wide layout zoom — see brand.css for the full comment. */
-  body { zoom: 1.75; }
-  @media (max-width: 1600px) { body { zoom: 1.5; } }
-  @media (max-width: 1300px) { body { zoom: 1.25; } }
-  @media (max-width: 1100px) { body { zoom: 1.0; } }
+  /* Site-wide 1.25x layout zoom — see brand.css for the full comment. */
+  body { zoom: 1.25; }
+  @media (max-width: 1099px) { body { zoom: 1.0; } }
   @media print { body { zoom: 1; } }
   @media (max-width: 768px) { body { zoom: 1; } }
 

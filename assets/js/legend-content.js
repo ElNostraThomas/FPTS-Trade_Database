@@ -88,20 +88,18 @@
        called from each page's _applyAdpPayload()
 
    ──────────────────────────────────────────────────────────────────────
-   ADAPTIVE LAYOUT ZOOM (assets/css/brand.css)
+   125% LAYOUT ZOOM (assets/css/brand.css)
    ──────────────────────────────────────────────────────────────────────
-   body { zoom: N } stepped via media queries so the site auto-fits any
-   window/zoom combination without horizontal chrome cutoff:
-     viewport ≥1600 CSS  →  zoom 1.75   (OBS canvas / wide monitors)
-     viewport 1300-1599  →  zoom 1.5
-     viewport 1100-1299  →  zoom 1.25
-     viewport 769-1099   →  zoom 1.0
-     viewport ≤768       →  zoom 1.0   (mobile, no zoom)
-   When a user Ctrl+wheel zooms in, the browser shrinks the layout viewport
-   in CSS px, the breakpoints fire, and base zoom steps down — net effect:
-   the chrome always fits. Wide surfaces (ADP grid, draft board) still scroll
-   horizontally inside their wrappers when content exceeds container width.
-   Print always renders at 100%. Browser-native zoom — interactions work normally,
+   body { zoom: 1.25 } default on desktop, stepping down to 1.0 at narrow
+   widths so wide layouts always fit:
+     viewport ≥1100 CSS  →  zoom 1.25   (desktop default)
+     viewport 769-1099   →  zoom 1.0    (narrow desktop / aggressive Ctrl+zoom)
+     viewport ≤768       →  zoom 1.0    (mobile)
+   Print always renders at 100%. Wide surfaces (ADP grid, draft board) still
+   scroll horizontally inside their wrappers when content exceeds container
+   width — OBS-readability gains from session 11 (lifted side gutters,
+   tightened topnav with adaptive content-shedding, ADP 12-team fluid-fit)
+   stay; only the zoom value dropped from 1.75 → 1.25 in session 12. Browser-native zoom — interactions work normally,
    getBoundingClientRect coordinates are unzoomed in Chrome. If anything
    feels mis-positioned, that's the first thing to check. Wide layouts
    (ADP Box grid, live-draft board, my-leagues) use horizontal scroll via
