@@ -3295,6 +3295,52 @@
     return `<div class="pc-cm-table">${html}</div>`;
   }
 
+  // Per-position column config for the multi-mode Career table (rendered
+  // inside each card by _pcCardTabContent's `case 'career'`). Was deleted
+  // in commit 8a214b8 alongside the standalone _pcMultiCareerColumn
+  // wrapper, but the in-card career renderer at line 3327 still calls it
+  // — the call became a ReferenceError that silently broke clicks on the
+  // CAREER tab in multi mode. Restored 2026-05-21, with `pos` threaded
+  // through `_pcStdFpts(s, pos)` so the TEP scoring preset fires correctly
+  // for TE rows (the prior incarnation called `_pcStdFpts(s)` with no pos).
+  function _pcMultiCareerColumns(pos) {
+    if (pos === 'QB') {
+      return [
+        { key: 'games',     label: 'GP' },
+        { key: 'fpts',      label: 'FPTS', compute: s => _pcStdFpts(s, pos).toFixed(1) },
+        { key: 'ppg',       label: 'PPG',  compute: s => s.games ? (_pcStdFpts(s, pos) / s.games).toFixed(1) : '—' },
+        { key: 'passYards', label: 'Pass Y' },
+        { key: 'passTd',    label: 'Pass TD' },
+        { key: 'passInts',  label: 'Int' },
+        { key: 'rushYards', label: 'Rush Y' },
+        { key: 'rushTd',    label: 'Rush TD' },
+      ];
+    }
+    if (pos === 'RB') {
+      return [
+        { key: 'games',     label: 'GP' },
+        { key: 'fpts',      label: 'FPTS', compute: s => _pcStdFpts(s, pos).toFixed(1) },
+        { key: 'ppg',       label: 'PPG',  compute: s => s.games ? (_pcStdFpts(s, pos) / s.games).toFixed(1) : '—' },
+        { key: 'rushAtt',   label: 'Att' },
+        { key: 'rushYards', label: 'Rush Y' },
+        { key: 'rushTd',    label: 'Rush TD' },
+        { key: 'rec',       label: 'Rec' },
+        { key: 'recYards',  label: 'Rec Y' },
+        { key: 'recTd',     label: 'Rec TD' },
+      ];
+    }
+    // WR / TE
+    return [
+      { key: 'games',    label: 'GP' },
+      { key: 'fpts',     label: 'FPTS', compute: s => _pcStdFpts(s, pos).toFixed(1) },
+      { key: 'ppg',      label: 'PPG',  compute: s => s.games ? (_pcStdFpts(s, pos) / s.games).toFixed(1) : '—' },
+      { key: 'targets',  label: 'Tgt' },
+      { key: 'rec',      label: 'Rec' },
+      { key: 'recYards', label: 'Rec Y' },
+      { key: 'recTd',    label: 'Rec TD' },
+    ];
+  }
+
   // Tab content rendered INSIDE each card. Dispatches by PC.tab so each
   // card becomes a self-contained mini-profile that swaps lenses via
   // the global tab bar. Single source of truth for which tab is active.
