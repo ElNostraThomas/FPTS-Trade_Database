@@ -1692,17 +1692,17 @@ TEP only fires when `pos === 'TE'`, so QB/RB/WR are unaffected by that preset (v
 - `ctx` — `{ setup, currentPick, universe, takenIds, myRoster, positionNeedTable }`. `takenIds` is a Set of player names already drafted across all seats; `myRoster` is the AI seat's own picks so far.
 - `personality` — one of 5 archetype objects.
 
-**Personality archetypes (5 of the spec's 9):**
+**Personality archetypes (5 of the spec's 9) — current calibration (ADP-heavy, 2026-05-20 third tweak):**
 
 | Key | adp | posNeed | value | scarcity | favor | reachTolerance | candidatePoolWindow [ahead, behind] |
 |---|---|---|---|---|---|---|---|
-| `adp_value`  | 0.65 | 0.20 | 0.15 | 0.10 | 0    | 3  | [12, 36] |
-| `bpa`        | 0.40 | 0.05 | 0.50 | 0.15 | 0    | 8  | [24, 48] |
-| `my_guys`    | 0.18 | 0.25 | 0.30 | 0.10 | 0.25 | 18 | [36, 60] |
-| `need_based` | 0.30 | 0.55 | 0.15 | 0.10 | 0    | 6  | [18, 42] |
-| `scarcity`   | 0.35 | 0.15 | 0.20 | 0.40 | 0    | 12 | [24, 48] |
+| `adp_value`  | 0.85 | 0.20 | 0.15 | 0.10 | 0    | 3  | [8, 30]  |
+| `bpa`        | 0.55 | 0.05 | 0.50 | 0.15 | 0    | 6  | [18, 40] |
+| `my_guys`    | 0.35 | 0.25 | 0.30 | 0.10 | 0.25 | 14 | [30, 54] |
+| `need_based` | 0.50 | 0.55 | 0.15 | 0.10 | 0    | 5  | [14, 36] |
+| `scarcity`   | 0.55 | 0.15 | 0.20 | 0.40 | 0    | 9  | [18, 40] |
 
-ADP weights bumped ~+0.10 across all 5 archetypes in the 2026-05-20 first tweak — informal user testing surfaced AI seats reaching too far past consensus on cold runs. The new weights make every personality respect ADP more without flattening their identities (ADP Value still tightest, My Guys still loosest).
+These values are **not locked** — they're the current calibration target for "picks closely track the ADP-page startup ordering with small personality-driven deviations." Earlier calibrations: first tweak (2026-05-20) bumped ADP +0.10 across all archetypes; second tweak (2026-05-20) switched the reach penalty to quadratic; this third tweak pushes harder on ADP discipline + tightens candidate-pool windows. Tuning iterations expected as user runs more mocks.
 
 **Scoring-aware ADP shifts (`applyScoringAdpShift`, 2026-05-20 first tweak).** The `ADP_PAYLOAD` data layer only carries `startup_sf` + `startup_1qb` branches — no per-scoring-preset variants. To approximate community consensus for TEP / 6pt TD / Half PPR, we adjust ADP at universe-build time using FP_VALUES.tier-aware buckets:
 

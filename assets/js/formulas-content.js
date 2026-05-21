@@ -2092,13 +2092,15 @@ TEP only fires when pos === 'TE' so QB/RB/WR are unaffected by that preset.`,
           provenance: { kind: 'hand-tuned', detail: 'Five archetypes selected from the LLM Handoff Spec\'s nine generic personalities (C:\\Users\\deons\\Downloads\\# Fantasy Draft Personality, Prediction & Availability System — Full….md). Weights are first-pass calibration — expected to need analyst tuning. See whyThisNumber.' },
           inputs: 'player (candidate record { name, pos, team, adp, value, tier, sleeperId, age } from buildPlayerUniverse), ctx (currentPick, universe, takenIds, myRoster, positionNeedTable), personality (one of 5 archetype objects).',
           math: `// Personalities (weights are adp / posNeed / value / scarcity / favor)
-// ADP weights bumped ~+0.10 across all 5 archetypes in 2026-05-20 tweak.
+// Current calibration: ADP-heavy (2026-05-20 third tweak). Not locked —
+// picks closely track ADP-page startup ordering with small personality-
+// driven deviations. Tune as user runs more mocks.
 PERSONALITIES = {
-  adp_value:  { weights: { adp:0.65, posNeed:0.20, value:0.15, scarcity:0.10, favor:0    }, reachTolerance: 3,  candidatePoolWindow: [12, 36] },
-  bpa:        { weights: { adp:0.40, posNeed:0.05, value:0.50, scarcity:0.15, favor:0    }, reachTolerance: 8,  candidatePoolWindow: [24, 48] },
-  my_guys:    { weights: { adp:0.18, posNeed:0.25, value:0.30, scarcity:0.10, favor:0.25 }, reachTolerance: 18, candidatePoolWindow: [36, 60] },
-  need_based: { weights: { adp:0.30, posNeed:0.55, value:0.15, scarcity:0.10, favor:0    }, reachTolerance: 6,  candidatePoolWindow: [18, 42] },
-  scarcity:   { weights: { adp:0.35, posNeed:0.15, value:0.20, scarcity:0.40, favor:0    }, reachTolerance: 12, candidatePoolWindow: [24, 48] },
+  adp_value:  { weights: { adp:0.85, posNeed:0.20, value:0.15, scarcity:0.10, favor:0    }, reachTolerance: 3,  candidatePoolWindow: [8, 30]  },
+  bpa:        { weights: { adp:0.55, posNeed:0.05, value:0.50, scarcity:0.15, favor:0    }, reachTolerance: 6,  candidatePoolWindow: [18, 40] },
+  my_guys:    { weights: { adp:0.35, posNeed:0.25, value:0.30, scarcity:0.10, favor:0.25 }, reachTolerance: 14, candidatePoolWindow: [30, 54] },
+  need_based: { weights: { adp:0.50, posNeed:0.55, value:0.15, scarcity:0.10, favor:0    }, reachTolerance: 5,  candidatePoolWindow: [14, 36] },
+  scarcity:   { weights: { adp:0.55, posNeed:0.15, value:0.20, scarcity:0.40, favor:0    }, reachTolerance: 9,  candidatePoolWindow: [18, 40] },
 };
 
 // Scoring-aware ADP shift (ADP_PAYLOAD only carries SF + 1QB; this

@@ -45,7 +45,7 @@
 <script src="assets/js/mvs-extras.js?v=1778642255"></script>
 <script src="assets/js/player-articles.js?v=1778680034"></script>
 <script src="assets/js/heatmap.js?v=1778670000"></script>
-<script src="assets/js/legend-content.js?v=1783100000"></script>
+<script src="assets/js/legend-content.js?v=1783300000"></script>
 <script src="assets/js/legend.js?v=1778949514"></script>
 <script src="assets/js/team-helpers.js?v=1778680002"></script>
 <script src="assets/js/player-panel.js?v=1781200000" defer></script>
@@ -751,46 +751,49 @@
     // first-pass calibration; expected to need analyst tuning (tracked in
     // README "Analyst feedback loop" punch list).
 
+    // Current calibration: ADP-heavy (2026-05-20 third tweak). Picks should
+    // closely track the ADP page's startup_sf / startup_1qb ordering with
+    // small personality-driven deviations. Tune further as needed.
     const PERSONALITIES = {
       adp_value: {
         key: 'adp_value',
         name: 'ADP Value',
         blurb: "Strict to ADP. Won't reach more than ~3 picks past consensus.",
-        weights: { adp: 0.65, posNeed: 0.20, value: 0.15, scarcity: 0.10, favor: 0 },
+        weights: { adp: 0.85, posNeed: 0.20, value: 0.15, scarcity: 0.10, favor: 0 },
         reachTolerance: 3,
-        candidatePoolWindow: [12, 36],  // [aheadOfPick, behindPick]
+        candidatePoolWindow: [8, 30],   // [aheadOfPick, behindPick]
       },
       bpa: {
         key: 'bpa',
         name: 'Best Player Available',
         blurb: 'Picks the highest-value player regardless of roster need.',
-        weights: { adp: 0.40, posNeed: 0.05, value: 0.50, scarcity: 0.15, favor: 0 },
-        reachTolerance: 8,
-        candidatePoolWindow: [24, 48],
+        weights: { adp: 0.55, posNeed: 0.05, value: 0.50, scarcity: 0.15, favor: 0 },
+        reachTolerance: 6,
+        candidatePoolWindow: [18, 40],
       },
       my_guys: {
         key: 'my_guys',
         name: 'My Guys',
-        blurb: "Reaches for players they like. Mostly ignores ADP.",
-        weights: { adp: 0.18, posNeed: 0.25, value: 0.30, scarcity: 0.10, favor: 0.25 },
-        reachTolerance: 18,
-        candidatePoolWindow: [36, 60],
+        blurb: "Reaches for players they like. Mostly respects ADP otherwise.",
+        weights: { adp: 0.35, posNeed: 0.25, value: 0.30, scarcity: 0.10, favor: 0.25 },
+        reachTolerance: 14,
+        candidatePoolWindow: [30, 54],
       },
       need_based: {
         key: 'need_based',
         name: 'Need-Based',
         blurb: 'Fills roster holes aggressively. Balanced builds.',
-        weights: { adp: 0.30, posNeed: 0.55, value: 0.15, scarcity: 0.10, favor: 0 },
-        reachTolerance: 6,
-        candidatePoolWindow: [18, 42],
+        weights: { adp: 0.50, posNeed: 0.55, value: 0.15, scarcity: 0.10, favor: 0 },
+        reachTolerance: 5,
+        candidatePoolWindow: [14, 36],
       },
       scarcity: {
         key: 'scarcity',
         name: 'Positional Scarcity',
         blurb: 'Attacks tier cliffs. Reaches when a tier is about to break.',
-        weights: { adp: 0.35, posNeed: 0.15, value: 0.20, scarcity: 0.40, favor: 0 },
-        reachTolerance: 12,
-        candidatePoolWindow: [24, 48],
+        weights: { adp: 0.55, posNeed: 0.15, value: 0.20, scarcity: 0.40, favor: 0 },
+        reachTolerance: 9,
+        candidatePoolWindow: [18, 40],
       },
     };
 
