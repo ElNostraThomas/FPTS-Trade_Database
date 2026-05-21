@@ -1681,6 +1681,112 @@ TEP only fires when `pos === 'TE'`, so QB/RB/WR are unaffected by that preset (v
 
 ---
 
+### 51. Mock Draft AI personality scoring (`personalityDraftScore` → `aiPick`)
+
+**Location:** `mock-draft.html` — engine block inside the `MockDraft` IIFE: `PERSONALITIES` constant, `personalityDraftScore(player, ctx, personality)`, `aiPick(personality, ctx)`, `computeTierScarcity(player, ctx)`, `buildPlayerUniverse(setup)`, `assignOpponents(setup)`.
+
+**Provenance:** hand-tuned, derived from the LLM Handoff Spec at `C:\Users\deons\Downloads\# Fantasy Draft Personality, Prediction & Availability System — Full….md` and its ML companion file. Five archetypes selected from the spec's nine generic personalities; weights are first-pass calibration — see "Locked decisions" below.
+
+**Inputs (per AI pick):**
+- `player` — candidate record `{ name, pos, team, adp, value, tier, sleeperId, age }` built from `FP_VALUES` joined with `ADP_PAYLOAD.byMonth.ALL.startup_{sf|1qb}` via `buildPlayerUniverse(setup)`. Format-aware: SF uses `valueSf`, 1QB uses `value1qb`.
+- `ctx` — `{ setup, currentPick, universe, takenIds, myRoster, positionNeedTable }`. `takenIds` is a Set of player names already drafted across all seats; `myRoster` is the AI seat's own picks so far.
+- `personality` — one of 5 archetype objects.
+
+**Personality archetypes (5 of the spec's 9):**
+
+| Key | adp | posNeed | value | scarcity | favor | reachTolerance | candidatePoolWindow [ahead, behind] |
+|---|---|---|---|---|---|---|---|
+| `adp_value`  | 0.55 | 0.20 | 0.15 | 0.10 | 0    | 3  | [12, 36] |
+| `bpa`        | 0.30 | 0.05 | 0.50 | 0.15 | 0    | 8  | [24, 48] |
+| `my_guys`    | 0.10 | 0.25 | 0.30 | 0.10 | 0.25 | 18 | [36, 60] |
+| `need_based` | 0.20 | 0.55 | 0.15 | 0.10 | 0    | 6  | [18, 42] |
+| `scarcity`   | 0.25 | 0.15 | 0.20 | 0.40 | 0    | 12 | [24, 48] |
+
+**PersonalityDraftScore composite (per-candidate):**
+
+```js
+adpScore      = clamp((currentPick - player.adp) / 12, -2, 2);     // positive when player is falling
+posNeedScore  = clamp((target - currentRosterCount) / 3, -1, 1);   // positive when position still wanted
+valScore      = player.value / 1000;                               // FP_VALUES trade value, normalized
+scarcityScore = (sameTierAtPos ≤ 2) ? 1.0 : (≤ 4) ? 0.5 : 0;       // tier-thinning bonus
+favorScore    = personality.favoritePlayers.includes(player.name) ? 1.5 : 0;
+
+composite = w.adp * adpScore + w.posNeed * posNeedScore + w.value * valScore
+          + w.scarcity * scarcityScore + w.favor * favorScore;
+
+// Hard reach penalty (gentle gradient — 0.05 per pick past tolerance)
+if ((currentPick - player.adp) < -reachTolerance) {
+  composite -= Math.abs((currentPick - player.adp) + reachTolerance) * 0.05;
+}
+// Anti-clumping: penalty for drafting same position 2+ of last 3 picks
+if (myRoster.slice(-3).filter(p => p.pos === player.pos).length >= 2) {
+  composite -= 0.3;
+}
+// Jitter so same-personality seats diverge
+composite += (Math.random() - 0.5) * 0.15;
+```
+
+**Position-need table (`positionNeedTable(format)`):**
+
+| Position | SF target | 1QB target |
+|---|---|---|
+| QB | 2 | 1 |
+| RB | 4 | 4 |
+| WR | 5 | 5 |
+| TE | 2 | 2 |
+| K  | 0 (waiver) | 0 |
+| DEF | 0 (waiver) | 0 |
+
+Once `target - count` goes negative, `posNeedScore` discourages overdrafting at that position.
+
+**Pick selection (softmax sample of top 8):**
+
+```js
+// 1. ADP-window candidate pool
+candidates = universe.filter(available
+  AND p.adp >= currentPick - behindWindow
+  AND p.adp <= currentPick + aheadWindow);
+
+// 2. PICK_AVAILABILITY augmentation
+//    Pull in any player with empirical availability >= 30% at (round, slot)
+//    even if outside the ADP window
+PA = window.PICK_AVAILABILITY;
+candidates ∪= universe.filter(available
+  AND PA[sid].matrix[round-1][slot-1] >= 30);
+
+// 3. Score every candidate, take top 8
+scored = candidates.map(p => ({ p, s: personalityDraftScore(p, ctx, personality) }));
+scored.sort(by s desc);
+top = scored.slice(0, 8);
+
+// 4. Softmax with temperature 0.5
+expScores = top.map(({ s }) => Math.exp((s - max(top.s)) / 0.5));
+probs     = expScores.map(e => e / sum(expScores));
+
+// 5. Weighted random sample
+selected = weightedRandomSample(top, probs);
+```
+
+**PICK_AVAILABILITY augmentation note.** Instead of the spec's 5,000-50,000 Monte Carlo simulations per pick, the engine leverages `data/pick-availability-2026.json` as a pre-computed empirical probability matrix. `matrix[round][slot]` is the % of real dynasty drafts where that player was still on the board at that pick. The full simulation loop is replaced by this one lookup — a major perf + simplicity win, valid because the matrix is itself derived from thousands of real drafts. Limitation: matrix is currently 12-team-only; 8 / 10 / 14-team modes fall back to the ADP-window scoring (matrix augmentation is a refinement, not load-bearing).
+
+**Output.** A single player object (the selected pick), recorded into `state.picks` with the seat's personality key for later attribution.
+
+**Locked decisions (2026-05-20, twelfth session):**
+
+- **5 archetypes, not 9.** The spec's full set (ADP Value, Need-Based, My Guys, Diversifier, Concentrator, Rookie Upside, Win-Now, Positional Scarcity, Stack/Correlation) was scoped down for the MVP. Diversifier + Concentrator require multi-draft exposure history we don't have; Rookie Upside / Win-Now / Stack/Correlation are nuances the 5 already span (a Win-Now feel emerges from BPA + value weighting; a Rookie Upside feel emerges from My Guys with rookie-heavy favorites).
+- **Hand-tuned weights, not ML-learned.** The spec's ML companion requires a backend training pipeline. Deferred until a backend ships.
+- **Manager Clone archetype deferred** — would require real Sleeper draft history per user (same blocker as 1QB SEED_USERS).
+- **Monte Carlo replaced by PICK_AVAILABILITY matrix.** Major implementation simplification with minimal loss of fidelity (the matrix encodes the simulation's empirical answer).
+- **Reach penalty gradient = 0.05/pick** — 1 pick beyond tolerance → -0.05, 10 picks beyond → -0.5. A tendency, not a wall.
+- **Anti-clumping at -0.3** — strong enough to discourage 3 RBs in 4 picks but not enough to prevent it when scarcity overrides.
+- **Softmax temperature = 0.5** — moderate stochasticity. Lower (0.2) → more deterministic; higher (1.0) → more noise. 0.5 felt right in informal testing.
+- **Jitter ±0.075** — enough that same-personality seats diverge; small enough that personality still dominates.
+- **My Guys "favorite players" seed = 8 from top 80 FP_VALUES.** Random per opponent per draft. +1.5 favor bonus is large enough to visibly produce reaches (drives the archetype's character) but capped at 8 names so the seat doesn't have a favorite on every plausible candidate.
+
+**Notes.** First-pass calibration tracked in README "Analyst feedback loop" punch list under **Mock-draft personality weights**. After the user runs 10+ mocks, weights / windows / tolerance values can be tuned in a follow-up commit. Spec source files in `C:\Users\deons\Downloads\` — both Full (LLM Handoff) and ML (Agent Architecture) versions referenced; Full is the primary implementation reference for client-side execution. The engine surface is console-accessible via `MockDraft._aiPick(personalityKey, currentPick, picks)` + `MockDraft._buildUniverse()` + `MockDraft._assignOpponents()` for debugging / weight tuning.
+
+---
+
 ## Notes on this document
 
 - Compile / regenerate after any change to a formula, threshold, or sync-script constant.

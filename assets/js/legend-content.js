@@ -1139,4 +1139,72 @@ window.LegendContent = {
     ],
   },
 
+  // ════════════════════════════════════════════════════════════════════════
+  'mock-draft': {
+    title: 'Mock Draft',
+    blurb: 'Practice drafting against AI opponents that follow 5 personality archetypes (ADP Value, BPA, My Guys, Need-Based, Positional Scarcity). ' +
+           'Pick a slot (1..N where N is team count), choose format (SF / 1QB) + scoring (PPR / Half / 6pt TD / TEP) + rounds (8-20), ' +
+           'then click "Start Draft." When your slot comes up the board pauses and a YOU\'RE ON THE CLOCK indicator appears — type a player name in the search box or click a card from the Best Available rail. ' +
+           'AI opponents tick through their picks with a brief pause so you can see the board fill. Full spec: docs/FORMULAS.md §51 + the LLM Handoff Spec in C:\\Users\\deons\\Downloads\\.',
+    sections: [
+      {
+        name: 'Setup screen',
+        items: [
+          { label: 'Team count', what: '8 / 10 / 12 toggle group. Drives total picks (teamCount × rounds), snake order, and slot dropdown range.', source: 'mock-draft.html setup.teamCount; persisted to localStorage[\'fpts-mock-draft-setup\'].teamCount', values: '8 | 10 | 12 (default 12)', notes: 'PICK_AVAILABILITY matrix is currently 12-team-only — 8/10-team modes fall back to pure ADP-window scoring (matrix augmentation skipped).' },
+          { label: 'Format', what: 'Superflex / 1QB toggle. Drives ADP source (startup_sf vs startup_1qb branch) and FP_VALUES field (valueSf vs value1qb).', source: 'setup.format; persisted', values: 'sf | 1qb (default sf)', notes: 'Position-need table also format-aware: SF wants 2 QBs, 1QB wants 1.' },
+          { label: 'Scoring', what: 'PPR / Half PPR / 6pt TD / TEP. Toggle group matches the compare-page scoring toggle.', source: 'setup.scoring; persisted', values: 'ppr | half_ppr | td6 | tep (default ppr)', notes: 'MVP: scoring is informational — FP_VALUES.value already encodes a PPR-biased dynasty trade value. Future enhancement: blend SLEEPER.projectPlayer scoring-adjusted projection into the personality score\'s value component.' },
+          { label: 'Rounds', what: 'Dropdown 8-20. Drives total picks (teamCount × rounds) and the board\'s round-row count.', source: 'setup.rounds; persisted', values: '8 .. 20 (default 15)', notes: '15 is the dynasty-startup convention.' },
+          { label: 'Your draft slot', what: 'Dropdown 1..teamCount. Determines which seat in the snake is YOU; AI opponents fill all other seats. Auto-clamped when teamCount changes.', source: 'setup.userSlot; persisted', values: '1 .. teamCount (default 5)', notes: 'Slot persistence preserved across teamCount changes within range; clamped to upper bound on shrink (e.g., slot 12 → slot 8 if team count drops to 8).' },
+          { label: 'Opponent personalities', what: 'How AI personalities get distributed across the other seats. "Surprise me" = random per seat; "Variety" = one of each archetype rotating; "All ADP" = every opponent is ADP Value (calmest baseline).', source: 'setup.personalityMix; assignOpponents() applies the choice', values: 'surprise_me | variety | all_adp (default surprise_me)', notes: 'Hint text below the dropdown describes the active choice. My Guys archetypes seed 8 random favorites from top 80 FP_VALUES per opponent per draft start.' },
+          { label: 'Restore banner', what: 'Shown on page load if localStorage has an in-progress draft. "Resume draft" rehydrates board + tick loop; "Discard & start new" clears state and shows fresh setup.', source: 'maybeShowRestoreBanner() reads localStorage[\'fpts-mock-draft-state\']', values: '—', notes: 'State persists across browser tabs and refreshes; only the End Draft button (with confirm()) clears it during a draft.' },
+        ],
+      },
+      {
+        name: 'Personality archetypes (AI opponents)',
+        items: [
+          { label: 'ADP Value', what: 'Strict to ADP. Won\'t reach more than ~3 picks past consensus. Picks land close to where the player\'s ADP says they should go.', source: 'PERSONALITIES.adp_value in mock-draft.html', values: 'weights: adp 0.55 / posNeed 0.20 / value 0.15 / scarcity 0.10. reachTolerance: 3 picks. Candidate window: [pick-36, pick+12].', notes: 'The "calmest" opponent — useful as a baseline when you want predictable behavior.' },
+          { label: 'Best Player Available', what: 'Picks the highest-trade-value player regardless of roster need. Will draft a 3rd RB in round 4 if that\'s the best value.', source: 'PERSONALITIES.bpa', values: 'weights: adp 0.30 / posNeed 0.05 / value 0.50 / scarcity 0.15. reachTolerance: 8. Window: [pick-48, pick+24].', notes: 'value weight dominates; posNeed is nearly zero so this seat ignores roster construction.' },
+          { label: 'My Guys', what: 'Has 8 "favorite players" seeded from the top 80 FP_VALUES at draft start. Reaches hard for them when they\'re close to available. Mostly ignores ADP.', source: 'PERSONALITIES.my_guys + seedFavorites()', values: 'weights: adp 0.10 / posNeed 0.25 / value 0.30 / scarcity 0.10 / favor 0.25. reachTolerance: 18. Window: [pick-60, pick+36].', notes: 'favorScore = +1.5 when the candidate is on the opponent\'s favorites list. Favorites are random per opponent per draft, so two My Guys seats won\'t target the same players.' },
+          { label: 'Need-Based', what: 'Fills roster holes aggressively. Targets QB early in SF leagues, balances RB+WR, picks TE in middle rounds. Avoids overdrafting any one position.', source: 'PERSONALITIES.need_based', values: 'weights: adp 0.20 / posNeed 0.55 / value 0.15 / scarcity 0.10. reachTolerance: 6. Window: [pick-42, pick+18].', notes: 'posNeed dominates; once a position\'s target is met, that position\'s score goes negative.' },
+          { label: 'Positional Scarcity', what: 'Attacks tier cliffs. Reaches when a tier of QBs / TEs / RBs is about to break and only 1-2 players remain in it.', source: 'PERSONALITIES.scarcity + computeTierScarcity()', values: 'weights: adp 0.25 / posNeed 0.15 / value 0.20 / scarcity 0.40. reachTolerance: 12. Window: [pick-48, pick+24].', notes: 'scarcityScore = 1.0 if <=2 players left in player\'s tier at that position, 0.5 if <=4 left, 0 otherwise. Tier from FP_VALUES.tier.' },
+        ],
+      },
+      {
+        name: 'Pick scoring + selection',
+        items: [
+          { label: 'PersonalityDraftScore composite', what: 'Per-candidate score = weighted sum of 5 components (adp / posNeed / value / scarcity / favor) per the personality\'s weights. Plus a hard reach penalty when reaching past tolerance, an anti-clumping penalty for 3-of-4-same-position runs, and ±0.075 jitter so same-personality seats diverge.', source: 'personalityDraftScore(player, ctx, personality) in mock-draft.html', values: 'Each component normalized roughly to [-1, 1] or [0, 1.5]. Composite typically lands in [0, 2] for strong candidates.', notes: 'Full formula: docs/FORMULAS.md §51.' },
+          { label: 'Candidate pool window', what: 'Available players with ADP in [currentPick - behindWindow, currentPick + aheadWindow] are eligible. Window width is personality-specific (ADP Value = tight, My Guys = loose).', source: 'aiPick() candidate filter', values: 'See per-personality windows above.', notes: 'Augmented with PICK_AVAILABILITY matrix lookup (see below).' },
+          { label: 'PICK_AVAILABILITY augmentation', what: 'Players whose data/pick-availability-2026.json matrix[round][slot] >= 30% get added to the candidate pool even if outside the ADP window. Lets the AI consider players who real drafts often have available at this exact pick.', source: 'aiPick() augmentation; PA = window.PICK_AVAILABILITY', values: '30% threshold. Matrix indices: matrix[round-1][slot-1].', notes: 'Currently 12-team-only — 8/10-team modes skip this augmentation and fall back to pure ADP-window scoring. Documented as a known limitation.' },
+          { label: 'Softmax sampling', what: 'Top 8 scored candidates go through softmax with temperature 0.5, then weighted-random sample picks the actual selection. Produces realistic variation — the same state can produce different picks across re-runs.', source: 'aiPick() softmax + weightedRandomSample', values: 'Temperature 0.5. Top 8 only (long tail discarded).', notes: 'Lower temperature = more deterministic; higher = more noisy. 0.5 is the locked default.' },
+        ],
+      },
+      {
+        name: 'User interaction (when on the clock)',
+        items: [
+          { label: 'Search box', what: 'Type any player name; autocomplete dropdown shows up to 12 matches (case-insensitive substring), excluding already-drafted players. Click a result OR press Enter on a hovered row → drafts that player.', source: 'wireSearchInput() in mock-draft.html', values: '50ms debounce. Esc clears.', notes: 'Only fires onUserPick when state.status === on_clock_user — typing while AI is picking does nothing.' },
+          { label: 'Best Available rail', what: 'Right-side sticky rail with top 10 highest-value available players. Same .box-card recipe as the board. Click any card → drafts that player.', source: 'updateBpaRail()', values: 'Top 10 by FP_VALUES.value (format-aware: valueSf vs value1qb).', notes: 'md-bpa-clickable class + hover lift only when user is on the clock. On mobile, the rail collapses to a horizontal scroll strip above the board.' },
+          { label: 'Status bar', what: 'Sticky top bar shows "Round X, Pick Y.ZZ" + on-clock state. YOU\'RE ON THE CLOCK text pulses red. "Team N drafting (Personality)…" while AI ticks.', source: 'updateStatusBar()', values: '—', notes: 'End Draft button (with confirm) clears state and returns to setup.' },
+          { label: 'On-clock cell pulse', what: 'The empty cell whose pick is currently being made gets a pulsing red outline (.md-cell-onclock with md-pulse animation, 1.2s cycle). Quick visual cue for "this is the next pick."', source: 'CSS @keyframes md-pulse in mock-draft.html style block', values: 'Box-shadow grows + shrinks 0 → 4px → 0.', notes: 'Renders for both AI and user picks; status bar text distinguishes ownership.' },
+        ],
+      },
+      {
+        name: 'State + persistence',
+        items: [
+          { label: 'localStorage Keys', what: 'Two keys: fpts-mock-draft-setup persists the 6 setup controls across sessions; fpts-mock-draft-state persists the in-progress draft snapshot (picks, opponents, currentPick, status).', source: 'localStorage.{get,set}Item', values: 'fpts-mock-draft-setup (always present after first visit) / fpts-mock-draft-state (only during/after a draft)', notes: 'State key written on every pick. Universe is NOT persisted — derivable from setup, keeps localStorage small.' },
+          { label: 'Snake-draft pick order', what: 'pickToRoundSlot(pickNo, teamCount) maps absolute pick number to {round, slot}. Odd rounds: slot 1 → teamCount. Even rounds: slot teamCount → 1 (reversed).', source: 'pickToRoundSlot() in mock-draft.html', values: 'Round and slot both 1-indexed.', notes: 'Standard snake. Total picks = teamCount × rounds.' },
+          { label: 'Console debug surface', what: 'window.MockDraft exposes _setup() / _state() / _universe() / _personalities() / _buildUniverse() / _assignOpponents() / _pickOrder(N) / _aiPick(personalityKey, currentPick, picks) — useful for inspecting state mid-draft or tuning weights via the JS console.', source: 'MockDraft public return object', values: '—', notes: 'Public-facing API: init / startDraft / resume / discardSaved / backToSetup / userPick(name).' },
+        ],
+      },
+      {
+        name: 'Known limitations',
+        items: [
+          { label: 'PICK_AVAILABILITY 12-team-only', what: 'The empirical availability matrix used to augment the AI candidate pool is currently only sized for 12-team drafts. 8/10/14-team modes silently fall back to pure ADP-window scoring (still functional, just slightly less informed).', source: 'data/pick-availability-2026.json (size: 12 columns)', values: '—', notes: 'When matrices for other team counts ship, the augmentation will activate automatically — no code change needed (the lookup is conditional on a non-null matrix value).' },
+          { label: 'Manager Clone deferred', what: 'The spec\'s 10th personality archetype is a "Manager Clone" built from a specific user\'s real Sleeper draft history. Not implemented for MVP — requires real draft history per user (same blocker as 1QB SEED_USERS).', source: 'PERSONALITIES const (5 archetypes, 9 in spec, 10th = clone)', values: '—', notes: 'When Sleeper draft history scrape ships for a given user, this archetype could be built per-user.' },
+          { label: 'No interactive scoring effect (MVP)', what: 'Scoring toggle (PPR / Half / 6pt / TEP) is currently informational — FP_VALUES.value is the source of truth for value scoring and isn\'t scoring-adjusted. Future enhancement: blend SLEEPER.projectPlayer scoring-adjusted projection into the value component.', source: 'PERSONALITIES weights.value uses player.value directly', values: '—', notes: 'Tracked in README "Analyst feedback loop" as "Mock-draft scoring-aware projections."' },
+          { label: 'Weights are first-pass calibration', what: 'All personality weights, reachTolerance values, candidate-pool windows, softmax temperature, anti-clumping penalty, and jitter magnitude are hand-tuned best-guesses. Tracked in the README Analyst feedback loop punch list under "Mock-draft personality weights" for analyst review after 10+ mock runs.', source: 'PERSONALITIES const + personalityDraftScore() constants', values: '—', notes: 'See whyThisNumber in formulas.html §51 for the rationale per constant.' },
+        ],
+      },
+    ],
+  },
+
 };

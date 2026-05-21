@@ -1114,6 +1114,19 @@ Nothing structural. Polish / nice-to-haves only:
   Current open items needing analyst input:
     - 14 original heuristics (trade-value multipliers, age-curve constants,
       buy/sell signal thresholds, tier assignments, etc. — see `formulas.html`)
+    - **Mock-draft personality weights** (FORMULAS.md §51) — first-pass
+      calibration shipped 2026-05-20 (twelfth session). Five archetype
+      weights (adp / posNeed / value / scarcity / favor), per-personality
+      reachTolerance + candidatePoolWindow values, softmax temperature
+      (0.5), anti-clumping penalty (-0.3), jitter magnitude (±0.075), and
+      My Guys favorites pool size (8 from top 80). All hand-tuned per the
+      LLM Handoff Spec at `C:\Users\deons\Downloads\# Fantasy Draft
+      Personality, Prediction & Availability System — Full….md`. Tune
+      after running 10+ mocks vs the various archetypes. Triple-sync rule
+      applies: update `mock-draft.html` (PERSONALITIES const) AND
+      `docs/FORMULAS.md` §51 AND `assets/js/formulas-content.js` entry
+      `mock-draft-personality-scoring` AND `assets/js/legend-content.js`
+      'mock-draft' page entry.
     - ~~**Compare similarity scoring** (FORMULAS.md §44)~~ — **LOCKED
       2026-05-20 (twelfth session).** All three knobs (weights 25/30/45,
       delta windows ±8/±14/±4500, tier thresholds 90/75/60) reviewed and

@@ -2078,6 +2078,70 @@ TEP only fires when pos === 'TE' so QB/RB/WR are unaffected by that preset.`,
           related: ['compare-last-n-aggregate']
         }
       ]
+    },
+
+    // ── 16. MOCK DRAFT ────────────────────────────────────────────────────
+    {
+      id: 'mock-draft',
+      name: 'Mock Draft',
+      entries: [
+        {
+          id: 'mock-draft-personality-scoring',
+          label: '51. Mock Draft AI personality scoring (personalityDraftScore → aiPick)',
+          location: 'mock-draft.html (PERSONALITIES, personalityDraftScore, aiPick, computeTierScarcity, buildPlayerUniverse, assignOpponents — all inside the MockDraft IIFE)',
+          provenance: { kind: 'hand-tuned', detail: 'Five archetypes selected from the LLM Handoff Spec\'s nine generic personalities (C:\\Users\\deons\\Downloads\\# Fantasy Draft Personality, Prediction & Availability System — Full….md). Weights are first-pass calibration — expected to need analyst tuning. See whyThisNumber.' },
+          inputs: 'player (candidate record { name, pos, team, adp, value, tier, sleeperId, age } from buildPlayerUniverse), ctx (currentPick, universe, takenIds, myRoster, positionNeedTable), personality (one of 5 archetype objects).',
+          math: `// Personalities (weights are adp / posNeed / value / scarcity / favor)
+PERSONALITIES = {
+  adp_value:  { weights: { adp:0.55, posNeed:0.20, value:0.15, scarcity:0.10, favor:0    }, reachTolerance: 3,  candidatePoolWindow: [12, 36] },
+  bpa:        { weights: { adp:0.30, posNeed:0.05, value:0.50, scarcity:0.15, favor:0    }, reachTolerance: 8,  candidatePoolWindow: [24, 48] },
+  my_guys:    { weights: { adp:0.10, posNeed:0.25, value:0.30, scarcity:0.10, favor:0.25 }, reachTolerance: 18, candidatePoolWindow: [36, 60] },
+  need_based: { weights: { adp:0.20, posNeed:0.55, value:0.15, scarcity:0.10, favor:0    }, reachTolerance: 6,  candidatePoolWindow: [18, 42] },
+  scarcity:   { weights: { adp:0.25, posNeed:0.15, value:0.20, scarcity:0.40, favor:0    }, reachTolerance: 12, candidatePoolWindow: [24, 48] },
+};
+
+// PersonalityDraftScore composite (per-candidate)
+adpScore      = clamp((currentPick - player.adp) / 12, -2, 2);
+posNeedScore  = clamp((target - currentRosterCount) / 3, -1, 1);   // target from positionNeedTable(format)
+valScore      = player.value / 1000;                               // FP_VALUES trade value, format-aware
+scarcityScore = (sameTierAtPos <= 2) ? 1.0 : (sameTierAtPos <= 4) ? 0.5 : 0;
+favorScore    = personality.favoritePlayers.includes(player.name) ? 1.5 : 0;
+
+composite = w.adp * adpScore + w.posNeed * posNeedScore + w.value * valScore
+          + w.scarcity * scarcityScore + w.favor * favorScore;
+
+// Hard reach penalty
+if ((currentPick - player.adp) < -reachTolerance) {
+  composite -= Math.abs((currentPick - player.adp) + reachTolerance) * 0.05;
+}
+// Anti-clumping
+if (myRoster.slice(-3).filter(p => p.pos === player.pos).length >= 2) composite -= 0.3;
+// Jitter
+composite += (Math.random() - 0.5) * 0.15;
+
+// Pick selection: candidate pool + softmax sample of top 8
+candidates = universe.filter(available AND adp within personality's window)
+           ∪ universe.filter(PICK_AVAILABILITY[sid].matrix[round-1][slot-1] >= 30);
+top8 = candidates.scoreAll().sort(desc).slice(0, 8);
+probs = softmax(top8.scores, temperature=0.5);
+selected = weightedRandomSample(top8, probs);`,
+          output: 'A single player object (the selected pick). Recorded into state.picks with the seat\'s personality key for attribution. Format-aware: SF uses valueSf, 1QB uses value1qb.',
+          example: `Pick 5, slot 5 in 12-team SF, personality "bpa", currentRoster=[]:
+  Bijan Robinson is the highest-value player remaining.
+    adpScore = clamp((5 - 1.0) / 12, -2, 2) = 0.33  (player has FALLEN 4 picks past ADP)
+    posNeedScore = clamp((4 - 0) / 3, -1, 1) = 1.0  (RB need = 4, current = 0)
+    valScore = 945 / 1000 = 0.945
+    scarcityScore = 1.0  (RB1 tier has <=2 remaining)
+    favorScore = 0  (BPA doesn't use favorites)
+    composite = 0.30*0.33 + 0.05*1.0 + 0.50*0.945 + 0.15*1.0 + 0
+              = 0.099 + 0.05 + 0.4725 + 0.15 = 0.77
+    + jitter (±0.075)  →  ~0.77 final score
+  Bijan ends up at top of the top-8 with high probability — BPA picks him.`,
+          whyThisNumber: '5 archetypes (not all 9 from the spec): MVP scope. Diversifier + Concentrator need multi-draft exposure history we don\'t have; Rookie Upside / Win-Now / Stack are nuances the 5 already span. Hand-tuned weights (not ML-learned): spec\'s ML companion requires a backend pipeline; deferred. Monte Carlo replaced by PICK_AVAILABILITY matrix: matrix is empirically derived from real drafts — encodes the simulation\'s answer without re-running it. Softmax temperature 0.5: moderate stochasticity (lower = more deterministic, higher = more noise) — felt right in informal testing. Reach penalty gradient 0.05/pick: a tendency, not a wall. Anti-clumping at -0.3: discourages 3-of-4 same-position runs without preventing them when scarcity overrides. Jitter ±0.075: same-personality seats diverge but personality still dominates. My Guys favorites = 8 random from top 80 FP_VALUES, +1.5 bonus: large enough to produce visible reaches without making every player a "favorite." All weights are FIRST-PASS CALIBRATION — analyst input requested via the README "Analyst feedback loop" punch list under "Mock-draft personality weights" after the user runs 10+ mocks.',
+          notes: 'PICK_AVAILABILITY matrix is currently 12-team-only; 8 / 10 / 14-team modes fall back to pure ADP-window scoring (matrix augmentation is a refinement, not load-bearing). Manager Clone (the spec\'s 10th archetype) deferred — would require real Sleeper draft history per user (same blocker as 1QB SEED_USERS). Engine console-accessible: MockDraft._aiPick(personalityKey, currentPick, picks) + MockDraft._buildUniverse() + MockDraft._assignOpponents() for tuning. Spec source files in C:\\Users\\deons\\Downloads\\ — both Full (LLM Handoff) and ML (Agent Architecture) referenced; Full is primary for client-side execution.',
+          related: ['compare-similarity', 'pick-availability-matrix']
+        }
+      ]
     }
 
   ]
