@@ -1502,7 +1502,7 @@
     //                 (current). 2-3 = side-by-side compressed cards.
     //   Table mode: 0 = empty. 1-4 = picker slots filled.
     players: [],
-    tab: 'profile',        // 'profile' | 'adp' | 'heatmap' | 'value' | 'career' | 'trades'
+    tab: 'profile',        // 'profile' | 'adp' | 'heatmap' | 'value' | 'career' | 'articles' | 'trades'
     games: 4,              // last-N games window for Table mode: 4 | 8 | 16
     searchTimer: null,
     // Legacy alias — readers of PC.player still work via this getter.
@@ -1512,7 +1512,7 @@
       else   this.players = [];
     },
   };
-  const PC_TABS = ['profile', 'adp', 'heatmap', 'value', 'career', 'trades'];
+  const PC_TABS = ['profile', 'adp', 'heatmap', 'value', 'career', 'articles', 'trades'];
   const PC_GAMES = [4, 8, 16];
   // Scoring presets fed to SLEEPER.adjustStatsForLeague(stats, scoring) so the
   // FPTS row + per-game averages respond to the Scoring toggle in the page
@@ -1624,6 +1624,73 @@
       return map;
     });
     return window.PC_ADP_BY_YEAR_LOADING;
+  }
+
+  // Rank-history loader — lazy fetches data/rank-history.json once and
+  // caches at window.PC_RANK_HISTORY. Daily snapshots since 2026-05-11
+  // (written by sync-fp.py). Used by the Value tab's rank-trend chart.
+  function _pcEnsureRankHistory() {
+    if (window.PC_RANK_HISTORY) return Promise.resolve(window.PC_RANK_HISTORY);
+    if (window.PC_RANK_HISTORY_LOADING) return window.PC_RANK_HISTORY_LOADING;
+    const v = '?v=' + (window.__DATA_VERSION || Date.now());
+    window.PC_RANK_HISTORY_LOADING = fetch('data/rank-history.json' + v)
+      .then(r => r.ok ? r.json() : null)
+      .catch(() => null)
+      .then(j => {
+        if (j) window.PC_RANK_HISTORY = j;
+        return j;
+      });
+    return window.PC_RANK_HISTORY_LOADING;
+  }
+
+  // Build a time series [{date, rank}, ...] for the given player by walking
+  // every daily snapshot in rank-history.json. Returns [] when the player
+  // doesn't appear in any snapshot (rookies / deep dynasty stashes).
+  function _pcRankHistorySeries(name) {
+    const rh = window.PC_RANK_HISTORY;
+    if (!rh || !rh.snapshots) return [];
+    const out = [];
+    const dates = Object.keys(rh.snapshots).sort();
+    dates.forEach(d => {
+      const snap = rh.snapshots[d];
+      if (!snap) return;
+      const r = snap[name];
+      if (r != null && isFinite(r)) out.push({ date: d, rank: Number(r) });
+    });
+    return out;
+  }
+
+  // Renders the rank-history chart under the FP dynasty value chart in the
+  // Value tab. Uses _pcChart with yInvert: true so lower-is-better ranks
+  // render at the TOP of the chart (intuitive: rank-1 at top, rank-200 at
+  // bottom). Returns empty string when the player has no rank history.
+  function _pcRankHistorySection(name, fp) {
+    const series = _pcRankHistorySeries(name);
+    if (!series.length) {
+      return `<div class="pc-chart-empty" style="margin-top:12px">No daily rank history yet for this player.</div>`;
+    }
+    const points = series.map(p => ({
+      value: p.rank,
+      label: `${p.date}: rank ${p.rank}`,
+    }));
+    const xLabels = series.map(p => {
+      if (!p.date) return '';
+      const d = new Date(p.date);
+      if (isNaN(d.getTime())) return p.date;
+      return d.toLocaleString('en-US', { month: 'short', day: 'numeric' });
+    });
+    const rankFmt = v => '#' + Math.round(v);
+    return `<div class="pc-chart" style="margin-top:12px">
+      ${_pcChart(points, {
+        color: '#5b9bd5',
+        gradientId: 'pc-grad-rank-' + Math.random().toString(36).slice(2, 8),
+        xLabels: xLabels,
+        valueFmt: rankFmt,
+        pointLabelFmt: rankFmt,
+        legend: 'Consensus dynasty rank (lower = better)',
+        yInvert: true,
+      })}
+    </div>`;
   }
 
   // For a given player name + year, find their startup ADP rank for the
@@ -1990,6 +2057,11 @@
     if (!window.PC_ADP_BY_YEAR) {
       _pcEnsureYearAdp().then(() => { if (PC.player === name) _pcRender(); });
     }
+    // Lazy-load daily rank-history (single small JSON). Used by the Value
+    // tab's consensus-rank trend chart. Re-render when ready.
+    if (!window.PC_RANK_HISTORY) {
+      _pcEnsureRankHistory().then(() => { if (PC.player === name) _pcRender(); });
+    }
 
     const fp = data.fp;
     const sp = data.sleeper || {};
@@ -2055,6 +2127,8 @@
             ${_pcTile('Pos Rank', fp.posRank || '—')}
             ${_pcTile('FP Value ' + (PC.fmt === '1qb' ? '1QB' : 'SF'), value)}
             ${_pcTile(curYear + ' PPG', ppg)}
+            ${_pcTile('Auction $ ' + (PC.fmt === '1qb' ? '1QB' : 'SF'),
+                      (PC.fmt === '1qb' ? (fp.auction || fp.auctionSf) : fp.auctionSf) || '—')}
           </div>
           <div class="pc-hero-secondary">
             <a href="#" onclick="event.preventDefault();_pcSwitchPlayer();">← Pick a different player</a>
@@ -2087,6 +2161,11 @@
       if (el && data && data.sid) {
         try { window.Heatmap.render(el, data.sid); } catch (e) {}
       }
+    }
+    // Mount the FantasyPoints articles list via the shared PlayerArticles
+    // module (assets/js/player-articles.js).
+    if (PC.tab === 'articles') {
+      _pcRenderArticlesMount(name);
     }
   }
 
@@ -2635,8 +2714,9 @@
     return `
       <div class="pc-panel-eyebrow">FantasyPoints dynasty value — ${fmtLabel}</div>
       <div class="pc-panel-title">Trade-value trend</div>
-      <div class="pc-panel-sub">Recent dynasty trade-value movement — daily snapshots from FantasyPoints' dynasty data. PEAK / LOW / AVG / CURRENT summary below the chart.</div>
-      ${_pcFpValueSection(name, data.fp)}`;
+      <div class="pc-panel-sub">Recent dynasty trade-value movement — daily snapshots from FantasyPoints' dynasty data. PEAK / LOW / AVG / CURRENT summary below the chart. Consensus rank history below.</div>
+      ${_pcFpValueSection(name, data.fp)}
+      ${_pcRankHistorySection(name, data.fp)}`;
   }
 
   // Pick-availability heatmap — lifts window.Heatmap.render from heatmap.js.
@@ -2660,6 +2740,29 @@
       <div id="pc-hist-stats-mount">
         <div class="pc-hist-stats-loading">Loading season stats…</div>
       </div>`;
+  }
+
+  // Wires the existing PlayerArticles module (assets/js/player-articles.js,
+  // already loaded on compare.html line 65 but previously dead-weight here)
+  // into a mount div. PlayerArticles handles its own empty state (renders
+  // a "browse FantasyPoints" CTA when no articles match the player name).
+  function _pcPanelArticles(name, data) {
+    return `
+      <div class="pc-panel-eyebrow">Recent articles</div>
+      <div class="pc-panel-title">Coverage on ${_escAttr(name)}</div>
+      <div class="pc-panel-sub">Most-recent FantasyPoints articles tagged with this player — the headliner is shown inline; "See more articles" expands the next 4.</div>
+      <div id="pc-hist-articles-mount" class="pc-hist-articles-wrap"></div>`;
+  }
+
+  function _pcRenderArticlesMount(name, mountId) {
+    var id = mountId || 'pc-hist-articles-mount';
+    var el = document.getElementById(id);
+    if (!el || typeof window.PlayerArticles !== 'object' || typeof window.PlayerArticles.mount !== 'function') return;
+    // PlayerArticles is idempotent on the container — if the section already
+    // exists it just refreshes content. Clear-and-remount on each render
+    // keeps the player switch behavior clean.
+    el.innerHTML = '';
+    try { window.PlayerArticles.mount(el, name); } catch (e) { /* swallow */ }
   }
 
   // Reuses _buildTradesFromMvs() + tradeCardHtml() from player-panel.js. The
@@ -2703,12 +2806,13 @@
     if (!data) return '';
 
     const tabs = [
-      { key: 'profile', label: 'Profile' },
-      { key: 'adp',     label: 'ADP' },
-      { key: 'heatmap', label: 'Heatmap' },
-      { key: 'value',   label: 'Value' },
-      { key: 'career',  label: 'Career' },
-      { key: 'trades',  label: 'Trades' },
+      { key: 'profile',  label: 'Profile' },
+      { key: 'adp',      label: 'ADP' },
+      { key: 'heatmap',  label: 'Heatmap' },
+      { key: 'value',    label: 'Value' },
+      { key: 'career',   label: 'Career' },
+      { key: 'articles', label: 'Articles' },
+      { key: 'trades',   label: 'Trades' },
     ];
     const tabBar = tabs.map(t => `
       <button class="pc-tab-btn${PC.tab === t.key ? ' is-active' : ''}"
@@ -2718,13 +2822,14 @@
 
     let panel = '';
     switch (PC.tab) {
-      case 'adp':     panel = _pcPanelAdp(name, data);     break;
-      case 'heatmap': panel = _pcPanelHeatmap(name, data); break;
-      case 'value':   panel = _pcPanelValue(name, data);   break;
-      case 'career':  panel = _pcPanelCareer(name, data);  break;
-      case 'trades':  panel = _pcPanelTrades(name, data);  break;
+      case 'adp':      panel = _pcPanelAdp(name, data);      break;
+      case 'heatmap':  panel = _pcPanelHeatmap(name, data);  break;
+      case 'value':    panel = _pcPanelValue(name, data);    break;
+      case 'career':   panel = _pcPanelCareer(name, data);   break;
+      case 'articles': panel = _pcPanelArticles(name, data); break;
+      case 'trades':   panel = _pcPanelTrades(name, data);   break;
       case 'profile':
-      default:        panel = _pcPanelProfile(name, data); break;
+      default:         panel = _pcPanelProfile(name, data);  break;
     }
 
     return `
@@ -3360,11 +3465,15 @@
           : `<div class="pc-hist-empty">Loading per-year ADP files…</div>`;
       }
       case 'value':
-        return _pcFpValueSection(name, fp);
+        return `${_pcFpValueSection(name, fp)}${_pcRankHistorySection(name, fp)}`;
 
       case 'heatmap':
         // Mount div with per-card index; post-render hook fires Heatmap.render
         return `<div id="pc-card-heatmap-mount-${idx}" class="pc-hist-heatmap-wrap"></div>`;
+
+      case 'articles':
+        // Per-card mount; post-render hook fires PlayerArticles.mount.
+        return `<div id="pc-card-articles-mount-${idx}" class="pc-hist-articles-wrap"></div>`;
 
       case 'career': {
         const stats = data.stats;
@@ -3532,16 +3641,38 @@
   // Phase 6a only multi-rendered Profile tab. Other tabs render the
   // first player only (placeholder) until phases 6b/6c.
   function _pcRenderProfileMulti() {
+    // Lazy-load triggers for data that the in-card panels need but the
+    // user may not have hit via single-player view first (e.g. landing
+    // directly on #players=A,B). Each loader is idempotent so re-firing
+    // when already cached is a no-op.
+    const playerKey = (PC.players[0] || '') + '|' + (PC.players[1] || '');
+    if (!window.SLEEPER_PLAYERS_DB) {
+      _pcEnsureSleeperDb().then(() => {
+        if ((PC.players[0] || '') + '|' + (PC.players[1] || '') === playerKey) _pcRender();
+      });
+    }
+    if (!window.PC_ADP_BY_YEAR) {
+      _pcEnsureYearAdp().then(() => {
+        if ((PC.players[0] || '') + '|' + (PC.players[1] || '') === playerKey) _pcRender();
+      });
+    }
+    if (!window.PC_RANK_HISTORY) {
+      _pcEnsureRankHistory().then(() => {
+        if ((PC.players[0] || '') + '|' + (PC.players[1] || '') === playerKey) _pcRender();
+      });
+    }
+
     // Tab bar sits ABOVE the cards row. Each card includes its active-
     // tab content inline (via _pcCardTabContent). No separate .pc-
     // historical block in multi mode — the cards ARE the content.
     const tabs = [
-      { key: 'profile', label: 'Profile' },
-      { key: 'adp',     label: 'ADP' },
-      { key: 'heatmap', label: 'Heatmap' },
-      { key: 'value',   label: 'Value' },
-      { key: 'career',  label: 'Career' },
-      { key: 'trades',  label: 'Trades' },
+      { key: 'profile',  label: 'Profile' },
+      { key: 'adp',      label: 'ADP' },
+      { key: 'heatmap',  label: 'Heatmap' },
+      { key: 'value',    label: 'Value' },
+      { key: 'career',   label: 'Career' },
+      { key: 'articles', label: 'Articles' },
+      { key: 'trades',   label: 'Trades' },
     ];
     const tabBar = tabs.map(t => `
       <button class="pc-tab-btn${PC.tab === t.key ? ' is-active' : ''}"
@@ -3568,6 +3699,12 @@
         if (el && sid) {
           try { window.Heatmap.render(el, sid); } catch (e) {}
         }
+      });
+    }
+    // Articles tab — per-card mount via PlayerArticles module.
+    if (PC.tab === 'articles') {
+      PC.players.forEach((name, i) => {
+        _pcRenderArticlesMount(name, 'pc-card-articles-mount-' + i);
       });
     }
   }
