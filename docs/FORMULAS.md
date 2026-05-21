@@ -1696,11 +1696,28 @@ TEP only fires when `pos === 'TE'`, so QB/RB/WR are unaffected by that preset (v
 
 | Key | adp | posNeed | value | scarcity | favor | reachTolerance | candidatePoolWindow [ahead, behind] |
 |---|---|---|---|---|---|---|---|
-| `adp_value`  | 0.55 | 0.20 | 0.15 | 0.10 | 0    | 3  | [12, 36] |
-| `bpa`        | 0.30 | 0.05 | 0.50 | 0.15 | 0    | 8  | [24, 48] |
-| `my_guys`    | 0.10 | 0.25 | 0.30 | 0.10 | 0.25 | 18 | [36, 60] |
-| `need_based` | 0.20 | 0.55 | 0.15 | 0.10 | 0    | 6  | [18, 42] |
-| `scarcity`   | 0.25 | 0.15 | 0.20 | 0.40 | 0    | 12 | [24, 48] |
+| `adp_value`  | 0.65 | 0.20 | 0.15 | 0.10 | 0    | 3  | [12, 36] |
+| `bpa`        | 0.40 | 0.05 | 0.50 | 0.15 | 0    | 8  | [24, 48] |
+| `my_guys`    | 0.18 | 0.25 | 0.30 | 0.10 | 0.25 | 18 | [36, 60] |
+| `need_based` | 0.30 | 0.55 | 0.15 | 0.10 | 0    | 6  | [18, 42] |
+| `scarcity`   | 0.35 | 0.15 | 0.20 | 0.40 | 0    | 12 | [24, 48] |
+
+ADP weights bumped ~+0.10 across all 5 archetypes in the 2026-05-20 first tweak — informal user testing surfaced AI seats reaching too far past consensus on cold runs. The new weights make every personality respect ADP more without flattening their identities (ADP Value still tightest, My Guys still loosest).
+
+**Scoring-aware ADP shifts (`applyScoringAdpShift`, 2026-05-20 first tweak).** The `ADP_PAYLOAD` data layer only carries `startup_sf` + `startup_1qb` branches — no per-scoring-preset variants. To approximate community consensus for TEP / 6pt TD / Half PPR, we adjust ADP at universe-build time using FP_VALUES.tier-aware buckets:
+
+| Scoring | Position | Tier | Shift |
+|---|---|---|---|
+| `tep`      | TE  | 1     | `max(1, adp - 18)` — elite TE jumps into round 1 (Brock Bowers raw ADP ~24 → ~6) |
+| `tep`      | TE  | 2     | `max(2, adp - 12)` — strong TE moves into round 1 |
+| `tep`      | TE  | 3     | `max(3, adp - 7)` — good TE moves to early round 2 |
+| `tep`      | TE  | 4-5   | `adp × 0.85` — mid-tier TEs shift modestly |
+| `td6`      | QB  | 1-2   | `max(1, adp - 6)` — elite QB jumps |
+| `td6`      | QB  | 3+    | `adp × 0.9` |
+| `half_ppr` | WR  | any   | `adp × 1.04` — slight WR demotion |
+| `half_ppr` | RB  | any   | `adp × 0.97` — slight RB boost |
+
+Raw ADP preserved on the player record as `rawAdp` for debugging; `player.adp` is what the engine sees + scores.
 
 **PersonalityDraftScore composite (per-candidate):**
 

@@ -1,5 +1,5 @@
 {
-  "version": "2026-05-20T23:13:36.705756+00:00",
+  "version": "2026-05-21T02:04:20.075029+00:00",
   "players": {
     "Bijan Robinson": {
       "rank": 1,
@@ -5206,7 +5206,7 @@
       "posRank": "TE164",
       "pos": "TE",
       "team": "LAC",
-      "age": null,
+      "age": 23.1,
       "ppg": null,
       "ppgPrior": null,
       "injury": null,
@@ -8261,7 +8261,7 @@
       "posRank": "WR239",
       "pos": "WR",
       "team": "LAC",
-      "age": null,
+      "age": 23.7,
       "ppg": null,
       "ppgPrior": null,
       "injury": null,

@@ -724,7 +724,7 @@
         key: 'adp_value',
         name: 'ADP Value',
         blurb: "Strict to ADP. Won't reach more than ~3 picks past consensus.",
-        weights: { adp: 0.55, posNeed: 0.20, value: 0.15, scarcity: 0.10, favor: 0 },
+        weights: { adp: 0.65, posNeed: 0.20, value: 0.15, scarcity: 0.10, favor: 0 },
         reachTolerance: 3,
         candidatePoolWindow: [12, 36],  // [aheadOfPick, behindPick]
       },
@@ -732,7 +732,7 @@
         key: 'bpa',
         name: 'Best Player Available',
         blurb: 'Picks the highest-value player regardless of roster need.',
-        weights: { adp: 0.30, posNeed: 0.05, value: 0.50, scarcity: 0.15, favor: 0 },
+        weights: { adp: 0.40, posNeed: 0.05, value: 0.50, scarcity: 0.15, favor: 0 },
         reachTolerance: 8,
         candidatePoolWindow: [24, 48],
       },
@@ -740,7 +740,7 @@
         key: 'my_guys',
         name: 'My Guys',
         blurb: "Reaches for players they like. Mostly ignores ADP.",
-        weights: { adp: 0.10, posNeed: 0.25, value: 0.30, scarcity: 0.10, favor: 0.25 },
+        weights: { adp: 0.18, posNeed: 0.25, value: 0.30, scarcity: 0.10, favor: 0.25 },
         reachTolerance: 18,
         candidatePoolWindow: [36, 60],
       },
@@ -748,7 +748,7 @@
         key: 'need_based',
         name: 'Need-Based',
         blurb: 'Fills roster holes aggressively. Balanced builds.',
-        weights: { adp: 0.20, posNeed: 0.55, value: 0.15, scarcity: 0.10, favor: 0 },
+        weights: { adp: 0.30, posNeed: 0.55, value: 0.15, scarcity: 0.10, favor: 0 },
         reachTolerance: 6,
         candidatePoolWindow: [18, 42],
       },
@@ -756,11 +756,42 @@
         key: 'scarcity',
         name: 'Positional Scarcity',
         blurb: 'Attacks tier cliffs. Reaches when a tier is about to break.',
-        weights: { adp: 0.25, posNeed: 0.15, value: 0.20, scarcity: 0.40, favor: 0 },
+        weights: { adp: 0.35, posNeed: 0.15, value: 0.20, scarcity: 0.40, favor: 0 },
         reachTolerance: 12,
         candidatePoolWindow: [24, 48],
       },
     };
+
+    // Scoring-aware ADP shift: ADP_PAYLOAD only carries SF + 1QB branches
+    // (no TEP / 6pt-TD / Half-PPR variants), so we approximate the
+    // community's known scoring-preset behavior by adjusting ADP at the
+    // universe-build step. Applied to FP_VALUES.tier-aware buckets so
+    // top TEs make a bigger jump in TEP than mid-tier TEs.
+    //
+    // Effective in TEP:    Brock Bowers (raw ADP ~24, tier 1) → ~6
+    //                      Kelce (raw ADP ~30, tier 1)       → ~12
+    //                      Tier-2 TEs                         → -12 picks
+    // Effective in 6pt TD: Top QBs                            → -6 picks
+    // Effective in Half-PPR: WRs +4% ADP (slight demotion);
+    //                       RBs -3% ADP (slight boost)
+    function applyScoringAdpShift(adp, pos, tier, scoring) {
+      if (adp == null || adp >= 999) return adp;
+      if (scoring === 'tep' && pos === 'TE') {
+        if (tier === 1) return Math.max(1, adp - 18);   // elite TE → round 1
+        if (tier === 2) return Math.max(2, adp - 12);   // strong TE → round 1
+        if (tier === 3) return Math.max(3, adp - 7);    // good TE  → early R2
+        return adp * 0.85;                              // mid-tier TEs modest
+      }
+      if (scoring === 'td6' && pos === 'QB') {
+        if (tier <= 2) return Math.max(1, adp - 6);     // elite QBs jump
+        return adp * 0.9;
+      }
+      if (scoring === 'half_ppr') {
+        if (pos === 'WR') return adp * 1.04;            // slight WR demotion
+        if (pos === 'RB') return adp * 0.97;            // slight RB boost
+      }
+      return adp;
+    }
 
     function positionNeedTable(format) {
       // Standard dynasty startup targets. K/DEF deferred to waivers.
@@ -800,13 +831,16 @@
         const pos = (r.pos || '').toUpperCase();
         if (!pos || pos === 'PICK' || pos === 'RDP') return;  // skip draft-pick assets (MVP: players only)
         const valueField = setup.format === '1qb' ? (r.value1qb != null ? r.value1qb : r.value) : (r.valueSf != null ? r.valueSf : r.value);
+        const rawAdp = adpByNorm[norm(name)] != null ? adpByNorm[norm(name)] : 999;
+        const tier = r.tier || 0;
         out.push({
           name,
           pos,
           team: r.team || '',
-          adp: adpByNorm[norm(name)] != null ? adpByNorm[norm(name)] : 999,
+          rawAdp,
+          adp: applyScoringAdpShift(rawAdp, pos, tier, setup.scoring),
           value: Number(valueField) || 0,
-          tier: r.tier || 0,
+          tier,
           sleeperId: r.sleeperId || (window.SLEEPER_IDS && window.SLEEPER_IDS[name]) || null,
           age: r.age != null ? r.age : null,
         });
