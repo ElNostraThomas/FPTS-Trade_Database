@@ -219,9 +219,19 @@
     if (!pop.hidden) { closeCalendar(); return; }   // toggle
     const fromSaved = _currentMonth ? parseInt(_currentMonth.slice(0, 4), 10) : null;
     _viewYear = fromSaved || _currentSeason();
+    // Compensate for `body { zoom: N }` (brand.css:323 — 1.25 desktop, 1.0
+    // mobile). getBoundingClientRect returns post-zoom visual coords, but the
+    // popup is mounted on <body> and inherits body's zoom — assigning the
+    // visual coord to style.left would re-scale by zoom, shifting the popup
+    // off-screen. Dividing by zoom cancels the inherited re-scale so the
+    // popup lands directly under the trigger at every zoom step.
+    const bodyZoom = (function () {
+      const v = parseFloat(getComputedStyle(document.body).zoom);
+      return (isFinite(v) && v > 0) ? v : 1;
+    })();
     const rect = triggerEl.getBoundingClientRect();
-    pop.style.left = (rect.left + window.scrollX) + 'px';
-    pop.style.top  = (rect.bottom + window.scrollY + 4) + 'px';
+    pop.style.left = ((rect.left + window.scrollX) / bodyZoom) + 'px';
+    pop.style.top  = ((rect.bottom + window.scrollY + 4) / bodyZoom) + 'px';
     pop.hidden = false;
     _renderGrid();
     ensureYearLoaded(_viewYear).then(() => _renderGrid());
