@@ -35,7 +35,10 @@ sync-stats.config.json
 *-sample.json
 
 # Project-local data — never push to live site
-tiers.csv
+# Root-level tiers.csv only (legacy stray exports). The canonical
+# committed tier source lives at data/source/tiers/tiers.csv and IS
+# tracked (see data/source/tiers/README.md for the workflow).
+/tiers.csv
 
 # OS / IDE noise
 .DS_Store
