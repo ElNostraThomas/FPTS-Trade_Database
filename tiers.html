@@ -437,6 +437,7 @@
         <button class="fpts-xpage-btn" onclick="event.stopPropagation();_fptsXpageTiersToDb()" title="Open the Trade Database">Open in Database ↗</button>
         <button class="fpts-xpage-btn" onclick="event.stopPropagation();_fptsXpageTiersToCalc()" title="Open the Trade Calculator">Open in Calculator ↗</button>
         <button class="fpts-xpage-btn" onclick="event.stopPropagation();_fptsXpageTiersToAdp()" title="Open the ADP tool">Open in ADP ↗</button>
+        <button class="fpts-xpage-btn" onclick="event.stopPropagation();_fptsDownloadTiersCsv()" title="Download the full tier sheet as CSV — all players, all columns, matches the Google Sheet layout">Download CSV ↓</button>
       </div>
     </div>
     <div class="page-stat" id="tiers-stat-count">— players · — tiers</div>
@@ -2682,6 +2683,65 @@ function _fptsXpageTiersToAdp() {
 function _fptsTiersOpenPlayer(name) {
   if (!name || name.toLowerCase().includes('rookie pick')) return;
   _fptsWriteHandoff({ source: 'tiers', primaryPlayer: name }, 'index.html');
+}
+
+// Download the FULL tier list as CSV (all 236-ish players, all 17 columns).
+// Output column layout matches the FPTS Google Sheet so the downloaded CSV
+// can be re-imported into the Sheet OR dropped directly into
+// data/source/tiers/tiers.csv as the deploy source (sync-tiers.py reads
+// it via the same HEADER_ALIASES map). Doubles as a recovery path if the
+// Sheet ever gets corrupted/overwritten.
+//
+// Includes any active admin scratchpad overrides (window.AdminTiers /
+// ?admin=1) because the overrides are merged into TIER_PLAYERS at render
+// time and reflect the user's intent. Regular visitors get the canonical
+// Sheet-sourced data.
+function _fptsDownloadTiersCsv() {
+  var cols = [
+    { header: 'Tier',              key: 'tier' },
+    { header: 'Player',            key: 'name' },
+    { header: 'Age',               key: 'age' },
+    { header: 'Position',          key: 'pos' },
+    { header: 'Pos Rank',          key: 'posRank' },
+    { header: 'Team',              key: 'team' },
+    { header: '2026 ADP',          key: 'adp2026' },
+    { header: 'Prior Month ADP',   key: 'adpPrevious' },
+    { header: '2025 ADP',          key: 'adp2025' },
+    { header: 'Auction Value',     key: 'auction' },
+    { header: '2025 PPG',          key: 'ppg2025' },
+    { header: '2024 PPG',          key: 'ppg2024' },
+    { header: 'Trending',          key: 'trending' },
+    { header: 'Buy/Sell/Hold',     key: 'buySell' },
+    { header: 'Priority Level',    key: 'priority' },
+    { header: 'Contender/Rebuild', key: 'contender' },
+    { header: 'Player Notes',      key: 'notes' },
+  ];
+  function esc(v) {
+    var s = (v == null) ? '' : String(v);
+    if (/[",\n\r]/.test(s)) return '"' + s.replace(/"/g, '""') + '"';
+    return s;
+  }
+  var lines = [cols.map(function (c) { return esc(c.header); }).join(',')];
+  (window.TIER_PLAYERS || []).forEach(function (p) {
+    if (!p || !p.name) return;
+    lines.push(cols.map(function (c) { return esc(p[c.key]); }).join(','));
+  });
+  var csv = lines.join('\r\n') + '\r\n';
+  var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  var url = URL.createObjectURL(blob);
+  var d = new Date();
+  var dateStr = d.getFullYear() + '-' +
+                String(d.getMonth() + 1).padStart(2, '0') + '-' +
+                String(d.getDate()).padStart(2, '0');
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = 'fpts-tiers-' + dateStr + '.csv';
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(function () {
+    URL.revokeObjectURL(url);
+    if (a.parentNode) a.parentNode.removeChild(a);
+  }, 100);
 }
 
 // ════════════════════════════════════════════════════════════════════════
