@@ -461,10 +461,42 @@
     .md-bpa-card .card-lname { font-size: 10px; }
     .md-bpa-card .card-fname { font-size: 8px; }
 
-    /* BOARD — same downscaling as adp-tool.html mobile @media block */
+    /* Mobile scroll-lock fix
+       =====================
+       Two related issues from user testing 2026-05-20:
+       (a) board didn't scroll sideways, and
+       (b) the whole page felt locked / unscrollable.
+       Root cause for both: the .box-grid.md-board inherited desktop's
+       `min-width: 0` so it shrank to the wrapper width, hiding the
+       overflow. Worse, when .md-board-and-rail switches to flex column
+       on mobile, .md-board-section + .md-board-wrap as flex items would
+       balloon to the grid's intrinsic width (~1023px) without explicit
+       min-width: 0, which horizontally overflowed the page and made iOS
+       Safari's nested-scroll heuristics give up.
+       Fix chain:
+         - .box-grid.md-board { min-width: max-content }  (board IS wide)
+         - .md-board-wrap     { min-width: 0 }            (wrapper bounded)
+         - .md-board-section  { min-width: 0 }            (column bounded)
+         - .md-board-and-rail { min-width: 0 }            (parent bounded)
+         - overscroll-behavior on the scrollable wrappers stops touch
+           rubber-band from locking the parent scroll. */
+    .md-board-and-rail { min-width: 0; }
+    .md-board-section  { min-width: 0; }
+    .md-board-wrap {
+      min-width: 0;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior-x: contain;
+    }
+    .md-bpa-list { overscroll-behavior-x: contain; }
+
+    /* BOARD — same downscaling as adp-tool.html mobile @media block.
+       min-width: max-content forces the grid to its intrinsic width
+       (~1023px for a 12-team board: 30 + 12×80 + 11×3 gaps) so .md-board-
+       wrap sees the overflow and provides horizontal scroll. */
     .box-grid.md-board {
       grid-template-columns: 30px repeat(var(--md-team-count, 12), 80px) !important;
       gap: 3px;
+      min-width: max-content;
     }
     .box-card {
       height: 72px; padding: 4px 6px;
