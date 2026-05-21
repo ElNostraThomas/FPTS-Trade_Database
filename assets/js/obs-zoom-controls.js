@@ -1,32 +1,44 @@
 /* ════════════════════════════════════════════════════════════════════════
-   OBS ZOOM CONTROLS — shared floating widget for OBS Browser Source
+   ZOOM CONTROLS — shared floating widget for OBS + mobile
    ════════════════════════════════════════════════════════════════════════
 
-   OBS Browser Source's Interactive mode doesn't forward Ctrl+wheel or
-   Ctrl+plus/minus to the iframed page — streamers have no in-band way to
-   zoom the site. This widget renders a tiny top-right pill with
-   [ − ]  zoom%  [ + ]  ⟲  so the streamer can step body { zoom } up/down
-   or reset to the adaptive default in brand.css.
+   In-page [ − ]  zoom%  [ + ]  ⟲  pill that steps body { zoom } through
+   a fixed ladder (1.0 / 1.25 / 1.5 / 1.75 / 2.0) or resets to brand.css's
+   @media adaptive default.
 
-   Hard guarantee: only renders when iframed (window.self !== window.top).
-   Direct browser visitors see nothing, behavior unchanged.
+   Shown in two scenarios where keyboard/wheel zoom is unavailable:
+     1. OBS Browser Source (iframed) — Interactive mode doesn't forward
+        Ctrl+wheel or Ctrl+plus/minus through the embed.
+     2. Mobile direct browser (≤768px viewport) — additive to native
+        pinch-zoom; gives touch users an explicit button alternative.
+
+   Direct-browser desktop visitors (>768px, not iframed) see nothing —
+   their existing Ctrl+wheel zoom + the brand.css adaptive ladder are
+   enough. The file name retains "obs-zoom-controls" for git-history
+   continuity (commit 5cd5e7c shipped it OBS-only; mobile was added
+   subsequently).
 
    Mounted on document.documentElement (NOT document.body) so the widget
    itself doesn't visually scale when body { zoom } changes. CSS vars
    (--red, --white, etc.) still resolve because they're declared on :root
    (which IS the html element).
 
-   Zoom ladder: 1.0 / 1.25 / 1.5 / 1.75 / 2.0. Override persists in
-   localStorage('fpts-obs-zoom'); reset clears it and restores brand.css's
-   @media adaptive default.
+   Override persists in localStorage('fpts-obs-zoom'); reset clears the
+   key + removes the inline body.style.zoom, restoring the adaptive
+   cascade.
    ════════════════════════════════════════════════════════════════════════ */
 (function () {
-  // ── IFRAME-ONLY GUARD ─────────────────────────────────────────────────
-  // Same gate as iframe-scroll-fix.js / back-to-top.js. Cross-origin
-  // parents throw SecurityError on window.top access — treat as "embedded"
-  // and fall through.
+  // ── VISIBILITY GUARD ──────────────────────────────────────────────────
+  // Show in two scenarios where keyboard/wheel zoom is unavailable:
+  //   1. OBS Browser Source (iframed) — Ctrl+wheel doesn't forward through.
+  //   2. Mobile direct browser (≤768px viewport) — gives touch users an
+  //      explicit button alternative to native pinch-zoom (which still
+  //      works; this is additive, not a replacement).
+  // Direct-browser desktop visitors >768px still see nothing — their
+  // existing Ctrl+wheel zoom + the brand.css adaptive ladder are enough.
+  var isMobile = !!(window.matchMedia && window.matchMedia('(max-width: 768px)').matches);
   try {
-    if (window.self === window.top) return;
+    if (window.self === window.top && !isMobile) return;
   } catch (_e) {
     // Cross-origin parent — we ARE embedded. Proceed.
   }
