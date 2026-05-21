@@ -1,44 +1,46 @@
 /* ════════════════════════════════════════════════════════════════════════
-   ZOOM CONTROLS — shared floating widget for OBS + mobile
+   OBS ZOOM CONTROLS — shared floating widget for OBS Browser Source
    ════════════════════════════════════════════════════════════════════════
 
-   In-page [ − ]  zoom%  [ + ]  ⟲  pill that steps body { zoom } through
-   a fixed ladder (1.0 / 1.25 / 1.5 / 1.75 / 2.0) or resets to brand.css's
-   @media adaptive default.
+   OBS Browser Source's Interactive mode doesn't forward Ctrl+wheel or
+   Ctrl+plus/minus to the iframed page — streamers have no in-band way to
+   zoom the site. This widget renders a tiny top-right pill with
+   [ − ]  zoom%  [ + ]  ⟲  so the streamer can step body { zoom } up/down
+   or reset to the adaptive default in brand.css.
 
-   Shown in two scenarios where keyboard/wheel zoom is unavailable:
-     1. OBS Browser Source (iframed) — Interactive mode doesn't forward
-        Ctrl+wheel or Ctrl+plus/minus through the embed.
-     2. Mobile direct browser (≤768px viewport) — additive to native
-        pinch-zoom; gives touch users an explicit button alternative.
+   Hard guarantee: only renders when iframed (window.self !== window.top).
+   Direct browser visitors (desktop AND mobile) see nothing.
 
-   Direct-browser desktop visitors (>768px, not iframed) see nothing —
-   their existing Ctrl+wheel zoom + the brand.css adaptive ladder are
-   enough. The file name retains "obs-zoom-controls" for git-history
-   continuity (commit 5cd5e7c shipped it OBS-only; mobile was added
-   subsequently).
+   History: a mobile-direct-browser branch was added in commit abf4d72
+   then reverted in commit (this one) after a mobile user reported the
+   widget broke native pinch-zoom + scroll. CSS `body { zoom: N }` is a
+   non-standard property and composes poorly with mobile browsers' native
+   pinch + smooth-scroll machinery — the moment we set inline body zoom
+   from JS, iOS Safari / mobile Chrome stop recognizing pinch gestures
+   until full reload. Native pinch-zoom works fine on mobile (viewport
+   meta allows it — no user-scalable=no restriction), so the widget is
+   a net regression there. Reverted to OBS-only.
 
    Mounted on document.documentElement (NOT document.body) so the widget
    itself doesn't visually scale when body { zoom } changes. CSS vars
    (--red, --white, etc.) still resolve because they're declared on :root
    (which IS the html element).
 
-   Override persists in localStorage('fpts-obs-zoom'); reset clears the
-   key + removes the inline body.style.zoom, restoring the adaptive
-   cascade.
+   Zoom ladder: 1.0 / 1.25 / 1.5 / 1.75 / 2.0. Override persists in
+   localStorage('fpts-obs-zoom'); reset clears it and restores brand.css's
+   @media adaptive default.
    ════════════════════════════════════════════════════════════════════════ */
 (function () {
-  // ── VISIBILITY GUARD ──────────────────────────────────────────────────
-  // Show in two scenarios where keyboard/wheel zoom is unavailable:
-  //   1. OBS Browser Source (iframed) — Ctrl+wheel doesn't forward through.
-  //   2. Mobile direct browser (≤768px viewport) — gives touch users an
-  //      explicit button alternative to native pinch-zoom (which still
-  //      works; this is additive, not a replacement).
-  // Direct-browser desktop visitors >768px still see nothing — their
-  // existing Ctrl+wheel zoom + the brand.css adaptive ladder are enough.
-  var isMobile = !!(window.matchMedia && window.matchMedia('(max-width: 768px)').matches);
+  // ── IFRAME-ONLY GUARD ─────────────────────────────────────────────────
+  // OBS Browser Source = iframed context. Direct browser visitors (desktop
+  // AND mobile) bail. Mobile was previously included (abf4d72) but the
+  // widget broke native pinch-zoom + scroll on mobile browsers — see the
+  // doc comment above for the full history. Native pinch-zoom is the
+  // right mechanism on mobile.
+  // Cross-origin parents throw SecurityError on window.top access — treat
+  // as "embedded" and fall through (same pattern as iframe-scroll-fix.js).
   try {
-    if (window.self === window.top && !isMobile) return;
+    if (window.self === window.top) return;
   } catch (_e) {
     // Cross-origin parent — we ARE embedded. Proceed.
   }
