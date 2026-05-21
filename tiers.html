@@ -2722,7 +2722,12 @@ function _fptsDownloadTiersCsv() {
     return s;
   }
   var lines = [cols.map(function (c) { return esc(c.header); }).join(',')];
-  (window.TIER_PLAYERS || []).forEach(function (p) {
+  // Bare TIER_PLAYERS, not window.TIER_PLAYERS — it's declared `const` at
+  // script top-level, which does NOT create a window property (only `var`
+  // and bare assignments do that). The download function lives inside the
+  // same <script> block, so the bare identifier resolves correctly.
+  var src = (typeof TIER_PLAYERS !== 'undefined') ? TIER_PLAYERS : [];
+  src.forEach(function (p) {
     if (!p || !p.name) return;
     lines.push(cols.map(function (c) { return esc(p[c.key]); }).join(','));
   });
