@@ -11,6 +11,8 @@
 <script src="assets/js/iframe-scroll-fix.js?v=1782100000"></script>
 <!-- OBS zoom controls — only renders when embedded; top-right pill steps body { zoom }. -->
 <script src="assets/js/obs-zoom-controls.js?v=1783500000"></script>
+<!-- Admin-mode tier+B/S/H scratchpad — only renders when ?admin=1 is set. -->
+<script src="assets/js/admin-tiers.js?v=1783700000"></script>
 <!-- Back-to-top floating button — appears when scrolled, click for smooth-scroll to top. -->
 <script src="assets/js/back-to-top.js?v=1782200000" defer></script>
 <!-- Custom <select> wrapper — OBS/CEF compat (native popups don't render in iframes). -->
@@ -350,7 +352,7 @@
 <script src="assets/js/player-panel.js?v=1781200000" defer></script>
 <!-- Data bootstrap — fetches every data/*.json, populates window globals,
      fires 'fpts:data-ready' when done. First live page on the scaffold. -->
-<script src="assets/js/data-bootstrap.js?v=1783600000"></script>
+<script src="assets/js/data-bootstrap.js?v=1783700000"></script>
 <!-- Trade engine + scoring overlay + projection math. Powers the player drawer's
      Stats tab fantasyPts column on every page (adjustStatsForLeague applies the
      PPR / TEP / PPC / pass-TD overlay to data-suite stat lines). -->
@@ -2746,13 +2748,25 @@ function applyFilters(players) {
 
 function renderRowHtml(p) {
   const tierBadge = '<span class="tier-badge ' + tierBadgeClass(p.tier) + '">' + p.tier + '</span>';
+  // Admin-mode inline edit pencil (assets/js/admin-tiers.js). Returns ''
+  // when admin mode is off, so production rows are byte-identical.
+  const adminEdit = (window.AdminTiers && window.AdminTiers.editButtonHtml)
+    ? window.AdminTiers.editButtonHtml(p.name)
+    : '';
+  // Override indicator — small dot next to the row when this player's
+  // tier/buySell/trending was edited via the admin scratchpad. Only renders
+  // when an override exists for this player (TIERS_DATA[name]._override).
+  const t = (window.TIERS_DATA || {})[p.name];
+  const overrideDot = (t && t._override)
+    ? '<span class="tier-override-dot" title="Local override (this device only)" style="display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--red);margin-left:4px;vertical-align:middle"></span>'
+    : '';
   const posBadge = p.pos && p.pos !== 'N/A' ? '<span class="pos-badge ' + pc(p.pos) + '">' + p.pos + '</span>' : '';
-  const nameHtml = isPick(p) 
+  const nameHtml = isPick(p)
     ? '<span class="tier-player-name is-pick">' + p.name + '</span>'
     : '<span class="tier-player-name" onclick="_fptsTiersOpenPlayer(\''+p.name.replace(/'/g, "\\'")+'\')">' + p.name + '</span>';
-  
+
   return '<tr>'
-    + '<td class="col-tier">' + tierBadge + '</td>'
+    + '<td class="col-tier">' + tierBadge + adminEdit + overrideDot + '</td>'
     + '<td class="col-name">' + nameHtml + '</td>'
     + '<td class="col-num">' + fmtNumeric(p.age) + '</td>'
     + '<td>' + posBadge + '</td>'
@@ -3168,6 +3182,26 @@ document.addEventListener('fpts:data-ready', () => {
   applySleeperOverlay();
   renderTiers();
   applySleeperApiAgeFallback().then(filled => { if (filled) renderTiers(); });
+});
+
+// Admin-mode tier override saves (assets/js/admin-tiers.js) mutate
+// window.TIERS_DATA in place + fire this event. Re-overlay any matching
+// rows in TIER_PLAYERS so the tiers table reflects the edit immediately,
+// then repaint. No-op for visitors (event only fires when admin mode is
+// active AND the admin actually saves an override).
+document.addEventListener('fpts:tiers-overrides-changed', () => {
+  if (!window.TIERS_DATA) return;
+  TIER_PLAYERS.forEach(p => {
+    const t = window.TIERS_DATA[p.name];
+    if (!t) return;
+    if (t.tier      != null) p.tier      = t.tier;
+    if (t.buySell   != null) p.buySell   = t.buySell;
+    if (t.trending  != null) p.trending  = t.trending;
+    if (t.priority  != null) p.priority  = t.priority;
+    if (t.contender != null) p.contender = t.contender;
+    if (t.notes     != null) p.notes     = t.notes;
+  });
+  renderTiers();
 });
 </script>
 

@@ -363,6 +363,28 @@
     // TIER_PLAYERS array but both originate from the same Sheet sync.
     if (tiers && tiers.players) {
       Object.assign(global.TIERS_DATA, tiers.players);
+      // Merge admin localStorage overrides ON TOP of the Sheet data. The
+      // override layer is device-local (per-browser scratchpad before the
+      // admin publishes back to the Google Sheet); regular visitors and
+      // other devices see no change. Keys: 'fpts-tier-overrides' (JSON
+      // map of name -> partial record). The admin UI in
+      // assets/js/admin-tiers.js writes this key.
+      try {
+        var raw = localStorage.getItem('fpts-tier-overrides');
+        if (raw) {
+          var overrides = JSON.parse(raw) || {};
+          Object.keys(overrides).forEach(function (n) {
+            var patch = overrides[n] || {};
+            var base = global.TIERS_DATA[n] || {
+              tier: '', trending: '', buySell: '', priority: '', contender: '', notes: '',
+            };
+            // Spread the patch on top, then re-store. Tracks _override=true
+            // so the admin UI can render an indicator without re-checking
+            // the override map per row.
+            global.TIERS_DATA[n] = Object.assign({}, base, patch, { _override: true });
+          });
+        }
+      } catch (e) { /* localStorage disabled / JSON broken — skip silently */ }
       global.TIERS_BY_NORM = {};
       Object.keys(global.TIERS_DATA).forEach(function (n) {
         global.TIERS_BY_NORM[normalizePlayerName(n)] = global.TIERS_DATA[n];
