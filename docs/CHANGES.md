@@ -6,6 +6,113 @@ the operator manual see [`WORKFLOW.md`](WORKFLOW.md).
 
 ---
 
+## 2026-05-21 (thirteenth session) — Mock Draft page + doctrine cleanup + AdpComparator zoom fix
+
+13 substantive commits + 2 data-sync auto-commits, picking up immediately after session 12. Three arcs: (1) shipped the **tenth deployed page** — `mock-draft.html`, an AI-personality-driven mock-draft simulator (skeleton → drafting UI → mobile → docs → three iterative calibration tweaks driven by user playtesting); (2) closed the long-tail doctrine drift from the 2026-05-20 inversion (26 surfaces still hardcoded `color: var(--white)` on bright fills); (3) fixed a calendar-popup bug on `rankings.html` that the user flagged — body-zoom was mis-positioning the popup off-screen.
+
+### Mock Draft page — `mock-draft.html`
+
+5-phase build + 4 tweaks. Slots into the top nav between Live Draft and Tiers. Setup screen (12-team / SF or 1QB / scoring preset / rounds / your slot / personality mix) → drafting UI with live board, BPA rail, player search, status bar.
+
+**Phase commits:**
+
+| Phase | Commit | Summary |
+|---|---|---|
+| 1 | `10b6871` | Skeleton + setup screen + nav linkage. New `mock-draft.html` slot in topnav of all 9 prior deployed pages + template. |
+| 2 | `bfe26e1` | AI personality engine — `PERSONALITIES` const (5 archetypes: ADP Value, BPA, My Guys, Need-Based, Positional Scarcity), `personalityDraftScore(player, ctx, personality)`, `aiPick(personality, ctx)`, `computeTierScarcity`, `buildPlayerUniverse(setup)`, `assignOpponents(setup)`. Composite scoring (weighted ADP + posNeed + value + scarcity + favor), softmax sample of top-8 (temperature 0.5), anti-clumping penalty (-0.3 for same-pos 2-of-last-3), jitter (±0.075). Position-need targets (QB/RB/WR/TE/K/DEF) per SF vs 1QB format. PICK_AVAILABILITY matrix replaces Monte Carlo simulation entirely. |
+| 3 | `4caf626` | Drafting UI — live board, BPA rail (top-10 undrafted by ADP, position-filterable), search input, status bar, on-the-clock pulsing halo on next-up cell (green when user's pick). |
+| 4 | `822b2bb` | Mobile `@media (max-width: 768px)` block — from-scratch mobile design per the mobile-first doctrine (not a desktop patch). Card mode replaces table for the board, BPA rail collapses to swipeable carousel. |
+| 5 | `d9c478b` | **Docs sync per the standing triple-sync rule** — `FORMULAS.md` §51 (full Mock Draft AI personality scoring entry: weights table, composite math, position-need table, pick-selection algorithm, PICK_AVAILABILITY rationale, 9 locked decisions), `formulas-content.js` new "Mock Draft" domain (16th) with `mock-draft-personality-scoring` entry, `legend-content.js` new 'mock-draft' page key (6 sections, 30 items), README "Analyst feedback loop" punch-list item. Cache token bumps: `legend-content.js ?v=1782900000 → ?v=1783000000` (10 consumers), `formulas-content.js ?v=1782800003 → ?v=1783000000` (1 consumer). |
+
+**Calibration tweaks (driven by user mock-draft playtesting):**
+
+| Commit | What |
+|---|---|
+| `a641e0b` | **ADP weight bump + scoring-aware ADP shifts.** All 5 archetypes get +0.10 to their `adp` weight (was over-emphasizing value/scarcity at the expense of consensus). New `applyScoringAdpShift(p, scoring, format)` adjusts each player's ADP at universe-build time using FP_VALUES tier-aware buckets: TEP → elite TE jumps into round 1 (Brock Bowers raw ADP ~24 → ~6), 6pt TD → elite QB jumps (max(1, adp − 6)), Half PPR → slight RB boost / WR demotion (×0.97 / ×1.04). Raw ADP preserved on the player record as `rawAdp` for debugging. |
+| `66835b8` | **Quadratic reach penalty — fix Drake Maye 1.02 problem.** Switched the reach penalty from linear (`0.05/pick`) to quadratic (`reach^1.5 × 0.05`). The linear curve let high-value young SF QBs (Maye, Williams, etc. at ADP 25-30) sneak into round 1 because their value component (0.15 × ~9.0 = 1.35) overwhelmed the linear penalty. Quadratic preserves "tendency" for small reaches (5 picks = -0.56) while making severe reaches a hard wall (20 picks = -4.50, 30 picks = -8.22). |
+| `66b9f85` | **Mobile scroll-lock + board horizontal scroll fixes.** Board grid overflows the mobile viewport on 8/10/14-team configs; added horizontal scroll inside the board wrapper, plus a `body { overflow: hidden }` scroll-lock when the setup-screen modal is open so the page behind doesn't scroll under it. |
+| `faa4401` | **ADP-heavy calibration (third tweak).** Pushed `adp_value` archetype weight from 0.75 → 0.85, tightened candidate-pool windows across the board. Goal: "picks closely track the ADP-page startup ordering with small personality-driven deviations." Earlier calibrations were each driven by a specific user-observed failure mode; this third tweak is the current target state — still expected to iterate. |
+
+**Tuning surface (console-accessible for live calibration):**
+
+```js
+MockDraft._aiPick(personalityKey, currentPick, picks)    // single-pick test
+MockDraft._buildUniverse()                                // rebuild player pool
+MockDraft._assignOpponents()                              // resample personalities
+```
+
+**Implementation simplification note.** The LLM Handoff Spec at `C:\Users\deons\Downloads\# Fantasy Draft Personality, Prediction & Availability System — Full….md` calls for 5,000-50,000 Monte Carlo simulations per pick. This implementation replaces the simulation loop with one lookup into `data/pick-availability-2026.json` — a pre-computed empirical probability matrix derived from thousands of real dynasty drafts. Massive perf win with minimal loss of fidelity (the matrix encodes the simulation's empirical answer). Limitation: matrix is currently 12-team-only; 8 / 10 / 14-team modes fall back to ADP-window scoring (matrix augmentation is a refinement, not load-bearing).
+
+### Doctrine drift — closed (`937f3ed`)
+
+The 2026-05-20 inversion commit (`372f894`) flipped the text-on-bright-fill rule from white → black, and also removed the `dim-text-on-bright-bg` lint detector that had previously enforced the old doctrine. Result: 26 leftover surfaces still hardcoded `color: var(--white)` on bright brand backgrounds, with no automated check to catch them. The user flagged the Risers/Fallers rows on `index.html` directly ("the risers and fallers still has the players names in white"); a one-shot audit script caught the same drift pattern across the rest of the site.
+
+All 26 fixes are byte-identical single-edit-per-rule:
+
+```
+-  color: var(--white);
++  color: #111111;
+```
+
+**Direct violations (single CSS rule with bright bg + white text):**
+
+- `index.html` — `.nav-badge`, `.filter-multi option:checked`, `.btn-add-pick`, `.filter-chip`, `.filter-chip-muted`
+- `my-leagues.html` — same 5 + `.pp-col-header`, `.ml-pd-avail-trade-btn`, `.ml-tb-sleeper-link`, `.ml-team-mebadge`, `.ml-calc-sleeper-btn`
+- `trade-calculator.html` — `.btn-add-pick`, `.filter-chip`, `.filter-chip-muted` (each duplicated in two inline blocks, replace_all caught both)
+- `live-draft.html` — `.ld-needs-tag` (red bg), `.ld-otc-bar-mine` (green bg)
+- `mock-draft.html` — `.box-col-header.md-col-user` (red bg)
+- `assets/css/player-panel.css` — `.pp-col-header` (shared module — cache bump propagated to all 10 consumers)
+
+**Cascade violation (the auditor missed it, the user found it):**
+
+- `index.html` — `.value-row-name` + `.value-row-val`. The Risers/Fallers rows get a bright pos-color background via the bare `.pos-qb`/`.pos-rb`/etc. rule (line 540) composed onto `.value-row.pos-XX`. The single-rule auditor only matched bright-bg + white-text within the same rule body; this case is a cross-rule cascade (bright bg from sibling pos-XX class, white text from descendant `.value-row-name` rule). Both child rules now `#111111`. The `.value-row-change.up/.down` trend wrappers are left alone — they wrap `<span class="trend up/down">` which uses the brand-bright `#66dd84` / `var(--red)` foreground with text-shadow stroke per the brand.css §5 documented exception.
+
+Cache bump: `player-panel.css ?v=1782600000 → ?v=1783100000` across all 10 consumers (adp-tool, compare, index, rankings, my-leagues, live-draft, mock-draft, trade-calculator, tiers, templates/page-template).
+
+8 remaining audit hits in `docs/analyst-heuristics-review.html` are out-of-scope per session 12 notes (analyst handoff doc, not deployed UI).
+
+### AdpComparator zoom fix (bundled in `44e5e68`)
+
+User reported the `APR 2026 ▼` calendar trigger on `rankings.html` was non-responsive — couldn't change the month. Investigation found that the AdpComparator popup (mounted on `<body>` via `position: absolute`) was being double-zoomed under session 12's `body { zoom: 1.25 }` adaptive zoom ladder.
+
+Mechanism: `getBoundingClientRect()` returns post-zoom visual coordinates (the on-screen position the user sees). Assigning those values to `style.left/top` on a body child re-applies the body's 1.25× zoom, so the popup renders at roughly 1.25× the trigger's actual visual position. For `APR 2026` near the right edge of a wide table, that pushes the popup well past the viewport — the trigger IS opening it; the popup is just off-screen.
+
+Fix in `assets/js/adp-comparator.js` `openCalendar()`: read `getComputedStyle(document.body).zoom` and divide the rect coords by it before assignment.
+
+```js
+const bodyZoom = (function () {
+  const v = parseFloat(getComputedStyle(document.body).zoom);
+  return (isFinite(v) && v > 0) ? v : 1;
+})();
+const rect = triggerEl.getBoundingClientRect();
+pop.style.left = ((rect.left + window.scrollX) / bodyZoom) + 'px';
+pop.style.top  = ((rect.bottom + window.scrollY + 4) / bodyZoom) + 'px';
+```
+
+Affects **both** consumers: `rankings.html` (single trigger in the consensus table header) and `tiers.html` (21 tier-group triggers in the tier table — same widget, same bug). Cache bump: `adp-comparator.js ?v=1779360001 → ?v=1783200000` on both consumers.
+
+**Side finding worth surfacing for next session.** `data/rank-history.json` exists and contains 10 daily ranking snapshots from 2026-05-11 to 2026-05-20 (flat `{ name: rank }` per date, written by `sync-fp.py`). **No frontend code consumes it today** — the rankings.html `APR 2026 ▼` calendar swaps the ADP comparison value + CHG chip only; the RANK column never changes per month. If the user wants true rank-vs-rank historical comparison alongside the existing ADP-vs-ADP, the data is already there.
+
+### Cache token state at session close
+
+- `player-panel.css ?v=1783100000` (doctrine cleanup, 10 consumers)
+- `adp-comparator.js ?v=1783200000` (zoom fix, 2 consumers)
+- `legend-content.js ?v=1783000000` (mock-draft page entry, 10 consumers)
+- `formulas-content.js ?v=1783000000` (mock-draft §51 entry, 1 consumer)
+- All other shared modules unchanged from session 12
+
+### Audit
+
+`python scripts/check-colors.py` — CLEAN across 31 files after every commit.
+
+The disposable one-shot `audit_white_on_bright.py` written for the doctrine sweep was deleted after the cleanup landed.
+
+### Memory
+
+No new durable memories saved this session — the session-13 work followed existing rules already captured (the doctrine, the triple-sync rule, mobile-first, no-assumptions-verify-before-push). The "Show content before commit confirmation" rule was applied for both the doctrine cleanup and the AdpComparator fix.
+
+---
+
 ## 2026-05-20 (twelfth session) — OBS polish, doctrine inversion, compare-page closeout
 
 17 substantive commits + 7 data-sync auto-commits, picking up immediately after session 11's UI overhaul ship. Three arcs: a UI/visual iteration arc that tuned the just-shipped chrome to actual OBS-stream usage; a docs-driven closeout of every user-decidable analyst-input bullet from the compare-page punch list; and a late-session iteration on the compare-page hero card into a Madden-Ultimate-Team-style trading card aesthetic with proper mobile fallbacks (plus a critical STATS_DATA-path bug fix that restored 2025 seasonal data visibility).
