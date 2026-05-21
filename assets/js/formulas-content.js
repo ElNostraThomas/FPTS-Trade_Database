@@ -2092,13 +2092,34 @@ TEP only fires when pos === 'TE' so QB/RB/WR are unaffected by that preset.`,
           provenance: { kind: 'hand-tuned', detail: 'Five archetypes selected from the LLM Handoff Spec\'s nine generic personalities (C:\\Users\\deons\\Downloads\\# Fantasy Draft Personality, Prediction & Availability System — Full….md). Weights are first-pass calibration — expected to need analyst tuning. See whyThisNumber.' },
           inputs: 'player (candidate record { name, pos, team, adp, value, tier, sleeperId, age } from buildPlayerUniverse), ctx (currentPick, universe, takenIds, myRoster, positionNeedTable), personality (one of 5 archetype objects).',
           math: `// Personalities (weights are adp / posNeed / value / scarcity / favor)
+// ADP weights bumped ~+0.10 across all 5 archetypes in 2026-05-20 tweak.
 PERSONALITIES = {
-  adp_value:  { weights: { adp:0.55, posNeed:0.20, value:0.15, scarcity:0.10, favor:0    }, reachTolerance: 3,  candidatePoolWindow: [12, 36] },
-  bpa:        { weights: { adp:0.30, posNeed:0.05, value:0.50, scarcity:0.15, favor:0    }, reachTolerance: 8,  candidatePoolWindow: [24, 48] },
-  my_guys:    { weights: { adp:0.10, posNeed:0.25, value:0.30, scarcity:0.10, favor:0.25 }, reachTolerance: 18, candidatePoolWindow: [36, 60] },
-  need_based: { weights: { adp:0.20, posNeed:0.55, value:0.15, scarcity:0.10, favor:0    }, reachTolerance: 6,  candidatePoolWindow: [18, 42] },
-  scarcity:   { weights: { adp:0.25, posNeed:0.15, value:0.20, scarcity:0.40, favor:0    }, reachTolerance: 12, candidatePoolWindow: [24, 48] },
+  adp_value:  { weights: { adp:0.65, posNeed:0.20, value:0.15, scarcity:0.10, favor:0    }, reachTolerance: 3,  candidatePoolWindow: [12, 36] },
+  bpa:        { weights: { adp:0.40, posNeed:0.05, value:0.50, scarcity:0.15, favor:0    }, reachTolerance: 8,  candidatePoolWindow: [24, 48] },
+  my_guys:    { weights: { adp:0.18, posNeed:0.25, value:0.30, scarcity:0.10, favor:0.25 }, reachTolerance: 18, candidatePoolWindow: [36, 60] },
+  need_based: { weights: { adp:0.30, posNeed:0.55, value:0.15, scarcity:0.10, favor:0    }, reachTolerance: 6,  candidatePoolWindow: [18, 42] },
+  scarcity:   { weights: { adp:0.35, posNeed:0.15, value:0.20, scarcity:0.40, favor:0    }, reachTolerance: 12, candidatePoolWindow: [24, 48] },
 };
+
+// Scoring-aware ADP shift (ADP_PAYLOAD only carries SF + 1QB; this
+// approximates per-scoring-preset community consensus at universe-build time)
+function applyScoringAdpShift(adp, pos, tier, scoring) {
+  if (scoring === 'tep' && pos === 'TE') {
+    if (tier === 1) return Math.max(1, adp - 18);   // elite TE -> round 1
+    if (tier === 2) return Math.max(2, adp - 12);
+    if (tier === 3) return Math.max(3, adp - 7);
+    return adp * 0.85;
+  }
+  if (scoring === 'td6' && pos === 'QB') {
+    if (tier <= 2) return Math.max(1, adp - 6);
+    return adp * 0.9;
+  }
+  if (scoring === 'half_ppr') {
+    if (pos === 'WR') return adp * 1.04;
+    if (pos === 'RB') return adp * 0.97;
+  }
+  return adp;
+}
 
 // PersonalityDraftScore composite (per-candidate)
 adpScore      = clamp((currentPick - player.adp) / 12, -2, 2);
@@ -2137,7 +2158,7 @@ selected = weightedRandomSample(top8, probs);`,
               = 0.099 + 0.05 + 0.4725 + 0.15 = 0.77
     + jitter (±0.075)  →  ~0.77 final score
   Bijan ends up at top of the top-8 with high probability — BPA picks him.`,
-          whyThisNumber: '5 archetypes (not all 9 from the spec): MVP scope. Diversifier + Concentrator need multi-draft exposure history we don\'t have; Rookie Upside / Win-Now / Stack are nuances the 5 already span. Hand-tuned weights (not ML-learned): spec\'s ML companion requires a backend pipeline; deferred. Monte Carlo replaced by PICK_AVAILABILITY matrix: matrix is empirically derived from real drafts — encodes the simulation\'s answer without re-running it. Softmax temperature 0.5: moderate stochasticity (lower = more deterministic, higher = more noise) — felt right in informal testing. Reach penalty gradient 0.05/pick: a tendency, not a wall. Anti-clumping at -0.3: discourages 3-of-4 same-position runs without preventing them when scarcity overrides. Jitter ±0.075: same-personality seats diverge but personality still dominates. My Guys favorites = 8 random from top 80 FP_VALUES, +1.5 bonus: large enough to produce visible reaches without making every player a "favorite." All weights are FIRST-PASS CALIBRATION — analyst input requested via the README "Analyst feedback loop" punch list under "Mock-draft personality weights" after the user runs 10+ mocks.',
+          whyThisNumber: '5 archetypes (not all 9 from the spec): MVP scope. Diversifier + Concentrator need multi-draft exposure history we don\'t have; Rookie Upside / Win-Now / Stack are nuances the 5 already span. Hand-tuned weights (not ML-learned): spec\'s ML companion requires a backend pipeline; deferred. Monte Carlo replaced by PICK_AVAILABILITY matrix: matrix is empirically derived from real drafts — encodes the simulation\'s answer without re-running it. Softmax temperature 0.5: moderate stochasticity (lower = more deterministic, higher = more noise) — felt right in informal testing. Reach penalty gradient 0.05/pick: a tendency, not a wall. Anti-clumping at -0.3: discourages 3-of-4 same-position runs without preventing them when scarcity overrides. Jitter ±0.075: same-personality seats diverge but personality still dominates. My Guys favorites = 8 random from top 80 FP_VALUES, +1.5 bonus: large enough to produce visible reaches without making every player a "favorite." ADP weights bumped +0.10 across all 5 archetypes in 2026-05-20 tweak after user testing showed seats reaching too far past consensus. Scoring-aware ADP shift added same tweak: ADP_PAYLOAD only carries SF + 1QB branches, so TEP / 6pt TD / Half PPR shift ADP at universe-build time per FP_VALUES.tier bucket (TEP example: Brock Bowers tier-1 TE shifts from raw ADP ~24 to ~6, landing him in round 1 as expected community consensus). All weights still considered FIRST-PASS CALIBRATION — analyst input requested via the README "Analyst feedback loop" punch list under "Mock-draft personality weights" after the user runs 10+ more mocks.',
           notes: 'PICK_AVAILABILITY matrix is currently 12-team-only; 8 / 10 / 14-team modes fall back to pure ADP-window scoring (matrix augmentation is a refinement, not load-bearing). Manager Clone (the spec\'s 10th archetype) deferred — would require real Sleeper draft history per user (same blocker as 1QB SEED_USERS). Engine console-accessible: MockDraft._aiPick(personalityKey, currentPick, picks) + MockDraft._buildUniverse() + MockDraft._assignOpponents() for tuning. Spec source files in C:\\Users\\deons\\Downloads\\ — both Full (LLM Handoff) and ML (Agent Architecture) referenced; Full is primary for client-side execution.',
           related: ['compare-similarity', 'pick-availability-matrix']
         }
