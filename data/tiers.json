@@ -1,7 +1,7 @@
 {
-  "version": "2026-05-21T17:54:50+00:00",
+  "version": "2026-05-21T23:38:18+00:00",
   "source": "Google Sheet via sync-tiers.py",
-  "playerCount": 236,
+  "playerCount": 200,
   "players": {
     "Josh Allen": {
       "tier": "S++",
@@ -13,7 +13,7 @@
     },
     "Drake Maye": {
       "tier": "S++",
-      "trending": "📈",
+      "trending": "",
       "buySell": "",
       "priority": "",
       "contender": "",
@@ -21,13 +21,21 @@
     },
     "Jaxon Smith-Njigba": {
       "tier": "S++",
-      "trending": "📈",
+      "trending": "",
       "buySell": "",
       "priority": "",
       "contender": "",
       "notes": ""
     },
     "Ja'Marr Chase": {
+      "tier": "S++",
+      "trending": "",
+      "buySell": "",
+      "priority": "",
+      "contender": "",
+      "notes": ""
+    },
+    "Bijan Robinson": {
       "tier": "S++",
       "trending": "",
       "buySell": "",
@@ -45,6 +53,14 @@
     },
     "Puka Nacua": {
       "tier": "S++",
+      "trending": "",
+      "buySell": "",
+      "priority": "",
+      "contender": "",
+      "notes": ""
+    },
+    "Jayden Daniels": {
+      "tier": "S+",
       "trending": "",
       "buySell": "",
       "priority": "",
@@ -77,7 +93,7 @@
     },
     "Lamar Jackson": {
       "tier": "S+",
-      "trending": "📉",
+      "trending": "",
       "buySell": "",
       "priority": "",
       "contender": "",
@@ -108,6 +124,14 @@
       "notes": ""
     },
     "Joe Burrow": {
+      "tier": "S",
+      "trending": "",
+      "buySell": "",
+      "priority": "",
+      "contender": "",
+      "notes": ""
+    },
+    "Drake London": {
       "tier": "S",
       "trending": "",
       "buySell": "",
@@ -147,6 +171,14 @@
       "contender": "",
       "notes": ""
     },
+    "Patrick Mahomes": {
+      "tier": "S",
+      "trending": "",
+      "buySell": "",
+      "priority": "",
+      "contender": "",
+      "notes": ""
+    },
     "Tetairoa McMillan": {
       "tier": "S",
       "trending": "",
@@ -165,7 +197,7 @@
     },
     "Jalen Hurts": {
       "tier": "S",
-      "trending": "📉",
+      "trending": "",
       "buySell": "",
       "priority": "",
       "contender": "",
@@ -189,7 +221,15 @@
     },
     "Nico Collins": {
       "tier": "A+",
-      "trending": "📉",
+      "trending": "",
+      "buySell": "",
+      "priority": "",
+      "contender": "",
+      "notes": ""
+    },
+    "Chris Olave": {
+      "tier": "A+",
+      "trending": "",
       "buySell": "",
       "priority": "",
       "contender": "",
@@ -197,7 +237,7 @@
     },
     "De'Von Achane": {
       "tier": "A+",
-      "trending": "📈",
+      "trending": "",
       "buySell": "",
       "priority": "",
       "contender": "",
@@ -205,7 +245,7 @@
     },
     "George Pickens": {
       "tier": "A+",
-      "trending": "📈",
+      "trending": "",
       "buySell": "",
       "priority": "",
       "contender": "",
@@ -213,7 +253,7 @@
     },
     "Jonathan Taylor": {
       "tier": "A+",
-      "trending": "📈",
+      "trending": "",
       "buySell": "",
       "priority": "",
       "contender": "",
@@ -221,7 +261,7 @@
     },
     "Trevor Lawrence": {
       "tier": "A+",
-      "trending": "📈",
+      "trending": "",
       "buySell": "",
       "priority": "",
       "contender": "",
@@ -235,15 +275,7 @@
       "contender": "",
       "notes": ""
     },
-    "Luther Burden": {
-      "tier": "A+",
-      "trending": "",
-      "buySell": "",
-      "priority": "",
-      "contender": "",
-      "notes": ""
-    },
-    "Rookie Pick 1.01": {
+    "Luther Burden III": {
       "tier": "A+",
       "trending": "",
       "buySell": "",
@@ -253,7 +285,15 @@
     },
     "Jordan Love": {
       "tier": "A",
-      "trending": "📉",
+      "trending": "",
+      "buySell": "",
+      "priority": "",
+      "contender": "",
+      "notes": ""
+    },
+    "Jordyn Tyson": {
+      "tier": "A",
+      "trending": "",
       "buySell": "",
       "priority": "",
       "contender": "",
@@ -277,7 +317,7 @@
     },
     "James Cook": {
       "tier": "A",
-      "trending": "📈",
+      "trending": "",
       "buySell": "",
       "priority": "",
       "contender": "",
@@ -285,7 +325,7 @@
     },
     "Kenneth Walker": {
       "tier": "A",
-      "trending": "📈",
+      "trending": "",
       "buySell": "",
       "priority": "",
       "contender": "",
@@ -315,14 +355,6 @@
       "contender": "",
       "notes": ""
     },
-    "Colston Loveland": {
-      "tier": "A",
-      "trending": "",
-      "buySell": "",
-      "priority": "",
-      "contender": "",
-      "notes": ""
-    },
     "Fernando Mendoza": {
       "tier": "A-",
       "trending": "",
@@ -339,12 +371,20 @@
       "contender": "",
       "notes": ""
     },
+    "Makai Lemon": {
+      "tier": "A-",
+      "trending": "",
+      "buySell": "",
+      "priority": "",
+      "contender": "",
+      "notes": ""
+    },
     "DeVonta Smith": {
       "tier": "A-",
-      "trending": "📉",
-      "buySell": "Checking In",
-      "priority": "Soft",
-      "contender": "Contender",
+      "trending": "",
+      "buySell": "",
+      "priority": "",
+      "contender": "",
       "notes": ""
     },
     "Zay Flowers": {
@@ -357,7 +397,7 @@
     },
     "Tee Higgins": {
       "tier": "A-",
-      "trending": "📉",
+      "trending": "",
       "buySell": "",
       "priority": "",
       "contender": "",
@@ -365,7 +405,7 @@
     },
     "A.J. Brown": {
       "tier": "A-",
-      "trending": "📉",
+      "trending": "",
       "buySell": "",
       "priority": "",
       "contender": "",
@@ -373,7 +413,7 @@
     },
     "Chase Brown": {
       "tier": "A-",
-      "trending": "📈",
+      "trending": "",
       "buySell": "",
       "priority": "",
       "contender": "",
@@ -397,11 +437,11 @@
     },
     "Tucker Kraft": {
       "tier": "A-",
-      "trending": "📈",
+      "trending": "",
       "buySell": "",
       "priority": "",
       "contender": "",
-      "notes": "Injury is a legit concern talent is right there"
+      "notes": ""
     },
     "Emeka Egbuka": {
       "tier": "A-",
@@ -411,9 +451,17 @@
       "contender": "",
       "notes": ""
     },
+    "Bo Nix": {
+      "tier": "A-",
+      "trending": "",
+      "buySell": "",
+      "priority": "",
+      "contender": "",
+      "notes": ""
+    },
     "Dak Prescott": {
       "tier": "A-",
-      "trending": "📈",
+      "trending": "",
       "buySell": "",
       "priority": "",
       "contender": "",
@@ -427,25 +475,17 @@
       "contender": "",
       "notes": ""
     },
-    "Rookie Pick 1.02": {
-      "tier": "A-",
+    "Ladd McConkey": {
+      "tier": "B+",
       "trending": "",
       "buySell": "",
       "priority": "",
       "contender": "",
       "notes": ""
     },
-    "Ladd McConkey": {
+    "Marvin Harrison Jr.": {
       "tier": "B+",
-      "trending": "📉",
-      "buySell": "",
-      "priority": "",
-      "contender": "",
-      "notes": ""
-    },
-    "Marvin Harrison": {
-      "tier": "B+",
-      "trending": "📉",
+      "trending": "",
       "buySell": "",
       "priority": "",
       "contender": "",
@@ -453,7 +493,7 @@
     },
     "Saquon Barkley": {
       "tier": "B+",
-      "trending": "📉",
+      "trending": "",
       "buySell": "",
       "priority": "",
       "contender": "",
@@ -478,9 +518,9 @@
     "Cam Ward": {
       "tier": "B+",
       "trending": "",
-      "buySell": "Buying",
-      "priority": "Soft",
-      "contender": "Both",
+      "buySell": "",
+      "priority": "",
+      "contender": "",
       "notes": ""
     },
     "Jameson Williams": {
@@ -491,9 +531,17 @@
       "contender": "",
       "notes": ""
     },
+    "Brian Thomas Jr.": {
+      "tier": "B+",
+      "trending": "",
+      "buySell": "",
+      "priority": "",
+      "contender": "",
+      "notes": ""
+    },
     "Bucky Irving": {
       "tier": "B+",
-      "trending": "📉",
+      "trending": "",
       "buySell": "",
       "priority": "",
       "contender": "",
@@ -501,13 +549,13 @@
     },
     "Sam LaPorta": {
       "tier": "B+",
-      "trending": "📉",
+      "trending": "",
       "buySell": "",
       "priority": "",
       "contender": "",
       "notes": ""
     },
-    "Harold Fannin": {
+    "Harold Fannin Jr.": {
       "tier": "B+",
       "trending": "Down 1 Tier",
       "buySell": "",
@@ -541,7 +589,15 @@
     },
     "Baker Mayfield": {
       "tier": "B+",
-      "trending": "📉",
+      "trending": "",
+      "buySell": "",
+      "priority": "",
+      "contender": "",
+      "notes": ""
+    },
+    "Kyren Williams": {
+      "tier": "B+",
+      "trending": "",
       "buySell": "",
       "priority": "",
       "contender": "",
@@ -549,15 +605,15 @@
     },
     "Josh Jacobs": {
       "tier": "B+",
-      "trending": "📉",
+      "trending": "",
       "buySell": "",
       "priority": "",
       "contender": "",
       "notes": ""
     },
-    "Travis Etienne": {
+    "Travis Etienne Jr.": {
       "tier": "B+",
-      "trending": "📈",
+      "trending": "",
       "buySell": "",
       "priority": "",
       "contender": "",
@@ -565,7 +621,7 @@
     },
     "Kyler Murray": {
       "tier": "B+",
-      "trending": "📉",
+      "trending": "",
       "buySell": "",
       "priority": "",
       "contender": "",
@@ -587,15 +643,7 @@
       "contender": "",
       "notes": ""
     },
-    "Rookie Pick 1.03": {
-      "tier": "B+",
-      "trending": "",
-      "buySell": "",
-      "priority": "",
-      "contender": "",
-      "notes": ""
-    },
-    "Rookie Pick 1.04": {
+    "Sam Darnold": {
       "tier": "B+",
       "trending": "",
       "buySell": "",
@@ -605,7 +653,7 @@
     },
     "Christian Watson": {
       "tier": "B",
-      "trending": "📈",
+      "trending": "",
       "buySell": "",
       "priority": "",
       "contender": "",
@@ -621,7 +669,15 @@
     },
     "Jordan Addison": {
       "tier": "B",
-      "trending": "📉",
+      "trending": "",
+      "buySell": "",
+      "priority": "",
+      "contender": "",
+      "notes": ""
+    },
+    "Javonte Williams": {
+      "tier": "B",
+      "trending": "",
       "buySell": "",
       "priority": "",
       "contender": "",
@@ -629,7 +685,7 @@
     },
     "Derrick Henry": {
       "tier": "B",
-      "trending": "📉",
+      "trending": "",
       "buySell": "",
       "priority": "",
       "contender": "",
@@ -637,7 +693,7 @@
     },
     "C.J. Stroud": {
       "tier": "B",
-      "trending": "📉",
+      "trending": "",
       "buySell": "",
       "priority": "",
       "contender": "",
@@ -651,7 +707,7 @@
       "contender": "",
       "notes": ""
     },
-    "Oronde Gadsden": {
+    "Oronde Gadsden II": {
       "tier": "B",
       "trending": "",
       "buySell": "",
@@ -661,15 +717,15 @@
     },
     "DJ Moore": {
       "tier": "B",
-      "trending": "📉",
-      "buySell": "Buying",
-      "priority": "Soft",
-      "contender": "Contender",
+      "trending": "",
+      "buySell": "",
+      "priority": "",
+      "contender": "",
       "notes": ""
     },
     "Daniel Jones": {
       "tier": "B",
-      "trending": "📈",
+      "trending": "",
       "buySell": "",
       "priority": "",
       "contender": "",
@@ -677,7 +733,7 @@
     },
     "Bryce Young": {
       "tier": "B",
-      "trending": "📉",
+      "trending": "",
       "buySell": "",
       "priority": "",
       "contender": "",
@@ -691,15 +747,7 @@
       "contender": "",
       "notes": ""
     },
-    "Malik WIllis": {
-      "tier": "B",
-      "trending": "📈",
-      "buySell": "",
-      "priority": "",
-      "contender": "",
-      "notes": ""
-    },
-    "Ricky Pearsall": {
+    "Malik Willis": {
       "tier": "B",
       "trending": "",
       "buySell": "",
@@ -707,7 +755,7 @@
       "contender": "",
       "notes": ""
     },
-    "Rookie Pick 1.05": {
+    "Ricky Pearsall": {
       "tier": "B",
       "trending": "",
       "buySell": "",
@@ -725,7 +773,7 @@
     },
     "David Montgomery": {
       "tier": "B-",
-      "trending": "📉",
+      "trending": "",
       "buySell": "",
       "priority": "",
       "contender": "",
@@ -741,7 +789,7 @@
     },
     "Parker Washington": {
       "tier": "B-",
-      "trending": "📈",
+      "trending": "",
       "buySell": "",
       "priority": "",
       "contender": "",
@@ -749,7 +797,7 @@
     },
     "Jayden Reed": {
       "tier": "B-",
-      "trending": "📉",
+      "trending": "",
       "buySell": "",
       "priority": "",
       "contender": "",
@@ -757,7 +805,7 @@
     },
     "Josh Downs": {
       "tier": "B-",
-      "trending": "📉",
+      "trending": "",
       "buySell": "",
       "priority": "",
       "contender": "",
@@ -765,7 +813,7 @@
     },
     "Kyle Pitts": {
       "tier": "B-",
-      "trending": "📈",
+      "trending": "",
       "buySell": "",
       "priority": "",
       "contender": "",
@@ -797,7 +845,7 @@
     },
     "DK Metcalf": {
       "tier": "B-",
-      "trending": "📉",
+      "trending": "",
       "buySell": "",
       "priority": "",
       "contender": "",
@@ -813,7 +861,7 @@
     },
     "Mike Evans": {
       "tier": "B-",
-      "trending": "📉",
+      "trending": "",
       "buySell": "",
       "priority": "",
       "contender": "",
@@ -821,7 +869,15 @@
     },
     "Matthew Stafford": {
       "tier": "B-",
-      "trending": "📈",
+      "trending": "",
+      "buySell": "",
+      "priority": "",
+      "contender": "",
+      "notes": ""
+    },
+    "Michael Wilson": {
+      "tier": "B-",
+      "trending": "",
       "buySell": "",
       "priority": "",
       "contender": "",
@@ -845,7 +901,7 @@
     },
     "George Kittle": {
       "tier": "B-",
-      "trending": "📉",
+      "trending": "",
       "buySell": "",
       "priority": "",
       "contender": "",
@@ -853,7 +909,7 @@
     },
     "Rhamondre Stevenson": {
       "tier": "B-",
-      "trending": "📈",
+      "trending": "",
       "buySell": "",
       "priority": "",
       "contender": "",
@@ -861,11 +917,11 @@
     },
     "Alec Pierce": {
       "tier": "B-",
-      "trending": "📈",
+      "trending": "",
       "buySell": "",
       "priority": "",
       "contender": "",
-      "notes": "Free Agent  but I see him back in Indy"
+      "notes": ""
     },
     "Xavier Worthy": {
       "tier": "B-",
@@ -875,16 +931,8 @@
       "contender": "",
       "notes": ""
     },
-    "Rookie Pick 1.06": {
-      "tier": "B-",
-      "trending": "",
-      "buySell": "",
-      "priority": "",
-      "contender": "",
-      "notes": ""
-    },
-    "Rookie Pick 1.07": {
-      "tier": "B-",
+    "Terry McLaurin": {
+      "tier": "C+",
       "trending": "",
       "buySell": "",
       "priority": "",
@@ -917,7 +965,7 @@
     },
     "Jalen Coker": {
       "tier": "C+",
-      "trending": "📈",
+      "trending": "",
       "buySell": "",
       "priority": "",
       "contender": "",
@@ -949,7 +997,7 @@
     },
     "Chris Godwin": {
       "tier": "C+",
-      "trending": "📉",
+      "trending": "",
       "buySell": "",
       "priority": "",
       "contender": "",
@@ -971,9 +1019,9 @@
       "contender": "",
       "notes": ""
     },
-    "Michael Pittman": {
+    "Michael Pittman Jr.": {
       "tier": "C+",
-      "trending": "📈",
+      "trending": "",
       "buySell": "",
       "priority": "",
       "contender": "",
@@ -981,7 +1029,15 @@
     },
     "Jake Ferguson": {
       "tier": "C+",
-      "trending": "📈",
+      "trending": "",
+      "buySell": "",
+      "priority": "",
+      "contender": "",
+      "notes": ""
+    },
+    "Courtland Sutton": {
+      "tier": "C+",
+      "trending": "",
       "buySell": "",
       "priority": "",
       "contender": "",
@@ -989,7 +1045,7 @@
     },
     "Jaylen Warren": {
       "tier": "C+",
-      "trending": "📈",
+      "trending": "",
       "buySell": "",
       "priority": "",
       "contender": "",
@@ -997,7 +1053,7 @@
     },
     "Rico Dowdle": {
       "tier": "C+",
-      "trending": "📈",
+      "trending": "",
       "buySell": "",
       "priority": "",
       "contender": "",
@@ -1005,7 +1061,7 @@
     },
     "Rashid Shaheed": {
       "tier": "C+",
-      "trending": "📉",
+      "trending": "",
       "buySell": "",
       "priority": "",
       "contender": "",
@@ -1013,7 +1069,7 @@
     },
     "Chuba Hubbard": {
       "tier": "C+",
-      "trending": "📉",
+      "trending": "",
       "buySell": "",
       "priority": "",
       "contender": "",
@@ -1035,6 +1091,14 @@
       "contender": "",
       "notes": ""
     },
+    "Brenton Strange": {
+      "tier": "C",
+      "trending": "Down 1 Tier",
+      "buySell": "",
+      "priority": "",
+      "contender": "",
+      "notes": ""
+    },
     "Chris Bell": {
       "tier": "C",
       "trending": "",
@@ -1045,15 +1109,15 @@
     },
     "Tony Pollard": {
       "tier": "C",
-      "trending": "📉",
-      "buySell": "Checking In",
-      "priority": "Soft",
-      "contender": "Contender",
+      "trending": "",
+      "buySell": "",
+      "priority": "",
+      "contender": "",
       "notes": ""
     },
     "Rachaad White": {
       "tier": "C",
-      "trending": "📉",
+      "trending": "",
       "buySell": "",
       "priority": "",
       "contender": "",
@@ -1070,9 +1134,9 @@
     "Wan'Dale Robinson": {
       "tier": "C",
       "trending": "Down 1 Tier",
-      "buySell": "Checking In",
-      "priority": "Soft",
-      "contender": "Contender",
+      "buySell": "",
+      "priority": "",
+      "contender": "",
       "notes": ""
     },
     "Elijah Sarratt": {
@@ -1101,7 +1165,7 @@
     },
     "Brandon Aiyuk": {
       "tier": "C",
-      "trending": "📉",
+      "trending": "",
       "buySell": "",
       "priority": "",
       "contender": "",
@@ -1123,7 +1187,7 @@
       "contender": "",
       "notes": ""
     },
-    "J.K. Dobbins": {
+    "JK Dobbins": {
       "tier": "C",
       "trending": "Down 1 Tier",
       "buySell": "",
@@ -1133,7 +1197,7 @@
     },
     "Tyjae Spears": {
       "tier": "C",
-      "trending": "📉",
+      "trending": "",
       "buySell": "",
       "priority": "",
       "contender": "",
@@ -1165,7 +1229,7 @@
     },
     "Michael Penix": {
       "tier": "C",
-      "trending": "📉",
+      "trending": "",
       "buySell": "",
       "priority": "",
       "contender": "",
@@ -1173,7 +1237,15 @@
     },
     "Tua Tagovailoa": {
       "tier": "C",
-      "trending": "📉",
+      "trending": "",
+      "buySell": "",
+      "priority": "",
+      "contender": "",
+      "notes": ""
+    },
+    "Max Klare": {
+      "tier": "C",
+      "trending": "",
       "buySell": "",
       "priority": "",
       "contender": "",
@@ -1187,7 +1259,7 @@
       "contender": "",
       "notes": ""
     },
-    "Tyrone Tracy": {
+    "Tyrone Tracy Jr.": {
       "tier": "C",
       "trending": "Up 1 Tier",
       "buySell": "",
@@ -1197,7 +1269,7 @@
     },
     "Blake Corum": {
       "tier": "C",
-      "trending": "📈",
+      "trending": "",
       "buySell": "",
       "priority": "",
       "contender": "",
@@ -1221,7 +1293,7 @@
     },
     "Geno Smith": {
       "tier": "C",
-      "trending": "📉",
+      "trending": "",
       "buySell": "",
       "priority": "",
       "contender": "",
@@ -1229,7 +1301,7 @@
     },
     "J.J. McCarthy": {
       "tier": "C",
-      "trending": "📉",
+      "trending": "",
       "buySell": "",
       "priority": "",
       "contender": "",
@@ -1237,7 +1309,7 @@
     },
     "Aaron Rodgers": {
       "tier": "C",
-      "trending": "📉",
+      "trending": "",
       "buySell": "",
       "priority": "",
       "contender": "",
@@ -1251,9 +1323,9 @@
       "contender": "",
       "notes": ""
     },
-    "T.J. Hockenson": {
+    "TJ Hockenson": {
       "tier": "C",
-      "trending": "📉",
+      "trending": "",
       "buySell": "",
       "priority": "",
       "contender": "",
@@ -1261,7 +1333,7 @@
     },
     "Juwan Johnson": {
       "tier": "C",
-      "trending": "📈",
+      "trending": "",
       "buySell": "",
       "priority": "",
       "contender": "",
@@ -1305,7 +1377,7 @@
       "buySell": "",
       "priority": "",
       "contender": "",
-      "notes": "Major boost for him with the OC hire and Monken hire. Add in the uncertainty of Judkins and he is a must roster player"
+      "notes": ""
     },
     "Chris Rodriguez Jr.": {
       "tier": "C",
@@ -1357,7 +1429,7 @@
     },
     "Deebo Samuel": {
       "tier": "C",
-      "trending": "📉",
+      "trending": "",
       "buySell": "",
       "priority": "",
       "contender": "",
@@ -1365,7 +1437,7 @@
     },
     "Jauan Jennings": {
       "tier": "C",
-      "trending": "📉",
+      "trending": "",
       "buySell": "",
       "priority": "",
       "contender": "",
@@ -1387,7 +1459,7 @@
       "contender": "",
       "notes": ""
     },
-    "Tre' Harris": {
+    "Tre Harris": {
       "tier": "C",
       "trending": "",
       "buySell": "",
@@ -1421,7 +1493,7 @@
     },
     "Sean Tucker": {
       "tier": "C-",
-      "trending": "📈",
+      "trending": "",
       "buySell": "",
       "priority": "",
       "contender": "",
@@ -1445,7 +1517,7 @@
     },
     "Braelon Allen": {
       "tier": "C-",
-      "trending": "📉",
+      "trending": "",
       "buySell": "",
       "priority": "",
       "contender": "",
@@ -1461,11 +1533,11 @@
     },
     "Tyreek Hill": {
       "tier": "C-",
-      "trending": "📉",
+      "trending": "",
       "buySell": "",
       "priority": "",
       "contender": "",
-      "notes": "I do not think he is long for MIA and if he has anything elf tin the tank a flex spot with his upside is worth rostering"
+      "notes": ""
     },
     "Ted Hurst": {
       "tier": "C-",
@@ -1507,6 +1579,14 @@
       "contender": "",
       "notes": ""
     },
+    "Deshaun Watson": {
+      "tier": "C-",
+      "trending": "",
+      "buySell": "",
+      "priority": "",
+      "contender": "",
+      "notes": ""
+    },
     "Kaelon Black": {
       "tier": "C-",
       "trending": "",
@@ -1517,374 +1597,6 @@
     },
     "Jacoby Brissett": {
       "tier": "C-",
-      "trending": "",
-      "buySell": "",
-      "priority": "",
-      "contender": "",
-      "notes": ""
-    },
-    "Rookie Pick 1.09": {
-      "tier": "C-",
-      "trending": "",
-      "buySell": "",
-      "priority": "",
-      "contender": "",
-      "notes": ""
-    },
-    "Rookie Pick 1.10": {
-      "tier": "C-",
-      "trending": "",
-      "buySell": "",
-      "priority": "",
-      "contender": "",
-      "notes": ""
-    },
-    "Rookie Pick 1.11": {
-      "tier": "D+",
-      "trending": "",
-      "buySell": "",
-      "priority": "",
-      "contender": "",
-      "notes": ""
-    },
-    "Rookie Pick 1.12": {
-      "tier": "D+",
-      "trending": "",
-      "buySell": "",
-      "priority": "",
-      "contender": "",
-      "notes": ""
-    },
-    "Rookie Pick 2.01": {
-      "tier": "D",
-      "trending": "",
-      "buySell": "",
-      "priority": "",
-      "contender": "",
-      "notes": ""
-    },
-    "Rookie Pick 2.02": {
-      "tier": "D",
-      "trending": "",
-      "buySell": "",
-      "priority": "",
-      "contender": "",
-      "notes": ""
-    },
-    "Rookie Pick 2.03": {
-      "tier": "D",
-      "trending": "",
-      "buySell": "",
-      "priority": "",
-      "contender": "",
-      "notes": ""
-    },
-    "Rookie Pick 2.04": {
-      "tier": "D",
-      "trending": "",
-      "buySell": "",
-      "priority": "",
-      "contender": "",
-      "notes": ""
-    },
-    "Rookie Pick 2.05": {
-      "tier": "D-",
-      "trending": "",
-      "buySell": "",
-      "priority": "",
-      "contender": "",
-      "notes": ""
-    },
-    "Rookie Pick 2.06": {
-      "tier": "D-",
-      "trending": "",
-      "buySell": "",
-      "priority": "",
-      "contender": "",
-      "notes": ""
-    },
-    "Rookie Pick 2.07": {
-      "tier": "E+",
-      "trending": "",
-      "buySell": "",
-      "priority": "",
-      "contender": "",
-      "notes": ""
-    },
-    "Rookie Pick 2.08": {
-      "tier": "E+",
-      "trending": "",
-      "buySell": "",
-      "priority": "",
-      "contender": "",
-      "notes": ""
-    },
-    "Kayshon Boutte": {
-      "tier": "E-",
-      "trending": "📈",
-      "buySell": "",
-      "priority": "",
-      "contender": "",
-      "notes": ""
-    },
-    "Rookie Pick 2.09": {
-      "tier": "E-",
-      "trending": "",
-      "buySell": "",
-      "priority": "",
-      "contender": "",
-      "notes": ""
-    },
-    "Rookie Pick 2.10": {
-      "tier": "E-",
-      "trending": "",
-      "buySell": "",
-      "priority": "",
-      "contender": "",
-      "notes": ""
-    },
-    "Rookie Pick 2.11": {
-      "tier": "E-",
-      "trending": "",
-      "buySell": "",
-      "priority": "",
-      "contender": "",
-      "notes": ""
-    },
-    "Rookie Pick 2.12": {
-      "tier": "E-",
-      "trending": "",
-      "buySell": "",
-      "priority": "",
-      "contender": "",
-      "notes": ""
-    },
-    "Stefon Diggs": {
-      "tier": "E-",
-      "trending": "📉",
-      "buySell": "",
-      "priority": "",
-      "contender": "",
-      "notes": ""
-    },
-    "David Njoku": {
-      "tier": "F+",
-      "trending": "📉",
-      "buySell": "",
-      "priority": "",
-      "contender": "",
-      "notes": ""
-    },
-    "Devin Neal": {
-      "tier": "F+",
-      "trending": "",
-      "buySell": "",
-      "priority": "",
-      "contender": "",
-      "notes": ""
-    },
-    "Justin Fields": {
-      "tier": "F+",
-      "trending": "📉",
-      "buySell": "",
-      "priority": "",
-      "contender": "",
-      "notes": ""
-    },
-    "Kirk Cousins": {
-      "tier": "F+",
-      "trending": "",
-      "buySell": "",
-      "priority": "",
-      "contender": "",
-      "notes": ""
-    },
-    "Rookie Pick 3.01": {
-      "tier": "F+",
-      "trending": "",
-      "buySell": "",
-      "priority": "",
-      "contender": "",
-      "notes": ""
-    },
-    "Rookie Pick 3.02": {
-      "tier": "F+",
-      "trending": "",
-      "buySell": "",
-      "priority": "",
-      "contender": "",
-      "notes": ""
-    },
-    "Rookie Pick 3.03": {
-      "tier": "F+",
-      "trending": "",
-      "buySell": "",
-      "priority": "",
-      "contender": "",
-      "notes": ""
-    },
-    "Rookie Pick 3.04": {
-      "tier": "F+",
-      "trending": "",
-      "buySell": "",
-      "priority": "",
-      "contender": "",
-      "notes": ""
-    },
-    "Trey Benson": {
-      "tier": "F+",
-      "trending": "📉",
-      "buySell": "",
-      "priority": "",
-      "contender": "",
-      "notes": ""
-    },
-    "Tyler Allgeier": {
-      "tier": "F+",
-      "trending": "📈",
-      "buySell": "",
-      "priority": "",
-      "contender": "",
-      "notes": ""
-    },
-    "Adonai Mitchell": {
-      "tier": "F",
-      "trending": "",
-      "buySell": "",
-      "priority": "",
-      "contender": "",
-      "notes": ""
-    },
-    "Isaiah Davis": {
-      "tier": "F",
-      "trending": "",
-      "buySell": "",
-      "priority": "",
-      "contender": "",
-      "notes": ""
-    },
-    "Jake Tonges": {
-      "tier": "F",
-      "trending": "",
-      "buySell": "",
-      "priority": "",
-      "contender": "",
-      "notes": ""
-    },
-    "Jerry Jeudy": {
-      "tier": "F",
-      "trending": "📉",
-      "buySell": "",
-      "priority": "",
-      "contender": "",
-      "notes": ""
-    },
-    "Rookie Pick 3.05": {
-      "tier": "F",
-      "trending": "",
-      "buySell": "",
-      "priority": "",
-      "contender": "",
-      "notes": ""
-    },
-    "Rookie Pick 3.06": {
-      "tier": "F",
-      "trending": "",
-      "buySell": "",
-      "priority": "",
-      "contender": "",
-      "notes": ""
-    },
-    "Tory Horton": {
-      "tier": "F",
-      "trending": "",
-      "buySell": "",
-      "priority": "",
-      "contender": "",
-      "notes": ""
-    },
-    "Tyson Bagent": {
-      "tier": "F",
-      "trending": "",
-      "buySell": "",
-      "priority": "",
-      "contender": "",
-      "notes": ""
-    },
-    "Anthony Richardson": {
-      "tier": "F-",
-      "trending": "📉",
-      "buySell": "",
-      "priority": "",
-      "contender": "",
-      "notes": ""
-    },
-    "Jalen Milroe": {
-      "tier": "F-",
-      "trending": "",
-      "buySell": "",
-      "priority": "",
-      "contender": "",
-      "notes": ""
-    },
-    "Kaleb Johnson": {
-      "tier": "F-",
-      "trending": "",
-      "buySell": "",
-      "priority": "",
-      "contender": "",
-      "notes": ""
-    },
-    "Mason Taylor": {
-      "tier": "F-",
-      "trending": "",
-      "buySell": "",
-      "priority": "",
-      "contender": "",
-      "notes": ""
-    },
-    "Rookie Pick 3.07": {
-      "tier": "F-",
-      "trending": "",
-      "buySell": "",
-      "priority": "",
-      "contender": "",
-      "notes": ""
-    },
-    "Rookie Pick 3.08": {
-      "tier": "F-",
-      "trending": "",
-      "buySell": "",
-      "priority": "",
-      "contender": "",
-      "notes": ""
-    },
-    "Rookie Pick 3.09": {
-      "tier": "F-",
-      "trending": "",
-      "buySell": "",
-      "priority": "",
-      "contender": "",
-      "notes": ""
-    },
-    "Rookie Pick 3.10": {
-      "tier": "F-",
-      "trending": "",
-      "buySell": "",
-      "priority": "",
-      "contender": "",
-      "notes": ""
-    },
-    "Rookie Pick 3.11": {
-      "tier": "F-",
-      "trending": "",
-      "buySell": "",
-      "priority": "",
-      "contender": "",
-      "notes": ""
-    },
-    "Rookie Pick 3.12": {
-      "tier": "F-",
       "trending": "",
       "buySell": "",
       "priority": "",
