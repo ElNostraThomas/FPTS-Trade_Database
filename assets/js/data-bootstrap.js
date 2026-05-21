@@ -70,6 +70,7 @@
   if (!global.PICK_AVAILABILITY)       global.PICK_AVAILABILITY = {};
   if (!global.PICK_AVAILABILITY_META)  global.PICK_AVAILABILITY_META = null;
   if (!global.STATS_DATA)              global.STATS_DATA = {};
+  if (!global.TIERS_DATA)              global.TIERS_DATA = {};
 
   // ─── Shared helpers ──────────────────────────────────────────────────────
 
@@ -322,8 +323,9 @@
     _maybe('articles',          'data/articles.json'),
     _maybe('pick-availability', 'data/pick-availability.json'),
     _maybe('stats',             'data/stats.json'),
+    _maybe('tiers',             'data/tiers.json'),
   ]).then(function (results) {
-    const [values, adp, auction, picks, mvs, articles, pa, stats] = results;
+    const [values, adp, auction, picks, mvs, articles, pa, stats, tiers] = results;
 
     // Apply in canonical order:
     //   1. values  — seeds FP_VALUES with all players
@@ -352,6 +354,20 @@
     // sleeper-helpers.js) look up by either form and apply league-specific
     // scoring (TEP / PPC / pass-TD bonus) at render time.
     if (stats && stats.players) Object.assign(global.STATS_DATA, stats.players);
+
+    // Per-player manual tier + Buy/Sell/Hold + trending tags from the FPTS
+    // Google Sheet (sync-tiers.py). Keyed by display name; consumers also
+    // look up by normalizePlayerName(name) via TIERS_BY_NORM below for
+    // cross-source matching (handles "D.J." vs "DJ", etc.). compare.html
+    // surfaces this as a hero badge; tiers.html still has its own inline
+    // TIER_PLAYERS array but both originate from the same Sheet sync.
+    if (tiers && tiers.players) {
+      Object.assign(global.TIERS_DATA, tiers.players);
+      global.TIERS_BY_NORM = {};
+      Object.keys(global.TIERS_DATA).forEach(function (n) {
+        global.TIERS_BY_NORM[normalizePlayerName(n)] = global.TIERS_DATA[n];
+      });
+    }
 
     // Auto-populate SLEEPER_IDS from FP_VALUES if the page didn't pre-seed it.
     // Pages that ship a hand-curated SLEEPER_IDS dict (e.g. trade-calculator)

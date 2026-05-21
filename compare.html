@@ -69,7 +69,7 @@
 <script src="assets/js/team-helpers.js?v=1778680002"></script>
 <script src="assets/js/player-panel.js?v=1781200000" defer></script>
 
-<script src="assets/js/data-bootstrap.js?v=1781000000"></script>
+<script src="assets/js/data-bootstrap.js?v=1783600000"></script>
 <script src="assets/js/sleeper-helpers.js?v=1780800000"></script>
 
 <style>
@@ -1771,6 +1771,106 @@
     return { name, fp, sid, sleeper, stats };
   }
 
+  // Tier + Buy/Sell/Hold lookup. Sourced from data/tiers.json (sync-tiers.py
+  // mirror of the FPTS Google Sheet, loaded by data-bootstrap.js into
+  // window.TIERS_DATA + window.TIERS_BY_NORM). Returns null when the player
+  // isn't in the tiered set (the Sheet covers ~236 ranked dynasty assets
+  // — rookies + deep stashes can be absent).
+  function _pcTierLookup(name) {
+    if (!name) return null;
+    var T = window.TIERS_DATA || {};
+    if (T[name]) return T[name];
+    var N = window.TIERS_BY_NORM || {};
+    var key = window.normalizePlayerName ? window.normalizePlayerName(name) : name.toLowerCase();
+    return N[key] || null;
+  }
+
+  // Tier color band — mirrors tiers.html tierBadgeClass + .tier-badge.t-*
+  // CSS, but inlined here so compare.html doesn't depend on tiers.html's
+  // stylesheet. Black text per the inverted-doctrine rule (brand.css §1).
+  function _pcTierBgColor(tier) {
+    switch ((tier || '').toUpperCase()) {
+      case 'S++': return 'var(--red)';
+      case 'S+':  return 'var(--pos-qb-bg)';
+      case 'S':   return 'var(--yellow)';
+      case 'A+':  return 'var(--orange)';
+      case 'A':
+      case 'A-':  return 'var(--pos-rb-bg)';
+      case 'B+':
+      case 'B':
+      case 'B-':  return 'var(--pos-wr-bg)';
+      case 'C+':
+      case 'C':
+      case 'C-':  return 'var(--pos-pick-bg)';
+      case 'D+':
+      case 'D':
+      case 'D-':  return '#555';
+      case 'E+':
+      case 'E':
+      case 'E-':  return '#444';
+      case 'F+':
+      case 'F':
+      case 'F-':  return '#333';
+      default:    return 'var(--surface2)';
+    }
+  }
+  // For dark D/E/F tiers, the text needs to stay white — those aren't
+  // "bright fills." For everything else, #111 per the doctrine.
+  function _pcTierFgColor(tier) {
+    var t = (tier || '').toUpperCase();
+    if (/^[DEF]/.test(t)) return 'var(--white)';
+    return '#111';
+  }
+
+  function _pcBshChipStyle(val) {
+    var v = (val || '').toString().toLowerCase();
+    switch (v) {
+      case 'buying':    return { bg: 'var(--green)',    fg: '#111', label: 'BUYING' };
+      case 'checking':  return { bg: 'rgba(76,175,110,.65)', fg: '#111', label: 'CHECKING' };
+      case 'selling':   return { bg: 'var(--red)',      fg: '#111', label: 'SELLING' };
+      case 'shopping':  return { bg: 'var(--orange)',   fg: '#111', label: 'SHOPPING' };
+      case 'hold':      return { bg: 'rgba(232,115,42,.80)', fg: '#111', label: 'HOLD' };
+      default:          return null;
+    }
+  }
+
+  // Renders the tier + Buy/Sell/Hold chips. Returns empty string when the
+  // player has neither (so we don't leave a hollow row). Used by both the
+  // single-player info column and the multi-card identity meta.
+  function _pcTierBadgeHtml(name) {
+    var rec = _pcTierLookup(name);
+    if (!rec) return '';
+    var chips = [];
+    if (rec.tier) {
+      chips.push(
+        '<span class="pc-tier-chip" style="background:' + _pcTierBgColor(rec.tier) +
+        ';color:' + _pcTierFgColor(rec.tier) +
+        ';font-family:\'Kanit\',sans-serif;font-weight:800;font-style:italic;font-size:11px;' +
+        'padding:2px 8px;letter-spacing:.04em;display:inline-flex;align-items:center;">' +
+        _escAttr(rec.tier) + '</span>'
+      );
+    }
+    var bsh = _pcBshChipStyle(rec.buySell);
+    if (bsh) {
+      chips.push(
+        '<span class="pc-bsh-chip" style="background:' + bsh.bg +
+        ';color:' + bsh.fg +
+        ';font-family:\'Kanit\',sans-serif;font-weight:800;font-style:italic;font-size:10px;' +
+        'padding:2px 7px;letter-spacing:.06em;display:inline-flex;align-items:center;">' +
+        bsh.label + '</span>'
+      );
+    }
+    if (rec.trending) {
+      chips.push(
+        '<span class="pc-trending-chip" style="font-size:14px;line-height:1;display:inline-flex;align-items:center;" ' +
+        'title="Trending: ' + _escAttr(rec.trending) + '">' + _escAttr(rec.trending) + '</span>'
+      );
+    }
+    if (!chips.length) return '';
+    return '<div class="pc-tier-badge-row" style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:8px;">' +
+           chips.join('') + '</div>';
+  }
+
   // ─── Render: empty-state search ────────────────────────────────────
   function _pcRenderEmpty() {
     document.getElementById('pc-app').innerHTML = `
@@ -2118,6 +2218,7 @@
           <div class="pc-now-profiling">Now profiling</div>
           <div class="pc-info-name">${name}</div>
           <div class="pc-info-subtitle">${yearShort} Season · ${pos}${team ? ' · ' + team : ''}</div>
+          ${_pcTierBadgeHtml(name)}
           <div class="pc-tiles">
             ${_pcTile('Height', ht)}
             ${_pcTile('Weight', wt)}
@@ -3585,6 +3686,7 @@
             <span class="sep">·</span>
             <span>${yrs}</span>
           </div>
+          ${_pcTierBadgeHtml(name)}
         </div>
         <div class="pc-card-tab-body">
           ${_pcCardTabContent(name, otherName)}
