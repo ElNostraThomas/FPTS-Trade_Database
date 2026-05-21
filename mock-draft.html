@@ -952,9 +952,15 @@
         (w.scarcity || 0) * scarcityScore +
         (w.favor    || 0) * favorScore;
 
-      // Hard reach penalty when player.adp is far ahead of current pick.
+      // Reach penalty: quadratic gradient (1.5 exponent) so small reaches
+      // sting gently but big reaches are punitive. The earlier linear
+      // 0.05/pick gradient let high-value young SF QBs (Drake Maye etc.)
+      // sneak into round 1 because their value component (0.15 × ~9.0 =
+      // 1.35) overwhelmed the linear penalty (20 picks × 0.05 = 1.0).
+      // Curve: 5 picks beyond → 0.56; 10 → 1.58; 20 → 4.50; 30 → 8.22.
       if (adpDelta < -personality.reachTolerance) {
-        composite -= Math.abs(adpDelta + personality.reachTolerance) * 0.05;
+        const reach = Math.abs(adpDelta + personality.reachTolerance);
+        composite -= Math.pow(reach, 1.5) * 0.05;
       }
 
       // Anti-clumping: light penalty for drafting same position 3rd time in 4 picks.

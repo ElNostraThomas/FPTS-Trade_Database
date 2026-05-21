@@ -1731,9 +1731,15 @@ favorScore    = personality.favoritePlayers.includes(player.name) ? 1.5 : 0;
 composite = w.adp * adpScore + w.posNeed * posNeedScore + w.value * valScore
           + w.scarcity * scarcityScore + w.favor * favorScore;
 
-// Hard reach penalty (gentle gradient — 0.05 per pick past tolerance)
+// Reach penalty: quadratic gradient (1.5 exponent × 0.05). Small reaches
+// barely sting; big reaches are punitive. Empirically calibrated so a
+// high-value young SF QB (Drake Maye, etc.) at ADP 25 can't sneak into
+// round 1 just because his trade value is high.
+//   5 picks beyond tolerance → -0.56    10 → -1.58
+//   20 picks beyond         → -4.50    30 → -8.22
 if ((currentPick - player.adp) < -reachTolerance) {
-  composite -= Math.abs((currentPick - player.adp) + reachTolerance) * 0.05;
+  const reach = Math.abs((currentPick - player.adp) + reachTolerance);
+  composite -= Math.pow(reach, 1.5) * 0.05;
 }
 // Anti-clumping: penalty for drafting same position 2+ of last 3 picks
 if (myRoster.slice(-3).filter(p => p.pos === player.pos).length >= 2) {
@@ -1794,7 +1800,7 @@ selected = weightedRandomSample(top, probs);
 - **Hand-tuned weights, not ML-learned.** The spec's ML companion requires a backend training pipeline. Deferred until a backend ships.
 - **Manager Clone archetype deferred** — would require real Sleeper draft history per user (same blocker as 1QB SEED_USERS).
 - **Monte Carlo replaced by PICK_AVAILABILITY matrix.** Major implementation simplification with minimal loss of fidelity (the matrix encodes the simulation's empirical answer).
-- **Reach penalty gradient = 0.05/pick** — 1 pick beyond tolerance → -0.05, 10 picks beyond → -0.5. A tendency, not a wall.
+- **Reach penalty: quadratic (reach^1.5 × 0.05).** Small reaches sting gently; big reaches are punitive. 5 picks beyond → -0.56; 10 → -1.58; 20 → -4.50; 30 → -8.22. Bumped from linear (0.05/pick) in the 2026-05-20 second tweak after a Drake Maye 1.02 reach surfaced in user testing — the linear gradient let high-value young SF QBs sneak into round 1 because their value component (0.15 × ~9.0 = 1.35) overwhelmed the linear penalty. Quadratic curve preserves "tendency" for small reaches while making severe reaches a hard wall.
 - **Anti-clumping at -0.3** — strong enough to discourage 3 RBs in 4 picks but not enough to prevent it when scarcity overrides.
 - **Softmax temperature = 0.5** — moderate stochasticity. Lower (0.2) → more deterministic; higher (1.0) → more noise. 0.5 felt right in informal testing.
 - **Jitter ±0.075** — enough that same-personality seats diverge; small enough that personality still dominates.
