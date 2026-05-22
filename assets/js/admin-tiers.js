@@ -761,18 +761,18 @@
         parts.push('<div style="font-size:13px;opacity:.75;margin:14px 0 4px">Your overrides match GitHub\'s current state. Nothing to commit.</div>');
         parts.push('<div style="font-size:11px;opacity:.5;margin-bottom:18px">(Tip: click "Clear all" in the banner to drop these no-op overrides locally.)</div>');
       } else {
-        parts.push('<div style="font-size:12px;opacity:.8;margin-bottom:14px">' + totalChanges + ' change' + (totalChanges === 1 ? '' : 's') + ' will be committed to <code style="background:#0a0a0a;padding:1px 5px;border-radius:3px;font-size:11px">elnostrathomas/FPTS-Trade_Database</code>:</div>');
+        parts.push('<div style="font-size:12px;opacity:.8;margin-bottom:14px">' + totalChanges + ' change' + (totalChanges === 1 ? '' : 's') + ' will be committed to <code style="background:var(--black);padding:1px 5px;border-radius:3px;font-size:11px">elnostrathomas/FPTS-Trade_Database</code>:</div>');
 
         if (playerDiff.length) {
           parts.push('<div style="font-family:\'Kanit\',sans-serif;font-weight:800;font-style:italic;font-size:12px;color:var(--red);text-transform:uppercase;letter-spacing:.04em;margin:6px 0 6px">Player changes (' + playerDiff.length + ')</div>');
           parts.push('<div style="font-size:12px;line-height:1.7;border-left:2px solid #333;padding-left:10px;max-height:300px;overflow-y:auto">');
           playerDiff.forEach(function (c) {
             if (c.type === 'tier') {
-              parts.push('<div><span style="color:#ffd86b">⇅</span> <strong>' + _esc(c.name) + '</strong>  <span style="color:#888">' + _esc(c.from) + ' → </span><span style="color:#66dd84">' + _esc(c.to) + '</span></div>');
+              parts.push('<div><span style="color:var(--yellow)">⇅</span> <strong>' + _esc(c.name) + '</strong>  <span style="color:#888">' + _esc(c.from) + ' → </span><span style="color:#66dd84">' + _esc(c.to) + '</span></div>');
             } else if (c.type === 'add') {
               parts.push('<div><span style="color:#66dd84">+</span> <strong>' + _esc(c.name) + '</strong> added to <span style="color:#66dd84">' + _esc(c.tier) + '</span></div>');
             } else if (c.type === 'remove') {
-              parts.push('<div><span style="color:#ff7766">−</span> <strong>' + _esc(c.name) + '</strong> removed from <span style="color:#888">' + _esc(c.tier) + '</span></div>');
+              parts.push('<div><span style="color:var(--red)">−</span> <strong>' + _esc(c.name) + '</strong> removed from <span style="color:#888">' + _esc(c.tier) + '</span></div>');
             } else if (c.type === 'meta') {
               parts.push('<div><span style="color:#888">✎</span> <strong>' + _esc(c.name) + '</strong> ' + _esc(c.field) + ': <span style="color:#888">' + _esc(c.from || '∅') + ' → </span><span style="color:#66dd84">' + _esc(c.to || '∅') + '</span></div>');
             }
