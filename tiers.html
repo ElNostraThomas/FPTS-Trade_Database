@@ -12,7 +12,7 @@
 <!-- OBS zoom controls — only renders when embedded; top-right pill steps body { zoom }. -->
 <script src="assets/js/obs-zoom-controls.js?v=1783800000"></script>
 <!-- Admin-mode tier+B/S/H scratchpad — only renders when ?admin=1 is set. -->
-<script src="assets/js/admin-tiers.js?v=1786500000"></script>
+<script src="assets/js/admin-tiers.js?v=1786600000"></script>
 <!-- Back-to-top floating button — appears when scrolled, click for smooth-scroll to top. -->
 <script src="assets/js/back-to-top.js?v=1782200000" defer></script>
 <!-- Custom <select> wrapper — OBS/CEF compat (native popups don't render in iframes). -->
@@ -2713,8 +2713,17 @@ function renderTiers() {
         }
         return rowHtml;
       }).join('');
+      // Phase 5 — when admin is on, the tier header doubles as the drag
+      // handle for whole-section reordering. Each header carries the tier
+      // code + a draggable flag; the IIFE near line ~3110 wires the
+      // dragstart/dragover/drop pipeline and persists via
+      // AdminTiers.setTierOrder.
+      const _headerAttrs = _adminOn
+        ? ' draggable="true" data-tier-code="' + t + '" title="Drag to reorder tier sections" style="cursor:grab"'
+        : '';
       html += '<div class="tier-group">'
-        + '<div class="tier-group-header">'
+        + '<div class="tier-group-header"' + _headerAttrs + '>'
+          + (_adminOn ? '<span class="tier-group-drag-handle" aria-hidden="true" style="font-size:13px;opacity:.7;margin-right:2px;cursor:grab">⋮⋮</span>' : '')
           + '<span class="tier-group-letter">' + t + '</span>'
           + '<span class="tier-group-desc">' + desc + '</span>'
           + adminCtrls
@@ -3100,6 +3109,80 @@ document.addEventListener('fpts:tier-config-changed', () => {
       .map(r => r.getAttribute('data-player'));
     if (window.AdminTiers && window.AdminTiers.setPlayerOrder) {
       window.AdminTiers.setPlayerOrder(tierCode, newOrder);
+    }
+  });
+})();
+
+// Phase 5 — drag-and-drop reorder of tier SECTIONS. The .tier-group-header
+// is the drag handle when admin mode is on (see renderTiers). Drop position
+// is computed by mouse-Y vs the hovered header's midline. Source section
+// dims to 0.5 opacity during drag; valid drop target gets a thick red top
+// or bottom border ON THE HEADER. Final order is computed from the DOM
+// after the splice, then handed to AdminTiers.setTierOrder. Keeps the
+// existing ▲/▼ arrow buttons in place — drag is for big reorders, arrows
+// for adjacent swaps.
+(function () {
+  let dragSource = null;        // the .tier-group element being dragged
+  let lastDropTarget = null;    // the .tier-group-header currently highlighted
+  function _clearDropIndicator() {
+    if (lastDropTarget) {
+      lastDropTarget.style.borderTop = '';
+      lastDropTarget.style.borderBottom = '';
+      lastDropTarget = null;
+    }
+  }
+  document.addEventListener('dragstart', (e) => {
+    const hdr = e.target.closest && e.target.closest('.tier-group-header[draggable="true"][data-tier-code]');
+    if (!hdr) return;
+    const group = hdr.closest('.tier-group');
+    if (!group) return;
+    dragSource = group;
+    group.style.opacity = '0.5';
+    try {
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', hdr.getAttribute('data-tier-code') || '');
+    } catch (_) {}
+  });
+  document.addEventListener('dragend', () => {
+    if (dragSource) dragSource.style.opacity = '';
+    dragSource = null;
+    _clearDropIndicator();
+  });
+  document.addEventListener('dragover', (e) => {
+    if (!dragSource) return;
+    const hdr = e.target.closest && e.target.closest('.tier-group-header[draggable="true"][data-tier-code]');
+    if (!hdr) return;
+    const targetGroup = hdr.closest('.tier-group');
+    if (!targetGroup || targetGroup === dragSource) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    const rect = hdr.getBoundingClientRect();
+    const above = (e.clientY - rect.top) < rect.height / 2;
+    if (hdr !== lastDropTarget) _clearDropIndicator();
+    hdr.style.borderTop = above ? '3px solid var(--red)' : '';
+    hdr.style.borderBottom = above ? '' : '3px solid var(--red)';
+    lastDropTarget = hdr;
+  });
+  document.addEventListener('drop', (e) => {
+    if (!dragSource) { _clearDropIndicator(); return; }
+    const hdr = e.target.closest && e.target.closest('.tier-group-header[draggable="true"][data-tier-code]');
+    if (!hdr) { _clearDropIndicator(); return; }
+    const targetGroup = hdr.closest('.tier-group');
+    if (!targetGroup || targetGroup === dragSource) { _clearDropIndicator(); return; }
+    e.preventDefault();
+    const rect = hdr.getBoundingClientRect();
+    const above = (e.clientY - rect.top) < rect.height / 2;
+    const parent = targetGroup.parentNode;
+    if (above) parent.insertBefore(dragSource, targetGroup);
+    else       parent.insertBefore(dragSource, targetGroup.nextSibling);
+    _clearDropIndicator();
+    // Read the new order off the DOM after the splice. Scoping the query
+    // to direct children of parent avoids picking up nested headers if any
+    // sibling structure ever appears above the groups.
+    const newOrder = Array.from(parent.querySelectorAll('.tier-group > .tier-group-header[data-tier-code]'))
+      .map(h => h.getAttribute('data-tier-code'));
+    if (window.AdminTiers && window.AdminTiers.setTierOrder) {
+      window.AdminTiers.setTierOrder(newOrder);
     }
   });
 })();

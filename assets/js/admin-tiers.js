@@ -408,6 +408,34 @@
     _refreshBanner();
   }
 
+  // Persist a full tier-order array. Used by the drag-and-drop reorder
+  // path in tiers.html (Phase 5) — pass the codes in their new display
+  // order. Defensive: filters out unknown codes and re-appends any
+  // canonical tiers missing from the input so a partial array can't
+  // drop tiers from the display.
+  function setTierOrder(orderArray) {
+    if (!Array.isArray(orderArray)) return;
+    var canonical = effectiveTierConfig().map(function (t) { return t.code; });
+    var seen = {};
+    var clean = [];
+    orderArray.forEach(function (c) {
+      if (c && canonical.indexOf(c) >= 0 && !seen[c]) { clean.push(c); seen[c] = true; }
+    });
+    canonical.forEach(function (c) {
+      if (!seen[c]) clean.push(c);
+    });
+    // No-op if the new order matches what we'd render today.
+    if (clean.join('|') === canonical.join('|')) {
+      // Still clear an existing override if it was redundant.
+      var existing = _readOrderOverride();
+      if (existing) { _writeOrderOverride(null); _fireConfigChanged(); _refreshBanner(); }
+      return;
+    }
+    _writeOrderOverride(clean);
+    _fireConfigChanged();
+    _refreshBanner();
+  }
+
   function _fireConfigChanged() {
     try {
       document.dispatchEvent(new CustomEvent('fpts:tier-config-changed', {
@@ -1565,6 +1593,8 @@
     // Phase 4 — per-tier player ordering (drag-and-drop from tiers.html):
     sortPlayersForTier: sortPlayersForTier,
     setPlayerOrder:     setPlayerOrder,
+    // Phase 5 — tier section drag-and-drop (drag handler in tiers.html):
+    setTierOrder:       setTierOrder,
   };
 
   if (document.readyState === 'loading') {
