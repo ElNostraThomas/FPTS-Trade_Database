@@ -1,5 +1,5 @@
 {
-  "version": "2026-05-22T04:55:39+00:00",
+  "version": "2026-05-22T19:44:43+00:00",
   "source": "Google Sheet via sync-tiers.py",
   "playerCount": 200,
   "players": {
@@ -75,14 +75,6 @@
       "contender": "",
       "notes": ""
     },
-    "Caleb Williams": {
-      "tier": "S+",
-      "trending": "",
-      "buySell": "",
-      "priority": "",
-      "contender": "",
-      "notes": ""
-    },
     "Jayden Daniels": {
       "tier": "S+",
       "trending": "",
@@ -131,7 +123,7 @@
       "contender": "",
       "notes": ""
     },
-    "Coltson Loveland": {
+    "Colston Loveland": {
       "tier": "S",
       "trending": "",
       "buySell": "",
@@ -203,6 +195,14 @@
       "contender": "",
       "notes": ""
     },
+    "Caleb Williams": {
+      "tier": "A+",
+      "trending": "",
+      "buySell": "",
+      "priority": "",
+      "contender": "",
+      "notes": ""
+    },
     "Chris Olave": {
       "tier": "A+",
       "trending": "",
@@ -251,7 +251,7 @@
       "contender": "",
       "notes": ""
     },
-    "Luther Burden III": {
+    "Luther Burden": {
       "tier": "A+",
       "trending": "",
       "buySell": "",
@@ -491,7 +491,7 @@
       "contender": "",
       "notes": ""
     },
-    "Brian Thomas Jr.": {
+    "Brian Thomas": {
       "tier": "B+",
       "trending": "",
       "buySell": "",
@@ -515,7 +515,7 @@
       "contender": "",
       "notes": ""
     },
-    "Harold Fannin Jr.": {
+    "Harold Fannin": {
       "tier": "B+",
       "trending": "Down 1 Tier",
       "buySell": "",
@@ -595,7 +595,7 @@
       "contender": "",
       "notes": ""
     },
-    "Marvin Harrison Jr.": {
+    "Marvin Harrison": {
       "tier": "B+",
       "trending": "",
       "buySell": "",
@@ -635,7 +635,7 @@
       "contender": "",
       "notes": ""
     },
-    "Travis Etienne Jr.": {
+    "Travis Etienne": {
       "tier": "B+",
       "trending": "",
       "buySell": "",
@@ -731,7 +731,7 @@
       "contender": "",
       "notes": ""
     },
-    "Omar Cooper Jr.": {
+    "Omar Cooper": {
       "tier": "B",
       "trending": "",
       "buySell": "",
@@ -739,7 +739,7 @@
       "contender": "",
       "notes": ""
     },
-    "Oronde Gadsden II": {
+    "Oronde Gadsden": {
       "tier": "B",
       "trending": "",
       "buySell": "",
@@ -1051,7 +1051,7 @@
       "contender": "",
       "notes": ""
     },
-    "Michael Pittman Jr.": {
+    "Michael Pittman": {
       "tier": "C+",
       "trending": "",
       "buySell": "",
@@ -1059,7 +1059,7 @@
       "contender": "",
       "notes": ""
     },
-    "Nick Singleton": {
+    "Nicholas Singleton": {
       "tier": "C+",
       "trending": "",
       "buySell": "",
@@ -1155,7 +1155,7 @@
       "contender": "",
       "notes": ""
     },
-    "Chris Brazzell II": {
+    "Chris Brazzell": {
       "tier": "C",
       "trending": "",
       "buySell": "",
@@ -1163,7 +1163,7 @@
       "contender": "",
       "notes": ""
     },
-    "Chris Rodriguez Jr.": {
+    "Chris Rodriguez": {
       "tier": "C",
       "trending": "Up 1 Tier",
       "buySell": "",
@@ -1259,7 +1259,7 @@
       "contender": "",
       "notes": ""
     },
-    "JK Dobbins": {
+    "J.K. Dobbins": {
       "tier": "C",
       "trending": "Down 1 Tier",
       "buySell": "",
@@ -1339,7 +1339,7 @@
       "contender": "",
       "notes": ""
     },
-    "Mike Washington Jr.": {
+    "Mike Washington": {
       "tier": "C",
       "trending": "",
       "buySell": "",
@@ -1403,7 +1403,7 @@
       "contender": "",
       "notes": ""
     },
-    "TJ Hockenson": {
+    "T.J. Hockenson": {
       "tier": "C",
       "trending": "",
       "buySell": "",
@@ -1419,7 +1419,7 @@
       "contender": "",
       "notes": ""
     },
-    "Tre Harris": {
+    "Tre' Harris": {
       "tier": "C",
       "trending": "",
       "buySell": "",
@@ -1443,7 +1443,7 @@
       "contender": "",
       "notes": ""
     },
-    "Tyrone Tracy Jr.": {
+    "Tyrone Tracy": {
       "tier": "C",
       "trending": "Up 1 Tier",
       "buySell": "",
