@@ -47,7 +47,15 @@
   var STORAGE_KEY_OVERRIDES = 'fpts-tier-overrides';
 
   var TIERS = ['S++','S+','S','A+','A','A-','B+','B','B-','C+','C','C-','D+','D','D-','E+','E','E-','F+','F','F-'];
+  // 5 + empty for Buy/Sell/Hold (mirrors bshChipHtml in tiers.html)
   var BSHS  = ['', 'buying', 'checking', 'selling', 'shopping', 'hold'];
+  // 5 priority levels — Top Target = active acquire, Avoid = active divest.
+  // Saved as the exact display label so priorityChipHtml renders without
+  // mapping.
+  var PRIORITIES = ['', 'Top Target', 'High', 'Medium', 'Low', 'Avoid'];
+  // 5 team-archetype buckets, same vocabulary as my-leagues' team archetype
+  // classifier (mlGetArchetype) for cross-page consistency.
+  var CONTENDERS = ['', 'Dynasty', 'Contender', 'Tweener', 'Rebuilder', 'Emergency'];
 
   // ── Password gate ───────────────────────────────────────────────────────
   // SHA-256 hex of the admin password. Generated via the ?admin=hash setup
@@ -401,16 +409,35 @@
       var label = b ? b.charAt(0).toUpperCase() + b.slice(1) : '— none —';
       return '<option value="' + b + '"' + (b === (rec.buySell || '') ? ' selected' : '') + '>' + label + '</option>';
     }).join('');
+    var priorityOpts = PRIORITIES.map(function (p) {
+      var label = p || '— none —';
+      return '<option value="' + p + '"' + (p === (rec.priority || '') ? ' selected' : '') + '>' + label + '</option>';
+    }).join('');
+    var contenderOpts = CONTENDERS.map(function (c) {
+      var label = c || '— none —';
+      return '<option value="' + c + '"' + (c === (rec.contender || '') ? ' selected' : '') + '>' + label + '</option>';
+    }).join('');
+    var selStyle = 'width:100%;margin-top:3px;background:var(--surface2);color:var(--white);border:1px solid var(--border);padding:5px;font-family:\'Kanit\',sans-serif;font-weight:800;font-style:italic';
     _popover.innerHTML = ''
       + '<div style="font-family:\'Kanit\',sans-serif;font-weight:800;font-style:italic;font-size:13px;color:var(--red);text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px">' + playerName + '</div>'
       + '<label style="display:block;margin-bottom:8px">Tier'
-      +   '<select id="fpts-adm-tier" style="width:100%;margin-top:3px;background:var(--surface2);color:var(--white);border:1px solid var(--border);padding:5px;font-family:\'Kanit\',sans-serif;font-weight:800;font-style:italic">'
+      +   '<select id="fpts-adm-tier" style="' + selStyle + '">'
       +     '<option value="">— none —</option>' + tierOpts
       +   '</select>'
       + '</label>'
       + '<label style="display:block;margin-bottom:8px">Buy / Sell / Hold'
-      +   '<select id="fpts-adm-bsh" style="width:100%;margin-top:3px;background:var(--surface2);color:var(--white);border:1px solid var(--border);padding:5px;font-family:\'Kanit\',sans-serif;font-weight:800;font-style:italic">'
+      +   '<select id="fpts-adm-bsh" style="' + selStyle + '">'
       +     bshOpts
+      +   '</select>'
+      + '</label>'
+      + '<label style="display:block;margin-bottom:8px">Priority Level'
+      +   '<select id="fpts-adm-priority" style="' + selStyle + '">'
+      +     priorityOpts
+      +   '</select>'
+      + '</label>'
+      + '<label style="display:block;margin-bottom:8px">Contender / Rebuild'
+      +   '<select id="fpts-adm-contender" style="' + selStyle + '">'
+      +     contenderOpts
       +   '</select>'
       + '</label>'
       + '<label style="display:block;margin-bottom:10px">Trending (emoji or text)'
@@ -436,10 +463,15 @@
     _popover.style.top  = ((rect.bottom + window.scrollY + 4) / bodyZoom) + 'px';
 
     document.getElementById('fpts-adm-save').addEventListener('click', function () {
-      var tier     = document.getElementById('fpts-adm-tier').value || '';
-      var buySell  = document.getElementById('fpts-adm-bsh').value || '';
-      var trending = document.getElementById('fpts-adm-trending').value || '';
-      saveOverride(playerName, { tier: tier, buySell: buySell, trending: trending });
+      var tier      = document.getElementById('fpts-adm-tier').value || '';
+      var buySell   = document.getElementById('fpts-adm-bsh').value || '';
+      var priority  = document.getElementById('fpts-adm-priority').value || '';
+      var contender = document.getElementById('fpts-adm-contender').value || '';
+      var trending  = document.getElementById('fpts-adm-trending').value || '';
+      saveOverride(playerName, {
+        tier: tier, buySell: buySell, priority: priority,
+        contender: contender, trending: trending,
+      });
       _popover.style.display = 'none';
       _flashBanner('Saved ' + playerName + '.');
     });
