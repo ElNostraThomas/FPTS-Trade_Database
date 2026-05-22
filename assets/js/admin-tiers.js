@@ -49,18 +49,87 @@
   var TIERS = ['S++','S+','S','A+','A','A-','B+','B','B-','C+','C','C-','D+','D','D-','E+','E','E-','F+','F','F-'];
   var BSHS  = ['', 'buying', 'checking', 'selling', 'shopping', 'hold'];
 
-  // ── Activation handling ─────────────────────────────────────────────────
-  function _handleUrlParam() {
-    var url = new URL(window.location.href);
+  // ── Password gate ───────────────────────────────────────────────────────
+  // SHA-256 hex of the admin password. Generated via the ?admin=hash setup
+  // flow. Empty string = no password configured (admin mode CANNOT be
+  // activated until you set one). Stored in committed source so only the
+  // repo owner can change it. Anyone reading the public JS sees this hash
+  // but can't trivially reverse it — pick a strong password (12+ chars,
+  // mixed) and dictionary attacks are infeasible. The "real" security
+  // boundary is the GitHub PAT (when Path B publish ships in Phase 1b);
+  // this gate's job is preventing public visitors from even seeing the
+  // editor UI.
+  var PASSWORD_HASH = '';
+
+  async function hashPassword(pw) {
+    if (!window.crypto || !window.crypto.subtle) {
+      throw new Error('WebCrypto unavailable — admin mode requires HTTPS (or localhost).');
+    }
+    var bytes = new TextEncoder().encode(String(pw == null ? '' : pw));
+    var buf = await window.crypto.subtle.digest('SHA-256', bytes);
+    return Array.from(new Uint8Array(buf))
+      .map(function (b) { return b.toString(16).padStart(2, '0'); })
+      .join('');
+  }
+
+  // ── Activation handling ────────────────────────────────────────────────
+  // URL flags:
+  //   ?admin=1    -> prompt for password; on match, sticky-activate
+  //   ?admin=0    -> disable + clear localStorage flag (no password needed)
+  //   ?admin=hash -> setup helper. Prompts for a NEW password, computes
+  //                  SHA-256, displays it for you to paste into the
+  //                  PASSWORD_HASH constant above. One-time setup.
+  async function _handleUrlParam() {
+    var url;
+    try { url = new URL(window.location.href); } catch (e) { return; }
     var p = url.searchParams.get('admin');
-    if (p === '1') {
-      try { localStorage.setItem(STORAGE_KEY_MODE, 'true'); } catch (e) {}
-      url.searchParams.delete('admin');
-      try { history.replaceState(null, '', url.toString()); } catch (e) {}
-    } else if (p === '0') {
+    if (!p) return;
+    // Always strip the param from the visible URL so the secret never sits
+    // in the address bar / history / screenshots.
+    url.searchParams.delete('admin');
+    try { history.replaceState(null, '', url.toString()); } catch (e) {}
+
+    if (p === '0') {
       try { localStorage.removeItem(STORAGE_KEY_MODE); } catch (e) {}
-      url.searchParams.delete('admin');
-      try { history.replaceState(null, '', url.toString()); } catch (e) {}
+      return;
+    }
+
+    if (p === 'hash') {
+      var pw = window.prompt('Enter a NEW admin password to hash:\n\n(The hash will be displayed for you to paste into\nassets/js/admin-tiers.js PASSWORD_HASH constant.)');
+      if (!pw) return;
+      try {
+        var hex = await hashPassword(pw);
+        // window.prompt with a 2nd-arg default pre-fills the input box,
+        // making it trivially copyable on every platform.
+        window.prompt(
+          'Paste this hex into admin-tiers.js PASSWORD_HASH (then push.bat):',
+          hex
+        );
+      } catch (e) {
+        window.alert('Hash failed: ' + e.message);
+      }
+      return;
+    }
+
+    if (p === '1') {
+      // Already-active sessions skip the prompt (sticky localStorage).
+      if (isActive()) return;
+      if (!PASSWORD_HASH) {
+        window.alert('Admin mode is not yet set up.\n\nVisit any page with ?admin=hash to generate a password hash, paste it into assets/js/admin-tiers.js PASSWORD_HASH, then push.bat.');
+        return;
+      }
+      var entered = window.prompt('Admin password:');
+      if (entered === null) return;
+      try {
+        var enteredHash = await hashPassword(entered);
+        if (enteredHash === PASSWORD_HASH) {
+          try { localStorage.setItem(STORAGE_KEY_MODE, 'true'); } catch (e) {}
+        } else {
+          window.alert('Wrong password.');
+        }
+      } catch (e) {
+        window.alert('Auth failed: ' + e.message);
+      }
     }
   }
 
@@ -400,14 +469,18 @@
   }
 
   // ── Init ────────────────────────────────────────────────────────────────
-  function init() {
-    _handleUrlParam();
+  // Async because the password gate needs WebCrypto.subtle.digest (returns
+  // a Promise). DOMContentLoaded fires init synchronously but doesn't wait
+  // on the returned Promise — that's fine; the async work proceeds in the
+  // background and the banner mounts when the gate resolves.
+  async function init() {
+    await _handleUrlParam();
     if (!isActive()) return;
     _mountBanner();
     _wireDelegatedClicks();
   }
 
-  // Public surface (used by tiers.html row template).
+  // Public surface (used by tiers.html row template + console helpers).
   window.AdminTiers = {
     isActive:           isActive,
     editButtonHtml:     editButtonHtml,
@@ -416,6 +489,10 @@
     clearAllOverrides:  clearAllOverrides,
     exportToClipboard:  exportToClipboard,
     overrideCount:      _overrideCount,
+    // Exposed for console-driven setup: `await AdminTiers.hashPassword('mypw')`
+    // returns the SHA-256 hex you'd paste into PASSWORD_HASH. The ?admin=hash
+    // URL helper does the same via a prompt UI; this is the dev-friendly path.
+    hashPassword:       hashPassword,
   };
 
   if (document.readyState === 'loading') {
