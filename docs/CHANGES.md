@@ -6,6 +6,127 @@ the operator manual see [`WORKFLOW.md`](WORKFLOW.md).
 
 ---
 
+## 2026-05-22 (fifteenth session) — Admin scratchpad hardening (stale-CSV defense, dry-run preview, Phase 5 drag) + rank-history surface + values-supplement layer + 17 name canonicalizations
+
+Continuation session after the fourteenth shipped Phases 1A-4. 8 substantive commits + 3 data-sync auto-commits. Closed out 6 of the 7 punch-list items inherited from session 14 (only "Bulk tier rename" + "Cross-tier drag" remain — both flagged low-priority). Also shipped rank-history lookback, a feature that had been carrying over from session 13 with `data/rank-history.json` orphaned. Per-commit detail below in chronological order:
+
+### `773cb17` — tiers: canonicalize 17 player names so values.json join lands
+
+Audit found 20 tier rows in `data/source/tiers/tiers.csv` with no exact-match in `data/values.json` → blank tier-table rendering (no value, no headshot, no team, no posRank). 17 were fixable name-form drift; 3 were genuinely absent from values.json (Cat B — addressed in `bac9d04`).
+
+Name fixes (left = old form in tiers.csv, right = canonical form from values.json):
+- 5 punctuation/nickname: `Coltson Loveland → Colston Loveland` (typo), `Nick Singleton → Nicholas Singleton`, `JK Dobbins → J.K. Dobbins`, `TJ Hockenson → T.J. Hockenson`, `Tre Harris → Tre' Harris`
+- 12 Jr./II/III suffix drops: Brian Thomas, Harold Fannin, Marvin Harrison, Travis Etienne, Omar Cooper, Oronde Gadsden, Michael Pittman, Chris Brazzell, Chris Rodriguez, Mike Washington, Tyrone Tracy, Luther Burden
+
+Trending flags preserved on the 4 rows that had them (`Down 1 Tier` / `Up 1 Tier` on Fannin, Rodriguez, Dobbins, Tracy). Regenerated `data/tiers.json` + `tiers.html` via `sync-tiers.py`. Post-fix verification: 0 remaining name mismatches between tiers.csv and values.json's 932-player set.
+
+### `bac9d04` — data: values-supplement layer for FP-absent players
+
+Investigation of why 3 players (Deebo Samuel, Tyreek Hill, Eli Stowers) still rendered blank after the name fixes: they're genuinely missing from `data/values.json`. Root cause: `data/values.json` is built by `sync-fp.py` walking FP's `/v2/adp/dynasty/nfl` API response — and FP appears to filter veteran free agents (Deebo, Tyreek) + below-cutoff rookies (Stowers).
+
+Fix: new force-include layer.
+
+**New file:** `data/source/values-supplement.csv` — header-driven CSV: `name, sleeperId, rank, posRank, pos, team, age, ppg, ppgPrior, tier, trend`. All fields optional except `name`. Seed entries for the 3 known cases (ranks 1000/1001/1002 — past FP's 932-player tail so they sort to the bottom of any rank-ordered list).
+
+**New function in sync-fp.py** (local-only — `sync-fp.py` is gitignored alongside `sync-fp.config.json`): `apply_values_supplement(players, sleeper_overlay)` reads the supplement after the FP fetch + Sleeper overlay, merges entries for any name NOT already in FP's response (skip-with-log otherwise). Sleeper overlay fills age/team/pos/ppg/injury auto when supplement leaves those blank but provides `sleeperId`. Wired into `main()` between the matched-overlay log and the articles-map build.
+
+Smoke-tested with mock overlay (added=3, skipped=0 fresh; added=2, skipped=1 when FP already had Tyreek). Verified live on next `push.bat` (commit `0cfd441`): all 3 players landed in `data/values.json` with full data — Tyreek `{rank:1000, posRank:WR109, FA, age 32.2, ppg 13.4, sleeperId 18082, injury:Questionable}`, Deebo similar, Stowers `{rank:1002, posRank:TE11, PHI, age 23.1, ...}`.
+
+### `9cec3c3` — docs: correct admin URL params in README session-14 description
+
+Session 14's Phase 1A bullet had `?admin=hash` listed as the password challenge — actually that's the one-time setup helper to regenerate `PASSWORD_HASH`. Source of truth (`admin-tiers.js:_handleUrlParam` lines 127-184): `?admin=1` activates with password check, `?admin=hash` is the setup helper, `?admin=0` disables. Affected the `FPTS Admin.url` desktop shortcut which had been pointing at the setup URL (corrected in same session).
+
+### `157b636` — admin: rebase Publish onto GitHub's latest CSV (stale-view defense)
+
+Discovered during the Loveland investigation. When `tiers.html` is loaded from `file://` on a local desktop folder behind `origin/main`, the page reads the stale local `tiers.csv` and Publish writes that stale state back to GitHub, silently reverting other admin commits made since the page was loaded. Loveland's row had ping-ponged across `d3bb5c7 / a98d0cf / 1e16d75` because of this — metadata like `up, buying, Top Target, Dynasty` got added in one session and reverted in the next from a stale page.
+
+**New publish flow** in `admin-tiers.js publishToGitHub`:
+
+1. GET latest `tiers.csv` from GitHub Contents API
+2. Decode base64 (new `_utf8Atob` helper — strips embedded newlines GitHub inserts every 60 chars)
+3. Parse via new `_parseTiersCsv(csvText)` — `{ [playerName]: { tier, trending, buySell, priority, contender, notes } }`; handles quoted fields, CRLF, BOM
+4. Merge localStorage overrides via new `_applyOverridesToData(base, overrides)` — user's overrides win on every field they set; `_deleted=true` preserved for downstream skip
+5. Build CSV from merged map via the existing `_buildOverriddenCsv(dataArg)` (refactored to accept an optional pre-merged data argument; defaults to `window.TIERS_DATA` for backward compatibility)
+6. PUT with GitHub's current SHA — concurrent edits within the same window still 409 cleanly
+
+Net effect: published CSV is always `(latest GitHub state) + (user's overrides)`, regardless of how stale the page's view is. Cache token bump: `admin-tiers.js ?v=1784700000 → ?v=1785500000` across all 11 consumers. Operationally also dropped a `FPTS Admin.url` shortcut on the user's desktop pointing at the live GitHub Pages admin URL so the operator can stop using `file://` entirely.
+
+### `b65e102` — admin: Publish dry-run / diff preview modal
+
+Click **Publish ⬆** now fetches GitHub's latest state, builds the merged result via the stale-CSV defense's GET-merge logic, and shows a modal listing every change before any commit fires. Cancel bails out cleanly (overrides preserved on this device); "Publish to GitHub ⬆" runs the existing `publishToGitHub` pipeline.
+
+**New helpers in admin-tiers.js:**
+
+- `_buildPlayerDiff(latest, merged)` — diff per player across: `⇅ tier-change`, `+ add-to-tier`, `− remove-from-tier`, `✎ metadata-change` (Trending / Buy-Sell / Priority / Contender / Notes). Sorted by player name.
+- `_buildConfigDiff(latestCfg, mergedCfg)` — tier renames + order changes
+- `_openPublishPreviewModal(playerDiff, configDiff)` — modal renderer, returns `Promise<bool>`; backdrop + Escape + Cancel all resolve `false`
+- `_esc(s)` — inline HTML-escape for player names + metadata interpolation
+
+**UX details:**
+
+- No-op case: if overrides match GitHub state exactly, modal shows "Your overrides match GitHub's current state. Nothing to commit." + hint to use Clear all
+- Publish button shows "Loading preview…" briefly while the GET fires
+- Preview errors (network / 401 / 403) alert + no publish attempt
+
+Cache token bump: `admin-tiers.js ?v=1785500000 → ?v=1786200000` across all 11 consumers.
+
+### `5832be2` — admin: brand-audit fix — map 3 inline hex to brand vars in preview modal
+
+`b65e102` tripped `scripts/check-colors.py` with 3 hardcoded hex colors. Mapped to brand CSS vars:
+- `#0a0a0a` (inline `<code>` background) → `var(--black)` (#111111)
+- `#ffd86b` (tier-change ⇅ symbol) → `var(--yellow)` (#f0c040)
+- `#ff7766` (player-removed − symbol) → `var(--red)` (#ED810C)
+
+Visual no-op intent — `var(--yellow)` is the brand's actual chip yellow, `var(--red)` is the same dynasty-orange used everywhere, and `var(--black)` is slightly darker than the modal surface (#1a1a1a) so the `<code>` tag still stands out. Cache token bump: `admin-tiers.js ?v=1786200000 → ?v=1786500000`. Audit: CLEAN across 34 files.
+
+### `bd61f28` — rankings: surface rank-history.json via daily-snapshot date picker
+
+`data/rank-history.json` (12 daily rank snapshots captured by `sync-fp.py` on each push.bat) was previously orphaned — no UI consumed it. This ships the consumer.
+
+**New module `assets/js/rank-comparator.js`** — parallels `adp-comparator.js` but lighter:
+- Single small JSON file (no per-year lazy-load needed)
+- Daily granularity (dropdown picker, not monthly calendar grid)
+- body-zoom-aware positioning (same fix `adp-comparator` has)
+- Public API: `init({storageKey, onChange}) / ensureLoaded() / getSnapshotDates() / getCurrentDate() / setCurrentDate(d) / getRankFor(name, date) / renderTriggerHtml() / openPopup(triggerEl) / closePopup() / changeChipHtml(cur, prev)`
+- Defaults to oldest snapshot (widest comparison window) when no saved selection
+
+**rankings.html integration:**
+
+- The RANK column header doubles as the date-picker trigger; the small sort ▲/▼ arrow moves inline next to it so sort still works (new selector `.rk-th-rank-compare`)
+- Each row's rank cell renders an inline chip next to the number: ▲N green = better now, ▼N red = worse, ● = flat
+- Same chip pattern on the consensus mobile card (`.rk-ccard`)
+- Renders blank if a player isn't in the selected snapshot (e.g., new players added since the snapshot was taken)
+
+Direction convention: lower number = better, same as ADP. So if a player went from rank 50 (historical) to rank 45 (current), they improved by 5 → ▲5 green chip.
+
+Legend entry added under tiers (`legend-content.js v=1783300000 → v=1786400001` across 10 consumers).
+
+### `8bf8ecc` — admin: Phase 5 — drag-and-drop reorder of tier sections (mirrors Phase 4)
+
+When admin mode is on, each `.tier-group-header` is now a drag handle (`draggable="true"` + `data-tier-code` + `cursor:grab` + a ⋮⋮ discoverability glyph). Drag a header onto another header → drop position uses the hover-target's midline (above/below). Source dims to 0.5 opacity; valid target shows a 3px red top/bottom border on its header. On drop the source `.tier-group` is spliced in place and the new order array is read off the DOM via:
+
+```
+parent.querySelectorAll('.tier-group > .tier-group-header[data-tier-code]')
+```
+
+then passed to the new public API: `AdminTiers.setTierOrder(orderArray)`. Defense: filters unknown codes + re-appends any canonical codes missing from the input so a partial array can't drop tiers from the display. No-op if the new order matches what would render today; in that case the existing override is cleared so a redundant override doesn't sit in localStorage.
+
+The legacy ▲/▼ section-arrow buttons stay in place — drag is for big reorders, arrows for adjacent swaps. Both paths converge on the same `fpts-tier-order-override` localStorage key + same publish flow.
+
+Cache token bump: `admin-tiers.js ?v=1786500000 → ?v=1786600000` across all 11 consumers.
+
+### Data-sync auto-commits during the session
+
+- `0cfd441` (`update site + refresh data`) — push.bat run that exercised the new `apply_values_supplement()` for the first time; landed Deebo/Tyreek/Stowers in `values.json` + refreshed all `data/adp-*.json`, `data/auction-*.json`, `data/pick-availability-*.json`, `data/mvs.json`, `data/picks.json`, `data/rank-history.json`, `docs/function-reference.pdf`.
+- `f387689` (`Update site + refresh data`) — manual commit of data refreshes left unstaged after a brand-audit-blocked push.bat run.
+- `966597f` (`update site + refresh date`) — push.bat run after the brand-audit fix.
+
+### Closeout state at end of session
+
+8 substantive commits + 3 data-sync commits all on `origin/main` (`8bf8ecc` Phase 5 still unpushed at this handoff; user to push next). Items 1, 2 from the new punch list (Bulk tier rename, Cross-tier drag) remain flagged low-priority. New item 3 added: admin-scratchpad Phases 1-5 aren't documented in `legend-content.js` under the `'tiers'` page entry. Audit CLEAN across 34 files.
+
+---
+
 ## 2026-05-22 (fourteenth session) — Admin scratchpad: Phase 3 (tier rename + reorder + publish) + Phase 4 (drag-drop player reorder) + 2 follow-up fixes
 
 4 substantive commits + 2 data-sync auto-commits. Session built on top of the Phase 1A/1B/2 admin scratchpad shipped earlier this same calendar day (carried over from end-of-session-13 context). Single dominant arc: complete the admin-tiers editor end-to-end so the operator can rename tier section headers, reorder tier sections, reorder players within a tier, and publish everything back to the repo with one click — then fix two real bugs the user caught during initial use.

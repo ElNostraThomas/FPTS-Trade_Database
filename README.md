@@ -13,6 +13,87 @@ This file is the **resume-where-we-left-off** doc.
 
 ---
 
+## Where we are (end of 2026-05-22 — fifteenth session)
+
+**Admin scratchpad hardening + new lookback features + data-correctness sweep.** Continuation session after the fourteenth shipped Phases 1A-4. Closed out 6 of the 7 punch-list items inherited from session 14 (only "Bulk tier rename" + "Cross-tier drag" remain — both flagged low-priority). Also surfaced and shipped a brand-new analytical feature (rank-history lookback) that had been carrying over from session 13 with `data/rank-history.json` sitting orphaned. 8 substantive commits + 2 data-sync auto-commits.
+
+### What shipped
+
+- **Re-created the admin PAT** (punch-list item 1 from session 14). New fine-grained token pasted into ⚙ SETTINGS via the GitHub Pages admin URL. Publish round-tripped successfully (commits `d3bb5c7`, `a468301`, `a98d0cf`, `1e16d75` during initial testing). PAT-persistence fix `ad8ffd8` from session 14 verified — Settings now correctly treats empty token-input on Save as "no change" (defending against Chrome's password-manager value-attr stripping).
+
+- **17 tier-row name canonicalizations** (`773cb17`) — `data/source/tiers/tiers.csv` had 17 player rows using name forms that didn't exact-match `data/values.json`, so their tier table rendered blank (no value, no headshot, no team, no posRank). Categories:
+  - 5 punctuation/nickname fixes (`Coltson Loveland → Colston Loveland`, `Nick Singleton → Nicholas Singleton`, `JK Dobbins → J.K. Dobbins`, `TJ Hockenson → T.J. Hockenson`, `Tre Harris → Tre' Harris`)
+  - 12 Jr./II/III suffix drops (`Brian Thomas Jr. → Brian Thomas`, `Marvin Harrison Jr. → Marvin Harrison`, etc. — `values.json` strips these)
+  - Trending flags preserved on 4 rows that had them
+  - Verified post-fix: 0 remaining name mismatches between tiers.csv and values.json
+
+- **values-supplement layer** (`bac9d04`) — Found 3 tier rows genuinely absent from `values.json` (Deebo Samuel, Tyreek Hill, Eli Stowers). Root cause: FP's `/v2/adp/dynasty/nfl` API filters veteran FAs + below-cutoff rookies. Fix: new `data/source/values-supplement.csv` (header-driven: `name, sleeperId, rank, posRank, pos, team, age, ppg, ppgPrior, tier, trend`); new `sync-fp.py:apply_values_supplement()` merges entries after the FP fetch + Sleeper overlay. Sleeper overlay auto-fills age/team/pos/ppg/injury when supplement leaves blank but provides `sleeperId`. Skip-with-log if supplement name is already in FP response (so user can prune the row once FP starts returning that player). Note: `sync-fp.py` itself is gitignored by design (local-only alongside `sync-fp.config.json`) — only the supplement CSV is tracked. Verified on next `push.bat`: all 3 players now in `values.json` with proper data.
+
+- **Admin scratchpad stale-CSV defense** (`157b636`) — Discovered during the Loveland investigation: when `tiers.html` is loaded from `file://` on a desktop folder behind `origin/main`, the page reads the stale local `tiers.csv` and Publish writes that stale state back to GitHub, silently reverting other admin commits. Loveland's row had ping-ponged across `d3bb5c7 / a98d0cf / 1e16d75` because of this exact bug — metadata like `up, buying, Top Target, Dynasty` was added in one session and reverted in the next from a stale page. Fix: `admin-tiers.js publishToGitHub` now does a GET-latest on `tiers.csv` from GitHub, parses it via the new `_parseTiersCsv` helper, applies the user's localStorage overrides via `_applyOverridesToData`, and PUTs the merged result. So even when loaded from `file://` and behind origin, the published CSV is always `(latest GitHub state) + (user's overrides)` — no clobbering. Plus a `_utf8Atob` helper to decode GitHub's base64-encoded content with embedded newlines.
+
+- **`FPTS Admin.url` desktop shortcut** — Belt-and-suspenders for the stale-CSV bug. Points at `https://elnostrathomas.github.io/FPTS-Trade_Database/tiers.html?admin=1` so the operator can stop opening `file://` versions entirely. (Initial shortcut had `?admin=hash` — the SETUP URL — which got fixed in commit `9cec3c3` after the user hit the regenerate-password prompt; URL is `?admin=1` for the activation flow, `?admin=hash` is the one-time setup helper, `?admin=0` disables.)
+
+- **Publish dry-run / diff preview modal** (`b65e102` + brand-audit fix `5832be2`) — Click **Publish ⬆** now fetches GitHub's latest state, builds the merged result via the stale-CSV defense's GET-merge logic, and shows a modal listing every change before any commit fires. Each change rendered with type-specific styling:
+  - `⇅` yellow for tier-change (`Caleb Williams: S+ → A+`)
+  - `+` green for added player
+  - `−` red for removed player
+  - `✎` gray for metadata-only change (Trending / Buy-Sell / Priority / Contender / Notes)
+  - Tier-config diffs: rename (`✎ Tier S++: "Cornerstone Players" → "Foundation"`) + order change (was/now)
+  No-op case ("Your overrides match GitHub's current state — nothing to commit") handled with a Clear-all hint. Cancel or Escape or backdrop-click bails out cleanly; "Publish to GitHub ⬆" runs the existing `publishToGitHub` pipeline. New helpers: `_buildPlayerDiff`, `_buildConfigDiff`, `_openPublishPreviewModal`, `_esc` (inline HTML escape). Brand-audit follow-up: 3 hardcoded hex (`#0a0a0a / #ffd86b / #ff7766`) mapped to `var(--black) / var(--yellow) / var(--red)` so `scripts/check-colors.py` stays CLEAN.
+
+- **Rank-history surface on rankings.html** (`bd61f28`) — `data/rank-history.json` (12 daily rank snapshots, captured by `sync-fp.py` on each `push.bat`) was previously orphaned — no UI consumed it. New shared module `assets/js/rank-comparator.js` parallels `adp-comparator.js` but lighter: single JSON file, daily granularity, dropdown picker instead of calendar grid. The RANK column header on `rankings.html` is now a clickable date picker showing "Rank · May 11 ▾"; the small sort-arrow ▲/▼ moves inline next to the trigger so sort still works. Selecting a date inserts a rank-delta chip next to every row's rank value (▲N green / ▼N red / ● flat) comparing current rank to the historical snapshot. Same chip pattern on the consensus mobile card. Selected date persists to localStorage (`fpts-rankings-rank-compare-date`). New public API: `RankComparator.init/ensureLoaded/getSnapshotDates/getCurrentDate/setCurrentDate/getRankFor/renderTriggerHtml/openPopup/closePopup/changeChipHtml`. body-zoom-aware positioning (mirrors the `adp-comparator` fix from session 13). Legend entry added.
+
+- **Phase 5 — tier section drag-and-drop** (`8bf8ecc`) — Mirrors the Phase 4 row-drag pattern. When admin mode is on, each `.tier-group-header` becomes the drag handle (`draggable="true"` + `data-tier-code` + `cursor:grab` + a ⋮⋮ glyph for discoverability). Drag a header onto another header → drop-position is the hover-target's midline (above = drop before, below = drop after). Source group dims to 0.5 opacity during drag; valid target shows a 3px red top/bottom border on its header. On drop the source `.tier-group` is spliced into place and the new order array is read off the DOM and passed to the new public `AdminTiers.setTierOrder(orderArray)` — which filters unknown codes and re-appends any canonical codes missing from the input so a partial drop can't drop tiers from the display. ▲/▼ buttons stay in place for adjacent-swap convenience.
+
+- **README admin URL doc correction** (`9cec3c3`) — Session 14's Phase 1A description had `?admin=hash` listed as the password challenge. Source of truth is `admin-tiers.js:_handleUrlParam` (lines 127-184): `?admin=1` activates with password check, `?admin=hash` is the one-time setup helper to regenerate `PASSWORD_HASH`, `?admin=0` disables.
+
+### Override-layer state model (unchanged from session 14)
+
+Four independent localStorage maps on top of canonical `tiers.csv` + `tier-config.json`:
+
+| Key | Phase | Shape | What it overrides |
+|---|---|---|---|
+| `fpts-tier-overrides` | 0/2 | `{ playerName: { tier?, trending?, buySell?, priority?, contender?, notes?, _deleted? } }` | Per-player field edits + soft-deletes + Phase-2 adds |
+| `fpts-tier-title-overrides` | 3 | `{ tierCode: "New Title" }` | Tier section header titles |
+| `fpts-tier-order-override` | 3 (extended in 5) | `[code, code, code, ...]` | Tier section display order — written by both `moveTier` (arrow buttons) and the new `setTierOrder` (drag-and-drop) |
+| `fpts-player-order-overrides` | 4 | `{ tierCode: [name, name, ...] }` | Player order within each tier |
+
+Plus GitHub publish settings: `fpts-admin-gh-token` / `-repo` / `-branch` / `-path`. Plus the mode flag: `fpts-admin-mode`. Plus `fpts-rankings-rank-compare-date` (new) for the rank-history picker's selected date.
+
+### Workflow consolidation
+
+Two-rule operator workflow locked in (simpler than the old "edit in code OR via admin scratchpad" matrix):
+
+| Task | Where | How |
+|---|---|---|
+| Tier edits (drag players, rename tiers, add/remove) | `FPTS Admin` shortcut on desktop | Double-click → enter password → edit → Publish ⬆ (which now previews the diff first) |
+| Code/data edits (anything in a code editor) | Desktop folder | Run `push.bat` |
+
+The shortcut points at the live GitHub Pages URL with `?admin=1`. The stale-CSV defense protects against any remaining `file://` accesses.
+
+### Cache tokens at session close
+
+- `admin-tiers.js ?v=1784700000 → ?v=1786600000` (3 ships: stale-CSV defense, dry-run modal, brand-audit fix, Phase 5; 11 consumers: all 10 pages + `templates/page-template.html`)
+- `rank-comparator.js ?v=1786400000` (new module; rankings-only consumer)
+- `legend-content.js ?v=1783300000 → ?v=1786400001` (rank-comparator entry; 10 consumers)
+- All other shared modules unchanged from session 14
+
+### What's queued next
+
+**Punch list (highest priority first):**
+
+1. **Bulk tier rename** — single-tier rename only today. Still flagged as "probably unnecessary, but flag-worthy." Skip until needed.
+2. **Cross-tier drag** — Phase 4 explicitly blocks drag across tier boundaries. Crossing requires also changing the player's tier letter; current path is the row Edit popover. Still "if demand emerges."
+3. **Admin scratchpad legend documentation** — Phases 1-5 of the admin scratchpad aren't documented in `legend-content.js` under the `'tiers'` page entry. A new section covering activation flow (`?admin=1`), override-layer state model, Publish pipeline + stale-CSV defense + dry-run preview, and tier/player drag-and-drop would help future sessions navigate. Out-of-scope this session, captured here for next time.
+
+**Carryover from session 13 (still open):** mock-draft personality weight calibration, Manager Clone archetype (blocked on 1QB SEED_USERS), compare-page UX iteration, prospect-score classifier, NFL draft round/pick (blocked on Sleeper API), 1QB SEED_USERS expansion, 14 original heuristics analyst feedback, my-leagues inline-style cleanup.
+
+**Audit:** `python scripts/check-colors.py` — CLEAN across 34 files.
+
+See [`docs/CHANGES.md`](docs/CHANGES.md) 2026-05-22 (fifteenth session) for full per-commit detail.
+
+---
+
 ## Where we are (end of 2026-05-22 — fourteenth session)
 
 **Admin scratchpad — phases 1A, 1B, 2, 3, 4 shipped end-to-end + two follow-up bug fixes.** New `assets/js/admin-tiers.js` IIFE (1280+ lines) that gates a tier-editing UI behind the URL `?admin=hash` activator + SHA-256-hashed password challenge, lets the operator add/remove/edit players in localStorage, **rename + reorder tier section headers**, **drag-and-drop player ordering within a tier**, and **publish** the resulting `tiers.csv` + `tier-config.json` back to the repo via the GitHub Contents API (one-click PUT, no local git step). Local-only `push.bat` gained a `[0/5] git pull --rebase` step so the next desktop push integrates API-made commits cleanly. 4 substantive commits + 2 data-sync auto-commits.
@@ -49,16 +130,13 @@ Plus GitHub publish settings: `fpts-admin-gh-token` / `-repo` / `-branch` / `-pa
 
 **Punch list (highest priority first):**
 
-1. **~~Admin scratchpad stale-CSV data-loss risk~~** — FIXED this session. `admin-tiers.js` Publish now does a GET-latest on `tiers.csv` from GitHub, parses it via the new `_parseTiersCsv` helper, applies user overrides via `_applyOverridesToData`, and PUTs the merged result. So even when `tiers.html` is loaded from `file://` on a desktop folder that's behind `origin/main`, the published CSV is always `(latest GitHub state) + (user's overrides)` — no clobbering. Operationally: also dropped a `FPTS Admin.url` shortcut on the user's desktop pointing at the live GitHub Pages admin URL (`https://elnostrathomas.github.io/FPTS-Trade_Database/tiers.html?admin=hash`) so the operator can avoid the local file path entirely.
-2. **~~values-supplement layer for force-include players~~** — FIXED this session. New `data/source/values-supplement.csv` (header-driven: `name,sleeperId,rank,posRank,pos,team,age,ppg,ppgPrior,tier,trend`); `sync-fp.py:apply_values_supplement()` merges entries after the FP fetch + Sleeper overlay. Sleeper overlay fills age/team/pos/ppg/injury when supplement leaves them blank but provides `sleeperId`. Skips with info-log if a supplement name is already in FP's response (so the user can prune the row once FP starts returning that player). Seed file currently force-includes Tyreek Hill, Deebo Samuel, and Eli Stowers. Smoke-tested with mock overlay; will be exercised live on the next `push.bat` (step `[2/5] sync-fp.py`).
-3. **~~Reorder UX for tiers (Phase 5 — drag-and-drop on tier sections)~~** — FIXED this session. Mirrors the Phase 4 row-drag pattern. When admin mode is on, each `.tier-group-header` becomes the drag handle (`draggable="true"` + `data-tier-code` + `cursor:grab` + a ⋮⋮ glyph for discoverability). Drag a header onto another header → drop-position is the hover-target's midline (above = drop before; below = drop after). Source group dims to 0.5 opacity during drag; valid target shows a 3px red top/bottom border on its header. On drop, the source `.tier-group` is spliced into place and the new order array is read off the DOM and passed to the new public `AdminTiers.setTierOrder(orderArray)` — which filters unknown codes and re-appends any canonical codes missing from the input so a partial drop can't drop tiers. ▲/▼ buttons stay in place for adjacent-swap convenience; drag is for big reorders. Cache token bump: admin-tiers.js → ?v=1786600000 across 11 consumers.
-4. **Bulk tier rename** — single-tier rename only today. Probably unnecessary, but flag-worthy.
-5. **~~Publish dry-run / diff preview~~** — FIXED this session. Click Publish ⬆ now fetches latest GitHub state, builds the merged result via the stale-CSV defense, and shows a modal listing every change before committing: `⇅ Caleb Williams S+ → A+`, `+ Tyreek Hill added to C-`, `✎ Loveland Trending: ∅ → up`, plus tier-config renames/reorders. Cancel bails out (no commit, overrides preserved). "Publish to GitHub ⬆" runs the existing `publishToGitHub` pipeline. New helpers in `admin-tiers.js`: `_buildPlayerDiff`, `_buildConfigDiff`, `_openPublishPreviewModal`, `_esc`. Modal also handles the no-op case ("Your overrides match GitHub's current state. Nothing to commit.") with a hint to use Clear all.
-6. **Cross-tier drag** — Phase 4 explicitly blocks drag across tier boundaries. Crossing requires also changing the player's tier letter; current path is the row Edit popover. If demand emerges, add it.
-7. **~~Re-create the admin PAT~~** — DONE this session. New fine-grained PAT pasted into ⚙ SETTINGS on tiers.html; Publish round-tripped successfully against `data/source/tiers/tiers.csv` (commit `1e16d75`). PAT-persistence fix (`ad8ffd8`) verified.
-8. **~~Rank-history surface on rankings.html~~** — FIXED this session. `data/rank-history.json` (12 daily snapshots, captured by `sync-fp.py` on each push.bat) was previously orphaned — no UI consumed it. New shared module `assets/js/rank-comparator.js` parallels `adp-comparator.js` but lighter: single JSON file, daily granularity, dropdown picker instead of calendar grid. The RANK column header on `rankings.html` is now a clickable date picker; the small sort-arrow ▲/▼ moves inline next to the trigger. Selecting a date inserts a rank-delta chip next to every row's rank value (▲N green / ▼N red / ● flat) comparing current rank to the historical snapshot. Same chip pattern on the consensus mobile card. Selected date persists to localStorage. Legend entry added (legend-content.js v=1786400001).
+1. **Re-create the admin PAT** — user lost the old token value (GitHub only shows PATs once at creation). Fine-grained token, repo = `elnostrathomas/FPTS-Trade_Database`, scope = **Contents: Read & write** only. After creation, paste into the ⚙ SETTINGS cog on tiers.html. Old token should be revoked on github.com/settings/personal-access-tokens for a clean slate. Verify the new fix (`ad8ffd8`) actually holds it across Disable + reopen cycles.
+2. **Reorder UX for tiers** — current ▲/▼ arrows on the section headers require N clicks to move a tier N slots. If section reordering becomes frequent, add drag-and-drop here too (mirror the Phase 4 row pattern).
+3. **Bulk tier rename** — single-tier rename only today. Probably unnecessary, but flag-worthy.
+4. **Publish dry-run / diff preview** — Publish is "fire one PUT per file." A pre-flight that shows the operator the upcoming diff before committing would harden the workflow.
+5. **Cross-tier drag** — Phase 4 explicitly blocks drag across tier boundaries. Crossing requires also changing the player's tier letter; current path is the row Edit popover. If demand emerges, add it.
 
-**Carryover from session 13 (still open):** mock-draft personality weight calibration, Manager Clone archetype (blocked on 1QB SEED_USERS), compare-page UX iteration, prospect-score classifier, NFL draft round/pick (blocked on Sleeper API), 1QB SEED_USERS expansion, 14 original heuristics analyst feedback, my-leagues inline-style cleanup.
+**Carryover from session 13 (still open):** mock-draft personality weight calibration, Manager Clone archetype (blocked on 1QB SEED_USERS), compare-page UX iteration, prospect-score classifier, NFL draft round/pick (blocked on Sleeper API), 1QB SEED_USERS expansion, 14 original heuristics analyst feedback, rank-history surface, my-leagues inline-style cleanup.
 
 **Audit:** `python scripts/check-colors.py` — CLEAN across 33 files.
 
