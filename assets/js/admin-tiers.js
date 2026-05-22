@@ -524,7 +524,74 @@
   // data-bootstrap) and emits a Sheet-format CSV that sync-tiers.py parses
   // via the header-aware map_rows path. Matches the same columns the user
   // would export from the Google Sheet.
-  function _buildOverriddenCsv() {
+  // Parse Sheet-format CSV → { [playerName]: { tier, trending, buySell,
+  // priority, contender, notes } }. Inverse of _buildOverriddenCsv below.
+  // Used at publish time by the stale-CSV defense to rebase user overrides
+  // onto GitHub's latest content rather than the (possibly stale) page view.
+  function _parseTiersCsv(csvText) {
+    var out = {};
+    if (!csvText) return out;
+    if (csvText.charCodeAt(0) === 0xFEFF) csvText = csvText.slice(1);
+    var rows = [], field = '', row = [], inQuotes = false, i = 0, len = csvText.length;
+    while (i < len) {
+      var c = csvText[i];
+      if (inQuotes) {
+        if (c === '"') {
+          if (csvText[i + 1] === '"') { field += '"'; i += 2; continue; }
+          inQuotes = false; i++; continue;
+        }
+        field += c; i++; continue;
+      }
+      if (c === '"') { inQuotes = true; i++; continue; }
+      if (c === ',') { row.push(field); field = ''; i++; continue; }
+      if (c === '\r') { i++; continue; }
+      if (c === '\n') { row.push(field); rows.push(row); row = []; field = ''; i++; continue; }
+      field += c; i++;
+    }
+    if (field.length || row.length) { row.push(field); rows.push(row); }
+    if (!rows.length) return out;
+    var header = rows[0].map(function (h) { return String(h || '').trim().toLowerCase(); });
+    var idx = {
+      tier:      header.indexOf('tier'),
+      player:    header.indexOf('player'),
+      trending:  header.indexOf('trending'),
+      buysell:   header.indexOf('buy/sell/hold'),
+      priority:  header.indexOf('priority level'),
+      contender: header.indexOf('contender/rebuild'),
+      notes:     header.indexOf('player notes'),
+    };
+    if (idx.player < 0 || idx.tier < 0) return out;
+    for (var r = 1; r < rows.length; r++) {
+      var cells = rows[r];
+      var name = String(cells[idx.player] || '').trim();
+      if (!name) continue;
+      out[name] = {
+        tier:      String(cells[idx.tier]      || '').trim(),
+        trending:  String(cells[idx.trending]  || '').trim(),
+        buySell:   String(cells[idx.buysell]   || '').trim(),
+        priority:  String(cells[idx.priority]  || '').trim(),
+        contender: String(cells[idx.contender] || '').trim(),
+        notes:     String(cells[idx.notes]     || '').trim(),
+      };
+    }
+    return out;
+  }
+
+  // Merge per-player overrides onto a base data map. Returns a NEW map.
+  // User's overrides win on every field they set; un-set fields fall
+  // through to the base. _deleted=true is preserved so downstream
+  // _buildOverriddenCsv can skip the row.
+  function _applyOverridesToData(base, overrides) {
+    var out = {};
+    Object.keys(base || {}).forEach(function (k) { out[k] = Object.assign({}, base[k]); });
+    Object.keys(overrides || {}).forEach(function (name) {
+      var ov = overrides[name] || {};
+      out[name] = Object.assign({}, out[name] || {}, ov);
+    });
+    return out;
+  }
+
+  function _buildOverriddenCsv(dataArg) {
     var TIER_ORDER = ['S++','S+','S','A+','A','A-','B+','B','B-','C+','C','C-','D+','D','D-','E+','E','E-','F+','F','F-'];
     function tierRank(t) { var i = TIER_ORDER.indexOf(t); return i >= 0 ? i : 99; }
     function esc(v) {
@@ -533,7 +600,9 @@
       return s;
     }
     var headers = ['Tier','Player','Trending','Buy/Sell/Hold','Priority Level','Contender/Rebuild','Player Notes'];
-    var data = window.TIERS_DATA || {};
+    // Caller may pass an already-merged map (used by the stale-CSV defense
+    // in publishToGitHub). Default falls back to the live in-memory view.
+    var data = dataArg || window.TIERS_DATA || {};
     // Skip players the admin removed (Phase 2). They stay in TIERS_DATA
     // with _deleted=true so the override layer can "undo" via Clear, but
     // they don't appear in the published CSV.
@@ -584,6 +653,12 @@
   // UTF-8-safe base64 (btoa alone breaks on multi-byte chars like emojis).
   function _utf8Btoa(str) {
     return btoa(unescape(encodeURIComponent(str)));
+  }
+  // Inverse of _utf8Btoa. GitHub's Contents API returns base64 with \n
+  // every 60 chars, so strip whitespace before atob.
+  function _utf8Atob(b64) {
+    if (!b64) return '';
+    return decodeURIComponent(escape(atob(b64.replace(/\s+/g, ''))));
   }
   function _ghHeaders(token) {
     return {
@@ -671,10 +746,22 @@
 
     var pipeline = Promise.resolve();
     if (n > 0) {
-      var csv = _buildOverriddenCsv();
+      // STALE-CSV DEFENSE: rebase user overrides onto GitHub's LATEST CSV
+      // rather than building from the page's in-memory view. Without this,
+      // a Publish from a file://-loaded page that's behind origin/main
+      // would write the stale local state back to GitHub, clobbering
+      // other admin commits made since the page was loaded (the Loveland
+      // ping-pong bug across d3bb5c7 / a98d0cf / 1e16d75). The PUT still
+      // uses GitHub's current SHA so concurrent edits within the same
+      // session still 409 cleanly.
       pipeline = pipeline
         .then(function () { return _ghGetFile(s); })
-        .then(function (existing) { return _ghPutFile(s, csv, existing.sha, commitMessage); });
+        .then(function (existing) {
+          var latestData = _parseTiersCsv(_utf8Atob(existing.content));
+          var merged     = _applyOverridesToData(latestData, _readOverrides());
+          var csv        = _buildOverriddenCsv(merged);
+          return _ghPutFile(s, csv, existing.sha, commitMessage);
+        });
     }
     if (hasConfig) {
       var json = _buildOverriddenTierConfigJson();
