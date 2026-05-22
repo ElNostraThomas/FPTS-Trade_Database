@@ -12,7 +12,7 @@
 <!-- OBS zoom controls — only renders when embedded; top-right pill steps body { zoom }. -->
 <script src="assets/js/obs-zoom-controls.js?v=1783800000"></script>
 <!-- Admin-mode tier+B/S/H scratchpad — only renders when ?admin=1 is set. -->
-<script src="assets/js/admin-tiers.js?v=1784500000"></script>
+<script src="assets/js/admin-tiers.js?v=1784600000"></script>
 <!-- Back-to-top floating button — appears when scrolled, click for smooth-scroll to top. -->
 <script src="assets/js/back-to-top.js?v=1782200000" defer></script>
 <!-- Custom <select> wrapper — OBS/CEF compat (native popups don't render in iframes). -->
@@ -2685,6 +2685,34 @@ function renderTiers() {
             + (tIdx < _eff.length - 1 ? '<button type="button" class="fpts-adm-tier-down" data-tier="' + t + '" title="Move tier down" style="' + _btnStyle + '">▼</button>' : '')
           + '</span>')
         : '';
+      // Phase 4 — apply admin's per-tier player ordering if present.
+      // sortPlayersForTier returns names; we re-fetch the row data from
+      // the original tier bucket so render fields stay intact.
+      var tierRows = groups[t];
+      if (window.AdminTiers && window.AdminTiers.sortPlayersForTier) {
+        const _names = tierRows.map(function (r) { return r.name; });
+        const _ordered = window.AdminTiers.sortPlayersForTier(t, _names);
+        const _byName = {};
+        tierRows.forEach(function (r) { _byName[r.name] = r; });
+        tierRows = _ordered.map(function (n) { return _byName[n]; }).filter(Boolean);
+      }
+      const tbodyAttrs = _adminOn
+        ? ' class="fpts-adm-tier-tbody" data-tier="' + t + '"'
+        : '';
+      const rowsHtml = tierRows.map(function (p) {
+        var rowHtml = renderRowHtml(p);
+        // Inject drag attributes on the <tr> for admin reorder. Escape
+        // the player name for the data attribute (quotes are the main
+        // hazard inside an attr).
+        if (_adminOn) {
+          var safeName = String(p.name).replace(/"/g, '&quot;');
+          rowHtml = rowHtml.replace(
+            '<tr>',
+            '<tr draggable="true" data-player="' + safeName + '" style="cursor:grab">'
+          );
+        }
+        return rowHtml;
+      }).join('');
       html += '<div class="tier-group">'
         + '<div class="tier-group-header">'
           + '<span class="tier-group-letter">' + t + '</span>'
@@ -2694,7 +2722,7 @@ function renderTiers() {
         + '<div class="tiers-table-wrap">'
           + '<table class="tiers-table">'
             + '<thead>' + renderHeaderRow() + '</thead>'
-            + '<tbody>' + groups[t].map(renderRowHtml).join('') + '</tbody>'
+            + '<tbody' + tbodyAttrs + '>' + rowsHtml + '</tbody>'
           + '</table>'
         + '</div>'
       + '</div>';
@@ -3005,6 +3033,76 @@ document.addEventListener('fpts:data-ready', () => {
 document.addEventListener('fpts:tier-config-changed', () => {
   renderTiers();
 });
+
+// Phase 4 — drag-and-drop reorder of player rows within a tier.
+// Rows get draggable=true + data-player when admin mode is on (see
+// renderTiers). Drop target is computed by mouse-Y vs the hovered row's
+// midline — drop above puts source above, below puts it below. Source
+// row gets opacity dim during drag; valid drop target gets a thick top
+// or bottom border for the user to see where it'll land. Final order
+// is computed from the tbody's row order after the swap, then handed
+// to AdminTiers.setPlayerOrder which persists + re-renders.
+(function () {
+  let dragSource = null;
+  let lastDropTarget = null;
+  function _clearDropIndicator() {
+    if (lastDropTarget) {
+      lastDropTarget.style.borderTop = '';
+      lastDropTarget.style.borderBottom = '';
+      lastDropTarget = null;
+    }
+  }
+  document.addEventListener('dragstart', (e) => {
+    const tr = e.target.closest && e.target.closest('tr[draggable="true"][data-player]');
+    if (!tr) return;
+    dragSource = tr;
+    tr.style.opacity = '0.4';
+    try {
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', tr.getAttribute('data-player'));
+    } catch (_) {}
+  });
+  document.addEventListener('dragend', (e) => {
+    if (dragSource) dragSource.style.opacity = '';
+    dragSource = null;
+    _clearDropIndicator();
+  });
+  document.addEventListener('dragover', (e) => {
+    const tr = e.target.closest && e.target.closest('tr[draggable="true"][data-player]');
+    if (!tr || !dragSource) return;
+    const sameTbody = tr.parentNode === dragSource.parentNode;
+    if (!sameTbody) return;   // dragging across tiers not supported yet
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    const rect = tr.getBoundingClientRect();
+    const above = (e.clientY - rect.top) < rect.height / 2;
+    if (tr !== lastDropTarget) _clearDropIndicator();
+    tr.style.borderTop = above ? '2px solid var(--red)' : '';
+    tr.style.borderBottom = above ? '' : '2px solid var(--red)';
+    lastDropTarget = tr;
+  });
+  document.addEventListener('drop', (e) => {
+    const tr = e.target.closest && e.target.closest('tr[draggable="true"][data-player]');
+    if (!tr || !dragSource) { _clearDropIndicator(); return; }
+    const tbody = tr.parentNode;
+    if (tbody !== dragSource.parentNode) { _clearDropIndicator(); return; }
+    e.preventDefault();
+    const rect = tr.getBoundingClientRect();
+    const above = (e.clientY - rect.top) < rect.height / 2;
+    // Splice the source row to the new position in the DOM. The actual
+    // persistence comes from reading data-player off each row in order
+    // and passing that list to setPlayerOrder.
+    if (above) tbody.insertBefore(dragSource, tr);
+    else       tbody.insertBefore(dragSource, tr.nextSibling);
+    _clearDropIndicator();
+    const tierCode = tbody.getAttribute('data-tier');
+    const newOrder = Array.from(tbody.querySelectorAll('tr[data-player]'))
+      .map(r => r.getAttribute('data-player'));
+    if (window.AdminTiers && window.AdminTiers.setPlayerOrder) {
+      window.AdminTiers.setPlayerOrder(tierCode, newOrder);
+    }
+  });
+})();
 
 // Phase 3 — delegated click handler for admin tier-divider controls
 // (✎ rename, ▲ up, ▼ down). Only fires when admin mode is active because

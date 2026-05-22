@@ -63,6 +63,11 @@
   // when only one changed).
   var STORAGE_KEY_TIER_TITLES = 'fpts-tier-title-overrides';
   var STORAGE_KEY_TIER_ORDER  = 'fpts-tier-order-override';
+  // Phase 4 — per-tier custom player ordering. Shape:
+  //   { S++: [name1, name2, ...], S+: [name1, ...] }
+  // Names listed render first in the given order; unlisted players fall
+  // back to alphabetical at the end so partial reorders don't drop rows.
+  var STORAGE_KEY_PLAYER_ORDER = 'fpts-player-order-overrides';
   var DEFAULT_GH_CONFIG_PATH  = 'data/source/tiers/tier-config.json';
 
   var TIERS = ['S++','S+','S','A+','A','A-','B+','B','B-','C+','C','C-','D+','D','D-','E+','E','E-','F+','F','F-'];
@@ -244,6 +249,8 @@
     // a true full-reset to canonical state across all admin layers.
     _writeTitleOverrides({});
     _writeOrderOverride(null);
+    // Phase 4 — and the per-tier player-order map.
+    _writePlayerOrder({});
     _fireChanged();
     _fireConfigChanged();
     _refreshBanner();
@@ -285,7 +292,58 @@
     } catch (e) {}
   }
   function _hasConfigOverrides() {
-    return !!(Object.keys(_readTitleOverrides()).length || _readOrderOverride());
+    return !!(
+      Object.keys(_readTitleOverrides()).length ||
+      _readOrderOverride() ||
+      Object.keys(_readPlayerOrder()).length
+    );
+  }
+
+  // Phase 4 — player order within each tier.
+  function _readPlayerOrder() {
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEY_PLAYER_ORDER) || '{}'); }
+    catch (e) { return {}; }
+  }
+  function _writePlayerOrder(map) {
+    try {
+      if (!map || !Object.keys(map).length) localStorage.removeItem(STORAGE_KEY_PLAYER_ORDER);
+      else localStorage.setItem(STORAGE_KEY_PLAYER_ORDER, JSON.stringify(map));
+    } catch (e) {}
+  }
+
+  // Sort a list of player names within a single tier. Names that appear
+  // in the override array come first in that order; unlisted players are
+  // appended alphabetically. Used by both the render layer (tiers.html
+  // renderTiers) and the publish layer (_buildOverriddenCsv) so the CSV
+  // committed to the repo matches what the admin sees on the page.
+  function sortPlayersForTier(tierCode, names) {
+    var order = _readPlayerOrder()[tierCode] || [];
+    if (!order.length) {
+      return names.slice().sort(function (a, b) {
+        return a.toLowerCase().localeCompare(b.toLowerCase());
+      });
+    }
+    var indexed = {};
+    order.forEach(function (n, i) { indexed[n] = i; });
+    var listed = names.filter(function (n) { return n in indexed; });
+    var unlisted = names.filter(function (n) { return !(n in indexed); });
+    listed.sort(function (a, b) { return indexed[a] - indexed[b]; });
+    unlisted.sort(function (a, b) { return a.toLowerCase().localeCompare(b.toLowerCase()); });
+    return listed.concat(unlisted);
+  }
+
+  // Persist a new ordering for one tier. Pass null/empty to clear.
+  function setPlayerOrder(tierCode, namesArray) {
+    if (!tierCode) return;
+    var map = _readPlayerOrder();
+    if (!namesArray || !namesArray.length) {
+      delete map[tierCode];
+    } else {
+      map[tierCode] = namesArray.slice();
+    }
+    _writePlayerOrder(map);
+    _fireChanged();          // tiers.html re-renders via existing listener
+    _refreshBanner();
   }
 
   // Effective tier list, override-merged. Always sourced from
@@ -474,13 +532,32 @@
     // Skip players the admin removed (Phase 2). They stay in TIERS_DATA
     // with _deleted=true so the override layer can "undo" via Clear, but
     // they don't appear in the published CSV.
-    var names = Object.keys(data).filter(function (n) {
+    var allNames = Object.keys(data).filter(function (n) {
       return data[n] && data[n].tier && !data[n]._deleted;
     });
-    names.sort(function (a, b) {
-      var ta = tierRank(data[a].tier), tb = tierRank(data[b].tier);
-      if (ta !== tb) return ta - tb;
-      return a.toLowerCase().localeCompare(b.toLowerCase());
+    // Phase 4 — bucket by tier, then apply per-tier player-order override
+    // (alpha fallback for unlisted players inside sortPlayersForTier).
+    // Tier buckets are emitted in canonical TIER_ORDER so the CSV row
+    // order matches both the tiers.html grouped view AND publish-friendly
+    // structure (sync-tiers.py reads tier from the Tier column, not row
+    // position — but matching row order keeps diffs reviewable).
+    var byTier = {};
+    allNames.forEach(function (n) {
+      var t = data[n].tier;
+      (byTier[t] = byTier[t] || []).push(n);
+    });
+    var names = [];
+    TIER_ORDER.forEach(function (t) {
+      if (!byTier[t]) return;
+      sortPlayersForTier(t, byTier[t]).forEach(function (n) { names.push(n); });
+    });
+    // Catch any rows with a tier outside the canonical 21 (e.g., legacy
+    // data). Sort them alpha and append at the end so nothing is dropped.
+    Object.keys(byTier).forEach(function (t) {
+      if (TIER_ORDER.indexOf(t) >= 0) return;
+      byTier[t].slice().sort(function (a, b) {
+        return a.toLowerCase().localeCompare(b.toLowerCase());
+      }).forEach(function (n) { names.push(n); });
     });
     var lines = [headers.map(esc).join(',')];
     names.forEach(function (n) {
@@ -1194,6 +1271,9 @@
     effectiveTierConfig: effectiveTierConfig,
     setTierTitle:       setTierTitle,
     moveTier:           moveTier,
+    // Phase 4 — per-tier player ordering (drag-and-drop from tiers.html):
+    sortPlayersForTier: sortPlayersForTier,
+    setPlayerOrder:     setPlayerOrder,
   };
 
   if (document.readyState === 'loading') {
