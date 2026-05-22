@@ -59,7 +59,7 @@
   // boundary is the GitHub PAT (when Path B publish ships in Phase 1b);
   // this gate's job is preventing public visitors from even seeing the
   // editor UI.
-  var PASSWORD_HASH = '';
+  var PASSWORD_HASH = 'f59049ad3f53ad49c66101ef8c1b295d9dc8cd431cfcdbc7236c341e81054de9';
 
   async function hashPassword(pw) {
     if (!window.crypto || !window.crypto.subtle) {
