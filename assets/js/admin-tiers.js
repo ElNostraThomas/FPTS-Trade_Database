@@ -495,6 +495,7 @@
     }
     return {
       token:  _get(STORAGE_KEY_GH_TOKEN,  ''),
+      hasToken: !!_get(STORAGE_KEY_GH_TOKEN, ''),
       repo:   _get(STORAGE_KEY_GH_REPO,   DEFAULT_GH_REPO),
       branch: _get(STORAGE_KEY_GH_BRANCH, DEFAULT_GH_BRANCH),
       path:   _get(STORAGE_KEY_GH_PATH,   DEFAULT_GH_PATH),
@@ -502,8 +503,12 @@
   }
   function _ghSettingsSave(token, repo, branch, path) {
     try {
+      // Defensive: only WRITE the token if the user supplied one. An empty
+      // input on Save = "no change" (could be Chrome's password-manager
+      // wiping the input value attribute, or the user just tweaking repo
+      // /branch/path without touching the masked token). The dedicated
+      // "Clear token" button is the only path that erases the PAT.
       if (token) localStorage.setItem(STORAGE_KEY_GH_TOKEN, token);
-      else       localStorage.removeItem(STORAGE_KEY_GH_TOKEN);
       localStorage.setItem(STORAGE_KEY_GH_REPO,   repo   || DEFAULT_GH_REPO);
       localStorage.setItem(STORAGE_KEY_GH_BRANCH, branch || DEFAULT_GH_BRANCH);
       localStorage.setItem(STORAGE_KEY_GH_PATH,   path   || DEFAULT_GH_PATH);
@@ -733,7 +738,10 @@
       + '<div style="font-family:\'Kanit\',sans-serif;font-weight:800;font-style:italic;font-size:16px;color:var(--red);text-transform:uppercase;letter-spacing:.04em;margin-bottom:14px">GitHub Publish Settings</div>'
       + '<div style="font-size:11px;opacity:.65;margin-bottom:14px;line-height:1.4">PAT scope needs <b>Contents: Read &amp; write</b> on this repo only. <a href="https://github.com/settings/tokens?type=beta" target="_blank" style="color:var(--red)">Create fine-grained token →</a></div>'
       + '<label style="display:block;margin-bottom:12px">GitHub Personal Access Token'
-      +   '<input id="fpts-adm-gh-token" type="password" autocomplete="off" placeholder="github_pat_..." value="' + (s.token || '').replace(/"/g, '&quot;') + '" style="' + inputStyle + '">'
+      +   (s.hasToken
+            ? ('<div style="font-size:10px;color:#66dd84;margin-top:4px">✓ A token is saved on this device. Leave blank to keep it; type a new value to replace.</div>'
+               + '<input id="fpts-adm-gh-token" type="password" autocomplete="new-password" placeholder="(leave blank to keep saved token)" value="" style="' + inputStyle + '">')
+            : ('<input id="fpts-adm-gh-token" type="password" autocomplete="new-password" placeholder="github_pat_..." value="" style="' + inputStyle + '">'))
       + '</label>'
       + '<label style="display:block;margin-bottom:12px">Repository (<code style="font-family:monospace">owner/name</code>)'
       +   '<input id="fpts-adm-gh-repo" type="text" value="' + s.repo + '" style="' + inputStyle + '">'
