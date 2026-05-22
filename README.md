@@ -15,29 +15,51 @@ This file is the **resume-where-we-left-off** doc.
 
 ## Where we are (end of 2026-05-22 — fourteenth session)
 
-**Admin scratchpad — phases 1A, 1B, 2, 3 shipped end-to-end.** New `assets/js/admin-tiers.js` IIFE that gates a tier-editing UI behind the URL `?admin=hash` activator + SHA-256-hashed password challenge, lets the operator add/remove/edit players in localStorage, **rename + reorder tier section headers**, and **publish** the resulting `tiers.csv` + `tier-config.json` back to the repo via the GitHub Contents API (one-click PUT, no local git step). Local-only `push.bat` gained a `[0/5] git pull --rebase` step so the next desktop push integrates API-made commits cleanly.
+**Admin scratchpad — phases 1A, 1B, 2, 3, 4 shipped end-to-end + two follow-up bug fixes.** New `assets/js/admin-tiers.js` IIFE (1280+ lines) that gates a tier-editing UI behind the URL `?admin=hash` activator + SHA-256-hashed password challenge, lets the operator add/remove/edit players in localStorage, **rename + reorder tier section headers**, **drag-and-drop player ordering within a tier**, and **publish** the resulting `tiers.csv` + `tier-config.json` back to the repo via the GitHub Contents API (one-click PUT, no local git step). Local-only `push.bat` gained a `[0/5] git pull --rebase` step so the next desktop push integrates API-made commits cleanly. 4 substantive commits + 2 data-sync auto-commits.
 
 ### What shipped
 
 - **Phase 1A — password gate.** Hidden-by-default activation. Only `?admin=hash` opens the password challenge; visiting `?admin=1` no longer activates anything (was the original drive-by surface). Hash comparison via `crypto.subtle.digest('SHA-256', ...)` → hex; correct password unlocks the in-page scratchpad for the session.
 - **Phase 1B — GitHub Publish.** Settings cog stores a fine-grained PAT (Contents: Read/write on this repo only) in localStorage. Publish button runs the GET-SHA → PUT-content dance against `data/source/tiers/tiers.csv`. UTF-8-safe base64 via `btoa(unescape(encodeURIComponent(str)))`. Toast confirms with commit SHA.
 - **Phase 2 — add/remove players.** "+ Add player" modal (autocomplete + tier picker + buy/sell/dynamic dropdowns). Each row's existing popover gains a "Remove" button. Removes are soft-deletes (`_deleted: true`) in the overrides map so they survive across sessions until republished. Re-render via `fpts:tiers-overrides-changed` event.
-- **Phase 3 — tier rename + reorder.** New `data/source/tiers/tier-config.json` seed (21 tiers, S++ through F-, titles lifted from existing `TIER_DESCRIPTIONS`). `tiers.html` lazy-loads it on startup, falls back to legacy constants if fetch fails. Admin-only ✎ / ▲ / ▼ buttons inline in each tier-divider header — ✎ opens a `prompt()` rename, arrows call `moveTier(code, ±1)`. Both surfaces persist via two new localStorage keys (`fpts-tier-title-overrides`, `fpts-tier-order-override`); merge happens in `effectiveTierConfig()`. Publish now PUTs both `tiers.csv` AND `tier-config.json` when either has overrides. Re-render via `fpts:tier-config-changed`.
+- **Phase 3 — tier rename + reorder** (`b0f8e6a`). New `data/source/tiers/tier-config.json` seed (21 tiers, S++ through F-, titles lifted from existing `TIER_DESCRIPTIONS`). `tiers.html` lazy-loads it on startup, falls back to legacy constants if fetch fails. Admin-only ✎ / ▲ / ▼ buttons inline in each tier-divider header — ✎ opens a `prompt()` rename, arrows call `moveTier(code, ±1)`. Both surfaces persist via two new localStorage keys (`fpts-tier-title-overrides`, `fpts-tier-order-override`); merge happens in `effectiveTierConfig()`. Publish now PUTs both `tiers.csv` AND `tier-config.json` when either has overrides. Re-render via `fpts:tier-config-changed`.
+- **Phase 3 fix — button visibility** (`462a5d6`). Initial ship colored the ✎/▲/▼ glyphs `var(--red)` over the red-orange tier-header gradient → effectively invisible. Switched to `#111111` on a translucent white pill with a 1px black border per the black-text-on-bright-fill doctrine; bumped 13→14px with padding so they're clearly tappable.
+- **Phase 4 — drag-and-drop player reorder within a tier** (`36f7452`). User picked drag over arrows or numeric rank field. Third override layer added: `fpts-player-order-overrides` localStorage map keyed by tier code, value = ordered list of player names. `sortPlayersForTier(code, names)` is now the shared sort — listed names render first in given order, unlisted players append alphabetically so partial reorders never drop rows. Render path: each `<tr>` gets `draggable="true"` + `data-player` + `cursor:grab` when admin is on; each `<tbody>` gets `data-tier`. New IIFE handles `dragstart`/`dragover`/`drop` — dim source row to 0.4 opacity, show red top/bottom border on hover target for drop position, splice via `tbody.insertBefore`, read final order from `tr[data-player]` attrs, persist via `setPlayerOrder`. Cross-tier drag explicitly blocked by a `sameTbody` guard (use Edit popover to change tier letter instead). Publish path: `_buildOverriddenCsv` rewritten to bucket by tier and apply per-tier player order — the published CSV row order now matches what admin sees on the page. `_hasConfigOverrides` and `clearAllOverrides` extended to cover this third override layer.
+- **PAT-persistence fix — stop silently wiping saved token** (`ad8ffd8`). Likely root cause of the user's "PAT keeps disappearing" report: the Settings modal pre-filled the input with the saved token, but Chrome's password manager often strips `value=""` from `type=password` inputs. If the user clicked Save without retyping (e.g., just to tweak repo/branch/path), the empty input was interpreted as "user cleared the token" and the PAT was removed from localStorage. Fix: `_ghSettingsSave` dropped the `else localStorage.removeItem()` branch — empty token input on Save now means "no change." The dedicated "Clear token" button is the only path that erases the PAT. Settings modal also rewritten: when a token is already saved, render an empty input with a green `✓ A token is saved on this device. Leave blank to keep it; type a new value to replace.` line and a clarifying placeholder. `autocomplete="off"` → `autocomplete="new-password"` (Chrome ignores "off" but respects "new-password").
+
+### Override-layer state model (end of session)
+
+The admin scratchpad now layers four independent localStorage maps on top of canonical `tiers.csv` + `tier-config.json`:
+
+| Key | Phase | Shape | What it overrides |
+|---|---|---|---|
+| `fpts-tier-overrides` | Phase 0/2 | `{ playerName: { tier?, trending?, buySell?, priority?, contender?, notes?, _deleted? } }` | Per-player field edits + soft-deletes + Phase-2 adds |
+| `fpts-tier-title-overrides` | Phase 3 | `{ tierCode: "New Title" }` | Tier section header titles |
+| `fpts-tier-order-override` | Phase 3 | `[code, code, code, ...]` | Tier section display order |
+| `fpts-player-order-overrides` | Phase 4 | `{ tierCode: [name, name, ...] }` | Player order within each tier |
+
+Plus GitHub publish settings: `fpts-admin-gh-token` / `-repo` / `-branch` / `-path`. Plus the mode flag: `fpts-admin-mode`.
 
 ### Cache tokens at session close
 
-- `admin-tiers.js ?v=1784400000 → ?v=1784500000` (Phase 3 ship, 11 consumers: all 10 pages + `templates/page-template.html`)
+- `admin-tiers.js ?v=1784400000 → ?v=1784700000` (4 ship commits + 1 visibility fix + 1 PAT fix; 11 consumers: all 10 pages + `templates/page-template.html`)
 - All other shared modules unchanged from session 13
 
 ### What's queued next
 
-Session-13 queue carries over (mock-draft calibration, prospect-score classifier, NFL draft round/pick, 1QB SEED_USERS, 14 original heuristics, rank-history surface, my-leagues inline-style cleanup). New admin-tier items:
+**Punch list (highest priority first):**
 
-1. **Reorder UX** — current ▲/▼ arrows require N clicks to move a tier N slots. Consider drag-and-drop if the rename/reorder loop sees heavy use.
-2. **Bulk rename** — single-tier rename only today; no UI for "rename S++/S+/S all at once". Probably unnecessary, but flag-worthy.
-3. **Publish dry-run / diff preview** — Publish is "fire one PUT per file." A pre-flight that shows the operator the upcoming diff before committing would harden the workflow.
+1. **Re-create the admin PAT** — user lost the old token value (GitHub only shows PATs once at creation). Fine-grained token, repo = `elnostrathomas/FPTS-Trade_Database`, scope = **Contents: Read & write** only. After creation, paste into the ⚙ SETTINGS cog on tiers.html. Old token should be revoked on github.com/settings/personal-access-tokens for a clean slate. Verify the new fix (`ad8ffd8`) actually holds it across Disable + reopen cycles.
+2. **Reorder UX for tiers** — current ▲/▼ arrows on the section headers require N clicks to move a tier N slots. If section reordering becomes frequent, add drag-and-drop here too (mirror the Phase 4 row pattern).
+3. **Bulk tier rename** — single-tier rename only today. Probably unnecessary, but flag-worthy.
+4. **Publish dry-run / diff preview** — Publish is "fire one PUT per file." A pre-flight that shows the operator the upcoming diff before committing would harden the workflow.
+5. **Cross-tier drag** — Phase 4 explicitly blocks drag across tier boundaries. Crossing requires also changing the player's tier letter; current path is the row Edit popover. If demand emerges, add it.
+
+**Carryover from session 13 (still open):** mock-draft personality weight calibration, Manager Clone archetype (blocked on 1QB SEED_USERS), compare-page UX iteration, prospect-score classifier, NFL draft round/pick (blocked on Sleeper API), 1QB SEED_USERS expansion, 14 original heuristics analyst feedback, rank-history surface, my-leagues inline-style cleanup.
 
 **Audit:** `python scripts/check-colors.py` — CLEAN across 33 files.
+
+See [`docs/CHANGES.md`](docs/CHANGES.md) 2026-05-22 (fourteenth session) for full per-commit detail.
 
 ---
 

@@ -6,6 +6,111 @@ the operator manual see [`WORKFLOW.md`](WORKFLOW.md).
 
 ---
 
+## 2026-05-22 (fourteenth session) — Admin scratchpad: Phase 3 (tier rename + reorder + publish) + Phase 4 (drag-drop player reorder) + 2 follow-up fixes
+
+4 substantive commits + 2 data-sync auto-commits. Session built on top of the Phase 1A/1B/2 admin scratchpad shipped earlier this same calendar day (carried over from end-of-session-13 context). Single dominant arc: complete the admin-tiers editor end-to-end so the operator can rename tier section headers, reorder tier sections, reorder players within a tier, and publish everything back to the repo with one click — then fix two real bugs the user caught during initial use.
+
+### Phase 3 — tier title rename + reorder + publish (`b0f8e6a`)
+
+**New canonical data file:** `data/source/tiers/tier-config.json` — 21-tier seed (S++ through F-), titles lifted from the existing `TIER_DESCRIPTIONS` const in `tiers.html`. Shape: `{ version, source, tiers: [{ code, title }] }`.
+
+**admin-tiers.js additions:**
+
+- 2 new localStorage keys: `fpts-tier-title-overrides` (`{ code: "title" }`) and `fpts-tier-order-override` (`[code, code, ...]`).
+- `_readTitleOverrides` / `_writeTitleOverrides` / `_readOrderOverride` / `_writeOrderOverride` / `_hasConfigOverrides` helpers.
+- `effectiveTierConfig()` — merges `window.TIER_CONFIG` canonical with the two localStorage layers; returns `[{ code, title }]` in display order. Defensive fallback to synthesized `TIERS.map(c => ({ code: c, title: c }))` if config wasn't loaded.
+- `setTierTitle(code, title)` — clears override if title is empty or matches canonical; otherwise stores it.
+- `moveTier(code, ±1)` — bounds-checked swap of adjacent codes in the order override.
+- `_fireConfigChanged()` — dispatches `fpts:tier-config-changed` event.
+- `_buildOverriddenTierConfigJson()` — bakes overrides into a publishable JSON payload.
+- `publishToGitHub()` extended to sequentially PUT both `tiers.csv` AND `tier-config.json` when either has overrides.
+- `_refreshBanner()` enables Publish button when either player or config overrides exist.
+- `clearAllOverrides()` extended to wipe title + order overrides.
+- New public APIs on `window.AdminTiers`: `effectiveTierConfig`, `setTierTitle`, `moveTier`.
+
+**tiers.html additions:**
+
+- Lazy-load `data/source/tiers/tier-config.json` on startup, sets `window.TIER_CONFIG`, re-runs `renderTiers()` when ready.
+- `renderTiers()` uses `AdminTiers.effectiveTierConfig()` to drive the tier section loop, with fallback to legacy `TIER_ORDER` + `TIER_DESCRIPTIONS`.
+- Admin-only ✎ / ▲ / ▼ buttons rendered inline in each `.tier-group-header`.
+- `fpts:tier-config-changed` listener re-renders.
+- Delegated click handler wires the buttons: ✎ opens a `prompt()` rename, ▲/▼ call `moveTier(code, ∓1)`.
+
+11 cache-token bumps (`1784400000 → 1784500000`) across all 10 pages + `templates/page-template.html`.
+
+### Phase 3 follow-up — fix invisible ✎/▲/▼ buttons (`462a5d6`)
+
+User screenshot showed the tier section headers without any admin buttons. Root cause: I'd colored the glyphs `var(--red)` over the red-orange tier-header gradient — effectively invisible against the bg. Switched to `#111111` on a translucent white pill (`rgba(255,255,255,0.85)`) with a 1px black border, per the black-text-on-bright-fill doctrine. Bumped 13→14px with `padding:2px 8px` so they're clearly tappable. 11-consumer cache bump deferred to the next commit since it batches with Phase 4.
+
+### Phase 4 — drag-and-drop player reorder within a tier (`36f7452`)
+
+User chose drag-and-drop over ▲/▼ buttons or a numeric rank field. Mirrors the override architecture from Phases 2/3.
+
+**admin-tiers.js:**
+
+- New localStorage key: `fpts-player-order-overrides` — `{ tierCode: [name, name, ...] }`. Listed names render first in given order; unlisted players append alphabetically so partial reorders never drop rows.
+- `_readPlayerOrder` / `_writePlayerOrder` helpers.
+- `sortPlayersForTier(tierCode, names)` — shared sort consumed by both render and publish. Lookup-indexed map for O(1) override hits.
+- `setPlayerOrder(tierCode, namesArray)` — passes `null`/empty to clear; persists + fires `fpts:tiers-overrides-changed` + refreshes banner.
+- `_buildOverriddenCsv()` rewritten: buckets `TIERS_DATA` rows by tier code, walks the canonical `TIER_ORDER`, applies `sortPlayersForTier` per bucket. Tiers outside the canonical 21 (legacy data) get an alpha sort and append at the end so nothing is dropped. Net effect: the published CSV row order now matches what admin sees on the page.
+- `_hasConfigOverrides()` extended to include `_readPlayerOrder()`.
+- `clearAllOverrides()` extended to wipe player-order map.
+- New public APIs: `sortPlayersForTier`, `setPlayerOrder`.
+
+**tiers.html:**
+
+- `renderTiers()` applies `sortPlayersForTier` to each tier's `groups[t]` array before render. Re-fetches row data from the original bucket so render fields stay intact.
+- Admin mode adds `draggable="true"` + `data-player="<safeName>"` + `cursor:grab` to each `<tr>`, and `data-tier="<code>"` + `class="fpts-adm-tier-tbody"` to each `<tbody>`.
+- New IIFE handles `dragstart` / `dragover` / `drop` events:
+  - `dragstart` dims the source row to 0.4 opacity, sets `dataTransfer` with the player name.
+  - `dragover` (rate-limited to a `lastDropTarget` ref to avoid border thrash) computes drop position by mouse-Y vs row midline; adds `2px solid var(--red)` top OR bottom border to the hover target.
+  - `drop` splices the source row via `tbody.insertBefore`, reads final order from all `tr[data-player]` attrs in DOM order, persists via `AdminTiers.setPlayerOrder(tierCode, newOrder)`.
+- Cross-tier drag explicitly blocked: `sameTbody` guard in both `dragover` and `drop`. User changes tier letter via the existing row Edit popover.
+
+11 cache-token bumps (`1784500000 → 1784600000`).
+
+### PAT-persistence fix — stop silently wiping saved token (`ad8ffd8`)
+
+User reported "the token keeps disappearing" after pressing Disable. Audited the code paths — Disable doesn't touch `STORAGE_KEY_GH_TOKEN` (only `STORAGE_KEY_MODE`), and `clearAllOverrides` doesn't either. The only paths that remove the token are (1) the explicit "Clear token" button in the Settings modal, (2) saving Settings with an empty token input.
+
+Root cause: the Settings modal pre-filled the input with the saved token (`value="<actual PAT>"`) but Chrome's password manager often strips `value` attributes from `type=password` inputs. If the user clicked Save without retyping (e.g., just to tweak repo/branch/path), the empty input was interpreted as "user cleared the token" and the PAT was removed from localStorage.
+
+**Fixes:**
+
+- `_ghSettingsSave()` — dropped the `else localStorage.removeItem(STORAGE_KEY_GH_TOKEN)` branch. Empty token input on Save now means "no change" instead of "delete it." The dedicated "Clear token" button remains the only path that erases the PAT.
+- `_ghSettings()` adds `hasToken: !!_get(STORAGE_KEY_GH_TOKEN, '')` to the returned settings object.
+- Settings modal — when a token is already saved, renders an empty input + green confirmation line: `✓ A token is saved on this device. Leave blank to keep it; type a new value to replace.` Placeholder text reinforces: `(leave blank to keep saved token)`. No more `value="<actual PAT>"` in HTML — Chrome's password manager can't strip what was never there.
+- `autocomplete="off"` → `autocomplete="new-password"` since Chrome ignores `"off"` but respects `"new-password"`.
+
+11 cache-token bumps (`1784600000 → 1784700000`).
+
+### Override-layer state at session close
+
+Four independent localStorage maps layer on top of canonical `tiers.csv` + `tier-config.json`:
+
+| Key | Phase | Shape | Overrides |
+|---|---|---|---|
+| `fpts-tier-overrides` | 0/2 | `{ playerName: { tier?, trending?, buySell?, priority?, contender?, notes?, _deleted? } }` | Per-player fields + Phase-2 adds + soft-deletes |
+| `fpts-tier-title-overrides` | 3 | `{ tierCode: "Title" }` | Tier section header titles |
+| `fpts-tier-order-override` | 3 | `[code, code, code, ...]` | Tier section display order |
+| `fpts-player-order-overrides` | 4 | `{ tierCode: [name, name, ...] }` | Player order within each tier |
+
+Plus GitHub publish settings (`fpts-admin-gh-token` / `-repo` / `-branch` / `-path`) and the mode flag (`fpts-admin-mode`).
+
+### Punch list at session close
+
+1. **Re-create the admin PAT** — user lost the old token value (GitHub only shows PATs once at creation). Fine-grained token, repo = `elnostrathomas/FPTS-Trade_Database`, scope = **Contents: Read & write** only. After creation, paste into the ⚙ SETTINGS cog on tiers.html. Revoke the old token on github.com/settings/personal-access-tokens for a clean slate. Verify the new fix (`ad8ffd8`) actually holds it across Disable + reopen cycles.
+2. Reorder UX for tier sections — drag-and-drop instead of multi-click ▲/▼.
+3. Bulk tier rename (probably unnecessary, flag-worthy).
+4. Publish dry-run / diff preview.
+5. Cross-tier drag (currently blocked; use Edit popover to change tier letter).
+
+### Audit
+
+`python scripts/check-colors.py` — CLEAN across 33 files.
+
+---
+
 ## 2026-05-21 (thirteenth session) — Mock Draft page + doctrine cleanup + AdpComparator zoom fix
 
 13 substantive commits + 2 data-sync auto-commits, picking up immediately after session 12. Three arcs: (1) shipped the **tenth deployed page** — `mock-draft.html`, an AI-personality-driven mock-draft simulator (skeleton → drafting UI → mobile → docs → three iterative calibration tweaks driven by user playtesting); (2) closed the long-tail doctrine drift from the 2026-05-20 inversion (26 surfaces still hardcoded `color: var(--white)` on bright fills); (3) fixed a calendar-popup bug on `rankings.html` that the user flagged — body-zoom was mis-positioning the popup off-screen.
