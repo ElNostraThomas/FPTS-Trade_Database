@@ -12,7 +12,7 @@
 <!-- OBS zoom controls — only renders when embedded; top-right pill steps body { zoom }. -->
 <script src="assets/js/obs-zoom-controls.js?v=1783800000"></script>
 <!-- Admin-mode tier+B/S/H scratchpad — only renders when ?admin=1 is set. -->
-<script src="assets/js/admin-tiers.js?v=1784100000"></script>
+<script src="assets/js/admin-tiers.js?v=1784200000"></script>
 <!-- Back-to-top floating button — appears when scrolled, click for smooth-scroll to top. -->
 <script src="assets/js/back-to-top.js?v=1782200000" defer></script>
 <!-- Custom <select> wrapper — OBS/CEF compat (native popups don't render in iframes). -->
@@ -165,6 +165,20 @@
      padding for tiers' table cadence. */
   .tier-trending { text-align: center; padding: 6px 4px !important; }
   .tier-th-compare { padding-top: 6px !important; padding-bottom: 6px !important; }
+
+  /* Manual trending icon next to player name (rendered by
+     _fptsTrendingIconHtml from the admin-tiers trending dropdown).
+     Up = avatar PNG, down = brand-red CSS chevron. */
+  .tier-trending-icon {
+    display: inline-block; width: 20px; height: 20px;
+    vertical-align: middle; margin-left: 6px;
+    object-fit: contain; border-radius: 50%;
+  }
+  .tier-trending-down {
+    display: inline-block; margin-left: 6px;
+    color: var(--red); font-weight: 900; font-size: 14px;
+    vertical-align: middle; line-height: 1;
+  }
 
   /* BUY/SELL/HOLD chip */
   .tier-bsh { font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 10px; padding: 2px 7px; text-transform: uppercase; letter-spacing: .04em; }
@@ -2449,6 +2463,23 @@ function fmtNumeric(v) {
   return v;
 }
 
+// Render the manual Trending indicator next to the player name. Codes
+// 'up' / 'down' come from admin-tiers.js TRENDINGS. Legacy values from
+// older TAT imports (📈, 📉, ↑, ▼) also map correctly. Anything else
+// returns empty string -- no icon, no whitespace, byte-identical row
+// to a player without trending data.
+function _fptsTrendingIconHtml(val) {
+  if (!val) return '';
+  const s = String(val).trim();
+  if (s === 'up'   || s === '📈' || s === '↑' || s === '▲') {
+    return ' <img class="tier-trending-icon" src="assets/images/john-cartoon.png" alt="Trending up" title="Trending up">';
+  }
+  if (s === 'down' || s === '📉' || s === '↓' || s === '▼') {
+    return ' <span class="tier-trending-down" title="Trending down">▼</span>';
+  }
+  return '';
+}
+
 function bshChipHtml(val) {
   if (!val) return '';
   const v = val.toLowerCase();
@@ -2505,10 +2536,15 @@ function renderRowHtml(p) {
   const nameHtml = isPick(p)
     ? '<span class="tier-player-name is-pick">' + p.name + '</span>'
     : '<span class="tier-player-name" onclick="_fptsTiersOpenPlayer(\''+p.name.replace(/'/g, "\\'")+'\')">' + p.name + '</span>';
+  // Manual trending indicator (admin-tiers.js trending dropdown). 'up' renders
+  // the assets/img/trending-up.png avatar; 'down' renders a red CSS chevron.
+  // Legacy emoji/text values (📈 / 📉 / Rookie / etc.) are normalized to
+  // up/down/none. Renders inline next to the player name.
+  const trendingIcon = _fptsTrendingIconHtml(p.trending);
 
   return '<tr>'
     + '<td class="col-tier">' + tierBadge + adminEdit + overrideDot + '</td>'
-    + '<td class="col-name">' + nameHtml + '</td>'
+    + '<td class="col-name">' + nameHtml + trendingIcon + '</td>'
     + '<td class="col-num">' + fmtNumeric(p.age) + '</td>'
     + '<td>' + posBadge + '</td>'
     + '<td>' + fmtCell(p.posRank) + '</td>'

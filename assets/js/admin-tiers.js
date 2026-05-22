@@ -56,6 +56,24 @@
   // 5 team-archetype buckets, same vocabulary as my-leagues' team archetype
   // classifier (mlGetArchetype) for cross-page consistency.
   var CONTENDERS = ['', 'Dynasty', 'Contender', 'Tweener', 'Rebuilder', 'Emergency'];
+  // Trending field: 3 states (none / up / down). Saved as codes 'up'/'down'
+  // so the renderer can swap between the avatar PNG (up) and a CSS chevron
+  // (down) without parsing emoji. Legacy values (📈/📉/Rookie/etc. from
+  // TAT imports) auto-map to up/down/empty at read time — see
+  // _trendingNormalize().
+  var TRENDINGS = ['', 'up', 'down'];
+  var TRENDING_LABELS = { '': '— none —', 'up': 'Trending Up ↑', 'down': 'Trending Down ▼' };
+
+  // Map any legacy trending value to the canonical code. Anything not
+  // recognized -> ''. Keeps the dropdown's "selected" state correct when
+  // older data was stored as 📈 / 📉 / freeform text.
+  function _trendingNormalize(v) {
+    if (!v) return '';
+    var s = String(v).trim();
+    if (s === 'up'   || s === '📈' || s === '↑' || s === '▲') return 'up';
+    if (s === 'down' || s === '📉' || s === '↓' || s === '▼') return 'down';
+    return '';   // unrecognized (Rookie/Sophomore/etc.) drops to none
+  }
 
   // ── Password gate ───────────────────────────────────────────────────────
   // SHA-256 hex of the admin password. Generated via the ?admin=hash setup
@@ -440,8 +458,13 @@
       +     contenderOpts
       +   '</select>'
       + '</label>'
-      + '<label style="display:block;margin-bottom:10px">Trending (emoji or text)'
-      +   '<input id="fpts-adm-trending" type="text" value="' + String(rec.trending || '').replace(/"/g, '&quot;') + '" style="width:100%;margin-top:3px;background:var(--surface2);color:var(--white);border:1px solid var(--border);padding:5px;font-family:\'Mulish\',sans-serif">'
+      + '<label style="display:block;margin-bottom:10px">Trending'
+      +   '<select id="fpts-adm-trending" style="' + selStyle + '">'
+      +     TRENDINGS.map(function (t) {
+              var current = _trendingNormalize(rec.trending);
+              return '<option value="' + t + '"' + (t === current ? ' selected' : '') + '>' + TRENDING_LABELS[t] + '</option>';
+            }).join('')
+      +   '</select>'
       + '</label>'
       + '<div style="display:flex;gap:6px">'
       +   '<button type="button" id="fpts-adm-save" style="flex:1;background:var(--red);color:#111;border:none;padding:6px;font-family:\'Kanit\',sans-serif;font-weight:800;font-style:italic;font-size:11px;text-transform:uppercase;letter-spacing:.06em;cursor:pointer">Save</button>'
