@@ -660,6 +660,168 @@
     if (!b64) return '';
     return decodeURIComponent(escape(atob(b64.replace(/\s+/g, ''))));
   }
+
+  // ── Dry-run / diff preview helpers ──────────────────────────────────────
+  // Compute per-player diff between latest GitHub state and the merged
+  // result we're about to PUT. Returns an array of change objects sorted
+  // by player name. Used by the preview modal to show "what's about to
+  // change?" before the operator confirms the commit.
+  function _buildPlayerDiff(latest, merged) {
+    var changes = [];
+    var allNames = {};
+    Object.keys(latest || {}).forEach(function (n) { allNames[n] = true; });
+    Object.keys(merged || {}).forEach(function (n) { allNames[n] = true; });
+    Object.keys(allNames).sort(function (a, b) {
+      return a.toLowerCase().localeCompare(b.toLowerCase());
+    }).forEach(function (name) {
+      var L = latest ? latest[name] : null;
+      var M = merged ? merged[name] : null;
+      if (M && M._deleted) {
+        if (L) changes.push({ type: 'remove', name: name, tier: L.tier || '?' });
+        return;
+      }
+      if (!L && M) {
+        changes.push({ type: 'add', name: name, tier: M.tier || '?' });
+        return;
+      }
+      if (L && !M) {
+        changes.push({ type: 'remove', name: name, tier: L.tier || '?' });
+        return;
+      }
+      if (!L && !M) return;
+      if ((L.tier || '') !== (M.tier || '')) {
+        changes.push({ type: 'tier', name: name, from: L.tier || '?', to: M.tier || '?' });
+      }
+      var metaFields = [
+        ['trending',  'Trending'],
+        ['buySell',   'Buy/Sell'],
+        ['priority',  'Priority'],
+        ['contender', 'Contender'],
+        ['notes',     'Notes'],
+      ];
+      metaFields.forEach(function (pair) {
+        var key = pair[0], label = pair[1];
+        var lv = String(L[key] == null ? '' : L[key]).trim();
+        var mv = String(M[key] == null ? '' : M[key]).trim();
+        if (lv !== mv) {
+          changes.push({ type: 'meta', name: name, field: label, from: lv, to: mv });
+        }
+      });
+    });
+    return changes;
+  }
+
+  // Compute tier-config diff (title renames + tier order). Returns array
+  // of { type: 'rename', code, from, to } and at most one { type: 'order',
+  // from: [codes], to: [codes] } if the order changed.
+  function _buildConfigDiff(latest, merged) {
+    var changes = [];
+    var L = (latest && latest.tiers) || [];
+    var M = (merged && merged.tiers) || [];
+    var lByCode = {};
+    L.forEach(function (t) { if (t && t.code) lByCode[t.code] = t.title || ''; });
+    M.forEach(function (t) {
+      if (!t || !t.code) return;
+      if (lByCode[t.code] !== undefined && lByCode[t.code] !== (t.title || '')) {
+        changes.push({ type: 'rename', code: t.code, from: lByCode[t.code], to: t.title || '' });
+      }
+    });
+    var lOrder = L.map(function (t) { return t && t.code; }).filter(Boolean);
+    var mOrder = M.map(function (t) { return t && t.code; }).filter(Boolean);
+    if (lOrder.join('|') !== mOrder.join('|')) {
+      changes.push({ type: 'order', from: lOrder, to: mOrder });
+    }
+    return changes;
+  }
+
+  // Render the preview modal. Returns a Promise<bool> — true if the user
+  // clicked Publish to GitHub, false if Cancel / backdrop / Escape.
+  function _openPublishPreviewModal(playerDiff, configDiff) {
+    return new Promise(function (resolve) {
+      var settled = false;
+      function finish(yes) {
+        if (settled) return;
+        settled = true;
+        try { backdrop.remove(); } catch (e) {}
+        document.removeEventListener('keydown', onKey);
+        resolve(yes);
+      }
+      function onKey(e) { if (e.key === 'Escape') finish(false); }
+
+      var backdrop = document.createElement('div');
+      backdrop.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:10000;display:flex;align-items:flex-start;justify-content:center;padding:6vh 16px 4vh;overflow-y:auto';
+      var modal = document.createElement('div');
+      modal.style.cssText = 'background:#1a1a1a;color:var(--text);border:2px solid var(--red);border-radius:8px;padding:20px 24px;max-width:760px;width:100%;font-family:"Mulish",sans-serif;box-shadow:0 10px 40px rgba(0,0,0,.6)';
+
+      var totalChanges = (playerDiff || []).length + (configDiff || []).length;
+      var parts = [];
+      parts.push('<div style="font-family:\'Kanit\',sans-serif;font-weight:800;font-style:italic;font-size:18px;color:var(--red);text-transform:uppercase;letter-spacing:.04em;margin-bottom:14px">Review publish</div>');
+
+      if (totalChanges === 0) {
+        parts.push('<div style="font-size:13px;opacity:.75;margin:14px 0 4px">Your overrides match GitHub\'s current state. Nothing to commit.</div>');
+        parts.push('<div style="font-size:11px;opacity:.5;margin-bottom:18px">(Tip: click "Clear all" in the banner to drop these no-op overrides locally.)</div>');
+      } else {
+        parts.push('<div style="font-size:12px;opacity:.8;margin-bottom:14px">' + totalChanges + ' change' + (totalChanges === 1 ? '' : 's') + ' will be committed to <code style="background:#0a0a0a;padding:1px 5px;border-radius:3px;font-size:11px">elnostrathomas/FPTS-Trade_Database</code>:</div>');
+
+        if (playerDiff.length) {
+          parts.push('<div style="font-family:\'Kanit\',sans-serif;font-weight:800;font-style:italic;font-size:12px;color:var(--red);text-transform:uppercase;letter-spacing:.04em;margin:6px 0 6px">Player changes (' + playerDiff.length + ')</div>');
+          parts.push('<div style="font-size:12px;line-height:1.7;border-left:2px solid #333;padding-left:10px;max-height:300px;overflow-y:auto">');
+          playerDiff.forEach(function (c) {
+            if (c.type === 'tier') {
+              parts.push('<div><span style="color:#ffd86b">⇅</span> <strong>' + _esc(c.name) + '</strong>  <span style="color:#888">' + _esc(c.from) + ' → </span><span style="color:#66dd84">' + _esc(c.to) + '</span></div>');
+            } else if (c.type === 'add') {
+              parts.push('<div><span style="color:#66dd84">+</span> <strong>' + _esc(c.name) + '</strong> added to <span style="color:#66dd84">' + _esc(c.tier) + '</span></div>');
+            } else if (c.type === 'remove') {
+              parts.push('<div><span style="color:#ff7766">−</span> <strong>' + _esc(c.name) + '</strong> removed from <span style="color:#888">' + _esc(c.tier) + '</span></div>');
+            } else if (c.type === 'meta') {
+              parts.push('<div><span style="color:#888">✎</span> <strong>' + _esc(c.name) + '</strong> ' + _esc(c.field) + ': <span style="color:#888">' + _esc(c.from || '∅') + ' → </span><span style="color:#66dd84">' + _esc(c.to || '∅') + '</span></div>');
+            }
+          });
+          parts.push('</div>');
+        }
+
+        if (configDiff.length) {
+          parts.push('<div style="font-family:\'Kanit\',sans-serif;font-weight:800;font-style:italic;font-size:12px;color:var(--red);text-transform:uppercase;letter-spacing:.04em;margin:14px 0 6px">Tier config changes (' + configDiff.length + ')</div>');
+          parts.push('<div style="font-size:12px;line-height:1.7;border-left:2px solid #333;padding-left:10px">');
+          configDiff.forEach(function (c) {
+            if (c.type === 'rename') {
+              parts.push('<div><span style="color:#888">✎</span> Tier <strong>' + _esc(c.code) + '</strong>: <span style="color:#888">"' + _esc(c.from) + '" → </span><span style="color:#66dd84">"' + _esc(c.to) + '"</span></div>');
+            } else if (c.type === 'order') {
+              parts.push('<div><span style="color:#888">↕</span> Tier order changed (' + c.from.length + ' tiers)</div>');
+              parts.push('<div style="opacity:.55;font-size:11px;margin-left:18px">was: ' + _esc(c.from.join(' › ')) + '</div>');
+              parts.push('<div style="font-size:11px;margin-left:18px;color:#66dd84">now: ' + _esc(c.to.join(' › ')) + '</div>');
+            }
+          });
+          parts.push('</div>');
+        }
+      }
+
+      parts.push('<div style="display:flex;gap:10px;justify-content:flex-end;margin-top:18px;padding-top:14px;border-top:1px solid #333">');
+      parts.push('<button type="button" id="fpts-adm-pp-cancel" style="background:transparent;color:var(--text);border:1px solid #555;padding:8px 14px;font-family:\'Kanit\',sans-serif;font-weight:800;font-style:italic;font-size:12px;text-transform:uppercase;letter-spacing:.06em;cursor:pointer">Cancel</button>');
+      if (totalChanges > 0) {
+        parts.push('<button type="button" id="fpts-adm-pp-confirm" style="background:var(--red);color:#fff;border:1px solid var(--red);padding:8px 14px;font-family:\'Kanit\',sans-serif;font-weight:800;font-style:italic;font-size:12px;text-transform:uppercase;letter-spacing:.06em;cursor:pointer">Publish to GitHub ⬆</button>');
+      }
+      parts.push('</div>');
+
+      modal.innerHTML = parts.join('');
+      backdrop.appendChild(modal);
+      document.body.appendChild(backdrop);
+
+      var cancelBtn = modal.querySelector('#fpts-adm-pp-cancel');
+      if (cancelBtn) cancelBtn.addEventListener('click', function () { finish(false); });
+      var confirmBtn = modal.querySelector('#fpts-adm-pp-confirm');
+      if (confirmBtn) confirmBtn.addEventListener('click', function () { finish(true); });
+      backdrop.addEventListener('click', function (e) { if (e.target === backdrop) finish(false); });
+      document.addEventListener('keydown', onKey);
+    });
+  }
+  // Inline HTML-escape (modal content interpolates player names + metadata).
+  function _esc(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+
   function _ghHeaders(token) {
     return {
       'Authorization': 'Bearer ' + token,
@@ -1079,15 +1241,49 @@
     // reloads so the page reflects the canonical state.
     document.getElementById('fpts-admin-banner-publish').addEventListener('click', function () {
       var n = _overrideCount();
-      if (!n) { _flashBanner('No overrides to publish.'); return; }
+      var hasConfig = _hasConfigOverrides();
+      if (!n && !hasConfig) { _flashBanner('No overrides to publish.'); return; }
       if (!_ghReady()) {
         window.alert('GitHub PAT not configured. Click ⚙ Settings to set it.');
         return;
       }
-      if (!confirm('Publish ' + n + ' override' + (n === 1 ? '' : 's') +
-                   ' to data/source/tiers/tiers.csv via GitHub?\n\n' +
-                   'This commits + pushes immediately. GitHub Pages rebuilds in ~30-60s.')) return;
-      publishToGitHub();
+      // Dry-run preview: fetch latest GitHub state, compute diff, show the
+      // operator what's about to commit. On confirm, publishToGitHub does
+      // its own GET-merge-PUT (the extra GET is negligible vs the 5000/hr
+      // rate limit). Layers on top of the stale-CSV defense already in
+      // publishToGitHub.
+      var s = _ghSettings();
+      var configSettings = Object.assign({}, s, { path: DEFAULT_GH_CONFIG_PATH });
+      var btn = document.getElementById('fpts-admin-banner-publish');
+      if (btn) { btn.disabled = true; btn.textContent = 'Loading preview…'; btn.style.opacity = '.65'; }
+
+      Promise.all([
+        n > 0
+          ? _ghGetFile(s).then(function (existing) {
+              var latest = _parseTiersCsv(_utf8Atob(existing.content));
+              var merged = _applyOverridesToData(latest, _readOverrides());
+              return _buildPlayerDiff(latest, merged);
+            })
+          : Promise.resolve([]),
+        hasConfig
+          ? _ghGetFile(configSettings).then(function (existing) {
+              var latestCfg = {};
+              try { latestCfg = JSON.parse(_utf8Atob(existing.content) || '{}'); } catch (e) {}
+              var mergedCfg = {};
+              try { mergedCfg = JSON.parse(_buildOverriddenTierConfigJson()); } catch (e) {}
+              return _buildConfigDiff(latestCfg, mergedCfg);
+            })
+          : Promise.resolve([]),
+      ]).then(function (results) {
+        if (btn) { btn.disabled = false; btn.textContent = 'Publish ⬆'; btn.style.opacity = '1'; }
+        return _openPublishPreviewModal(results[0], results[1]);
+      }).then(function (confirmed) {
+        if (confirmed) publishToGitHub();
+      }).catch(function (err) {
+        if (btn) { btn.disabled = false; btn.textContent = 'Publish ⬆'; btn.style.opacity = '1'; }
+        console.error('[admin-tiers] preview failed:', err);
+        window.alert('Could not load preview from GitHub:\n\n' + err.message + '\n\n(Nothing was published.)');
+      });
     });
 
     document.getElementById('fpts-admin-banner-settings').addEventListener('click', _openSettings);
