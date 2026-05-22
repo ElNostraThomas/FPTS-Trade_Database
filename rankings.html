@@ -35,7 +35,7 @@
 <script src="assets/js/mvs-extras.js?v=1778642255"></script>
 <script src="assets/js/player-articles.js?v=1778680034"></script>
 <script src="assets/js/heatmap.js?v=1778670000"></script>
-<script src="assets/js/legend-content.js?v=1783300000"></script>
+<script src="assets/js/legend-content.js?v=1786400001"></script>
 <script src="assets/js/legend.js?v=1778949514"></script>
 <!-- Team logo helpers — load BEFORE player-panel.js so modal-hero badge works. -->
 <script src="assets/js/team-helpers.js?v=1778680002"></script>
@@ -51,6 +51,8 @@
 
 <!-- ADP comparator — shared month-to-month picker module (also used by tiers.html). -->
 <script src="assets/js/adp-comparator.js?v=1783200000"></script>
+<!-- Rank comparator — daily rank-snapshot lookback (rankings-only consumer). -->
+<script src="assets/js/rank-comparator.js?v=1786400000"></script>
 
 <style>
   /* ════════════════════════════════════════════════════════════════════════
@@ -698,6 +700,18 @@ function renderHeaderRow() {
         + window.AdpComparator.renderTriggerHtml()
       + '</th>';
     }
+    if (c.key === 'rank' && window.RankComparator) {
+      // Rank column header doubles as the rank-history date picker. Sort
+      // still works via a separate click target inline alongside the trigger.
+      const isSorted = STATE.sort.col === 'rank';
+      const arrow = isSorted
+        ? '<span class="sort-arrow" style="margin-left:4px">' + (STATE.sort.dir === 'asc' ? '▲' : '▼') + '</span>'
+        : '';
+      return '<th class="col-num rk-th-rank-compare' + (isSorted ? ' sorted' : '') + '" data-col="rank">'
+        + window.RankComparator.renderTriggerHtml()
+        + '<span class="rk-rank-sort" onclick="setSort(\'rank\')" title="Sort by rank" style="cursor:pointer">' + arrow + '</span>'
+      + '</th>';
+    }
     const isSorted = STATE.sort.col === c.key;
     const arrow = isSorted
       ? '<span class="sort-arrow">' + (STATE.sort.dir === 'asc' ? '▲' : '▼') + '</span>'
@@ -721,9 +735,17 @@ function _renderRow(p) {
   const curAdp   = (p.currentAdp  != null) ? p.currentAdp.toFixed(1)  : '<span style="color:var(--muted)">—</span>';
   const prevAdp  = (p.previousAdp != null) ? p.previousAdp.toFixed(1) : '<span style="color:var(--muted)">—</span>';
   const chip     = window.AdpComparator.changeChipHtml(p.currentAdp, p.previousAdp);
+  // Rank lookback chip: compare current rank to the RankComparator's selected
+  // historical snapshot date. Blank if module isn't loaded or player not in
+  // the snapshot (e.g., new add since the snapshot was taken).
+  let rankChip = '';
+  if (window.RankComparator && p.rank != null && p.name) {
+    const histRank = window.RankComparator.getRankFor(p.name, window.RankComparator.getCurrentDate());
+    if (histRank != null) rankChip = window.RankComparator.changeChipHtml(p.rank, histRank);
+  }
 
   return '<tr>'
-    + '<td class="col-num"><span class="rk-rank-cell">' + (p.rank != null ? p.rank : '—') + '</span></td>'
+    + '<td class="col-num"><span class="rk-rank-cell">' + (p.rank != null ? p.rank : '—') + '</span>' + rankChip + '</td>'
     + '<td class="col-name">' + nameCell + '</td>'
     + '<td>' + posBadge + '</td>'
     + '<td>' + teamCell + '</td>'
@@ -759,9 +781,15 @@ function _renderConsensusCard(p) {
   const age      = (p.age != null) ? p.age : '—';
   const exp      = (p.exp != null) ? p.exp : '—';
 
+  let cardRankChip = '';
+  if (window.RankComparator && p.rank != null && p.name) {
+    const histRank = window.RankComparator.getRankFor(p.name, window.RankComparator.getCurrentDate());
+    if (histRank != null) cardRankChip = window.RankComparator.changeChipHtml(p.rank, histRank);
+  }
+
   return '<article class="rk-ccard">'
     + '<header class="rk-ccard-head">'
-    +   '<span class="rk-ccard-rank">#' + rank + '</span>'
+    +   '<span class="rk-ccard-rank">#' + rank + cardRankChip + '</span>'
     +   '<span class="rk-ccard-name" onclick="_openPlayer(\'' + safeName + '\')">' + p.name + '</span>'
     +   posBadge
     +   '<span class="rk-ccard-team">' + teamCell + '</span>'
@@ -1247,6 +1275,17 @@ document.addEventListener('fpts:data-ready', function () {
       if (STATE.mode === 'consensus') renderRankings();
     },
   });
+
+  // Initialize the Rank comparator (daily snapshot lookback). The Rank
+  // column header becomes a date picker; chips appear inline next to the
+  // rank value in every row + mobile card. On date change, re-render so
+  // every chip reflects the new comparison anchor.
+  if (window.RankComparator) {
+    window.RankComparator.init({
+      storageKey: 'fpts-rankings-rank-compare-date',
+      onChange: function () { renderRankings(); },
+    });
+  }
 
   // Restore saved state from localStorage
   try {
