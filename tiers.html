@@ -2673,13 +2673,16 @@ function renderTiers() {
       if (!groups[t] || !groups[t].length) return;
       const desc = tcfg.title || '';
       // Admin tier-divider controls (Phase 3) — pencil to rename + arrows
-      // to reorder. Hidden for non-admin visitors so production rows are
-      // byte-identical.
+      // to reorder the tier *section*. Hidden for non-admin visitors so
+      // production rows are byte-identical. Glyphs are #111111 per the
+      // black-text-on-bright-fill doctrine (the previous var(--red)
+      // disappeared into the red-orange tier-header gradient).
+      const _btnStyle = 'background:rgba(255,255,255,0.85);border:1px solid #111111;color:#111111;cursor:pointer;font-size:14px;font-weight:700;padding:2px 8px;line-height:1;border-radius:4px';
       const adminCtrls = _adminOn
-        ? ('<span class="tier-group-admin" style="display:inline-flex;gap:4px;margin-left:10px;vertical-align:middle">'
-            + '<button type="button" class="fpts-adm-tier-edit" data-tier="' + t + '" title="Rename tier section header" style="background:transparent;border:none;color:var(--red);cursor:pointer;font-size:13px;padding:0 4px;line-height:1">✎</button>'
-            + (tIdx > 0 ? '<button type="button" class="fpts-adm-tier-up" data-tier="' + t + '" title="Move tier up" style="background:transparent;border:none;color:var(--red);cursor:pointer;font-size:13px;padding:0 4px;line-height:1">▲</button>' : '')
-            + (tIdx < _eff.length - 1 ? '<button type="button" class="fpts-adm-tier-down" data-tier="' + t + '" title="Move tier down" style="background:transparent;border:none;color:var(--red);cursor:pointer;font-size:13px;padding:0 4px;line-height:1">▼</button>' : '')
+        ? ('<span class="tier-group-admin" style="display:inline-flex;gap:6px;margin-left:14px;vertical-align:middle">'
+            + '<button type="button" class="fpts-adm-tier-edit" data-tier="' + t + '" title="Rename tier section header" style="' + _btnStyle + '">✎</button>'
+            + (tIdx > 0 ? '<button type="button" class="fpts-adm-tier-up" data-tier="' + t + '" title="Move tier up" style="' + _btnStyle + '">▲</button>' : '')
+            + (tIdx < _eff.length - 1 ? '<button type="button" class="fpts-adm-tier-down" data-tier="' + t + '" title="Move tier down" style="' + _btnStyle + '">▼</button>' : '')
           + '</span>')
         : '';
       html += '<div class="tier-group">'
