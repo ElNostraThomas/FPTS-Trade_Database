@@ -13,6 +13,34 @@ This file is the **resume-where-we-left-off** doc.
 
 ---
 
+## Where we are (end of 2026-05-22 — fourteenth session)
+
+**Admin scratchpad — phases 1A, 1B, 2, 3 shipped end-to-end.** New `assets/js/admin-tiers.js` IIFE that gates a tier-editing UI behind the URL `?admin=hash` activator + SHA-256-hashed password challenge, lets the operator add/remove/edit players in localStorage, **rename + reorder tier section headers**, and **publish** the resulting `tiers.csv` + `tier-config.json` back to the repo via the GitHub Contents API (one-click PUT, no local git step). Local-only `push.bat` gained a `[0/5] git pull --rebase` step so the next desktop push integrates API-made commits cleanly.
+
+### What shipped
+
+- **Phase 1A — password gate.** Hidden-by-default activation. Only `?admin=hash` opens the password challenge; visiting `?admin=1` no longer activates anything (was the original drive-by surface). Hash comparison via `crypto.subtle.digest('SHA-256', ...)` → hex; correct password unlocks the in-page scratchpad for the session.
+- **Phase 1B — GitHub Publish.** Settings cog stores a fine-grained PAT (Contents: Read/write on this repo only) in localStorage. Publish button runs the GET-SHA → PUT-content dance against `data/source/tiers/tiers.csv`. UTF-8-safe base64 via `btoa(unescape(encodeURIComponent(str)))`. Toast confirms with commit SHA.
+- **Phase 2 — add/remove players.** "+ Add player" modal (autocomplete + tier picker + buy/sell/dynamic dropdowns). Each row's existing popover gains a "Remove" button. Removes are soft-deletes (`_deleted: true`) in the overrides map so they survive across sessions until republished. Re-render via `fpts:tiers-overrides-changed` event.
+- **Phase 3 — tier rename + reorder.** New `data/source/tiers/tier-config.json` seed (21 tiers, S++ through F-, titles lifted from existing `TIER_DESCRIPTIONS`). `tiers.html` lazy-loads it on startup, falls back to legacy constants if fetch fails. Admin-only ✎ / ▲ / ▼ buttons inline in each tier-divider header — ✎ opens a `prompt()` rename, arrows call `moveTier(code, ±1)`. Both surfaces persist via two new localStorage keys (`fpts-tier-title-overrides`, `fpts-tier-order-override`); merge happens in `effectiveTierConfig()`. Publish now PUTs both `tiers.csv` AND `tier-config.json` when either has overrides. Re-render via `fpts:tier-config-changed`.
+
+### Cache tokens at session close
+
+- `admin-tiers.js ?v=1784400000 → ?v=1784500000` (Phase 3 ship, 11 consumers: all 10 pages + `templates/page-template.html`)
+- All other shared modules unchanged from session 13
+
+### What's queued next
+
+Session-13 queue carries over (mock-draft calibration, prospect-score classifier, NFL draft round/pick, 1QB SEED_USERS, 14 original heuristics, rank-history surface, my-leagues inline-style cleanup). New admin-tier items:
+
+1. **Reorder UX** — current ▲/▼ arrows require N clicks to move a tier N slots. Consider drag-and-drop if the rename/reorder loop sees heavy use.
+2. **Bulk rename** — single-tier rename only today; no UI for "rename S++/S+/S all at once". Probably unnecessary, but flag-worthy.
+3. **Publish dry-run / diff preview** — Publish is "fire one PUT per file." A pre-flight that shows the operator the upcoming diff before committing would harden the workflow.
+
+**Audit:** `python scripts/check-colors.py` — CLEAN across 33 files.
+
+---
+
 ## Where we are (end of 2026-05-21 — thirteenth session)
 
 **Mock Draft page shipped end-to-end + site-wide doctrine cleanup + AdpComparator zoom fix.** 13 substantive commits + 2 data-sync auto-commits, picking up immediately after session 12's compare-page closeout. Three arcs: (1) new `mock-draft.html` page (the **tenth** deployed page) — skeleton → drafting UI → mobile → docs → three iterative AI-personality calibration tweaks driven by user mock-draft testing; (2) doctrine-drift cleanup that closed 26 leftover `color: var(--white)` surfaces on bright brand fills (the 2026-05-20 inversion left a long tail); (3) targeted bug fix for the rankings.html `APR 2026 ▼` calendar trigger that the user flagged as non-responsive — root cause was body-zoom mis-positioning the popup off-screen.

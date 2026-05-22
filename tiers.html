@@ -12,7 +12,7 @@
 <!-- OBS zoom controls — only renders when embedded; top-right pill steps body { zoom }. -->
 <script src="assets/js/obs-zoom-controls.js?v=1783800000"></script>
 <!-- Admin-mode tier+B/S/H scratchpad — only renders when ?admin=1 is set. -->
-<script src="assets/js/admin-tiers.js?v=1784400000"></script>
+<script src="assets/js/admin-tiers.js?v=1784500000"></script>
 <!-- Back-to-top floating button — appears when scrolled, click for smooth-scroll to top. -->
 <script src="assets/js/back-to-top.js?v=1782200000" defer></script>
 <!-- Custom <select> wrapper — OBS/CEF compat (native popups don't render in iframes). -->
@@ -2660,13 +2660,33 @@ function renderTiers() {
     });
     
     let html = '';
-    TIER_ORDER.forEach(t => {
+    // Phase 3 — pull tier order + titles from AdminTiers.effectiveTierConfig
+    // when available (it merges window.TIER_CONFIG with admin localStorage
+    // overrides). Falls back to the legacy TIER_ORDER + TIER_DESCRIPTIONS
+    // constants if config or admin-tiers isn't loaded yet.
+    const _eff = (window.AdminTiers && window.AdminTiers.effectiveTierConfig)
+      ? window.AdminTiers.effectiveTierConfig()
+      : TIER_ORDER.map(c => ({ code: c, title: TIER_DESCRIPTIONS[c] || '' }));
+    const _adminOn = (window.AdminTiers && window.AdminTiers.isActive && window.AdminTiers.isActive());
+    _eff.forEach((tcfg, tIdx) => {
+      const t = tcfg.code;
       if (!groups[t] || !groups[t].length) return;
-      const desc = TIER_DESCRIPTIONS[t] || '';
+      const desc = tcfg.title || '';
+      // Admin tier-divider controls (Phase 3) — pencil to rename + arrows
+      // to reorder. Hidden for non-admin visitors so production rows are
+      // byte-identical.
+      const adminCtrls = _adminOn
+        ? ('<span class="tier-group-admin" style="display:inline-flex;gap:4px;margin-left:10px;vertical-align:middle">'
+            + '<button type="button" class="fpts-adm-tier-edit" data-tier="' + t + '" title="Rename tier section header" style="background:transparent;border:none;color:var(--red);cursor:pointer;font-size:13px;padding:0 4px;line-height:1">✎</button>'
+            + (tIdx > 0 ? '<button type="button" class="fpts-adm-tier-up" data-tier="' + t + '" title="Move tier up" style="background:transparent;border:none;color:var(--red);cursor:pointer;font-size:13px;padding:0 4px;line-height:1">▲</button>' : '')
+            + (tIdx < _eff.length - 1 ? '<button type="button" class="fpts-adm-tier-down" data-tier="' + t + '" title="Move tier down" style="background:transparent;border:none;color:var(--red);cursor:pointer;font-size:13px;padding:0 4px;line-height:1">▼</button>' : '')
+          + '</span>')
+        : '';
       html += '<div class="tier-group">'
         + '<div class="tier-group-header">'
           + '<span class="tier-group-letter">' + t + '</span>'
           + '<span class="tier-group-desc">' + desc + '</span>'
+          + adminCtrls
         + '</div>'
         + '<div class="tiers-table-wrap">'
           + '<table class="tiers-table">'
@@ -2959,6 +2979,58 @@ document.addEventListener('fpts:data-ready', () => {
   applySleeperOverlay();
   renderTiers();
   applySleeperApiAgeFallback().then(filled => { if (filled) renderTiers(); });
+
+  // Phase 3 — load tier-config.json (titles + canonical order). Falls
+  // back silently to the legacy TIER_DESCRIPTIONS / TIER_ORDER constants
+  // if the fetch fails. Re-renders when ready so the section headers
+  // pick up any admin-published custom titles.
+  const _tcV = '?v=' + (window.__DATA_VERSION || Date.now());
+  fetch('data/source/tiers/tier-config.json' + _tcV)
+    .then(r => r.ok ? r.json() : null)
+    .catch(() => null)
+    .then(j => {
+      if (j && j.tiers && j.tiers.length) {
+        window.TIER_CONFIG = j;
+        renderTiers();
+      }
+    });
+});
+
+// Phase 3 — admin reordered / renamed tiers. effectiveTierConfig() reads
+// fresh values from window.TIER_CONFIG + localStorage; re-render uses
+// them. No data mutation needed here.
+document.addEventListener('fpts:tier-config-changed', () => {
+  renderTiers();
+});
+
+// Phase 3 — delegated click handler for admin tier-divider controls
+// (✎ rename, ▲ up, ▼ down). Only fires when admin mode is active because
+// the buttons themselves are only rendered then.
+document.addEventListener('click', (e) => {
+  const editBtn = e.target.closest && e.target.closest('.fpts-adm-tier-edit');
+  if (editBtn) {
+    e.preventDefault();
+    const tier = editBtn.getAttribute('data-tier');
+    const cfg = window.AdminTiers && window.AdminTiers.effectiveTierConfig
+      ? window.AdminTiers.effectiveTierConfig() : [];
+    const current = (cfg.find(x => x.code === tier) || {}).title || '';
+    const next = window.prompt('Rename tier "' + tier + '" section header:\n\n(Leave blank to clear override and restore the canonical title.)', current);
+    if (next === null) return;
+    window.AdminTiers.setTierTitle(tier, next.trim());
+    return;
+  }
+  const upBtn = e.target.closest && e.target.closest('.fpts-adm-tier-up');
+  if (upBtn) {
+    e.preventDefault();
+    window.AdminTiers.moveTier(upBtn.getAttribute('data-tier'), -1);
+    return;
+  }
+  const downBtn = e.target.closest && e.target.closest('.fpts-adm-tier-down');
+  if (downBtn) {
+    e.preventDefault();
+    window.AdminTiers.moveTier(downBtn.getAttribute('data-tier'), 1);
+    return;
+  }
 });
 
 // Admin-mode tier override saves (assets/js/admin-tiers.js) mutate

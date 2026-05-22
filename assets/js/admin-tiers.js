@@ -58,6 +58,12 @@
   var DEFAULT_GH_REPO   = 'elnostrathomas/FPTS-Trade_Database';
   var DEFAULT_GH_BRANCH = 'main';
   var DEFAULT_GH_PATH   = 'data/source/tiers/tiers.csv';
+  // Phase 3 — tier title/order overrides (separate file from the player
+  // CSV so Publish writes one or both as needed without rewriting both
+  // when only one changed).
+  var STORAGE_KEY_TIER_TITLES = 'fpts-tier-title-overrides';
+  var STORAGE_KEY_TIER_ORDER  = 'fpts-tier-order-override';
+  var DEFAULT_GH_CONFIG_PATH  = 'data/source/tiers/tier-config.json';
 
   var TIERS = ['S++','S+','S','A+','A','A-','B+','B','B-','C+','C','C-','D+','D','D-','E+','E','E-','F+','F','F-'];
   // 5 + empty for Buy/Sell/Hold (mirrors bshChipHtml in tiers.html)
@@ -234,7 +240,12 @@
 
   function clearAllOverrides() {
     _writeOverrides({});
+    // Phase 3 — also clear tier title + order overrides so "Clear all" is
+    // a true full-reset to canonical state across all admin layers.
+    _writeTitleOverrides({});
+    _writeOrderOverride(null);
     _fireChanged();
+    _fireConfigChanged();
     _refreshBanner();
   }
 
@@ -246,6 +257,117 @@
   function removePlayer(name) {
     if (!name) return;
     saveOverride(name, { _deleted: true });
+  }
+
+  // ── Phase 3 — Tier title + order overrides ─────────────────────────────
+  // Render layer reads window.TIER_CONFIG (loaded from data/source/tiers/
+  // tier-config.json) for canonical titles + order. Admin overrides layer
+  // on top in localStorage. Publish writes the file back to GitHub with
+  // overrides baked in.
+  function _readTitleOverrides() {
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEY_TIER_TITLES) || '{}'); }
+    catch (e) { return {}; }
+  }
+  function _writeTitleOverrides(map) {
+    try {
+      if (!map || !Object.keys(map).length) localStorage.removeItem(STORAGE_KEY_TIER_TITLES);
+      else localStorage.setItem(STORAGE_KEY_TIER_TITLES, JSON.stringify(map));
+    } catch (e) {}
+  }
+  function _readOrderOverride() {
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEY_TIER_ORDER) || 'null'); }
+    catch (e) { return null; }
+  }
+  function _writeOrderOverride(arr) {
+    try {
+      if (!arr || !arr.length) localStorage.removeItem(STORAGE_KEY_TIER_ORDER);
+      else localStorage.setItem(STORAGE_KEY_TIER_ORDER, JSON.stringify(arr));
+    } catch (e) {}
+  }
+  function _hasConfigOverrides() {
+    return !!(Object.keys(_readTitleOverrides()).length || _readOrderOverride());
+  }
+
+  // Effective tier list, override-merged. Always sourced from
+  // window.TIER_CONFIG.tiers (loaded from JSON) so the canonical order
+  // ships in the repo. Returns array of {code, title} in display order.
+  function effectiveTierConfig() {
+    var canonical = (window.TIER_CONFIG && window.TIER_CONFIG.tiers) || [];
+    if (!canonical.length) {
+      // Defensive: synthesize from TIERS constant if config wasn't loaded
+      canonical = TIERS.map(function (c) { return { code: c, title: c }; });
+    }
+    var titleMap = _readTitleOverrides();
+    var orderOverride = _readOrderOverride();
+    var byCode = {};
+    canonical.forEach(function (t) { byCode[t.code] = { code: t.code, title: t.title }; });
+    // Apply title overrides
+    Object.keys(titleMap).forEach(function (code) {
+      if (byCode[code]) byCode[code].title = titleMap[code];
+    });
+    // Apply order override (only codes that exist in canonical; appended
+    // canonical codes that aren't in the override go at the end so a
+    // partial reorder doesn't drop tiers).
+    var order = orderOverride && orderOverride.length
+      ? orderOverride.filter(function (c) { return byCode[c]; })
+      : canonical.map(function (t) { return t.code; });
+    canonical.forEach(function (t) {
+      if (order.indexOf(t.code) < 0) order.push(t.code);
+    });
+    return order.map(function (c) { return byCode[c]; });
+  }
+
+  function setTierTitle(code, title) {
+    if (!code) return;
+    var map = _readTitleOverrides();
+    var canonicalTitle = (function () {
+      var c = (window.TIER_CONFIG && window.TIER_CONFIG.tiers) || [];
+      for (var i = 0; i < c.length; i++) if (c[i].code === code) return c[i].title;
+      return '';
+    })();
+    if (!title || title === canonicalTitle) {
+      // Empty or matches canonical -> clear the override
+      delete map[code];
+    } else {
+      map[code] = title;
+    }
+    _writeTitleOverrides(map);
+    _fireConfigChanged();
+    _refreshBanner();
+  }
+
+  function moveTier(code, direction) {
+    if (!code || (direction !== 1 && direction !== -1)) return;
+    var cfg = effectiveTierConfig();
+    var idx = cfg.findIndex(function (t) { return t.code === code; });
+    if (idx < 0) return;
+    var newIdx = idx + direction;
+    if (newIdx < 0 || newIdx >= cfg.length) return;   // already at edge
+    var order = cfg.map(function (t) { return t.code; });
+    var tmp = order[idx]; order[idx] = order[newIdx]; order[newIdx] = tmp;
+    _writeOrderOverride(order);
+    _fireConfigChanged();
+    _refreshBanner();
+  }
+
+  function _fireConfigChanged() {
+    try {
+      document.dispatchEvent(new CustomEvent('fpts:tier-config-changed', {
+        detail: { tiers: effectiveTierConfig() },
+      }));
+    } catch (e) {}
+  }
+
+  // Build the tier-config.json payload for Publish — overrides baked in,
+  // canonical structure preserved.
+  function _buildOverriddenTierConfigJson() {
+    var tiers = effectiveTierConfig();
+    var payload = {
+      version: new Date().toISOString().slice(0, 10),
+      source: 'Published via admin scratchpad (admin-tiers.js)',
+      tiers: tiers.map(function (t) { return { code: t.code, title: t.title }; }),
+    };
+    return JSON.stringify(payload, null, 2) + '\n';
   }
 
   function _applyOverrideToLive(name, merged) {
@@ -445,23 +567,52 @@
       return Promise.resolve(null);
     }
     var n = _overrideCount();
-    var commitMessage = 'admin: tier edits via web UI (' + n + ' override' + (n === 1 ? '' : 's') + ')';
-    var csv = _buildOverriddenCsv();
+    var hasConfig = _hasConfigOverrides();
+    if (n === 0 && !hasConfig) {
+      _flashBanner('Nothing to publish.');
+      return Promise.resolve(null);
+    }
+
+    // Two files may need writing: tiers.csv (player overrides) and
+    // tier-config.json (title/order overrides). Each is a separate GET-SHA-
+    // then-PUT round trip. Run sequentially so we don't burn rate-limit
+    // on parallel fetches that share a SHA-conflict failure mode.
+    var commitMessage = 'admin: tier edits via web UI ('
+      + (n > 0 ? n + ' player override' + (n === 1 ? '' : 's') : '')
+      + (n > 0 && hasConfig ? ' + ' : '')
+      + (hasConfig ? 'tier config' : '')
+      + ')';
+    var configPath = DEFAULT_GH_CONFIG_PATH;
+    var configSettings = Object.assign({}, s, { path: configPath });
 
     _publishSetState('publishing');
-    return _ghGetFile(s).then(function (existing) {
-      return _ghPutFile(s, csv, existing.sha, commitMessage);
-    }).then(function (commit) {
-      var commitUrl = (commit && commit.commit && commit.commit.html_url) || '';
-      // Auto-clear localStorage overrides — they're now baked into the
-      // canonical file. Page reloads after publish so the next render
-      // reads the fresh data without stale-override merges.
+
+    var pipeline = Promise.resolve();
+    if (n > 0) {
+      var csv = _buildOverriddenCsv();
+      pipeline = pipeline
+        .then(function () { return _ghGetFile(s); })
+        .then(function (existing) { return _ghPutFile(s, csv, existing.sha, commitMessage); });
+    }
+    if (hasConfig) {
+      var json = _buildOverriddenTierConfigJson();
+      pipeline = pipeline
+        .then(function () { return _ghGetFile(configSettings); })
+        .then(function (existing) { return _ghPutFile(configSettings, json, existing.sha, commitMessage + ' [config]'); });
+    }
+
+    return pipeline.then(function (lastCommit) {
+      var commitUrl = (lastCommit && lastCommit.commit && lastCommit.commit.html_url) || '';
+      // Auto-clear ALL local overrides — they're now baked into the
+      // canonical file(s). Reload so the next render reads the fresh state
+      // without stale-override merges.
       _writeOverrides({});
+      _writeTitleOverrides({});
+      _writeOrderOverride(null);
       _flashBanner('Published! ' + (commitUrl ? 'View commit · ' : '') + 'GitHub Pages rebuilds in ~30-60s.');
       _publishSetState('idle');
-      // Brief delay so the user sees the success message, then reload.
       setTimeout(function () { window.location.reload(); }, 1500);
-      return commit;
+      return lastCommit;
     }).catch(function (err) {
       console.error('[admin-tiers] publish failed:', err);
       window.alert('Publish failed:\n\n' + err.message);
@@ -825,11 +976,15 @@
     // either way, but the dimming sets correct expectations).
     var pub = document.getElementById('fpts-admin-banner-publish');
     if (pub) {
-      var enabled = n > 0 && _ghReady();
+      var hasConfig = _hasConfigOverrides();
+      var enabled = (n > 0 || hasConfig) && _ghReady();
       pub.style.opacity = enabled ? '1' : '.5';
+      var bits = [];
+      if (n > 0)      bits.push(n + ' player override' + (n === 1 ? '' : 's'));
+      if (hasConfig)  bits.push('tier config');
       pub.title = enabled
-        ? ('Publish ' + n + ' override(s) to data/source/tiers/tiers.csv via GitHub API.')
-        : (n === 0 ? 'No overrides to publish.' : 'GitHub PAT not configured. Click ⚙ Settings first.');
+        ? ('Publish ' + bits.join(' + ') + ' via GitHub API.')
+        : ((n === 0 && !hasConfig) ? 'No overrides to publish.' : 'GitHub PAT not configured. Click ⚙ Settings first.');
     }
   }
   function _flashBanner(msg) {
@@ -1035,6 +1190,10 @@
     // Phase 2 — add/remove players from the tier list:
     openAddPlayer:      _openAddPlayerModal,
     removePlayer:       removePlayer,
+    // Phase 3 — tier title rename + reorder:
+    effectiveTierConfig: effectiveTierConfig,
+    setTierTitle:       setTierTitle,
+    moveTier:           moveTier,
   };
 
   if (document.readyState === 'loading') {
