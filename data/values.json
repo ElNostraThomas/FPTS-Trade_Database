@@ -1,5 +1,5 @@
 {
-  "version": "2026-05-22T20:38:02.957180+00:00",
+  "version": "2026-05-22T21:50:15.051825+00:00",
   "players": {
     "Bijan Robinson": {
       "rank": 1,
@@ -12128,6 +12128,45 @@
       "injury": null,
       "sleeperId": "2549",
       "trend": -287,
+      "tier": null
+    },
+    "Tyreek Hill": {
+      "rank": 1000,
+      "posRank": "WR109",
+      "pos": "WR",
+      "team": "FA",
+      "age": 32.2,
+      "ppg": 13.4,
+      "ppgPrior": 12.8,
+      "injury": "Questionable",
+      "sleeperId": "18082",
+      "trend": 0,
+      "tier": null
+    },
+    "Deebo Samuel": {
+      "rank": 1001,
+      "posRank": "WR77",
+      "pos": "WR",
+      "team": "FA",
+      "age": 30.3,
+      "ppg": 11.8,
+      "ppgPrior": 10.2,
+      "injury": null,
+      "sleeperId": "20932",
+      "trend": 0,
+      "tier": null
+    },
+    "Eli Stowers": {
+      "rank": 1002,
+      "posRank": "TE11",
+      "pos": "TE",
+      "team": "PHI",
+      "age": 23.1,
+      "ppg": null,
+      "ppgPrior": null,
+      "injury": null,
+      "sleeperId": "26757",
+      "trend": 0,
       "tier": null
     }
   }
