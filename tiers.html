@@ -12,7 +12,7 @@
 <!-- OBS zoom controls — only renders when embedded; top-right pill steps body { zoom }. -->
 <script src="assets/js/obs-zoom-controls.js?v=1783800000"></script>
 <!-- Admin-mode tier+B/S/H scratchpad — only renders when ?admin=1 is set. -->
-<script src="assets/js/admin-tiers.js?v=1784300000"></script>
+<script src="assets/js/admin-tiers.js?v=1784400000"></script>
 <!-- Back-to-top floating button — appears when scrolled, click for smooth-scroll to top. -->
 <script src="assets/js/back-to-top.js?v=1782200000" defer></script>
 <!-- Custom <select> wrapper — OBS/CEF compat (native popups don't render in iframes). -->
@@ -2968,7 +2968,10 @@ document.addEventListener('fpts:data-ready', () => {
 // active AND the admin actually saves an override).
 document.addEventListener('fpts:tiers-overrides-changed', () => {
   if (!window.TIERS_DATA) return;
+  // 1) Update existing TIER_PLAYERS from TIERS_DATA (Phase 1 behavior)
+  const existingNames = new Set();
   TIER_PLAYERS.forEach(p => {
+    existingNames.add(p.name);
     const t = window.TIERS_DATA[p.name];
     if (!t) return;
     if (t.tier      != null) p.tier      = t.tier;
@@ -2978,6 +2981,35 @@ document.addEventListener('fpts:tiers-overrides-changed', () => {
     if (t.contender != null) p.contender = t.contender;
     if (t.notes     != null) p.notes     = t.notes;
   });
+  // 2) Add Phase 2 "newly added" players — TIERS_DATA entries that don't
+  //    yet exist in TIER_PLAYERS. Pull pos/team/age from FP_VALUES if
+  //    available so the row renders with real metadata.
+  Object.keys(window.TIERS_DATA).forEach(name => {
+    if (existingNames.has(name)) return;
+    const t = window.TIERS_DATA[name];
+    if (!t || !t.tier || t._deleted) return;
+    const fp = (window.FP_VALUES || {})[name] || {};
+    TIER_PLAYERS.push({
+      name: name,
+      tier: t.tier,
+      pos: fp.pos || '',
+      posRank: fp.posRank || '',
+      team: fp.team || '',
+      age: fp.age != null ? String(fp.age) : '',
+      buySell: t.buySell || '',
+      priority: t.priority || '',
+      contender: t.contender || '',
+      trending: t.trending || '',
+      notes: t.notes || '',
+    });
+  });
+  // 3) Filter out Phase 2 "removed" players — _deleted=true in the override
+  //    layer. Done by rebuilding the array in place via splice so the
+  //    reference TIER_PLAYERS = stays stable.
+  for (let i = TIER_PLAYERS.length - 1; i >= 0; i--) {
+    const t = window.TIERS_DATA[TIER_PLAYERS[i].name];
+    if (t && t._deleted) TIER_PLAYERS.splice(i, 1);
+  }
   renderTiers();
 });
 </script>

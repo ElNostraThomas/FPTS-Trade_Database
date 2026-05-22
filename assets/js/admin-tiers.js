@@ -238,6 +238,16 @@
     _refreshBanner();
   }
 
+  // Mark a player as removed. Stored as { _deleted: true } in the override
+  // so the render layer + publish CSV both filter them out. Clearing the
+  // override (via Reset in the popover or Clear all in the banner) restores
+  // the player. This is "soft delete" -- never destroys the underlying
+  // tiers.csv entry, just hides it locally until published.
+  function removePlayer(name) {
+    if (!name) return;
+    saveOverride(name, { _deleted: true });
+  }
+
   function _applyOverrideToLive(name, merged) {
     if (!window.TIERS_DATA) return;
     var base = window.TIERS_DATA[name] || {
@@ -339,7 +349,12 @@
     }
     var headers = ['Tier','Player','Trending','Buy/Sell/Hold','Priority Level','Contender/Rebuild','Player Notes'];
     var data = window.TIERS_DATA || {};
-    var names = Object.keys(data).filter(function (n) { return data[n] && data[n].tier; });
+    // Skip players the admin removed (Phase 2). They stay in TIERS_DATA
+    // with _deleted=true so the override layer can "undo" via Clear, but
+    // they don't appear in the published CSV.
+    var names = Object.keys(data).filter(function (n) {
+      return data[n] && data[n].tier && !data[n]._deleted;
+    });
     names.sort(function (a, b) {
       var ta = tierRank(data[a].tier), tb = tierRank(data[b].tier);
       if (ta !== tb) return ta - tb;
@@ -532,6 +547,169 @@
     });
   }
 
+  // ── Add Player modal (Phase 2) ─────────────────────────────────────────
+  // Search FP_VALUES (920+ NFL players) -> pick a player -> set their tier
+  // and other fields -> Save. Internally calls saveOverride() so the new
+  // player flows through the same publish pipeline as edits to existing
+  // players. tiers.html's overrides-changed listener also detects NEW
+  // TIERS_DATA entries and pushes them into TIER_PLAYERS so the row
+  // appears immediately.
+  function _openAddPlayerModal() {
+    var FP = window.FP_VALUES || {};
+    var selectedName = null;
+
+    var backdrop = document.createElement('div');
+    backdrop.id = 'fpts-adm-add-backdrop';
+    Object.assign(backdrop.style, {
+      position: 'fixed', inset: '0', zIndex: '220',
+      background: 'rgba(0,0,0,.65)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+    });
+    var modal = document.createElement('div');
+    Object.assign(modal.style, {
+      background: 'var(--surface)', border: '2px solid var(--red)',
+      padding: '20px', minWidth: '420px', maxWidth: '520px',
+      fontFamily: "'Mulish', sans-serif", fontSize: '12px',
+      color: 'var(--white)', boxShadow: '0 8px 32px rgba(0,0,0,.6)',
+    });
+    var selStyle = "width:100%;margin-top:3px;background:var(--surface2);color:var(--white);border:1px solid var(--border);padding:5px;font-family:'Kanit',sans-serif;font-weight:800;font-style:italic";
+    var inputStyle = "width:100%;margin-top:4px;background:var(--surface2);color:var(--white);border:1px solid var(--border);padding:7px;font-family:'Mulish',sans-serif;font-size:12px";
+    var tierOpts = TIERS.map(function (t) { return '<option value="' + t + '">' + t + '</option>'; }).join('');
+    var bshOpts  = BSHS.map(function (b) {
+      var label = b ? b.charAt(0).toUpperCase() + b.slice(1) : '— none —';
+      return '<option value="' + b + '">' + label + '</option>';
+    }).join('');
+    var priorityOpts = PRIORITIES.map(function (p) { return '<option value="' + p + '">' + (p || '— none —') + '</option>'; }).join('');
+    var contenderOpts = CONTENDERS.map(function (c) { return '<option value="' + c + '">' + (c || '— none —') + '</option>'; }).join('');
+    var trendingOpts = TRENDINGS.map(function (t) { return '<option value="' + t + '">' + TRENDING_LABELS[t] + '</option>'; }).join('');
+
+    modal.innerHTML = ''
+      + '<div style="font-family:\'Kanit\',sans-serif;font-weight:800;font-style:italic;font-size:16px;color:var(--red);text-transform:uppercase;letter-spacing:.04em;margin-bottom:14px">Add Player to Tiers</div>'
+      + '<label style="display:block;margin-bottom:10px">Search FP players'
+      +   '<input id="fpts-adm-add-search" type="text" autocomplete="off" placeholder="Type a player name..." style="' + inputStyle + '">'
+      + '</label>'
+      + '<div id="fpts-adm-add-results" style="max-height:200px;overflow-y:auto;margin-bottom:10px;background:var(--surface2);border:1px solid var(--border);display:none"></div>'
+      + '<div id="fpts-adm-add-selected" style="margin-bottom:10px;padding:8px;background:var(--surface2);border:1px solid var(--border);display:none;align-items:center;gap:8px">'
+      +   '<span class="pos-pill" id="fpts-adm-add-sel-pos"></span>'
+      +   '<span id="fpts-adm-add-sel-name" style="font-weight:800;font-size:13px;flex:1"></span>'
+      +   '<span id="fpts-adm-add-sel-team" style="font-size:10px;opacity:.65"></span>'
+      + '</div>'
+      + '<label style="display:block;margin-bottom:8px">Tier'
+      +   '<select id="fpts-adm-add-tier" style="' + selStyle + '"><option value="">— pick a tier —</option>' + tierOpts + '</select>'
+      + '</label>'
+      + '<label style="display:block;margin-bottom:8px">Buy / Sell / Hold'
+      +   '<select id="fpts-adm-add-bsh" style="' + selStyle + '">' + bshOpts + '</select>'
+      + '</label>'
+      + '<label style="display:block;margin-bottom:8px">Priority Level'
+      +   '<select id="fpts-adm-add-priority" style="' + selStyle + '">' + priorityOpts + '</select>'
+      + '</label>'
+      + '<label style="display:block;margin-bottom:8px">Contender / Rebuild'
+      +   '<select id="fpts-adm-add-contender" style="' + selStyle + '">' + contenderOpts + '</select>'
+      + '</label>'
+      + '<label style="display:block;margin-bottom:14px">Trending'
+      +   '<select id="fpts-adm-add-trending" style="' + selStyle + '">' + trendingOpts + '</select>'
+      + '</label>'
+      + '<div style="display:flex;gap:8px">'
+      +   '<button type="button" id="fpts-adm-add-save" style="flex:1;background:var(--red);color:#111;border:none;padding:8px;font-family:\'Kanit\',sans-serif;font-weight:800;font-style:italic;font-size:12px;text-transform:uppercase;letter-spacing:.06em;cursor:pointer" disabled>Add Player</button>'
+      +   '<button type="button" id="fpts-adm-add-cancel" style="background:transparent;color:var(--white);border:1px solid var(--border2);padding:8px 12px;font-family:\'Kanit\',sans-serif;font-weight:800;font-style:italic;font-size:11px;text-transform:uppercase;letter-spacing:.06em;cursor:pointer">Cancel</button>'
+      + '</div>';
+    backdrop.appendChild(modal);
+    document.documentElement.appendChild(backdrop);
+
+    function close() { if (backdrop.parentNode) backdrop.parentNode.removeChild(backdrop); }
+
+    var searchInput   = document.getElementById('fpts-adm-add-search');
+    var resultsEl     = document.getElementById('fpts-adm-add-results');
+    var selectedBox   = document.getElementById('fpts-adm-add-selected');
+    var selectedPos   = document.getElementById('fpts-adm-add-sel-pos');
+    var selectedName_ = document.getElementById('fpts-adm-add-sel-name');
+    var selectedTeam  = document.getElementById('fpts-adm-add-sel-team');
+    var saveBtn       = document.getElementById('fpts-adm-add-save');
+    var debounceTimer = null;
+
+    function _selectPlayer(name) {
+      selectedName = name;
+      var fp = FP[name] || {};
+      selectedName_.textContent = name;
+      selectedPos.textContent = fp.pos || '?';
+      selectedPos.className = 'pos-pill ' + (fp.pos || '');
+      selectedTeam.textContent = fp.team || '';
+      selectedBox.style.display = 'flex';
+      resultsEl.style.display = 'none';
+      searchInput.value = name;
+      saveBtn.disabled = false;
+      saveBtn.style.opacity = '1';
+    }
+
+    searchInput.addEventListener('input', function () {
+      clearTimeout(debounceTimer);
+      var q = (searchInput.value || '').trim().toLowerCase();
+      if (!q) {
+        resultsEl.style.display = 'none';
+        selectedBox.style.display = 'none';
+        selectedName = null;
+        saveBtn.disabled = true;
+        saveBtn.style.opacity = '.5';
+        return;
+      }
+      debounceTimer = setTimeout(function () {
+        var hits = Object.keys(FP)
+          .filter(function (n) { return n.toLowerCase().indexOf(q) >= 0; })
+          .sort(function (a, b) {
+            // Rank by (a) starts-with-query first, (b) FP rank
+            var aStarts = a.toLowerCase().indexOf(q) === 0;
+            var bStarts = b.toLowerCase().indexOf(q) === 0;
+            if (aStarts !== bStarts) return aStarts ? -1 : 1;
+            return (FP[a].rank || 9999) - (FP[b].rank || 9999);
+          })
+          .slice(0, 12);
+        if (!hits.length) {
+          resultsEl.innerHTML = '<div style="padding:8px;color:var(--muted);font-size:11px">No matches.</div>';
+          resultsEl.style.display = 'block';
+          return;
+        }
+        resultsEl.innerHTML = hits.map(function (n) {
+          var fp = FP[n] || {};
+          var safe = n.replace(/'/g, "\\'");
+          return '<div data-name="' + n.replace(/"/g, '&quot;') + '" style="padding:6px 10px;cursor:pointer;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border)" '
+            + 'onmouseover="this.style.background=\'var(--surface)\'" onmouseout="this.style.background=\'\'">'
+            + '<span class="pos-pill ' + (fp.pos || '') + '">' + (fp.pos || '?') + '</span>'
+            + '<span style="flex:1;font-weight:800">' + n + '</span>'
+            + '<span style="font-size:10px;opacity:.6">' + (fp.team || '') + (fp.posRank ? ' · ' + fp.posRank : '') + '</span>'
+            + '</div>';
+        }).join('');
+        resultsEl.style.display = 'block';
+      }, 60);
+    });
+
+    // Delegated click on result rows
+    resultsEl.addEventListener('click', function (e) {
+      var row = e.target.closest('[data-name]');
+      if (!row) return;
+      _selectPlayer(row.getAttribute('data-name'));
+    });
+
+    backdrop.addEventListener('click', function (e) { if (e.target === backdrop) close(); });
+    document.getElementById('fpts-adm-add-cancel').addEventListener('click', close);
+    saveBtn.addEventListener('click', function () {
+      if (!selectedName) return;
+      var tier      = document.getElementById('fpts-adm-add-tier').value || '';
+      if (!tier) { window.alert('Pick a tier first.'); return; }
+      var buySell   = document.getElementById('fpts-adm-add-bsh').value || '';
+      var priority  = document.getElementById('fpts-adm-add-priority').value || '';
+      var contender = document.getElementById('fpts-adm-add-contender').value || '';
+      var trending  = document.getElementById('fpts-adm-add-trending').value || '';
+      saveOverride(selectedName, {
+        tier: tier, buySell: buySell, priority: priority,
+        contender: contender, trending: trending,
+      });
+      close();
+      _flashBanner('Added ' + selectedName + ' to tier ' + tier + '.');
+    });
+
+    setTimeout(function () { searchInput.focus(); }, 50);
+  }
+
   // ── Banner ──────────────────────────────────────────────────────────────
   var _banner = null;
   function _mountBanner() {
@@ -561,6 +739,7 @@
       + '<span id="fpts-admin-banner-count" style="opacity:.85"></span>'
       + '<span id="fpts-admin-banner-flash" style="margin-left:auto;font-style:italic;opacity:0;transition:opacity .2s"></span>'
       + '<button type="button" id="fpts-admin-banner-publish" style="' + publishStyle + '" title="Commit your overrides to data/source/tiers/tiers.csv via GitHub API. Publishes for everyone.">Publish ⬆</button>'
+      + '<button type="button" id="fpts-admin-banner-add" style="' + btnStyle + '" title="Search FP_VALUES and add a new player to the tier list">+ Add Player</button>'
       + '<button type="button" id="fpts-admin-banner-settings" style="' + btnStyle + '" title="GitHub PAT + repo settings">⚙ Settings</button>'
       + '<button type="button" id="fpts-admin-banner-export" style="background:#111;color:var(--red);border:none;padding:4px 10px;font-family:\'Kanit\',sans-serif;font-weight:800;font-style:italic;font-size:11px;letter-spacing:.06em;text-transform:uppercase;cursor:pointer">Copy as JSON</button>'
       + '<button type="button" id="fpts-admin-banner-clear" style="' + btnStyle + '">Clear all</button>'
@@ -589,6 +768,7 @@
     });
 
     document.getElementById('fpts-admin-banner-settings').addEventListener('click', _openSettings);
+    document.getElementById('fpts-admin-banner-add').addEventListener('click', _openAddPlayerModal);
 
     // "Clear all" — wipes overrides AND auto-reloads so the user sees the
     // restored TAT-default tiers immediately. The prior "reload required"
@@ -751,14 +931,17 @@
             }).join('')
       +   '</select>'
       + '</label>'
-      + '<div style="display:flex;gap:6px">'
+      + '<div style="display:flex;gap:6px;flex-wrap:wrap">'
       +   '<button type="button" id="fpts-adm-save" style="flex:1;background:var(--red);color:#111;border:none;padding:6px;font-family:\'Kanit\',sans-serif;font-weight:800;font-style:italic;font-size:11px;text-transform:uppercase;letter-spacing:.06em;cursor:pointer">Save</button>'
-      +   (hasOverride
-        ? '<button type="button" id="fpts-adm-reset" style="background:transparent;color:var(--white);border:1px solid var(--border2);padding:6px 10px;font-family:\'Kanit\',sans-serif;font-weight:800;font-style:italic;font-size:11px;text-transform:uppercase;letter-spacing:.06em;cursor:pointer">Reset</button>'
-        : '')
       +   '<button type="button" id="fpts-adm-cancel" style="background:transparent;color:var(--white);border:1px solid var(--border2);padding:6px 10px;font-family:\'Kanit\',sans-serif;font-weight:800;font-style:italic;font-size:11px;text-transform:uppercase;letter-spacing:.06em;cursor:pointer">Cancel</button>'
       + '</div>'
-      + '<div style="margin-top:8px;font-size:10px;opacity:.55">Saved on this device only. Use "Copy as JSON" in the banner to export.</div>';
+      + '<div style="display:flex;gap:6px;margin-top:6px">'
+      +   (hasOverride
+        ? '<button type="button" id="fpts-adm-reset" style="flex:1;background:transparent;color:var(--white);border:1px solid var(--border2);padding:5px;font-family:\'Kanit\',sans-serif;font-weight:800;font-style:italic;font-size:10px;text-transform:uppercase;letter-spacing:.06em;cursor:pointer">Reset to default</button>'
+        : '')
+      +   '<button type="button" id="fpts-adm-remove" style="flex:1;background:transparent;color:var(--red);border:1px solid var(--red);padding:5px;font-family:\'Kanit\',sans-serif;font-weight:800;font-style:italic;font-size:10px;text-transform:uppercase;letter-spacing:.06em;cursor:pointer">Remove from tiers</button>'
+      + '</div>'
+      + '<div style="margin-top:8px;font-size:10px;opacity:.55">Saved on this device only. Use "Publish ⬆" in the banner to push to GitHub.</div>';
 
     // Position below the trigger.
     var rect = triggerEl.getBoundingClientRect();
@@ -792,6 +975,19 @@
         clearOverride(playerName);
         _popover.style.display = 'none';
         _flashBanner('Reset ' + playerName + ' (reload to see original).');
+      });
+    }
+    var removeBtn = document.getElementById('fpts-adm-remove');
+    if (removeBtn) {
+      removeBtn.addEventListener('click', function () {
+        if (!confirm('Remove ' + playerName + ' from the tier list?\n\n' +
+                     'They\'ll be hidden from the tiers table until you click ' +
+                     '"Reset to default" on this player or Clear All in the banner. ' +
+                     'Publishing while this player is removed will omit them from ' +
+                     'data/source/tiers/tiers.csv.')) return;
+        removePlayer(playerName);
+        _popover.style.display = 'none';
+        _flashBanner('Removed ' + playerName + '. Publish to make it permanent.');
       });
     }
   }
@@ -836,6 +1032,9 @@
     // Phase 1b — GitHub publish surface for console + automation:
     publish:            publishToGitHub,
     openSettings:       _openSettings,
+    // Phase 2 — add/remove players from the tier list:
+    openAddPlayer:      _openAddPlayerModal,
+    removePlayer:       removePlayer,
   };
 
   if (document.readyState === 'loading') {
