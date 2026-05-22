@@ -220,18 +220,48 @@
     document.body.style.paddingTop = (_banner.offsetHeight) + 'px';
 
     document.getElementById('fpts-admin-banner-export').addEventListener('click', exportToClipboard);
+
+    // "Clear all" — wipes overrides AND auto-reloads so the user sees the
+    // restored TAT-default tiers immediately. The prior "reload required"
+    // warning text was confusing (the action was incomplete-feeling without
+    // a manual reload).
     document.getElementById('fpts-admin-banner-clear').addEventListener('click', function () {
-      if (!_overrideCount()) { _flashBanner('No overrides to clear.'); return; }
-      if (confirm('Clear all ' + _overrideCount() + ' tier overrides on this device? (Reload required to fully restore original tiers.)')) {
+      var n = _overrideCount();
+      if (!n) { _flashBanner('No overrides to clear.'); return; }
+      if (confirm('Clear all ' + n + ' tier override' + (n === 1 ? '' : 's') +
+                  ' on this device?\n\n' +
+                  'This reloads the page so every player snaps back to the ' +
+                  'TAT-default tier. Admin mode stays ON.')) {
         clearAllOverrides();
-        _flashBanner('Cleared. Reload to fully restore.');
-      }
-    });
-    document.getElementById('fpts-admin-banner-disable').addEventListener('click', function () {
-      if (confirm('Disable admin mode on this device? Overrides will remain saved but the editor UI will hide.')) {
-        try { localStorage.removeItem(STORAGE_KEY_MODE); } catch (e) {}
         window.location.reload();
       }
+    });
+
+    // "Disable" — turns off admin mode. Asks separately whether to also
+    // clear overrides because the two are distinct intents:
+    //   - keep overrides: your tier edits stay live on this device; only
+    //     the editor UI hides. Use this if you're done editing for now
+    //     but want your changes to still show on the page.
+    //   - clear overrides: full revert. Page snaps back to TAT-default for
+    //     everyone (on this device). Most common "I'm done" path.
+    document.getElementById('fpts-admin-banner-disable').addEventListener('click', function () {
+      var n = _overrideCount();
+      if (!confirm('Disable admin mode on this device?')) return;
+      var clearToo = false;
+      if (n > 0) {
+        clearToo = confirm(
+          'You have ' + n + ' saved tier override' + (n === 1 ? '' : 's') +
+          ' on this device.\n\n' +
+          'OK = clear them too (page reverts to TAT-default tiers)\n' +
+          'Cancel = keep them saved (your edits stay applied; only the ' +
+          'editor UI hides)'
+        );
+      }
+      if (clearToo) {
+        clearAllOverrides();
+      }
+      try { localStorage.removeItem(STORAGE_KEY_MODE); } catch (e) {}
+      window.location.reload();
     });
     _refreshBanner();
   }
