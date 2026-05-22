@@ -45,6 +45,19 @@
 
   var STORAGE_KEY_MODE      = 'fpts-admin-mode';
   var STORAGE_KEY_OVERRIDES = 'fpts-tier-overrides';
+  // GitHub publish settings (Phase 1b). PAT lives in localStorage on this
+  // device only. Repo / branch / path can be edited via the Settings panel
+  // and default to elnostrathomas/FPTS-Trade_Database main + the canonical
+  // tier CSV path. Token security: localStorage is per-origin (only this
+  // site can read), token is sensitive — if the device is shared, clear it
+  // via the Settings panel's "Clear token" button.
+  var STORAGE_KEY_GH_TOKEN  = 'fpts-admin-gh-token';
+  var STORAGE_KEY_GH_REPO   = 'fpts-admin-gh-repo';
+  var STORAGE_KEY_GH_BRANCH = 'fpts-admin-gh-branch';
+  var STORAGE_KEY_GH_PATH   = 'fpts-admin-gh-path';
+  var DEFAULT_GH_REPO   = 'elnostrathomas/FPTS-Trade_Database';
+  var DEFAULT_GH_BRANCH = 'main';
+  var DEFAULT_GH_PATH   = 'data/source/tiers/tiers.csv';
 
   var TIERS = ['S++','S+','S','A+','A','A-','B+','B','B-','C+','C','C-','D+','D','D-','E+','E','E-','F+','F','F-'];
   // 5 + empty for Buy/Sell/Hold (mirrors bshChipHtml in tiers.html)
@@ -281,6 +294,244 @@
     document.body.removeChild(ta);
   }
 
+  // ══════════════════════════════════════════════════════════════════════
+  // Phase 1b — Settings panel + Publish to GitHub
+  // ══════════════════════════════════════════════════════════════════════
+
+  // ── GitHub Settings storage ─────────────────────────────────────────────
+  function _ghSettings() {
+    function _get(k, fallback) {
+      try { return localStorage.getItem(k) || fallback; } catch (e) { return fallback; }
+    }
+    return {
+      token:  _get(STORAGE_KEY_GH_TOKEN,  ''),
+      repo:   _get(STORAGE_KEY_GH_REPO,   DEFAULT_GH_REPO),
+      branch: _get(STORAGE_KEY_GH_BRANCH, DEFAULT_GH_BRANCH),
+      path:   _get(STORAGE_KEY_GH_PATH,   DEFAULT_GH_PATH),
+    };
+  }
+  function _ghSettingsSave(token, repo, branch, path) {
+    try {
+      if (token) localStorage.setItem(STORAGE_KEY_GH_TOKEN, token);
+      else       localStorage.removeItem(STORAGE_KEY_GH_TOKEN);
+      localStorage.setItem(STORAGE_KEY_GH_REPO,   repo   || DEFAULT_GH_REPO);
+      localStorage.setItem(STORAGE_KEY_GH_BRANCH, branch || DEFAULT_GH_BRANCH);
+      localStorage.setItem(STORAGE_KEY_GH_PATH,   path   || DEFAULT_GH_PATH);
+    } catch (e) {}
+  }
+  function _ghReady() {
+    var s = _ghSettings();
+    return !!(s.token && s.repo && s.branch && s.path);
+  }
+
+  // ── CSV generation (Sheet-format, 7 cols, overrides baked in) ──────────
+  // Walks live TIERS_DATA (already merged with localStorage overrides via
+  // data-bootstrap) and emits a Sheet-format CSV that sync-tiers.py parses
+  // via the header-aware map_rows path. Matches the same columns the user
+  // would export from the Google Sheet.
+  function _buildOverriddenCsv() {
+    var TIER_ORDER = ['S++','S+','S','A+','A','A-','B+','B','B-','C+','C','C-','D+','D','D-','E+','E','E-','F+','F','F-'];
+    function tierRank(t) { var i = TIER_ORDER.indexOf(t); return i >= 0 ? i : 99; }
+    function esc(v) {
+      var s = (v == null) ? '' : String(v);
+      if (/[",\n\r]/.test(s)) return '"' + s.replace(/"/g, '""') + '"';
+      return s;
+    }
+    var headers = ['Tier','Player','Trending','Buy/Sell/Hold','Priority Level','Contender/Rebuild','Player Notes'];
+    var data = window.TIERS_DATA || {};
+    var names = Object.keys(data).filter(function (n) { return data[n] && data[n].tier; });
+    names.sort(function (a, b) {
+      var ta = tierRank(data[a].tier), tb = tierRank(data[b].tier);
+      if (ta !== tb) return ta - tb;
+      return a.toLowerCase().localeCompare(b.toLowerCase());
+    });
+    var lines = [headers.map(esc).join(',')];
+    names.forEach(function (n) {
+      var r = data[n];
+      lines.push([
+        esc(r.tier || ''),
+        esc(n),
+        esc(r.trending || ''),
+        esc(r.buySell || ''),
+        esc(r.priority || ''),
+        esc(r.contender || ''),
+        esc(r.notes || ''),
+      ].join(','));
+    });
+    return lines.join('\r\n') + '\r\n';
+  }
+
+  // ── GitHub Contents API ────────────────────────────────────────────────
+  // UTF-8-safe base64 (btoa alone breaks on multi-byte chars like emojis).
+  function _utf8Btoa(str) {
+    return btoa(unescape(encodeURIComponent(str)));
+  }
+  function _ghHeaders(token) {
+    return {
+      'Authorization': 'Bearer ' + token,
+      'Accept':        'application/vnd.github+json',
+      'X-GitHub-Api-Version': '2022-11-28',
+    };
+  }
+  // Fetch current file → returns { sha, content } or throws with a
+  // human-readable error keyed off the HTTP status.
+  function _ghGetFile(s) {
+    var url = 'https://api.github.com/repos/' + s.repo + '/contents/' + encodeURI(s.path) + '?ref=' + encodeURIComponent(s.branch);
+    return fetch(url, { headers: _ghHeaders(s.token) }).then(function (r) {
+      if (r.status === 404) {
+        // File doesn't exist yet — PUT will create it. Return null SHA.
+        return { sha: null, content: '' };
+      }
+      if (!r.ok) {
+        return r.json().then(function (j) {
+          throw new Error('GitHub GET ' + r.status + ': ' + (j && j.message ? j.message : r.statusText));
+        }, function () {
+          throw new Error('GitHub GET ' + r.status + ' ' + r.statusText);
+        });
+      }
+      return r.json().then(function (j) { return { sha: j.sha, content: j.content || '' }; });
+    });
+  }
+  function _ghPutFile(s, csvContent, currentSha, commitMessage) {
+    var url = 'https://api.github.com/repos/' + s.repo + '/contents/' + encodeURI(s.path);
+    var body = {
+      message: commitMessage,
+      content: _utf8Btoa(csvContent),
+      branch:  s.branch,
+    };
+    if (currentSha) body.sha = currentSha;
+    return fetch(url, {
+      method: 'PUT',
+      headers: Object.assign({ 'Content-Type': 'application/json' }, _ghHeaders(s.token)),
+      body:    JSON.stringify(body),
+    }).then(function (r) {
+      if (!r.ok) {
+        return r.json().then(function (j) {
+          var msg = (j && j.message) ? j.message : r.statusText;
+          if (r.status === 401) msg = 'Invalid PAT (401). Re-paste your token in Settings.';
+          else if (r.status === 403) msg = 'PAT missing Contents: write permission (403). Regenerate with fine-grained scope on this repo.';
+          else if (r.status === 404) msg = 'Repo or file path not found (404). Check Settings.';
+          else if (r.status === 409) msg = 'File changed on server (409). Reload page to fetch the latest, then re-publish.';
+          else if (r.status === 422) msg = 'GitHub rejected the PUT (422): ' + msg;
+          throw new Error(msg);
+        }, function () {
+          throw new Error('GitHub PUT ' + r.status + ' ' + r.statusText);
+        });
+      }
+      return r.json();
+    });
+  }
+
+  // ── Publish flow ───────────────────────────────────────────────────────
+  function publishToGitHub() {
+    var s = _ghSettings();
+    if (!_ghReady()) {
+      window.alert('GitHub PAT not configured. Click the ⚙ Settings button in the admin banner first.');
+      return Promise.resolve(null);
+    }
+    var n = _overrideCount();
+    var commitMessage = 'admin: tier edits via web UI (' + n + ' override' + (n === 1 ? '' : 's') + ')';
+    var csv = _buildOverriddenCsv();
+
+    _publishSetState('publishing');
+    return _ghGetFile(s).then(function (existing) {
+      return _ghPutFile(s, csv, existing.sha, commitMessage);
+    }).then(function (commit) {
+      var commitUrl = (commit && commit.commit && commit.commit.html_url) || '';
+      // Auto-clear localStorage overrides — they're now baked into the
+      // canonical file. Page reloads after publish so the next render
+      // reads the fresh data without stale-override merges.
+      _writeOverrides({});
+      _flashBanner('Published! ' + (commitUrl ? 'View commit · ' : '') + 'GitHub Pages rebuilds in ~30-60s.');
+      _publishSetState('idle');
+      // Brief delay so the user sees the success message, then reload.
+      setTimeout(function () { window.location.reload(); }, 1500);
+      return commit;
+    }).catch(function (err) {
+      console.error('[admin-tiers] publish failed:', err);
+      window.alert('Publish failed:\n\n' + err.message);
+      _publishSetState('idle');
+      return null;
+    });
+  }
+  function _publishSetState(state) {
+    var btn = document.getElementById('fpts-admin-banner-publish');
+    if (!btn) return;
+    if (state === 'publishing') {
+      btn.disabled = true;
+      btn.textContent = 'Publishing…';
+      btn.style.opacity = '.65';
+    } else {
+      btn.disabled = false;
+      btn.textContent = 'Publish ⬆';
+      btn.style.opacity = '1';
+    }
+  }
+
+  // ── Settings modal ─────────────────────────────────────────────────────
+  function _openSettings() {
+    var s = _ghSettings();
+    var backdrop = document.createElement('div');
+    backdrop.id = 'fpts-admin-settings-backdrop';
+    Object.assign(backdrop.style, {
+      position: 'fixed', inset: '0', zIndex: '220',
+      background: 'rgba(0,0,0,.65)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+    });
+    var modal = document.createElement('div');
+    Object.assign(modal.style, {
+      background: 'var(--surface)', border: '2px solid var(--red)',
+      padding: '20px', minWidth: '420px', maxWidth: '560px',
+      fontFamily: "'Mulish', sans-serif", fontSize: '12px',
+      color: 'var(--white)', boxShadow: '0 8px 32px rgba(0,0,0,.6)',
+    });
+    var inputStyle = "width:100%;margin-top:4px;background:var(--surface2);color:var(--white);border:1px solid var(--border);padding:7px;font-family:'Mulish',sans-serif;font-size:12px";
+    modal.innerHTML = ''
+      + '<div style="font-family:\'Kanit\',sans-serif;font-weight:800;font-style:italic;font-size:16px;color:var(--red);text-transform:uppercase;letter-spacing:.04em;margin-bottom:14px">GitHub Publish Settings</div>'
+      + '<div style="font-size:11px;opacity:.65;margin-bottom:14px;line-height:1.4">PAT scope needs <b>Contents: Read &amp; write</b> on this repo only. <a href="https://github.com/settings/tokens?type=beta" target="_blank" style="color:var(--red)">Create fine-grained token →</a></div>'
+      + '<label style="display:block;margin-bottom:12px">GitHub Personal Access Token'
+      +   '<input id="fpts-adm-gh-token" type="password" autocomplete="off" placeholder="github_pat_..." value="' + (s.token || '').replace(/"/g, '&quot;') + '" style="' + inputStyle + '">'
+      + '</label>'
+      + '<label style="display:block;margin-bottom:12px">Repository (<code style="font-family:monospace">owner/name</code>)'
+      +   '<input id="fpts-adm-gh-repo" type="text" value="' + s.repo + '" style="' + inputStyle + '">'
+      + '</label>'
+      + '<label style="display:block;margin-bottom:12px">Branch'
+      +   '<input id="fpts-adm-gh-branch" type="text" value="' + s.branch + '" style="' + inputStyle + '">'
+      + '</label>'
+      + '<label style="display:block;margin-bottom:16px">File path'
+      +   '<input id="fpts-adm-gh-path" type="text" value="' + s.path + '" style="' + inputStyle + '">'
+      + '</label>'
+      + '<div style="display:flex;gap:8px">'
+      +   '<button type="button" id="fpts-adm-settings-save" style="flex:1;background:var(--red);color:#111;border:none;padding:8px;font-family:\'Kanit\',sans-serif;font-weight:800;font-style:italic;font-size:12px;text-transform:uppercase;letter-spacing:.06em;cursor:pointer">Save</button>'
+      +   '<button type="button" id="fpts-adm-settings-clear-token" style="background:transparent;color:var(--white);border:1px solid var(--border2);padding:8px 12px;font-family:\'Kanit\',sans-serif;font-weight:800;font-style:italic;font-size:11px;text-transform:uppercase;letter-spacing:.06em;cursor:pointer">Clear token</button>'
+      +   '<button type="button" id="fpts-adm-settings-cancel" style="background:transparent;color:var(--white);border:1px solid var(--border2);padding:8px 12px;font-family:\'Kanit\',sans-serif;font-weight:800;font-style:italic;font-size:11px;text-transform:uppercase;letter-spacing:.06em;cursor:pointer">Cancel</button>'
+      + '</div>'
+      + '<div style="margin-top:12px;font-size:10px;opacity:.55;line-height:1.4">Token stored in this device\'s localStorage only. Public site visitors don\'t see it. Clear via the button if the device is shared or you suspect leakage.</div>';
+    backdrop.appendChild(modal);
+    document.documentElement.appendChild(backdrop);
+
+    function close() { if (backdrop.parentNode) backdrop.parentNode.removeChild(backdrop); }
+    document.getElementById('fpts-adm-settings-cancel').addEventListener('click', close);
+    backdrop.addEventListener('click', function (e) { if (e.target === backdrop) close(); });
+    document.getElementById('fpts-adm-settings-clear-token').addEventListener('click', function () {
+      if (!confirm('Clear the saved GitHub token? (Other settings stay.)')) return;
+      try { localStorage.removeItem(STORAGE_KEY_GH_TOKEN); } catch (e) {}
+      document.getElementById('fpts-adm-gh-token').value = '';
+      _refreshBanner();
+      _flashBanner('Token cleared.');
+    });
+    document.getElementById('fpts-adm-settings-save').addEventListener('click', function () {
+      var token  = document.getElementById('fpts-adm-gh-token').value || '';
+      var repo   = document.getElementById('fpts-adm-gh-repo').value || '';
+      var branch = document.getElementById('fpts-adm-gh-branch').value || '';
+      var path   = document.getElementById('fpts-adm-gh-path').value || '';
+      _ghSettingsSave(token.trim(), repo.trim(), branch.trim(), path.trim());
+      close();
+      _refreshBanner();
+      _flashBanner('Settings saved.');
+    });
+  }
+
   // ── Banner ──────────────────────────────────────────────────────────────
   var _banner = null;
   function _mountBanner() {
@@ -303,18 +554,41 @@
       boxShadow: '0 2px 10px rgba(0,0,0,.35)',
       borderBottom: '2px solid #111',
     });
+    var btnStyle    = "background:transparent;color:#111;border:1px solid #111;padding:4px 10px;font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:11px;letter-spacing:.06em;text-transform:uppercase;cursor:pointer";
+    var publishStyle = "background:#111;color:var(--green);border:1px solid #111;padding:4px 12px;font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:12px;letter-spacing:.06em;text-transform:uppercase;cursor:pointer";
     _banner.innerHTML = ''
       + '<span style="font-family:\'Kanit\',sans-serif;font-style:italic;font-weight:800;font-size:13px;letter-spacing:.04em;text-transform:uppercase">ADMIN MODE</span>'
       + '<span id="fpts-admin-banner-count" style="opacity:.85"></span>'
       + '<span id="fpts-admin-banner-flash" style="margin-left:auto;font-style:italic;opacity:0;transition:opacity .2s"></span>'
+      + '<button type="button" id="fpts-admin-banner-publish" style="' + publishStyle + '" title="Commit your overrides to data/source/tiers/tiers.csv via GitHub API. Publishes for everyone.">Publish ⬆</button>'
+      + '<button type="button" id="fpts-admin-banner-settings" style="' + btnStyle + '" title="GitHub PAT + repo settings">⚙ Settings</button>'
       + '<button type="button" id="fpts-admin-banner-export" style="background:#111;color:var(--red);border:none;padding:4px 10px;font-family:\'Kanit\',sans-serif;font-weight:800;font-style:italic;font-size:11px;letter-spacing:.06em;text-transform:uppercase;cursor:pointer">Copy as JSON</button>'
-      + '<button type="button" id="fpts-admin-banner-clear" style="background:transparent;color:#111;border:1px solid #111;padding:4px 10px;font-family:\'Kanit\',sans-serif;font-weight:800;font-style:italic;font-size:11px;letter-spacing:.06em;text-transform:uppercase;cursor:pointer">Clear all</button>'
+      + '<button type="button" id="fpts-admin-banner-clear" style="' + btnStyle + '">Clear all</button>'
       + '<button type="button" id="fpts-admin-banner-disable" style="background:transparent;color:#111;border:1px solid #111;padding:4px 10px;font-family:\'Kanit\',sans-serif;font-weight:800;font-style:italic;font-size:11px;letter-spacing:.06em;text-transform:uppercase;cursor:pointer">Disable</button>';
     document.body.appendChild(_banner);
     // Push the page content down so the banner doesn't cover the topnav.
     document.body.style.paddingTop = (_banner.offsetHeight) + 'px';
 
     document.getElementById('fpts-admin-banner-export').addEventListener('click', exportToClipboard);
+
+    // "Publish ⬆" — one-click commit to data/source/tiers/tiers.csv via the
+    // GitHub Contents API. Reads PAT/repo/branch/path from localStorage
+    // (set via the Settings modal). Auto-clears overrides on success +
+    // reloads so the page reflects the canonical state.
+    document.getElementById('fpts-admin-banner-publish').addEventListener('click', function () {
+      var n = _overrideCount();
+      if (!n) { _flashBanner('No overrides to publish.'); return; }
+      if (!_ghReady()) {
+        window.alert('GitHub PAT not configured. Click ⚙ Settings to set it.');
+        return;
+      }
+      if (!confirm('Publish ' + n + ' override' + (n === 1 ? '' : 's') +
+                   ' to data/source/tiers/tiers.csv via GitHub?\n\n' +
+                   'This commits + pushes immediately. GitHub Pages rebuilds in ~30-60s.')) return;
+      publishToGitHub();
+    });
+
+    document.getElementById('fpts-admin-banner-settings').addEventListener('click', _openSettings);
 
     // "Clear all" — wipes overrides AND auto-reloads so the user sees the
     // restored TAT-default tiers immediately. The prior "reload required"
@@ -366,6 +640,17 @@
     var label = (n === 0) ? 'No overrides yet' : (n + ' override' + (n === 1 ? '' : 's') + ' on this device');
     var el = document.getElementById('fpts-admin-banner-count');
     if (el) el.textContent = '· ' + label;
+    // Publish button visual state — dim when there's nothing to publish
+    // OR when PAT isn't configured (clicking it shows a helpful message
+    // either way, but the dimming sets correct expectations).
+    var pub = document.getElementById('fpts-admin-banner-publish');
+    if (pub) {
+      var enabled = n > 0 && _ghReady();
+      pub.style.opacity = enabled ? '1' : '.5';
+      pub.title = enabled
+        ? ('Publish ' + n + ' override(s) to data/source/tiers/tiers.csv via GitHub API.')
+        : (n === 0 ? 'No overrides to publish.' : 'GitHub PAT not configured. Click ⚙ Settings first.');
+    }
   }
   function _flashBanner(msg) {
     var el = document.getElementById('fpts-admin-banner-flash');
@@ -548,6 +833,9 @@
     // returns the SHA-256 hex you'd paste into PASSWORD_HASH. The ?admin=hash
     // URL helper does the same via a prompt UI; this is the dev-friendly path.
     hashPassword:       hashPassword,
+    // Phase 1b — GitHub publish surface for console + automation:
+    publish:            publishToGitHub,
+    openSettings:       _openSettings,
   };
 
   if (document.readyState === 'loading') {
