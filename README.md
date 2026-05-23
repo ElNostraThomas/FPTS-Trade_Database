@@ -1370,43 +1370,26 @@ Nothing structural. Polish / nice-to-haves only:
       threaded per slot via `_pcPlayerPos(name)` so TEP fires only on TEs.
       Row-group titles reflect the active preset. PPC + combined variants
       (TEP + 6pt TD) deferred — easy to add to PC_SCORING if requested.
-- [ ] **Mock-draft + live-draft pick cards — ADP-card parity +
-  trade-icon placement + above/below-ADP indicator.** Three asks
-  bundled, applied to BOTH `mock-draft.html` AND `live-draft.html`
-  board cells. Structural starting points differ:
-    - `mock-draft.html` already lifts the `.box-card` recipe from
-      `adp-tool.html` (lines 258-303) — has the headshot coin
-      (`.card-hs`, bottom-right) and team-logo coin
-      (`.card-team-logo`, bottom-left). No trade indicator today.
-    - `live-draft.html` uses its own `.ld-cell` system (lines 789-918)
-      — text-only, height 76px, NO headshot or team-logo coins. Trade
-      indicator already exists (`.ld-cell-traded` at line 896): small
-      chip in bottom-right with arrow + new owner's 16px avatar (or
-      first-initial fallback), tooltip via `title`. Reworking this
-      page to match the ADP card is the bigger lift — add the two
-      coins and rebuild the cell at the ADP card's 100px height.
-  Three asks:
-    1. **Visual parity with the ADP card.** Both pages' cells should
-       read as identical to `.box-card` apart from page-specific
-       modifiers (mock-draft: `md-cell-user`, `md-cell-onclock`;
-       live-draft: `.mine`, `.on-the-clock`, `.traded`). On
-       mock-draft this is an audit-and-reconcile job; on live-draft
-       it's a more substantive rebuild from `.ld-cell` → `.box-card`-
-       style markup with headshot + team-logo coins.
-    2. **Trade icon between the two coins.** On live-draft, the
-       existing `.ld-cell-traded` chip should move from absolute
-       bottom-right into the center-bottom gap between the team-logo
-       coin (bottom-left) and the headshot coin (bottom-right) once
-       those coins land. On mock-draft, the same trade-icon treatment
-       needs to be added (new — no current source) in the same
-       center-bottom position so both pages match.
-    3. **Above/below-ADP indicator on each completed pick.** Small
-       chip / arrow showing whether the pick landed above (REACH) or
-       below (VALUE) the player's ADP, with magnitude. Likely fits
-       inline in `.card-top` (next to `.card-pick`) or in `.card-meta`.
-       Reuse the `live-draft.html` Pick Analysis VALUE / ON ADP /
-       REACH band thresholds for consistency so the same player feels
-       the same across both pages.
+- [x] ~~**Mock-draft + live-draft pick cards — ADP-card parity +
+  trade-icon placement + above/below-ADP indicator**~~ — shipped
+  2026-05-23 across three commits:
+    - `207724a` — mock-draft: new `.card-delta` chip in `.card-top`
+      next to `#{pickNo}`. ±5 threshold mirrors live-draft `_pickDelta`
+      so VALUE (green `+N`) / REACH (red `−N`) / ON ADP (muted `·`)
+      land consistently. Uses `player.rawAdp` for source-ADP parity
+      with what users see on adp-tool / rankings.
+    - `6678dda` — live-draft: `.ld-cell` rebuilt to match the
+      `.box-card` recipe. Height 76 → 100px; new `.ld-cell-team-logo`
+      (bottom-left, 32px) + `.ld-cell-hs` (bottom-right, 40px) coins
+      lifted from adp-tool. `.ld-cell-traded` relocated from absolute
+      bottom-right to center-bottom (between the coins). New
+      `.ld-cell-delta` chip in `.ld-cell-top` driven by `_pickDelta()`
+      with the per-draft fmtKey computed at the top of `ldRenderBoard`.
+      Page-specific modifiers (.mine, .on-the-clock, .user-up-next,
+      .traded, .empty) preserved unchanged.
+    - `be9c1af` — live-draft mobile: `@media` downscale mirrors mock-
+      draft's mobile sizing (cell 72px, hs 26px, logo 22×22 with 15px
+      img, name padding-right 30px, top fonts 7px).
 - [ ] Visual polish pass after live use — typography balance, mobile
   viewport on each page, dark/light theme toggle on the new accordion.
   **Next session focus: mobile issues.**
