@@ -1367,6 +1367,29 @@ Nothing structural. Polish / nice-to-haves only:
       threaded per slot via `_pcPlayerPos(name)` so TEP fires only on TEs.
       Row-group titles reflect the active preset. PPC + combined variants
       (TEP + 6pt TD) deferred — easy to add to PC_SCORING if requested.
+- [ ] **Mock-draft pick cards — ADP-card parity + trade-icon
+  placement + above/below-ADP indicator.** Three asks bundled on
+  `mock-draft.html` board cells (the `.box-card` recipe lifted from
+  `adp-tool.html` at lines 258-303):
+    1. **Visual parity with the ADP card.** `mock-draft.html` already
+       reuses the `.box-card` recipe but visual deltas remain — audit
+       and reconcile so the two cards read as identical apart from the
+       mock-draft-only modifiers (`md-cell-user`, `md-cell-onclock`).
+    2. **Keep the trade icon, reposition it between the two coins.**
+       The existing trade indicator on mock-draft pick cells should
+       move into the center-bottom gap between the team-logo coin
+       (bottom-left, `.card-team-logo`) and the headshot coin (bottom-
+       right, `.card-hs`). Confirm the current icon's render path at
+       start of work — it's not present in `mock-draft.html` source as
+       of session 15, so it may live in a shared module or be a new
+       ask rather than a relocation.
+    3. **Above/below-ADP indicator on each completed pick.** Small
+       chip / arrow showing whether the pick landed above (REACH) or
+       below (VALUE) the player's ADP, with magnitude. Likely fits
+       inline in `.card-top` (next to `.card-pick`) or in `.card-meta`.
+       Reuse the `live-draft.html` Pick Analysis VALUE / ON ADP /
+       REACH band thresholds for consistency so the same player feels
+       the same across both pages.
 - [ ] Visual polish pass after live use — typography balance, mobile
   viewport on each page, dark/light theme toggle on the new accordion.
   **Next session focus: mobile issues.**
