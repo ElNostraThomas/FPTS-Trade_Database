@@ -786,10 +786,16 @@
     line-height: 1;
   }
   /* Pick cells */
+  /* CARD — rebuilt 2026-05-23 to match the adp-tool / mock-draft .box-card
+     recipe. Height bumped 76 → 100px; team-logo coin (bottom-left) and
+     headshot coin (bottom-right) added; .ld-cell-traded chip relocated
+     from absolute bottom-right to the center-bottom gap between coins;
+     new .ld-cell-delta chip in .ld-cell-top mirrors the live-draft
+     Pick Analysis VALUE / REACH / ON ADP thresholds (±5 via _pickDelta). */
   .ld-cell {
     background: var(--surface); color: var(--white);
     padding: 5px 7px;
-    height: 76px;
+    height: 100px;
     display: flex; flex-direction: column; gap: 2px;
     overflow: hidden;
     position: relative;
@@ -813,10 +819,26 @@
     background: rgba(0,0,0,0.22); color: var(--white);
     letter-spacing: .04em;
   }
+  /* Wrapper that groups the POS pill + delta chip on the right side of
+     .ld-cell-top so flex space-between keeps them paired (instead of
+     spreading 3 direct children across the row). */
+  .ld-cell-top-right { display: inline-flex; align-items: center; gap: 3px; }
+  /* ADP delta chip — same recipe as mock-draft .card-delta. Color-coded
+     with brand tokens, black text on bright fills per site doctrine. */
+  .ld-cell-delta {
+    display: inline-block; padding: 0 4px;
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 8px; letter-spacing: .03em; border-radius: 2px;
+    color: #111111;
+  }
+  .ld-cell-delta.value { background: var(--green); }
+  .ld-cell-delta.reach { background: var(--red); }
+  .ld-cell-delta.par   { background: rgba(0,0,0,.22); color: var(--white); opacity: .8; }
   .ld-cell-name {
     font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
     line-height: 1.05;
     overflow: hidden;
+    padding-right: 44px;  /* reserve room for the headshot coin (bottom-right) */
   }
   .ld-cell-fname {
     font-size: 9px; opacity: .85;
@@ -826,6 +848,27 @@
     font-size: 12px;
     overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   }
+  /* Spacer — preserves a consistent bottom band where the coins live. */
+  .ld-cell-meta { display: flex; align-items: center; margin-top: auto; padding-top: 2px; min-height: 2px; }
+  /* Headshot coin (bottom-right) + team-logo coin (bottom-left) — recipe
+     lifted from adp-tool.html .box-card .card-hs / .card-team-logo. */
+  .ld-cell-hs {
+    position: absolute; bottom: 4px; right: 4px; width: 40px; height: 40px;
+    border-radius: 50%; object-fit: cover; object-position: top;
+    border: 1px solid rgba(0,0,0,.18); background: rgba(0,0,0,.1);
+  }
+  .ld-cell-hs-fallback {
+    position: absolute; bottom: 4px; right: 4px; width: 40px; height: 40px;
+    border-radius: 50%; background: rgba(0,0,0,.12); border: 1px solid rgba(0,0,0,.18);
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><circle cx="32" cy="22" r="10" fill="%23ffffff" opacity=".95"/><path d="M14 60 Q14 36 32 36 Q50 36 50 60 L14 60 Z" fill="%23ffffff" opacity=".95"/></svg>');
+    background-size: 85% 85%; background-position: center 60%; background-repeat: no-repeat;
+  }
+  .ld-cell-team-logo {
+    position: absolute; bottom: 4px; left: 4px; width: 32px; height: 32px;
+    border-radius: 50%; background: rgba(0,0,0,.1); border: 1px solid rgba(0,0,0,.18);
+    display: flex; align-items: center; justify-content: center; overflow: hidden; z-index: 1;
+  }
+  .ld-cell-team-logo img { width: 24px; height: 24px; object-fit: contain; display: block; }
   /* Position-colored cells */
   .ld-cell.QB  { background: var(--pos-qb-bg); color: #111111; }
   .ld-cell.RB  { background: var(--pos-rb-bg); color: #111111; }
@@ -888,20 +931,24 @@
   }
   .ld-cell.on-the-clock.user-up-next .ld-cell-otc { color: var(--green); }
 
-  /* Trade indicator — small chip in bottom-right of any cell where the
-     pick has been traded away from its slot owner. Arrow + the new
-     owner's 16px avatar (or first-initial fallback). Tooltip via the
-     title attribute shows the full new-owner team_name / display_name.
-     Uses rgba on color directly (not opacity:) per branding rule #2. */
+  /* Trade indicator — small chip CENTERED at the bottom of any cell
+     where the pick has been traded away from its slot owner. Sits in
+     the gap between the team-logo coin (bottom-left) and headshot coin
+     (bottom-right). Arrow + the new owner's 16px avatar (or first-
+     initial fallback). Tooltip via the title attribute shows the full
+     new-owner team_name / display_name. Uses rgba on color directly
+     (not opacity:) per branding rule #2. Relocated 2026-05-23 from
+     bottom-right as part of the ADP-card parity rework. */
   .ld-cell-traded {
-    position: absolute; bottom: 3px; right: 3px;
+    position: absolute; bottom: 6px; left: 50%; transform: translateX(-50%);
     display: inline-flex; align-items: center; gap: 2px;
     padding: 1px 4px 1px 3px;
-    background: rgba(0,0,0,.45);
+    background: rgba(0,0,0,.55);
     color: var(--white);
     font-family: 'Mulish', sans-serif; font-size: 8px; font-weight: 800;
     letter-spacing: .04em;
     pointer-events: none;       /* clicks pass through to the parent .ld-cell */
+    z-index: 2;                 /* above the coins so the avatar/arrow is visible */
   }
   .ld-cell-traded-arrow { line-height: 1; }
   .ld-cell-traded img,
@@ -3048,6 +3095,14 @@
     const gridStyle = 'grid-template-columns:' + headW + 'px repeat(' + teams + ', minmax(' + cellMin + 'px, 1fr));'
                     + 'min-width:' + (headW + teams * cellMin + (teams + 1) * 3) + 'px';
 
+    // Compute fmtKey once per render — drives the ADP lookup for the
+    // per-cell delta chip (REACH/VALUE/ON ADP). Same key the Pick Analysis
+    // card uses, so the same player feels the same on both surfaces.
+    const fmtKeyForBoard = _adpFmtKey(meta, DRAFT.league);
+    const teamLogoUrl = (t) => (t && window.TeamHelpers && typeof window.TeamHelpers.logoUrl === 'function')
+      ? window.TeamHelpers.logoUrl(t) : '';
+    const sleeperHsUrl = (sid) => sid ? ('https://sleepercdn.com/content/nfl/players/thumb/' + sid + '.jpg') : '';
+
     const parts = ['<div class="ld-board-wrap"><div class="ld-grid" style="' + gridStyle + '">'];
     // Top-left corner
     parts.push('<div class="ld-corner"></div>');
@@ -3125,15 +3180,53 @@
         // safe-name escape is no longer needed here (no string interp).
         const onclickAttr = ' onclick="ldOnCellClick(' + pickNo + ')"';
 
+        // ADP delta chip — same math as _pickDelta(). Positive delta =
+        // picked AFTER ADP (VALUE); negative = picked BEFORE (REACH);
+        // ±5 = ON ADP. Skip the chip when no ADP coverage so the cell
+        // doesn't carry a useless "NO ADP" indicator.
+        const adp = _playerAdp(fullName, fmtKeyForBoard);
+        let deltaHtml = '';
+        if (adp != null) {
+          const d = adp - pickNo;
+          const dCls = d > 5 ? 'value' : (d < -5 ? 'reach' : 'par');
+          const dLabel = d > 5 ? ('+' + Math.round(d)) : (d < -5 ? String(Math.round(d)) : '·');
+          const dTitle = d > 5 ? ('VALUE +' + Math.round(d) + ' vs ADP ' + Math.round(adp))
+                       : d < -5 ? ('REACH ' + Math.round(d) + ' vs ADP ' + Math.round(adp))
+                       : ('ON ADP (within ±5 of ' + Math.round(adp) + ')');
+          deltaHtml = '<span class="ld-cell-delta ' + dCls + '" title="' + _escapeHtml(dTitle) + '">' + dLabel + '</span>';
+        }
+
+        // Coins — team logo (bottom-left), headshot (bottom-right).
+        const team = (player.team || '').toUpperCase();
+        const logoUrl = teamLogoUrl(team);
+        const teamLogoHtml = logoUrl
+          ? '<div class="ld-cell-team-logo"><img src="' + logoUrl + '" alt="' + _escapeHtml(team) + '" loading="lazy" onerror="this.style.display=\'none\'"></div>'
+          : '';
+        const hsUrl = sleeperHsUrl(pick.player_id);
+        const hsHtml = hsUrl
+          ? '<img class="ld-cell-hs" src="' + hsUrl + '" alt="' + _escapeHtml(fullName) + '" loading="lazy" onerror="this.style.display=\'none\'">'
+          : '<div class="ld-cell-hs-fallback" aria-hidden="true"></div>';
+
+        // Group POS pill + delta chip in a wrapper span so flex
+        // space-between groups them on the right (otherwise three direct
+        // children would spread evenly across the row).
+        const topRightHtml = '<span class="ld-cell-top-right">'
+          + '<span class="ld-cell-pos">' + pos + '</span>'
+          + deltaHtml
+          + '</span>';
+
         parts.push('<div class="' + cls + '" data-pick-no="' + pickNo + '"' + onclickAttr + '>'
           + '<div class="ld-cell-top">'
           +   '<span class="ld-cell-pick">' + r + '.' + _padPick(draftSlot) + '</span>'
-          +   '<span class="ld-cell-pos">' + pos + '</span>'
+          +   topRightHtml
           + '</div>'
           + '<div class="ld-cell-name">'
           +   (split.first ? '<div class="ld-cell-fname">' + _escapeHtml(split.first) + '</div>' : '')
           +   '<div class="ld-cell-lname">' + _escapeHtml(split.last || fullName) + '</div>'
           + '</div>'
+          + '<div class="ld-cell-meta">&nbsp;</div>'
+          + teamLogoHtml
+          + hsHtml
           + tradedChip
           + '</div>');
       }
