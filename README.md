@@ -82,9 +82,12 @@ The shortcut points at the live GitHub Pages URL with `?admin=1`. The stale-CSV 
 
 **Punch list (highest priority first):**
 
-1. **Bulk tier rename** — single-tier rename only today. Still flagged as "probably unnecessary, but flag-worthy." Skip until needed.
-2. **Cross-tier drag** — Phase 4 explicitly blocks drag across tier boundaries. Crossing requires also changing the player's tier letter; current path is the row Edit popover. Still "if demand emerges."
-3. **Admin scratchpad legend documentation** — Phases 1-5 of the admin scratchpad aren't documented in `legend-content.js` under the `'tiers'` page entry. A new section covering activation flow (`?admin=1`), override-layer state model, Publish pipeline + stale-CSV defense + dry-run preview, and tier/player drag-and-drop would help future sessions navigate. Out-of-scope this session, captured here for next time.
+1. **Admin scratchpad legend documentation** — Phases 1-5 of the admin scratchpad aren't documented in `legend-content.js` under the `'tiers'` page entry. A new section covering activation flow (`?admin=1`), override-layer state model, Publish pipeline + stale-CSV defense + dry-run preview, and tier/player drag-and-drop would help future sessions navigate. Out-of-scope this session, captured here for next time.
+
+**Deferred — won't-do unless demand emerges:**
+
+- ~~**Bulk tier rename**~~ — single-tier rename is sufficient. Closed 2026-05-23.
+- ~~**Cross-tier drag**~~ — Phase 4 blocks drag across tier boundaries; current path is the row Edit popover which correctly changes the player's tier letter. Closed 2026-05-23.
 
 **Carryover from session 13 (still open):** mock-draft personality weight calibration, Manager Clone archetype (blocked on 1QB SEED_USERS), compare-page UX iteration, prospect-score classifier, NFL draft round/pick (blocked on Sleeper API), 1QB SEED_USERS expansion, 14 original heuristics analyst feedback, my-leagues inline-style cleanup.
 
@@ -1407,21 +1410,13 @@ Nothing structural. Polish / nice-to-haves only:
 - [ ] Visual polish pass after live use — typography balance, mobile
   viewport on each page, dark/light theme toggle on the new accordion.
   **Next session focus: mobile issues.**
-- [ ] **Player Comparison full page** — **UNBLOCKED 2026-05-18 by the data-
-  suite migration.** Dedicated page that compares 2-4 players side-by-side,
-  complementing (not replacing) the drawer's quick-reference role. Two
-  visual references the user supplied (`Desktop/Player comparison page.jpg`
-  + `Desktop/HIm4pBXaUAAsSMz.jpg`):
-  - Underdog-style stat table: players as columns, stat-category row
-    groups (Projections / Season Stats / Last N Games), green
-    highlight on best-in-group per row.
-  - Hayden-Winks-style profile + matches: hero player card with
-    archetype + key metrics, then a "Top Profile Matches" row of
-    similar-player cards.
-  Likely a new `compare.html` page. Per-year career data available from
-  `STATS_DATA[key].seasons` (2021-2025 in stats.json). Last-N-games
-  view reads `STATS_DATA[key].seasons[currentYear].weeks` (or
-  `.playoffWeeks` for post-season-aware modes). **Next big initiative**.
+- [x] ~~**Player Comparison full page**~~ — shipped 2026-05-20 (tenth
+  session) as `compare.html`. Both reference layouts landed: Profile
+  mode (single-player hero + similar-matches row OR side-by-side
+  2-player comparison) and Table mode (2-4 players, stat-category row
+  groups, best-in-row green highlight). Tab content lives INSIDE each
+  card so each card is a self-contained mini-profile. See README
+  session-10 entry above for full architecture overview.
 - [x] ~~**Migrate stats data to data-suite CSVs**~~ — shipped 2026-05-18
   (seventh session). Phases 1-8 covered ingest (`sync-stats.py` with
   composite-key support + season-mismatch guard), the bootstrap pipe
