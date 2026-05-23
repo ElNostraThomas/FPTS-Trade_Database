@@ -82,7 +82,7 @@ The shortcut points at the live GitHub Pages URL with `?admin=1`. The stale-CSV 
 
 **Punch list (highest priority first):**
 
-1. **Admin scratchpad legend documentation** — Phases 1-5 of the admin scratchpad aren't documented in `legend-content.js` under the `'tiers'` page entry. A new section covering activation flow (`?admin=1`), override-layer state model, Publish pipeline + stale-CSV defense + dry-run preview, and tier/player drag-and-drop would help future sessions navigate. Out-of-scope this session, captured here for next time.
+1. ~~**Admin scratchpad legend documentation**~~ — shipped 2026-05-23. New "Admin Scratchpad (operator-only)" section added to `assets/js/legend-content.js` under the `'tiers'` page entry. 10 items: Activation flow, ⚙ Settings PAT, the four override layers (`fpts-tier-overrides` / `-tier-title-overrides` / `-tier-order-override` / `-player-order-overrides`), Publish ⬆ Contents API, Stale-CSV defense, Publish dry-run / diff preview, Disable button. Cache token bumped `?v=1786400001 → ?v=1787200000` across all 10 deployed pages + page-template.html.
 
 **Deferred — won't-do unless demand emerges:**
 
