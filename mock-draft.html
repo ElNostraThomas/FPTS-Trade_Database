@@ -269,6 +269,19 @@
   }
   .box-card .card-pick { font-weight: 800; }
   .box-card .card-adp { font-weight: 700; opacity: .78; font-size: 8px; }
+  /* Above/below-ADP indicator chip in .card-top. Color-coded with brand
+     tokens; black text on bright fills per site doctrine. Uses the same
+     ±5 threshold as live-draft _pickDelta so VALUE/REACH/ON ADP land
+     consistently across both pages. */
+  .box-card .card-delta {
+    display: inline-block; padding: 0 4px; margin-left: 3px;
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 8px; letter-spacing: .03em; border-radius: 2px;
+    color: #111111;
+  }
+  .box-card .card-delta.value { background: var(--green); }
+  .box-card .card-delta.reach { background: var(--red); }
+  .box-card .card-delta.par   { background: rgba(0,0,0,.22); color: inherit; opacity: .8; }
   .box-card .card-name {
     font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
     line-height: 1; overflow: hidden; margin-top: 1px; padding-right: 44px;
@@ -1453,11 +1466,28 @@
         ? `<div class="card-team-logo"><img src="${logoUrl}" alt="${escapeHtml(team)}" loading="lazy" onerror="this.style.display='none'"></div>`
         : '';
       const userCls = isUserSlot ? ' md-cell-user' : '';
+      // ADP delta chip — positive delta = picked AFTER ADP (VALUE);
+      // negative delta = picked BEFORE ADP (REACH). ±5 threshold mirrors
+      // live-draft _pickDelta() so the same player feels the same on both
+      // pages. Uses player.rawAdp (the raw source ADP) so the comparison
+      // matches what consumers see on adp-tool / rankings, not the
+      // scoring-shifted internal value.
+      const adp = (player && player.rawAdp != null && player.rawAdp < 999) ? player.rawAdp : null;
+      let deltaHtml = '';
+      if (adp != null) {
+        const d = adp - pick.pickNo;
+        const cls = d > 5 ? 'value' : (d < -5 ? 'reach' : 'par');
+        const label = d > 5 ? ('+' + Math.round(d)) : (d < -5 ? String(Math.round(d)) : '·');
+        const title = d > 5 ? ('VALUE +' + Math.round(d) + ' vs ADP ' + Math.round(adp))
+                    : d < -5 ? ('REACH ' + Math.round(d) + ' vs ADP ' + Math.round(adp))
+                    : ('ON ADP (within ±5 of ' + Math.round(adp) + ')');
+        deltaHtml = `<span class="card-delta ${cls}" title="${escapeHtml(title)}">${label}</span>`;
+      }
       return `<div class="box-card ${pick.pos}${userCls}" data-pick="${pick.pickNo}">
         <div class="card-content">
           <div class="card-top">
             <span class="card-pick">${pick.round}.${String((pick.pickNo - 1) % _activeState.setup.teamCount + 1).padStart(2, '0')}</span>
-            <span class="card-adp">#${pick.pickNo}</span>
+            <span><span class="card-adp">#${pick.pickNo}</span>${deltaHtml}</span>
           </div>
           <div class="card-name">
             ${first ? `<div class="card-fname">${escapeHtml(first)}</div>` : ''}
