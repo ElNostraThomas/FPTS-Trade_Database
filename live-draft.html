@@ -1084,10 +1084,19 @@
 
     /* Smaller cells so 12-team grids are usable on phone (still requires
        horizontal swipe — sticky row + col headers from the desktop CSS
-       keep R# and TEAM labels visible while you scroll). */
-    .ld-cell { height: 64px; padding: 4px 5px; }
+       keep R# and TEAM labels visible while you scroll). Mirrors mock-
+       draft.html mobile @media block so both pages downscale identically
+       on phone (height 72px, headshot 26px, team-logo 22px, name padding-
+       right 30px). */
+    .ld-cell { height: 72px; padding: 4px 5px; }
     .ld-cell-lname { font-size: 11px; }
     .ld-cell-fname { font-size: 8px; }
+    .ld-cell-top { font-size: 7px; gap: 3px; }
+    .ld-cell-pick, .ld-cell-pos, .ld-cell-delta { font-size: 7px; }
+    .ld-cell-name { padding-right: 30px; }
+    .ld-cell-hs, .ld-cell-hs-fallback { width: 26px; height: 26px; }
+    .ld-cell-team-logo { width: 22px; height: 22px; }
+    .ld-cell-team-logo img { width: 15px; height: 15px; }
     /* Mobile column headers stack the avatar above the name so the
        narrow column doesn't have to fit them side-by-side. */
     .ld-col-head {
