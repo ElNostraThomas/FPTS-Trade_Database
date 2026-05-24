@@ -43,6 +43,31 @@
 (function () {
   'use strict';
 
+  // ── Admin-gated UI visibility (Formulas nav + Legend trigger) ────────
+  // The Formulas top-nav link and the Legend drawer floating button
+  // (`.lg-trigger`) are admin-only as of 2026-05-23. CSS in brand.css
+  // hides both by default; the `html.fpts-admin` class shows them.
+  // Setting the class here — BEFORE <body> renders, since this script
+  // is render-blocking in <head> — avoids any flash of admin-only chrome.
+  //
+  // The mobile-nav-select <option value="formulas.html"> can't be hidden
+  // via CSS reliably (browsers ignore display:none on <option>); we strip
+  // it from the DOM after DOMContentLoaded if admin is off.
+  try {
+    var _fptsAdminFlag = localStorage.getItem('fpts-admin-mode') === 'true';
+    if (_fptsAdminFlag) {
+      document.documentElement.classList.add('fpts-admin');
+    } else {
+      document.addEventListener('DOMContentLoaded', function () {
+        var selects = document.querySelectorAll('.mobile-nav-select');
+        for (var i = 0; i < selects.length; i++) {
+          var opts = selects[i].querySelectorAll('option[value="formulas.html"]');
+          for (var j = 0; j < opts.length; j++) opts[j].parentNode.removeChild(opts[j]);
+        }
+      });
+    }
+  } catch (e) { /* localStorage may be unavailable; default = non-admin */ }
+
   var STORAGE_KEY_MODE      = 'fpts-admin-mode';
   var STORAGE_KEY_OVERRIDES = 'fpts-tier-overrides';
   // GitHub publish settings (Phase 1b). PAT lives in localStorage on this

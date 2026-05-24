@@ -32,6 +32,12 @@ This file is the **resume-where-we-left-off** doc.
 
 - **Admin Scratchpad legend documentation** (`58bf7d5`). New "Admin Scratchpad (operator-only)" section added to `assets/js/legend-content.js` under the `'tiers'` page entry. 10 items: Activation flow (`?admin=1` / `?admin=hash` / `?admin=0` URL params + SHA-256 password gate); ⚙ Settings (fine-grained GitHub PAT + the four storage keys); the four override layers (`fpts-tier-overrides` / `-tier-title-overrides` / `-tier-order-override` / `-player-order-overrides`); Publish ⬆ Contents API GET-SHA → PUT pipeline; Stale-CSV defense (157b636); Publish Dry-Run / Diff Preview Modal (b65e102 + 5832be2); Disable button. Cache token bump `legend-content.js ?v=1786400001 → ?v=1787200000` across all 10 deployed pages + `templates/page-template.html` (which was also out-of-date at `?v=1783300000` — opportunistic fix).
 
+- **Formulas + Legend hidden by default — admin-only entry points** (post-wrap-up follow-up). The Formulas top-nav link and the Legend drawer's floating `.lg-trigger` button are now visible ONLY when admin mode is active. Implementation:
+  - `admin-tiers.js` IIFE gained a top-of-file init block that reads `fpts-admin-mode` from localStorage; if true, adds `fpts-admin` class to `<html>` (runs in render-blocking <head>, so no flash of admin chrome on non-admin loads). If false, strips the `<option value="formulas.html">` from `.mobile-nav-select` after `DOMContentLoaded` (browsers ignore `display:none` on `<option>`).
+  - `brand.css` gained an "ADMIN-GATED UI" section right after the NAV block. Default: `.lg-trigger` + `.nav-link[href="formulas.html"]` set to `display:none !important`. With `html.fpts-admin`: both restored to their original display (`inline-flex` for the trigger, `flex` for the nav link). `!important` is doctrine-legitimate — `.lg-trigger` is mounted programmatically and the default browser display would otherwise win.
+  - Direct URL access to `formulas.html` still works (only entry points hidden; the page itself isn't gated). Existing admin-mode workflow (`FPTS Admin.url` shortcut → `?admin=1` → password → activate) lights both surfaces back up.
+  - Cache token bumps: `admin-tiers.js ?v=1786600000 → ?v=1787500000` + `brand.css ?v=1782600000 → ?v=1787500000` across all 10 deployed pages + `templates/page-template.html`.
+
 ### Override-layer state model (unchanged from session 15, now documented in legend)
 
 Four independent localStorage maps on top of canonical `tiers.csv` + `tier-config.json`. Reference table mirrors the session-15 entry; see `legend-content.js` 'tiers' → "Admin Scratchpad" section for full detail.
@@ -39,6 +45,8 @@ Four independent localStorage maps on top of canonical `tiers.csv` + `tier-confi
 ### Cache tokens at session close
 
 - `legend-content.js ?v=1786400001 → ?v=1787200000` (10 deployed pages + templates/page-template.html; admin-scratchpad section added)
+- `admin-tiers.js ?v=1786600000 → ?v=1787500000` (11 consumers; admin-gated-UI init block)
+- `brand.css ?v=1782600000 → ?v=1787500000` (11 consumers; admin-gated-UI CSS section)
 - `live-draft.html` inline CSS — page-local, no shared cache token
 - `mock-draft.html` inline CSS — page-local, no shared cache token
 - All other shared modules unchanged from session 15
@@ -1562,8 +1570,23 @@ Read README.md for current state. End-of-2026-05-23 (sixteenth session):
   defense + Publish dry-run modal + Disable button. Cache token bump
   legend-content.js ?v=1786400001 → ?v=1787200000 across all 10
   deployed pages + templates/page-template.html.
-- Cache tokens at session close: legend-content.js ?v=1787200000
-  (10 pages + template). Page-local CSS on live-draft.html +
+- ADMIN-GATE FORMULAS + LEGEND (post-wrap-up follow-up). The
+  Formulas top-nav link AND the Legend drawer's floating .lg-trigger
+  button are visible ONLY when admin mode is active. Implementation:
+  admin-tiers.js IIFE gained a top-of-file init block that adds
+  `fpts-admin` class to <html> if fpts-admin-mode === 'true' (runs in
+  render-blocking <head> → no flash). brand.css gained an
+  "ADMIN-GATED UI" section right after NAV — default hides both
+  surfaces with !important; html.fpts-admin restores their original
+  display values (inline-flex / flex). mobile-nav-select option
+  stripped via DOMContentLoaded JS since browsers ignore display:none
+  on <option>. Direct URL to formulas.html still works — only entry
+  points hidden. Cache token bumps: admin-tiers.js ?v=1786600000 →
+  ?v=1787500000, brand.css ?v=1782600000 → ?v=1787500000 across all
+  11 consumers (10 pages + template).
+- Cache tokens at session close: legend-content.js ?v=1787200000,
+  admin-tiers.js ?v=1787500000, brand.css ?v=1787500000 (all across
+  10 pages + template). Page-local CSS on live-draft.html +
   mock-draft.html — no shared cache tokens touched.
 - Color audit CLEAN across 34 files.
 

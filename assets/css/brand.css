@@ -366,6 +366,33 @@ body { zoom: 1.25; }
   white-space: nowrap;
   min-height: 32px;
 }
+/* ── ADMIN-GATED UI ───────────────────────────────────────────────────────
+   The Formulas top-nav link + the Legend drawer floating button
+   (`.lg-trigger`, mounted by legend.js) are admin-only as of 2026-05-23.
+   Both hide by default; both show when `html.fpts-admin` is set.
+
+   The `html.fpts-admin` class is added by admin-tiers.js at the top of
+   its IIFE (runs in <head>, before <body> renders → no flash of admin
+   chrome on non-admin loads). The mobile-nav-select <option value=
+   "formulas.html"> can't be hidden via CSS (browsers ignore display:none
+   on <option>); admin-tiers.js strips it from the DOM when admin is off.
+
+   `!important` is doctrine-legitimate here — `.lg-trigger` is mounted
+   programmatically and the default browser display would otherwise win
+   over an unmarked rule. The `.nav-link` selector likewise needs to beat
+   the existing `.nav-link { display: flex }` rule above.
+   ──────────────────────────────────────────────────────────────────── */
+.lg-trigger,
+.nav-link[href="formulas.html"] {
+  display: none !important;
+}
+html.fpts-admin .lg-trigger {
+  display: inline-flex !important;
+}
+html.fpts-admin .nav-link[href="formulas.html"] {
+  display: flex !important;
+}
+
 /* ════════════════════════════════════════════════════════════════════════
    MOBILE — topnav on a 390px touch viewport.
    Authored as canonical defaults so new pages inherit a working mobile

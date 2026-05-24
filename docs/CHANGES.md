@@ -84,14 +84,32 @@ Last cleanup item from session 15's queued-next list. New "Admin Scratchpad (ope
 
 Cache token bump `legend-content.js ?v=1786400001 → ?v=1787200000` across all 10 deployed pages (`adp-tool`, `compare`, `formulas`, `live-draft`, `mock-draft`, `rankings`, `my-leagues`, `index`, `trade-calculator`, `tiers`) + `templates/page-template.html` (which was also out-of-date at `?v=1783300000` — opportunistic fix). `docs/function-reference.html` left alone (placeholder `?v=...` string).
 
+### `[post-wrap-up follow-up]` — admin-gate the Formulas top-nav link + Legend drawer trigger
+
+User flagged after the session wrap-up doc landed: hide both the Formulas top-nav entry and the floating Legend `.lg-trigger` button unless admin mode is active. Direct URL to `formulas.html` should still work — only the entry points get hidden.
+
+**Three-file change:**
+
+- `assets/js/admin-tiers.js` — new top-of-IIFE init block (runs before any other code in the file, before <body> renders since the script is render-blocking in <head>). Reads `fpts-admin-mode` from localStorage. If true: adds `fpts-admin` class to `<html>`. If false: registers a `DOMContentLoaded` handler that strips the `<option value="formulas.html">` from every `.mobile-nav-select` (browsers ignore `display:none` on `<option>`, so JS removal is the only reliable approach). The block is wrapped in `try { ... } catch (e) {}` so localStorage-disabled browsers default to non-admin cleanly.
+
+- `assets/css/brand.css` — new "ADMIN-GATED UI" section right after the NAV block (lines 369+). Default rules: `.lg-trigger` + `.nav-link[href="formulas.html"]` set to `display: none !important`. With `html.fpts-admin` ancestor: restored to `inline-flex` for `.lg-trigger` (matches legend.css line 13 default) + `flex` for the nav link (matches the `.nav-link` default at brand.css:338). `!important` is doctrine-legitimate — `.lg-trigger` is mounted programmatically and the existing `.nav-link { display: flex }` rule would otherwise win against an unmarked admin-hide.
+
+- **Cache token bumps via sed across 11 consumers** (10 deployed pages + `templates/page-template.html`): `admin-tiers.js ?v=1786600000 → ?v=1787500000` + `brand.css ?v=1782600000 → ?v=1787500000`.
+
+**No flash on non-admin loads:** `admin-tiers.js` loads at the top of `<head>` (line 15-ish on every page) as render-blocking `<script src="...">`. By the time `<body>` parses, the `fpts-admin` class is either on `<html>` or it isn't — CSS applies immediately on first paint.
+
+**Activation still uses the existing flow:** operator visits any page with `?admin=1` → password prompt → `fpts-admin-mode=true` written to localStorage. Reload or next navigation lights the Formulas link + Legend trigger back up. `?admin=0` → reload → both surfaces vanish for that device.
+
 ### Audit + cache token summary
 
-`python scripts/check-colors.py` — **CLEAN across 34 files** after every commit.
+`python scripts/check-colors.py` — **CLEAN across 34 files** after every commit (including the admin-gate follow-up).
 
 Cache tokens at session close:
 - `legend-content.js ?v=1787200000` (10 deployed pages + template; admin-scratchpad section added)
+- `admin-tiers.js ?v=1787500000` (11 consumers; admin-gated-UI init block)
+- `brand.css ?v=1787500000` (11 consumers; admin-gated-UI CSS section)
 - Page-local CSS on `live-draft.html` + `mock-draft.html` — no shared cache tokens
-- All other shared modules unchanged from session 15 (`admin-tiers.js ?v=1786600000`, `rank-comparator.js ?v=1786400000`, etc.)
+- All other shared modules unchanged from session 15
 
 ### Open punch list state at session close
 
