@@ -13,7 +13,56 @@ This file is the **resume-where-we-left-off** doc.
 
 ---
 
-## Where we are (end of 2026-05-22 — fifteenth session)
+## Where we are (end of 2026-05-23 — sixteenth session)
+
+**Mock-draft + live-draft card parity ship + punch-list final cleanup + Admin Scratchpad legend docs.** Presentation-day session. Inherited an open punch list of 6 actionable items; closed the actionable ones, marked the rest as external-blocked or deferred so the operator has a clean state heading into the demo. 7 substantive commits + 1 data-sync auto-commit between sessions.
+
+### What shipped
+
+- **Mock-draft + live-draft pick-card parity** (`207724a` + `6678dda` + `be9c1af`). Bundled three asks the user had been carrying: (1) both pages' cells should read as identical to the ADP `.box-card` recipe, (2) keep the live-draft trade icon but reposition it between the two coins, (3) add an above/below-ADP indicator chip on each completed pick.
+  - **Mock-draft was the smaller delta** (`207724a`) — cells already lifted `.box-card` recipe with both coins; just needed the new `.card-delta` chip in `.card-top` next to `#{pickNo}`. ±5 threshold mirrors live-draft `_pickDelta` so VALUE (green `+N`) / REACH (red `−N`) / ON ADP (muted `·`) land consistently. Uses `player.rawAdp` (the source ADP) so the comparison matches what consumers see on adp-tool / rankings, not the scoring-shifted internal value.
+  - **Live-draft was the bigger rebuild** (`6678dda`). `.ld-cell` height bumped 76 → 100px; new `.ld-cell-team-logo` (bottom-left, 32px) + `.ld-cell-hs` (bottom-right, 40px) coins lifted from adp-tool; `.ld-cell-meta` spacer preserves a consistent bottom band; `.ld-cell-name` got `padding-right: 44px` to reserve room for the headshot coin. The existing `.ld-cell-traded` chip relocated from absolute bottom-right to center-bottom between the new coins (`left:50%; transform:translateX(-50%); z-index:2`). New `.ld-cell-delta` chip in `.ld-cell-top` driven by `_pickDelta()` with the per-draft `fmtKey` computed once at the top of `ldRenderBoard`. POS pill + delta chip wrapped in a `.ld-cell-top-right` inline-flex span so flex `space-between` groups them on the right (instead of spreading three direct children across the row). All page-specific modifiers (`.mine`, `.on-the-clock`, `.user-up-next`, `.traded`, `.empty`) preserved unchanged. Empty cells inherit the new height but skip the coins + delta chip (no player to look up).
+  - **Mobile follow-up** (`be9c1af`) — the new coins are desktop-sized; without overrides they'd overflow at 64px mobile cell height. Mobile `@media` block now mirrors mock-draft's mobile sizing exactly: cell 72px, hs/-hs-fallback 26×26, team-logo 22×22 with 15×15 img, name `padding-right: 30px`, top font 7px.
+
+- **Punch-list cleanup arc** (`c360190` + `2ea3236` + `6c3bd36` + `3d4eb82`). Four commits across the session brought the open list from 6 items → 4, all of the remaining four either external-blocked or open-ended polish.
+  - `c360190` — punch list ADD: original mock-draft-only entry for the card-parity ask.
+  - `2ea3236` — punch list EXPAND: scope corrected to cover both mock-draft AND live-draft once the user flagged the latter. Documented the structural delta (`.ld-cell` vs `.box-card`) and noted that `.ld-cell-traded` already existed at line 896.
+  - `6c3bd36` — cleanup commit: marked stale **Player Comparison full page** item as `[x]` (actually shipped session 10 as `compare.html`); moved **Bulk tier rename** + **Cross-tier drag** from open queued-next list to a new "Deferred — won't-do unless demand emerges" subsection. Open count dropped 6 → 4.
+  - `3d4eb82` — punch list mark: closed the card-parity item with `[x]` once `207724a` + `6678dda` + `be9c1af` deployed.
+
+- **Admin Scratchpad legend documentation** (`58bf7d5`). New "Admin Scratchpad (operator-only)" section added to `assets/js/legend-content.js` under the `'tiers'` page entry. 10 items: Activation flow (`?admin=1` / `?admin=hash` / `?admin=0` URL params + SHA-256 password gate); ⚙ Settings (fine-grained GitHub PAT + the four storage keys); the four override layers (`fpts-tier-overrides` / `-tier-title-overrides` / `-tier-order-override` / `-player-order-overrides`); Publish ⬆ Contents API GET-SHA → PUT pipeline; Stale-CSV defense (157b636); Publish Dry-Run / Diff Preview Modal (b65e102 + 5832be2); Disable button. Cache token bump `legend-content.js ?v=1786400001 → ?v=1787200000` across all 10 deployed pages + `templates/page-template.html` (which was also out-of-date at `?v=1783300000` — opportunistic fix).
+
+### Override-layer state model (unchanged from session 15, now documented in legend)
+
+Four independent localStorage maps on top of canonical `tiers.csv` + `tier-config.json`. Reference table mirrors the session-15 entry; see `legend-content.js` 'tiers' → "Admin Scratchpad" section for full detail.
+
+### Cache tokens at session close
+
+- `legend-content.js ?v=1786400001 → ?v=1787200000` (10 deployed pages + templates/page-template.html; admin-scratchpad section added)
+- `live-draft.html` inline CSS — page-local, no shared cache token
+- `mock-draft.html` inline CSS — page-local, no shared cache token
+- All other shared modules unchanged from session 15
+
+### What's queued next
+
+**Open punch list — all blocked or open-ended (4 items):**
+
+1. **Expand the scrape's 1QB coverage** — external-blocked on user-supplied 1QB-active Sleeper usernames for `SEED_USERS`.
+2. **`my-leagues.html` inline-style cleanup** — deferred (diminishing returns; remaining ~46 are the `--bar-width` / `display:none` design end-state).
+3. **Analyst feedback loop** — external-blocked on analyst recommendations for the 14 original heuristics in `formulas.html`.
+4. **Visual polish pass** — open-ended; act on specific issues that surface during use.
+
+**Carryover from session 13 (still open, no change this session):** mock-draft personality weight calibration, Manager Clone archetype (blocked on 1QB SEED_USERS), compare-page UX iteration, prospect-score classifier, NFL draft round/pick (blocked on Sleeper API).
+
+**Deferred — won't-do unless demand emerges:** Bulk tier rename, Cross-tier drag (both closed 2026-05-23).
+
+**Audit:** `python scripts/check-colors.py` — CLEAN across 34 files after every commit.
+
+See [`docs/CHANGES.md`](docs/CHANGES.md) 2026-05-23 (sixteenth session) for full per-commit detail.
+
+---
+
+## Where we were (end of 2026-05-22 — fifteenth session)
 
 **Admin scratchpad hardening + new lookback features + data-correctness sweep.** Continuation session after the fourteenth shipped Phases 1A-4. Closed out 6 of the 7 punch-list items inherited from session 14 (only "Bulk tier rename" + "Cross-tier drag" remain — both flagged low-priority). Also surfaced and shipped a brand-new analytical feature (rank-history lookback) that had been carrying over from session 13 with `data/rank-history.json` sitting orphaned. 8 substantive commits + 2 data-sync auto-commits.
 
@@ -1482,96 +1531,61 @@ Nothing structural. Polish / nice-to-haves only:
 Paste this as the first message:
 
 ```
-Read README.md for current state. End-of-2026-05-20 (twelfth session):
-- OBS POLISH ITERATION — picked up after session 11's UI overhaul ship
-  and tuned to actual OBS-stream usage. Key shifts:
-  * Default zoom dropped 1.75 → 1.25 (7e15a42). Adaptive ladder
-    simplified: ≥1100 → 1.25, ≤1099 → 1.0. All other session-11
-    OBS-readability wins (lifted gutters, tightened topnav, ADP
-    fluid-fit) stayed intact.
-  * TEXT-ON-BRIGHT-FILL DOCTRINE INVERTED (372f894): white → BLACK
-    on every bright fill, both themes. Light-mode --pos-*-bg tokens
-    brightened to match dark-mode. ~46 leaf rules updated;
-    BRANDING HARD RULES block in brand.css + CLAUDE.md branding rule
-    + badge recipe inverted. dim-text-on-bright-bg lint detector
-    removed from scripts/check-colors.py (it enforced the old rule).
-  * ADP CARD POLISH (1c0b3a4, ab7082d): height 78→100, max width
-    capped at 130 CSS via minmax(88,130), headshot 32→40, coin 26→32.
-    TREND CHIP RELOCATED out of .card-meta (was squeezed invisible
-    between the bottom-row coins) into .card-top next to the
-    overall-pick number where it has full top-row width.
-  * COMPARE PAGE: Scoring toggle shipped (459ffe8) — 4 presets PPR
-    Half-PPR 6pt-TD TEP wired through SLEEPER.adjustStatsForLeague.
-    "+ Add comparison player" search promoted from prompt() to
-    full inline search bar that takes over the link row when active.
-  * DROPDOWN FIXES (927884c): custom-select.js popups grow to fit
-    widest option (min-width:100%; width:max-content;
-    max-width:min(420px,95vw)). compare-hero capped at max-width:1100px
-    so multi-mode photos don't dominate wide monitors.
-- ANALYST-INPUT PUNCH LIST CLEARED for the compare page:
-  * §44 similarity — weights 25/30/45 locked; tier thresholds 90/75/60
-    locked; Loose-tier kept in top-5 with muted styling. 127bdcc
-  * §47 best-in-row tie — _pcBestIdx now returns {winners,tied}; tie
-    behavior unified across Table mode + Identity group + multi
-    metric-table (all use yellow .is-tied band for full ties; partial
-    top ties keep green co-winners). Strict equality only. ac816e3
-  * §48 Last-N — default 4 games locked; playoff weeks excluded. 725a55f
-  * §49 multi-card metric — strict equality only, same as §47. 4c73112
-  * §50 Scoring toggle — shipped (see compare-page section above).
-- LATE-SESSION COMPARE HERO REFINEMENT (Madden-card aesthetic +
-  mobile fallbacks):
-  * STATS_DATA path bug fix (03e73b5) — _pcGetStats was reading
-    .players[key] but data-bootstrap flattens via Object.assign(
-    STATS_DATA, stats.players); path corrected, 2025 seasonal data
-    now visible (previously empty for every player).
-  * Slim hero photos + face recenter (3626462) — object-position
-    top → center 20% so the face frames properly.
-  * Madden-card hero (f20fee2) — .pc-card-photo-wrap aspect 5/4;
-    multi-mode grid pinned to repeat(2, 320px) centered so two
-    cards don't stretch wide on large monitors.
-  * In-card name strip (8a24115) — .pc-card-name-strip element
-    between photo wrap and archetype bar; 16px Kanit italic
-    uppercase. Card stack: Header → Photo → Name → Archetype →
-    Stats → Footer (like an actual trading card).
-  * Mobile bleed patches (532ac8d) — static mobile diagnostic
-    surfaced 4 desktop CSS changes that inherited into mobile
-    without @media (max-width: 768px) overrides. Added: search
-    dropdown max-height 320 (was 480); name strip font 14px (was
-    16px); name strip padding 8/10/4 (was 10/12/6); photo aspect
-    4/3 on mobile (was 5/4 — too tall, pushed stats below the fold).
-    Text-color inversion stays global; ADP card sizing already had
-    mobile overrides; brand.css already resets zoom:1 on mobile.
-- OBS interactivity audit run mid-session: CLEAN. All <select>
-  elements wrapped by custom-select.js; iframe-scroll-fix.js only
-  intercepts middle-button (left-clicks pass through); pointer-events:
-  none only on decorative overlays. No click-blocking regressions.
-- Cache tokens at session close: custom-select.js ?v=1782700000;
-  formulas-content.js ?v=1782800003; legend-content.js ?v=1782800000;
-  brand/mvs-extras/heatmap/legend/player-panel.css all ?v=1782600000.
-- Color audit CLEAN across 30 files.
+Read README.md for current state. End-of-2026-05-23 (sixteenth session):
+- MOCK-DRAFT + LIVE-DRAFT CARD PARITY SHIP. Three asks bundled:
+  * Mock-draft (207724a) — new .card-delta chip in .card-top next to
+    #{pickNo}. ±5 threshold mirrors live-draft _pickDelta so VALUE
+    (green +N) / REACH (red −N) / ON ADP (muted ·) land consistently
+    across pages. Uses player.rawAdp for source-ADP parity.
+  * Live-draft (6678dda) — bigger rebuild. .ld-cell height 76→100px;
+    new .ld-cell-team-logo (bottom-left, 32px) + .ld-cell-hs (bottom-
+    right, 40px) coins lifted from adp-tool. .ld-cell-traded chip
+    relocated absolute bottom-right → center-bottom between the new
+    coins (left:50%; transform:translateX(-50%); z-index:2). New
+    .ld-cell-delta chip in .ld-cell-top driven by _pickDelta() with
+    per-draft fmtKey computed once at top of ldRenderBoard. POS+delta
+    wrapped in .ld-cell-top-right inline-flex span so flex
+    space-between keeps them grouped on the right.
+  * Live-draft mobile (be9c1af) — @media downscale mirrors mock-
+    draft sizing: cell 72px, hs 26×26, logo 22×22 with 15×15 img,
+    name padding-right 30px, top fonts 7px.
+- PUNCH-LIST CLEANUP ARC (c360190 → 2ea3236 → 6c3bd36 → 3d4eb82).
+  Open list shrunk 6 → 4 items: Player Comparison full page marked
+  [x] (shipped session 10); Bulk tier rename + Cross-tier drag moved
+  to new "Deferred — won't-do unless demand" subsection;
+  card-parity item closed once implementation deployed.
+- ADMIN SCRATCHPAD LEGEND DOCS (58bf7d5). New "Admin Scratchpad
+  (operator-only)" section in legend-content.js 'tiers' page entry.
+  10 items: activation flow + ⚙ Settings + four override layers
+  (fpts-tier-overrides / -tier-title-overrides / -tier-order-override
+  / -player-order-overrides) + Publish ⬆ Contents API + stale-CSV
+  defense + Publish dry-run modal + Disable button. Cache token bump
+  legend-content.js ?v=1786400001 → ?v=1787200000 across all 10
+  deployed pages + templates/page-template.html.
+- Cache tokens at session close: legend-content.js ?v=1787200000
+  (10 pages + template). Page-local CSS on live-draft.html +
+  mock-draft.html — no shared cache tokens touched.
+- Color audit CLEAN across 34 files.
 
-Confirm by running `git log --oneline -25`.
+Confirm by running `git log --oneline -10`.
 
 PUNCH LIST (present this to the user at session start — don't act
 on any item without explicit user direction):
-  1. OBS TECH-TEST FOLLOW-UPS — user planned a tech test of OBS
-     Browser Source on all 9 pages after session 12 close. If issues
-     surfaced there, address them first. The static-analysis sweep
-     in session 12 found no regressions; only real-OBS issues remain
-     possible.
-  2. Prospect-score classifier — replaces _pcArchetypeLabel(fp)
-     placeholder when prospect/route/coverage data ships. Tile marked
-     data-pending="archetype-classifier".
-  3. NFL draft round/pick — Sleeper /players/nfl doesn't expose. Tile
-     marked data-pending="nfl-draft-round-pick"; needs a different source.
-  4. 1QB scrape SEED_USERS — external-blocked on user-supplied 1QB-active
-     Sleeper usernames.
-  5. Analyst feedback loop — external-blocked on analyst recommendations
-     for the 14 original heuristics in formulas.html. (All compare-page
-     analyst-input bullets are now LOCKED via session 12 product review.)
-  6. my-leagues inline-style cleanup — deferred (~46 remaining are the
-     --bar-width / display:none design end-state).
-  7. Visual polish — open-ended; surface specific issues as they come up.
+  1. Expand 1QB scrape SEED_USERS — external-blocked on user-supplied
+     1QB-active Sleeper usernames.
+  2. my-leagues inline-style cleanup — deferred (~46 remaining are
+     the --bar-width / display:none design end-state).
+  3. Analyst feedback loop — external-blocked on analyst recommendations
+     for the 14 original heuristics in formulas.html.
+  4. Visual polish — open-ended; surface specific issues as they come up.
+
+CARRYOVER (still open, no change in session 16): mock-draft
+personality weight calibration, Manager Clone archetype (blocked
+on 1QB SEED_USERS), compare-page UX iteration, prospect-score
+classifier, NFL draft round/pick (blocked on Sleeper API).
+
+DEFERRED (won't-do unless demand emerges): Bulk tier rename,
+Cross-tier drag.
 
 ALL of the above are either user-deferred, external-blocked, or
 require user direction. Don't auto-start work — present the list +

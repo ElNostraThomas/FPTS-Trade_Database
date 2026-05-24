@@ -6,6 +6,105 @@ the operator manual see [`WORKFLOW.md`](WORKFLOW.md).
 
 ---
 
+## 2026-05-23 (sixteenth session) — Mock-draft + live-draft pick-card parity ship + punch-list final cleanup + Admin Scratchpad legend documentation
+
+Presentation-day session. Inherited an open punch list of 6 actionable items; closed the actionable ones, marked the rest as external-blocked or deferred so the operator has a clean state heading into the demo. 7 substantive commits + 1 data-sync auto-commit between sessions. Per-commit detail below in chronological order:
+
+### `c360190` — docs: punch list — mock-draft card parity + trade-icon placement + ADP-delta indicator
+
+First of three commits in the cleanup arc. User flagged three asks on mock-draft pick cards: (1) closer visual parity with the ADP `.box-card` recipe, (2) keep the trade icon but reposition it between the two coins, (3) add a small above/below-ADP indicator. Captured as a new open punch-list item with technical detail (file:line refs, the structural delta vs ADP cards). Initial scope was mock-draft-only — corrected in the next commit when the user flagged live-draft too.
+
+### `ffcdb9d` — data-sync auto-commit (between sessions)
+
+Standard `push.bat` data refresh. No code changes.
+
+### `2ea3236` — docs: punch list — expand card-parity item to cover live-draft cells
+
+Scope expansion after the user clarified "it needs to be the mock draft and the live draft cards." Code inspection revealed the structural delta: `mock-draft.html` already lifts the `.box-card` recipe with both coins (audit-and-reconcile job), while `live-draft.html` uses its own `.ld-cell` system at lines 789-918 (text-only, height 76px, no coins, but trade indicator `.ld-cell-traded` already exists at line 896 — chip with arrow + new owner's 16px avatar). The two pages need different amounts of work to land at the same visual.
+
+### `207724a` — mock-draft: add above/below-ADP delta chip to each pick card
+
+First implementation commit. Mock-draft cells already had both coins from the ADP recipe — just needed the new chip. Added `.card-delta` CSS in the `.box-card` block + wired into `pickCardHtml()` at line 1441:
+
+- `.card-delta` CSS: tiny pill (`padding: 0 4px; font-size: 8px; border-radius: 2px`) in `.card-top` next to `#{pickNo}`. Brand-token backgrounds: `.value` = `var(--green)`, `.reach` = `var(--red)`, `.par` = `rgba(0,0,0,.22)`. Black text on bright fills per site doctrine.
+- `pickCardHtml` change: look up player's `rawAdp` (from `_activeUniverse`), compute delta vs `pick.pickNo`, render chip with label `+N` / `−N` / `·` and tooltip showing the full label + ADP reference. Skipped entirely when no ADP coverage (rare deep rookies / IDP) so cells don't carry a useless indicator.
+- Wrapped in a containing span so the `#{pickNo}` text and chip group together on the right side of `.card-top` without disrupting the existing flex `space-between` layout.
+
+±5 threshold mirrors `live-draft.html _pickDelta()` so the same player feels the same on both pages. `rawAdp` (the source ADP from `ADP_PAYLOAD.byMonth.ALL[fmtKey]`) is the right field — not `player.adp` which is scoring-shifted (TEP nudges, 6pt-TD nudges) for internal pick-scoring.
+
+### `6678dda` — live-draft: rebuild .ld-cell for ADP-card parity + relocate trade chip + delta chip
+
+The bigger implementation commit. Three structural changes bundled to land the punch-list ask in one commit:
+
+1. **`.ld-cell` recipe rebuild.** Height bumped 76 → 100px. New `.ld-cell-team-logo` (bottom-left, 32px coin, holds 24×24 team logo via `TeamHelpers.logoUrl`) + `.ld-cell-hs` (bottom-right, 40px headshot coin, Sleeper CDN URL `https://sleepercdn.com/content/nfl/players/thumb/{sid}.jpg`) + `.ld-cell-hs-fallback` (neutral silhouette SVG when 403/404, mirrors `fpts-hs-fallback` doctrine). New `.ld-cell-meta` spacer (`margin-top: auto; min-height: 2px`) preserves a consistent bottom band. `.ld-cell-name` got `padding-right: 44px` to reserve room for the headshot coin.
+
+2. **`.ld-cell-traded` chip relocation.** Moved from absolute `bottom:3px; right:3px` to centered `bottom:6px; left:50%; transform:translateX(-50%); z-index:2`. Background opacity bumped `.45 → .55` so the avatar/arrow stay legible over a bright position-color fill now that the chip sits over the more visible center-bottom strip. `z-index:2` keeps it above the two coins so it never hides behind them.
+
+3. **`.ld-cell-delta` chip added in `.ld-cell-top`.** Same `.value` / `.reach` / `.par` recipe + same `_pickDelta()` math as the existing Pick Analysis card. New `fmtKeyForBoard = _adpFmtKey(meta, DRAFT.league)` computed once at the top of `ldRenderBoard` (line 3000) so the per-cell lookup via `_playerAdp(fullName, fmtKeyForBoard)` doesn't re-derive on every cell. POS pill + delta chip wrapped in a new `.ld-cell-top-right` inline-flex span so flex `space-between` keeps them grouped on the right (otherwise three direct children would spread across the row).
+
+All page-specific modifiers (`.mine`, `.on-the-clock`, `.user-up-next`, `.traded`, `.empty`) preserved unchanged — only the cell internals changed. Empty cells inherit the new height but skip the coins + delta chip (no player_id to look up). Spot-checked: empty cells with `ON THE CLOCK` / `YOUR PICK` label still center correctly with the new height.
+
+### `be9c1af` — live-draft: mobile @media — downscale .ld-cell + coins to match mock-draft sizing
+
+Caught immediately after `6678dda` by checking the mobile `@media (max-width: 768px)` block — the new headshot + team-logo coins are sized for the desktop 100px cell; on mobile the cell drops to 72px and the coins need to shrink with it so they don't overflow. Mirrors `mock-draft.html` mobile `@media` block exactly:
+
+- `.ld-cell` height 64 → 72px (room for the 26px headshot coin)
+- `.ld-cell-hs / -hs-fallback`: 26×26 (was inherited 40×40)
+- `.ld-cell-team-logo`: 22×22 with 15×15 img (was inherited 32×32 + 24×24)
+- `.ld-cell-name` padding-right: 30 (was inherited 44)
+- `.ld-cell-top / -pick / -pos / -delta` font-size: 7px (was inherited 8)
+
+### `6c3bd36` — docs: punch list cleanup — close shipped + deferred items
+
+Mid-session housekeeping triggered by the user's "we have a big presentation today we need to clean up everything." Three changes to the README punch list:
+
+1. **Stale "Player Comparison full page" item** at line 1410 — flagged `[ ]` but actually shipped 2026-05-20 (tenth session) as `compare.html`. Marked `[x]` with strikethrough + short note pointing to the session-10 entry above for full architecture.
+2. **"Bulk tier rename" + "Cross-tier drag"** moved from the session-15 queued-next list to a new "Deferred — won't-do unless demand emerges" subsection. Both were already flagged "if demand emerges" in session 15 — this commit promotes that status to first-class so the open count drops.
+3. Open punch-list count drops 6 → 4 (3 of those 4 are external-blocked or open-ended).
+
+### `3d4eb82` — docs: punch list — mark card-parity item shipped
+
+Closure commit for the card-parity work. Replaced the open `[ ]` entry with an `[x]` strikethrough + per-commit summary citing `207724a` / `6678dda` / `be9c1af`. Reduces the active punch-list count to 3 actionable items (1QB scrape, my-leagues inline-style cleanup, visual polish) + 1 external-blocked (analyst feedback loop).
+
+### `58bf7d5` — tiers: legend — document Admin Scratchpad (Phases 1-5)
+
+Last cleanup item from session 15's queued-next list. New "Admin Scratchpad (operator-only)" section in `assets/js/legend-content.js` under the `'tiers'` page entry. 10 items covering the full feature:
+
+- **Activation Flow** — `?admin=1` activates with password check, `?admin=hash` is the one-time SETUP helper to regenerate `PASSWORD_HASH`, `?admin=0` disables. SHA-256 hash comparison via `crypto.subtle.digest`. `fpts-admin-mode` session flag.
+- **⚙ Settings — GitHub PAT** — fine-grained Personal Access Token + repo/branch/path. Storage keys: `fpts-admin-gh-token / -repo / -branch / -path`. Documents the empty-input-is-no-change defense against Chrome password-manager value-attribute stripping (ad8ffd8 fix from session 14).
+- **The four override layers** (one item each):
+  - `fpts-tier-overrides` (Phase 0/2 — per-player field edits + soft-deletes + Phase-2 adds)
+  - `fpts-tier-title-overrides` (Phase 3 — tier section header rewrites)
+  - `fpts-tier-order-override` (Phase 3 + 5 — written by both `moveTier` arrow buttons and `setTierOrder` drag-and-drop)
+  - `fpts-player-order-overrides` (Phase 4 — drag-and-drop within tier; cross-tier explicitly blocked by `sameTbody` guard)
+- **Publish ⬆ — GitHub Contents API** — one-click GET-SHA → PUT pipeline. UTF-8-safe base64 encoding via `btoa(unescape(encodeURIComponent(str)))`. Success toast with new commit SHA. Two-PUT max per publish (tiers.csv + tier-config.json), each only fired when its override layer is non-empty.
+- **Stale-CSV Defense** — `publishToGitHub` does a GET-latest on tiers.csv from GitHub, parses via `_parseTiersCsv`, applies operator overrides via `_applyOverridesToData`, PUTs the merged result. So even from `file://` behind origin, published CSV is always `(latest GitHub state) + (operator overrides)`. References commit `157b636` (root cause: Loveland's row had ping-ponged across three earlier commits).
+- **Publish Dry-Run / Diff Preview Modal** — preview modal lists every change with typed icons (⇅ yellow tier-change, + green add, − red remove, ✎ gray metadata-only) before committing. References commits `b65e102` (initial ship) + `5832be2` (brand-audit fix mapping inline hex to brand vars).
+- **Disable Button** — flips `fpts-admin-mode=false` and reloads. Overrides PERSIST across cycles until explicitly cleared via Settings → "Clear all overrides."
+
+Cache token bump `legend-content.js ?v=1786400001 → ?v=1787200000` across all 10 deployed pages (`adp-tool`, `compare`, `formulas`, `live-draft`, `mock-draft`, `rankings`, `my-leagues`, `index`, `trade-calculator`, `tiers`) + `templates/page-template.html` (which was also out-of-date at `?v=1783300000` — opportunistic fix). `docs/function-reference.html` left alone (placeholder `?v=...` string).
+
+### Audit + cache token summary
+
+`python scripts/check-colors.py` — **CLEAN across 34 files** after every commit.
+
+Cache tokens at session close:
+- `legend-content.js ?v=1787200000` (10 deployed pages + template; admin-scratchpad section added)
+- Page-local CSS on `live-draft.html` + `mock-draft.html` — no shared cache tokens
+- All other shared modules unchanged from session 15 (`admin-tiers.js ?v=1786600000`, `rank-comparator.js ?v=1786400000`, etc.)
+
+### Open punch list state at session close
+
+**4 open `[ ]` items, all blocked or open-ended:**
+1. Expand 1QB scrape coverage — external-blocked (Sleeper usernames)
+2. `my-leagues.html` inline-style cleanup — deferred (diminishing returns)
+3. Analyst feedback loop — external-blocked (analyst recommendations)
+4. Visual polish pass — open-ended
+
+**Deferred (won't-do unless demand emerges):** Bulk tier rename, Cross-tier drag.
+
+---
+
 ## 2026-05-22 (fifteenth session) — Admin scratchpad hardening (stale-CSV defense, dry-run preview, Phase 5 drag) + rank-history surface + values-supplement layer + 17 name canonicalizations
 
 Continuation session after the fourteenth shipped Phases 1A-4. 8 substantive commits + 3 data-sync auto-commits. Closed out 6 of the 7 punch-list items inherited from session 14 (only "Bulk tier rename" + "Cross-tier drag" remain — both flagged low-priority). Also shipped rank-history lookback, a feature that had been carrying over from session 13 with `data/rank-history.json` orphaned. Per-commit detail below in chronological order:
