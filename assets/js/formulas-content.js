@@ -490,8 +490,8 @@ Saquon Barkley 2023: rush_yd_per_att = 4.0 (already per-attempt)
           location: 'tiers.html:494-516 (descriptions), tiers.html:161-171 (colors)',
           provenance: { kind: 'manual-curation', detail: 'Each player is manually tagged with a tier letter by the curator in the upstream Google Sheet; no formula.' },
           inputs: 'Manual assignment via Google Sheet → sync-tiers.py → tiers.html. No formula.',
-          math: `20 tier labels: S++, S+, S, A+, A, A−, B+, B, B−,
-                C+, C, C−, D+, D, D−, E+, E, E−, F+, F, F−
+          math: `12 tier labels (TAT value ladder): S++, S+, S, A+, A, A−,
+                B+, B, B−, C+, C, C−
 
 Color spectrum (CSS class via tierBadgeClass(tier)):
   S++       → var(--red)            dynasty orange
@@ -501,9 +501,6 @@ Color spectrum (CSS class via tierBadgeClass(tier)):
   A / A−    → var(--pos-rb-bg)      brand green (#4caf6e)
   B+/B/B−   → var(--pos-wr-bg)      brand blue (#5b9bd5)
   C+/C/C−   → var(--pos-pick-bg)    brand lavender (#9b91d4)
-  D+/D/D−   → #555                  dark gray
-  E+/E/E−   → #444                  darker gray
-  F+/F/F−   → #333                  darkest gray
 
 tierBadgeClass(tier):
   return 't-' + (tier || 'S').toLowerCase()
@@ -513,7 +510,7 @@ tierBadgeClass(tier):
           example: `Bijan Robinson tagged "S" → tierBadgeClass("S") = "t-s" → yellow badge
 Drake London tagged "A-" → "t-am" → green badge at 85% opacity
 Jonathan Taylor tagged "B+" → "t-bp" → blue badge
-Russell Wilson tagged "F" → "t-f" → darkest-gray badge`,
+A player tagged "C-" → "t-cm" → lavender badge (lowest retained tier)`,
           notes: 'Tiers correspond to "base 1st round picks" valuation per the curator (see TIER_DESCRIPTIONS), not auto-computed value bands.',
           related: ['bsh-chips']
         },

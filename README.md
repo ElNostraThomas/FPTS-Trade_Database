@@ -13,6 +13,31 @@ This file is the **resume-where-we-left-off** doc.
 
 ---
 
+## Where we are (end of 2026-05-28 — seventeenth session)
+
+**Tiers page ported to the standalone's 12-tier TAT value ladder.** Brought the main tool to parity with the `FPTS-Tiers-Standalone` fork's 2026-05-27 overhaul: the old 21-tier ladder (S++…F−) collapsed to TAT's **12-tier value ladder** (S++, S+, S, A+, A, A−, B+, B, B−, C+, C, C−), with TAT's terse value titles ("3 Base 1sts (+/-)" … "Base 3 (+/-)") replacing the prior custom descriptions. **Working tree only — not committed/pushed yet.**
+
+### What changed
+
+- **`tiers.html`** — `TIER_DESCRIPTIONS` (12 TAT titles), `TIER_ORDER` (12), `tierBadgeClass` map (dropped d/e/f), removed unused `.t-d*/.t-e*/.t-f*` badge CSS.
+- **`sync-tiers.py`** — `VALID_TIERS` 21→12. Re-ran clean: 200 rows kept, 0 dropped, `data/tiers.json` unchanged.
+- **`assets/js/admin-tiers.js`** — both 21-tier lists trimmed (the `TIERS` dropdown const + the local `TIER_ORDER` in `_buildOverriddenCsv`). Cache token bumped `?v=1788000000` across all 10 pages + `templates/page-template.html`.
+- **`data/source/tiers/tier-config.json`** — 12 TAT value-title tiers; version 2026-05-28.
+- **Docs** — `FORMULAS.md` §17 + `formulas-content.js` tier-assignment entry updated (dual-sync); `formulas-content.js ?v=1788000000`.
+
+### Two things deliberately NOT done
+
+- **posRank server-side port skipped** — the main tool's `tiers.html` `applySleeperOverlay()` already overlays `posRank` from `values.json` client-side, so the PRK column already matches FP's published consensus. The standalone's server-side `compute_pos_ranks` would be redundant here.
+- **No player data dropped** — `tiers.csv` already held only S++…C− (200 players, 0 in D/E/F). The lower tiers were empty scaffolding.
+
+### Follow-ups / left untouched
+
+- `compare.html` `_pcTierBgColor`/`_pcTierFgColor` still has dead-but-harmless D/E/F color branches (self-contained fallback with a safe default).
+- `legend-content.js` left as-is (its "Cornerstone Players" mentions are hypothetical rename-feature examples, not the canonical ladder).
+- **Not yet run:** `python scripts/check-colors.py` audit + `push.bat` deploy — operator's call.
+
+---
+
 ## Where we are (end of 2026-05-23 — sixteenth session)
 
 **Mock-draft + live-draft card parity ship + punch-list final cleanup + Admin Scratchpad legend docs.** Presentation-day session. Inherited an open punch list of 6 actionable items; closed the actionable ones, marked the rest as external-blocked or deferred so the operator has a clean state heading into the demo. 7 substantive commits + 1 data-sync auto-commit between sessions.

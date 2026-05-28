@@ -515,31 +515,22 @@ All other columns are raw Sleeper stat fields.
 ### 17. Tier assignment + color spectrum
 `TIER_DESCRIPTIONS` + `.tier-badge.t-*` — `tiers.html:494-516` + `tiers.html:161-171`
 
-**Assignment** Manual via Google Sheet → `sync-tiers.py` → `tiers.html`. No formula. 20 discrete tiers: S++, S+, S, A+, A, A−, B+, B, B−, C+, C, C−, D+, D, D−, E+, E, E−, F+, F, F−.
+**Assignment** Manual via Google Sheet / analyst CSV → `sync-tiers.py` → `tiers.html`. No formula. 12 discrete tiers: S++, S+, S, A+, A, A−, B+, B, B−, C+, C, C−. (Trimmed from the old 21-tier ladder to TAT's 12-tier value ladder on 2026-05-28 — parity with the FPTS-Tiers-Standalone fork. The D/E/F tiers were unpopulated and were removed.)
 
-**Tier descriptions** (verbatim, from sheet)
+**Tier descriptions** (verbatim, TAT value ladder — from `data/source/tiers/tier-config.json`)
 ```
-S++  Cornerstone Players (3-4 Base 1sts)
-S+   Elite + (2.5-3 Base 1sts)
-S    Elite (2+ Base 1sts)
-A+   Elite Lite (2 Base 1sts)
-A    Knocking On The Door (1.75 - 2 base 1sts)
-A-   Tweener Tier (1.5-2 Base 1sts)
-B+   High Risk Upside (1.25-1.5 + Base 1sts)
-B    Upside But Safer (1.25 - 1.5 base 1sts)
-B-   Interesting Values (1 - 1.25 Base 1sts)
-C+   Good Players Not Really Values (1 Base 1st)
-C    Risky and Probably More Expensive Than I Want For 1 Late First
-C-   Late Firsts I Want To Pay 1 Late First
-D+   Risky Late First With Upside
-D    Veterans Worth The Early 2
-D-   Mid 2nd Veterans
-E+   Upside Mid 2nd Value With Risk
-E    Mid 2nd Safety Players
-E-   Late 2nd Players
-F+   Early 3rd Players
-F    Mid 3rd Players
-F-   Late 3rd
+S++  3 Base 1sts (+/-)
+S+   2.5 Base 1sts (+/-)
+S    2 Base 1sts (+/-)
+A+   1.5 Base 1sts (+/-)
+A    1.25 Base 1sts (+/-)
+A-   1 Base 1 (+/-)
+B+   "Late" 1 (+/-) // 0.75 Base 1sts (+/-)
+B    "Early" 2 (+/-) // 0.5 Base 1sts (+/-)
+B-   "Base" 2 // 0.33 Base 1sts (+/-)
+C+   "Late" 2 (+/-)
+C    "Early" 3 (+/-)
+C-   "Base" 3 (+/-)
 ```
 
 **Color spectrum**
@@ -552,9 +543,6 @@ F-   Late 3rd
 | A / A− | brand green | `var(--pos-rb-bg)` (#4caf6e) |
 | B+/B/B− | brand blue | `var(--pos-wr-bg)` (#5b9bd5) |
 | C+/C/C− | brand lavender | `var(--pos-pick-bg)` (#9b91d4) |
-| D+/D/D− | dark gray | `#555` |
-| E+/E/E− | darker gray | `#444` |
-| F+/F/F− | darkest gray | `#333` |
 
 `tierBadgeClass(tier)` (`tiers.html:2707`)
 ```js

@@ -6,6 +6,26 @@ the operator manual see [`WORKFLOW.md`](WORKFLOW.md).
 
 ---
 
+## 2026-05-28 (seventeenth session) — Tiers page ported to the standalone's 12-tier TAT value ladder
+
+Brought the main tool's Tiers page to parity with the `FPTS-Tiers-Standalone` fork's 2026-05-27 overhaul: collapsed the old 21-tier ladder (S++…F−) down to TAT's **12-tier value ladder** (S++, S+, S, A+, A, A−, B+, B, B−, C+, C, C−) and adopted TAT's terse value titles ("3 Base 1sts (+/-)" … "Base 3 (+/-)") in place of the prior custom descriptions.
+
+**No player data was dropped** — `data/source/tiers/tiers.csv` already contained only the 12 retained tiers (200 players, 0 in D/E/F). The D/E/F tiers were unpopulated scaffolding in the constants/config/CSS.
+
+**posRank was already correct** — `tiers.html` `applySleeperOverlay()` already overlays each player's `posRank` from `values.json` (`window.FP_VALUES`) client-side, so the PRK column already showed FP's published consensus (Chase=WR1, etc.). The standalone's server-side `compute_pos_ranks` change was a no-op for this architecture, so it was intentionally not ported.
+
+Changes (no commit yet — working tree only):
+
+- **`tiers.html`** — `TIER_DESCRIPTIONS` 21→12 with TAT value titles; `TIER_ORDER` 21→12; `tierBadgeClass` map dropped d/e/f; removed the now-unused `.t-d* / .t-e* / .t-f*` badge CSS rules.
+- **`sync-tiers.py`** — `VALID_TIERS` 21→12 (D/E/F now treated as decorative dividers and skipped). Re-ran cleanly: 200 rows kept, 0 dropped, `data/tiers.json` unchanged.
+- **`assets/js/admin-tiers.js`** — both 21-tier lists trimmed to 12: the `TIERS` edit-dropdown const (line 98) and the local `TIER_ORDER` sort list in `_buildOverriddenCsv` (line 648). Cache token `?v=1787500000 → ?v=1788000000` across all 10 pages + `templates/page-template.html`.
+- **`data/source/tiers/tier-config.json`** — replaced 21 custom-title tiers with the 12 TAT value-title tiers; version → 2026-05-28.
+- **`docs/FORMULAS.md` §17 + `assets/js/formulas-content.js`** — tier-assignment entry updated to the 12-tier ladder + TAT titles + trimmed color spectrum (dual-sync rule). `formulas-content.js ?v=1783300000 → ?v=1788000000` (formulas.html only consumer).
+
+Left intentionally untouched: `compare.html` `_pcTierBgColor`/`_pcTierFgColor` (self-contained presentational fallback with a safe `default`; its D/E/F branches are now dead but harmless), and `legend-content.js` (its two "Cornerstone Players" mentions are hypothetical examples of the tier-rename feature, not the canonical ladder).
+
+---
+
 ## 2026-05-23 (sixteenth session) — Mock-draft + live-draft pick-card parity ship + punch-list final cleanup + Admin Scratchpad legend documentation
 
 Presentation-day session. Inherited an open punch list of 6 actionable items; closed the actionable ones, marked the rest as external-blocked or deferred so the operator has a clean state heading into the demo. 7 substantive commits + 1 data-sync auto-commit between sessions. Per-commit detail below in chronological order:

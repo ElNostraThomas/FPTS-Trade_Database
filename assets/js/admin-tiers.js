@@ -95,7 +95,7 @@
   var STORAGE_KEY_PLAYER_ORDER = 'fpts-player-order-overrides';
   var DEFAULT_GH_CONFIG_PATH  = 'data/source/tiers/tier-config.json';
 
-  var TIERS = ['S++','S+','S','A+','A','A-','B+','B','B-','C+','C','C-','D+','D','D-','E+','E','E-','F+','F','F-'];
+  var TIERS = ['S++','S+','S','A+','A','A-','B+','B','B-','C+','C','C-'];
   // 5 + empty for Buy/Sell/Hold (mirrors bshChipHtml in tiers.html)
   var BSHS  = ['', 'buying', 'checking', 'selling', 'shopping', 'hold'];
   // 5 priority levels — Top Target = active acquire, Avoid = active divest.
@@ -645,7 +645,7 @@
   }
 
   function _buildOverriddenCsv(dataArg) {
-    var TIER_ORDER = ['S++','S+','S','A+','A','A-','B+','B','B-','C+','C','C-','D+','D','D-','E+','E','E-','F+','F','F-'];
+    var TIER_ORDER = ['S++','S+','S','A+','A','A-','B+','B','B-','C+','C','C-'];
     function tierRank(t) { var i = TIER_ORDER.indexOf(t); return i >= 0 ? i : 99; }
     function esc(v) {
       var s = (v == null) ? '' : String(v);
