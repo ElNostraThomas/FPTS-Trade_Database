@@ -6,23 +6,28 @@ the operator manual see [`WORKFLOW.md`](WORKFLOW.md).
 
 ---
 
-## 2026-05-28 (seventeenth session) — Tiers page ported to the standalone's 12-tier TAT value ladder
+## 2026-05-28→29 (seventeenth session) — 12-tier TAT ladder + standalone tier-sync, 2026 ADP refresh (both sites), MVS trade-value refresh
 
-Brought the main tool's Tiers page to parity with the `FPTS-Tiers-Standalone` fork's 2026-05-27 overhaul: collapsed the old 21-tier ladder (S++…F−) down to TAT's **12-tier value ladder** (S++, S+, S, A+, A, A−, B+, B, B−, C+, C, C−) and adopted TAT's terse value titles ("3 Base 1sts (+/-)" … "Base 3 (+/-)") in place of the prior custom descriptions.
+Multi-part session; all committed + pushed. Main: `36be966..b63309c` (tiers + mirror + 2026 ADP + docs) then `b63309c..5d0d809` (MVS). Standalone: `de01a45..321b55f` (2026 ADP). `check-colors.py` CLEAN across 34 files.
 
-**No player data was dropped** — `data/source/tiers/tiers.csv` already contained only the 12 retained tiers (200 players, 0 in D/E/F). The D/E/F tiers were unpopulated scaffolding in the constants/config/CSS.
+### Tiers → 12-tier TAT ladder + single-source-of-truth mirror
 
-**posRank was already correct** — `tiers.html` `applySleeperOverlay()` already overlays each player's `posRank` from `values.json` (`window.FP_VALUES`) client-side, so the PRK column already showed FP's published consensus (Chase=WR1, etc.). The standalone's server-side `compute_pos_ranks` change was a no-op for this architecture, so it was intentionally not ported.
+Collapsed the old 21-tier ladder (S++…F−) to TAT's **12-tier value ladder** (S++, S+, S, A+, A, A−, B+, B, B−, C+, C, C−), matching the `FPTS-Tiers-Standalone` fork. **The standalone is now the canonical tier source.** `push.bat` gained a `[3a]` step (local-only, like the other sync scripts) that `git pull`s the standalone and copies its `tiers.csv` + `tier-config.json` into this repo before `sync-tiers.py` (which auto-detects the TAT value-divider format). Main's `tiers.csv` is now byte-identical to the standalone's (200 players). **Edit tiers only on the standalone going forward** — the mirror clobbers main-side edits on the next deploy.
 
-Changes (no commit yet — working tree only):
+- Tier titles are hybrid (descriptor + TAT value, e.g. `S++ = "Cornerstone 3 Base 1sts (+/-)"`), admin-published and mirrored to both sites.
+- `tiers.html` (12-tier `TIER_DESCRIPTIONS`/`TIER_ORDER`/`tierBadgeClass`; removed `.t-d*/.t-e*/.t-f*` CSS); `sync-tiers.py` (`VALID_TIERS` 21→12; `parse_tat_rows` now ignores the Recent Movement column → trending manual-only); `admin-tiers.js` (both 21-tier lists trimmed); `tier-config.json`. Cache bump `admin-tiers.js` + `formulas-content.js → ?v=1788000000`. Docs: `FORMULAS.md §17` + `formulas-content.js` (dual-sync).
+- **posRank NOT ported** — `applySleeperOverlay()` already overlays `posRank` from `values.json` client-side, so PRK already matched FP consensus. **No player data dropped** (D/E/F were empty scaffolding).
+- The combined main commit rebased over 2 upstream admin commits (`Jeremiyah Love S+→S` + a version bump); the standalone-canonical files won the conflict and Love stayed at S (already matched).
 
-- **`tiers.html`** — `TIER_DESCRIPTIONS` 21→12 with TAT value titles; `TIER_ORDER` 21→12; `tierBadgeClass` map dropped d/e/f; removed the now-unused `.t-d* / .t-e* / .t-f*` badge CSS rules.
-- **`sync-tiers.py`** — `VALID_TIERS` 21→12 (D/E/F now treated as decorative dividers and skipped). Re-ran cleanly: 200 rows kept, 0 dropped, `data/tiers.json` unchanged.
-- **`assets/js/admin-tiers.js`** — both 21-tier lists trimmed to 12: the `TIERS` edit-dropdown const (line 98) and the local `TIER_ORDER` sort list in `_buildOverriddenCsv` (line 648). Cache token `?v=1787500000 → ?v=1788000000` across all 10 pages + `templates/page-template.html`.
-- **`data/source/tiers/tier-config.json`** — replaced 21 custom-title tiers with the 12 TAT value-title tiers; version → 2026-05-28.
-- **`docs/FORMULAS.md` §17 + `assets/js/formulas-content.js`** — tier-assignment entry updated to the 12-tier ladder + TAT titles + trimmed color spectrum (dual-sync rule). `formulas-content.js ?v=1783300000 → ?v=1788000000` (formulas.html only consumer).
+### 2026 ADP refresh (both sites)
 
-Left intentionally untouched: `compare.html` `_pcTierBgColor`/`_pcTierFgColor` (self-contained presentational fallback with a safe `default`; its D/E/F branches are now dead but harmless), and `legend-content.js` (its two "Cornerstone Players" mentions are hypothetical examples of the tier-rename feature, not the canonical ladder).
+Re-ran the factory scrape (`02_update_adp_snapshot`, now auto-detects season; ~335k adp_time_series rows) → `sync-adp.py` in both repos → `adp/auction/pick-availability` JSONs (5 seasons; 2,216 drafts in the heatmap). The ADP factory repo (`LGilbertFF/sleeper-dynasty-adp-board`) is not pushable from the `ElNostraThomas` account, so the notebook fix (`eb6a6ff`) + scrape data (`f92d25e`) are committed **locally only** — fine, since `sync-adp.py` reads the local parquets.
+
+### MVS trade-value refresh (main only)
+
+Full Supabase player-market export → `data/source/player_market_mvs.csv` → `sync-mvs.py` → `data/mvs.json` (**527 players, 60 picks**, current through 2026-05-29). Powers the trade calculator + value displays. The standalone doesn't consume MVS.
+
+Left untouched: `compare.html` `_pcTierBgColor`/`_pcTierFgColor` (dead-but-harmless D/E/F branches behind a safe default); `legend-content.js` (its "Cornerstone Players" mentions are hypothetical rename examples).
 
 ---
 
