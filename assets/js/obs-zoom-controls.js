@@ -5,38 +5,51 @@
    OBS Browser Source's Interactive mode doesn't forward Ctrl+wheel or
    Ctrl+plus/minus to the iframed page — streamers have no in-band way to
    zoom the site. This widget renders a tiny top-right pill with
-   [ − ]  zoom%  [ + ]  ⟲  so the streamer can step body { zoom } up/down
-   or reset to the adaptive default in brand.css.
+   [ − ]  zoom%  [ + ]  ⟲  so the streamer can step zoom up/down or reset
+   to the brand.css adaptive default.
 
    Hard guarantee: only renders when iframed (window.self !== window.top).
    Direct browser visitors (desktop AND mobile) see nothing.
 
-   History: a mobile-direct-browser branch was added in commit abf4d72
-   then reverted in commit (this one) after a mobile user reported the
-   widget broke native pinch-zoom + scroll. CSS `body { zoom: N }` is a
-   non-standard property and composes poorly with mobile browsers' native
-   pinch + smooth-scroll machinery — the moment we set inline body zoom
-   from JS, iOS Safari / mobile Chrome stop recognizing pinch gestures
-   until full reload. Native pinch-zoom works fine on mobile (viewport
-   meta allows it — no user-scalable=no restriction), so the widget is
-   a net regression there. Reverted to OBS-only.
+   Mechanism (2026-06-02 rewrite): the widget DOES NOT touch body { zoom }.
+   Instead it rewrites <meta name="viewport"> content="width=W" — shrinking
+   the layout viewport in CSS px so the same @media breakpoints in
+   brand.css that fire when a desktop user does Ctrl+wheel zoom-in ALSO
+   fire under this widget. Result: zooming in via the widget causes the
+   topnav to auto-collapse (wordmark-tag hides ≤1599, nav-stat hides
+   ≤1299, full nav collapses to mobile-select ≤1099) and content reflows
+   to fit the iframe — no clipping. Exactly mirrors what Ctrl+wheel does
+   in a regular browser.
+
+   Why this works: setting meta viewport `width=N` on a physical iframe of
+   width P tells Chromium/CEF to lay out at N CSS px and scale the
+   rendered output by P/N (the "zoom"). N also drives @media query
+   evaluation, so the layout adapts to N.
+
+   Why we DON'T use body { zoom: N } from JS: body { zoom } only inflates
+   the visual scale; @media queries continue evaluating against the
+   actual layout viewport. The desktop layout stays at full size and
+   gets visually inflated past the iframe edge, clipping names/columns
+   — the bug this rewrite fixes.
+
+   History:
+   - abf4d72 added a mobile-direct-browser branch; reverted because
+     body { zoom } broke mobile native pinch + scroll.
+   - 2026-06-02 rewrote the iframe path away from body { zoom } onto
+     viewport-meta manipulation so OBS zoom behaves like Ctrl+wheel.
 
    Mounted on document.documentElement (NOT document.body) so the widget
-   itself doesn't visually scale when body { zoom } changes. CSS vars
-   (--red, --white, etc.) still resolve because they're declared on :root
-   (which IS the html element).
+   itself doesn't visually scale when the layout viewport changes. CSS
+   vars (--red, --white, etc.) still resolve because they're declared on
+   :root (which IS the html element).
 
    Zoom ladder: 1.0 / 1.25 / 1.5 / 1.75 / 2.0. Override persists in
-   localStorage('fpts-obs-zoom'); reset clears it and restores brand.css's
-   @media adaptive default.
+   localStorage('fpts-obs-zoom'); reset clears it and restores the
+   default meta viewport.
    ════════════════════════════════════════════════════════════════════════ */
 (function () {
   // ── IFRAME-ONLY GUARD ─────────────────────────────────────────────────
-  // OBS Browser Source = iframed context. Direct browser visitors (desktop
-  // AND mobile) bail. Mobile was previously included (abf4d72) but the
-  // widget broke native pinch-zoom + scroll on mobile browsers — see the
-  // doc comment above for the full history. Native pinch-zoom is the
-  // right mechanism on mobile.
+  // OBS Browser Source = iframed context. Direct browser visitors bail.
   // Cross-origin parents throw SecurityError on window.top access — treat
   // as "embedded" and fall through (same pattern as iframe-scroll-fix.js).
   try {
@@ -47,8 +60,15 @@
 
   var STORAGE_KEY = 'fpts-obs-zoom';
   var LADDER = [1.0, 1.25, 1.5, 1.75, 2.0];
+  var DEFAULT_VIEWPORT = 'width=device-width, initial-scale=1.0, viewport-fit=cover';
 
-  // ── Persistence + zoom application ────────────────────────────────────
+  // Physical CSS px width of the iframe at default viewport meta.
+  // Captured ONCE at init (before any zoom is applied) so we have a stable
+  // reference for `layoutViewportWidth = basePhysicalWidth / zoom`.
+  // Re-measured on window resize via a temporary default-viewport revert.
+  var basePhysicalWidth = 0;
+
+  // ── Persistence ────────────────────────────────────────────────────────
   function readOverride() {
     try {
       var v = parseFloat(localStorage.getItem(STORAGE_KEY));
@@ -62,22 +82,39 @@
       else localStorage.setItem(STORAGE_KEY, String(v));
     } catch (_e) {}
   }
-  function applyZoom(v) {
-    if (!document.body) return;
-    // Empty string removes the inline declaration entirely, restoring
-    // the brand.css @media adaptive default cascade.
-    document.body.style.zoom = (v == null) ? '' : String(v);
+
+  // ── Viewport-meta manipulation ────────────────────────────────────────
+  function viewportMetaEl() {
+    return document.querySelector('meta[name="viewport"]');
   }
-  function effectiveZoom() {
-    // Current applied zoom — override if set, else read what brand.css's
-    // @media adaptive rule resolved to via getComputedStyle.
-    var override = readOverride();
-    if (override != null) return override;
-    try {
-      var v = parseFloat(getComputedStyle(document.body).zoom);
-      if (isFinite(v) && v > 0) return v;
-    } catch (_e) {}
-    return 1.0;
+  function setViewportContent(content) {
+    var meta = viewportMetaEl();
+    if (!meta) return;
+    meta.setAttribute('content', content);
+  }
+  function applyZoom(zoom) {
+    if (zoom == null || zoom === 1.0) {
+      setViewportContent(DEFAULT_VIEWPORT);
+      return;
+    }
+    if (!basePhysicalWidth) measureBasePhysicalWidth();
+    if (!basePhysicalWidth) return;   // measurement failed; bail safely
+    var laidOutWidth = Math.max(320, Math.round(basePhysicalWidth / zoom));
+    setViewportContent('width=' + laidOutWidth + ', initial-scale=1.0, viewport-fit=cover');
+  }
+  function measureBasePhysicalWidth() {
+    // To get the iframe's physical CSS px width, the viewport meta must be
+    // at the default `width=device-width` first. Save current content,
+    // revert to default, force reflow, read clientWidth, then restore.
+    var meta = viewportMetaEl();
+    if (!meta) { basePhysicalWidth = window.innerWidth || 0; return; }
+    var saved = meta.getAttribute('content');
+    var wasDefault = (saved === DEFAULT_VIEWPORT);
+    if (!wasDefault) meta.setAttribute('content', DEFAULT_VIEWPORT);
+    // Force synchronous layout pass so clientWidth reflects the revert.
+    void document.documentElement.offsetWidth;
+    basePhysicalWidth = document.documentElement.clientWidth || window.innerWidth || 0;
+    if (!wasDefault) meta.setAttribute('content', saved);
   }
   function nearestLadderIndex(v) {
     var best = 0;
@@ -89,10 +126,11 @@
     return best;
   }
   function stepZoom(delta) {
-    var idx = nearestLadderIndex(effectiveZoom());
+    var current = readOverride() || 1.0;
+    var idx = nearestLadderIndex(current);
     var nextIdx = Math.max(0, Math.min(LADDER.length - 1, idx + delta));
     var v = LADDER[nextIdx];
-    saveOverride(v);
+    saveOverride(v === 1.0 ? null : v);
     applyZoom(v);
     render();
   }
@@ -192,10 +230,10 @@
   function render() {
     if (!widget) return;
     var override = readOverride();
-    var cur = effectiveZoom();
+    var displayZoom = override != null ? override : 1.0;
     var readout = widget.querySelector('#fpts-obs-zoom-readout');
     if (readout) {
-      readout.textContent = Math.round(cur * 100) + '%';
+      readout.textContent = Math.round(displayZoom * 100) + '%';
       readout.style.color = (override != null) ? 'var(--red)' : 'rgba(255,255,255,.55)';
     }
     var reset = widget.querySelector('#fpts-obs-zoom-reset');
@@ -205,17 +243,33 @@
     }
   }
 
+  // ── Resize handling ───────────────────────────────────────────────────
+  // If the iframe's physical size changes (OBS source resize), the cached
+  // basePhysicalWidth becomes stale. Re-measure and re-apply.
+  var resizeRaf = 0;
+  function onResize() {
+    if (resizeRaf) return;
+    resizeRaf = requestAnimationFrame(function () {
+      resizeRaf = 0;
+      measureBasePhysicalWidth();
+      var override = readOverride();
+      if (override != null) applyZoom(override);
+    });
+  }
+
   // ── Init ──────────────────────────────────────────────────────────────
   function init() {
     if (document.getElementById('fpts-obs-zoom-controls')) return;   // idempotent
+    measureBasePhysicalWidth();   // capture BEFORE any zoom is applied
     var stored = readOverride();
     if (stored != null) applyZoom(stored);   // restore persisted override
     widget = createWidget();
     // Mount on documentElement (NOT body). If we mounted on body, the
-    // widget itself would visually scale every time body { zoom } changes
-    // — clicking [+] would inflate the buttons along with the page content.
+    // widget would scale with the layout viewport changes — clicking [+]
+    // would inflate the buttons along with the page content.
     (document.documentElement || document.body).appendChild(widget);
     render();
+    window.addEventListener('resize', onResize, { passive: true });
   }
 
   if (document.readyState === 'loading') {
