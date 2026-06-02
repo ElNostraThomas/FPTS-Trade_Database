@@ -6,6 +6,95 @@ the operator manual see [`WORKFLOW.md`](WORKFLOW.md).
 
 ---
 
+## 2026-06-02 (eighteenth session) — OBS zoom rewrite + ADP RDP two-layer filter fix + 5-year consistency validation
+
+Four substantive commits, all pushed live (`b198878..e9197c2`). `check-colors.py` CLEAN across 34 files after every commit.
+
+### `48e938d` — obs: viewport-meta zoom (matches browser Ctrl+wheel, auto-collapses chrome, no clipping)
+
+Rewrites `assets/js/obs-zoom-controls.js` to manipulate `<meta name="viewport" content="width=W">` instead of `body { zoom: N }`. Setting a smaller meta viewport width tells Chromium/CEF to lay out at that CSS px width and scale the rendered output up — the same chain Ctrl+wheel produces in a desktop browser. brand.css adaptive `@media` breakpoints (1599 / 1299 / 1099 / 768) re-fire smaller versions on zoom-in, so the topnav auto-collapses (wordmark-tag → nav-stat → mobile-select) and content reflows to fit the iframe.
+
+**Why the old approach failed:** `body { zoom: N }` only inflated visual scale; `@media` kept evaluating against the unchanged layout viewport, so the desktop layout stayed full-size and overflowed when the visual blow-up pushed it past the iframe edge.
+
+- Captures the iframe's physical CSS px width on init (temporary default-viewport revert + forced reflow), re-measures on resize via rAF-debounced hook.
+- Reset restores `width=device-width, initial-scale=1.0, viewport-fit=cover` exactly.
+- localStorage persistence (`fpts-obs-zoom`), ladder (1.0/1.25/1.5/1.75/2.0), iframe-only guard, mount on `documentElement` — all unchanged.
+
+Cache token `obs-zoom-controls.js ?v=1783800000 → ?v=1791400000` across all 11 consumers (10 deployed pages + `templates/page-template.html`).
+
+### `4dc4387` — data: regenerate ADP, picks_sf now carries ROOKIE_PICK_X.YY placeholders
+
+User reported: Dynasty Startup ADP → "Picks" view showed only vets — zero rookie pick rows even though `relabel_picks_K_to_rdp` was supposed to translate K-as-pick stand-ins to `ROOKIE_PICK_X.YY` placeholders. Investigation chain:
+
+1. Verified `data/adp.json` `picks_sf` had 656 entries, ZERO `ROOKIE_PICK_*` IDs, ZERO K-pos IDs.
+2. Manually ran `relabel_picks_K_to_rdp` against `picks_2026.parquet` → produced 41,318 ROOKIE_PICK_ rows with 141 unique RDP placeholders (1.01 through ~12.01) → code works.
+3. Manually ran `build_format_adp` → produced 741 entries with 78 RDP records → code works in isolation.
+4. Re-ran `sync-adp.py` end-to-end → STILL produced zero RDP records in `picks_sf`.
+5. Found `_filter_offense_inplace` at `sync-adp.py:59-69` was iterating every record and dropping anything outside `_OFFENSIVE_POSITIONS = {"QB", "RB", "WR", "TE", "K"}`. Synthetic placeholders carry `position: "RDP"` — they all got filtered out after `build_format_adp` produced them correctly, just before the JSON write.
+
+**Fix:** added `"RDP"` to `_OFFENSIVE_POSITIONS` in `sync-adp.py` (local-only, gitignored per project doctrine). Re-ran sync-adp.py — regenerated all 5 years of ADP outputs (`data/adp-{year}.json` + `data/auction-{year}.json` + `data/pick-availability-{year}.json`).
+
+**Verified `picks_sf` after regen:**
+
+| Year | picks_sf RDP | picks_1qb RDP |
+|------|-------------:|--------------:|
+| 2022 | 82 | 48 |
+| 2023 | 94 | 47 |
+| 2024 | 96 | 45 |
+| 2025 | 85 | 51 |
+| 2026 | 78 | — (no qualifying 1QB drafts — only 8 in corpus, below `min_drafts=5` after player-split) |
+
+Pick-availability heatmaps also include RDP entries per year (82 / 94 / 96 / 85 / 78).
+
+### `1199547` — docs: ADP picks_sf RDP vs rookies_sf consistency validation
+
+New `docs/adp-picks-rdp-consistency.md`: 5-year delta table comparing each `picks_sf` RDP placeholder vs the correspondingly-ranked rookie in `rookies_sf`, interpretation of the systematic gap as the "abstract-pick discount" (uncertain future picks valued slightly later than the realized rookie), and a repro script.
+
+The repro doc captures the **correct rookie filter** for past-year files: `yearsExp == (CURRENT_SEASON − year)`, NOT `yearsExp == 0`. The latter selects today's rookies (2026 class) from historical files where they don't exist, returning Sleeper's "Player Invalid" placeholder for ~all rows. The corrected filter shows Caleb Williams as 2024 1.01, Bijan as 2023 1.01, Breece Hall as 2022 1.01 — confirming bucketing + player_id resolution work correctly back through 2022.
+
+**5-year delta summary:**
+
+| Year | Mean Δ | Median Δ | Range          |
+|------|-------:|---------:|---------------:|
+| 2022 | −2.5   | −0.9     | −14.5 to +8.3  |
+| 2023 | −1.2   | −0.2     | −9.8 to +6.4   |
+| 2024 | −5.0   | −1.6     | −17.6 to +6.4  |
+| 2025 | −15.0  | −14.6    | −31.5 to −3.2  |
+| 2026 | −5.3   | −4.1     | −18.1 to +6.1  |
+
+Median within ±5 picks for 4 of 5 years. 2025 outlier reflects elite-class consensus locking in early.
+
+### `e9197c2` — adp: surface rookie-pick (RDP) placeholders in Picks view
+
+`4dc4387` shipped the data fix but the board still rendered no rookie picks. Second filter gate discovered: `data-bootstrap.js:_cleanAdpPayload` runs `ADP_FILTER_KEEP_POS = new Set(['QB','RB','WR','TE'])` on hydrate. Same shape as the sync-adp.py gate — silently stripping RDP records on the frontend.
+
+**Two-part fix:**
+
+1. **`assets/js/data-bootstrap.js`** — `ADP_FILTER_KEEP_POS` extended to `{QB, RB, WR, TE, RDP}`. RDP records now pass through to `window.ADP_PAYLOAD`. The 10%-of-corpus draft floor still applies, but RDP rows comfortably clear it (Rookie Pick 1.01 has 881 drafts vs floor ~88).
+2. **`adp-tool.html`** — `.pb-item.RDP` chip styling added using `var(--pos-pick-bg) / var(--pos-pick)` (matches existing PICK/DEF/RDP color family). `renderPosBreakdown` `order` array gained `'RDP'`. Display label maps `RDP → "PICKS"` so the chip reads `PICKS 78` next to QB/RB/WR/TE. Click-to-highlight wiring inherits unchanged via `data-pos-toggle="RDP"`.
+
+Existing rendering hooks were already in place from prior sessions (`isRookiePick`, `flameThumb`, `.box-card.RDP` CSS at line 259) — they just had no records to render.
+
+Cache token `data-bootstrap.js ?v=1783700000 → ?v=1791500000` across all 11 consumers.
+
+### Durable rule (two-gate RDP)
+
+Any future change touching ADP must preserve RDP through **both** filter gates:
+
+1. **`sync-adp.py:_OFFENSIVE_POSITIONS`** must include `"RDP"`.
+2. **`assets/js/data-bootstrap.js:ADP_FILTER_KEEP_POS`** must include `"RDP"`.
+
+If a sync run produces zero RDP entries in `picks_sf` despite a non-empty corpus, gate #1 was stripped. If the JSON has RDP but the board renders no rookie picks, gate #2 was stripped. Verify both before declaring a fix complete.
+
+`docs/FORMULAS.md` §51 + `assets/js/formulas-content.js` 'sync-adp-k-relabel' entry document both gates with file:line refs. `assets/js/legend-content.js` 'adp-tool' → "Data Pipeline (Picks-as-Assets)" section adds a "Two-gate RDP rule" item.
+
+### Notes for next session
+
+- The RDP fix did not require any per-page edits beyond `adp-tool.html`. Other pages that consume `ADP_PAYLOAD` (player-panel heatmap mounts, FP_VALUES `.adp` overlay) read RDP-aware data automatically now.
+- `sync-adp.py` is gitignored — the `_OFFENSIVE_POSITIONS` fix lives on the operator's local machine. Any new machine cloning this repo will need to re-apply the same edit before `push.bat` produces correct ADP outputs.
+
+---
+
 ## 2026-05-28→29 (seventeenth session) — 12-tier TAT ladder + standalone tier-sync, 2026 ADP refresh (both sites), MVS trade-value refresh
 
 Multi-part session; all committed + pushed. Main: `36be966..b63309c` (tiers + mirror + 2026 ADP + docs) then `b63309c..5d0d809` (MVS). Standalone: `de01a45..321b55f` (2026 ADP). `check-colors.py` CLEAN across 34 files.

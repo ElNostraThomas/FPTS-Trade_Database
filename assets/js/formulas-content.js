@@ -1468,22 +1468,24 @@ Draft from 2024 season: vets only, no Ks in early rounds → 'simple' bucket`,
         },
         {
           id: 'sync-adp-k-relabel',
-          label: '51. sync-adp.py — K → ROOKIE_PICK relabel',
+          label: '51. sync-adp.py — K → ROOKIE_PICK relabel (the picks-as-K pipeline)',
           location: 'sync-adp.py:367-445 (relabel_picks_K_to_rdp)',
           provenance: { kind: 'site-convention', detail: 'Sequential rewrite of K player_ids in picks-bucket drafts to ROOKIE_PICK placeholders.' },
-          inputs: 'Picks-bucket drafts.',
+          inputs: 'Picks-bucket drafts (K in rounds 1-4 fingerprint).',
           math: `# Within each draft, sort K-position rows by pick_no asc, cumcount 0-indexed:
 rp_round = (seq // st_teams) + 1
 rp_pir   = (seq % st_teams) + 1
-new_id   = f"ROOKIE_PICK_{rp_round}.{str(rp_pir).zfill(2)}"`,
-          output: 'Rewritten player_id ROOKIE_PICK_X.YY for each K in a picks-bucket draft.',
+new_id   = f"ROOKIE_PICK_{rp_round}.{str(rp_pir).zfill(2)}"
+# Also: record.position rewritten "K" -> "RDP"`,
+          output: 'Rewritten player_id ROOKIE_PICK_X.YY + position "RDP" for each K in a picks-bucket draft. Downstream aggregation treats RDP rows identically to real players.',
           example: `12-team picks-bucket draft, K position rows by pick_no:
   seq=0 (1st K)  → rp_round=1, rp_pir=1  → ROOKIE_PICK_1.01
   seq=1 (2nd K)  → rp_round=1, rp_pir=2  → ROOKIE_PICK_1.02
   ...
   seq=11 (12th K) → rp_round=1, rp_pir=12 → ROOKIE_PICK_1.12
   seq=12 (13th K) → rp_round=2, rp_pir=1  → ROOKIE_PICK_2.01`,
-          notes: 'These IDs then feed a separate RDP-only heatmap.',
+          notes: 'These IDs then feed: (a) the picks_sf / picks_1qb ADP buckets, (b) a separate RDP-only heatmap.',
+          whyThisNumber: 'TWO-GATE RDP RULE — RDP rows must survive both position-whitelist filters. Gate 1: sync-adp.py:51 _OFFENSIVE_POSITIONS must include "RDP" or _filter_offense_inplace strips every RDP record before JSON write. Gate 2: assets/js/data-bootstrap.js:142 ADP_FILTER_KEEP_POS must include "RDP" or _cleanAdpPayload strips every RDP record on hydrate. Both gates added 2026-06-02 (commits 4dc4387 + e9197c2) after the user reported the Picks view rendering 0 rookie picks. If sync log shows healthy RDP counts but board renders no rookie picks → gate 2. If JSON has zero RDP entries in picks_sf despite a non-empty corpus → gate 1. Verify both before declaring a Picks-mode fix complete. Frontend display chain: isRookiePick(), flameThumb(), .box-card.RDP / .pos-pill.RDP / .pb-item.RDP CSS, renderPosBreakdown order array with RDP → "PICKS" label mapping. Cross-year consistency repro lives at docs/adp-picks-rdp-consistency.md (5-year delta validation, repro script with correct yearsExp == CURRENT_SEASON-year rookie filter).',
           related: ['sync-adp-classifier']
         },
         {

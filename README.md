@@ -13,6 +13,83 @@ This file is the **resume-where-we-left-off** doc.
 
 ---
 
+## Where we are (end of 2026-06-02 — eighteenth session)
+
+**OBS zoom rewrite + ADP Picks-view RDP two-layer filter bug fix + 5-year consistency validation.** Four commits, all live: `48e938d` (OBS), `4dc4387` (ADP data regen), `1199547` (consistency notes), `e9197c2` (RDP frontend surface fix).
+
+### OBS zoom — viewport-meta rewrite (matches browser Ctrl+wheel)
+
+`assets/js/obs-zoom-controls.js` rewritten so the iframe-only widget manipulates `<meta name="viewport" content="width=W">` instead of `body { zoom: N }`. Setting a smaller meta viewport width tells Chromium/CEF to lay out at that CSS px width and scale rendered output up — the same chain Ctrl+wheel triggers in a desktop browser. brand.css adaptive `@media` breakpoints (`≤1599 / ≤1299 / ≤1099 / ≤768`) now re-fire smaller versions on widget zoom-in, so the topnav auto-collapses (wordmark-tag → nav-stat → mobile-select) and content reflows to fit the iframe. Fixes the cut-off-names symptom — body zoom only inflated visual scale; @media kept evaluating against the unchanged viewport.
+
+- On init, measures iframe's physical CSS px width via temporary default-viewport revert + forced reflow; re-measures on resize via rAF-debounced hook.
+- Reset restores the canonical `width=device-width, initial-scale=1.0, viewport-fit=cover`.
+- Unchanged: iframe-only guard, localStorage persistence (`fpts-obs-zoom`), 1.0/1.25/1.5/1.75/2.0 ladder, widget mounted on `documentElement`.
+- Cache token `obs-zoom-controls.js ?v=1783800000 → ?v=1791400000` across all 11 consumers (10 deployed pages + `templates/page-template.html`).
+
+### ADP "Picks" view — rookie pick placeholders weren't rendering (`4dc4387` + `e9197c2`)
+
+User-reported: Dynasty Startup ADP → Picks mode showed 656 vet entries but **zero** `Rookie Pick X.YY` rows even though the picks-as-K → RDP conversion was supposed to be in place. Investigation found a **two-layer filter trap**:
+
+1. **`sync-adp.py:_OFFENSIVE_POSITIONS`** was `{QB, RB, WR, TE, K}` — missing `"RDP"`. `build_format_adp` correctly relabelled K player_ids to `ROOKIE_PICK_X.YY` with `position: "RDP"`, but `_filter_offense_inplace` then stripped every RDP record before the JSON write. Fix: add `"RDP"` to the set (local `sync-adp.py`, gitignored). Regenerated all 5 years of ADP outputs (`4dc4387`).
+2. **`data-bootstrap.js:ADP_FILTER_KEEP_POS`** was the same `{QB, RB, WR, TE}` whitelist on the frontend. Even after the JSON fix, `_cleanAdpPayload` was silently stripping every RDP record on hydrate. Fix: add `'RDP'` to that Set. Plus `adp-tool.html` `renderPosBreakdown` order list now includes `'RDP'` (rendered as `PICKS NN` chip) with matching `.pb-item.RDP` styling, and `.box-card.RDP` was already in place from prior sessions (`e9197c2`).
+
+**Current `picks_sf` ALL bucket:** 734 entries including 78 RDP (`Rookie Pick 1.01` ADP 15.6 / rank 16 / 881 drafts → `1.12` ADP 123.7 / rank 134 / 876 drafts → ladder through to RDP 12.x).
+
+### Cross-year validation — picks-as-K vs rookies-in-pool consistency (`1199547`)
+
+5-year delta sweep comparing each `picks_sf` RDP placeholder against the corresponding-ranked rookie in `rookies_sf`. Validates the regen produced data consistent with the named-rookie view:
+
+| Year | Mean Δ | Median Δ | Range          | Notes |
+|------|-------:|---------:|---------------:|-------|
+| 2022 | −2.5   | −0.9     | −14.5 to +8.3  | Breece Hall 1.01 within 4 picks |
+| 2023 | −1.2   | −0.2     | −9.8  to +6.4  | Bijan 1.01 +0.6; Bryce Young 1.03 exact |
+| 2024 | −5.0   | −1.6     | −17.6 to +6.4  | Caleb Williams 1.01 +1.3 / Drake Maye 1.07 −0.1 |
+| 2025 | −15.0  | −14.6    | −31.5 to −3.2  | Outlier — elite class locked in early |
+| 2026 | −5.3   | −4.1     | −18.1 to +6.1  | (in-season; matches 2024 shape) |
+
+Median delta is within ±5 picks across 4 of 5 years. The systematic gap reflects the **abstract-pick discount** in picks-as-K leagues (uncertain future picks valued slightly later than the eventual realized rookie). Class quality scales the gap — 2023 / 2024 were tight (mixed-strength classes), 2025 widened with the elite Jeanty/Hunter/Hampton/Henderson cohort pulling rookies-in-pool ADP forward.
+
+New file: [`docs/adp-picks-rdp-consistency.md`](docs/adp-picks-rdp-consistency.md) — 5-year delta table + interpretation + repro script with the corrected rookie filter (`yearsExp == CURRENT_SEASON - year`) so future runs don't repeat the original bug of selecting today's rookies from historical files.
+
+### Two-gate RDP rule (durable for future sessions)
+
+Any future change touching ADP must preserve RDP through **both** filter gates:
+
+1. **`sync-adp.py:_OFFENSIVE_POSITIONS`** (line ~51) must include `"RDP"`.
+2. **`assets/js/data-bootstrap.js:ADP_FILTER_KEEP_POS`** (line ~142) must include `"RDP"`.
+
+If a sync run produces zero RDP entries in `picks_sf` despite a non-empty corpus, gate #1 was stripped. If JSON has RDP but the board renders no rookie picks, gate #2 was stripped. Verify both before declaring a fix complete.
+
+### Commits / pushes
+
+| Commit | What |
+|---|---|
+| `48e938d` | OBS zoom viewport-meta rewrite — matches browser Ctrl+wheel, auto-collapses chrome, no clipping |
+| `4dc4387` | ADP data regen — picks_sf now carries ROOKIE_PICK_X.YY placeholders (`_OFFENSIVE_POSITIONS` gate fix) |
+| `1199547` | `docs/adp-picks-rdp-consistency.md` — 5-year picks vs rookies validation + repro |
+| `e9197c2` | `adp-tool.html` + `data-bootstrap.js` — RDP surfaces in board + PICKS chip (`ADP_FILTER_KEEP_POS` gate fix) |
+
+### Cache tokens at session close
+
+- `obs-zoom-controls.js ?v=1783800000 → ?v=1791400000` (11 consumers)
+- `data-bootstrap.js ?v=1783700000 → ?v=1791500000` (11 consumers)
+- `legend-content.js` + `formulas-content.js` bumped this turn to surface the new entries (see Cache Tokens line in the final commit)
+
+### What's queued next
+
+Same 4-item open punch list inherited from session 17 — all blocked or open-ended:
+
+1. **1QB scrape `SEED_USERS` expansion** — external-blocked on user-supplied 1QB-active Sleeper usernames.
+2. **`my-leagues.html` inline-style cleanup** — deferred (remaining ~46 are the CSS-custom-property end-state).
+3. **Analyst feedback loop** — external-blocked on analyst recommendations for the 14 original heuristics in `formulas.html`.
+4. **Visual polish** — open-ended.
+
+**Audit:** `python scripts/check-colors.py` — CLEAN across 34 files after every commit.
+
+See [`docs/CHANGES.md`](docs/CHANGES.md) 2026-06-02 (eighteenth session) for full per-commit detail.
+
+---
+
 ## Where we are (end of 2026-05-29 — seventeenth session)
 
 **Tiers ported to the standalone's 12-tier TAT ladder + single-source-of-truth sync; fresh 2026 ADP on both sites; new MVS trade values.** Multi-part session — everything below is **committed and pushed live**.

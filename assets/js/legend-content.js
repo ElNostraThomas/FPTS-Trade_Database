@@ -609,6 +609,22 @@ window.LegendContent = {
             codeRef: 'sync-adp.py heatmap-build block (search "pick-availability")',
             notes: 'Real players + synthetic picks share the same version timestamp, so the heatmap and the ADP board always reflect the same data snapshot.'
           },
+          {
+            label: 'Two-gate RDP rule (durable — for operators)',
+            what: 'RDP rows must survive TWO position-whitelist filters to reach the board. Both default to the offense-only {QB, RB, WR, TE} set and both must include "RDP" or rookie-pick placeholders silently vanish. Added 2026-06-02 (commits 4dc4387 + e9197c2) after the Picks view shipped rendering 0 rookie picks despite the relabel pipeline producing them correctly upstream.',
+            source: 'Gate 1: sync-adp.py:51 _OFFENSIVE_POSITIONS. Gate 2: assets/js/data-bootstrap.js:142 ADP_FILTER_KEEP_POS.',
+            values: 'Gate 1 lives between build_format_adp (produces RDP rows) and the JSON write — _filter_offense_inplace strips records by position. Gate 2 lives between data/adp.json load and window.ADP_PAYLOAD population — _cleanAdpPayload re-filters on hydrate.',
+            codeRef: 'sync-adp.py:_OFFENSIVE_POSITIONS + _filter_offense_inplace. data-bootstrap.js:_cleanAdpPayload + ADP_FILTER_KEEP_POS.',
+            notes: 'Symptom decoder: (a) Sync log shows "format-bucket records: picks_sf=NNNN" but the written JSON has 0 RDP entries → gate 1 stripped them. (b) JSON has healthy RDP counts but the board renders no rookie picks → gate 2 stripped them on hydrate. Verify BOTH before declaring a Picks-mode fix complete. Full docs in FORMULAS.md §51 + formulas-content.js sync-adp-k-relabel entry + docs/adp-picks-rdp-consistency.md (5-year consistency validation).'
+          },
+          {
+            label: 'PICKS chip in the position breakdown',
+            what: 'The "PICKS NN" chip in the Positions row (Picks mode) is the RDP filter. Internal data-pos-toggle key is "RDP" (synthetic position assigned by sync-adp.py); display label is mapped to "PICKS" so it reads naturally alongside QB/RB/WR/TE. Click to highlight all rookie-pick placeholders on the board.',
+            source: 'adp-tool.html renderPosBreakdown order array (now includes "RDP"); pos === "RDP" ? "PICKS" : pos display mapping.',
+            values: 'Chip styling uses var(--pos-pick-bg) / var(--pos-pick) — same color family as the .box-card.RDP cells so the chip color matches the placeholders it filters.',
+            codeRef: 'adp-tool.html .pb-item.RDP CSS + renderPosBreakdown',
+            notes: 'Chip only appears when the active bucket carries RDP records (Picks mode of Dynasty Startup ADP). Simple and With-Rookies variants exclude picks-as-K drafts entirely so the chip is hidden.'
+          },
         ],
       },
       {

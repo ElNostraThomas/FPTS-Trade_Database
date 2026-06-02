@@ -1171,15 +1171,67 @@ _target_yexp = max(0, current_season - season)
 
 ---
 
-### 51. `sync-adp.py` — K → ROOKIE_PICK relabel
+### 51. `sync-adp.py` — K → ROOKIE_PICK relabel (the picks-as-K pipeline)
 `relabel_picks_K_to_rdp` — `sync-adp.py:367-445`
 
-**Logic** Within each picks-bucket draft, sort all K-position rows by pick_no ascending, cumcount 0-indexed.
+Sleeper has no native "future rookie pick" asset in startup drafts. League managers
+communicate "this slot is actually next year's 1st" by drafting a Kicker in a position
+no real fantasy team would (rounds 1-4). The picks-bucket pipeline reverse-engineers
+those K placeholders back into `ROOKIE_PICK_X.YY` synthetic entities so the ADP "Picks"
+view shows real players AND rookie picks intermixed.
+
+**Logic** Within each picks-bucket draft, sort all K-position rows by `pick_no` ascending, cumcount 0-indexed.
+
 ```python
 rp_round = (seq // st_teams) + 1
 rp_pir   = (seq % st_teams) + 1
 new_id   = f"ROOKIE_PICK_{rp_round}.{str(rp_pir).zfill(2)}"
 ```
+
+The K record's `position` is also rewritten to `"RDP"` so the synthetic placeholder
+travels through the rest of the pipeline as its own pos class. Downstream aggregation
+(`build_format_adp`) treats RDP rows identically to real players — pick-weighted ADP,
+per-month aggregates, rank ordering.
+
+#### ⚠ The two-gate RDP rule
+
+RDP rows have to survive **two** position-whitelist filters that both default to
+the offense-only `{QB, RB, WR, TE}` set. If either gate is missing `"RDP"`, all
+rookie-pick placeholders silently vanish before they reach the board.
+
+| Gate | File:line | Constant | Symptom if RDP missing |
+|---|---|---|---|
+| 1 | `sync-adp.py:51` | `_OFFENSIVE_POSITIONS` | `data/adp*.json` `picks_sf` has 0 RDP entries even when corpus has picks-as-K drafts |
+| 2 | `assets/js/data-bootstrap.js:142` | `ADP_FILTER_KEEP_POS` | JSON has RDP entries but `window.ADP_PAYLOAD` doesn't; board renders only vets |
+
+Both gates must include `"RDP"`. The Sleeper-K → ROOKIE_PICK relabel runs **between**
+the two gates' equivalent positions in the data pipeline — `relabel_picks_K_to_rdp`
+fires inside `build_format_adp` before `_filter_offense_inplace` strips records on
+the way out, then the frontend `_cleanAdpPayload` strips records on the way in. Both
+were originally `{QB, RB, WR, TE, K}` and both let RDP through only after the
+2026-06-02 fix (commits `4dc4387` + `e9197c2`).
+
+When a sync run shows healthy RDP counts in `picks_sf` but the board renders no
+rookie picks, gate #2 was stripped. When the sync log shows `format-bucket records:
+picks_sf=NNNN` but `picks_sf` in the written JSON has zero RDP, gate #1 was
+stripped. Verify both before declaring a Picks-mode fix complete.
+
+#### Frontend display chain
+
+Once RDP records reach `window.ADP_PAYLOAD`, the adp-tool render path treats them
+through three existing hooks (all in `adp-tool.html`):
+- `isRookiePick(p)` — true when `position === 'RDP'` or `sleeperId` starts with `ROOKIE_PICK_`.
+- `flameThumb(cls, size)` — renders the inline brand-red flame SVG in place of a Sleeper headshot.
+- `.box-card.RDP` + `.pos-pill.RDP` + `.pb-item.RDP` CSS — uses `--pos-pick-bg / --pos-pick` tokens.
+- `renderPosBreakdown` chip order — `'RDP'` rendered with display label `"PICKS"` (so the chip reads "PICKS 78" alongside QB/RB/WR/TE).
+
+#### Cross-validation reference
+
+5-year picks_sf-RDP vs rookies_sf-top-rookie consistency is documented in
+[`docs/adp-picks-rdp-consistency.md`](adp-picks-rdp-consistency.md) with a repro
+script. Median delta within ±5 picks across 4 of 5 years; gap reflects the
+abstract-pick discount in picks-as-K leagues, not a data bug. The repro uses the
+correct rookie filter `yearsExp == (CURRENT_SEASON − year)` for past-year files.
 
 ---
 
