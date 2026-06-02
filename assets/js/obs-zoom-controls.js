@@ -5,47 +5,57 @@
    OBS Browser Source's Interactive mode doesn't forward Ctrl+wheel or
    Ctrl+plus/minus to the iframed page — streamers have no in-band way to
    zoom the site. This widget renders a tiny top-right pill with
-   [ − ]  zoom%  [ + ]  ⟲  so the streamer can step zoom up/down or reset
-   to the brand.css adaptive default.
+   [ − ]  zoom%  [ + ]  ⟲  so the streamer can step zoom up/down or reset.
 
    Hard guarantee: only renders when iframed (window.self !== window.top).
    Direct browser visitors (desktop AND mobile) see nothing.
 
-   Mechanism (2026-06-02 rewrite): the widget DOES NOT touch body { zoom }.
-   Instead it rewrites <meta name="viewport"> content="width=W" — shrinking
-   the layout viewport in CSS px so the same @media breakpoints in
-   brand.css that fire when a desktop user does Ctrl+wheel zoom-in ALSO
-   fire under this widget. Result: zooming in via the widget causes the
-   topnav to auto-collapse (wordmark-tag hides ≤1599, nav-stat hides
-   ≤1299, full nav collapses to mobile-select ≤1099) and content reflows
-   to fit the iframe — no clipping. Exactly mirrors what Ctrl+wheel does
-   in a regular browser.
+   Mechanism (2026-06-02 v3): the widget inline-overrides body.style.zoom.
+   At "100%" (no override / reset) body zoom is forced to 1.0 — OVERRIDING
+   brand.css's desktop-monitor default of body{zoom:1.25}. This makes
+   "100%" mean "content fits the iframe naturally" rather than the 1.25×
+   inflated default that was making names bunch up in OBS. At higher
+   ladder values, body.style.zoom is set to the user's chosen multiplier
+   directly. Inline style beats brand.css's @media-driven body{zoom}
+   rules so the visual scale is predictable.
 
-   Why this works: setting meta viewport `width=N` on a physical iframe of
-   width P tells Chromium/CEF to lay out at N CSS px and scale the
-   rendered output by P/N (the "zoom"). N also drives @media query
-   evaluation, so the layout adapts to N.
+   Horizontal overflow from zoom-in is handled by iframe-scroll-fix.js's
+   floating scrollbar (added 2026-06-02). Content that extends past the
+   iframe edge stays reachable via the bottom-pinned proxy scrollbar.
 
-   Why we DON'T use body { zoom: N } from JS: body { zoom } only inflates
-   the visual scale; @media queries continue evaluating against the
-   actual layout viewport. The desktop layout stays at full size and
-   gets visually inflated past the iframe edge, clipping names/columns
-   — the bug this rewrite fixes.
+   Why NOT viewport-meta manipulation: a prior rewrite (commit 48e938d)
+   tried <meta name="viewport" content="width=W"> to shrink the layout
+   viewport so brand.css's @media breakpoints would fire smaller versions
+   and the topnav would auto-collapse. The breakpoint that fires (≤1099
+   in particular) ALSO drops body{zoom:1.25 → 1.0} — which exactly
+   cancels the visual scale-up from the smaller viewport. Net visual
+   change: zero. The compensation that brand.css was designed to do for
+   direct browser Ctrl+wheel killed the widget's effect entirely.
 
-   History:
-   - abf4d72 added a mobile-direct-browser branch; reverted because
-     body { zoom } broke mobile native pinch + scroll.
-   - 2026-06-02 rewrote the iframe path away from body { zoom } onto
-     viewport-meta manipulation so OBS zoom behaves like Ctrl+wheel.
+   Why NOT just modify brand.css: the 1.25× default is the right at-
+   monitor experience for direct desktop browser visitors — non-OBS
+   users like it. Tying it to iframe-only context via JS keeps the
+   non-OBS behavior unchanged.
 
    Mounted on document.documentElement (NOT document.body) so the widget
-   itself doesn't visually scale when the layout viewport changes. CSS
-   vars (--red, --white, etc.) still resolve because they're declared on
+   itself doesn't visually scale when body{zoom} changes. CSS vars
+   (--red, --white, etc.) still resolve because they're declared on
    :root (which IS the html element).
 
    Zoom ladder: 1.0 / 1.25 / 1.5 / 1.75 / 2.0. Override persists in
-   localStorage('fpts-obs-zoom'); reset clears it and restores the
-   default meta viewport.
+   localStorage('fpts-obs-zoom'); reset clears it and applies body{zoom:1}
+   so iframed view always fits to screen at default.
+
+   History:
+   - abf4d72 added a mobile-direct-browser branch; reverted because
+     body{zoom} broke mobile native pinch + scroll.
+   - 2026-06-02 v2 (commit 48e938d): viewport-meta rewrite. Failed
+     because brand.css's adaptive body{zoom} compensation cancelled the
+     visual scale exactly.
+   - 2026-06-02 v3 (this version): back to inline body.style.zoom but
+     with body zoom forced to 1.0 at "100%" so OBS fit-to-screen is the
+     default, and horizontal overflow handled by the iframe-scroll-fix
+     floating scrollbar instead of by @media collapsing.
    ════════════════════════════════════════════════════════════════════════ */
 (function () {
   // ── IFRAME-ONLY GUARD ─────────────────────────────────────────────────
@@ -60,13 +70,6 @@
 
   var STORAGE_KEY = 'fpts-obs-zoom';
   var LADDER = [1.0, 1.25, 1.5, 1.75, 2.0];
-  var DEFAULT_VIEWPORT = 'width=device-width, initial-scale=1.0, viewport-fit=cover';
-
-  // Physical CSS px width of the iframe at default viewport meta.
-  // Captured ONCE at init (before any zoom is applied) so we have a stable
-  // reference for `layoutViewportWidth = basePhysicalWidth / zoom`.
-  // Re-measured on window resize via a temporary default-viewport revert.
-  var basePhysicalWidth = 0;
 
   // ── Persistence ────────────────────────────────────────────────────────
   function readOverride() {
@@ -83,39 +86,22 @@
     } catch (_e) {}
   }
 
-  // ── Viewport-meta manipulation ────────────────────────────────────────
-  function viewportMetaEl() {
-    return document.querySelector('meta[name="viewport"]');
-  }
-  function setViewportContent(content) {
-    var meta = viewportMetaEl();
-    if (!meta) return;
-    meta.setAttribute('content', content);
-  }
+  // ── Zoom application ──────────────────────────────────────────────────
+  // ALWAYS write inline body.style.zoom so brand.css's @media-driven
+  // body{zoom:1.25} default is overridden. The widget's % is the
+  // ABSOLUTE visual scale on top of the natural (zoom-1.0) layout.
+  //
+  // At "no override" (null/reset/1.0), we explicitly force body zoom to
+  // 1.0 instead of leaving it to brand.css. This is the load-bearing
+  // behavior change: iframed view defaults to fit-to-screen at 100%,
+  // not the desktop-monitor 1.25× inflated layout that was making names
+  // bunch up.
   function applyZoom(zoom) {
-    if (zoom == null || zoom === 1.0) {
-      setViewportContent(DEFAULT_VIEWPORT);
-      return;
-    }
-    if (!basePhysicalWidth) measureBasePhysicalWidth();
-    if (!basePhysicalWidth) return;   // measurement failed; bail safely
-    var laidOutWidth = Math.max(320, Math.round(basePhysicalWidth / zoom));
-    setViewportContent('width=' + laidOutWidth + ', initial-scale=1.0, viewport-fit=cover');
+    if (!document.body) return;
+    var effective = (zoom == null) ? 1.0 : zoom;
+    document.body.style.zoom = String(effective);
   }
-  function measureBasePhysicalWidth() {
-    // To get the iframe's physical CSS px width, the viewport meta must be
-    // at the default `width=device-width` first. Save current content,
-    // revert to default, force reflow, read clientWidth, then restore.
-    var meta = viewportMetaEl();
-    if (!meta) { basePhysicalWidth = window.innerWidth || 0; return; }
-    var saved = meta.getAttribute('content');
-    var wasDefault = (saved === DEFAULT_VIEWPORT);
-    if (!wasDefault) meta.setAttribute('content', DEFAULT_VIEWPORT);
-    // Force synchronous layout pass so clientWidth reflects the revert.
-    void document.documentElement.offsetWidth;
-    basePhysicalWidth = document.documentElement.clientWidth || window.innerWidth || 0;
-    if (!wasDefault) meta.setAttribute('content', saved);
-  }
+
   function nearestLadderIndex(v) {
     var best = 0;
     var bestDist = Math.abs(LADDER[0] - v);
@@ -130,6 +116,8 @@
     var idx = nearestLadderIndex(current);
     var nextIdx = Math.max(0, Math.min(LADDER.length - 1, idx + delta));
     var v = LADDER[nextIdx];
+    // null (no override) when at the bottom of the ladder so the readout
+    // shows "100%" dimmed + reset-button is inert.
     saveOverride(v === 1.0 ? null : v);
     applyZoom(v);
     render();
@@ -217,7 +205,7 @@
     });
 
     var plus  = makeBtn('+', 'Zoom in', function () { stepZoom(1); });
-    var reset = makeBtn('⟲', 'Reset zoom to adaptive default', resetZoom);
+    var reset = makeBtn('⟲', 'Reset zoom to 100% (fit to iframe)', resetZoom);
     reset.id = 'fpts-obs-zoom-reset';
 
     w.appendChild(minus);
@@ -243,33 +231,20 @@
     }
   }
 
-  // ── Resize handling ───────────────────────────────────────────────────
-  // If the iframe's physical size changes (OBS source resize), the cached
-  // basePhysicalWidth becomes stale. Re-measure and re-apply.
-  var resizeRaf = 0;
-  function onResize() {
-    if (resizeRaf) return;
-    resizeRaf = requestAnimationFrame(function () {
-      resizeRaf = 0;
-      measureBasePhysicalWidth();
-      var override = readOverride();
-      if (override != null) applyZoom(override);
-    });
-  }
-
   // ── Init ──────────────────────────────────────────────────────────────
   function init() {
     if (document.getElementById('fpts-obs-zoom-controls')) return;   // idempotent
-    measureBasePhysicalWidth();   // capture BEFORE any zoom is applied
+    // Always apply zoom on init — even with no stored override, we want
+    // body.style.zoom inline-set to 1.0 so brand.css's 1.25 default is
+    // overridden the moment the widget loads.
     var stored = readOverride();
-    if (stored != null) applyZoom(stored);   // restore persisted override
+    applyZoom(stored);
     widget = createWidget();
-    // Mount on documentElement (NOT body). If we mounted on body, the
-    // widget would scale with the layout viewport changes — clicking [+]
-    // would inflate the buttons along with the page content.
+    // Mount on documentElement (NOT body) — if mounted on body the widget
+    // would visually scale with body{zoom} and clicking [+] would inflate
+    // the buttons along with the page content.
     (document.documentElement || document.body).appendChild(widget);
     render();
-    window.addEventListener('resize', onResize, { passive: true });
   }
 
   if (document.readyState === 'loading') {
