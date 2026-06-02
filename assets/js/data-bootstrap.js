@@ -139,7 +139,12 @@
   // ──────────────────────────────────────────────────────────────────
   const ADP_FILTER_ABS_FLOOR  = 25;
   const ADP_FILTER_RATIO      = 0.10;   // 10% of corpus max
-  const ADP_FILTER_KEEP_POS   = new Set(['QB','RB','WR','TE']);
+  // RDP is the synthetic position assigned by sync-adp.py to
+  // ROOKIE_PICK_X.YY placeholders in the picks_sf / picks_1qb buckets
+  // (Mason-Crosby-as-the-5.01-pick translation). Excluding it here would
+  // silently strip every rookie-pick row from the "Picks" view even
+  // though sync-adp.py already wrote them — the bug fixed 2026-06-02.
+  const ADP_FILTER_KEEP_POS   = new Set(['QB','RB','WR','TE','RDP']);
 
   function _cleanAdpPayload(raw) {
     if (!raw || !raw.byMonth) return raw;

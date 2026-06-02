@@ -141,6 +141,7 @@
   .pos-breakdown .pb-item.WR { background:var(--pos-wr-bg); color:var(--pos-wr); }
   .pos-breakdown .pb-item.TE { background:var(--pos-te-bg); color:var(--pos-te); }
   .pos-breakdown .pb-item.K  { background:var(--pos-k-bg);  color:var(--pos-k); }
+  .pos-breakdown .pb-item.RDP { background:var(--pos-pick-bg); color:var(--pos-pick); }
   .pos-breakdown .pb-clear { font-family:'Mulish',sans-serif; font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:.06em; padding:3px 10px; background:transparent; border:1px solid var(--border2); color:var(--white); opacity:.7; cursor:pointer; margin-left:6px; transition:all .12s; }
   .pos-breakdown .pb-clear:hover { color:var(--red); border-color:var(--red); opacity:1; }
   /* Trend badge — black text-stroke outline instead of a dark overlay, so the
@@ -611,7 +612,7 @@
      AUCTION_PAYLOAD / MVS_PAYLOAD / PLAYER_ARTICLES / PICK_AVAILABILITY, then
      fires 'fpts:data-ready'. The small inline bootstrap below adds adp-prev
      (not loaded by data-bootstrap) and runs the page-specific init. -->
-<script src="assets/js/data-bootstrap.js?v=1783700000"></script>
+<script src="assets/js/data-bootstrap.js?v=1791500000"></script>
 <!-- Trade engine + scoring overlay + projection math. Powers the player drawer's
      Stats tab fantasyPts column on every page (adjustStatsForLeague applies the
      PPR / TEP / PPC / pass-TD overlay to data-suite stat lines). -->
@@ -1250,13 +1251,14 @@ function renderPosBreakdown(players) {
     if (!pos) continue;
     counts[pos] = (counts[pos] || 0) + 1;
   }
-  const order = ['QB','RB','WR','TE','K'];
+  const order = ['QB','RB','WR','TE','K','RDP'];
   const activeSet = STATE.filters.positions;
   const parts = ['<span class="pb-label">Positions · click to highlight</span>'];
   for (const pos of order) {
     if (counts[pos]) {
       const activeCls = activeSet.has(pos) ? ' pb-active' : '';
-      parts.push(`<span class="pb-item ${pos}${activeCls}" data-pos-toggle="${escapeHtml(pos)}" role="button" tabindex="0" aria-pressed="${activeSet.has(pos)}">${pos} ${counts[pos]}</span>`);
+      const displayLabel = pos === 'RDP' ? 'PICKS' : pos;
+      parts.push(`<span class="pb-item ${pos}${activeCls}" data-pos-toggle="${escapeHtml(pos)}" role="button" tabindex="0" aria-pressed="${activeSet.has(pos)}">${displayLabel} ${counts[pos]}</span>`);
     }
   }
   // Inline "Clear filters" button shown only when a soft filter is active, so
