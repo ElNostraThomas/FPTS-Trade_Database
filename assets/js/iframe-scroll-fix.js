@@ -14,13 +14,28 @@
    and install a capture-phase wheel handler that manually scrolls the
    document when no scrollable child wants the wheel event.
 
+   Features (all iframe-only):
+   1. CSS overflow reset + container flattening (fixContainers) — frees
+      trapped wheel events.
+   2. Capture-phase wheel handler — defers to legit inner scrollers,
+      otherwise window.scrollBy.
+   3. Middle-click drag-scroll — CEF doesn't surface Chromium's native
+      middle-click pan, so we re-implement it manually.
+   4. Floating horizontal scrollbar (added 2026-06-02) — mounts a thin
+      `position: fixed; bottom: 0` proxy scrollbar over any element with
+      horizontal overflow whose native bar is below the viewport. Auto-
+      hides when the target's bottom comes into view. Two-way scrollLeft
+      sync. Refreshes via MutationObserver so ADP/table re-renders pick
+      up the new content width without full reload.
+
    Hard guarantee: direct browser visitors (NOT in an iframe) get zero
    behavior change. The first thing this script does is bail if we're not
    embedded. Every site feature that relies on inner scrolling
    (player-panel drawer, my-leagues tables, tiers tables, etc.) is
    completely untouched for normal visits.
 
-   Source spec: user-supplied iframe-compat snippet 2026-05-19.
+   Source spec: user-supplied iframe-compat snippet 2026-05-19; floating
+   scrollbar feature added 2026-06-02 in response to OBS feedback.
    ════════════════════════════════════════════════════════════════════════ */
 (function () {
   // ── IFRAME-ONLY GUARD ─────────────────────────────────────────────────
@@ -185,18 +200,173 @@
     if (e.button === 1) e.preventDefault();
   }, true);
 
+  // ── Floating horizontal scrollbar (iframe-only) ──────────────────────
+  // Problem: when a horizontally-scrollable element (ADP 12-col Box grid,
+  // wide tables on rankings / my-leagues, draft board on live-draft) is
+  // taller than the iframe viewport, the native horizontal scrollbar sits
+  // at the BOTTOM of that element — well below the iframe's visible area.
+  // OBS streamers had to scroll the whole page down before they could
+  // touch the bar to pan horizontally.
+  //
+  // Solution: for every horizontally-overflowing scrollable element, mount
+  // a thin scrollbar pinned to `bottom: 0` of the viewport. Two-way
+  // scrollLeft sync with the target. Only visible when the target's
+  // native bar is offscreen below the viewport (otherwise native suffices).
+  //
+  // Iframe-only (this whole module bailed at the top if not iframed), so
+  // direct browser visitors see nothing.
+  var BAR_HEIGHT_PX = 14;
+  var floatingBarTargets = [];                // ordered list of target elements
+  var floatingBarOfTarget = new WeakMap();    // target -> bar DOM element
+
+  function _isHorizontallyScrollable(el) {
+    if (!el || el === document.body || el === document.documentElement) return false;
+    try {
+      var cs = getComputedStyle(el);
+      var ov = cs.overflowX;
+      return (ov === 'auto' || ov === 'scroll') && el.scrollWidth > el.clientWidth + 1;
+    } catch (_e) { return false; }
+  }
+
+  function _ensureFloatingBar(target) {
+    var existing = floatingBarOfTarget.get(target);
+    if (existing) return existing;
+
+    var bar = document.createElement('div');
+    bar.setAttribute('data-fpts-floating-hscroll', 'true');
+    Object.assign(bar.style, {
+      position: 'fixed',
+      bottom: '0',
+      left: '0',
+      right: '0',
+      height: BAR_HEIGHT_PX + 'px',
+      overflowX: 'scroll',
+      overflowY: 'hidden',
+      zIndex: '99',
+      background: 'rgba(0,0,0,0.65)',
+      borderTop: '1px solid rgba(255,255,255,0.10)',
+      display: 'none',
+      pointerEvents: 'auto',
+    });
+
+    var inner = document.createElement('div');
+    inner.setAttribute('data-fpts-floating-hscroll-inner', 'true');
+    inner.style.height = '1px';
+    inner.style.width = target.scrollWidth + 'px';
+    bar.appendChild(inner);
+
+    // Two-way sync. RAF guard prevents the bar↔target ping-pong from
+    // doubling each event.
+    var syncing = false;
+    bar.addEventListener('scroll', function () {
+      if (syncing) return;
+      syncing = true;
+      target.scrollLeft = bar.scrollLeft;
+      requestAnimationFrame(function () { syncing = false; });
+    }, { passive: true });
+    target.addEventListener('scroll', function () {
+      if (syncing) return;
+      syncing = true;
+      bar.scrollLeft = target.scrollLeft;
+      requestAnimationFrame(function () { syncing = false; });
+    }, { passive: true });
+
+    document.body.appendChild(bar);
+    floatingBarOfTarget.set(target, bar);
+    floatingBarTargets.push(target);
+    return bar;
+  }
+
+  function _updateFloatingBarVisibility(target) {
+    var bar = floatingBarOfTarget.get(target);
+    if (!bar) return;
+    // If the target's overflow is gone (e.g. window resized, content
+    // shrank), hide the bar.
+    if (!_isHorizontallyScrollable(target)) {
+      bar.style.display = 'none';
+      return;
+    }
+    // Resync the inner spacer width — content can grow on re-render.
+    var sw = target.scrollWidth;
+    if (bar.firstChild && bar.firstChild.style.width !== sw + 'px') {
+      bar.firstChild.style.width = sw + 'px';
+    }
+    // Visibility: show only when the target's native bottom edge is below
+    // the viewport AND the target is at least partially in view. When the
+    // user scrolls down enough that target.bottom comes into the viewport,
+    // the native bar is reachable so hide the floating one.
+    var r = target.getBoundingClientRect();
+    var vh = window.innerHeight;
+    var nativeBarHidden = r.bottom > vh - 2;
+    var targetVisible   = r.top < vh && r.bottom > 0;
+    bar.style.display = (nativeBarHidden && targetVisible) ? 'block' : 'none';
+  }
+
+  function _scanForOverflow() {
+    // Look at any element that COULD be horizontally scrollable. Tag
+    // names kept narrow to keep the walk cheap on big DOMs.
+    var candidates = document.querySelectorAll('div, main, article, section, table');
+    for (var i = 0; i < candidates.length; i++) {
+      var el = candidates[i];
+      if (_isHorizontallyScrollable(el)) {
+        _ensureFloatingBar(el);
+      }
+    }
+    // Visibility pass over every registered target (handles scroll-into-view
+    // hide + post-resize show).
+    for (var j = 0; j < floatingBarTargets.length; j++) {
+      _updateFloatingBarVisibility(floatingBarTargets[j]);
+    }
+  }
+
+  // Debounced via rAF so multiple events in one frame coalesce.
+  var _scanScheduled = 0;
+  function _scheduleScan() {
+    if (_scanScheduled) return;
+    _scanScheduled = requestAnimationFrame(function () {
+      _scanScheduled = 0;
+      _scanForOverflow();
+    });
+  }
+
+  // Visibility-only update (cheaper than full scan). Fires on every
+  // document scroll so the bar appears/disappears as the user pans
+  // through the page vertically.
+  var _visScheduled = 0;
+  function _scheduleVisUpdate() {
+    if (_visScheduled) return;
+    _visScheduled = requestAnimationFrame(function () {
+      _visScheduled = 0;
+      for (var i = 0; i < floatingBarTargets.length; i++) {
+        _updateFloatingBarVisibility(floatingBarTargets[i]);
+      }
+    });
+  }
+
+  window.addEventListener('scroll',  _scheduleVisUpdate, { passive: true, capture: true });
+  window.addEventListener('resize',  _scheduleScan,      { passive: true });
+
   // ── Wire up ──────────────────────────────────────────────────────────
   // Run fixContainers ASAP, then again at 400ms and 1500ms to catch
   // anything that mounts late (async data render). MutationObserver
   // re-runs after SPA-style URL changes (we don't do SPA routing but
-  // this is harmless and matches the source spec).
+  // this is harmless and matches the source spec). The same hooks now
+  // also drive the floating-scrollbar scan since both react to the same
+  // mount-late + re-render triggers.
+  function _runBothPasses() { fixContainers(); _scheduleScan(); }
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', fixContainers);
+    document.addEventListener('DOMContentLoaded', _runBothPasses);
   } else {
-    fixContainers();
+    _runBothPasses();
   }
-  setTimeout(fixContainers, 400);
-  setTimeout(fixContainers, 1500);
+  setTimeout(_runBothPasses, 400);
+  setTimeout(_runBothPasses, 1500);
+
+  // MutationObserver does double duty: SPA URL change re-runs containers,
+  // and any DOM mutation triggers a debounced scrollbar re-scan (catches
+  // ADP filter changes, my-leagues sort, etc. — anything that re-renders
+  // a wide table). The fixContainers calls still gate on URL change to
+  // preserve original behavior.
   var lastUrl = location.href;
   new MutationObserver(function () {
     if (location.href !== lastUrl) {
@@ -204,5 +374,6 @@
       setTimeout(fixContainers, 250);
       setTimeout(fixContainers, 1200);
     }
+    _scheduleScan();
   }).observe(document.documentElement, { subtree: true, childList: true });
 })();
