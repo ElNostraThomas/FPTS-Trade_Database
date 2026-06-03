@@ -633,8 +633,8 @@
 .tc-side:last-child  { padding-right: 0; }
 .tc-side-label { padding: 0 12px; font-family: 'Mulish', sans-serif; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--white); opacity: 1; margin-bottom: 4px; }
 .tc-divider { background: var(--border); width: 1px; margin: 0; }
-.tc-asset { display: flex; align-items: center; gap: 6px; min-width: 0; overflow: hidden; padding: 0 12px; }
-.tc-asset-name { font-family: 'Mulish', sans-serif; font-weight: 900; font-size: 13px; color: var(--white); cursor: pointer; transition: color .15s; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.tc-asset { display: flex; align-items: center; gap: 6px; min-width: 0; padding: 0 12px; }
+.tc-asset-name { font-family: 'Mulish', sans-serif; font-weight: 900; font-size: 13px; color: var(--white); cursor: pointer; transition: color .15s; min-width: 0; flex: 1 1 auto; line-height: 1.2; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; word-break: break-word; }
 .tc-asset-name:hover { color: var(--red); }
 .tc-nfl-team { font-family: 'Mulish', sans-serif; font-size: 10px; font-weight: 700; color: var(--white); opacity: .7; flex-shrink: 0; white-space: nowrap; margin-left: 4px; }
 .tc-empty { color: var(--white); opacity: .5; font-style: italic; }
