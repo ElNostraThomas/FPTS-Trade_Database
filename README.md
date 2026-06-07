@@ -13,6 +13,45 @@ This file is the **resume-where-we-left-off** doc.
 
 ---
 
+## Where we are (end of 2026-06-07 — nineteenth session)
+
+**Cross-league "My Trades" sidebar tab on My Leagues, + a shared trade-card refactor.** One commit, live: `21202b8` (this handoff doc is the second).
+
+### My Trades — cross-league analog of Player Exposure
+
+The Player Exposure sidebar on `my-leagues.html` gained a top tab strip: **`Exposure | My Trades`** (reusing `.ml-section-toggle`). My Trades is the trade-side counterpart to the cross-league exposure aggregation — it pools **every trade the user was a side of, across all their leagues**, into one year-switchable view.
+
+- **Year tabs** (`.ml-history-tab`) are the **union of seasons** across all leagues, derived by walking each current league's `previous_league_id` chain (same logic as `loadAllTrades`). Click a year → all leagues' trades for that season.
+- **Only the user's trades**: per league/season node, the user's `roster_id` is resolved (`owner_id === ML.userId`) and only `type==='trade' && status==='complete'` transactions whose `roster_ids` include it are kept.
+- **Lazy + cached**: built on first open, stored in `window.ML_MY_TRADES = { years, byYear, activeIdx }`; invalidated in `fetchAllLeaguesData` (season switch) and on logout. Reuses `ML.leagueRosters`/`ML.leagueUsers` caches to limit API hits.
+- Key functions: `mlExposureSetTab`, `mlEnsureMyTrades`, `mlRenderMyTradesYears`, `mlShowMyTradesYear`, `mlRenderMyTradesContent`, `mlSetMyTradesCount` (all in `my-leagues.html` inline JS).
+
+### Shared trade-card builder (`_mlTradeCardHtml`)
+
+Extracted the per-trade card markup out of `renderTradeYear` into **`_mlTradeCardHtml(t, ctx)`** so the per-league **Trade History** view and the new cross-league sidebar render from one source. `ctx = { players, rosters, rosterToTeam, userToName, myRosterId, leagueId, leagueName? }`. When `leagueName` is present (cross-league only) the card adds a league banner + `ml-tc-xleague` class; the per-league view passes no `leagueName`, so it's unchanged behaviorally.
+
+### Layout / branding cleanups (iterated with the user)
+
+- **Value column restructured** (affects *both* views): value pulled out of the cramped inline meta line into a **right-aligned, white Kanit-italic, `tabular-nums`** column so player + pick values align vertically. Previously player value was muted-grey inline and pick value purple.
+- **All values now white** — color is reserved for *identity* (position badges, pick thumb), not value. Note: picks were historically purple (`--pos-pick-bg`) because they're the only asset **without** a colored position badge; the user chose to keep all values white anyway (picks read via the flame thumb + "Rd" label). Removed the now-dead `.ml-tc-pick-val` rule.
+- **Sidebar cards stack vertically** (`.ml-mytrades-content .ml-tc-body { display:block }`) instead of the 2-col grid — each side gets full width in the 440px column.
+- **Grey-white accent** per user request: league banner white, left accent stripe `rgba(255,255,255,.55)`, your-side label white (was brand orange). Secondary text (via / date / side-label / ADP / pos-rank) opacity lifted out of near-invisible grey.
+
+### Commits
+
+| Commit | What |
+|---|---|
+| `21202b8` | `my-leagues.html` — My Trades sidebar tab + `_mlTradeCardHtml` extraction + value-column / branding cleanup |
+
+### Notes
+
+- All changes are **inline in `my-leagues.html`** — no shared-asset cache-token bumps needed.
+- **Audit:** `python scripts/check-colors.py` — CLEAN across 34 files.
+- Verify over HTTP (`start.bat` → `http://localhost:8000/my-leagues.html`) — My Trades uses `fetch()` and is CORS-blocked on `file://`.
+- Not yet pushed at handoff time — run `push.bat` (or `git push`) to deploy.
+
+---
+
 ## Where we are (end of 2026-06-02 — eighteenth session)
 
 **OBS zoom rewrite (→ v3) + floating horizontal scrollbar + ADP Picks-view RDP two-layer filter bug fix + 5-year consistency validation + name-wrapping.** Eight commits, all live (incl. this handoff doc): `48e938d` (OBS zoom v2), `4dc4387` (ADP data regen), `1199547` (consistency notes), `e9197c2` (RDP frontend surface fix), `80b794c` (this handoff), `6365e4a` (floating scrollbar), `11b23be` (OBS zoom v3), `5d53ff0` (name-wrap). The last three landed **after** the original handoff commit (`80b794c`) and are folded in below.
