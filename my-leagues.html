@@ -1425,6 +1425,9 @@
     font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:11px;
     color:var(--white); padding:5px 14px; cursor:pointer; opacity:.5; transition:all .15s; }
   .ml-history-tab.active { border-color:var(--red); color:var(--red); opacity:1; }
+  /* Per-team filter dropdown that leads the Trade History year-tab row */
+  .ml-trade-team-select { margin-right:6px; max-width:210px; }
+  .ml-trade-team-select:focus { outline:none; border-color:var(--red); }
   /* Top-level toggle (Trade History / Waivers) */
   .ml-section-toggle { display:flex; gap:0; border-bottom:1px solid var(--border); margin-bottom:14px; }
   .ml-section-toggle-btn { background:none; border:none; font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:13px; color:var(--white); opacity:.5; padding:8px 16px 10px; cursor:pointer; text-transform:uppercase; letter-spacing:.06em; border-bottom:2px solid transparent; margin-bottom:-1px; transition:all .15s; }
@@ -6854,7 +6857,7 @@ function mlSignOut() {
   ['ML_PLAYERS','ML_ROSTERS','ML_USERS','ML_LEAGUE_ID','ML_MY_ROSTER_ID','ML_MY_PLAYER_IDS',
    'ML_LEAGUE','ML_ROSTER_TO_TEAM','ML_WAIVERS','ML_WAIVERS_LEAGUE','FPTS_LEAGUE',
    'ML_ALL_LEAGUE_DATA','ML_EXPOSURE_DATA','ML_EXPOSURE_READY','ML_EXPOSURE_TOTAL_LEAGUES',
-   'ML_TRADES_BY_LEAGUE','ML_PD_CURRENT_SID','ML_MY_TRADES']
+   'ML_TRADES_BY_LEAGUE','ML_PD_CURRENT_SID','ML_MY_TRADES','ML_TRADE_TEAM_FILTER']
     .forEach(k => { try { delete window[k]; } catch(e){} });
   window.ML_EXPOSURE_FILTER = 'ALL';
   window.ML_EXPOSURE_TAB = 'exposure';
@@ -7402,9 +7405,8 @@ async function loadAllTrades(leagueId, season) {
     // Note: use leagueId in the onclick handler so the tab knows its scope.
     // The yearTabsEl id is currently "ml-trade-year-tabs" (global, set by the wrapper)
     // but will be restored to per-league after this function returns.
-    yearTabsEl.innerHTML = leagueChain.map((lc, i) =>
-      `<div class="ml-history-tab${i===0?' active':''}" onclick="showTradeYear('${leagueId}',${i},this)" data-idx="${i}">${lc.season}</div>`
-    ).join('');
+    // Row = per-team filter dropdown + year tabs.
+    yearTabsEl.innerHTML = mlTradeTabsHtml(leagueId, leagueChain, 0);
 
     // Fetch trades for all seasons in parallel
     const allTradesByYear = await Promise.all(leagueChain.map(async (lc) => {
@@ -7465,9 +7467,7 @@ async function mlHistorySetMode(leagueId, mode) {
     if (cache) {
       const tabsEl = document.getElementById(`ml-trade-year-tabs-${leagueId}`);
       if (tabsEl) {
-        tabsEl.innerHTML = cache.leagueChain.map((lc, i) =>
-          `<div class="ml-history-tab${i===0?' active':''}" onclick="showTradeYear('${leagueId}',${i},this)" data-idx="${i}">${lc.season}</div>`
-        ).join('');
+        tabsEl.innerHTML = mlTradeTabsHtml(leagueId, cache.leagueChain, 0);
       }
       const contentEl = document.getElementById(`trades-content-${leagueId}`);
       if (contentEl) contentEl.innerHTML = '';
@@ -7877,6 +7877,58 @@ function showTradeYear(leagueId, idx, tabEl) {
   renderTradeYear(leagueId, idx, cache.trades, cache.players, cache.leagueChain);
 }
 
+// Per-league Trade History team filter (owner user_id | 'ALL'); defaults to My Team.
+window.ML_TRADE_TEAM_FILTER = window.ML_TRADE_TEAM_FILTER || {};
+
+// Build the Trade History tab row: per-team dropdown filter + the year tabs.
+function mlTradeTabsHtml(leagueId, leagueChain, activeIdx) {
+  const years = (leagueChain || []).map((lc, i) =>
+    `<div class="ml-history-tab${i===activeIdx?' active':''}" onclick="showTradeYear('${leagueId}',${i},this)" data-idx="${i}">${lc.season}</div>`
+  ).join('');
+  return mlTradeTeamSelectHtml(leagueId) + years;
+}
+
+// Team dropdown for Trade History. Options = every team (by owner) + "All Teams".
+// Defaults the league's filter to "All Teams" (every trade in the league).
+function mlTradeTeamSelectHtml(leagueId) {
+  const esc = s => String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  const users   = ML.leagueUsers[leagueId]   || [];
+  const rosters = ML.leagueRosters[leagueId] || [];
+  const opts = rosters.map(r => {
+    const u = users.find(u => u.user_id === r.owner_id);
+    const name = u ? (u.metadata?.team_name || u.display_name || u.username) : `Team ${r.roster_id}`;
+    return { ownerId: r.owner_id, name };
+  }).filter(o => o.ownerId);
+  opts.sort((a,b) => a.name.localeCompare(b.name));
+
+  const filt = (window.ML_TRADE_TEAM_FILTER = window.ML_TRADE_TEAM_FILTER || {});
+  if (!(leagueId in filt)) filt[leagueId] = 'ALL';
+  const sel = filt[leagueId];
+
+  const optHtml = [`<option value="ALL"${sel==='ALL'?' selected':''}>All Teams</option>`]
+    .concat(opts.map(o => {
+      const mine = String(o.ownerId) === String(ML.userId);
+      const label = esc(o.name) + (mine ? ' (My Team)' : '');
+      return `<option value="${esc(o.ownerId)}"${String(sel)===String(o.ownerId)?' selected':''}>${label}</option>`;
+    }))
+    .join('');
+  return `<select class="ml-sortby-select ml-trade-team-select" title="Filter trades by team" onchange="mlSetTradeTeamFilter('${leagueId}', this.value)">${optHtml}</select>`;
+}
+
+// Team dropdown change handler — re-render the currently active year, filtered.
+function mlSetTradeTeamFilter(leagueId, ownerId) {
+  (window.ML_TRADE_TEAM_FILTER = window.ML_TRADE_TEAM_FILTER || {})[leagueId] = ownerId;
+  const cache = window.ML_TRADES_BY_LEAGUE?.[leagueId];
+  if (!cache) return;
+  const tabsEl = document.getElementById(`ml-trade-year-tabs-${leagueId}`) || document.getElementById('ml-trade-year-tabs');
+  let idx = 0;
+  if (tabsEl) {
+    const active = tabsEl.querySelector('.ml-history-tab.active');
+    if (active && active.dataset.idx != null) idx = parseInt(active.dataset.idx, 10) || 0;
+  }
+  renderTradeYear(leagueId, idx, cache.trades, cache.players, cache.leagueChain);
+}
+
 // Shared trade-card renderer. Used by the per-league Trade History view and by
 // the cross-league "My Trades" sidebar. ctx supplies all per-trade context so the
 // same markup works regardless of which league/season the trade came from.
@@ -8022,12 +8074,25 @@ async function renderTradeYear(leagueId, idx, allTradesByYear, players, leagueCh
     userToName[u.user_id] = u.metadata?.team_name || u.display_name || u.username;
   });
 
-  if (!trades.length) {
-    el.innerHTML = `<div class="ml-empty">No trades found for ${season}</div>`;
+  // Optional per-team filter (owner user_id) — resolve the owner's roster_id in
+  // THIS season's league, then keep only trades that roster was a side of.
+  const teamFilter = (window.ML_TRADE_TEAM_FILTER || {})[leagueId] || 'ALL';
+  let view = trades;
+  let filterTeamName = '';
+  if (teamFilter !== 'ALL') {
+    const fr = rosters.find(r => String(r.owner_id) === String(teamFilter));
+    const frId = fr ? fr.roster_id : null;
+    filterTeamName = (frId != null && rosterToTeam[frId]) ? rosterToTeam[frId] : '';
+    view = frId != null ? trades.filter(t => (t.roster_ids || []).includes(frId)) : [];
+  }
+
+  if (!view.length) {
+    const who = teamFilter !== 'ALL' ? ` for ${filterTeamName || 'this team'}` : '';
+    el.innerHTML = `<div class="ml-empty">No trades found${who} in ${season}</div>`;
     return;
   }
 
-  const sorted = [...trades].sort((a,b) => b.status_updated - a.status_updated);
+  const sorted = [...view].sort((a,b) => b.status_updated - a.status_updated);
 
   const ctx = { players, rosters, rosterToTeam, userToName, myRosterId: ML.myRosterId, leagueId };
   el.innerHTML = sorted.map(t => _mlTradeCardHtml(t, ctx)).filter(Boolean).join('');
