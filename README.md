@@ -15,7 +15,7 @@ This file is the **resume-where-we-left-off** doc.
 
 ## Where we are (end of 2026-06-07 — nineteenth session)
 
-**Cross-league "My Trades" sidebar tab on My Leagues, + a shared trade-card refactor.** One commit, live: `21202b8` (this handoff doc is the second).
+**Cross-league "My Trades" sidebar tab on My Leagues, a shared trade-card refactor, + a per-team filter on the per-league Trade History.** Three commits, all live: `21202b8` (My Trades sidebar), `7130bfc` (handoff doc), `de9b6fe` (per-team filter).
 
 ### My Trades — cross-league analog of Player Exposure
 
@@ -37,18 +37,30 @@ Extracted the per-trade card markup out of `renderTradeYear` into **`_mlTradeCar
 - **Sidebar cards stack vertically** (`.ml-mytrades-content .ml-tc-body { display:block }`) instead of the 2-col grid — each side gets full width in the 440px column.
 - **Grey-white accent** per user request: league banner white, left accent stripe `rgba(255,255,255,.55)`, your-side label white (was brand orange). Secondary text (via / date / side-label / ADP / pos-rank) opacity lifted out of near-invisible grey.
 
+### Per-team filter on Trade History (`de9b6fe` — follow-on)
+
+The per-league **Trade History** view gained a team dropdown that leads the year-tab row, so the operator can narrow a league's trades to a single team (or **All Teams**).
+
+- **`mlTradeTabsHtml(leagueId, leagueChain, activeIdx)`** now builds the tab row as **`[team dropdown] + [year tabs]`**; wired into both year-tab builders (`loadAllTrades` + `mlHistorySetMode`), replacing the inline `.map` that each used.
+- **`mlTradeTeamSelectHtml(leagueId)`** lists every **current-league owner** (sorted by team name) plus an `All Teams` option. **Defaults to All Teams**; the user's own option is tagged `(My Team)`. Options come from the current league's `ML.leagueRosters`/`ML.leagueUsers`.
+- **`mlSetTradeTeamFilter(leagueId, ownerId)`** reads the active year off the live DOM (`.ml-history-tab.active`) and re-renders it filtered. Selection persists in `window.ML_TRADE_TEAM_FILTER` (per-league map) and is cleared on sign-out (added to the `mlSignOut` delete list).
+- **`renderTradeYear`** filters by owner **`user_id`** (stable across seasons), resolving the owner → `roster_id` against **each historic season's** rosters, then keeping only trades that roster was a side of. Empty-state message reflects the active filter (`No trades found for <team> in <season>`). `showTradeYear`'s `.active` toggle only touches `.ml-history-tab` nodes, so the `<select>` and its selection survive year switches.
+- New CSS: `.ml-trade-team-select` (`max-width:210px`, red focus border), reusing the existing `.ml-sortby-select` base.
+
 ### Commits
 
 | Commit | What |
 |---|---|
 | `21202b8` | `my-leagues.html` — My Trades sidebar tab + `_mlTradeCardHtml` extraction + value-column / branding cleanup |
+| `7130bfc` | This handoff doc — nineteenth-session entry |
+| `de9b6fe` | `my-leagues.html` — per-team filter on per-league Trade History (defaults to All Teams) |
 
 ### Notes
 
 - All changes are **inline in `my-leagues.html`** — no shared-asset cache-token bumps needed.
 - **Audit:** `python scripts/check-colors.py` — CLEAN across 34 files.
-- Verify over HTTP (`start.bat` → `http://localhost:8000/my-leagues.html`) — My Trades uses `fetch()` and is CORS-blocked on `file://`.
-- Not yet pushed at handoff time — run `push.bat` (or `git push`) to deploy.
+- Verify over HTTP (`start.bat` → `http://localhost:8000/my-leagues.html`) — My Trades + the team filter use `fetch()` and are CORS-blocked on `file://`.
+- **All three commits are pushed live** (`origin/main` at `de9b6fe`). This README addendum is the only uncommitted change at handoff.
 
 ---
 
