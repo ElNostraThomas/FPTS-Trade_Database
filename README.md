@@ -15,7 +15,7 @@ This file is the **resume-where-we-left-off** doc.
 
 ## Where we are (end of 2026-06-02 — eighteenth session)
 
-**OBS zoom rewrite + ADP Picks-view RDP two-layer filter bug fix + 5-year consistency validation.** Four commits, all live: `48e938d` (OBS), `4dc4387` (ADP data regen), `1199547` (consistency notes), `e9197c2` (RDP frontend surface fix).
+**OBS zoom rewrite (→ v3) + floating horizontal scrollbar + ADP Picks-view RDP two-layer filter bug fix + 5-year consistency validation + name-wrapping.** Eight commits, all live (incl. this handoff doc): `48e938d` (OBS zoom v2), `4dc4387` (ADP data regen), `1199547` (consistency notes), `e9197c2` (RDP frontend surface fix), `80b794c` (this handoff), `6365e4a` (floating scrollbar), `11b23be` (OBS zoom v3), `5d53ff0` (name-wrap). The last three landed **after** the original handoff commit (`80b794c`) and are folded in below.
 
 ### OBS zoom — viewport-meta rewrite (matches browser Ctrl+wheel)
 
@@ -25,6 +25,31 @@ This file is the **resume-where-we-left-off** doc.
 - Reset restores the canonical `width=device-width, initial-scale=1.0, viewport-fit=cover`.
 - Unchanged: iframe-only guard, localStorage persistence (`fpts-obs-zoom`), 1.0/1.25/1.5/1.75/2.0 ladder, widget mounted on `documentElement`.
 - Cache token `obs-zoom-controls.js ?v=1783800000 → ?v=1791400000` across all 11 consumers (10 deployed pages + `templates/page-template.html`).
+
+> **⚠ Superseded by v3 (`11b23be`) — see below.** The viewport-meta approach was self-defeating in practice and was replaced later this same session.
+
+### OBS zoom — v3: inline `body{zoom}` override, fit-to-screen at 100% (`11b23be`)
+
+The viewport-meta rewrite (v2, above) was self-defeating: shrinking the layout viewport made `@media (max-width: 1099px)` fire, which drops brand.css's `body{zoom: 1.25 → 1.0}`. That `1.0` exactly cancelled the `1.25×` visual scale-up from the smaller viewport — **net visual change on zoom-in: zero**. Symptoms: 100% looked bunched (brand.css's 1.25 desktop-monitor default inflated layout past the iframe edge), and zoom-in did nothing (the `@media` compensation chain).
+
+**Fix:** override `body.style.zoom` inline and unconditionally. At "100%" (reset / no override) force `body{zoom:1.0}` so the iframed view fits to screen naturally instead of carrying brand.css's at-monitor `1.25×`; at ladder values `1.25/1.5/1.75/2.0` set `body{zoom}` directly. Inline style beats brand.css's `@media` rules, so visual scale is predictable and proportional to the widget's %. Horizontal overflow from zoom-in is now caught by the floating scrollbar (`6365e4a`, below). Direct browser visitors still see no widget (iframe-only guard) and still get brand.css's `1.25×` at-monitor default.
+
+- Cache token `obs-zoom-controls.js ?v=1791400000 → ?v=1791800000` across all 11 consumers.
+
+### OBS — floating horizontal scrollbar (`6365e4a`)
+
+In OBS Browser Source, a wide element whose content runs past the iframe viewport (e.g. the ADP board) leaves the **native** horizontal scrollbar below the fold — streamers had to scroll down before they could grab it. Added an iframe-only **floating proxy scrollbar** to `assets/js/iframe-scroll-fix.js` (+183 lines): for every element with `overflowX: auto/scroll` where `scrollWidth > clientWidth`, mounts a thin `position:fixed; bottom:0` bar with two-way `scrollLeft` sync. Shows only when the target's native bar is below the viewport **and** the target is at least partially in view — fades out once the user scrolls down enough that the native bar comes into reach.
+
+- rAF-debounced full scan on init / DOMContentLoaded / 400ms / 1500ms / window resize / DOM mutations (catches ADP filter re-renders, MyLeagues sort changes, etc.); rAF-debounced visibility-only update on every scroll so the bar fades cheaply without re-walking the DOM.
+- WeakMap-keyed singleton bar per target; iframe-only guard inherited from the parent IIFE (direct browser visitors see nothing).
+- Cache token `iframe-scroll-fix.js ?v=1782100000 → ?v=1791700000` across all 11 consumers.
+
+### UI — truncated player names wrap to 2 lines (`5d53ff0`)
+
+The trade-DB Top Risers / Top Fallers sidebar and the Recent Trades card pills were single-line ellipsis-truncated, so longer dynasty names (Jeremiyah Love, Carnell Tate, Marvin Harrison Jr.) got cut mid-name — fine on the deploy view but unreadable in OBS at typical Browser Source dimensions. Switched both to `display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical` with tightened `line-height`. One-line names still render on one line; overflowing names wrap to a second line; three-line+ names still get the ellipsis cap so a pathological name can't blow up the row.
+
+- `index.html .value-row-name` (Risers/Fallers rows) + `assets/css/player-panel.css .tc-asset` / `.tc-asset-name` (every page that renders a trade card — DB, Calc, ML, Tiers, ADP, Live-Draft, Mock-Draft, Compare, Rankings). Removed `overflow:hidden` on `.tc-asset` (was clipping the wrapped second line).
+- Cache token `player-panel.css ?v=1783100000 → ?v=1791900000` across all 10 consumers (formulas.html doesn't load player-panel.css).
 
 ### ADP "Picks" view — rookie pick placeholders weren't rendering (`4dc4387` + `e9197c2`)
 
@@ -64,14 +89,20 @@ If a sync run produces zero RDP entries in `picks_sf` despite a non-empty corpus
 
 | Commit | What |
 |---|---|
-| `48e938d` | OBS zoom viewport-meta rewrite — matches browser Ctrl+wheel, auto-collapses chrome, no clipping |
+| `48e938d` | OBS zoom v2 (viewport-meta) — superseded by v3 (`11b23be`) |
 | `4dc4387` | ADP data regen — picks_sf now carries ROOKIE_PICK_X.YY placeholders (`_OFFENSIVE_POSITIONS` gate fix) |
 | `1199547` | `docs/adp-picks-rdp-consistency.md` — 5-year picks vs rookies validation + repro |
 | `e9197c2` | `adp-tool.html` + `data-bootstrap.js` — RDP surfaces in board + PICKS chip (`ADP_FILTER_KEEP_POS` gate fix) |
+| `80b794c` | This handoff doc + two-gate RDP rule across all surfaces |
+| `6365e4a` | OBS floating horizontal scrollbar — `iframe-scroll-fix.js` proxy bar, reachable without scrolling to the fold |
+| `11b23be` | OBS zoom v3 — inline `body{zoom}` override, fit-to-screen at 100% (fixes v2's @media self-cancel) |
+| `5d53ff0` | UI — truncated player names wrap to 2 lines (Risers/Fallers + trade cards) |
 
 ### Cache tokens at session close
 
-- `obs-zoom-controls.js ?v=1783800000 → ?v=1791400000` (11 consumers)
+- `obs-zoom-controls.js ?v=1783800000 → ?v=1791400000 → ?v=1791800000` (11 consumers; v2 then v3)
+- `iframe-scroll-fix.js ?v=1782100000 → ?v=1791700000` (11 consumers; floating scrollbar)
+- `player-panel.css ?v=1783100000 → ?v=1791900000` (10 consumers; name-wrap — formulas.html excluded)
 - `data-bootstrap.js ?v=1783700000 → ?v=1791500000` (11 consumers)
 - `legend-content.js` + `formulas-content.js` bumped this turn to surface the new entries (see Cache Tokens line in the final commit)
 
