@@ -128,8 +128,8 @@
 **Inputs**
 - `qb` ← `_calcQb()` returns `'sf'` or `'1qb'`. Reads visible `f-qb` filter dropdown; default `'sf'`.
 - `ppr` ← `_calcPpr()` returns `1` (Full) / `0.5` (Half) / `0` (Std). Reads `f-ppr`; default `1`.
-- `tep` ← `_calcTep()` returns `0` / `0.5` / `0.75` / `1.0`. Reads `f-tep` (normalizes `'all'`/`'none'` → `0`); default `0`.
 - `passtd` ← `_calcPasstd()` returns `4` / `5` / `6`. Reads `f-passtd`; default `4`.
+- _(TEP removed 2026-06-08 — tight-end premium is baked into the base MVS value via the `*_tep` columns in `sync-mvs.py`, so the calculator no longer reads a TEP setting or applies a TE multiplier; doing both would double-count.)_
 
 **Math (verbatim)**
 ```js
@@ -149,18 +149,15 @@ if (pos === 'RB') {
   else if (ppr === 0.5) m *= 1.0;    // baseline
   else                  m *= 0.93;   // standard −7%
 }
-if (pos === 'TE') {
-  m *= 1 + (tep * 0.12);             // TEP scaling: +12% per full TEP unit
-}
+// TE: no multiplier — tight-end premium is baked into the base MVS value.
 return m;
 ```
 
 **Output** Float multiplier ∈ `[0.90, 1.242]` (max = SF + 6pt TD: 1.15 × 1.08).
 
 **Notes**
-- Stacks multiplicatively across QB/passtd. WR/RB/TE multipliers are mutually exclusive (each position checked separately).
-- TEP only applies to TE; other positions ignore the TEP setting in this function.
-- K and PK return `1.0` (no branch hit).
+- Stacks multiplicatively across QB/passtd. WR/RB multipliers are mutually exclusive (each position checked separately).
+- TE / K / PK return `1.0` — TEP is baked into the base value (the `*_tep` columns), so no TE premium is applied here (removed 2026-06-08).
 
 ---
 
@@ -206,7 +203,7 @@ function adjVal(asset) {
   - From `data/picks.json` (sync-fp.py, 2025 only): `{ value, valueSf, valueTep }` — `value` IS the 1QB baseline.
   - From `data/mvs.json` overlay (sync-mvs.py, 2026/27/28): `{ value, valueSf, value1qb, valueTep, label }` — `value` is current-format default, `value1qb` is the true 1QB baseline, `valueTep` is aliased to `valueSf` (no real TEP data).
   - Legacy flat number (very old payloads).
-- Format flags via `_calcQb()` and `_calcTep()`.
+- Format flag via `_calcQb()`. _(TEP branch removed 2026-06-08 — `valueSf`/`value1qb` already carry the TEP-baked value.)_
 
 **Math (verbatim)**
 ```js
@@ -214,18 +211,15 @@ if (rec == null) return 0;
 if (typeof rec === 'number') return rec;
 if (typeof rec !== 'object') return Number(rec) || 0;
 const isSf  = _calcQb() === 'sf';
-const isTep = _calcTep() > 0;
-if (isTep && rec.valueTep != null) return Number(rec.valueTep) || 0;
 if (isSf  && rec.valueSf  != null) return Number(rec.valueSf)  || 0;
 if (rec.value1qb != null) return Number(rec.value1qb) || 0;
 return Number(rec.value) || 0;
 ```
 
-**Priority** TEP wins if `tep > 0` and `valueTep` exists → SF if SF mode → `value1qb` (MVS shape) → `value` (picks.json shape).
+**Priority** SF if SF mode → `value1qb` (MVS shape) → `value` (picks.json shape). Values are TEP-baked at the source.
 
 **Notes**
-- MVS picks alias `valueTep` to `valueSf` because the upstream source has no real TEP data for picks. Practical effect: in SF+TEP mode, MVS picks show the SF value.
-- picks.json shape has real TEP data (computed by sync-fp.py from Fantasy Points' `tradeValueTePremium` column).
+- `valueTep` still exists on the records (picks.json computes it from Fantasy Points' `tradeValueTePremium`; MVS aliases it to `valueSf`) but the calculator no longer special-cases it — the canonical `valueSf`/`value1qb` are already TEP-based.
 
 ---
 

@@ -1186,7 +1186,7 @@
 <link rel="stylesheet" href="assets/css/heatmap.css?v=1782600000">
 <script src="assets/js/heatmap.js?v=1778670000"></script>
 <link rel="stylesheet" href="assets/css/legend.css?v=1782600000">
-<script src="assets/js/legend-content.js?v=1791600000"></script>
+<script src="assets/js/legend-content.js?v=1796200000"></script>
 <script src="assets/js/legend.js?v=1778949514"></script>
 <script>document.addEventListener('DOMContentLoaded', function(){ if (window.Legend) Legend.init('trade-calculator'); });</script>
 <!-- Shared player panel — DB's slide-in drawer used identically on every page -->
@@ -1361,16 +1361,10 @@
 <div class="filter-section">
       <div class="filter-section-label">Scoring</div>
       <div class="filter-section-body">
-        <div class="filter-group">
-          <span class="filter-label">TEP Bonus</span>
-          <select class="filter-select" id="f-tep" onchange="applyFilters()">
-            <option value="all">All TEP</option>
-            <option value="none">No TEP</option>
-            <option value="0.5">.5 TEP</option>
-            <option value="0.75">.75 TEP</option>
-            <option value="1.0">1.0 TEP</option>
-          </select>
-        </div>
+        <!-- TEP Bonus dropdown removed 2026-06-08: tight-end premium is now baked
+             into the canonical MVS value (sync-mvs.py uses the *_tep columns
+             site-wide), so a separate ×(1+tep·0.12) multiplier here double-counted
+             the premium for TEs. Values are TEP by default everywhere now. -->
         <div class="filter-group">
           <span class="filter-label">Pass TDs</span>
           <select class="filter-select" id="f-passtd" onchange="applyFilters()">
@@ -2173,7 +2167,6 @@ let filtered = [...TRADES];
 let tradeSearch = {a:[], b:[]};
 let selectedPicks = [];
 const qbLabels  = { "1qb":"1 QB", "sf":"Superflex", "all":"All Formats" };
-const tepLabels = { "none":"No TEP", "0.5":".5 TEP", "0.75":".75 TEP", "1.0":"1.0 TEP", "all":"All TEP" };
 
 let sides = [
   { id:'A', label:'Side A', assets:[], faab:0 },
@@ -2215,8 +2208,8 @@ function pickThumb(size) {
 // ── ASSETS ────────────────────────────────────────────────────────────────────
 // ── CALC FORMAT INPUTS ────────────────────────────────────────────────────
 // The page has two sets of format selectors: the visible "League Format" +
-// "Scoring" dropdowns at the top of the page (IDs `f-qb` / `f-tep` /
-// `f-passtd` / `f-ppr`) which the user actually sees and uses, and a hidden
+// "Scoring" dropdowns at the top of the page (IDs `f-qb` / `f-passtd` /
+// `f-ppr`) which the user actually sees and uses, and a hidden
 // second set (`fmt-*`, display:none via .format-area CSS) that no longer
 // renders. _calcFmt() reads from f-* first and falls back to fmt-* only if
 // the visible ones are missing for some reason. f-* dropdowns use 'all' as
@@ -2230,13 +2223,8 @@ function _calcFmt(visibleId, hiddenId, defaultVal) {
 }
 
 function _calcQb()     { return _calcFmt('f-qb',     'fmt-qb',     'sf'); }
-function _calcTep()    {
-  const raw = _calcFmt('f-tep', 'fmt-tep', '0');
-  // f-tep options: "all" | "none" | "0.5" | "0.75" | "1.0"
-  // fmt-tep options: "0" | "0.5" | "0.75" | "1.0"
-  if (raw === 'none') return 0;
-  return parseFloat(raw) || 0;
-}
+// _calcTep() removed 2026-06-08 — TEP is baked into the base MVS value, so the
+// calculator no longer reads a TEP setting or applies a TE premium.
 function _calcPpr()    { return parseFloat(_calcFmt('f-ppr',    'fmt-ppr',    '1')); }
 function _calcPasstd() { return parseInt(_calcFmt('f-passtd', 'fmt-passtd', '4'), 10); }
 
@@ -2255,8 +2243,7 @@ function _pickNumericValue(rec) {
   if (typeof rec === 'number') return rec;
   if (typeof rec !== 'object') return Number(rec) || 0;
   const isSf  = _calcQb() === 'sf';
-  const isTep = _calcTep() > 0;
-  if (isTep && rec.valueTep != null) return Number(rec.valueTep) || 0;
+  // TEP removed 2026-06-08 — valueSf/value1qb already carry the TEP-baked value.
   if (isSf  && rec.valueSf  != null) return Number(rec.valueSf)  || 0;
   // 1QB mode — prefer the dedicated value1qb (MVS shape) and only fall back
   // to .value when the record doesn't ship one (picks.json shape, where
@@ -2302,7 +2289,6 @@ function getAllAssets() {
 function getMultiplier(pos) {
   const qb     = _calcQb();      // 'sf' | '1qb' (defaults 'sf')
   const ppr    = _calcPpr();     // 1 | 0.5 | 0   (defaults 1)
-  const tep    = _calcTep();     // 0 | 0.5 | 0.75 | 1.0 (defaults 0)
   const passtd = _calcPasstd();  // 4 | 5 | 6  (defaults 4)
   let m = 1.0;
   if (pos === 'QB') {
@@ -2320,9 +2306,8 @@ function getMultiplier(pos) {
     else if (ppr === 0.5) m *= 1.0;
     else                  m *= 0.93;
   }
-  if (pos === 'TE') {
-    m *= 1 + (tep * 0.12);
-  }
+  // TE multiplier removed 2026-06-08: tight-end premium is baked into the base
+  // MVS value (the *_tep columns), so re-applying it here double-counted.
   return m;
 }
 
@@ -2696,7 +2681,6 @@ function applyFilters() {
   const fqb    = document.getElementById("f-qb").value;
   const fst    = document.getElementById("f-starters").value;
   const ftm    = document.getElementById("f-teams").value;
-  const ftp    = document.getElementById("f-tep").value;
   const fppr   = document.getElementById("f-ppr").value;
   const fppc   = document.getElementById("f-ppc").value;
   const ffaab  = document.getElementById("f-faab").value;
@@ -2713,7 +2697,6 @@ function applyFilters() {
       (fqb==="all"||t.qb===fqb) &&
       (fst==="all"||t.starters===parseInt(fst)) &&
       (ftm==="all"||t.teams_count===parseInt(ftm)) &&
-      (ftp==="all"||t.tep===ftp) &&
       (fppr==="all"||t.ppr===fppr) &&
       (fppc==="all"||t.ppr===fppc) &&
       (ffaab==="all"||(ffaab==="yes"?!!t.faab:!t.faab)) &&
@@ -2754,7 +2737,6 @@ function applyFilters() {
   if(ftm!=="all")     chips.push(`<span class="filter-chip">${ftm} Teams</span>`);
   if(froster!=="all") chips.push(`<span class="filter-chip">Roster ${froster} or fewer</span>`);
   if(ffaab!=="all")   chips.push(`<span class="filter-chip">${ffaab==="yes"?"With FAAB":"No FAAB"}</span>`);
-  if(ftp!=="all")     chips.push(`<span class="filter-chip">${tepLabels[ftp]}</span>`);
   if(fptd!=="all")    chips.push(`<span class="filter-chip">${fptd}pt Pass TD</span>`);
   if(fppr!=="all")    chips.push(`<span class="filter-chip">${pprLabels[fppr]}</span>`);
   if(fppc!=="all")    chips.push(`<span class="filter-chip">PPC</span>`);
@@ -2767,7 +2749,7 @@ function applyFilters() {
     ? chips.join("")+`<span class="result-count">${filtered.length} trade${filtered.length!==1?"s":""} matched</span>`
     : `<span class="filter-chip-muted">Showing all formats</span><span class="result-count">${filtered.length} trades</span>`;
 
-  ["f-qb","f-starters","f-teams","f-tep","f-ppr","f-ppc","f-faab","f-passtd","f-assets","f-roster"]
+  ["f-qb","f-starters","f-teams","f-ppr","f-ppc","f-faab","f-passtd","f-assets","f-roster"]
     .forEach(id=>{ const el=document.getElementById(id); if(el) el.classList.toggle("active",el.value!=="all"&&el.value!==""); });
   ["f-date-from","f-date-to"]
     .forEach(id=>{ let el=document.getElementById(id); if(el) el.classList.toggle("active", !!el.value); });
@@ -2792,7 +2774,7 @@ function clearDates() {
 
 function applyPreset(type) {
   // Reset everything first
-  ["f-qb","f-starters","f-teams","f-tep","f-ppr","f-ppc","f-faab","f-passtd","f-assets","f-roster"]
+  ["f-qb","f-starters","f-teams","f-ppr","f-ppc","f-faab","f-passtd","f-assets","f-roster"]
     .forEach(id=>{ const el=document.getElementById(id); if(el) el.value="all"; });
   selectedPicks = [];
   renderPickTags();
@@ -2804,12 +2786,10 @@ function applyPreset(type) {
     document.getElementById("f-qb").value      = "sf";
     document.getElementById("f-teams").value   = "12";
     document.getElementById("f-starters").value= "10";
-    document.getElementById("f-tep").value     = "0.5";
   } else if(type==="1qb") {
     document.getElementById("f-qb").value      = "1qb";
     document.getElementById("f-teams").value   = "12";
     document.getElementById("f-starters").value= "10";
-    document.getElementById("f-tep").value     = "0.5";
   }
 
   // Highlight active preset button
@@ -2821,7 +2801,7 @@ function applyPreset(type) {
 
 function resetFilters() {
   document.querySelectorAll(".btn-preset").forEach(b => b.classList.remove("active"));
-  ["f-qb","f-starters","f-teams","f-tep","f-ppr","f-ppc","f-faab","f-passtd","f-assets","f-roster"]
+  ["f-qb","f-starters","f-teams","f-ppr","f-ppc","f-faab","f-passtd","f-assets","f-roster"]
     .forEach(id=>{ const el=document.getElementById(id); if(el) el.value="all"; });
   selectedPicks = [];
   renderPickTags();

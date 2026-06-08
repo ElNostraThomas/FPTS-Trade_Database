@@ -44,7 +44,7 @@ window.FormulasContent = {
           label: '1. Player value — format multipliers (getMultiplier)',
           location: 'trade-calculator.html:2302',
           provenance: { kind: 'hand-tuned', detail: 'Per-format multiplier scalars chosen by the curator to mirror dynasty-community-standard format-vs-1QB-Standard PPR conversions.' },
-          inputs: 'qb (\'sf\' or \'1qb\'), ppr (1 / 0.5 / 0), tep (0 / 0.5 / 0.75 / 1.0), passtd (4 / 5 / 6). All read from the visible f-* filter dropdowns via _calcQb / _calcPpr / _calcTep / _calcPasstd. Defaults: sf, 1, 0, 4.',
+          inputs: 'qb (\'sf\' or \'1qb\'), ppr (1 / 0.5 / 0), passtd (4 / 5 / 6). All read from the visible f-* filter dropdowns via _calcQb / _calcPpr / _calcPasstd. Defaults: sf, 1, 4. (TEP removed 2026-06-08 — tight-end premium is baked into the base MVS value via the *_tep columns, so a separate TE multiplier here would double-count.)',
           math: `let m = 1.0;
 if (pos === 'QB') {
   if (qb === 'sf')    m *= 1.15;     // SF gives QBs +15%
@@ -61,9 +61,7 @@ if (pos === 'RB') {
   else if (ppr === 0.5) m *= 1.0;    // baseline
   else                  m *= 0.93;   // standard -7%
 }
-if (pos === 'TE') {
-  m *= 1 + (tep * 0.12);             // TEP: +12% per full TEP unit
-}
+// TE: no multiplier — tight-end premium is baked into the base MVS value.
 return m;`,
           output: 'Float multiplier in [0.90, 1.242]. Max = SF QB with 6pt TDs (1.15 × 1.08).',
           example: `Lamar Jackson (QB) in Superflex with 6pt pass TDs:
@@ -77,11 +75,9 @@ Justin Jefferson (WR) in Standard PPR:
   m *= 0.90  (Standard PPR)     → 0.90
   → multiplier = 0.90
 
-Travis Kelce (TE) with 1.0 TEP:
-  m = 1.0
-  m *= 1 + (1.0 × 0.12)         → 1.12
-  → multiplier = 1.12`,
-          notes: 'QB and PassTD bonuses stack multiplicatively. WR/RB/TE multipliers are mutually exclusive (each position checked separately). TEP only applies to TE. K and PK return 1.0.',
+Travis Kelce (TE): m = 1.0 — no multiplier (TEP is in the base value)
+  → multiplier = 1.0`,
+          notes: 'QB and PassTD bonuses stack multiplicatively. WR/RB multipliers are mutually exclusive (each position checked separately). TE / K / PK return 1.0 — TEP is baked into the base MVS value (the *_tep columns), so the calculator no longer applies a TE premium (removed 2026-06-08).',
           related: ['adj-val', 'league-format-detect']
         },
         {
@@ -111,7 +107,7 @@ Player: Justin Jefferson (asset.value=9500, WR) in Standard PPR:
   getMultiplier('WR') = 0.90
   9500 × 0.90 = 8550
   → adjVal = 8550`,
-          notes: 'Picks re-resolve live through PICK_VALUES every render — flipping QB/TEP filters immediately updates pick rows. Players use the multiplier; their base asset.value is the format-default snapshot from FP_VALUES.value at add time. Handoff\'d / legacy picks without pickKey fall through to name-parsing via _derivePickKey.',
+          notes: 'Picks re-resolve live through PICK_VALUES every render — flipping the QB/PPR filters immediately updates pick rows. Players use the multiplier; their base asset.value is the format-default snapshot from FP_VALUES.value at add time. Handoff\'d / legacy picks without pickKey fall through to name-parsing via _derivePickKey.',
           related: ['get-multiplier', 'pick-numeric-value', 'derive-pick-key', 'trade-balance']
         },
         {
@@ -119,17 +115,15 @@ Player: Justin Jefferson (asset.value=9500, WR) in Standard PPR:
           label: '3. Pick value — shape-aware extractor (_pickNumericValue)',
           location: 'trade-calculator.html:2253',
           provenance: { kind: 'site-convention', detail: 'Priority-based resolution to handle three coexisting pick record shapes from different sync scripts.' },
-          inputs: 'Pick value record. Three known shapes: (1) picks.json {value, valueSf, valueTep} — value IS 1QB baseline; (2) mvs.json overlay {value, valueSf, value1qb, valueTep, label} — value is current-format default, value1qb is true 1QB, valueTep aliased to valueSf; (3) legacy flat number. Format flags via _calcQb / _calcTep.',
+          inputs: 'Pick value record. Three known shapes: (1) picks.json {value, valueSf, valueTep} — value IS 1QB baseline; (2) mvs.json overlay {value, valueSf, value1qb, valueTep, label} — value is current-format default, value1qb is true 1QB; (3) legacy flat number. Format flag via _calcQb. (TEP branch removed 2026-06-08 — valueSf/value1qb already carry the TEP-baked value.)',
           math: `if (rec == null) return 0;
 if (typeof rec === 'number') return rec;
 if (typeof rec !== 'object') return Number(rec) || 0;
 const isSf  = _calcQb() === 'sf';
-const isTep = _calcTep() > 0;
-if (isTep && rec.valueTep != null) return Number(rec.valueTep) || 0;
 if (isSf  && rec.valueSf  != null) return Number(rec.valueSf)  || 0;
 if (rec.value1qb != null) return Number(rec.value1qb) || 0;
 return Number(rec.value) || 0;`,
-          output: 'Numeric value. Priority: TEP wins if tep > 0 and valueTep exists → SF if SF mode → value1qb (MVS shape) → value (picks.json shape).',
+          output: 'Numeric value. Priority: SF if SF mode → value1qb (MVS shape) → value (picks.json shape). Values are TEP-baked at the source.',
           example: `PICK_VALUES["2026-1.02"] = { value:5268, valueSf:5268, value1qb:5511, valueTep:5268 }
   SF + no TEP:  isSf=true, isTep=false → valueSf = 5268
   1QB + no TEP: isSf=false, isTep=false → value1qb = 5511

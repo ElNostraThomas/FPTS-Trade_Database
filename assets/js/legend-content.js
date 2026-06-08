@@ -28,8 +28,10 @@
    data/picks.json          Pick values (legacy slot format)     sync-fp.py
      → PICK_VALUES["2026-1.01"] = { value, valueSf, valueTep }
 
-   data/mvs.json            MVS canonical values (NEW)            sync-mvs.py
+   data/mvs.json            MVS canonical values (TEP basis)      sync-mvs.py
      → MVS_PAYLOAD.players + .picks  (overlays FP_VALUES wholesale)
+     → values sourced from the CSV's *_tep columns (tight-end premium
+       baked in site-wide, 2026-06-08); both SF and 1QB
 
    data/articles.json       FantasyPoints recent articles         sync-fp.py
      → PLAYER_ARTICLES[name] = [{ title, url, snippet, image }]
@@ -653,7 +655,7 @@ window.LegendContent = {
         name: 'Format Settings (top of page)',
         items: [
           { label: 'QB Format Picker (SF / 1QB)', what: 'Switch between Superflex (2QB) and Single-QB value scales. Persists cross-page via localStorage.', source: 'tradeState.qb → toggles which value (valueSf vs value1qb) FP_VALUES asset values read', values: 'sf (default) / 1qb', notes: 'localStorage key: fpts-adp-format. Switching also re-hydrates FP_VALUES.adp + trend for the chosen format.' },
-          { label: 'TEP (Tight End Premium)', what: 'Boost TE values by an additional points-per-reception bonus. Multiplier applied per asset at render time.', source: 'tradeState.tep → getMultiplier(pos) at L2156', values: 'none / 0.25 / 0.5 / 0.75 / 1.0', notes: 'Multiplier formula: 1 + (tep × 0.12) — only applied to TE. Other positions ignore.' },
+          { label: 'TEP (Tight End Premium) — now baked in', what: 'Tight-end premium is built into the canonical value, not a toggle. sync-mvs.py sources every value from the CSV\'s *_tep columns, so TE values already include the premium site-wide.', source: 'sync-mvs.py COL_* → data/mvs.json valueSf / value1qb', values: 'Always on (TEP basis)', notes: 'The old calculator TEP dropdown + ×(1+tep·0.12) TE multiplier were removed 2026-06-08 because they double-counted the now-baked-in premium.' },
           { label: 'PPR Variant', what: 'Standard / Half / Full PPR scoring. WR and RB values shift slightly based on PPR.', source: 'tradeState.ppr → getMultiplier(pos) at L2146-2154', values: '0 / 0.5 / 1', notes: 'WR: full PPR = 1.0×, half = 0.96×, std = 0.90×. RB: full = 1.04×, half = 1.0×, std = 0.93×.' },
           { label: '3-Team Toggle', what: 'Add a third side (Side C) for three-way trades.', source: 'tradeState.threeTeam boolean; toggles .builder-wrap.three-sides class', values: 'On / Off', notes: 'Balance bar logic handles 3-side fairness; threshold is broader.' },
         ],
@@ -703,7 +705,7 @@ window.LegendContent = {
         name: 'Interactions & Conventions (quick reference)',
         items: [
           { label: 'Fairness Thresholds', what: 'How the balance verdict picks Fair / Slight Edge / Big Imbalance.', source: 'Computed in renderBalance from |a - b| / max(a, b)', values: '<5% diff = Fair (green) / 5-15% = Slight Edge (yellow) / >15% = Big Imbalance (red)', notes: 'Color comes from --green / --yellow / --red brand tokens.' },
-          { label: 'PPR Multiplier Table', what: 'Per-position value adjustments by PPR setting.', source: 'getMultiplier(pos) at L2146-2154', values: 'WR: Full 1.0× / Half 0.96× / Std 0.90×. RB: Full 1.04× / Half 1.0× / Std 0.93×. QB/TE: unaffected by PPR.', notes: 'TE additionally multiplied by (1 + tep × 0.12).' },
+          { label: 'PPR Multiplier Table', what: 'Per-position value adjustments by PPR setting.', source: 'getMultiplier(pos) in trade-calculator.html', values: 'WR: Full 1.0× / Half 0.96× / Std 0.90×. RB: Full 1.04× / Half 1.0× / Std 0.93×. QB/TE: unaffected by PPR.', notes: 'TE gets no multiplier — tight-end premium is baked into the base value (TEP × multiplier removed 2026-06-08).' },
           { label: 'FAAB-to-Value Formula', what: 'FAAB dollars added to a side\'s total at the configured ratio.', source: 'sideTotal() at L2167: side.faab × 10', values: '$1 FAAB = 10 MVS units (heuristic)', notes: 'Adjustable in code but no UI to change it.' },
           { label: 'Click Behaviors', what: 'Asset chip body click → open modal. X button click → remove from side.', source: 'asset-row onclick + event.target.closest(.asset-remove) check', values: '—', notes: 'No drag-and-drop on this page; chips are click-only.' },
           { label: 'Keyboard: Escape', what: 'Closes the player modal.', source: 'L3136 keydown listener', values: '—', notes: '—' },

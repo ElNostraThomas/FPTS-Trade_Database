@@ -50,6 +50,16 @@ To go deeper over time: drop the next export at `data/source/player_market_mvs.c
 - **Verify over HTTP** (`start.bat` → `http://localhost:8000/index.html`) — the archive is `fetch()`-loaded and CORS-blocked on `file://`. Recent Trades header should read ~16,764; Load-more appends 60 per click.
 - **push.bat workflow note:** `push.bat` `[0/5]` (`git pull --rebase`) requires a **clean tree** — it dirties the tree itself via the sync steps. If you hand-edit before running it, commit first or `git stash -u` (this session's push was done as a direct commit because the tree was pre-dirtied by the code edits).
 
+### Follow-on (same session): TEP value basis + Risers/Fallers polish
+
+Two more changes landed 2026-06-08 after the trade archive (the archive `ce6669c` + a `push.bat` data refresh are already **live on origin/main**; the two below were committed locally pending the user's push):
+
+1. **Player value is now tight-end-premium (TEP) site-wide.** `sync-mvs.py` sources every value-derived field (value, baseline, trend, sparkline history — both SF and 1QB, players + picks) from the CSV's `*_tep` columns instead of the plain `mvs_*` columns. Eight new `COL_*` constants at the top of `sync-mvs.py` make it a one-line revert (strip `_tep`). Regenerated `data/mvs.json` — e.g. Colston Loveland 3,929 → **4,945** (SF), 5,205 (1QB). TEP re-prices the whole market, not just TEs. `sync-mvs.py` is gitignored (local-only); only `data/mvs.json` is tracked.
+2. **Removed the trade calculator's TEP slider** (it would double-count now that TEP is in the base). Excised from `trade-calculator.html`: the `f-tep` dropdown UI, the `×(1 + tep·0.12)` TE term in `getMultiplier`, `_calcTep`, the `valueTep` branch in `_pickNumericValue`, the trade-list `t.tep` filter + chip + `tepLabels`, and `f-tep` from the preset/reset arrays. Docs synced (the in-app legend + formulas described the removed feature): `legend-content.js`, `formulas-content.js`, `docs/FORMULAS.md`. **Note:** the QB/PPR/PassTD multipliers in `getMultiplier` are untouched (a separate question — the base is format-specific via valueSf/value1qb, so those may also warrant review later, but were out of scope here).
+3. **Top Risers/Fallers rows** (`index.html`): single-line names with ellipsis, team logo moved left of the name, value stacked over the change pill on the right, fixed 40px row height — uniform list, names no longer truncate early (`15b5889`, committed local).
+
+**Cache tokens:** `data-bootstrap.js → 1796100000` (archive, already live); `legend-content.js` + `formulas-content.js → 1796200000` (TEP doc sync, this batch). Data JSONs (`mvs.json`, `trades.json`) reload fresh (no fixed token). **Audit:** `check-colors.py` CLEAN across 34 files.
+
 ---
 
 ## Where we are (end of 2026-06-07 — nineteenth session)
