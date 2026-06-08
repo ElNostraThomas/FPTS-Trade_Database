@@ -66,6 +66,7 @@
   if (!global.ADP_PAYLOAD)             global.ADP_PAYLOAD = null;
   if (!global.AUCTION_PAYLOAD)         global.AUCTION_PAYLOAD = null;
   if (!global.MVS_PAYLOAD)             global.MVS_PAYLOAD = null;
+  if (!global.TRADES_ARCHIVE)          global.TRADES_ARCHIVE = null;
   if (!global.PLAYER_ARTICLES)         global.PLAYER_ARTICLES = {};
   if (!global.PICK_AVAILABILITY)       global.PICK_AVAILABILITY = {};
   if (!global.PICK_AVAILABILITY_META)  global.PICK_AVAILABILITY_META = null;
@@ -319,6 +320,13 @@
     return skip.has(name) ? Promise.resolve(null) : _fetchJson(path);
   }
 
+  // The accumulating trade archive (data/trades.json) is HEAVY (~7 MB) and only
+  // the trade DB (index.html) renders it. Fetch it ONLY on that page (or when a
+  // page explicitly opts in via FPTS_DATA_OPTS.trades) so every other page skips
+  // the download entirely. _maybe() returns Promise<null> when not requested, so
+  // the destructure position below stays stable.
+  const wantTrades = opts.trades === true || global.FPTS_CURRENT_PAGE === 'db';
+
   const ready = Promise.all([
     _maybe('values',            'data/values.json'),
     _maybe('adp',               'data/adp.json'),
@@ -329,8 +337,13 @@
     _maybe('pick-availability', 'data/pick-availability.json'),
     _maybe('stats',             'data/stats.json'),
     _maybe('tiers',             'data/tiers.json'),
+    wantTrades ? _fetchJson('data/trades.json') : Promise.resolve(null),
   ]).then(function (results) {
-    const [values, adp, auction, picks, mvs, articles, pa, stats, tiers] = results;
+    const [values, adp, auction, picks, mvs, articles, pa, stats, tiers, trades] = results;
+
+    // Accumulating trade archive -> window.TRADES_ARCHIVE (consumed by
+    // index.html _buildTradesFromMvs). Shape: {tradeCount, trades:[...]}.
+    if (trades && Array.isArray(trades.trades)) global.TRADES_ARCHIVE = trades;
 
     // Apply in canonical order:
     //   1. values  — seeds FP_VALUES with all players

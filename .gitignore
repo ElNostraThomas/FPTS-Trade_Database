@@ -8,6 +8,7 @@ import-tat.py
 sync-fp.py
 sync-adp.py
 sync-mvs.py
+sync-trades.py
 sync-rankings.py
 sync-analysts.py
 sync-stats.py

@@ -538,6 +538,16 @@
      k,pick} also stay — they're used across the page, not just inside the
      panel. */
   .trade-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 12px; }
+  /* Recent Trades pagination — the trade archive is ~16k+ deep, so the list
+     renders a page at a time with this Load-more control. */
+  .recent-loadmore-wrap { display: flex; align-items: center; justify-content: center; padding: 22px 0 6px; }
+  .recent-loadmore-btn { font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 15px;
+    background: var(--red); color: var(--black); border: none; cursor: pointer;
+    padding: 11px 26px; border-radius: 7px; display: inline-flex; align-items: baseline; gap: 9px;
+    transition: filter .12s ease, transform .12s ease; }
+  .recent-loadmore-btn:hover { filter: brightness(1.08); transform: translateY(-1px); }
+  .recent-loadmore-sub { font-weight: 700; font-style: normal; font-size: 11px; color: rgba(17,17,17,.72); }
+  .recent-count-note { font-family: 'Kanit', sans-serif; font-weight: 700; font-style: italic; font-size: 13px; color: rgba(255,255,255,.6); }
   .pos-badge { font-family: 'Kanit', sans-serif; font-weight: 800; font-style: normal; font-size: 12px; padding: 2px 7px; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; text-align: center; }
   .pos-wr { background: var(--pos-wr-bg); color: var(--pos-wr); }
   .pos-rb { background: var(--pos-rb-bg); color: var(--pos-rb); }
@@ -997,7 +1007,7 @@
 <!-- Shared data layer: fetches data/*.json, populates FP_VALUES / PICK_VALUES /
      ADP_PAYLOAD / AUCTION_PAYLOAD / MVS_PAYLOAD / PLAYER_ARTICLES /
      PICK_AVAILABILITY, then fires 'fpts:data-ready'. -->
-<script src="assets/js/data-bootstrap.js?v=1791500000"></script>
+<script src="assets/js/data-bootstrap.js?v=1796100000"></script>
 <!-- Trade engine + scoring overlay + projection math. Powers the player drawer's
      Stats tab fantasyPts column on every page (adjustStatsForLeague applies the
      PPR / TEP / PPC / pass-TD overlay to data-suite stat lines). -->
@@ -2408,17 +2418,45 @@ function resetFilters() {
   applyFilters();
 }
 
+// The trade archive is ~16k+ deep, so Recent Trades renders one page at a time.
+// Each filter change re-renders from page 1; "Load more" appends the next slice
+// (insertAdjacentHTML, no full re-render) so deep paging stays cheap.
+const RECENT_PAGE_SIZE = 60;
+
+function _recentLoadMoreHtml() {
+  const total = (window._recentSorted || []).length;
+  const shown = window._recentShown || 0;
+  if (shown >= total) {
+    return `<div class="recent-loadmore-wrap"><span class="recent-count-note">Showing all ${total.toLocaleString()} trades</span></div>`;
+  }
+  return `<div class="recent-loadmore-wrap"><button type="button" class="recent-loadmore-btn" onclick="loadMoreRecent()">Load more<span class="recent-loadmore-sub">${shown.toLocaleString()} of ${total.toLocaleString()}</span></button></div>`;
+}
+
+function loadMoreRecent() {
+  const sorted = window._recentSorted;
+  const grid = document.getElementById("recent-trade-grid");
+  if (!sorted || !grid) return;
+  const next = Math.min((window._recentShown || 0) + RECENT_PAGE_SIZE, sorted.length);
+  grid.insertAdjacentHTML('beforeend', sorted.slice(window._recentShown, next).map(t => tradeCardHtml(t)).join(""));
+  window._recentShown = next;
+  const wrap = grid.parentNode.querySelector('.recent-loadmore-wrap');
+  if (wrap) wrap.outerHTML = _recentLoadMoreHtml();
+}
+
 function renderRecent() {
   if(!filtered.length){document.getElementById("tab-recent").innerHTML=`<div class="no-results">No trades match these filters</div>`;return;}
   // _buildTradesFromMvs() already sorts newest-first by date. Sort defensively
   // here too (in case applyFilters() ever reorders) so the rendered list is
-  // guaranteed newest → oldest regardless of upstream order.
-  const sorted = [...filtered].sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+  // guaranteed newest → oldest regardless of upstream order. Stash on window so
+  // loadMoreRecent() can append later slices without re-filtering/re-sorting.
+  window._recentSorted = [...filtered].sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+  window._recentShown = Math.min(RECENT_PAGE_SIZE, window._recentSorted.length);
   document.getElementById("tab-recent").innerHTML=
     `<div class="section-hdr"><span class="section-num">01</span><span class="section-title">Recent Trades</span></div>
-     <div class="trade-grid">`+
-    sorted.map(t => tradeCardHtml(t)).join("")+
-    `</div>`;
+     <div class="trade-grid" id="recent-trade-grid">`+
+    window._recentSorted.slice(0, window._recentShown).map(t => tradeCardHtml(t)).join("")+
+    `</div>`+
+    _recentLoadMoreHtml();
 }
 
 // ─── EXPANDABLE ROWS for Most Traded sections (02/02B/03/03B) ─────────────
@@ -5865,60 +5903,74 @@ function renderAssetFilterTags(){renderTradeSideTags("a");renderTradeSideTags("b
     if (m) return { year: m[1], round: parseInt(m[2]), slot: null };
     return null;
   }
-  function _buildTradesFromMvs() {
-    if (typeof window.MVS_PAYLOAD === 'undefined' || !window.MVS_PAYLOAD.players) {
-      return [];
-    }
-    const seen = new Set();
-    const out  = [];
-    Object.values(window.MVS_PAYLOAD.players).forEach(p => {
-      (p.recentTrades || []).forEach(t => {
-        const id = t.transaction_id || `${t.date}|${(t.sides||[]).map(s=>(s.assets||[]).map(a=>a.name).join(',')).join('|')}`;
-        if (seen.has(id)) return;
-        seen.add(id);
-        const players = [];
-        const picks   = [];
-        // Track assets per-side so we can drop trades where one whole side
-        // ended up empty after filtering null-name assets — those render as
-        // useless "—" placeholder cards.
-        const sideAssetCounts = [0, 0];
-        (t.sides || []).forEach((side, idx) => {
-          const team = idx === 0 ? 'A' : 'B';
-          (side.assets || []).forEach(a => {
-            // Defensive: MVS trade rows occasionally carry an asset without
-            // a name (upstream scrape couldn't resolve a transferred player /
-            // pick). Skip those so downstream renderers + search helpers
-            // never see undefined .name and don't blow up on .toLowerCase()
-            // or .replace().
-            if (!a || a.name == null || String(a.name).trim() === '') return;
-            const name = String(a.name);
-            const pos  = String(a.position || '');
-            if (a.isPick || pos === 'PICK') {
-              const parsed = _parseMvsPickLabel(name);
-              picks.push(Object.assign({ to: team, from: 'TBD', label: name, mvs: a.mvs }, parsed || { year: null, round: null, slot: null }));
-            } else {
-              players.push({ name, pos, to: team, mvs: a.mvs });
-            }
-            if (idx < 2) sideAssetCounts[idx]++;
-          });
-        });
-        // Skip trades where one side has zero assets after filtering — those
-        // are useless empty cards. Real trades always have at least one
-        // resolved asset on each side; null-everywhere rows are upstream
-        // scraping gaps.
-        if (sideAssetCounts[0] === 0 || sideAssetCounts[1] === 0) return;
-        out.push({
-          id:           id,
-          date:         (t.date || '').slice(0, 10),
-          qb:           t.format || 'sf',
-          players,
-          picks,
-          // Not in CSV — leave null so applyFilters() can wildcard them.
-          week: null, starters: null, teams_count: null, tep: null,
-          ppr: null, passtd: null, roster: null, faab: null,
-        });
+  // Normalize ONE raw trade record into the legacy {id,date,qb,players[],picks[]}
+  // card shape and push it onto `out`. Dedupes by transaction_id via `seen` (a
+  // trade appears under every participating player in the MVS path, and may also
+  // live in the archive). Skips dupes + one-sided rows. Shared by both sources
+  // below so archive trades and MVS recentTrades normalize identically.
+  function _normalizeTradeRecord(t, seen, out) {
+    const id = t.transaction_id || `${t.date}|${(t.sides||[]).map(s=>(s.assets||[]).map(a=>a.name).join(',')).join('|')}`;
+    if (seen.has(id)) return;
+    seen.add(id);
+    const players = [];
+    const picks   = [];
+    // Track assets per-side so we can drop trades where one whole side
+    // ended up empty after filtering null-name assets — those render as
+    // useless "—" placeholder cards.
+    const sideAssetCounts = [0, 0];
+    (t.sides || []).forEach((side, idx) => {
+      const team = idx === 0 ? 'A' : 'B';
+      (side.assets || []).forEach(a => {
+        // Defensive: trade rows occasionally carry an asset without a name
+        // (upstream scrape couldn't resolve a transferred player / pick).
+        // Skip those so downstream renderers + search helpers never see
+        // undefined .name and don't blow up on .toLowerCase() or .replace().
+        if (!a || a.name == null || String(a.name).trim() === '') return;
+        const name = String(a.name);
+        const pos  = String(a.position || '');
+        if (a.isPick || pos === 'PICK') {
+          const parsed = _parseMvsPickLabel(name);
+          picks.push(Object.assign({ to: team, from: 'TBD', label: name, mvs: a.mvs }, parsed || { year: null, round: null, slot: null }));
+        } else {
+          players.push({ name, pos, to: team, mvs: a.mvs });
+        }
+        if (idx < 2) sideAssetCounts[idx]++;
       });
     });
+    // Skip trades where one side has zero assets after filtering — those are
+    // useless empty cards. Real trades always have at least one resolved asset
+    // on each side; null-everywhere rows are upstream scraping gaps.
+    if (sideAssetCounts[0] === 0 || sideAssetCounts[1] === 0) return;
+    out.push({
+      id:           id,
+      date:         (t.date || '').slice(0, 10),
+      qb:           t.format || 'sf',
+      players,
+      picks,
+      // Not in CSV — leave null so applyFilters() can wildcard them.
+      week: null, starters: null, teams_count: null, tep: null,
+      ppr: null, passtd: null, roster: null, faab: null,
+    });
+  }
+
+  function _buildTradesFromMvs() {
+    const seen = new Set();
+    const out  = [];
+    // PRIMARY source — the accumulating trade archive (data/trades.json), the
+    // full-depth DB that grows with every export (~16k+ trades). Loaded only on
+    // this page (gated by FPTS_CURRENT_PAGE==='db' in data-bootstrap.js).
+    const arch = window.TRADES_ARCHIVE;
+    if (arch && Array.isArray(arch.trades)) {
+      arch.trades.forEach(t => _normalizeTradeRecord(t, seen, out));
+    }
+    // SUPPLEMENT — MVS per-player recentTrades. Catches any very-fresh trade not
+    // yet folded into the archive, and is the SOLE source if the archive failed
+    // to load (offline / fetch error). Deduped against the archive by id.
+    if (window.MVS_PAYLOAD && window.MVS_PAYLOAD.players) {
+      Object.values(window.MVS_PAYLOAD.players).forEach(p => {
+        (p.recentTrades || []).forEach(t => _normalizeTradeRecord(t, seen, out));
+      });
+    }
     out.sort((a, b) => (a.date < b.date ? 1 : -1));
     return out;
   }

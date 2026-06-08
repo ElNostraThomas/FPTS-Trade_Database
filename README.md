@@ -13,6 +13,45 @@ This file is the **resume-where-we-left-off** doc.
 
 ---
 
+## Where we are (end of 2026-06-08 — twentieth session)
+
+**Accumulating trade archive — the trade DB now keeps ALL history (16,785 trades) instead of just the latest rolling window.** New deep-trade subsystem decoupled from the value export, so future refreshes *grow* the DB instead of replacing it.
+
+### The problem this fixes
+
+The trade DB's `TRADES` array was built entirely from `MVS_PAYLOAD.players.*.recentTrades` — i.e. trades rode inside the value export (`data/source/player_market_mvs.csv` → `sync-mvs.py` → `data/mvs.json`). That column is a **rolling ~30-trades-per-player window**, and `sync-mvs.py` further truncated to `TRADES_KEEP = 3`. So every fresh export **dropped** older trades. Concretely, the new June-8 export carried 10,143 trades but had **lost 6,642** that the May-29 export still held — a normal `sync-mvs` run would have *shrunk* trade history.
+
+### The fix — `data/trades.json`, an additive archive keyed by `transaction_id`
+
+- **`sync-trades.py`** (new, local-only / gitignored like the other `sync-*.py`): reads whatever `recent_trades` the current CSV carries and **unions** them into `data/trades.json` by `transaction_id`. Purely additive — it **aborts (non-zero exit) if the count would ever shrink**, so history can't be lost. Trims each trade to `{transaction_id, date, format, sides[].assets[]{name,position,isPick,mvs}}` (drops `baseline`) to stay lean.
+- **`data/trades.json`** (new, **tracked/committed**): the archive. Seeded this session by running `sync-trades.py` against the OLD CSV first (captured 9,823) then the NEW CSV (unioned +6,962) = **16,785 unique trades**, spanning **2026-01-01 → 2026-06-08**. ~7 MB on disk (~1–1.5 MB gzipped; GitHub Pages serves compressed).
+- **`data-bootstrap.js`**: fetches `data/trades.json` → `window.TRADES_ARCHIVE`, **only on the trade-DB page** (gated `opts.trades === true || FPTS_CURRENT_PAGE === 'db'`) so no other page pays the 7 MB download. Added to the globals-init block + the `Promise.all` (appended last so positional destructure is stable).
+- **`index.html`**: `_buildTradesFromMvs` refactored — the per-trade normalization moved into shared `_normalizeTradeRecord(t, seen, out)`, fed FIRST from `window.TRADES_ARCHIVE` (full depth) then SUPPLEMENTED by the MVS per-player path (catches any trade fresher than the last archive build; sole source if the archive fails to load). Same dedup-by-`transaction_id` + drop-one-sided-rows behavior as before. Net on-page count: **16,764** valid trades (16,785 − 21 one-sided rows).
+- **`renderRecent` — Load-more pagination** (required: the list is now 10× bigger). Renders `RECENT_PAGE_SIZE = 60` at a time into `#recent-trade-grid`; `loadMoreRecent()` appends the next slice via `insertAdjacentHTML` (no full re-render) and refreshes the button (`Load more — N of 16,764` → `Showing all N trades`). Filters/search still span the entire archive. New brand CSS `.recent-loadmore-*` (red fill, black text per doctrine).
+- **`push.bat`**: new `[3c/5]` step runs `sync-trades.py` right after the MVS sync, so every deploy accumulates automatically. (Local-only file; not committed.)
+
+### Two-source trade model (durable for future sessions)
+
+The trade DB now reads from **two** sources, deduped by `transaction_id` in `_normalizeTradeRecord`:
+1. **`window.TRADES_ARCHIVE`** (`data/trades.json`) — the deep, accumulating history. PRIMARY.
+2. **`MVS_PAYLOAD.players.*.recentTrades`** (`data/mvs.json`) — the latest rolling window. SUPPLEMENT / fallback.
+
+To go deeper over time: drop the next export at `data/source/player_market_mvs.csv` and run `push.bat` — `[3c/5]` folds net-new trades in. To capture a CSV's trades *before* overwriting it, run `python sync-trades.py` first (that's how this session seeded both the old + new export without losing the 6,642).
+
+### Cache tokens at session close
+
+- `data-bootstrap.js ?v=1791500000 → ?v=1796100000` (10 consumers: all pages that load it + `templates/page-template.html`; formulas.html doesn't load it)
+- `index.html` inline CSS/JS — page-local, no shared token
+- `data/mvs.json` + `data/source/player_market_mvs.csv` refreshed to the 2026-06-08 export alongside the trade seed
+
+### Notes
+
+- **Audit:** `python scripts/check-colors.py` — CLEAN across 34 files.
+- **Verify over HTTP** (`start.bat` → `http://localhost:8000/index.html`) — the archive is `fetch()`-loaded and CORS-blocked on `file://`. Recent Trades header should read ~16,764; Load-more appends 60 per click.
+- **push.bat workflow note:** `push.bat` `[0/5]` (`git pull --rebase`) requires a **clean tree** — it dirties the tree itself via the sync steps. If you hand-edit before running it, commit first or `git stash -u` (this session's push was done as a direct commit because the tree was pre-dirtied by the code edits).
+
+---
+
 ## Where we are (end of 2026-06-07 — nineteenth session)
 
 **Cross-league "My Trades" sidebar tab on My Leagues, a shared trade-card refactor, + a per-team filter on the per-league Trade History.** Three commits, all live: `21202b8` (My Trades sidebar), `7130bfc` (handoff doc), `de9b6fe` (per-team filter).
