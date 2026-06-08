@@ -114,13 +114,15 @@
     return groups;
   }
 
-  // Ordered list of {session, items} — sessions[] order first, then any leftover
-  // ids (incl. '_unmapped') appended so nothing is dropped.
+  // Ordered list of {session, items} — EVERY session in sessions[] (in order),
+  // even those with no formulas (they render as description-only update nodes),
+  // then any leftover group ids (incl. '_unmapped') appended so nothing drops.
   function orderedSessions(content, groups) {
     var out = [];
     var seen = {};
     (content.sessions || []).forEach(function (s) {
-      if (groups[s.id] && groups[s.id].length) { out.push({ session: s, items: groups[s.id] }); seen[s.id] = 1; }
+      out.push({ session: s, items: groups[s.id] || [] });
+      seen[s.id] = 1;
     });
     Object.keys(groups).forEach(function (sid) {
       if (seen[sid]) return;
@@ -132,17 +134,23 @@
 
   function renderSessionNode(group) {
     var s = group.session;
+    var n = group.items.length;
     var cards = group.items.map(function (it) { return renderEntry(it.entry, it.domain); }).join('');
+    // Count pill when this update has formulas; a muted "update" pill when it
+    // is a description-only node (a shipped change with no formula of its own).
+    var countPill = n
+      ? '<span class="fm-session-count">' + n + ' formula' + (n !== 1 ? 's' : '') + '</span>'
+      : '<span class="fm-session-count fm-session-count--note">update</span>';
     var head = '<div class="fm-session-head">'
              +   (s.dateLabel ? '<span class="fm-session-date">' + esc(s.dateLabel) + '</span>' : '')
              +   (s.tag ? '<span class="fm-session-tag">' + esc(s.tag) + '</span>' : '')
              +   '<div class="fm-session-title">' + esc(s.title || s.id) + '</div>'
-             +   '<span class="fm-session-count">' + group.items.length + '</span>'
+             +   countPill
              + '</div>';
     var blurb = s.blurb ? '<div class="fm-session-blurb">' + esc(s.blurb) + '</div>' : '';
-    return '<section class="fm-session" id="session-' + esc(s.id) + '" data-session="' + esc(s.id) + '">'
-         +   head + blurb
-         +   '<div class="fm-session-body">' + cards + '</div>'
+    var body = n ? '<div class="fm-session-body">' + cards + '</div>' : '';
+    return '<section class="fm-session' + (n ? '' : ' fm-session--note') + '" id="session-' + esc(s.id) + '" data-session="' + esc(s.id) + '">'
+         +   head + blurb + body
          + '</section>';
   }
 

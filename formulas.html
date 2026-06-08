@@ -30,8 +30,8 @@
 <script src="assets/js/legend.js?v=1778949514"></script>
 
 <!-- Page content (structured data + renderer) -->
-<script src="assets/js/formulas-content.js?v=1796400000"></script>
-<script src="assets/js/formulas.js?v=1796400000" defer></script>
+<script src="assets/js/formulas-content.js?v=1796600000"></script>
+<script src="assets/js/formulas.js?v=1796600000" defer></script>
 
 <style>
   /* ════════════════════════════════════════════════════════════════════════
@@ -314,6 +314,15 @@
     opacity: .8; line-height: 1.5; margin: 4px 0 14px; max-width: 880px;
   }
   .fm-session-body { display: flex; flex-direction: column; gap: 12px; padding-bottom: 22px; }
+  /* Description-only update nodes (a shipped change with no formula of its own)
+     read lighter so formula-bearing updates stand out. */
+  .fm-session--note { padding-bottom: 4px; }
+  .fm-session--note .fm-session-title { font-size: 16px; opacity: .9; }
+  .fm-session--note .fm-session-head::before { background: var(--border2); }
+  .fm-session-count--note {
+    background: transparent; border-color: transparent; color: var(--muted);
+    opacity: .55; text-transform: uppercase; letter-spacing: .06em; font-size: 9px;
+  }
 
   /* Formula cards inside a session node (override the flat list .fm-entry). */
   .fm-session-body .fm-entry {

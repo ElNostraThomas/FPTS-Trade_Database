@@ -40,20 +40,47 @@ window.FormulasContent = {
   // entries that were changed in a LATER update (e.g. the TEP removal), so a
   // formula always appears under its proper update. FIRST-PASS MAPPING — refine
   // freely; the renderer reads these three keys and ignores the rest.
+  // Every pushed session (newest first), from docs/CHANGES.md + the README
+  // handoffs. Formula-bearing sessions also collect cards (via domainSessions /
+  // entrySessions below); the rest render as description-only update nodes so
+  // the timeline is a complete record of what shipped.
   sessions: [
-    { id: 's20',        date: '2026-06-08', dateLabel: 'Jun 8, 2026',  tag: 'S20',  title: 'TEP value basis + trade depth',        blurb: 'Tight-end premium is now baked into every value site-wide (sync-mvs reads the *_tep columns); the trade calculator\'s redundant TEP multiplier was removed. Also: the accumulating trade archive deepened the database to ~16.8k trades.' },
+    { id: 's20',        date: '2026-06-08', dateLabel: 'Jun 8, 2026',  tag: 'S20',  title: 'TEP value basis + trade depth',         blurb: 'Tight-end premium is now baked into every value site-wide (sync-mvs reads the *_tep columns); the trade calculator\'s redundant TEP multiplier was removed. Also: the accumulating trade archive deepened the database to ~16.8k trades, and the Top Risers/Fallers rows + Legend/Formulas docs were restyled.' },
+    { id: 's19',        date: '2026-06-07', dateLabel: 'Jun 7, 2026',  tag: 'S19',  title: 'My Leagues — cross-league trades',      blurb: 'A cross-league "My Trades" sidebar tab pooling every trade you were a side of across all your leagues, plus a per-team filter on each league\'s Trade History.' },
+    { id: 's18',        date: '2026-06-02', dateLabel: 'Jun 2, 2026',  tag: 'S18',  title: 'OBS zoom rewrite + ADP RDP fix',        blurb: 'Rewrote the OBS Browser-Source zoom widget (fit-to-screen at 100% + a floating horizontal scrollbar), fixed the ADP Picks-view rookie-pick (RDP) two-gate filter, and validated 5 years of picks-vs-rookies consistency.' },
+    { id: 's17',        date: '2026-05-29', dateLabel: 'May 29, 2026', tag: 'S17',  title: '12-tier DPP ladder + MVS refresh',      blurb: 'Tiers collapsed to the DPP 12-tier value ladder (S++ … C−), mirrored from the FPTS-Tiers-Standalone fork as the single source of truth; plus a full MVS trade-value refresh.' },
+    { id: 's16',        date: '2026-05-23', dateLabel: 'May 23, 2026', tag: 'S16',  title: 'Mock + live-draft card parity',         blurb: 'Brought the mock-draft and live-draft pick cards to ADP-card parity (headshot + team coins, an above/below-ADP delta chip), closed the punch list, and documented the Admin Scratchpad in the legend.' },
+    { id: 's15',        date: '2026-05-22', dateLabel: 'May 22, 2026', tag: 'S15',  title: 'Admin scratchpad hardening',            blurb: 'Stale-CSV publish defense, a publish dry-run / diff preview, tier-section drag (Phase 5), the rank-history lookback surface, a values-supplement layer, and 17 tier-name canonicalizations.' },
+    { id: 's14',        date: '2026-05-22', dateLabel: 'May 22, 2026', tag: 'S14',  title: 'Admin scratchpad — tier editing',       blurb: 'The in-page admin tier editor: a password gate + one-click GitHub publish, add/remove players, tier rename + reorder (Phase 3), and drag-and-drop player reordering within a tier (Phase 4).' },
     { id: 's13',        date: '2026-05-21', dateLabel: 'May 21, 2026', tag: 'S13',  title: 'Mock Draft simulator',                  blurb: 'AI-personality mock-draft engine — per-archetype pick logic with value vs. need weighting.' },
+    { id: 's12',        date: '2026-05-20', dateLabel: 'May 20, 2026', tag: 'S12',  title: 'OBS polish + doctrine inversion',       blurb: 'OBS readability polish and the branding doctrine inversion (white → black text on bright fills), plus the compare-page closeout.' },
+    { id: 's11',        date: '2026-05-20', dateLabel: 'May 20, 2026', tag: 'S11',  title: 'OBS readability overhaul',              blurb: 'Site-wide UI overhaul for OBS Browser-Source readability — adaptive zoom, an auto-fitting topnav, and lifted side margins.' },
     { id: 's10',        date: '2026-05-20', dateLabel: 'May 20, 2026', tag: 'S10',  title: 'Player Comparison page',                blurb: 'Side-by-side player comparison with tier + value coloring.' },
+    { id: 's09',        date: '2026-05-19', dateLabel: 'May 19, 2026', tag: 'S9',   title: 'Custom combobox + ML cleanup',          blurb: 'A site-wide custom <select> wrapper for OBS/CEF compatibility (native popups do not render in iframes) and a my-leagues inline-style cleanup marathon.' },
+    { id: 's08',        date: '2026-05-19', dateLabel: 'May 19, 2026', tag: 'S8',   title: 'Drift cleanup + OBS compat suite',      blurb: 'Final CSS-drift cleanup, the OBS compatibility suite (iframe scroll-fix + back-to-top), and assorted UX features.' },
     { id: 's07',        date: '2026-05-18', dateLabel: 'May 18, 2026', tag: 'S7',   title: 'Live Draft + data-suite stats',         blurb: 'Per-season stat scoring, Sleeper league-format detection (PPR / TEP / pass-TD), and the lineup optimizer.' },
+    { id: 's06',        date: '2026-05-17', dateLabel: 'May 17, 2026', tag: 'S6',   title: 'Mobile-first refactor (phases 1–2C)',   blurb: 'Overnight autonomous mobile-first refactor — phases 1, 2A, 2B+, and 2C.' },
+    { id: 's05',        date: '2026-05-17', dateLabel: 'May 17, 2026', tag: 'S5',   title: 'Mobile-first foundation',               blurb: 'Mobile-first refactor Phase 0 — the responsive foundation + doctrine.' },
+    { id: 's04',        date: '2026-05-17', dateLabel: 'May 17, 2026', tag: 'S4',   title: 'Mobile fixes',                          blurb: 'Nav sync, compare-search overlap, hero reflow, and analyst-table fit fixes.' },
+    { id: 's03',        date: '2026-05-17', dateLabel: 'May 17, 2026', tag: 'S3',   title: 'brand.css migration',                   blurb: 'Punch-list close-out — canonical brand.css migration and dead-token cleanup.' },
+    { id: 's02',        date: '2026-05-17', dateLabel: 'May 17, 2026', tag: 'S2',   title: 'Alignment audit + weekly stats',        blurb: 'Site-wide alignment audit, branding consistency, governance, and the weekly-stats addition (9 commits).' },
     { id: 's01',        date: '2026-05-17', dateLabel: 'May 17, 2026', tag: 'S1',   title: 'Formulas page + trade calculator',      blurb: 'The trade-value multipliers, balance math, the magic-numbers glossary, and the open-heuristics review list.' },
-    { id: 's-rankings', date: '2026-05-16', dateLabel: 'May 16, 2026', tag: 'RANK', title: 'Rankings + analyst comparison',         blurb: 'Consensus rankings and per-analyst rank backfill.' },
-    { id: 's-ml',       date: '2026-05-13', dateLabel: 'May 13, 2026', tag: 'ML',   title: 'My Leagues analysis suite',             blurb: 'Team analysis, trade tools, and performance + waiver math.' },
-    { id: 's-panel',    date: '2026-05-12', dateLabel: 'May 12, 2026', tag: 'PNL',  title: 'Shared player panel + Tiers',           blurb: 'Age curves, buy/sell signals, tier assignment, and trade-volume signals.' },
-    { id: 's-pipeline', date: '2026-05-11', dateLabel: 'May 11, 2026', tag: 'DATA', title: 'Dynasty ADP / data pipeline',           blurb: 'The ADP heatmap and the sync pipeline that feeds every value on the site.' },
+    { id: 's-rankings', date: '2026-05-16', dateLabel: 'May 16, 2026', tag: 'RANK', title: 'Rankings + analyst comparison',         blurb: 'The Rankings page — consensus rankings and per-analyst rank backfill, plus a brand color audit.' },
+    { id: 's-0516b',    date: '2026-05-16', dateLabel: 'May 16, 2026', tag: 'TIER', title: 'Tiers ADP columns + calendar',          blurb: 'The Tiers page gained ADP-comparison columns and a calendar popup date picker (2022–2026).' },
+    { id: 's-0516a',    date: '2026-05-16', dateLabel: 'May 16, 2026', tag: 'LEG',  title: 'Legend system (Phase A)',               blurb: 'The in-app Legend drawer with dev-grade algorithm documentation.' },
+    { id: 's-0515',     date: '2026-05-15', dateLabel: 'May 15, 2026', tag: 'MOB',  title: 'Mobile Round 2 + pick modal',           blurb: 'Mobile round 2 (sub-plans A–E), theme polish, and pick-modal wiring.' },
+    { id: 's-0514b',    date: '2026-05-14', dateLabel: 'May 14, 2026', tag: 'ADP',  title: 'ADP year picker + team coins',          blurb: 'An ADP year picker, team-logo coins, and many polishes.' },
+    { id: 's-0514a',    date: '2026-05-14', dateLabel: 'May 14, 2026', tag: 'ROLL', title: 'Silhouette fallback + rollover',        blurb: 'The headshot silhouette-fallback rule and the season-rollover trigger.' },
+    { id: 's-0513d',    date: '2026-05-13', dateLabel: 'May 13, 2026', tag: 'ROOK', title: 'Dynasty Rookie ADP tab',                blurb: 'Added the Dynasty Rookie ADP tab.' },
+    { id: 's-0513c',    date: '2026-05-13', dateLabel: 'May 13, 2026', tag: 'LOGO', title: 'Team logos + palette + zoom',           blurb: 'Team logos everywhere, a softer palette, and the 125% body-zoom desktop default.' },
+    { id: 's-0513b',    date: '2026-05-13', dateLabel: 'May 13, 2026', tag: 'HEAT', title: 'Picks bucket fix + RDP heatmap',        blurb: 'A picks-bucket fix, the RDP pick-availability heatmap, and scaffolding for new pages.' },
+    { id: 's-ml',       date: '2026-05-13', dateLabel: 'May 13, 2026', tag: 'ML',   title: 'My Leagues analysis suite',             blurb: 'My Leagues moved onto the shared drawer; team analysis, trade tools, and performance + waiver math.' },
+    { id: 's-panel',    date: '2026-05-12', dateLabel: 'May 12, 2026', tag: 'PNL',  title: 'Shared player panel',                   blurb: 'The shared player-panel module, the ADP tool, the Tiers modal — age curves, buy/sell signals, and trade-volume signals.' },
+    { id: 's-pipeline', date: '2026-05-11', dateLabel: 'May 11, 2026', tag: 'DATA', title: 'Dynasty ADP / data pipeline',           blurb: 'The dynasty ADP / auction / heatmap pipeline and the sync layer that feeds every value on the site.' },
   ],
   domainSessions: {
     'trade-values': 's01', 'magic-numbers': 's01', 'open-heuristics': 's01',
-    'player-signals': 's-panel', 'age-curve': 's-panel', 'tiers': 's-panel',
+    'player-signals': 's-panel', 'age-curve': 's-panel', 'tiers': 's17',
     'per-season-stats': 's07', 'league-format': 's07', 'lineup-optimizer': 's07',
     'team-analysis': 's-ml', 'trade-tools': 's-ml', 'perf-waivers': 's-ml',
     'adp-heatmap': 's-pipeline', 'sync-pipeline': 's-pipeline',
