@@ -55,39 +55,53 @@
 
 .lg-content { flex: 1; overflow-y: auto; padding: 20px 24px 80px; }
 
-.lg-header { margin-bottom: 14px; padding-bottom: 14px; border-bottom: 1px solid var(--border); }
+/* ── Timeline-card layout ("New Features" aesthetic, 2026-06-08) ───────────
+   Header is a banner with a red top accent; sections are timeline nodes on a
+   continuous left rail (each section's left border forms the rail); items are
+   cards with a colour-cycled left accent for a lively, scannable feel. */
+.lg-header {
+  position: relative;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-top: 3px solid var(--red);
+  padding: 16px 18px;
+  margin-bottom: 18px;
+}
 .lg-title {
   font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
-  font-size: 22px; color: var(--white); text-transform: uppercase; letter-spacing: .02em;
-  line-height: 1.1;
+  font-size: 24px; color: var(--white); text-transform: uppercase; letter-spacing: .02em;
+  line-height: 1.05;
 }
 .lg-title-sub { color: var(--red); font-size: 16px; }
 .lg-blurb {
   margin-top: 8px;
   font-family: 'Mulish', sans-serif; font-size: 13px; color: var(--white);
-  opacity: .8; line-height: 1.45;
+  opacity: .8; line-height: 1.5;
 }
 
+/* Sections = timeline groups. The 2px left border is the continuous rail; the
+   node dot straddles it and a chevron on the right shows collapse state. */
+.lg-body { padding-left: 4px; }
 .lg-section {
-  border-bottom: 1px solid var(--border);
+  position: relative;
+  border-left: 2px solid var(--border2);
+  padding-left: 22px;
   background: transparent;
 }
-.lg-section[open] { background: rgba(255,255,255,.015); }
 .lg-section-head {
-  list-style: none; cursor: pointer;
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 12px 0;
+  list-style: none; cursor: pointer; position: relative;
+  display: flex; align-items: center; gap: 10px;
+  padding: 14px 0 12px;
 }
 .lg-section-head::-webkit-details-marker { display: none; }
-.lg-section-head::marker { display: none; }
+.lg-section-head::marker { content: ''; }
 .lg-section-head::before {
-  content: '▸';
-  display: inline-block;
-  color: var(--red); margin-right: 8px;
-  font-size: 12px;
-  transition: transform .15s;
+  content: ''; position: absolute;
+  left: -23px; top: 50%; transform: translateY(-50%);
+  width: 13px; height: 13px; border-radius: 50%;
+  background: var(--red);
+  box-shadow: 0 0 0 3px var(--surface);   /* cut the rail line behind the node */
 }
-.lg-section[open] > .lg-section-head::before { transform: rotate(90deg); }
 .lg-section-title {
   flex: 1;
   font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
@@ -96,48 +110,64 @@
 }
 .lg-section-count {
   font-family: 'Mulish', sans-serif; font-size: 10px; font-weight: 700;
-  color: var(--muted); opacity: .55;
+  color: var(--muted); opacity: .7;
   background: var(--surface2); border: 1px solid var(--border2);
-  padding: 2px 8px; min-width: 24px; text-align: center;
+  border-radius: 10px;
+  padding: 2px 9px; min-width: 22px; text-align: center;
 }
-.lg-section-body { padding: 4px 0 14px; }
+.lg-section-head::after {
+  content: '▸'; color: var(--red); font-size: 12px; flex-shrink: 0;
+  transition: transform .15s;
+}
+.lg-section[open] > .lg-section-head::after { transform: rotate(90deg); }
+.lg-section-body { padding: 2px 0 18px; display: flex; flex-direction: column; gap: 10px; }
 
+/* Items = cards with a colour-cycled left accent (brand position palette). */
 .lg-item {
-  border-left: 2px solid var(--border2);
-  padding: 8px 0 8px 12px; margin-bottom: 10px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--red);
+  padding: 11px 14px; margin: 0;
+  transition: transform .15s, border-color .15s;
 }
-.lg-item:hover { border-left-color: var(--red); }
+.lg-item:hover { transform: translateX(2px); border-color: var(--border2); }
+.lg-section-body .lg-item:nth-child(6n+2) { border-left-color: var(--pos-rb-bg); }
+.lg-section-body .lg-item:nth-child(6n+3) { border-left-color: var(--pos-wr-bg); }
+.lg-section-body .lg-item:nth-child(6n+4) { border-left-color: var(--pos-te-bg); }
+.lg-section-body .lg-item:nth-child(6n+5) { border-left-color: var(--pos-pick-bg); }
+.lg-section-body .lg-item:nth-child(6n+6) { border-left-color: var(--pos-qb-bg); }
 .lg-item-head {
   font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
-  font-size: 12px; color: var(--white); margin-bottom: 6px;
+  font-size: 13px; color: var(--white); margin-bottom: 8px;
   letter-spacing: .02em;
 }
-.lg-item-row { display: grid; grid-template-columns: 60px 1fr; gap: 8px; padding: 2px 0; }
+.lg-item-row { display: grid; grid-template-columns: 58px 1fr; gap: 8px; padding: 2px 0; }
 .lg-k {
   font-family: 'Mulish', sans-serif; font-size: 9px; font-weight: 800;
-  color: var(--muted); opacity: .55;
+  color: var(--muted); opacity: .6;
   text-transform: uppercase; letter-spacing: .07em; padding-top: 2px;
 }
 .lg-v {
   font-family: 'Mulish', sans-serif; font-size: 12px; color: var(--white);
-  line-height: 1.4;
+  line-height: 1.45;
 }
 .lg-mono {
   font-family: 'Consolas', 'Menlo', monospace;
-  font-size: 11px; color: var(--white); opacity: .85;
-  background: rgba(0,0,0,.25); padding: 2px 6px;
+  font-size: 11px; color: var(--white); opacity: .9;
+  background: rgba(0,0,0,.3); border-radius: 4px; padding: 2px 6px;
   word-break: break-word;
 }
 /* Worked-example block for algorithm entries — slightly accented so it
    reads as a self-contained "try it with real numbers" demo. */
 .lg-example {
   display: block;
-  background: rgba(237,129,12,.06);
-  border-left: 2px solid var(--red);
+  background: rgba(237,129,12,.08);
+  border-left: 2px solid var(--red); border-radius: 4px;
   padding: 8px 12px;
   font-size: 12px;
   line-height: 1.5;
   color: var(--white); opacity: .9;
+  white-space: pre-wrap;
 }
 
 /* ════════════════════════════════════════════════════════════════════════
@@ -182,12 +212,15 @@
 
   /* Content: tighter padding, smaller item-row column for narrow viewport. */
   .lg-content { padding: 14px 16px 90px; }
-  .lg-header { margin-bottom: 10px; padding-bottom: 10px; }
-  .lg-title { font-size: 18px; }
+  .lg-header { margin-bottom: 14px; padding: 13px 14px; }
+  .lg-title { font-size: 19px; }
   .lg-title-sub { font-size: 13px; }
   .lg-blurb { font-size: 12px; }
-  .lg-section-head { padding: 14px 0; min-height: 44px; }
+  .lg-section { padding-left: 18px; }
+  .lg-section-head { padding: 14px 0 12px; min-height: 44px; }
+  .lg-section-head::before { left: -19px; width: 11px; height: 11px; }
   .lg-section-title { font-size: 12px; }
+  .lg-item { padding: 10px 12px; }
   .lg-item-row { grid-template-columns: 52px 1fr; gap: 6px; }
   .lg-v { font-size: 11px; }
   .lg-mono { font-size: 10px; }

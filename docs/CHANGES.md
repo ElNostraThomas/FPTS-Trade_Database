@@ -95,15 +95,15 @@ If a sync run produces zero RDP entries in `picks_sf` despite a non-empty corpus
 
 ---
 
-## 2026-05-28→29 (seventeenth session) — 12-tier TAT ladder + standalone tier-sync, 2026 ADP refresh (both sites), MVS trade-value refresh
+## 2026-05-28→29 (seventeenth session) — 12-tier DPP ladder + standalone tier-sync, 2026 ADP refresh (both sites), MVS trade-value refresh
 
 Multi-part session; all committed + pushed. Main: `36be966..b63309c` (tiers + mirror + 2026 ADP + docs) then `b63309c..5d0d809` (MVS). Standalone: `de01a45..321b55f` (2026 ADP). `check-colors.py` CLEAN across 34 files.
 
-### Tiers → 12-tier TAT ladder + single-source-of-truth mirror
+### Tiers → 12-tier DPP ladder + single-source-of-truth mirror
 
-Collapsed the old 21-tier ladder (S++…F−) to TAT's **12-tier value ladder** (S++, S+, S, A+, A, A−, B+, B, B−, C+, C, C−), matching the `FPTS-Tiers-Standalone` fork. **The standalone is now the canonical tier source.** `push.bat` gained a `[3a]` step (local-only, like the other sync scripts) that `git pull`s the standalone and copies its `tiers.csv` + `tier-config.json` into this repo before `sync-tiers.py` (which auto-detects the TAT value-divider format). Main's `tiers.csv` is now byte-identical to the standalone's (200 players). **Edit tiers only on the standalone going forward** — the mirror clobbers main-side edits on the next deploy.
+Collapsed the old 21-tier ladder (S++…F−) to DPP's **12-tier value ladder** (S++, S+, S, A+, A, A−, B+, B, B−, C+, C, C−), matching the `FPTS-Tiers-Standalone` fork. **The standalone is now the canonical tier source.** `push.bat` gained a `[3a]` step (local-only, like the other sync scripts) that `git pull`s the standalone and copies its `tiers.csv` + `tier-config.json` into this repo before `sync-tiers.py` (which auto-detects the DPP value-divider format). Main's `tiers.csv` is now byte-identical to the standalone's (200 players). **Edit tiers only on the standalone going forward** — the mirror clobbers main-side edits on the next deploy.
 
-- Tier titles are hybrid (descriptor + TAT value, e.g. `S++ = "Cornerstone 3 Base 1sts (+/-)"`), admin-published and mirrored to both sites.
+- Tier titles are hybrid (descriptor + DPP value, e.g. `S++ = "Cornerstone 3 Base 1sts (+/-)"`), admin-published and mirrored to both sites.
 - `tiers.html` (12-tier `TIER_DESCRIPTIONS`/`TIER_ORDER`/`tierBadgeClass`; removed `.t-d*/.t-e*/.t-f*` CSS); `sync-tiers.py` (`VALID_TIERS` 21→12; `parse_tat_rows` now ignores the Recent Movement column → trending manual-only); `admin-tiers.js` (both 21-tier lists trimmed); `tier-config.json`. Cache bump `admin-tiers.js` + `formulas-content.js → ?v=1788000000`. Docs: `FORMULAS.md §17` + `formulas-content.js` (dual-sync).
 - **posRank NOT ported** — `applySleeperOverlay()` already overlays `posRank` from `values.json` client-side, so PRK already matched FP consensus. **No player data dropped** (D/E/F were empty scaffolding).
 - The combined main commit rebased over 2 upstream admin commits (`Jeremiyah Love S+→S` + a version bump); the standalone-canonical files won the conflict and Love stayed at S (already matched).

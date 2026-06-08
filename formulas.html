@@ -19,7 +19,7 @@
 <script src="assets/js/back-to-top.js?v=1782200000" defer></script>
 <!-- Custom <select> wrapper — OBS/CEF compat (native popups don't render in iframes). -->
 <script src="assets/js/custom-select.js?v=1782700000" defer></script>
-<link rel="stylesheet" href="assets/css/legend.css?v=1782600000">
+<link rel="stylesheet" href="assets/css/legend.css?v=1796300000">
 
 <script>
   window.FPTS_CURRENT_PAGE = 'formulas';
@@ -30,8 +30,8 @@
 <script src="assets/js/legend.js?v=1778949514"></script>
 
 <!-- Page content (structured data + renderer) -->
-<script src="assets/js/formulas-content.js?v=1796200000"></script>
-<script src="assets/js/formulas.js?v=1778994886" defer></script>
+<script src="assets/js/formulas-content.js?v=1796400000"></script>
+<script src="assets/js/formulas.js?v=1796400000" defer></script>
 
 <style>
   /* ════════════════════════════════════════════════════════════════════════
@@ -266,8 +266,86 @@
     color: var(--white); opacity: .9; line-height: 1.5;
   }
 
+  /* ════════════════════════════════════════════════════════════════════════
+     UPDATES TIMELINE — formulas grouped by the update that introduced them.
+     Sessions are nodes on a continuous left rail (each section's left border);
+     each formula is a card with a colour-cycled left accent + a domain chip.
+     ════════════════════════════════════════════════════════════════════════ */
+  .fm-session {
+    position: relative;
+    border-left: 2px solid var(--border2);
+    padding-left: 26px; margin-left: 6px;
+  }
+  .fm-session.hidden { display: none; }
+  .fm-session-head {
+    position: relative;
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    padding: 8px 0 4px;
+  }
+  .fm-session-head::before {
+    content: ''; position: absolute;
+    left: -33px; top: 50%; transform: translateY(-50%);
+    width: 15px; height: 15px; border-radius: 50%;
+    background: var(--red); box-shadow: 0 0 0 4px var(--surface);   /* cut the rail behind the node */
+  }
+  .fm-session-date {
+    font-family: 'Mulish', sans-serif; font-weight: 800; font-size: 11px;
+    color: var(--white); opacity: .55; letter-spacing: .02em;
+  }
+  .fm-session-tag {
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 11px; color: #111111; background: var(--red);
+    padding: 2px 9px; letter-spacing: .04em;
+  }
+  .fm-session-title {
+    flex: 1 1 auto; min-width: 0;
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 19px; color: var(--white); text-transform: uppercase;
+    letter-spacing: .02em; line-height: 1.1;
+  }
+  .fm-session-count {
+    font-family: 'Mulish', sans-serif; font-size: 11px; font-weight: 700;
+    color: var(--muted); opacity: .7;
+    background: var(--surface2); border: 1px solid var(--border2); border-radius: 10px;
+    padding: 2px 10px; min-width: 24px; text-align: center;
+  }
+  .fm-session-blurb {
+    font-family: 'Mulish', sans-serif; font-size: 13px; color: var(--white);
+    opacity: .8; line-height: 1.5; margin: 4px 0 14px; max-width: 880px;
+  }
+  .fm-session-body { display: flex; flex-direction: column; gap: 12px; padding-bottom: 22px; }
+
+  /* Formula cards inside a session node (override the flat list .fm-entry). */
+  .fm-session-body .fm-entry {
+    background: var(--surface); border: 1px solid var(--border);
+    border-left: 3px solid var(--red);
+    padding: 13px 16px; margin: 0;
+  }
+  .fm-session-body .fm-entry:nth-child(6n+2) { border-left-color: var(--pos-rb-bg); }
+  .fm-session-body .fm-entry:nth-child(6n+3) { border-left-color: var(--pos-wr-bg); }
+  .fm-session-body .fm-entry:nth-child(6n+4) { border-left-color: var(--pos-te-bg); }
+  .fm-session-body .fm-entry:nth-child(6n+5) { border-left-color: var(--pos-pick-bg); }
+  .fm-session-body .fm-entry:nth-child(6n+6) { border-left-color: var(--pos-qb-bg); }
+  .fm-entry-titlerow { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .fm-dom-chip {
+    font-family: 'Mulish', sans-serif; font-weight: 800; font-size: 9px;
+    text-transform: uppercase; letter-spacing: .06em;
+    color: var(--white); opacity: .85;
+    background: var(--surface2); border: 1px solid var(--border2);
+    padding: 2px 7px; flex-shrink: 0;
+  }
+  .fm-toc-tag {
+    display: inline-block; min-width: 30px;
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 9px; color: var(--red); margin-right: 2px;
+  }
+
   /* MOBILE */
   @media (max-width: 900px) {
+    .fm-session { padding-left: 20px; margin-left: 4px; }
+    .fm-session-head::before { left: -25px; width: 12px; height: 12px; }
+    .fm-session-title { font-size: 16px; }
+    .fm-session-body .fm-entry { padding: 11px 13px; }
     .fm-layout { grid-template-columns: 1fr; gap: 16px; }
     .fm-toc {
       position: relative; top: 0;
@@ -361,8 +439,8 @@
 
   <div class="page-header">
     <div>
-      <div class="page-title">Formulas & <span>Calculations</span></div>
-      <div class="page-subtitle">Catalog of every formula, threshold, multiplier, and heuristic that determines a value, trend, ranking, archetype, color, or signal on this site. Built for data-analyst hand-off and developer reference. Each entry shows file:line, verbatim math, and analyst-relevant notes.</div>
+      <div class="page-title">Updates & <span>Formulas</span></div>
+      <div class="page-subtitle">A timeline of every site update, with each formula, threshold, multiplier, and heuristic filed under the update that introduced or last changed it. Newest first. Each card shows file:line, verbatim math, provenance, and analyst notes.</div>
     </div>
     <div class="page-stat" id="fm-stat-count">—</div>
   </div>

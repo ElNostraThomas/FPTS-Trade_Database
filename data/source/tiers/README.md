@@ -7,7 +7,7 @@ canonical source for `tiers.html` `TIER_PLAYERS` + `data/tiers.json`.
 ## Workflow
 
 1. Open the FPTS Google Sheet ("New SF Tier System" tab)
-2. (Optionally) paste a fresh TAT CSV in for bulk updates
+2. (Optionally) paste a fresh DPP CSV in for bulk updates
 3. Hand-edit ADP / Auction / PPG / Buy-Sell / Priority / Contender / Notes
 4. **File → Download → Comma-Separated Values (.csv)**
 5. Save / rename the file to **`data/source/tiers/tiers.csv`**

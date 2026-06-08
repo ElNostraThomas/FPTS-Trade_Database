@@ -1,10 +1,15 @@
-/* Formulas page renderer.
-   Reads window.FormulasContent (set by formulas-content.js) and builds:
-     - Sticky TOC sidebar (one link per domain)
-     - Main content area (one card per domain, one entry per formula)
-   Adds a search filter that matches across label / location / inputs / math /
-   notes and hides non-matching entries (and empty domains). Sticky-scroll the
-   TOC's active link to whichever domain is currently in the viewport. */
+/* Formulas page renderer — UPDATES TIMELINE.
+   Reads window.FormulasContent (set by formulas-content.js) and builds a
+   timeline grouped by the UPDATE (session) that introduced or last changed each
+   formula:
+     - Sticky TOC sidebar (one link per session, newest first)
+     - Main content: one timeline node per session, each formula a card under
+       its update, carrying a small chip naming its domain.
+   Effective session per entry = entrySessions[entry.id] || domainSessions[domain.id].
+   Entries whose session isn't listed in `sessions[]` fall into an "Earlier /
+   unmapped" node at the bottom so nothing is dropped. Search matches across
+   label / location / inputs / math / notes and hides non-matching cards (and
+   empty session nodes). */
 
 (function () {
   'use strict';
@@ -15,30 +20,11 @@
       return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
     });
   }
-  function totalEntries(content) {
-    return (content.domains || []).reduce(function (n, d) {
-      return n + ((d.entries || []).length);
-    }, 0);
-  }
-
-  // ── Render ──────────────────────────────────────────────────────────────
-  function renderTOC(domains) {
-    return domains.map(function (d) {
-      var count = (d.entries || []).length;
-      return '<a class="fm-toc-link" href="#' + esc(d.id) + '" '
-           +   'data-domain="' + esc(d.id) + '" '
-           +   'onclick="event.preventDefault(); formulasGoTo(\'' + esc(d.id) + '\')">'
-           +   esc(d.name)
-           +   '<span class="fm-toc-count">(' + count + ')</span>'
-           + '</a>';
-    }).join('');
-  }
 
   // Repo source link — every file:line on a tracked file can deep-link to GitHub.
   var REPO_BLOB_URL = 'https://github.com/ElNostraThomas/FPTS-Trade_Database/blob/main/';
   function sourceLinkHtml(location) {
     if (!location) return '';
-    // Match "{path}:{line}" or "{path}:{startLine}-{endLine}" or "{path}" alone.
     var m = location.match(/^([\w./\\-]+\.(?:html|js|py|css|md))(?::(\d+)(?:-(\d+))?)?$/);
     if (!m) return '';
     var path = m[1].replace(/\\/g, '/');
@@ -73,7 +59,27 @@
     }).join(' ');
   }
 
-  function renderEntry(e) {
+  function rowText(k, v) {
+    return '<div class="fm-rk">' + esc(k) + '</div><div class="fm-rv">' + esc(v) + '</div>';
+  }
+  function rowMono(k, v, escapeText, extraClass) {
+    var body = escapeText ? esc(v) : v;
+    var cls = 'fm-rv mono' + (extraClass ? ' ' + extraClass : '');
+    return '<div class="fm-rk">' + esc(k) + '</div><div class="' + cls + '">' + body + '</div>';
+  }
+  function rowRaw(k, htmlValue) {
+    return '<div class="fm-rk">' + esc(k) + '</div><div class="fm-rv">' + htmlValue + '</div>';
+  }
+  function buildSearchBlob(e, domain) {
+    return [e.label, e.location, e.inputs, e.math, e.output, e.notes,
+            e.example, e.whyThisNumber,
+            e.provenance && e.provenance.detail,
+            domain && domain.name]
+      .filter(Boolean).join(' ').toLowerCase();
+  }
+
+  // One formula card. `domain` supplies the context chip.
+  function renderEntry(e, domain) {
     var rows = [];
     if (e.location)    rows.push(rowMono('Location', e.location + sourceLinkHtml(e.location)));
     if (e.provenance)  rows.push(rowRaw('Source',    provenanceChipHtml(e.provenance)));
@@ -84,103 +90,123 @@
     if (e.whyThisNumber)                      rows.push(rowRaw('Why',      '<div class="fm-rv-why">' + esc(e.whyThisNumber) + '</div>'));
     if (e.notes && e.notes !== '—')           rows.push(rowText('Notes',   e.notes));
     if (e.related && e.related.length)        rows.push(rowRaw('Related',  relatedChipsHtml(e.related)));
-    return '<div class="fm-entry" id="' + esc(e.id) + '" data-search="' + esc(buildSearchBlob(e)) + '">'
+    var chip = domain ? '<span class="fm-dom-chip">' + esc(domain.name) + '</span>' : '';
+    return '<div class="fm-entry" id="' + esc(e.id) + '" data-search="' + esc(buildSearchBlob(e, domain)) + '">'
          +   '<div class="fm-entry-head">'
-         +     '<div class="fm-entry-label">' + esc(e.label) + '</div>'
+         +     '<div class="fm-entry-titlerow">' + chip + '<div class="fm-entry-label">' + esc(e.label) + '</div></div>'
          +     (e.location ? '<div class="fm-entry-loc">' + esc(e.location) + sourceLinkHtml(e.location) + '</div>' : '')
          +   '</div>'
          +   '<div class="fm-rows">' + rows.join('') + '</div>'
          + '</div>';
   }
-  function rowText(k, v) {
-    return '<div class="fm-rk">' + esc(k) + '</div><div class="fm-rv">' + esc(v) + '</div>';
-  }
-  function rowMono(k, v, escapeText, extraClass) {
-    // For Location we want the source link to render as HTML, so the value
-    // arrives already-HTML-safe. For Math and Example we esc() the body.
-    var body = escapeText ? esc(v) : v;
-    var cls = 'fm-rv mono' + (extraClass ? ' ' + extraClass : '');
-    return '<div class="fm-rk">' + esc(k) + '</div><div class="' + cls + '">' + body + '</div>';
-  }
-  function rowRaw(k, htmlValue) {
-    return '<div class="fm-rk">' + esc(k) + '</div><div class="fm-rv">' + htmlValue + '</div>';
-  }
-  function buildSearchBlob(e) {
-    return [e.label, e.location, e.inputs, e.math, e.output, e.notes,
-            e.example, e.whyThisNumber,
-            e.provenance && e.provenance.detail]
-      .filter(Boolean).join(' ').toLowerCase();
+
+  // ── Group entries by effective session ───────────────────────────────────
+  function groupBySession(content) {
+    var domainSessions = content.domainSessions || {};
+    var entrySessions  = content.entrySessions || {};
+    var groups = {};   // sessionId -> [{entry, domain}]
+    (content.domains || []).forEach(function (d) {
+      (d.entries || []).forEach(function (e) {
+        var sid = entrySessions[e.id] || domainSessions[d.id] || '_unmapped';
+        (groups[sid] = groups[sid] || []).push({ entry: e, domain: d });
+      });
+    });
+    return groups;
   }
 
-  function renderDomain(d) {
-    var entries = (d.entries || []).map(renderEntry).join('');
-    return '<section class="fm-domain" id="domain-' + esc(d.id) + '" data-domain="' + esc(d.id) + '">'
-         +   '<div class="fm-domain-head">'
-         +     '<div class="fm-domain-name">' + esc(d.name) + '</div>'
-         +     '<div class="fm-domain-count">' + (d.entries || []).length + ' entries</div>'
-         +   '</div>'
-         +   '<div class="fm-domain-body">' + entries + '</div>'
+  // Ordered list of {session, items} — sessions[] order first, then any leftover
+  // ids (incl. '_unmapped') appended so nothing is dropped.
+  function orderedSessions(content, groups) {
+    var out = [];
+    var seen = {};
+    (content.sessions || []).forEach(function (s) {
+      if (groups[s.id] && groups[s.id].length) { out.push({ session: s, items: groups[s.id] }); seen[s.id] = 1; }
+    });
+    Object.keys(groups).forEach(function (sid) {
+      if (seen[sid]) return;
+      var label = sid === '_unmapped' ? 'Earlier / unmapped' : sid;
+      out.push({ session: { id: sid, tag: '?', dateLabel: '', title: label, blurb: sid === '_unmapped' ? 'Formulas not yet filed under a specific update — map these in formulas-content.js.' : '' }, items: groups[sid] });
+    });
+    return out;
+  }
+
+  function renderSessionNode(group) {
+    var s = group.session;
+    var cards = group.items.map(function (it) { return renderEntry(it.entry, it.domain); }).join('');
+    var head = '<div class="fm-session-head">'
+             +   (s.dateLabel ? '<span class="fm-session-date">' + esc(s.dateLabel) + '</span>' : '')
+             +   (s.tag ? '<span class="fm-session-tag">' + esc(s.tag) + '</span>' : '')
+             +   '<div class="fm-session-title">' + esc(s.title || s.id) + '</div>'
+             +   '<span class="fm-session-count">' + group.items.length + '</span>'
+             + '</div>';
+    var blurb = s.blurb ? '<div class="fm-session-blurb">' + esc(s.blurb) + '</div>' : '';
+    return '<section class="fm-session" id="session-' + esc(s.id) + '" data-session="' + esc(s.id) + '">'
+         +   head + blurb
+         +   '<div class="fm-session-body">' + cards + '</div>'
          + '</section>';
   }
 
-  function renderEmpty() {
-    return '<div class="fm-empty">'
-         +   '<div class="fm-empty-strong">No formulas match your search.</div>'
-         +   '<div style="margin-top:8px">Try a different term, or clear the search to see all.</div>'
-         + '</div>';
+  function renderTOC(ordered) {
+    return ordered.map(function (g) {
+      var s = g.session;
+      return '<a class="fm-toc-link" href="#session-' + esc(s.id) + '" '
+           +   'data-session="' + esc(s.id) + '" '
+           +   'onclick="event.preventDefault(); formulasGoTo(\'' + esc(s.id) + '\')">'
+           +   '<span class="fm-toc-tag">' + esc(s.tag || '•') + '</span> ' + esc(s.title || s.id)
+           +   '<span class="fm-toc-count">(' + g.items.length + ')</span>'
+           + '</a>';
+    }).join('');
   }
 
   // ── Init ────────────────────────────────────────────────────────────────
   function init() {
     var content = window.FormulasContent;
     if (!content) {
-      document.getElementById('fm-content').innerHTML =
-        '<div class="fm-empty">FormulasContent not loaded.</div>';
+      document.getElementById('fm-content').innerHTML = '<div class="fm-empty">FormulasContent not loaded.</div>';
       return;
     }
+    var groups  = groupBySession(content);
+    var ordered = orderedSessions(content, groups);
+
     var toc = document.getElementById('fm-toc');
     var main = document.getElementById('fm-content');
     var statCount = document.getElementById('fm-stat-count');
 
-    toc.innerHTML = '<div class="fm-toc-title">Domains</div>' + renderTOC(content.domains);
-    main.innerHTML = content.domains.map(renderDomain).join('') + '<div class="fm-empty" id="fm-empty" style="display:none"></div>';
-    statCount.textContent = totalEntries(content) + ' entries · ' + content.domains.length + ' domains';
+    toc.innerHTML = '<div class="fm-toc-title">Updates</div>' + renderTOC(ordered);
+    main.innerHTML = ordered.map(renderSessionNode).join('') + '<div class="fm-empty" id="fm-empty" style="display:none"></div>';
 
-    // Deep-link via hash
+    var totalEntries = ordered.reduce(function (n, g) { return n + g.items.length; }, 0);
+    statCount.textContent = totalEntries + ' formulas · ' + ordered.length + ' updates';
+
     if (location.hash) {
-      var id = location.hash.slice(1);
+      var id = location.hash.slice(1).replace(/^session-/, '');
       setTimeout(function () { scrollTo(id); }, 100);
     }
-
-    // Active-section tracking
     setupScrollSpy();
   }
 
   function scrollTo(id) {
-    var el = document.getElementById('domain-' + id) || document.getElementById(id);
+    var el = document.getElementById('session-' + id) || document.getElementById(id);
     if (!el) return;
     var rect = el.getBoundingClientRect();
-    var top = window.scrollY + rect.top - 70;  // offset for sticky nav
+    var top = window.scrollY + rect.top - 70;
     window.scrollTo({ top: top, behavior: 'smooth' });
     setActiveTOC(id);
   }
   function setActiveTOC(id) {
-    var links = document.querySelectorAll('.fm-toc-link');
-    links.forEach(function (a) {
-      a.classList.toggle('active', a.getAttribute('data-domain') === id);
+    document.querySelectorAll('.fm-toc-link').forEach(function (a) {
+      a.classList.toggle('active', a.getAttribute('data-session') === id);
     });
   }
 
-  // Scroll-spy: update active TOC link as user scrolls
   function setupScrollSpy() {
-    var domains = Array.prototype.slice.call(document.querySelectorAll('.fm-domain'));
-    if (!domains.length) return;
+    var sections = Array.prototype.slice.call(document.querySelectorAll('.fm-session'));
+    if (!sections.length) return;
     function update() {
-      // Pick the domain whose top is closest to (but not below) the viewport top + offset
       var anchor = 120;
-      var best = domains[0];
+      var best = sections[0];
       var bestDelta = Infinity;
-      domains.forEach(function (d) {
+      sections.forEach(function (d) {
         if (d.classList.contains('hidden')) return;
         var rect = d.getBoundingClientRect();
         if (rect.top <= anchor) {
@@ -188,7 +214,7 @@
           if (delta < bestDelta) { bestDelta = delta; best = d; }
         }
       });
-      if (best) setActiveTOC(best.getAttribute('data-domain'));
+      if (best) setActiveTOC(best.getAttribute('data-session'));
     }
     window.addEventListener('scroll', update, { passive: true });
     update();
@@ -201,21 +227,20 @@
     var resultCount = document.getElementById('fm-result-count');
     clearBtn.style.display = query ? '' : 'none';
 
-    var allEntries = document.querySelectorAll('.fm-entry');
-    var allDomains = document.querySelectorAll('.fm-domain');
+    var allEntries  = document.querySelectorAll('.fm-entry');
+    var allSessions = document.querySelectorAll('.fm-session');
     var empty = document.getElementById('fm-empty');
     var hits = 0;
 
     if (!query) {
       allEntries.forEach(function (e) { e.classList.remove('hidden', 'highlight'); });
-      allDomains.forEach(function (d) { d.classList.remove('hidden'); });
+      allSessions.forEach(function (d) { d.classList.remove('hidden'); });
       empty.style.display = 'none';
       resultCount.textContent = '';
       resultCount.classList.remove('filtering');
       return;
     }
 
-    // Per-entry match
     allEntries.forEach(function (e) {
       var blob = e.getAttribute('data-search') || '';
       var match = blob.indexOf(query) !== -1;
@@ -223,11 +248,9 @@
       e.classList.toggle('highlight', match);
       if (match) hits++;
     });
-
-    // Hide domains with zero matching entries
-    allDomains.forEach(function (d) {
-      var visibleEntries = d.querySelectorAll('.fm-entry:not(.hidden)');
-      d.classList.toggle('hidden', visibleEntries.length === 0);
+    allSessions.forEach(function (d) {
+      var visible = d.querySelectorAll('.fm-entry:not(.hidden)');
+      d.classList.toggle('hidden', visible.length === 0);
     });
 
     if (hits === 0) {
@@ -249,11 +272,11 @@
   };
 
   window.formulasGoTo = function (id) {
-    if (history.replaceState) history.replaceState(null, '', '#' + id);
+    if (history.replaceState) history.replaceState(null, '', '#session-' + id);
     scrollTo(id);
   };
 
-  // Scroll to a specific entry (not a domain) — used by the related-chip links.
+  // Scroll to a specific entry (used by related-chip links).
   window.formulasGoToEntry = function (entryId) {
     if (history.replaceState) history.replaceState(null, '', '#' + entryId);
     var el = document.getElementById(entryId);
@@ -261,12 +284,10 @@
     var rect = el.getBoundingClientRect();
     var top = window.scrollY + rect.top - 80;
     window.scrollTo({ top: top, behavior: 'smooth' });
-    // Brief flash so the user sees what landed in view.
     el.classList.add('fm-entry-flash');
     setTimeout(function () { el.classList.remove('fm-entry-flash'); }, 1400);
   };
 
-  // Kick off
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
   } else {

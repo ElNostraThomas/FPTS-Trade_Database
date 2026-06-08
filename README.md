@@ -60,6 +60,18 @@ Two more changes landed 2026-06-08 after the trade archive (the archive `ce6669c
 
 **Cache tokens:** `data-bootstrap.js → 1796100000` (archive, already live); `legend-content.js` + `formulas-content.js → 1796200000` (TEP doc sync, this batch). Data JSONs (`mvs.json`, `trades.json`) reload fresh (no fixed token). **Audit:** `check-colors.py` CLEAN across 34 files.
 
+### Follow-on (same session): docs as a timeline-card UI + TAT→DPP rename
+
+Three more changes landed 2026-06-08 (committed locally; the trade archive / TEP / Risers-Fallers above were already pushed live by the user):
+
+1. **Legend drawer restyled to a "New Features" timeline-card look** (pure CSS, `assets/css/legend.css`; `legend.js` untouched). Banner header with a red top accent; sections render as **timeline nodes on a continuous left rail** (each section's left border is the rail, a node dot straddles it, chevron on the right); items become **cards with a colour-cycled left accent** (brand position palette via `:nth-child`). Cache token `legend.css 1782600000 → 1796300000` across 11 consumers.
+
+2. **Formulas page → "Updates & Formulas" timeline.** Repurposed `formulas.html` so formulas are **grouped by the update (session) that introduced or last changed them**, newest first, matching the legend aesthetic. New keys in `formulas-content.js`: `sessions[]` (9 sessions derived from `docs/CHANGES.md` + README handoffs), `domainSessions` (each of the 17 domains → its originating session), `entrySessions` (per-entry overrides — e.g. the TEP formulas `get-multiplier` / `pick-numeric-value` / `mn-format-multipliers` are pulled forward to the newest **S20** node). `formulas.js` rewritten: `groupBySession` (effective session = `entrySessions[id] || domainSessions[domainId] || '_unmapped'`), timeline nodes + cards each carrying a domain chip; TOC is now the update list; search + scroll-spy adapted. New `.fm-session*` CSS in `formulas.html`. Tokens `formulas-content.js`/`formulas.js → 1796400000`. **The session mapping is a FIRST PASS — refine the three maps in `formulas-content.js` freely.**
+
+3. **TAT → DPP rename** (the tier value-ladder label). 65 standalone-`TAT` occurrences across 11 files → `DPP` (UI: the tier-assignment "DPP value ladder" line in `formulas-content.js`; plus docs + comments + the `(DPP format)` provenance label in `sync-tiers.py`). Word-boundary uppercase match, so the `import-tat.py` filename + lowercase identifiers were deliberately left. `import-tat.py`'s Downloads glob now matches **both** `DPP*.csv` and `TAT*.csv` (legacy fallback). **Note:** the `FPTS-Tiers-Standalone` repo (canonical tier source) likely still says "TAT" — rename it there too when convenient.
+
+**Open / deferred from this batch:** (a) review the first-pass formula→session mapping; (b) the calculator's QB/PPR/PassTD multipliers may double-count like TEP did (base is already format-specific) — flagged, not yet decided; (c) `import-tat.py` could be renamed to `import-dpp.py` if wanted; (d) `docs/CHANGES.md` still lacks 19th/20th-session entries.
+
 ---
 
 ## Where we are (end of 2026-06-07 — nineteenth session)
@@ -223,13 +235,13 @@ See [`docs/CHANGES.md`](docs/CHANGES.md) 2026-06-02 (eighteenth session) for ful
 
 ## Where we are (end of 2026-05-29 — seventeenth session)
 
-**Tiers ported to the standalone's 12-tier TAT ladder + single-source-of-truth sync; fresh 2026 ADP on both sites; new MVS trade values.** Multi-part session — everything below is **committed and pushed live**.
+**Tiers ported to the standalone's 12-tier DPP ladder + single-source-of-truth sync; fresh 2026 ADP on both sites; new MVS trade values.** Multi-part session — everything below is **committed and pushed live**.
 
-### Tiers: 12-tier TAT ladder + mirror from the standalone (single source of truth)
+### Tiers: 12-tier DPP ladder + mirror from the standalone (single source of truth)
 
-The old 21-tier ladder (S++…F−) collapsed to TAT's **12-tier value ladder** (S++, S+, S, A+, A, A−, B+, B, B−, C+, C, C−), matching the `FPTS-Tiers-Standalone` fork. **The standalone is now the single source of truth for tiers** — `push.bat` gained a `[3a]` step that `git pull`s the standalone then copies its `tiers.csv` + `tier-config.json` into this repo before `sync-tiers.py` runs (which auto-detects the TAT value-divider format). Main's `tiers.csv` is now byte-identical to the standalone's (200 players). **⚠ Edit tiers ONLY on the standalone from now on** — the `[3a]` mirror overwrites any main-side admin edits on the next deploy.
+The old 21-tier ladder (S++…F−) collapsed to DPP's **12-tier value ladder** (S++, S+, S, A+, A, A−, B+, B, B−, C+, C, C−), matching the `FPTS-Tiers-Standalone` fork. **The standalone is now the single source of truth for tiers** — `push.bat` gained a `[3a]` step that `git pull`s the standalone then copies its `tiers.csv` + `tier-config.json` into this repo before `sync-tiers.py` runs (which auto-detects the DPP value-divider format). Main's `tiers.csv` is now byte-identical to the standalone's (200 players). **⚠ Edit tiers ONLY on the standalone from now on** — the `[3a]` mirror overwrites any main-side admin edits on the next deploy.
 
-- Tier titles are now **hybrid** (descriptor + TAT value, e.g. `S++ = "Cornerstone 3 Base 1sts (+/-)"`), published via the admin scratchpad and mirrored to both sites.
+- Tier titles are now **hybrid** (descriptor + DPP value, e.g. `S++ = "Cornerstone 3 Base 1sts (+/-)"`), published via the admin scratchpad and mirrored to both sites.
 - Touched: `tiers.html` (12-tier `TIER_DESCRIPTIONS`/`TIER_ORDER`/`tierBadgeClass`, removed `.t-d*/.t-e*/.t-f*` CSS); `sync-tiers.py` (`VALID_TIERS` 21→12; `parse_tat_rows` now **ignores the Recent Movement column** → trending is manual-only, matching the standalone); `admin-tiers.js` (both 21-tier lists trimmed); `tier-config.json`. Cache bump `admin-tiers.js` + `formulas-content.js → ?v=1788000000`. Docs: `FORMULAS.md §17` + `formulas-content.js` (dual-sync).
 - **posRank NOT ported** — main already overlays `posRank` from `values.json` client-side (`applySleeperOverlay`), so PRK already matches FP consensus. **No player data dropped** (D/E/F tiers were empty scaffolding).
 
@@ -1915,7 +1927,7 @@ Full reference: `docs/WORKFLOW.md`.
 - **`sync-tiers.py`** — Google Sheet → tiers.html
 - **`sync-rankings.py`** — reads `data/source/rankings/*.csv` → writes `data/rankings/{analyst}-{format}.json` + `manifest.json`. Drives rankings.html Consensus mode.
 - **`sync-analysts.py`** — reads `data/source/analysts/*.csv` (each contains 4 positions stacked, banner-delimited) → writes `data/analyst-rankings/{qb,rb,wr,te}.json` + `manifest.json`. Drives rankings.html By Analyst mode.
-- **`import-tat.py`** — TAT CSV → Google Sheet
+- **`import-tat.py`** — DPP CSV → Google Sheet
 - **`make-pdf.ps1`** — regenerates function-reference PDF
 - **`push.bat`** — full deploy pipeline (5+ sync steps + checks + commit + push)
 - **`sync-adp.config.json`** / **`sync-fp.config.json`** / **`sync-tiers.config.json`** / **`sync-rankings.config.json`** / **`sync-analysts.config.json`** — local paths/credentials

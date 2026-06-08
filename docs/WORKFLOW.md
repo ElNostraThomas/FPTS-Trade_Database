@@ -38,14 +38,14 @@ push.bat
 3. Save (it auto-saves).
 4. Run `push.bat` — `sync-tiers.py` reads the sheet and updates `tiers.html`.
 
-**B. Bulk import a new TAT CSV** (whole new ranking cycle)
+**B. Bulk import a new DPP CSV** (whole new ranking cycle)
 
-1. Save the new TAT CSV to your `Downloads` folder (filename starts with `TAT`).
+1. Save the new DPP CSV to your `Downloads` folder (filename starts with `DPP`).
 2. Run:
    ```powershell
    python import-tat.py
    ```
-   Auto-detects the newest `TAT*.csv` in Downloads, **merges** the new tier assignments into your Google Sheet (keeps Age/ADP/Auction/PPG/Buy-Sell/Priority/Contender/Notes you've already filled in).
+   Auto-detects the newest `DPP*.csv` in Downloads, **merges** the new tier assignments into your Google Sheet (keeps Age/ADP/Auction/PPG/Buy-Sell/Priority/Contender/Notes you've already filled in).
 3. Run `push.bat` to deploy.
 
 **Modes** for `import-tat.py`:
@@ -259,7 +259,7 @@ If a Sleeper API change removes a column a filter depends on, deprecate the filt
 | `sync-tiers.py` | Fetch Google Sheet → write to `tiers.html` |
 | `sync-rankings.py` | Read `data/source/rankings/*.csv` → write `data/rankings/*.json` + manifest (drives `rankings.html` Consensus mode) |
 | `sync-analysts.py` | Read `data/source/analysts/*.csv` (each CSV holds 4 positions stacked, banner-delimited) → write `data/analyst-rankings/*.json` + manifest (drives `rankings.html` By Analyst mode) |
-| `import-tat.py` | Upload TAT CSV → Google Sheet (merge mode) |
+| `import-tat.py` | Upload DPP CSV → Google Sheet (merge mode) |
 
 ### Local-only secrets (gitignored, never deploy)
 
@@ -433,8 +433,8 @@ If FantasyPoints rebrands to "Dynasty Points", the only change needed is:
 | Preview locally | `start.bat` |
 | Refresh FP data only | `python sync-fp.py` |
 | Refresh tier rankings only | `python sync-tiers.py` |
-| Upload TAT CSV to sheet | `python import-tat.py` |
-| Dry-run TAT upload | `python import-tat.py --dry-run` |
+| Upload DPP CSV to sheet | `python import-tat.py` |
+| Dry-run DPP upload | `python import-tat.py --dry-run` |
 | Service-account email | `python import-tat.py --whoami` |
 | Rebuild PDF only | `powershell -NoProfile -ExecutionPolicy Bypass -File make-pdf.ps1` |
 | Audit colors against brand rule | `python scripts/check-colors.py` |

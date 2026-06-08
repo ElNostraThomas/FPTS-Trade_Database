@@ -509,9 +509,9 @@ All other columns are raw Sleeper stat fields.
 ### 17. Tier assignment + color spectrum
 `TIER_DESCRIPTIONS` + `.tier-badge.t-*` — `tiers.html:494-516` + `tiers.html:161-171`
 
-**Assignment** Manual via Google Sheet / analyst CSV → `sync-tiers.py` → `tiers.html`. No formula. 12 discrete tiers: S++, S+, S, A+, A, A−, B+, B, B−, C+, C, C−. (Trimmed from the old 21-tier ladder to TAT's 12-tier value ladder on 2026-05-28 — parity with the FPTS-Tiers-Standalone fork. The D/E/F tiers were unpopulated and were removed.)
+**Assignment** Manual via Google Sheet / analyst CSV → `sync-tiers.py` → `tiers.html`. No formula. 12 discrete tiers: S++, S+, S, A+, A, A−, B+, B, B−, C+, C, C−. (Trimmed from the old 21-tier ladder to DPP's 12-tier value ladder on 2026-05-28 — parity with the FPTS-Tiers-Standalone fork. The D/E/F tiers were unpopulated and were removed.)
 
-**Tier descriptions** (verbatim, TAT value ladder — from `data/source/tiers/tier-config.json`)
+**Tier descriptions** (verbatim, DPP value ladder — from `data/source/tiers/tier-config.json`)
 ```
 S++  3 Base 1sts (+/-)
 S+   2.5 Base 1sts (+/-)

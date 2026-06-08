@@ -31,7 +31,43 @@
 */
 window.FormulasContent = {
   title: 'Formulas & calculations',
-  blurb: 'Source-of-truth catalog of every formula, threshold, multiplier, and heuristic that determines a value, trend, ranking, archetype, color, or signal on this site. 56 entries across 14 sections. Each entry shows file:line (with a deep-link to GitHub source), provenance, verbatim math, a concrete worked example, related cross-references, and analyst-relevant notes.',
+  blurb: 'Every formula, threshold, multiplier, and heuristic that determines a value, trend, ranking, archetype, color, or signal on this site — now grouped by the update that introduced or last changed it. Each card shows file:line (deep-linked to GitHub), provenance, verbatim math, a worked example, and analyst notes.',
+
+  // ── Updates timeline ──────────────────────────────────────────────────────
+  // Sessions (newest first) that introduced formula-bearing features, derived
+  // from docs/CHANGES.md + README handoffs. `domainSessions` files each domain
+  // under the update that created it; `entrySessions` overrides individual
+  // entries that were changed in a LATER update (e.g. the TEP removal), so a
+  // formula always appears under its proper update. FIRST-PASS MAPPING — refine
+  // freely; the renderer reads these three keys and ignores the rest.
+  sessions: [
+    { id: 's20',        date: '2026-06-08', dateLabel: 'Jun 8, 2026',  tag: 'S20',  title: 'TEP value basis + trade depth',        blurb: 'Tight-end premium is now baked into every value site-wide (sync-mvs reads the *_tep columns); the trade calculator\'s redundant TEP multiplier was removed. Also: the accumulating trade archive deepened the database to ~16.8k trades.' },
+    { id: 's13',        date: '2026-05-21', dateLabel: 'May 21, 2026', tag: 'S13',  title: 'Mock Draft simulator',                  blurb: 'AI-personality mock-draft engine — per-archetype pick logic with value vs. need weighting.' },
+    { id: 's10',        date: '2026-05-20', dateLabel: 'May 20, 2026', tag: 'S10',  title: 'Player Comparison page',                blurb: 'Side-by-side player comparison with tier + value coloring.' },
+    { id: 's07',        date: '2026-05-18', dateLabel: 'May 18, 2026', tag: 'S7',   title: 'Live Draft + data-suite stats',         blurb: 'Per-season stat scoring, Sleeper league-format detection (PPR / TEP / pass-TD), and the lineup optimizer.' },
+    { id: 's01',        date: '2026-05-17', dateLabel: 'May 17, 2026', tag: 'S1',   title: 'Formulas page + trade calculator',      blurb: 'The trade-value multipliers, balance math, the magic-numbers glossary, and the open-heuristics review list.' },
+    { id: 's-rankings', date: '2026-05-16', dateLabel: 'May 16, 2026', tag: 'RANK', title: 'Rankings + analyst comparison',         blurb: 'Consensus rankings and per-analyst rank backfill.' },
+    { id: 's-ml',       date: '2026-05-13', dateLabel: 'May 13, 2026', tag: 'ML',   title: 'My Leagues analysis suite',             blurb: 'Team analysis, trade tools, and performance + waiver math.' },
+    { id: 's-panel',    date: '2026-05-12', dateLabel: 'May 12, 2026', tag: 'PNL',  title: 'Shared player panel + Tiers',           blurb: 'Age curves, buy/sell signals, tier assignment, and trade-volume signals.' },
+    { id: 's-pipeline', date: '2026-05-11', dateLabel: 'May 11, 2026', tag: 'DATA', title: 'Dynasty ADP / data pipeline',           blurb: 'The ADP heatmap and the sync pipeline that feeds every value on the site.' },
+  ],
+  domainSessions: {
+    'trade-values': 's01', 'magic-numbers': 's01', 'open-heuristics': 's01',
+    'player-signals': 's-panel', 'age-curve': 's-panel', 'tiers': 's-panel',
+    'per-season-stats': 's07', 'league-format': 's07', 'lineup-optimizer': 's07',
+    'team-analysis': 's-ml', 'trade-tools': 's-ml', 'perf-waivers': 's-ml',
+    'adp-heatmap': 's-pipeline', 'sync-pipeline': 's-pipeline',
+    'rankings-analysts': 's-rankings',
+    'compare-page': 's10',
+    'mock-draft': 's13',
+  },
+  entrySessions: {
+    // Changed in a later update than their domain — surface under the newest.
+    'get-multiplier':     's20',   // TEP TE-multiplier removed
+    'pick-numeric-value': 's20',   // TEP valueTep branch removed
+    'mn-format-multipliers': 's20', // multiplier table note updated for TEP
+  },
+
   domains: [
 
     // ── 1. TRADE VALUES ───────────────────────────────────────────────────
@@ -484,7 +520,7 @@ Saquon Barkley 2023: rush_yd_per_att = 4.0 (already per-attempt)
           location: 'tiers.html:494-516 (descriptions), tiers.html:161-171 (colors)',
           provenance: { kind: 'manual-curation', detail: 'Each player is manually tagged with a tier letter by the curator in the upstream Google Sheet; no formula.' },
           inputs: 'Manual assignment via Google Sheet → sync-tiers.py → tiers.html. No formula.',
-          math: `12 tier labels (TAT value ladder): S++, S+, S, A+, A, A−,
+          math: `12 tier labels (DPP value ladder): S++, S+, S, A+, A, A−,
                 B+, B, B−, C+, C, C−
 
 Color spectrum (CSS class via tierBadgeClass(tier)):

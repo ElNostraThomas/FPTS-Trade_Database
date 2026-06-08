@@ -351,7 +351,7 @@
 <script src="assets/js/player-articles.js?v=1778680034"></script>
 <link rel="stylesheet" href="assets/css/heatmap.css?v=1782600000">
 <script src="assets/js/heatmap.js?v=1778670000"></script>
-<link rel="stylesheet" href="assets/css/legend.css?v=1782600000">
+<link rel="stylesheet" href="assets/css/legend.css?v=1796300000">
 <script src="assets/js/legend-content.js?v=1796200000"></script>
 <script src="assets/js/legend.js?v=1778949514"></script>
 <script>document.addEventListener('DOMContentLoaded', function(){ if (window.Legend) Legend.init('tiers'); });</script>
@@ -501,7 +501,7 @@ const TIER_DESCRIPTIONS = {
   "C-":  '"Base" 3 (+/-)'
 };
 
-// TIERS:START -- DO NOT EDIT BY HAND. Regenerated from data/source/tiers/tiers.csv (TAT format) by sync-tiers.py
+// TIERS:START -- DO NOT EDIT BY HAND. Regenerated from data/source/tiers/tiers.csv (DPP format) by sync-tiers.py
 const TIER_PLAYERS = [
   {
     "tier": "S++",
@@ -2453,7 +2453,7 @@ function fmtNumeric(v) {
 
 // Render the manual Trending indicator next to the player name. Codes
 // 'up' / 'down' come from admin-tiers.js TRENDINGS. Legacy values from
-// older TAT imports (📈, 📉, ↑, ▼) also map correctly. Anything else
+// older DPP imports (📈, 📉, ↑, ▼) also map correctly. Anything else
 // returns empty string -- no icon, no whitespace, byte-identical row
 // to a player without trending data.
 function _fptsTrendingIconHtml(val) {
