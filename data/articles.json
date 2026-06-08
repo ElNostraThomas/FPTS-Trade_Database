@@ -1,52 +1,6 @@
 {
-  "version": "2026-06-08T16:30:54.497978+00:00",
+  "version": "2026-06-08T19:35:46.481112+00:00",
   "players": {
-    "Matthew Stafford": [
-      {
-        "title": "2026 NFL Player Props: Passing Touchdowns",
-        "url": "https://www.fantasypoints.com/nfl/articles/nfl-player-props-passing-touchdowns",
-        "date": "2026-06-05T21:00:00.000Z",
-        "author": "Tom Brolley"
-      },
-      {
-        "title": "Heath's Favorite 2026 Best Ball Values",
-        "url": "https://www.fantasypoints.com/nfl/articles/heaths-favorite-best-ball-values",
-        "date": "2026-05-26T14:30:00.000Z",
-        "author": "Ryan Heath"
-      }
-    ],
-    "Aaron Rodgers": [
-      {
-        "title": "2026 NFL Player Props: Passing Touchdowns",
-        "url": "https://www.fantasypoints.com/nfl/articles/nfl-player-props-passing-touchdowns",
-        "date": "2026-06-05T21:00:00.000Z",
-        "author": "Tom Brolley"
-      }
-    ],
-    "Dak Prescott": [
-      {
-        "title": "2026 NFL Player Props: Passing Touchdowns",
-        "url": "https://www.fantasypoints.com/nfl/articles/nfl-player-props-passing-touchdowns",
-        "date": "2026-06-05T21:00:00.000Z",
-        "author": "Tom Brolley"
-      }
-    ],
-    "Bryce Young": [
-      {
-        "title": "2026 NFL Player Props: Passing Touchdowns",
-        "url": "https://www.fantasypoints.com/nfl/articles/nfl-player-props-passing-touchdowns",
-        "date": "2026-06-05T21:00:00.000Z",
-        "author": "Tom Brolley"
-      }
-    ],
-    "Cam Ward": [
-      {
-        "title": "2026 NFL Player Props: Passing Touchdowns",
-        "url": "https://www.fantasypoints.com/nfl/articles/nfl-player-props-passing-touchdowns",
-        "date": "2026-06-05T21:00:00.000Z",
-        "author": "Tom Brolley"
-      }
-    ],
     "Fernando Mendoza": [
       {
         "title": "2026 NFL Player Props: Passing Yards",
@@ -125,6 +79,52 @@
         "url": "https://www.fantasypoints.com/nfl/articles/heaths-favorite-best-ball-values",
         "date": "2026-05-26T14:30:00.000Z",
         "author": "Ryan Heath"
+      }
+    ],
+    "Matthew Stafford": [
+      {
+        "title": "2026 NFL Player Props: Passing Touchdowns",
+        "url": "https://www.fantasypoints.com/nfl/articles/nfl-player-props-passing-touchdowns",
+        "date": "2026-06-05T21:00:00.000Z",
+        "author": "Tom Brolley"
+      },
+      {
+        "title": "Heath's Favorite 2026 Best Ball Values",
+        "url": "https://www.fantasypoints.com/nfl/articles/heaths-favorite-best-ball-values",
+        "date": "2026-05-26T14:30:00.000Z",
+        "author": "Ryan Heath"
+      }
+    ],
+    "Aaron Rodgers": [
+      {
+        "title": "2026 NFL Player Props: Passing Touchdowns",
+        "url": "https://www.fantasypoints.com/nfl/articles/nfl-player-props-passing-touchdowns",
+        "date": "2026-06-05T21:00:00.000Z",
+        "author": "Tom Brolley"
+      }
+    ],
+    "Dak Prescott": [
+      {
+        "title": "2026 NFL Player Props: Passing Touchdowns",
+        "url": "https://www.fantasypoints.com/nfl/articles/nfl-player-props-passing-touchdowns",
+        "date": "2026-06-05T21:00:00.000Z",
+        "author": "Tom Brolley"
+      }
+    ],
+    "Bryce Young": [
+      {
+        "title": "2026 NFL Player Props: Passing Touchdowns",
+        "url": "https://www.fantasypoints.com/nfl/articles/nfl-player-props-passing-touchdowns",
+        "date": "2026-06-05T21:00:00.000Z",
+        "author": "Tom Brolley"
+      }
+    ],
+    "Cam Ward": [
+      {
+        "title": "2026 NFL Player Props: Passing Touchdowns",
+        "url": "https://www.fantasypoints.com/nfl/articles/nfl-player-props-passing-touchdowns",
+        "date": "2026-06-05T21:00:00.000Z",
+        "author": "Tom Brolley"
       }
     ],
     "Jalen Hurts": [
