@@ -491,16 +491,24 @@
   .value-chart-title.risers { color: var(--green); }
   .value-chart-title.fallers { color: #e05252; }
   .value-row {
-    display: flex; align-items: center; gap: 8px;
-    padding: 7px 14px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 6px;
+    padding: 7px 12px; border-bottom: 1px solid var(--border);
     transition: background .1s; cursor: pointer;
     color: var(--white);
+    height: 40px; box-sizing: border-box;  /* fixed height — every row identical */
   }
   .value-row:last-child { border-bottom: none; }
   .value-row:hover { background: var(--surface2); }
-  .value-row-name { font-family: 'Mulish', sans-serif; font-weight: 900; font-size: 12px; color: #111111; flex: 1; min-width: 0; line-height: 1.15; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; word-break: break-word; }
-  .value-row-val { font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 11px; color: #111111; opacity: 1; min-width: 36px; text-align: right; }
-  .value-row-change { font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 12px; min-width: 44px; text-align: right; }
+  /* Single line + ellipsis (names never wrap, so all rows stay the same height).
+     Every non-name slot is flex-shrink:0 so ALL remaining width goes to the
+     name. Team logo sits on the LEFT (next to the POS badge); value + change
+     are STACKED on the right into one narrow column so the name gets a wide
+     run and only the very longest names ellipsize. */
+  .value-row-name { font-family: 'Mulish', sans-serif; font-weight: 900; font-size: 11px; color: #111111; flex: 1 1 auto; min-width: 0; line-height: 1.15; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .value-row-team { flex-shrink: 0; display: inline-flex; align-items: center; }
+  .value-row-stat { flex-shrink: 0; display: flex; flex-direction: column; align-items: flex-end; justify-content: center; gap: 1px; line-height: 1.05; }
+  .value-row-val { font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 11px; color: #111111; opacity: 1; text-align: right; }
+  .value-row-change { font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 12px; text-align: right; }
   .value-row-change.up { color: var(--green); }
   .value-row-change.down { color: #e05252; }
 
@@ -2628,9 +2636,12 @@ function renderValueTracker() {
     return `<div class="value-row ${pc(p.pos)}" onclick="openPanel('${p.name.replace(/'/g,"\\'")}')">
       ${_imgThumb(p.name,22)}
       <span class="pos-badge ${pc(p.pos)}" style="font-size:10px;padding:2px 5px;flex-shrink:0">${p.pos}</span>
-      <span class="value-row-name">${p.name}${(FP_VALUES[p.name]?.team && window.TeamHelpers) ? window.TeamHelpers.logoImg(FP_VALUES[p.name].team, { size: 22, coin: true }) : ''}</span>
-      <span class="value-row-val">${p.value.toLocaleString()}</span>
-      <span class="value-row-change ${isUp?"up":"down"}"><span class="trend ${isUp?"up":"down"}">${arrow} ${changeStr}</span></span>
+      ${(FP_VALUES[p.name]?.team && window.TeamHelpers) ? `<span class="value-row-team">${window.TeamHelpers.logoImg(FP_VALUES[p.name].team, { size: 16, coin: true })}</span>` : ''}
+      <span class="value-row-name">${p.name}</span>
+      <span class="value-row-stat">
+        <span class="value-row-val">${p.value.toLocaleString()}</span>
+        <span class="value-row-change ${isUp?"up":"down"}"><span class="trend ${isUp?"up":"down"}">${arrow} ${changeStr}</span></span>
+      </span>
     </div>`;
   }
 
