@@ -4,7 +4,7 @@ push.bat
 scrape.bat
 make-pdf.ps1
 sync-tiers.py
-import-tat.py
+import-dpp.py
 sync-fp.py
 sync-adp.py
 sync-mvs.py

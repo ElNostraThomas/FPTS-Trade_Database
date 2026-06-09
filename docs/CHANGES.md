@@ -6,6 +6,37 @@ the operator manual see [`WORKFLOW.md`](WORKFLOW.md).
 
 ---
 
+## 2026-06-08 (twentieth session) — Accumulating trade archive + TEP value basis + docs-as-timeline + TAT→DPP
+
+Large multi-part session; all pushed live. `check-colors.py` CLEAN across 34 files throughout.
+
+### Accumulating trade archive (`ce6669c`)
+The trade DB read trades from `MVS_PAYLOAD.players.*.recentTrades`, a rolling ~30-per-player window that `sync-mvs.py` further truncated to 3 — so each export *shrank* trade history. New local-only **`sync-trades.py`** unions every CSV's `recent_trades` into a persistent **`data/trades.json`** keyed by `transaction_id` (purely additive; aborts if the count would drop). Seeded from the old + new exports = **16,785 unique trades** (Jan 1 → Jun 8), preserving 6,642 the latest export had dropped. `data-bootstrap.js` fetches it (DB-page only, ~7 MB) → `window.TRADES_ARCHIVE`; `index.html` `_buildTradesFromMvs` builds from the archive (MVS path as supplement, deduped) and `renderRecent` got Load-more pagination (60/page). `push.bat` gained a `[3c/5]` accumulate step. On-page trade count ~1,500 → **16,764**.
+
+### TEP value basis site-wide + calculator slider removed (`5b9f581`)
+`sync-mvs.py` now sources every value-derived field (value/baseline/trend/history, SF + 1QB, players + picks) from the CSV's `*_tep` columns — tight-end premium baked into the canonical value everywhere (Loveland 3,929 → 4,945). Eight `COL_*` constants make it a one-line revert. With TEP in the base, the trade calculator's `×(1+tep·0.12)` TE multiplier double-counted, so the whole TEP slider was removed from `trade-calculator.html` (dropdown, `getMultiplier` TE term, `_calcTep`, `_pickNumericValue` valueTep branch, the `t.tep` trade filter). Docs synced: `legend-content.js`, `formulas-content.js`, `docs/FORMULAS.md`. **Untouched:** the QB/PPR/PassTD multipliers (a separate possible double-count, flagged for later).
+
+### Top Risers/Fallers row fix (`15b5889`)
+Names truncated early in the ~260px sidebar. Single-line ellipsis, team logo moved left of the name, value stacked over the change pill on the right, fixed 40px row height → uniform list, no early truncation.
+
+### Docs as a timeline-card UI + TAT→DPP (`aff7fbd`, `17fadd6`)
+Legend drawer restyled to a "New Features" timeline-card look (`legend.css` only). Formulas page repurposed into an **"Updates & Formulas" timeline** — formulas grouped under the session that introduced/last-changed them, newest first; `formulas-content.js` gained `sessions[]` (the **full 32-session pushed history**), `domainSessions`, `entrySessions`; `formulas.js` rewritten to group + render the timeline (formula-less updates render as description-only nodes); `tiers` filed under the S17 DPP-ladder node. Renamed the tier value-ladder label **TAT → DPP** (65 occ / 11 files; `import-dpp.py` glob accepts both `DPP*.csv` + `TAT*.csv`). Cleanup: removed dead `.fm-domain*` CSS, renamed `import-tat.py → import-dpp.py`, this CHANGES.md catch-up.
+
+**Cache tokens:** `data-bootstrap.js → 1796100000`, `legend.css → 1796300000`, `legend-content.js`/`formulas-content.js`/`formulas.js` bumped (latest `1796600000`).
+
+---
+
+## 2026-06-07 (nineteenth session) — My Leagues cross-league "My Trades" + per-team Trade History filter
+
+Three commits, all pushed live (`21202b8`, `7130bfc`, `de9b6fe`). `check-colors.py` CLEAN across 34 files.
+
+- **Cross-league "My Trades" sidebar tab** on `my-leagues.html` — a top tab strip (`Exposure | My Trades`) that pools **every trade the user was a side of, across all their leagues**, into one year-switchable view (years = union of seasons via each league's `previous_league_id` chain). Lazy + cached on `window.ML_MY_TRADES`, invalidated on season switch + logout.
+- **Shared trade-card builder** `_mlTradeCardHtml(t, ctx)` extracted so the per-league Trade History and the new cross-league sidebar render from one source (`leagueName` in `ctx` adds the league banner for the cross-league view).
+- **Per-team filter on Trade History** (`de9b6fe`) — a team dropdown leads the year-tab row; filters a league's trades to one owner (by stable `user_id`, resolved to each season's `roster_id`). Defaults to All Teams; persists in `window.ML_TRADE_TEAM_FILTER`, cleared on sign-out.
+- All inline in `my-leagues.html` — no shared-asset cache bumps.
+
+---
+
 ## 2026-06-02 (eighteenth session) — OBS zoom rewrite + ADP RDP two-layer filter fix + 5-year consistency validation
 
 Four substantive commits, all pushed live (`b198878..e9197c2`). `check-colors.py` CLEAN across 34 files after every commit.

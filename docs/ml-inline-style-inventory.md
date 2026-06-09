@@ -1,7 +1,7 @@
 # my-leagues.html inline-style inventory
 
-Generated from `my-leagues.html` (8559 lines).
-Total `style="..."` occurrences: **46**.
+Generated from `my-leagues.html` (8875 lines).
+Total `style="..."` occurrences: **47**.
 
 This is a read-only audit. No code was changed. The goal is to make the
 refactor safe to execute supervised by giving every occurrence a category,
@@ -13,11 +13,11 @@ a section assignment, and an actionability verdict.
 
 | Mode | Count | % | Refactorable to CSS class? |
 |---|---|---|---|
-| `dynamic` | 35 | 76.1% | Conditional - if the interpolated value is a discrete enum, use a modifier class (e.g. `.is-active`); otherwise leave inline |
-| `static` | 10 | 21.7% | Yes - pure HTML attribute, drop into a class |
-| `dynamic-context` | 1 | 2.2% | Conditional - inside a JS-built HTML string; refactor only if the declaration set is static |
+| `dynamic` | 35 | 74.5% | Conditional - if the interpolated value is a discrete enum, use a modifier class (e.g. `.is-active`); otherwise leave inline |
+| `static` | 11 | 23.4% | Yes - pure HTML attribute, drop into a class |
+| `dynamic-context` | 1 | 2.1% | Conditional - inside a JS-built HTML string; refactor only if the declaration set is static |
 
-**Headline:** ~10 are directly refactorable, ~36 require case-by-case judgement, ~0 must stay inline (JS-set).
+**Headline:** ~11 are directly refactorable, ~36 require case-by-case judgement, ~0 must stay inline (JS-set).
 
 ---
 
@@ -27,7 +27,7 @@ Which CSS properties carry most of the inline styling. Where one property domina
 
 | Property | Count |
 |---|---|
-| `display` | 7 |
+| `display` | 8 |
 | `--rank-color` | 4 |
 | `--st-pos-color` | 4 |
 | `--archetype-bg` | 3 |
@@ -61,7 +61,7 @@ Each row below is a strong refactor candidate: same declaration set appearing N 
 
 | Count | Normalized declaration set |
 |---|---|
-| 7 | `display:none` |
+| 8 | `display:none` |
 | 2 | `...` |
 | 2 | `--archetype-bg:${mlArchetypeBg(archetype)}; --archetype-fg:${mlArchetypeFg(archetype)}` |
 | 2 | `--rp-stripe-color:var(--pos-pick-bg)` |
@@ -87,6 +87,7 @@ Sorted by count - the busiest regions are the highest-leverage refactor batches.
 | 2 | Aggregate per-roster |
 | 1 | Columns: expandable league list (left) + player exposure (right) |
 | 1 | RIGHT: player exposure sidebar |
+| 1 | PANEL 1: player exposure |
 | 1 | Archetype lookup for the owning team |
 | 1 | Render the current state of the suggestion pre-screener |
 | 1 | Render the current suggestion as a single card |
@@ -131,149 +132,155 @@ Every hit, grouped under the nearest banner-comment heading above it. Use this t
 
 | Line | Mode | Declaration |
 |---|---|---|
-| 8253 | dynamic | `--bar-width:${w}%;--bar-color:${posColors[pos]}` |
-| 8258 | dynamic | `--top-pos-color:${posColors[r.topScoringPos]}` |
-| 8277 | dynamic | `--st-pos-color:${posColors.QB}` |
-| 8278 | dynamic | `--st-pos-color:${posColors.RB}` |
-| 8279 | dynamic | `--st-pos-color:${posColors.WR}` |
-| 8280 | dynamic | `--st-pos-color:${posColors.TE}` |
+| 8569 | dynamic | `--bar-width:${w}%;--bar-color:${posColors[pos]}` |
+| 8574 | dynamic | `--top-pos-color:${posColors[r.topScoringPos]}` |
+| 8593 | dynamic | `--st-pos-color:${posColors.QB}` |
+| 8594 | dynamic | `--st-pos-color:${posColors.RB}` |
+| 8595 | dynamic | `--st-pos-color:${posColors.WR}` |
+| 8596 | dynamic | `--st-pos-color:${posColors.TE}` |
 
 ### Helpers (5)
 
 | Line | Mode | Declaration |
 |---|---|---|
-| 7128 | dynamic | `--cell-value-color:${valColor(r.value)}` |
-| 7130 | dynamic | `--cell-proj-color:${seasonProjColor};--cell-proj-opacity:${seasonProjOpacity}` |
-| 7131 | dynamic | `--cell-proj-color:${projColor};--cell-proj-opacity:${projOpacity}` |
-| 7148 | dynamic | `--rp-stripe-color:${posColors[pos]}` |
-| 7152 | dynamic | `--rp-total-color:${posColors[pos]}` |
+| 7197 | dynamic | `--cell-value-color:${valColor(r.value)}` |
+| 7199 | dynamic | `--cell-proj-color:${seasonProjColor};--cell-proj-opacity:${seasonProjOpacity}` |
+| 7200 | dynamic | `--cell-proj-color:${projColor};--cell-proj-opacity:${projOpacity}` |
+| 7217 | dynamic | `--rp-stripe-color:${posColors[pos]}` |
+| 7221 | dynamic | `--rp-total-color:${posColors[pos]}` |
 
 ### Renders draft picks in the same visual layout as a position section so the (4)
 
 | Line | Mode | Declaration |
 |---|---|---|
-| 7195 | static | `--rp-stripe-color:var(--pos-pick-bg)` |
-| 7232 | dynamic | `--cell-value-color:${valColor}` |
-| 7242 | static | `--rp-stripe-color:var(--pos-pick-bg)` |
-| 7246 | dynamic | `--rp-total-color:var(--pos-pick-bg)` |
+| 7264 | static | `--rp-stripe-color:var(--pos-pick-bg)` |
+| 7301 | dynamic | `--cell-value-color:${valColor}` |
+| 7311 | static | `--rp-stripe-color:var(--pos-pick-bg)` |
+| 7315 | dynamic | `--rp-total-color:var(--pos-pick-bg)` |
 
 ### Stash render context on window so the sort buttons can re-render (4)
 
 | Line | Mode | Declaration |
 |---|---|---|
-| 8149 | dynamic | `--mpx-color:${mpxColor}` |
-| 8162 | dynamic | `--pos-color:${posColors[pos]}` |
-| 8167 | dynamic | `--rank-color:${color}` |
-| 8172 | dynamic | `--rank-color:${scoreColor}` |
+| 8465 | dynamic | `--mpx-color:${mpxColor}` |
+| 8478 | dynamic | `--pos-color:${posColors[pos]}` |
+| 8483 | dynamic | `--rank-color:${color}` |
+| 8488 | dynamic | `--rank-color:${scoreColor}` |
 
 ### Team logo helpers — load BEFORE player-panel.js so modal-hero badge works. (3)
 
 | Line | Mode | Declaration |
 |---|---|---|
-| 3017 | static | `...` |
-| 3074 | static | `...` |
-| 3247 | static | `display:none` |
+| 3060 | static | `...` |
+| 3117 | static | `...` |
+| 3294 | static | `display:none` |
 
 ### Render an archetype chip (3)
 
 | Line | Mode | Declaration |
 |---|---|---|
-| 3933 | dynamic | `--pos-bg:${c}` |
-| 4033 | static | `display:none` |
-| 4038 | static | `display:none` |
+| 3997 | dynamic | `--pos-bg:${c}` |
+| 4097 | static | `display:none` |
+| 4102 | static | `display:none` |
 
 ### Ensure roster/users/players are loaded and stashed on window for the modal layer (3)
 
 | Line | Mode | Declaration |
 |---|---|---|
-| 6023 | dynamic | `--pos-color:${color}` |
-| 6025 | dynamic | `--rank-color:${rankColor}` |
-| 6069 | dynamic | `display:none` |
+| 6090 | dynamic | `--pos-color:${color}` |
+| 6092 | dynamic | `--rank-color:${rankColor}` |
+| 6136 | dynamic | `display:none` |
 
 ### Sort state for the leagues list (2)
 
 | Line | Mode | Declaration |
 |---|---|---|
-| 5817 | dynamic | `width:${w}%;background:${s.color}` |
-| 5824 | dynamic-context | `opacity:.3` |
+| 5884 | dynamic | `width:${w}%;background:${s.color}` |
+| 5891 | dynamic-context | `opacity:.3` |
 
 ### Save current scoped IDs so the existing loadRoster / loadAllTrades can target them (2)
 
 | Line | Mode | Declaration |
 |---|---|---|
-| 6150 | dynamic | `--archetype-bg:${mlArchetypeBg(archetype)};--archetype-fg:${mlArchetypeFg(archetype)}` |
-| 6161 | dynamic | `--pos-chip-color:${color};--rank-chip-color:${rankColor}` |
+| 6217 | dynamic | `--archetype-bg:${mlArchetypeBg(archetype)};--archetype-fg:${mlArchetypeFg(archetype)}` |
+| 6228 | dynamic | `--pos-chip-color:${color};--rank-chip-color:${rankColor}` |
 
 ### Color helpers (2)
 
 | Line | Mode | Declaration |
 |---|---|---|
-| 6766 | dynamic | `color:${posColor(p.position)}` |
-| 6769 | dynamic | `color:${expoColor(p.exposure)}` |
+| 6833 | dynamic | `color:${posColor(p.position)}` |
+| 6836 | dynamic | `color:${expoColor(p.exposure)}` |
 
 ### Aggregate per-roster (2)
 
 | Line | Mode | Declaration |
 |---|---|---|
-| 7597 | dynamic | `width:${maxSpent ? (r.spent/maxSpent*100).toFixed(0) : 0}%` |
-| 7599 | dynamic | `width:${budget ? (r.left/budget*100).toFixed(0) : 0}%` |
+| 7663 | dynamic | `width:${maxSpent ? (r.spent/maxSpent*100).toFixed(0) : 0}%` |
+| 7665 | dynamic | `width:${budget ? (r.left/budget*100).toFixed(0) : 0}%` |
 
 ### Columns: expandable league list (left) + player exposure (right) (1)
 
 | Line | Mode | Declaration |
 |---|---|---|
-| 3269 | static | `display:none` |
+| 3316 | static | `display:none` |
 
 ### RIGHT: player exposure sidebar (1)
 
 | Line | Mode | Declaration |
 |---|---|---|
-| 3295 | static | `display:none` |
+| 3342 | static | `display:none` |
+
+### PANEL 1: player exposure (1)
+
+| Line | Mode | Declaration |
+|---|---|---|
+| 3381 | static | `display:none` |
 
 ### Archetype lookup for the owning team (1)
 
 | Line | Mode | Declaration |
 |---|---|---|
-| 4369 | dynamic | `--archetype-bg:${mlArchetypeBg(r.ownerArchetype)};--archetype-fg:${mlArchetypeFg(r.ownerArchetype)}` |
+| 4433 | dynamic | `--archetype-bg:${mlArchetypeBg(r.ownerArchetype)};--archetype-fg:${mlArchetypeFg(r.ownerArchetype)}` |
 
 ### Render the current state of the suggestion pre-screener (1)
 
 | Line | Mode | Declaration |
 |---|---|---|
-| 4736 | dynamic | `--archetype-bg:${mlArchetypeBg(archetype)};--archetype-fg:${mlArchetypeFg(archetype)}` |
+| 4800 | dynamic | `--archetype-bg:${mlArchetypeBg(archetype)};--archetype-fg:${mlArchetypeFg(archetype)}` |
 
 ### Render the current suggestion as a single card (1)
 
 | Line | Mode | Declaration |
 |---|---|---|
-| 4866 | dynamic | `--balance-color:${balanceColor}` |
+| 4930 | dynamic | `--balance-color:${balanceColor}` |
 
 ### Close player-detail modal if open (1)
 
 | Line | Mode | Declaration |
 |---|---|---|
-| 5345 | dynamic | `--net-color:${diff>0?'var(--red)':diff<0?'var(--green)':'var(--white)'}` |
+| 5409 | dynamic | `--net-color:${diff>0?'var(--red)':diff<0?'var(--green)':'var(--white)'}` |
 
 ### Close modals on Escape (1)
 
 | Line | Mode | Declaration |
 |---|---|---|
-| 5453 | dynamic | `color:${color};border-color:${color};background:${bg}` |
+| 5517 | dynamic | `color:${color};border-color:${color};background:${bg}` |
 
 ### PICKS BRANCH (1)
 
 | Line | Mode | Declaration |
 |---|---|---|
-| 6670 | dynamic | `--expo-color:${expoColor(p.exposure)}` |
+| 6737 | dynamic | `--expo-color:${expoColor(p.exposure)}` |
 
 ### Total roster value (1)
 
 | Line | Mode | Declaration |
 |---|---|---|
-| 7281 | dynamic | `--rank-color:${_rankColor(rank)}` |
+| 7350 | dynamic | `--rank-color:${_rankColor(rank)}` |
 
 ### Store per-league so multiple leagues can expand without collision (1)
 
 | Line | Mode | Declaration |
 |---|---|---|
-| 7440 | static | `display:none` |
+| 7506 | static | `display:none` |

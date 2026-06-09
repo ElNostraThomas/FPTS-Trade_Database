@@ -43,16 +43,16 @@ push.bat
 1. Save the new DPP CSV to your `Downloads` folder (filename starts with `DPP`).
 2. Run:
    ```powershell
-   python import-tat.py
+   python import-dpp.py
    ```
    Auto-detects the newest `DPP*.csv` in Downloads, **merges** the new tier assignments into your Google Sheet (keeps Age/ADP/Auction/PPG/Buy-Sell/Priority/Contender/Notes you've already filled in).
 3. Run `push.bat` to deploy.
 
-**Modes** for `import-tat.py`:
-- `python import-tat.py` — default merge (preserves your hand-filled columns)
-- `python import-tat.py --dry-run` — preview what would change, no upload
-- `python import-tat.py --replace path/to.csv` — full overwrite of the sheet (loses hand-filled data)
-- `python import-tat.py --whoami` — print the service-account email if you need to re-share the sheet
+**Modes** for `import-dpp.py`:
+- `python import-dpp.py` — default merge (preserves your hand-filled columns)
+- `python import-dpp.py --dry-run` — preview what would change, no upload
+- `python import-dpp.py --replace path/to.csv` — full overwrite of the sheet (loses hand-filled data)
+- `python import-dpp.py --whoami` — print the service-account email if you need to re-share the sheet
 
 ### 2. Edit a page (HTML / CSS / JavaScript)
 
@@ -259,7 +259,7 @@ If a Sleeper API change removes a column a filter depends on, deprecate the filt
 | `sync-tiers.py` | Fetch Google Sheet → write to `tiers.html` |
 | `sync-rankings.py` | Read `data/source/rankings/*.csv` → write `data/rankings/*.json` + manifest (drives `rankings.html` Consensus mode) |
 | `sync-analysts.py` | Read `data/source/analysts/*.csv` (each CSV holds 4 positions stacked, banner-delimited) → write `data/analyst-rankings/*.json` + manifest (drives `rankings.html` By Analyst mode) |
-| `import-tat.py` | Upload DPP CSV → Google Sheet (merge mode) |
+| `import-dpp.py` | Upload DPP CSV → Google Sheet (merge mode) |
 
 ### Local-only secrets (gitignored, never deploy)
 
@@ -351,10 +351,10 @@ Your `sync-fp.config.json` has wrong or missing auth.
 - Make sure there are no stray spaces or quotes around the values.
 - Re-run `python sync-fp.py`.
 
-### "Permission denied" when running `sync-tiers.py` or `import-tat.py`
+### "Permission denied" when running `sync-tiers.py` or `import-dpp.py`
 
 The service account needs Editor access on the Google Sheet (not just Viewer).
-1. Run `python import-tat.py --whoami` to get the service-account email.
+1. Run `python import-dpp.py --whoami` to get the service-account email.
 2. Open the sheet → Share → find that email → set to **Editor** → Save.
 
 ### `push.bat` says "Tiers sync failed - aborting"
@@ -433,9 +433,9 @@ If FantasyPoints rebrands to "Dynasty Points", the only change needed is:
 | Preview locally | `start.bat` |
 | Refresh FP data only | `python sync-fp.py` |
 | Refresh tier rankings only | `python sync-tiers.py` |
-| Upload DPP CSV to sheet | `python import-tat.py` |
-| Dry-run DPP upload | `python import-tat.py --dry-run` |
-| Service-account email | `python import-tat.py --whoami` |
+| Upload DPP CSV to sheet | `python import-dpp.py` |
+| Dry-run DPP upload | `python import-dpp.py --dry-run` |
+| Service-account email | `python import-dpp.py --whoami` |
 | Rebuild PDF only | `powershell -NoProfile -ExecutionPolicy Bypass -File make-pdf.ps1` |
 | Audit colors against brand rule | `python scripts/check-colors.py` |
 
