@@ -78,25 +78,47 @@
       .filter(Boolean).join(' ').toLowerCase();
   }
 
-  // One formula card. `domain` supplies the context chip.
+  // One formula card. Leads with the name + the headline math (the thing you
+  // actually want); everything else (Source / Inputs / Output / Example / Why /
+  // Notes / Related) is tucked behind a collapsed "Details" expander so the
+  // timeline stays scannable. `domain` supplies the context chip.
   function renderEntry(e, domain) {
-    var rows = [];
-    if (e.location)    rows.push(rowMono('Location', e.location + sourceLinkHtml(e.location)));
-    if (e.provenance)  rows.push(rowRaw('Source',    provenanceChipHtml(e.provenance)));
-    if (e.inputs)      rows.push(rowText('Inputs',   e.inputs));
-    if (e.math)        rows.push(rowMono('Math',     e.math, true));
-    if (e.output && e.output !== '—')         rows.push(rowText('Output',  e.output));
-    if (e.example)                            rows.push(rowMono('Example', e.example, true, 'fm-rv-example'));
-    if (e.whyThisNumber)                      rows.push(rowRaw('Why',      '<div class="fm-rv-why">' + esc(e.whyThisNumber) + '</div>'));
-    if (e.notes && e.notes !== '—')           rows.push(rowText('Notes',   e.notes));
-    if (e.related && e.related.length)        rows.push(rowRaw('Related',  relatedChipsHtml(e.related)));
     var chip = domain ? '<span class="fm-dom-chip">' + esc(domain.name) + '</span>' : '';
+
+    // Primary line: the math if present, else the next most informative field.
+    var primary = '', usedPrimary = null;
+    if (e.math) {
+      primary = '<div class="fm-rv mono fm-primary">' + esc(e.math) + '</div>'; usedPrimary = 'math';
+    } else if (e.output && e.output !== '—') {
+      primary = '<div class="fm-primary-text">' + esc(e.output) + '</div>'; usedPrimary = 'output';
+    } else if (e.inputs) {
+      primary = '<div class="fm-primary-text">' + esc(e.inputs) + '</div>'; usedPrimary = 'inputs';
+    } else if (e.notes && e.notes !== '—') {
+      primary = '<div class="fm-primary-text">' + esc(e.notes) + '</div>'; usedPrimary = 'notes';
+    }
+
+    // Secondary rows -> inside the expander (skip whatever became the primary;
+    // location already shows in the head).
+    var rows = [];
+    if (e.provenance)                                       rows.push(rowRaw('Source',  provenanceChipHtml(e.provenance)));
+    if (e.inputs  && usedPrimary !== 'inputs')              rows.push(rowText('Inputs', e.inputs));
+    if (e.output  && e.output !== '—' && usedPrimary !== 'output') rows.push(rowText('Output', e.output));
+    if (e.example)                                          rows.push(rowMono('Example', e.example, true, 'fm-rv-example'));
+    if (e.whyThisNumber)                                    rows.push(rowRaw('Why', '<div class="fm-rv-why">' + esc(e.whyThisNumber) + '</div>'));
+    if (e.notes   && e.notes !== '—' && usedPrimary !== 'notes')   rows.push(rowText('Notes', e.notes));
+    if (e.related && e.related.length)                      rows.push(rowRaw('Related', relatedChipsHtml(e.related)));
+
+    var details = rows.length
+      ? '<details class="fm-more"><summary class="fm-more-summary">Details <span class="fm-more-count">' + rows.length + '</span></summary><div class="fm-rows">' + rows.join('') + '</div></details>'
+      : '';
+
     return '<div class="fm-entry" id="' + esc(e.id) + '" data-search="' + esc(buildSearchBlob(e, domain)) + '">'
          +   '<div class="fm-entry-head">'
          +     '<div class="fm-entry-titlerow">' + chip + '<div class="fm-entry-label">' + esc(e.label) + '</div></div>'
          +     (e.location ? '<div class="fm-entry-loc">' + esc(e.location) + sourceLinkHtml(e.location) + '</div>' : '')
          +   '</div>'
-         +   '<div class="fm-rows">' + rows.join('') + '</div>'
+         +   primary
+         +   details
          + '</div>';
   }
 
@@ -241,7 +263,10 @@
     var hits = 0;
 
     if (!query) {
-      allEntries.forEach(function (e) { e.classList.remove('hidden', 'highlight'); });
+      allEntries.forEach(function (e) {
+        e.classList.remove('hidden', 'highlight');
+        var d = e.querySelector('.fm-more'); if (d) d.open = false;   // re-collapse details
+      });
       allSessions.forEach(function (d) { d.classList.remove('hidden'); });
       empty.style.display = 'none';
       resultCount.textContent = '';
@@ -254,6 +279,7 @@
       var match = blob.indexOf(query) !== -1;
       e.classList.toggle('hidden', !match);
       e.classList.toggle('highlight', match);
+      var det = e.querySelector('.fm-more'); if (det) det.open = match;  // expand matches so the hit is visible
       if (match) hits++;
     });
     allSessions.forEach(function (d) {
@@ -270,6 +296,18 @@
     }
     resultCount.textContent = hits + ' match' + (hits !== 1 ? 'es' : '');
     resultCount.classList.add('filtering');
+  };
+
+  // Toggle the description-only "update" nodes (shipped changes with no formula
+  // of their own) so the timeline can collapse to just the formula-bearing ones.
+  window.fmToggleNotes = function () {
+    var content = document.getElementById('fm-content');
+    var hidden = content.classList.toggle('fm-hide-notes');
+    var btn = document.getElementById('fm-toggle-notes');
+    if (btn) {
+      btn.textContent = hidden ? 'Show all updates' : 'Formulas only';
+      btn.classList.toggle('active', hidden);
+    }
   };
 
   window.formulasClear = function () {

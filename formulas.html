@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Formulas & Calculations — Fantasy Points Front Office</title>
+<title>Updates & Formulas — Fantasy Points Front Office</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Kanit:ital,wght@0,400;0,700;1,800&family=Mulish:wght@400;700;900&display=swap" rel="stylesheet">
 
@@ -31,7 +31,7 @@
 
 <!-- Page content (structured data + renderer) -->
 <script src="assets/js/formulas-content.js?v=1796600000"></script>
-<script src="assets/js/formulas.js?v=1796600000" defer></script>
+<script src="assets/js/formulas.js?v=1796700000" defer></script>
 
 <style>
   /* ════════════════════════════════════════════════════════════════════════
@@ -293,14 +293,49 @@
   }
   .fm-session-body { display: flex; flex-direction: column; gap: 12px; padding-bottom: 22px; }
   /* Description-only update nodes (a shipped change with no formula of its own)
-     read lighter so formula-bearing updates stand out. */
-  .fm-session--note { padding-bottom: 4px; }
-  .fm-session--note .fm-session-title { font-size: 16px; opacity: .9; }
-  .fm-session--note .fm-session-head::before { background: var(--border2); }
+     render COMPACT + muted so the formula-bearing updates dominate. */
+  .fm-session--note { padding-bottom: 2px; opacity: .85; }
+  .fm-session--note .fm-session-head { padding: 5px 0 2px; gap: 8px; }
+  .fm-session--note .fm-session-title { font-size: 12.5px; opacity: .85; letter-spacing: .03em; }
+  .fm-session--note .fm-session-date { font-size: 10px; }
+  .fm-session--note .fm-session-tag { font-size: 9px; padding: 1px 6px; background: var(--border2); color: var(--white); }
+  .fm-session--note .fm-session-head::before { width: 8px; height: 8px; left: -30px; background: var(--border2); }
+  .fm-session--note .fm-session-blurb { font-size: 11.5px; margin: 1px 0 8px; opacity: .65; }
   .fm-session-count--note {
     background: transparent; border-color: transparent; color: var(--muted);
-    opacity: .55; text-transform: uppercase; letter-spacing: .06em; font-size: 9px;
+    opacity: .5; text-transform: uppercase; letter-spacing: .06em; font-size: 9px;
   }
+  /* Toggle collapses the timeline to formula-bearing updates only. */
+  .fm-content.fm-hide-notes .fm-session--note { display: none; }
+  .fm-toggle {
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 11px; letter-spacing: .04em; text-transform: uppercase;
+    color: var(--white); background: var(--surface2);
+    border: 1px solid var(--border2); padding: 7px 13px; cursor: pointer;
+    transition: border-color .15s, color .15s, background .15s;
+  }
+  .fm-toggle:hover { border-color: var(--red); color: var(--red); }
+  .fm-toggle.active { border-color: var(--red); color: #111111; background: var(--red); }
+
+  /* Card: name leads, then the headline math/value, then a Details expander. */
+  .fm-primary { margin-top: 2px; }
+  .fm-primary-text {
+    font-family: 'Mulish', sans-serif; font-size: 13px; color: var(--white);
+    opacity: .95; line-height: 1.5; margin-top: 2px;
+  }
+  .fm-more { margin-top: 10px; }
+  .fm-more > .fm-rows { margin-top: 10px; }
+  .fm-more-summary {
+    list-style: none; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 10px; text-transform: uppercase; letter-spacing: .07em;
+    color: var(--muted); opacity: .85; transition: color .15s, opacity .15s;
+  }
+  .fm-more-summary::-webkit-details-marker { display: none; }
+  .fm-more-summary::before { content: '▸'; color: var(--red); transition: transform .15s; }
+  .fm-more[open] > .fm-more-summary::before { transform: rotate(90deg); }
+  .fm-more-summary:hover { color: var(--red); opacity: 1; }
+  .fm-more-count { color: var(--muted); opacity: .6; font-style: normal; font-weight: 700; font-size: 9px; }
 
   /* Formula cards inside a session node (override the flat list .fm-entry). */
   .fm-session-body .fm-entry {
@@ -391,7 +426,7 @@
     <a class="nav-link" href="tiers.html">Tiers</a>
     <a class="nav-link" href="adp-tool.html">ADP</a>
     <a class="nav-link" href="rankings.html">Rankings</a>
-    <a class="nav-link active" aria-current="page">Formulas</a>
+    <a class="nav-link active" aria-current="page">Updates</a>
   </nav>
   <div class="nav-right">
     <select class="mobile-nav-select" onchange="if(this.value)window.location.href=this.value">
@@ -405,7 +440,7 @@
       <option value="tiers.html">Tiers</option>
       <option value="adp-tool.html">ADP</option>
       <option value="rankings.html">Rankings</option>
-      <option value="formulas.html">Formulas</option>
+      <option value="formulas.html">Updates</option>
     </select>
     <span class="nav-badge" id="nav-season-badge">SEASON 2026</span>
     <button id="theme-toggle" onclick="toggleTheme()"
@@ -444,6 +479,7 @@
       <button id="fm-search-clear" class="fm-search-clear" onclick="formulasClear()" style="display:none">✕</button>
     </div>
     <span id="fm-result-count" class="fm-result-count"></span>
+    <button id="fm-toggle-notes" class="fm-toggle" type="button" onclick="fmToggleNotes()" title="Hide updates that have no formula of their own">Formulas only</button>
   </div>
 
   <div class="fm-layout">

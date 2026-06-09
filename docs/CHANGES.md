@@ -22,7 +22,9 @@ Names truncated early in the ~260px sidebar. Single-line ellipsis, team logo mov
 ### Docs as a timeline-card UI + TAT→DPP (`aff7fbd`, `17fadd6`)
 Legend drawer restyled to a "New Features" timeline-card look (`legend.css` only). Formulas page repurposed into an **"Updates & Formulas" timeline** — formulas grouped under the session that introduced/last-changed them, newest first; `formulas-content.js` gained `sessions[]` (the **full 32-session pushed history**), `domainSessions`, `entrySessions`; `formulas.js` rewritten to group + render the timeline (formula-less updates render as description-only nodes); `tiers` filed under the S17 DPP-ladder node. Renamed the tier value-ladder label **TAT → DPP** (65 occ / 11 files; `import-dpp.py` glob accepts both `DPP*.csv` + `TAT*.csv`). Cleanup: removed dead `.fm-domain*` CSS, renamed `import-tat.py → import-dpp.py`, this CHANGES.md catch-up.
 
-**Cache tokens:** `data-bootstrap.js → 1796100000`, `legend.css → 1796300000`, `legend-content.js`/`formulas-content.js`/`formulas.js` bumped (latest `1796600000`).
+**Updates-page polish + nav rename.** Nav link **"Formulas" → "Updates"** across all 11 pages + `<title>` (href still `formulas.html`). Formula-less update nodes made **compact + muted** with a **"Formulas only" toggle** (`fmToggleNotes`) to hide them; formula cards now **lead with name + headline math** and tuck the rest behind a collapsed **"Details ▸"** expander (`renderEntry` rewrite; search auto-expands matches). New `.fm-toggle` / `.fm-primary*` / `.fm-more*` CSS; `formulas.js → 1796700000`.
+
+**Cache tokens:** `data-bootstrap.js → 1796100000`, `legend.css → 1796300000`, `legend-content.js`/`formulas-content.js`/`formulas.js` bumped (latest `1796700000`).
 
 ---
 

@@ -77,6 +77,12 @@ Three more changes landed 2026-06-08 (committed locally; the trade archive / TEP
 - `docs/CHANGES.md` caught up — added the 19th + 20th session entries (was stuck at the 18th).
 - `my-leagues.html` inline-style cleanup **audited and closed (won't-do)**: the remaining ~47 are all JS-driven (CSS-var injection / `display` toggles / bar `width`) and not migratable to static CSS — the design end-state. Refreshed `docs/ml-inline-style-inventory.md`; no code change.
 
+### Updates-page polish + nav rename (same session)
+
+- **Nav link "Formulas" → "Updates"** across all 11 pages + the `<title>` (the `href` still points at `formulas.html`; the file wasn't renamed). The link is still admin-gated, so it only shows in the nav under `?admin=1`; the direct URL always works.
+- **Formula-less update nodes are now compact + muted** (small title / dot / tight spacing) so the formula-bearing updates dominate the timeline, plus a **"Formulas only" toggle** in the search row (`fmToggleNotes` → `.fm-content.fm-hide-notes`) that hides the description-only nodes entirely.
+- **Cards lead with name + headline math**; Source / Inputs / Output / Example / Why / Notes / Related are tucked behind a collapsed **"Details ▸"** expander (`<details class="fm-more">`). Search auto-expands matching cards (`det.open = match`). `renderEntry` rewritten in `formulas.js`; new `.fm-toggle` / `.fm-primary*` / `.fm-more*` / compact `.fm-session--note` CSS in `formulas.html`. Token `formulas.js → 1796700000`.
+
 **Genuinely open (none blocking):** (a) refine any formula→session mapping that looks mis-filed (the 3 maps at the top of `formulas-content.js`); (b) the calculator's **QB/PPR/PassTD multipliers** may double-count like TEP did (base is already format-specific) — flagged, undecided; (c) the **`FPTS-Tiers-Standalone`** repo still needs the TAT→DPP rename. Long-standing punch list unchanged: 1QB `SEED_USERS` (need usernames), analyst feedback on the 14 heuristics, open-ended visual polish.
 
 ---
