@@ -1348,6 +1348,22 @@
       <div class="cc-err" id="cc-login-err"></div>
     </div>
   </section>
+  <style>
+    .ws-sublabel{font-weight:600;text-transform:none;letter-spacing:0;opacity:.6}
+    #ws-pulse{margin:14px 0;border:1px solid var(--border);border-radius:14px;background:var(--surface);overflow:hidden}
+    .ws-pulse-head{display:flex;align-items:center;gap:10px;padding:13px 18px;cursor:pointer}
+    .ws-pulse-title{font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;text-transform:uppercase;letter-spacing:.04em;font-size:15px;color:var(--white)}
+    .ws-pulse-legend{font-family:'Mulish',sans-serif;font-size:11px;color:var(--white);opacity:.55;margin-left:auto}
+    .ws-pulse-caret{font-family:'Mulish',sans-serif;color:var(--white);opacity:.5}
+    .ws-pulse-body{padding:0 18px 12px;border-top:1px solid var(--border)}
+    .ws-pulse-league{padding:11px 0;border-bottom:1px solid var(--border)}
+    .ws-pulse-league:last-child{border-bottom:none}
+    .ws-pulse-lname{font-family:'Kanit',sans-serif;font-weight:700;font-style:italic;color:var(--white);font-size:13px;margin-bottom:7px}
+    .ws-pulse-teams{display:flex;flex-wrap:wrap;gap:6px}
+    .ws-pulse-team{display:inline-flex;align-items:center;gap:6px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:4px 8px;font-family:'Mulish',sans-serif;font-size:12px;color:var(--white)}
+    .ws-pulse-team.me{border-color:var(--red)}
+    .ws-pulse-team.tgt{outline:2px solid var(--green)}
+  </style>
   <section id="ws-finder-top" style="display:none">
     <div class="ws-userbar" id="ws-userbar"></div>
     <div class="ws-find-label">Players I want to trade for</div>
@@ -1356,8 +1372,15 @@
       <div id="ws-target-results" class="ws-anchor-results"></div>
     </div>
     <div class="ws-targets" id="ws-target-chips"></div>
+    <div class="ws-find-label" style="margin-top:12px">Managers to target <span class="ws-sublabel">(optional — narrows to these managers)</span></div>
+    <div class="ws-anchor-wrap">
+      <input id="ws-mgr-input" class="cc-input" placeholder="Add a manager…" autocomplete="off" oninput="_wsMgrSearch(this.value)" onfocus="_wsMgrSearch(this.value)">
+      <div id="ws-mgr-results" class="ws-anchor-results"></div>
+    </div>
+    <div class="ws-targets" id="ws-mgr-chips"></div>
     <button class="ws-find-btn" id="ws-find-btn" onclick="_wsFindTrades()">Find trades across my leagues</button>
   </section>
+  <section id="ws-pulse" style="display:none"></section>
   <section id="ws-finder" style="display:none"></section>
 
   <!-- FORMAT -->
@@ -3209,7 +3232,7 @@ function _ccSignOut(){
   if(window.SLEEPER_SESSION) SLEEPER_SESSION.signOut();
   window.CALC_MY_TRADES = null;
   window.CALC_LEAGUE_DATA = null;
-  _wsState = { leagues:null, byId:{}, targets:[] };
+  _wsState = { leagues:null, byId:{}, targets:[], managers:[], ready:false, pulseOpen:true };
   _wsApplyGate();
 }
 
@@ -3222,7 +3245,7 @@ function _ccSignOut(){
 // OWNER's archetype so they'd plausibly accept. Each league is valued in its own
 // format (SF/1QB). Output = trade opportunities grouped by the target player.
 // ════════════════════════════════════════════════════════════════════════════
-let _wsState = { leagues:null, byId:{}, targets:[] };
+let _wsState = { leagues:null, byId:{}, targets:[], managers:[], ready:false, pulseOpen:true };
 
 function _wsLeagueFormatLabel(l){
   const sc = l.scoring_settings || {};
@@ -3252,7 +3275,7 @@ function _wsComputeLeague(data, league){
       if(p.age && p.age>0) ages.push(p.age);
     });
     const avgAge = ages.length ? ages.reduce((s,a)=>s+a,0)/ages.length : 0;
-    return { rosterId:r.roster_id, name, isMe:r.roster_id===data.myRosterId, total, avgAge, pickValue:0 };
+    return { rosterId:r.roster_id, owner_id:r.owner_id, name, ownerUser:(u && (u.display_name||u.username)) || name, isMe:r.roster_id===data.myRosterId, total, avgAge, pickValue:0, players:(r.players||[]) };
   });
   teams.forEach(t => {
     const owned = (window.SLEEPER ? SLEEPER.getOwnedPicks(t.rosterId, data.tradedPicks, data.draftRounds, data.leagueSeason, data.completedDraftSeasons) : []);
@@ -3323,55 +3346,166 @@ function _wsRenderTargetChips(){
   }).join('');
 }
 
+// ── Manager picker (target specific managers, by person across leagues) ────
+function _wsAllManagers(){
+  const seen = {}, out = [];
+  (_wsState.leagues||[]).forEach(lg => {
+    const entry = _wsState.byId[lg.league_id]; if(!entry || !entry.ctx) return;
+    (entry.ctx.teams||[]).forEach(t => {
+      if(t.isMe) return;
+      if(seen[t.ownerUser]){ seen[t.ownerUser].count++; return; }
+      seen[t.ownerUser] = { name:t.ownerUser, count:1 };
+      out.push(seen[t.ownerUser]);
+    });
+  });
+  return out;
+}
+function _wsMgrSearch(q){
+  const box = document.getElementById('ws-mgr-results'); if(!box) return;
+  q = (q||'').trim().toLowerCase();
+  if(!q){ box.innerHTML=''; box.style.display='none'; return; }
+  const mgrs = _wsAllManagers().filter(m => m.name.toLowerCase().indexOf(q) >= 0 && _wsState.managers.indexOf(m.name) < 0).sort((a,b)=> b.count - a.count).slice(0, 8);
+  if(!mgrs.length){ box.innerHTML = `<div class="ws-anchor-opt" style="cursor:default"><span class="ws-anchor-opt-name" style="opacity:.6">${_wsState.ready ? 'No manager match' : 'Loading your leagues…'}</span></div>`; box.style.display='block'; return; }
+  box.innerHTML = mgrs.map(m => {
+    const nm = m.name.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+    return `<div class="ws-anchor-opt" onclick="_wsAddMgr('${nm}')"><span class="ws-anchor-opt-name">${_ccEsc(m.name)}</span><span class="ws-anchor-opt-meta">${m.count} league${m.count>1?'s':''}</span></div>`;
+  }).join('');
+  box.style.display = 'block';
+}
+function _wsAddMgr(name){
+  if(_wsState.managers.indexOf(name) < 0) _wsState.managers.push(name);
+  const inp = document.getElementById('ws-mgr-input'); if(inp) inp.value='';
+  const box = document.getElementById('ws-mgr-results'); if(box){ box.innerHTML=''; box.style.display='none'; }
+  _wsRenderMgrChips(); _wsRenderPulse();
+}
+function _wsRemoveMgr(name){
+  _wsState.managers = _wsState.managers.filter(n => n !== name);
+  _wsRenderMgrChips(); _wsRenderPulse();
+}
+function _wsRenderMgrChips(){
+  const el = document.getElementById('ws-mgr-chips'); if(!el) return;
+  el.innerHTML = _wsState.managers.map(n => {
+    const nm = n.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+    return `<span class="ws-target-chip">${_ccEsc(n)}<span class="x" onclick="_wsRemoveMgr('${nm}')">✕</span></span>`;
+  }).join('');
+}
+
+// ── League Pulse: every team's archetype, per league (yours highlighted) ──
+function _wsTogglePulse(){ _wsState.pulseOpen = _wsState.pulseOpen === false; _wsRenderPulse(); }
+function _wsRenderPulse(){
+  const el = document.getElementById('ws-pulse'); if(!el) return;
+  el.style.display = '';
+  const open = _wsState.pulseOpen !== false;
+  let body = '';
+  (_wsState.leagues||[]).forEach(lg => {
+    const entry = _wsState.byId[lg.league_id]; if(!entry || !entry.ctx) return;
+    const teams = (entry.ctx.teams||[]).slice().sort((a,b)=> ((b.total||0)+(b.pickValue||0)) - ((a.total||0)+(a.pickValue||0)));
+    body += `<div class="ws-pulse-league"><div class="ws-pulse-lname">${_ccEsc(lg.name||'League')} <span style="opacity:.5;font-weight:600">· ${_ccEsc(entry.ctx.fmtLabel)}</span></div><div class="ws-pulse-teams">`
+      + teams.map(t => {
+          const tgt = _wsState.managers.indexOf(t.ownerUser) >= 0;
+          const lbl = window.SLEEPER ? SLEEPER.archetypeLabel(t.archetype) : t.archetype;
+          return `<span class="ws-pulse-team${t.isMe?' me':''}${tgt?' tgt':''}">${_ccEsc(t.name)}${t.isMe?' (you)':''} <span class="ws-opp-arch ${t.archetype}">${_ccEsc(lbl)}</span></span>`;
+        }).join('')
+      + `</div></div>`;
+  });
+  if(!body) body = `<div class="ws-pulse-body" style="border-top:none"><div class="ws-opp-info">${_wsState.ready ? 'No league rosters loaded.' : 'Loading your leagues…'}</div></div>`;
+  else body = `<div class="ws-pulse-body">${body}</div>`;
+  el.innerHTML = `<div class="ws-pulse-head" onclick="_wsTogglePulse()">
+      <span class="ws-pulse-title">League Pulse — team archetypes</span>
+      <span class="ws-pulse-legend">rebuilder / emergency want picks &amp; youth · contender wants win-now veterans · sell to fit</span>
+      <span class="ws-pulse-caret">${open?'▾':'▸'}</span>
+    </div>${open?body:''}`;
+}
+
+// Eager-load every league's rosters (parallel, cached) so the pulse + manager
+// list are ready and the scan is instant. Called in the background at login.
+async function _wsLoadAll(){
+  const s = window.SLEEPER_SESSION ? SLEEPER_SESSION.restore() : null; if(!s) return;
+  _wsRenderPulse(); // shows "loading…"
+  await Promise.all((_wsState.leagues||[]).map(async (lg) => {
+    if(_wsState.byId[lg.league_id]) return;
+    try { const data = await SLEEPER_SESSION.fetchLeagueData(s.userId, lg); _wsState.byId[lg.league_id] = { league:lg, data, ctx:_wsComputeLeague(data, lg) }; }
+    catch(e){ _wsState.byId[lg.league_id] = null; }
+  }));
+  _wsState.ready = true;
+  _wsRenderPulse();
+  _wsRenderMgrChips();
+}
+
+// Build one opportunity (package from my roster → target, tilted to owner).
+function _wsBuildOpp(ctx, league, owner, target){
+  const targetVal = _wsPlayerVal(target, ctx.fmtKey); if(!targetVal) return null;
+  const suggs = (window.SLEEPER ? SLEEPER.generateTradeSuggestions(ctx.myAssetPool, targetVal * WIN_BIAS, owner.archetype, 3) : []);
+  suggs.forEach(x => x.edge = 1 - (x.totalSent / targetVal));
+  const best = suggs.filter(x => x.edge >= -0.06).sort((a,b)=> b.edge - a.edge)[0];
+  if(!best) return null;
+  return { league, ctx, owner, target, targetVal, sugg:best };
+}
+function _wsGroupHtml(titleHtml, sub, opps, emptyMsg){
+  return `<div class="ws-target-group">
+    <div class="ws-target-group-title">${titleHtml}</div>
+    <div class="ws-target-group-sub">${sub}</div>
+    ${opps.length ? opps.map(o=>_wsOppCardHtml(o)).join('') : `<div class="ws-opp-info">${emptyMsg}</div>`}
+  </div>`;
+}
+
 // ── The scan: fetch + compute every league, then render opportunities ─────
 async function _wsFindTrades(){
   const s = window.SLEEPER_SESSION ? SLEEPER_SESSION.restore() : null; if(!s) return;
   const fEl = document.getElementById('ws-finder'); if(!fEl) return;
   fEl.style.display = '';
-  if(!_wsState.targets.length){ fEl.innerHTML = `<div class="ws-opp-info">Add at least one player you want, then find trades.</div>`; return; }
-  fEl.innerHTML = `<div class="ws-opp-info">Scanning your ${(_wsState.leagues||[]).length} leagues…</div>`;
+  if(!_wsState.targets.length && !_wsState.managers.length){ fEl.innerHTML = `<div class="ws-opp-info">Add a player you want, or a manager to target, then find trades.</div>`; return; }
   const btn = document.getElementById('ws-find-btn'); if(btn) btn.disabled = true;
-  await Promise.all((_wsState.leagues||[]).map(async (lg) => {
-    if(_wsState.byId[lg.league_id]) return;
-    try {
-      const data = await SLEEPER_SESSION.fetchLeagueData(s.userId, lg);
-      _wsState.byId[lg.league_id] = { league:lg, data, ctx:_wsComputeLeague(data, lg) };
-    } catch(e){ _wsState.byId[lg.league_id] = null; }
-  }));
+  if(!_wsState.ready){ fEl.innerHTML = `<div class="ws-opp-info">Loading your ${(_wsState.leagues||[]).length} leagues…</div>`; await _wsLoadAll(); }
   _wsRenderFinder();
   if(btn) btn.disabled = false;
 }
 
 function _wsRenderFinder(){
   const fEl = document.getElementById('ws-finder'); if(!fEl) return;
+  const mgrFilter = _wsState.managers;
+  const ownerOk = (owner) => !mgrFilter.length || mgrFilter.indexOf(owner.ownerUser) >= 0;
   let h = '';
-  _wsState.targets.forEach(target => {
-    const sid = SLEEPER_IDS[target];
-    const opps = [];
-    let ownCount = 0, faCount = 0;
-    (_wsState.leagues||[]).forEach(lg => {
-      const entry = _wsState.byId[lg.league_id]; if(!entry || !entry.ctx || !entry.ctx.myTeam) return;
-      const { data, ctx, league } = entry;
-      const owner = _wsFindOwner(data, ctx, target);
-      if(!owner){ faCount++; return; }            // nobody rosters it
-      if(owner.isMe){ ownCount++; return; }       // you already own it here
-      const targetVal = _wsPlayerVal(target, ctx.fmtKey);
-      if(!targetVal) return;
-      const suggs = (window.SLEEPER ? SLEEPER.generateTradeSuggestions(ctx.myAssetPool, targetVal * WIN_BIAS, owner.archetype, 3) : []);
-      suggs.forEach(x => x.edge = 1 - (x.totalSent / targetVal));
-      const best = suggs.filter(x => x.edge >= -0.06).sort((a,b)=> b.edge - a.edge)[0];
-      if(!best) return;
-      opps.push({ league, ctx, owner, target, targetVal, sugg:best });
+  if(_wsState.targets.length){
+    // ── BY PLAYER (optionally narrowed to selected managers) ──
+    _wsState.targets.forEach(target => {
+      const sid = SLEEPER_IDS[target];
+      const opps = []; let ownCount = 0, faCount = 0, mgrSkip = 0;
+      (_wsState.leagues||[]).forEach(lg => {
+        const entry = _wsState.byId[lg.league_id]; if(!entry || !entry.ctx || !entry.ctx.myTeam) return;
+        const { data, ctx, league } = entry;
+        const owner = _wsFindOwner(data, ctx, target);
+        if(!owner){ faCount++; return; }
+        if(owner.isMe){ ownCount++; return; }
+        if(!ownerOk(owner)){ mgrSkip++; return; }
+        const o = _wsBuildOpp(ctx, league, owner, target); if(o) opps.push(o);
+      });
+      opps.sort((a,b)=> b.sugg.edge - a.sugg.edge);
+      const title = `${sid?`<img src="https://sleepercdn.com/content/nfl/players/thumb/${sid}.jpg" onerror="this.style.display='none'">`:''}${_ccEsc(target)}`;
+      const sub = `${opps.length} ${opps.length===1?'opportunity':'opportunities'}${ownCount?` · you own them in ${ownCount}`:''}${faCount?` · not rostered in ${faCount}`:''}${(mgrFilter.length&&mgrSkip)?` · ${mgrSkip} hidden by manager filter`:''}`;
+      h += _wsGroupHtml(title, sub, opps, `No tradeable opportunity for ${_ccEsc(target)}${mgrFilter.length?' with the selected manager(s)':''} right now.`);
     });
-    opps.sort((a,b)=> b.sugg.edge - a.sugg.edge);
-    h += `<div class="ws-target-group">
-      <div class="ws-target-group-title">${sid?`<img src="https://sleepercdn.com/content/nfl/players/thumb/${sid}.jpg" onerror="this.style.display='none'">`:''}${_ccEsc(target)}</div>
-      <div class="ws-target-group-sub">${opps.length} trade ${opps.length===1?'opportunity':'opportunities'}${ownCount?` · you already own them in ${ownCount} league${ownCount>1?'s':''}`:''}${faCount?` · not rostered in ${faCount}`:''}</div>`;
-    if(!opps.length) h += `<div class="ws-opp-info">No tradeable opportunity for ${_ccEsc(target)} right now — they're either already yours or no one rosters them in your leagues.</div>`;
-    else h += opps.map(o => _wsOppCardHtml(o)).join('');
-    h += `</div>`;
-  });
-  fEl.innerHTML = h || `<div class="ws-opp-info">Add a player you want, then find trades.</div>`;
+  } else {
+    // ── BY MANAGER (no player chosen): surface each manager's tradeable players you don't own ──
+    mgrFilter.forEach(mgr => {
+      const opps = [];
+      (_wsState.leagues||[]).forEach(lg => {
+        const entry = _wsState.byId[lg.league_id]; if(!entry || !entry.ctx || !entry.ctx.myTeam) return;
+        const { data, ctx, league } = entry;
+        (ctx.teams||[]).filter(t => t.ownerUser===mgr && !t.isMe).forEach(team => {
+          const players = (team.players||[]).map(pid => {
+            const p = data.players[pid]; if(!p) return null;
+            const nm = p.full_name || ((p.first_name||'')+' '+(p.last_name||'')).trim();
+            return nm ? { name:nm, val:_wsPlayerVal(nm, ctx.fmtKey) } : null;
+          }).filter(Boolean).filter(x=>x.val>0).sort((a,b)=> b.val - a.val).slice(0, 6);
+          players.forEach(pl => { const o = _wsBuildOpp(ctx, league, team, pl.name); if(o) opps.push(o); });
+        });
+      });
+      opps.sort((a,b)=> b.sugg.edge - a.sugg.edge);
+      h += _wsGroupHtml(_ccEsc(mgr), `${opps.length} value-matched ${opps.length===1?'target':'targets'} you could pry loose`, opps, `No value-matched targets from ${_ccEsc(mgr)} right now.`);
+    });
+  }
+  fEl.innerHTML = h || `<div class="ws-opp-info">Add a player you want, or a manager to target, then find trades.</div>`;
 }
 
 function _wsAssetRow(a){
@@ -3422,6 +3556,7 @@ function _wsApplyGate(){
   const gate = document.getElementById('ws-gate'); if(gate) gate.style.display = authed ? 'none' : '';
   const top  = document.getElementById('ws-finder-top'); if(top) top.style.display = authed ? '' : 'none';
   const fin  = document.getElementById('ws-finder'); if(fin && !authed){ fin.style.display='none'; fin.innerHTML=''; }
+  const pulse = document.getElementById('ws-pulse'); if(pulse && !authed){ pulse.style.display='none'; pulse.innerHTML=''; }
 }
 
 async function _wsInit(){
@@ -3430,8 +3565,10 @@ async function _wsInit(){
   if(!s) return;
   _wsRenderUserbar();
   _wsRenderTargetChips();
+  _wsRenderMgrChips();
   try { _wsState.leagues = (await SLEEPER_SESSION.fetchLeagues(s.userId)) || []; }
   catch(e){ _wsState.leagues = []; }
+  _wsLoadAll(); // background: load all rosters → League Pulse + manager list
 }
 
 function _ccInit(){

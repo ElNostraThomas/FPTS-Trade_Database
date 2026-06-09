@@ -36,9 +36,15 @@ The old calculator chrome is **hidden via CSS** (`#filter-area-wrap, #active-fil
 
 (1) Logged out → centered sign-in, nothing else. (2) Log in (or auto-restore from My Leagues) → finder appears. (3) Add a player you want → "Find trades across my leagues" → opportunities grouped by target, each naming the league + owner + owner archetype + "You win N%", with a package from your roster. (4) Confirm an owner-archetype tilt (rebuilder owner → you're offered picks/youth). (5) Multi-target: add several players → a group each. **Audit:** `python scripts/check-colors.py` CLEAN. **Tokens:** `sleeper-session.js`/`legend-content.js`/`formulas-content.js → 1796900000`.
 
+### Follow-on (same session): League Pulse + manager targeting
+
+- **League Pulse** (`#ws-pulse`, collapsible) — every team's archetype, per league, yours highlighted, so you can see at a glance who's rebuilding (sell them picks) vs contending (sell them win-now). Powered by `_wsRenderPulse` over the all-team archetypes already computed in `_wsComputeLeague`.
+- **Manager targeting** (`#ws-mgr-input`) — search the managers you want to trade with (deduped by person across leagues, `_wsAllManagers`/`_wsMgrSearch`/`_wsAddMgr`). Selecting managers **narrows** the player-target opportunities to them; selecting managers with **no player chosen** flips to **manager mode** — `_wsRenderFinder` surfaces each manager's top-6 tradeable players you don't own, each with a win-biased package. Teams now carry `owner_id`/`ownerUser`/`players`.
+- **Eager load** — `_wsLoadAll()` fetches every league's rosters in the background at login (was on-demand at "Find"), so the pulse + manager list are ready immediately and the scan is instant.
+
 ### Noted refinements
 
-Trade-AWAY (find who wants YOUR player); physical deletion of the dormant `_cc*` + legacy-modal code; "you already own them in N / not rostered in M" is shown but could link to those rosters; surface per-position need ("you're 12th at TE").
+Trade-AWAY (find who wants YOUR player); physical deletion of the dormant `_cc*` + legacy-modal code; link "you already own them in N / not rostered in M" to those rosters; surface per-position need ("you're 12th at TE").
 
 ---
 
