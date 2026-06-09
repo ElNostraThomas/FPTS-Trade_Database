@@ -1367,7 +1367,13 @@
   </style>
   <section id="ws-finder-top" style="display:none">
     <div class="ws-userbar" id="ws-userbar"></div>
-    <div class="ws-find-label">Players I want to trade for</div>
+    <div class="cc-controls" style="margin-bottom:12px">
+      <span class="cc-dir">
+        <button class="cc-dir-btn active" data-dir="for" onclick="_wsSetDir('for')">Trade FOR</button>
+        <button class="cc-dir-btn" data-dir="away" onclick="_wsSetDir('away')">Trade AWAY</button>
+      </span>
+    </div>
+    <div class="ws-find-label" id="ws-target-label">Players I want to trade for</div>
     <div class="ws-anchor-wrap">
       <input id="ws-target-input" class="cc-input" placeholder="Add a player you want…" autocomplete="off" oninput="_wsTargetSearch(this.value)" onfocus="_wsTargetSearch(this.value)">
       <div id="ws-target-results" class="ws-anchor-results"></div>
@@ -3233,7 +3239,7 @@ function _ccSignOut(){
   if(window.SLEEPER_SESSION) SLEEPER_SESSION.signOut();
   window.CALC_MY_TRADES = null;
   window.CALC_LEAGUE_DATA = null;
-  _wsState = { leagues:null, byId:{}, targets:[], managers:[], ready:false, pulseOpen:true };
+  _wsState = { leagues:null, byId:{}, targets:[], managers:[], ready:false, pulseOpen:true, dir:'for' };
   _wsApplyGate();
 }
 
@@ -3246,7 +3252,35 @@ function _ccSignOut(){
 // OWNER's archetype so they'd plausibly accept. Each league is valued in its own
 // format (SF/1QB). Output = trade opportunities grouped by the target player.
 // ════════════════════════════════════════════════════════════════════════════
-let _wsState = { leagues:null, byId:{}, targets:[], managers:[], ready:false, pulseOpen:true };
+let _wsState = { leagues:null, byId:{}, targets:[], managers:[], ready:false, pulseOpen:true, dir:'for' };
+// What each archetype WANTS (mirrors sleeper-helpers ARCH_PREFS) — used in
+// Trade AWAY to decide which teams would plausibly want the player you're moving.
+const _WS_WANTS = {
+  rebuilder:{young:1.0,vet:0.3}, emergency:{young:0.6,vet:0.4}, tweener:{young:0.5,vet:0.5},
+  contender:{young:0.3,vet:1.0}, dynasty:{young:0.7,vet:0.7}
+};
+function _wsTeamWantsPlayer(team, playerName){
+  const fp = FP_VALUES[playerName] || {};
+  const young = fp.age != null && fp.age <= 24;
+  const w = _WS_WANTS[team.archetype] || _WS_WANTS.tweener;
+  return (young ? w.young : w.vet) >= 0.5;
+}
+function _wsSetDir(d){
+  _wsState.dir = (d==='away') ? 'away' : 'for';
+  const top = document.getElementById('ws-finder-top');
+  if(top) top.querySelectorAll('.cc-dir-btn').forEach(b => b.classList.toggle('active', b.getAttribute('data-dir')===_wsState.dir));
+  const lbl = document.getElementById('ws-target-label');
+  const inp = document.getElementById('ws-target-input');
+  if(_wsState.dir==='away'){
+    if(lbl) lbl.textContent = 'Players I want to trade away';
+    if(inp) inp.placeholder = 'Add a player you would move…';
+  } else {
+    if(lbl) lbl.textContent = 'Players I want to trade for';
+    if(inp) inp.placeholder = 'Add a player you want…';
+  }
+  const fin = document.getElementById('ws-finder');
+  if(fin && fin.innerHTML.trim()) _wsRenderFinder();   // re-render existing results in the new direction
+}
 
 function _wsLeagueFormatLabel(l){
   const sc = l.scoring_settings || {};
@@ -3437,7 +3471,7 @@ async function _wsLoadAll(){
   _wsRenderMgrChips();
 }
 
-// Build one opportunity (package from my roster → target, tilted to owner).
+// FOR: build a package from MY roster → target, tilted to the owner's archetype.
 function _wsBuildOpp(ctx, league, owner, target){
   const targetVal = _wsPlayerVal(target, ctx.fmtKey); if(!targetVal) return null;
   const suggs = (window.SLEEPER ? SLEEPER.generateTradeSuggestions(ctx.myAssetPool, targetVal * WIN_BIAS, owner.archetype, 3) : []);
@@ -3445,6 +3479,21 @@ function _wsBuildOpp(ctx, league, owner, target){
   const best = suggs.filter(x => x.edge >= -0.06).sort((a,b)=> b.edge - a.edge)[0];
   if(!best) return null;
   return { league, ctx, owner, target, targetVal, sugg:best };
+}
+
+// AWAY: build the RETURN from the buyer's roster for the player you're moving,
+// tilted to MY archetype (what I want back), worth a touch MORE than the player
+// (target = playerVal / WIN_BIAS) so the edge is in my favor.
+function _wsBuildAwayOpp(ctx, data, league, buyer, player){
+  const playerVal = _wsPlayerVal(player, ctx.fmtKey); if(!playerVal) return null;
+  const myArch = (ctx.myTeam && ctx.myTeam.archetype) || 'tweener';
+  const theirPool = (window.SLEEPER ? SLEEPER.buildAssetPool(data, buyer.rosterId, ctx.fmtKey) : []);
+  if(!theirPool.length) return null;
+  const suggs = SLEEPER.generateTradeSuggestions(theirPool, playerVal / WIN_BIAS, myArch, 2);
+  suggs.forEach(x => x.edge = (x.totalSent / playerVal) - 1);   // +ve = you GET more than you give
+  const best = suggs.filter(x => x.edge >= -0.02).sort((a,b)=> b.edge - a.edge)[0];
+  if(!best) return null;
+  return { away:true, league, ctx, buyer, player, playerVal, sugg:best };
 }
 function _wsGroupHtml(titleHtml, sub, opps, emptyMsg){
   return `<div class="ws-target-group">
@@ -3459,7 +3508,11 @@ async function _wsFindTrades(){
   const s = window.SLEEPER_SESSION ? SLEEPER_SESSION.restore() : null; if(!s) return;
   const fEl = document.getElementById('ws-finder'); if(!fEl) return;
   fEl.style.display = '';
-  if(!_wsState.targets.length && !_wsState.managers.length){ fEl.innerHTML = `<div class="ws-opp-info">Add a player you want, or a manager to target, then find trades.</div>`; return; }
+  if(_wsState.dir==='away'){
+    if(!_wsState.targets.length){ fEl.innerHTML = `<div class="ws-opp-info">Add a player you would move, then find trades.</div>`; return; }
+  } else if(!_wsState.targets.length && !_wsState.managers.length){
+    fEl.innerHTML = `<div class="ws-opp-info">Add a player you want, or a manager to target, then find trades.</div>`; return;
+  }
   const btn = document.getElementById('ws-find-btn'); if(btn) btn.disabled = true;
   if(!_wsState.ready){ fEl.innerHTML = `<div class="ws-opp-info">Loading your ${(_wsState.leagues||[]).length} leagues…</div>`; await _wsLoadAll(); }
   _wsRenderFinder();
@@ -3471,6 +3524,29 @@ function _wsRenderFinder(){
   const mgrFilter = _wsState.managers;
   const ownerOk = (owner) => !mgrFilter.length || mgrFilter.indexOf(owner.ownerUser) >= 0;
   let h = '';
+  if(_wsState.dir === 'away'){
+    // ── TRADE AWAY: for each player you'd move, find buyers who'd want them ──
+    _wsState.targets.forEach(player => {
+      const sid = SLEEPER_IDS[player];
+      const opps = []; let notOwn = 0;
+      (_wsState.leagues||[]).forEach(lg => {
+        const entry = _wsState.byId[lg.league_id]; if(!entry || !entry.ctx || !entry.ctx.myTeam) return;
+        const { data, ctx, league } = entry;
+        const owner = _wsFindOwner(data, ctx, player);
+        if(!owner || !owner.isMe){ notOwn++; return; }   // you don't roster them here
+        (ctx.teams||[]).filter(t => !t.isMe && ownerOk(t) && _wsTeamWantsPlayer(t, player)).forEach(buyer => {
+          const o = _wsBuildAwayOpp(ctx, data, league, buyer, player); if(o) opps.push(o);
+        });
+      });
+      opps.sort((a,b)=> b.sugg.edge - a.sugg.edge);
+      const shown = opps.slice(0, 12);
+      const title = `${sid?`<img src="https://sleepercdn.com/content/nfl/players/thumb/${sid}.jpg" onerror="this.style.display='none'">`:''}Move ${_ccEsc(player)}`;
+      const sub = `${shown.length} buyer${shown.length===1?'':'s'} who'd want them${mgrFilter.length?' (selected managers)':''}${notOwn?` · not on your roster in ${notOwn}`:''}`;
+      h += _wsGroupHtml(title, sub, shown, `No buyer wants ${_ccEsc(player)} at a fair return right now${notOwn?` — and you don't roster them in ${notOwn} of your leagues`:''}.`);
+    });
+    fEl.innerHTML = h || `<div class="ws-opp-info">Add a player you would move, then find trades.</div>`;
+    return;
+  }
   if(_wsState.targets.length){
     // ── BY PLAYER (optionally narrowed to selected managers) ──
     _wsState.targets.forEach(target => {
@@ -3522,15 +3598,34 @@ function _wsAssetRow(a){
   return `<div class="cc-asset">${thumb}<span class="cc-asset-name">${_ccEsc(a.name)}</span><span class="cc-asset-val">${Math.round(a.value).toLocaleString()}</span></div>`;
 }
 
+function _wsPlayerAssetHtml(name, val){
+  const sid = SLEEPER_IDS[name];
+  return `<div class="cc-asset"><span class="cc-asset-thumb">${sid?`<img src="https://sleepercdn.com/content/nfl/players/thumb/${sid}.jpg" onerror="this.style.display='none'">`:''}</span><span class="cc-asset-name" style="color:var(--red)">${_ccEsc(name)}</span><span class="cc-asset-val">${Math.round(val).toLocaleString()}</span></div>`;
+}
 function _wsOppCardHtml(o){
   const s = o.sugg, edge = s.edge, edgePct = Math.round(Math.abs(edge)*100);
   const win = edge >= 0.02, fair = !win && edge > -0.02;
-  const edgeBadge = win ? `<span class="ws-opp-edge">You win ${edgePct}%</span>`
-    : (fair ? `<span class="ws-opp-edge fair">Fair</span>` : `<span class="ws-opp-edge fair">+${edgePct}% over</span>`);
+  const pkg = s.sending.map(_wsAssetRow).join('');
+  if(o.away){
+    const b = o.buyer, archLabel = window.SLEEPER ? SLEEPER.archetypeLabel(b.archetype) : b.archetype;
+    const edgeBadge = win ? `<span class="ws-opp-edge">You win ${edgePct}%</span>` : (fair ? `<span class="ws-opp-edge fair">Fair</span>` : `<span class="ws-opp-edge fair">−${edgePct}% light</span>`);
+    return `<div class="ws-opp${win?' win':''}">
+      <div class="ws-opp-head">
+        <span class="ws-opp-league">${_ccEsc(o.league.name||'League')}</span>
+        <span class="ws-opp-owner">→ ${_ccEsc(b.name)} would want them</span>
+        <span class="ws-opp-arch ${b.archetype}">${_ccEsc(archLabel)}</span>
+        ${edgeBadge}
+      </div>
+      <div class="ws-opp-flow">
+        <div><div class="ws-opp-col-label">You send</div>${_wsPlayerAssetHtml(o.player, o.playerVal)}</div>
+        <div class="cc-arrow">→</div>
+        <div><div class="ws-opp-col-label">You get back</div>${pkg}</div>
+      </div>
+      <div class="ws-opp-note">${s.fitNote?_ccEsc(s.fitNote)+' · ':''}${_ccEsc(o.ctx.fmtLabel)}</div>
+    </div>`;
+  }
   const archLabel = window.SLEEPER ? SLEEPER.archetypeLabel(o.owner.archetype) : o.owner.archetype;
-  const give = s.sending.map(_wsAssetRow).join('');
-  const tsid = SLEEPER_IDS[o.target];
-  const get = `<div class="cc-asset"><span class="cc-asset-thumb">${tsid?`<img src="https://sleepercdn.com/content/nfl/players/thumb/${tsid}.jpg" onerror="this.style.display='none'">`:''}</span><span class="cc-asset-name" style="color:var(--red)">${_ccEsc(o.target)}</span><span class="cc-asset-val">${Math.round(o.targetVal).toLocaleString()}</span></div>`;
+  const edgeBadge = win ? `<span class="ws-opp-edge">You win ${edgePct}%</span>` : (fair ? `<span class="ws-opp-edge fair">Fair</span>` : `<span class="ws-opp-edge fair">+${edgePct}% over</span>`);
   return `<div class="ws-opp${win?' win':''}">
     <div class="ws-opp-head">
       <span class="ws-opp-league">${_ccEsc(o.league.name||'League')}</span>
@@ -3539,9 +3634,9 @@ function _wsOppCardHtml(o){
       ${edgeBadge}
     </div>
     <div class="ws-opp-flow">
-      <div><div class="ws-opp-col-label">You send</div>${give}</div>
+      <div><div class="ws-opp-col-label">You send</div>${pkg}</div>
       <div class="cc-arrow">→</div>
-      <div><div class="ws-opp-col-label">You get</div>${get}</div>
+      <div><div class="ws-opp-col-label">You get</div>${_wsPlayerAssetHtml(o.target, o.targetVal)}</div>
     </div>
     <div class="ws-opp-note">${s.fitNote?_ccEsc(s.fitNote)+' · ':''}${_ccEsc(o.ctx.fmtLabel)}</div>
   </div>`;

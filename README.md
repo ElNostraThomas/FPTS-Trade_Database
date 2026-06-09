@@ -42,9 +42,13 @@ The old calculator chrome is **hidden via CSS** (`#filter-area-wrap, #active-fil
 - **Manager targeting** (`#ws-mgr-input`) — search the managers you want to trade with (deduped by person across leagues, `_wsAllManagers`/`_wsMgrSearch`/`_wsAddMgr`). Selecting managers **narrows** the player-target opportunities to them; selecting managers with **no player chosen** flips to **manager mode** — `_wsRenderFinder` surfaces each manager's top-6 tradeable players you don't own, each with a win-biased package. Teams now carry `owner_id`/`ownerUser`/`players`.
 - **Eager load** — `_wsLoadAll()` fetches every league's rosters in the background at login (was on-demand at "Find"), so the pulse + manager list are ready immediately and the scan is instant.
 
+### Follow-on (same session): Trade-AWAY mode
+
+A **Trade FOR / Trade AWAY** toggle (`_wsSetDir`, `_wsState.dir`) at the top of the finder. **Trade AWAY** = the mirror: list players you'd **move**; for each league you roster them in, find the teams who'd **want** them (archetype heuristic `_wsTeamWantsPlayer` + `_WS_WANTS`, mirroring sleeper-helpers ARCH_PREFS — young→rebuilders/dynasty, vets→contenders), and build the **return from the buyer's roster** (`_wsBuildAwayOpp`: `buildAssetPool(buyer)` → `generateTradeSuggestions(theirPool, playerVal / WIN_BIAS, MY archetype, 2)`), tilted to **your** archetype and worth a touch MORE than the player so the edge favors you (`edge = totalSent/playerVal − 1`). Card flips to "send [your player] → get back [their package]"; capped at 12 buyers/player. Manager filter narrows buyers. `_wsOppCardHtml` branches on `o.away`.
+
 ### Noted refinements
 
-Trade-AWAY (find who wants YOUR player); physical deletion of the dormant `_cc*` + legacy-modal code; link "you already own them in N / not rostered in M" to those rosters; surface per-position need ("you're 12th at TE").
+Physical deletion of the dormant `_cc*` + legacy-modal code; link "you already own them in N / not rostered in M" to those rosters; surface per-position need ("you're 12th at TE").
 
 ---
 
