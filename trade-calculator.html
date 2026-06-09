@@ -1186,7 +1186,7 @@
 <link rel="stylesheet" href="assets/css/heatmap.css?v=1782600000">
 <script src="assets/js/heatmap.js?v=1778670000"></script>
 <link rel="stylesheet" href="assets/css/legend.css?v=1796300000">
-<script src="assets/js/legend-content.js?v=1796800000"></script>
+<script src="assets/js/legend-content.js?v=1796900000"></script>
 <script src="assets/js/legend.js?v=1778949514"></script>
 <script>document.addEventListener('DOMContentLoaded', function(){ if (window.Legend) Legend.init('trade-calculator'); });</script>
 <!-- Shared player panel — DB's slide-in drawer used identically on every page -->
@@ -1205,7 +1205,7 @@
 <!-- Self-contained Sleeper login + cross-league trade fetch (window.SLEEPER_SESSION).
      Powers the "Find comparable real trades" panel. Reuses the same fpts-sleeper-*
      localStorage keys as My Leagues, so a login on either page carries over. -->
-<script src="assets/js/sleeper-session.js?v=1796800000"></script>
+<script src="assets/js/sleeper-session.js?v=1796900000"></script>
 <style>
   /* Hide the legacy in-page modal — its click handlers now route to the shared panel instead. */
   #calc-modal-backdrop { display: none !important; }
@@ -1276,8 +1276,8 @@
 <div class="page">
   <div class="page-header">
     <div>
-      <div class="page-title">Dynasty <span>Trade</span> Calculator</div>
-      <div class="page-subtitle">Build a trade · Compare values · Get balanced suggestions · Up to 3 sides · Season 2026</div>
+      <div class="page-title">Dynasty <span>Trade</span> Workshop</div>
+      <div class="page-subtitle">Your league · your roster · real comparable trades · offers built from what you own — Season 2026</div>
       <div class="fpts-xpage-bar" style="margin-top:10px">
         <button class="fpts-xpage-btn" onclick="event.stopPropagation();_fptsXpageCalcToDb()" title="Open the trade database with these players pinned">Open in Database ↗</button>
         <button class="fpts-xpage-btn" onclick="event.stopPropagation();_fptsXpageCalcToLeagues()" title="Open My Leagues with these players">Open in My Leagues ↗</button>
@@ -1285,6 +1285,80 @@
       </div>
     </div>
   </div>
+
+  <!-- CROSS-LEAGUE TRADE FINDER -->
+  <style>
+    /* Scrap the old calculator chrome — the page is the Trade Finder now. */
+    #filter-area-wrap, #active-filters, .side-controls, #builder-wrap, .balance-section, #calc-comps { display:none !important; }
+    /* shared typeahead (target search) */
+    .ws-anchor-wrap{position:relative;max-width:440px}
+    .ws-anchor-results{position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--surface2);border:1px solid var(--border);border-radius:10px;max-height:320px;overflow:auto;z-index:50;display:none;box-shadow:0 8px 24px rgba(0,0,0,.4)}
+    .ws-anchor-opt{display:flex;align-items:center;gap:9px;padding:8px 11px;cursor:pointer;border-bottom:1px solid var(--border)}
+    .ws-anchor-opt:hover{background:var(--surface)}
+    .ws-anchor-opt-img{width:26px;height:26px;border-radius:50%;object-fit:cover;background:var(--surface);flex-shrink:0}
+    .ws-anchor-opt-name{font-family:'Mulish',sans-serif;font-weight:700;font-size:14px;color:var(--white);flex:1}
+    .ws-anchor-opt-meta{font-family:'Kanit',sans-serif;font-style:italic;font-size:12px;color:var(--white);opacity:.6}
+    /* gate + finder top */
+    #ws-finder-top{margin:14px 0;border:1px solid var(--border);border-radius:14px;background:var(--surface);padding:16px 18px}
+    .ws-userbar{display:flex;align-items:center;gap:11px;margin-bottom:14px}
+    .ws-avatar{width:34px;height:34px;border-radius:50%;object-fit:cover;background:var(--surface2);border:1px solid var(--border)}
+    .ws-uname{font-family:'Kanit',sans-serif;font-weight:700;font-style:italic;color:var(--white);font-size:15px;line-height:1.1}
+    .ws-umeta{font-family:'Mulish',sans-serif;font-size:11px;color:var(--white);opacity:.5}
+    .ws-signout{margin-left:auto;background:none;border:1px solid var(--border);border-radius:8px;color:var(--white);opacity:.7;font-family:'Mulish',sans-serif;font-size:11px;font-weight:700;padding:6px 12px;cursor:pointer}
+    .ws-find-label{font-family:'Mulish',sans-serif;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:var(--white);opacity:.55;margin-bottom:8px}
+    .ws-targets{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:12px 0}
+    .ws-target-chip{display:inline-flex;align-items:center;gap:7px;background:var(--surface2);border:1px solid var(--border);border-radius:999px;padding:5px 6px 5px 5px;font-family:'Mulish',sans-serif;font-weight:700;font-size:13px;color:var(--white)}
+    .ws-target-chip img{width:24px;height:24px;border-radius:50%;object-fit:cover;background:var(--surface)}
+    .ws-target-chip .x{cursor:pointer;opacity:.6;font-weight:800;padding:0 4px}
+    .ws-target-chip .x:hover{opacity:1;color:var(--red)}
+    .ws-find-btn{background:var(--red);color:var(--black);border:none;border-radius:10px;font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;text-transform:uppercase;letter-spacing:.04em;font-size:15px;padding:12px 24px;cursor:pointer}
+    .ws-find-btn:disabled{opacity:.55;cursor:default}
+    /* opportunity cards */
+    #ws-finder{margin:14px 0}
+    .ws-target-group{margin-bottom:24px}
+    .ws-target-group-title{font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;text-transform:uppercase;letter-spacing:.04em;font-size:18px;color:var(--white);margin-bottom:3px;display:flex;align-items:center;gap:9px}
+    .ws-target-group-title img{width:30px;height:30px;border-radius:50%;object-fit:cover}
+    .ws-target-group-sub{font-family:'Mulish',sans-serif;font-size:12px;color:var(--white);opacity:.55;margin-bottom:11px}
+    .ws-opp{border:1px solid var(--border);border-radius:12px;background:var(--surface2);padding:13px 15px;margin-bottom:10px}
+    .ws-opp.win{border-color:var(--green)}
+    .ws-opp-head{display:flex;align-items:center;gap:9px;margin-bottom:10px;flex-wrap:wrap}
+    .ws-opp-league{font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;color:var(--white);font-size:14px}
+    .ws-opp-owner{font-family:'Mulish',sans-serif;font-size:12px;color:var(--white);opacity:.7}
+    .ws-opp-arch{font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;text-transform:uppercase;font-size:10px;padding:3px 8px;border-radius:6px;color:var(--black);background:var(--white)}
+    .ws-opp-arch.contender,.ws-opp-arch.emergency{background:var(--red)}
+    .ws-opp-arch.dynasty{background:var(--green)}
+    .ws-opp-arch.rebuilder{background:var(--yellow)}
+    .ws-opp-arch.tweener{background:var(--surface);color:var(--white);border:1px solid var(--border)}
+    .ws-opp-edge{margin-left:auto;font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:13px;padding:4px 11px;border-radius:8px;color:var(--black);background:var(--green)}
+    .ws-opp-edge.fair{background:var(--surface);color:var(--white);border:1px solid var(--border)}
+    .ws-opp-flow{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center}
+    .ws-opp-col-label{font-family:'Mulish',sans-serif;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--white);opacity:.4;margin-bottom:5px}
+    .ws-opp-note{font-family:'Mulish',sans-serif;font-size:12px;color:var(--white);opacity:.6;margin-top:9px}
+    .ws-opp-info{font-family:'Mulish',sans-serif;font-size:13px;color:var(--white);opacity:.6;padding:10px 0}
+    @media(max-width:620px){.ws-opp-flow{grid-template-columns:1fr;gap:6px}}
+  </style>
+  <section id="ws-gate" style="display:none">
+    <div class="cc-gate" style="max-width:460px;margin:36px auto">
+      <div class="ws-find-label" style="font-size:18px;opacity:1;margin-bottom:8px">Sign in to the <span style="color:var(--red)">Trade Finder</span></div>
+      <div class="cc-sub" style="opacity:.7;margin-bottom:10px">Enter your Sleeper username to scan your leagues and surface real trades for the players you want — built from your roster, slightly in your favor.</div>
+      <div class="cc-gate-row">
+        <input id="cc-username" class="cc-input" placeholder="Sleeper username" autocomplete="off" onkeydown="if(event.key==='Enter')_ccLogin()">
+        <button class="cc-btn" id="cc-login-btn" onclick="_ccLogin()">Sign in</button>
+      </div>
+      <div class="cc-err" id="cc-login-err"></div>
+    </div>
+  </section>
+  <section id="ws-finder-top" style="display:none">
+    <div class="ws-userbar" id="ws-userbar"></div>
+    <div class="ws-find-label">Players I want to trade for</div>
+    <div class="ws-anchor-wrap">
+      <input id="ws-target-input" class="cc-input" placeholder="Add a player you want…" autocomplete="off" oninput="_wsTargetSearch(this.value)" onfocus="_wsTargetSearch(this.value)">
+      <div id="ws-target-results" class="ws-anchor-results"></div>
+    </div>
+    <div class="ws-targets" id="ws-target-chips"></div>
+    <button class="ws-find-btn" id="ws-find-btn" onclick="_wsFindTrades()">Find trades across my leagues</button>
+  </section>
+  <section id="ws-finder" style="display:none"></section>
 
   <!-- FORMAT -->
   <div class="filter-area" id="filter-area-wrap">
@@ -1552,6 +1626,15 @@
     .cc-signout:hover{opacity:1;border-color:var(--red)}
     .cc-cta{background:var(--red);color:var(--black);border:none;border-radius:10px;font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;text-transform:uppercase;letter-spacing:.04em;font-size:14px;padding:12px 22px;cursor:pointer}
     .cc-cta:disabled{opacity:.55;cursor:default}
+    /* anchor + direction controls */
+    .cc-controls{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px}
+    .cc-ctl-label{font-family:'Mulish',sans-serif;font-size:12px;color:var(--white);opacity:.6;font-weight:700}
+    .cc-dir{display:inline-flex;border:1px solid var(--border);border-radius:9px;overflow:hidden}
+    .cc-dir-btn{background:var(--surface2);color:var(--white);border:none;font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;text-transform:uppercase;letter-spacing:.03em;font-size:12px;padding:9px 14px;cursor:pointer;opacity:.6}
+    .cc-dir-btn.active{background:var(--red);color:var(--black);opacity:1}
+    .cc-anchor-select{background:var(--surface2);border:1px solid var(--border);border-radius:9px;color:var(--white);font-family:'Mulish',sans-serif;font-weight:700;font-size:14px;padding:9px 12px;outline:none;max-width:260px;cursor:pointer}
+    .cc-anchor-select:focus{border-color:var(--red)}
+    .cc-anchor-select:disabled{opacity:.5;cursor:default}
     /* result zones */
     .cc-zone{margin-top:18px}
     .cc-zone-title{font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;text-transform:uppercase;letter-spacing:.05em;font-size:13px;color:var(--white);opacity:.8;margin-bottom:10px;display:flex;align-items:center;gap:7px}
@@ -1586,7 +1669,7 @@
     <div class="cc-head">
       <div>
         <div class="cc-title">Find <span>Comparable</span> Real Trades</div>
-        <div class="cc-sub">Build your offer above — <strong>Side A = what you give</strong>, <strong>Side B = the player you want</strong>. We'll find real trades where that player actually changed hands, ranked by how close the return matches your package.</div>
+        <div class="cc-sub">Build a trade above, then pick the <strong>player (or pick) to anchor on</strong> and whether you're trading <strong>FOR</strong> or <strong>AWAY</strong> them. We'll find real trades involving that player, ranked by how close the return matches the rest of your package.</div>
       </div>
     </div>
     <div class="cc-body" id="cc-body"></div>
@@ -2288,7 +2371,11 @@ function _calcFmt(visibleId, hiddenId, defaultVal) {
   return defaultVal;
 }
 
-function _calcQb()     { return _calcFmt('f-qb',     'fmt-qb',     'sf'); }
+// QB format is league-driven in the workshop: once a league is selected,
+// window._wsLeagueFmt ('sf'|'1qb') is the single source of truth and every
+// consumer (value resolver, builder multipliers, comp format filter) follows
+// it. Falls back to the legacy #f-qb dropdown when no league is selected.
+function _calcQb()     { if (window._wsLeagueFmt) return window._wsLeagueFmt; return _calcFmt('f-qb', 'fmt-qb', 'sf'); }
 // _calcTep() removed 2026-06-08 — TEP is baked into the base MVS value, so the
 // calculator no longer reads a TEP setting or applies a TE premium.
 function _calcPpr()    { return parseFloat(_calcFmt('f-ppr',    'fmt-ppr',    '1')); }
@@ -2403,6 +2490,8 @@ const sideColors = ['#5b9bd5','#e05252','var(--green)'];
 function renderAll() {
   renderBuilder();
   recalc();
+  // Keep the comparable-trades anchor dropdown in sync as assets change.
+  if (typeof _ccSyncAnchor === 'function') { try { _ccSyncAnchor(); } catch(e){} }
 }
 
 function renderBuilder() {
@@ -2716,6 +2805,7 @@ let _ccOwnResults = null, _ccArchiveResults = null;
 let _ccArchiveLoading = false, _ccArchiveErr = false, _ccShown = 60;
 let _ccCur = { target: null, offer: null };
 let _ccFpNormMap = null;
+let _ccDir = 'for';   // 'for' (acquiring the anchor) | 'away' (moving the anchor)
 
 function _ccEsc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function _ccOrdinal(r){ r=Number(r); return r===1?'1st':r===2?'2nd':r===3?'3rd':(r+'th'); }
@@ -2772,37 +2862,94 @@ function _ccParsePick(name){
   return null;
 }
 
-// Does an archive/own-league asset match the target descriptor (player or pick)?
+// Does an asset (archive, own-league, OR builder) match the target descriptor?
 function _ccAssetIsTarget(a, target){
-  const isPick = a.isPick || a.position==='PICK';
+  if(!target) return false;
+  const isPick = a.isPick || a.position==='PICK' || a.type==='pick';
   if(target.kind==='player') return !isPick && normalizePlayerName(a.name)===target.norm;
   if(!isPick) return false;
-  const p = _ccParsePick(a.name);
+  const p = _ccParsePick(a.pickKey || a.name);
   return !!(p && String(p.year)===String(target.year) && p.round===target.round);
 }
 
-// v1 target = the single highest-MVS asset on Side B (the GET side). Players
-// take priority; if Side B is picks-only, the target is the pick, matched by
-// year + round (any slot) — answers "what does a 2027 1st actually go for?".
-function _ccTarget(){
-  const b = sides.find(s=>s.id==='B');
-  const assets = b ? b.assets : [];
-  const players = assets.filter(as=>as.type==='player');
-  if(players.length){
-    let best=players[0], bestV=_calcMvsValue(players[0]);
-    players.forEach(p=>{ const v=_calcMvsValue(p); if(v>bestV){ bestV=v; best=p; } });
-    return { kind:'player', name: best.name, label: best.name, norm: normalizePlayerName(best.name), multi: players.length>1 };
+// ── ANCHOR + DIRECTION ────────────────────────────────────────────────────
+// The search is anchored on ONE player (or pick) the user chooses — the
+// centerpiece of the deal — plus a Trade FOR / Trade AWAY direction. EVERY
+// result involves that anchor. The "package" it's ranked against is the value
+// of everything ELSE in the builder.
+
+// All builder assets across both sides, deduped by name.
+function _ccBuilderAssets(){
+  const seen = {}, out = [];
+  sides.forEach(s => (s.assets||[]).forEach(a => { if(seen[a.name]) return; seen[a.name]=1; out.push(a); }));
+  return out;
+}
+
+// Convert a builder asset → a target descriptor (player or pick).
+function _ccAssetToTarget(a){
+  if(!a) return null;
+  if(a.type === 'pick'){
+    const p = _ccParsePick(a.pickKey || a.name);
+    if(!p) return null;
+    return { kind:'pick', year:p.year, round:p.round, name:a.name, label:`a ${p.year} ${_ccOrdinal(p.round)}` };
   }
-  const picks = assets.filter(as=>as.type==='pick');
-  if(picks.length){
-    let best=picks[0], bestV=_calcMvsValue(picks[0]);
-    picks.forEach(p=>{ const v=_calcMvsValue(p); if(v>bestV){ bestV=v; best=p; } });
-    const parsed = _ccParsePick(best.pickKey || best.name);
-    if(!parsed) return null;
-    const label = `a ${parsed.year} ${_ccOrdinal(parsed.round)}`;
-    return { kind:'pick', year:parsed.year, round:parsed.round, name: best.name, label, multi: picks.length>1 };
+  return { kind:'player', name:a.name, label:a.name, norm:normalizePlayerName(a.name) };
+}
+
+// Populate the anchor <select> from the current builder (players first by value,
+// then picks). Preserves the prior pick when still present. Kept in sync by a
+// hook in renderAll() so adding/removing assets refreshes the list live.
+function _ccSyncAnchor(){
+  const sel = document.getElementById('cc-anchor'); if(!sel) return;
+  const assets = _ccBuilderAssets();
+  const prev = sel.value;
+  if(!assets.length){ sel.innerHTML = `<option value="">— add a player or pick to the builder —</option>`; sel.disabled = true; return; }
+  sel.disabled = false;
+  const players = assets.filter(a=>a.type==='player').sort((x,y)=>_calcMvsValue(y)-_calcMvsValue(x));
+  const picks   = assets.filter(a=>a.type==='pick').sort((x,y)=>_calcMvsValue(y)-_calcMvsValue(x));
+  const ordered = players.concat(picks);
+  sel.innerHTML = ordered.map(a=>`<option value="${_ccEsc(a.name)}">${_ccEsc(a.name)}</option>`).join('');
+  if(prev && ordered.some(a=>a.name===prev)) sel.value = prev;
+}
+
+// Flip Trade FOR / Trade AWAY (framing only — same trades match either way; the
+// labels reflect "what it cost" vs "what it returned"). Re-labels live results.
+function _ccSetDir(d){
+  _ccDir = (d==='away') ? 'away' : 'for';
+  const wrap = document.getElementById('calc-comps');
+  if(wrap) wrap.querySelectorAll('.cc-dir-btn').forEach(b => b.classList.toggle('active', b.getAttribute('data-dir')===_ccDir));
+  if(_ccCur.target) _ccRenderResults();
+}
+
+// The chosen anchor → target descriptor. Reads the <select>; defaults to the
+// highest-value player (or highest-value asset if no players).
+function _ccAnchorTarget(){
+  const sel = document.getElementById('cc-anchor');
+  const assets = _ccBuilderAssets();
+  if(!assets.length) return null;
+  let chosen = (sel && sel.value) ? assets.find(a=>a.name===sel.value) : null;
+  if(!chosen){
+    const players = assets.filter(a=>a.type==='player');
+    const pool = players.length ? players : assets;
+    chosen = pool[0]; let bv = _calcMvsValue(pool[0]);
+    pool.forEach(a=>{ const v=_calcMvsValue(a); if(v>bv){ bv=v; chosen=a; } });
   }
-  return null;
+  return _ccAssetToTarget(chosen);
+}
+
+// Package value = Σ MVS of every builder asset EXCEPT the anchor. When nothing
+// else is added, fall back to the anchor's own value (→ fair-value trades).
+function _ccPackageValue(target){
+  let total=0, partial=false, count=0;
+  _ccBuilderAssets().forEach(a => {
+    if(_ccAssetIsTarget(a, target)) return;   // skip the anchor itself
+    const v = _calcMvsValue(a); if(!v && a.type==='player') partial=true; total+=v; count++;
+  });
+  if(count === 0){
+    const anchorAsset = _ccBuilderAssets().find(a=>_ccAssetIsTarget(a, target));
+    return { val: anchorAsset ? _calcMvsValue(anchorAsset) : 0, partial:false, baseline:true };
+  }
+  return { val: total, partial, baseline:false };
 }
 
 // Normalize a raw Sleeper own-league trade into the archive trade shape
@@ -2899,6 +3046,12 @@ function _ccCardHtml(m, target, isOwn){
   const left  = m.returnAssets.map(a=>_ccAssetHtml(a,false)).join('');
   const right = (m.targetSide.assets||[]).map(a=>_ccAssetHtml(a, _ccAssetIsTarget(a, target))).join('');
   const offerVal = (_ccCur.offer && _ccCur.offer.val) || 0;
+  // Direction = framing only. The anchor side is always on the right; the
+  // "return" (non-anchor side) is the real price/return on the left.
+  const away = _ccDir==='away';
+  const leftLabel  = away ? 'They got back' : 'Real price paid';
+  const rightLabel = (away ? 'Gave up' : 'Acquired') + (m.multi ? ' (in a bundle)' : '');
+  const ratioWord  = away ? 'of the package you want' : 'of your package';
   return `<div class="cc-card${isOwn?' is-own':''}">
     <div class="cc-card-head">
       ${isOwn?`<span class="cc-badge">★ Your league</span>`:''}
@@ -2906,11 +3059,11 @@ function _ccCardHtml(m, target, isOwn){
       ${date?`<span class="cc-date">${date}</span>`:''}
       <span class="cc-pill ${pillCls}">${pct}% match</span>
     </div>
-    <div class="cc-ratio">Return was ${retPct}% of your offer · ${m.returnVal.toLocaleString()} vs ${offerVal.toLocaleString()}</div>
+    <div class="cc-ratio">Return was ${retPct}% ${ratioWord} · ${m.returnVal.toLocaleString()} vs ${offerVal.toLocaleString()}</div>
     <div class="cc-flow">
-      <div><div class="cc-col-label">Package paid</div>${left}</div>
+      <div><div class="cc-col-label">${leftLabel}</div>${left}</div>
       <div class="cc-arrow">→</div>
-      <div><div class="cc-col-label">Acquired${m.multi?' (in a bundle)':''}</div>${right}</div>
+      <div><div class="cc-col-label">${rightLabel}</div>${right}</div>
     </div>
   </div>`;
 }
@@ -2919,9 +3072,11 @@ function _ccRenderResults(){
   const el = _ccResultsEl(); if(!el) return;
   const target = _ccCur.target, offer = _ccCur.offer;
   if(!target || !offer){ el.innerHTML=''; return; }
-  let h = `<div class="cc-ratio" style="margin-top:14px">Your offer for <strong style="color:var(--red)">${_ccEsc(target.label)}</strong>: <strong>${offer.val.toLocaleString()}</strong> value`
+  const dirWord = _ccDir==='away' ? 'Trading AWAY' : 'Trading FOR';
+  const pkgWord = _ccDir==='away' ? "you'd want back a package worth" : 'your package is worth';
+  let h = `<div class="cc-ratio" style="margin-top:14px">${dirWord} <strong style="color:var(--red)">${_ccEsc(target.label)}</strong> — ${pkgWord} <strong>${offer.val.toLocaleString()}</strong>`
+    + (offer.baseline ? ` <span style="opacity:.7">(no package added — showing trades near ${_ccEsc(target.label)}'s own value)</span>` : '')
     + (offer.partial ? ` · <span style="opacity:.7">some players had no current value (excluded)</span>` : '')
-    + (target.multi ? ` · <span style="opacity:.7">matching on your highest-value target</span>` : '')
     + `</div>`;
   // ── ★ own-league zone ──
   h += `<div class="cc-zone"><div class="cc-zone-title"><span class="cc-star">★</span> From your leagues</div>`;
@@ -2949,10 +3104,10 @@ function _ccRenderResults(){
 function _ccLoadMore(){ _ccShown += 60; _ccRenderResults(); }
 
 async function _ccFind(){
-  const target = _ccTarget();
-  if(!target){ _ccCur={target:null,offer:null}; _ccMsg('Add the player or pick you want on <strong>Side B</strong> to find comparable trades.'); return; }
-  const offer = _ccOfferValue();
-  if(offer.val <= 0){ _ccCur={target,offer:null}; _ccMsg('Add what you would give on <strong>Side A</strong> first.'); return; }
+  const target = _ccAnchorTarget();
+  if(!target){ _ccCur={target:null,offer:null}; _ccMsg('Add a player or pick to the builder above, then choose who to anchor the search on.'); return; }
+  const offer = _ccPackageValue(target);
+  if(offer.val <= 0){ _ccCur={target:null,offer:null}; _ccMsg('Add the rest of the package — the other assets you would trade alongside <strong>'+_ccEsc(target.label)+'</strong>.'); return; }
   _ccCur = { target, offer };
   _ccOwnResults = null; _ccArchiveResults = null; _ccArchiveErr = false; _ccArchiveLoading = true; _ccShown = 60;
   const btn = document.getElementById('cc-find-btn'); if(btn) btn.disabled = true;
@@ -3021,8 +3176,17 @@ function _ccRenderGate(){
       <div><div class="cc-uname">${_ccEsc(s.displayName)}</div><div class="cc-umeta">@${_ccEsc(s.username)}</div></div>
       <button class="cc-signout" onclick="_ccSignOut()">Sign out</button>
     </div>
+    <div class="cc-controls">
+      <span class="cc-ctl-label">Find real trades where I</span>
+      <span class="cc-dir">
+        <button class="cc-dir-btn${_ccDir==='for'?' active':''}" data-dir="for" onclick="_ccSetDir('for')">Trade FOR</button>
+        <button class="cc-dir-btn${_ccDir==='away'?' active':''}" data-dir="away" onclick="_ccSetDir('away')">Trade AWAY</button>
+      </span>
+      <select id="cc-anchor" class="cc-anchor-select no-fpts-cs"></select>
+    </div>
     <button class="cc-cta" id="cc-find-btn" onclick="_ccFind()">Find comparable trades</button>
     <div id="cc-results"></div>`;
+  _ccSyncAnchor();
 }
 
 async function _ccLogin(){
@@ -3034,9 +3198,7 @@ async function _ccLogin(){
   if(btn){ btn.disabled=true; btn.textContent='…'; }
   try {
     await SLEEPER_SESSION.login(u);
-    _ccRenderGate();
-    const s = SLEEPER_SESSION.restore();
-    if(s) SLEEPER_SESSION.fetchMyTrades(s.userId).catch(()=>{}); // warm in background
+    _wsInit(); // reveal the Trade Finder + load leagues
   } catch(e){
     if(err) err.textContent = (e && e.message==='User not found') ? 'Username not found on Sleeper' : 'Error — try again';
     if(btn){ btn.disabled=false; btn.textContent='Sign in'; }
@@ -3046,14 +3208,234 @@ async function _ccLogin(){
 function _ccSignOut(){
   if(window.SLEEPER_SESSION) SLEEPER_SESSION.signOut();
   window.CALC_MY_TRADES = null;
-  _ccOwnResults = null; _ccArchiveResults = null; _ccCur = { target:null, offer:null };
-  _ccRenderGate();
+  window.CALC_LEAGUE_DATA = null;
+  _wsState = { leagues:null, byId:{}, targets:[] };
+  _wsApplyGate();
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// CROSS-LEAGUE TRADE FINDER (_ws*)
+// ----------------------------------------------------------------------------
+// You list player(s) you WANT. We scan ALL your leagues: skip leagues where you
+// already roster the target, find which team owns it, and suggest a package from
+// YOUR roster (value ≈ target × WIN_BIAS, slightly in your favor) tilted to the
+// OWNER's archetype so they'd plausibly accept. Each league is valued in its own
+// format (SF/1QB). Output = trade opportunities grouped by the target player.
+// ════════════════════════════════════════════════════════════════════════════
+let _wsState = { leagues:null, byId:{}, targets:[] };
+
+function _wsLeagueFormatLabel(l){
+  const sc = l.scoring_settings || {};
+  const ppr = sc.rec || 0;
+  const sf  = (l.roster_positions||[]).indexOf('SUPER_FLEX') >= 0;
+  const tep = sc.bonus_rec_te || 0;
+  const parts = [ sf?'SF':'1QB', ppr===1?'Full PPR':(ppr===0.5?'Half PPR':'Std') ];
+  if(tep) parts.push(tep + ' TEP');
+  return parts.join(' · ');
+}
+function _wsFmtKey(league){ return (league.roster_positions||[]).indexOf('SUPER_FLEX') >= 0 ? 'valueSf' : 'value1qb'; }
+function _wsPlayerVal(name, fmtKey){ const fp = FP_VALUES[name]; if(!fp) return 0; return Math.round((fp[fmtKey]!=null?fp[fmtKey]:fp.value)||0); }
+
+// Per-league context valued in the league's OWN format: an archetype for EVERY
+// team (so the package can tilt to the owner), plus my tradeable asset pool.
+function _wsComputeLeague(data, league){
+  const players = data.players || {}, rosters = data.rosters || [], users = data.users || [];
+  const fmtKey = _wsFmtKey(league);
+  const teams = rosters.map(r => {
+    const u = users.find(u => u.user_id === r.owner_id);
+    const name = u ? ((u.metadata && u.metadata.team_name) || u.display_name || u.username) : ('Team ' + r.roster_id);
+    let total = 0; const ages = [];
+    (r.players||[]).forEach(pid => {
+      const p = players[pid]; if(!p) return;
+      const pname = p.full_name || ((p.first_name||'')+' '+(p.last_name||'')).trim(); if(!pname) return;
+      if(['QB','RB','WR','TE'].indexOf(p.position) >= 0) total += _wsPlayerVal(pname, fmtKey);
+      if(p.age && p.age>0) ages.push(p.age);
+    });
+    const avgAge = ages.length ? ages.reduce((s,a)=>s+a,0)/ages.length : 0;
+    return { rosterId:r.roster_id, name, isMe:r.roster_id===data.myRosterId, total, avgAge, pickValue:0 };
+  });
+  teams.forEach(t => {
+    const owned = (window.SLEEPER ? SLEEPER.getOwnedPicks(t.rosterId, data.tradedPicks, data.draftRounds, data.leagueSeason, data.completedDraftSeasons) : []);
+    t.pickValue = owned.reduce((s,p)=> s + (SLEEPER.pickValue(p.season, p.round, fmtKey)||0), 0);
+  });
+  const median = arr => { if(!arr.length) return 0; const s=[...arr].sort((a,b)=>a-b); const m=Math.floor(s.length/2); return s.length%2 ? s[m] : (s[m-1]+s[m])/2; };
+  const leagueAvg = { age:median(teams.filter(t=>t.avgAge>0).map(t=>t.avgAge)), value:median(teams.map(t=>t.total)), pickValue:median(teams.map(t=>t.pickValue||0)), proj:0 };
+  teams.forEach(t => { t.archetype = (window.SLEEPER ? SLEEPER.archetypeFromTotals(t.avgAge, t.total, t.pickValue, 0, leagueAvg) : 'tweener'); });
+  const myTeam = teams.find(t=>t.isMe) || null;
+  const myAssetPool = (myTeam && window.SLEEPER) ? SLEEPER.buildAssetPool(data, data.myRosterId, fmtKey) : [];
+  return { teams, myTeam, leagueAvg, myAssetPool, fmtKey, fmtLabel:_wsLeagueFormatLabel(league) };
+}
+
+// Which team in this league rosters `targetName`? Returns its team ctx or null.
+function _wsFindOwner(data, ctx, targetName){
+  const norm = normalizePlayerName(targetName);
+  for(const r of (data.rosters||[])){
+    const has = (r.players||[]).some(pid => {
+      const p = data.players[pid]; if(!p) return false;
+      const nm = p.full_name || ((p.first_name||'')+' '+(p.last_name||'')).trim();
+      return normalizePlayerName(nm) === norm;
+    });
+    if(has) return (ctx.teams||[]).find(t => t.rosterId === r.roster_id) || { rosterId:r.roster_id, name:'Team '+r.roster_id, archetype:'tweener', isMe:false };
+  }
+  return null;
+}
+
+// WIN_BIAS (tunable): packages are built against target × WIN_BIAS, so they land
+// a touch under the player's value — the user wins a little, as often as realistic.
+// Toward 1.0 → fairer offers; toward 0.85 → bigger edge but fewer realistic ones.
+const WIN_BIAS = 0.93;
+
+// ── Target picker (players you want, multi-select) ────────────────────────
+function _wsTargetSearch(q){
+  const box = document.getElementById('ws-target-results'); if(!box) return;
+  q = (q||'').trim().toLowerCase();
+  if(!q){ box.innerHTML=''; box.style.display='none'; return; }
+  const names = Object.keys(window.FP_VALUES||{}).filter(n => n.toLowerCase().indexOf(q) >= 0 && _wsState.targets.indexOf(n) < 0);
+  names.sort((a,b)=> _wsPlayerVal(b,'valueSf') - _wsPlayerVal(a,'valueSf'));
+  const top = names.slice(0, 8);
+  if(!top.length){ box.innerHTML=''; box.style.display='none'; return; }
+  box.innerHTML = top.map(n => {
+    const sid = SLEEPER_IDS[n];
+    const pos = (FP_VALUES[n] && FP_VALUES[n].posRank) ? FP_VALUES[n].posRank : '';
+    const nm = n.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+    return `<div class="ws-anchor-opt" onclick="_wsAddTarget('${nm}')">`
+      + (sid?`<img class="ws-anchor-opt-img" src="https://sleepercdn.com/content/nfl/players/thumb/${sid}.jpg" onerror="this.style.display='none'">`:`<span class="ws-anchor-opt-img"></span>`)
+      + `<span class="ws-anchor-opt-name">${_ccEsc(n)}</span><span class="ws-anchor-opt-meta">${_ccEsc(pos)}</span></div>`;
+  }).join('');
+  box.style.display = 'block';
+}
+function _wsAddTarget(name){
+  if(_wsState.targets.indexOf(name) < 0) _wsState.targets.push(name);
+  const inp = document.getElementById('ws-target-input'); if(inp) inp.value='';
+  const box = document.getElementById('ws-target-results'); if(box){ box.innerHTML=''; box.style.display='none'; }
+  _wsRenderTargetChips();
+}
+function _wsRemoveTarget(name){
+  _wsState.targets = _wsState.targets.filter(n => n !== name);
+  _wsRenderTargetChips();
+}
+function _wsRenderTargetChips(){
+  const el = document.getElementById('ws-target-chips'); if(!el) return;
+  el.innerHTML = _wsState.targets.map(n => {
+    const sid = SLEEPER_IDS[n];
+    const nm = n.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+    return `<span class="ws-target-chip">${sid?`<img src="https://sleepercdn.com/content/nfl/players/thumb/${sid}.jpg" onerror="this.style.display='none'">`:''}${_ccEsc(n)}<span class="x" onclick="_wsRemoveTarget('${nm}')">✕</span></span>`;
+  }).join('');
+}
+
+// ── The scan: fetch + compute every league, then render opportunities ─────
+async function _wsFindTrades(){
+  const s = window.SLEEPER_SESSION ? SLEEPER_SESSION.restore() : null; if(!s) return;
+  const fEl = document.getElementById('ws-finder'); if(!fEl) return;
+  fEl.style.display = '';
+  if(!_wsState.targets.length){ fEl.innerHTML = `<div class="ws-opp-info">Add at least one player you want, then find trades.</div>`; return; }
+  fEl.innerHTML = `<div class="ws-opp-info">Scanning your ${(_wsState.leagues||[]).length} leagues…</div>`;
+  const btn = document.getElementById('ws-find-btn'); if(btn) btn.disabled = true;
+  await Promise.all((_wsState.leagues||[]).map(async (lg) => {
+    if(_wsState.byId[lg.league_id]) return;
+    try {
+      const data = await SLEEPER_SESSION.fetchLeagueData(s.userId, lg);
+      _wsState.byId[lg.league_id] = { league:lg, data, ctx:_wsComputeLeague(data, lg) };
+    } catch(e){ _wsState.byId[lg.league_id] = null; }
+  }));
+  _wsRenderFinder();
+  if(btn) btn.disabled = false;
+}
+
+function _wsRenderFinder(){
+  const fEl = document.getElementById('ws-finder'); if(!fEl) return;
+  let h = '';
+  _wsState.targets.forEach(target => {
+    const sid = SLEEPER_IDS[target];
+    const opps = [];
+    let ownCount = 0, faCount = 0;
+    (_wsState.leagues||[]).forEach(lg => {
+      const entry = _wsState.byId[lg.league_id]; if(!entry || !entry.ctx || !entry.ctx.myTeam) return;
+      const { data, ctx, league } = entry;
+      const owner = _wsFindOwner(data, ctx, target);
+      if(!owner){ faCount++; return; }            // nobody rosters it
+      if(owner.isMe){ ownCount++; return; }       // you already own it here
+      const targetVal = _wsPlayerVal(target, ctx.fmtKey);
+      if(!targetVal) return;
+      const suggs = (window.SLEEPER ? SLEEPER.generateTradeSuggestions(ctx.myAssetPool, targetVal * WIN_BIAS, owner.archetype, 3) : []);
+      suggs.forEach(x => x.edge = 1 - (x.totalSent / targetVal));
+      const best = suggs.filter(x => x.edge >= -0.06).sort((a,b)=> b.edge - a.edge)[0];
+      if(!best) return;
+      opps.push({ league, ctx, owner, target, targetVal, sugg:best });
+    });
+    opps.sort((a,b)=> b.sugg.edge - a.sugg.edge);
+    h += `<div class="ws-target-group">
+      <div class="ws-target-group-title">${sid?`<img src="https://sleepercdn.com/content/nfl/players/thumb/${sid}.jpg" onerror="this.style.display='none'">`:''}${_ccEsc(target)}</div>
+      <div class="ws-target-group-sub">${opps.length} trade ${opps.length===1?'opportunity':'opportunities'}${ownCount?` · you already own them in ${ownCount} league${ownCount>1?'s':''}`:''}${faCount?` · not rostered in ${faCount}`:''}</div>`;
+    if(!opps.length) h += `<div class="ws-opp-info">No tradeable opportunity for ${_ccEsc(target)} right now — they're either already yours or no one rosters them in your leagues.</div>`;
+    else h += opps.map(o => _wsOppCardHtml(o)).join('');
+    h += `</div>`;
+  });
+  fEl.innerHTML = h || `<div class="ws-opp-info">Add a player you want, then find trades.</div>`;
+}
+
+function _wsAssetRow(a){
+  const isPick = a.type === 'pick';
+  const sid = (!isPick && window.SLEEPER_IDS) ? SLEEPER_IDS[a.name] : null;
+  const thumb = isPick ? pickThumb(24)
+    : (sid ? `<span class="cc-asset-thumb"><img src="https://sleepercdn.com/content/nfl/players/thumb/${sid}.jpg" onerror="this.style.display='none'"></span>`
+           : `<span class="cc-asset-thumb"></span>`);
+  return `<div class="cc-asset">${thumb}<span class="cc-asset-name">${_ccEsc(a.name)}</span><span class="cc-asset-val">${Math.round(a.value).toLocaleString()}</span></div>`;
+}
+
+function _wsOppCardHtml(o){
+  const s = o.sugg, edge = s.edge, edgePct = Math.round(Math.abs(edge)*100);
+  const win = edge >= 0.02, fair = !win && edge > -0.02;
+  const edgeBadge = win ? `<span class="ws-opp-edge">You win ${edgePct}%</span>`
+    : (fair ? `<span class="ws-opp-edge fair">Fair</span>` : `<span class="ws-opp-edge fair">+${edgePct}% over</span>`);
+  const archLabel = window.SLEEPER ? SLEEPER.archetypeLabel(o.owner.archetype) : o.owner.archetype;
+  const give = s.sending.map(_wsAssetRow).join('');
+  const tsid = SLEEPER_IDS[o.target];
+  const get = `<div class="cc-asset"><span class="cc-asset-thumb">${tsid?`<img src="https://sleepercdn.com/content/nfl/players/thumb/${tsid}.jpg" onerror="this.style.display='none'">`:''}</span><span class="cc-asset-name" style="color:var(--red)">${_ccEsc(o.target)}</span><span class="cc-asset-val">${Math.round(o.targetVal).toLocaleString()}</span></div>`;
+  return `<div class="ws-opp${win?' win':''}">
+    <div class="ws-opp-head">
+      <span class="ws-opp-league">${_ccEsc(o.league.name||'League')}</span>
+      <span class="ws-opp-owner">${_ccEsc(o.owner.name)} has them</span>
+      <span class="ws-opp-arch ${o.owner.archetype}">${_ccEsc(archLabel)}</span>
+      ${edgeBadge}
+    </div>
+    <div class="ws-opp-flow">
+      <div><div class="ws-opp-col-label">You send</div>${give}</div>
+      <div class="cc-arrow">→</div>
+      <div><div class="ws-opp-col-label">You get</div>${get}</div>
+    </div>
+    <div class="ws-opp-note">${s.fitNote?_ccEsc(s.fitNote)+' · ':''}${_ccEsc(o.ctx.fmtLabel)}</div>
+  </div>`;
+}
+
+function _wsRenderUserbar(){
+  const el = document.getElementById('ws-userbar'); if(!el) return;
+  const s = window.SLEEPER_SESSION ? SLEEPER_SESSION.restore() : null; if(!s){ el.innerHTML=''; return; }
+  el.innerHTML = `<img class="ws-avatar" src="${SLEEPER_SESSION.avatarUrl(s.avatar)}" onerror="this.style.visibility='hidden'">`
+    + `<div><div class="ws-uname">${_ccEsc(s.displayName)}</div><div class="ws-umeta">@${_ccEsc(s.username)}</div></div>`
+    + `<button class="ws-signout" onclick="_ccSignOut()">Sign out</button>`;
+}
+
+// Whole-page gate: show the finder when authed, the sign-in when not.
+function _wsApplyGate(){
+  const authed = !!(window.SLEEPER_SESSION && SLEEPER_SESSION.restore());
+  const gate = document.getElementById('ws-gate'); if(gate) gate.style.display = authed ? 'none' : '';
+  const top  = document.getElementById('ws-finder-top'); if(top) top.style.display = authed ? '' : 'none';
+  const fin  = document.getElementById('ws-finder'); if(fin && !authed){ fin.style.display='none'; fin.innerHTML=''; }
+}
+
+async function _wsInit(){
+  _wsApplyGate();
+  const s = window.SLEEPER_SESSION ? SLEEPER_SESSION.restore() : null;
+  if(!s) return;
+  _wsRenderUserbar();
+  _wsRenderTargetChips();
+  try { _wsState.leagues = (await SLEEPER_SESSION.fetchLeagues(s.userId)) || []; }
+  catch(e){ _wsState.leagues = []; }
 }
 
 function _ccInit(){
-  _ccRenderGate();
-  const s = window.SLEEPER_SESSION ? SLEEPER_SESSION.restore() : null;
-  if(s) SLEEPER_SESSION.fetchMyTrades(s.userId).catch(()=>{}); // warm own-league trades
+  _wsInit(); // whole-page gate + Trade Finder
 }
 
 // ── THEME ─────────────────────────────────────────────────────────────────────

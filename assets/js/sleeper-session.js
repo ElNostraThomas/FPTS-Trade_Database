@@ -95,6 +95,7 @@
   function signOut() {
     _lsDel(LS.USERNAME); _lsDel(LS.USER_ID); _lsDel(LS.DISPLAY); _lsDel(LS.AVATAR);
     global.CALC_MY_TRADES = null;
+    global.CALC_LEAGUE_DATA = null;
   }
 
   // ── Players DB (lazy, cached once per page) ──────────────────────────────
@@ -224,6 +225,53 @@
     return _tradesPromise;
   }
 
+  // ── League list + per-league roster data (for the roster-aware workshop) ──
+  // fetchLeagues → the user's current-season dynasty leagues.
+  function fetchLeagues(userId, opts) {
+    opts = opts || {};
+    return _loadLeagues(userId, opts.currentYear || CURRENT_YEAR);
+  }
+
+  // fetchLeagueData(userId, league) → the per-league data object the SLEEPER
+  // engine consumes (buildAssetPool / archetype / getOwnedPicks). Mirrors the
+  // per-league branch of my-leagues fetchAllLeaguesData, self-contained. Cached
+  // per leagueId on window.CALC_LEAGUE_DATA.
+  function fetchLeagueData(userId, league) {
+    var leagueId = league.league_id;
+    global.CALC_LEAGUE_DATA = global.CALC_LEAGUE_DATA || {};
+    if (global.CALC_LEAGUE_DATA[leagueId]) return Promise.resolve(global.CALC_LEAGUE_DATA[leagueId]);
+    return Promise.all([
+      apiFetch(API + '/league/' + leagueId + '/rosters').catch(function () { return []; }),
+      apiFetch(API + '/league/' + leagueId + '/users').catch(function () { return []; }),
+      getPlayers(),
+      apiFetch(API + '/league/' + leagueId + '/traded_picks').catch(function () { return []; }),
+      apiFetch(API + '/league/' + leagueId + '/drafts').catch(function () { return []; }),
+    ]).then(function (res) {
+      var rosters = res[0] || [], users = res[1] || [], players = res[2] || {},
+          tradedPicks = res[3] || [], drafts = res[4] || [];
+      var cds = drafts.filter(function (d) { return d && d.status === 'complete' && d.season; })
+                      .map(function (d) { return String(d.season); });
+      var myRoster = rosters.find(function (r) { return String(r.owner_id) === String(userId); });
+      var data = {
+        leagueId: leagueId,
+        league: league,
+        rosters: rosters,
+        users: users,
+        players: players,
+        myRosterId: myRoster ? myRoster.roster_id : null,
+        myPlayerIds: myRoster ? (myRoster.players || []) : [],
+        tradedPicks: tradedPicks,
+        completedDraftSeasons: new Set(cds),
+        draftRounds: (league.settings && league.settings.draft_rounds) || 4,
+        leagueSeason: String(league.season || CURRENT_YEAR),
+        rosterPositions: league.roster_positions || [],
+        scoring: league.scoring_settings || {},
+      };
+      global.CALC_LEAGUE_DATA[leagueId] = data;
+      return data;
+    });
+  }
+
   global.SLEEPER_SESSION = {
     restore: restore,
     login: login,
@@ -231,5 +279,7 @@
     avatarUrl: avatarUrl,
     getPlayers: getPlayers,
     fetchMyTrades: fetchMyTrades,
+    fetchLeagues: fetchLeagues,
+    fetchLeagueData: fetchLeagueData,
   };
 })(window);

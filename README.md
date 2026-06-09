@@ -13,7 +13,36 @@ This file is the **resume-where-we-left-off** doc.
 
 ---
 
-## Where we are (end of 2026-06-09 — twenty-first session)
+## Where we are (end of 2026-06-09 — twenty-second session)
+
+**`trade-calculator.html` was rebuilt into a cross-league TRADE FINDER (page is now login-first; the old value calculator + comparable-trades panel are gone from the UI).** This supersedes the twenty-first-session comparable-trades feature below. **NOT yet committed/pushed at the time of writing** (verify with `git status -sb`).
+
+### What it is
+
+List the player(s) you want → it scans **all your leagues** and surfaces where you can actually get them. Per league it **skips leagues where you already roster the target**, finds **which team owns** it, then suggests a **package from your roster** built to fit the **owner's archetype** (so they'd accept) and land **slightly in your favor**. Output = opportunities grouped by target: *"[League] · [Owner] has them · [OwnerArchetype] · You win N% · you send [package] → [target]."* Backward-looking views (the ★ own-league past-trade log + the 16.8k market archive) were **removed** per user direction.
+
+### How it's built
+
+- **`assets/js/sleeper-session.js`** — added `fetchLeagues(userId)` + `fetchLeagueData(userId, league)` (per-league rosters/users/players/tradedPicks/drafts → the shape `SLEEPER.buildAssetPool` consumes; cached on `window.CALC_LEAGUE_DATA`).
+- **`trade-calculator.html` `_ws*`** — whole-page gate (`#ws-gate` sign-in / `#ws-finder-top` when authed; `_wsApplyGate`); multi-target picker (`_wsTargetSearch`/`_wsAddTarget`/chips over `FP_VALUES`); `_wsFindTrades()` scans all leagues in parallel; `_wsComputeLeague(data, league)` archetypes **every** team (`SLEEPER.archetypeFromTotals`) + builds my pool (`SLEEPER.buildAssetPool`), valued in the league's own format (`_wsFmtKey`); `_wsFindOwner` locates the rostering team; opportunities = `SLEEPER.generateTradeSuggestions(myAssetPool, targetVal × WIN_BIAS, owner.archetype, 3)` filtered `edge ≥ −0.06`, sorted favor-first; `_wsOppCardHtml` / `_wsRenderFinder` group by target.
+- **`WIN_BIAS = 0.93`** (tunable, top of the finder script) — offers built against `target × WIN_BIAS` so they land ~5–8% in your favor; `edge = 1 − totalSent / targetVal` shown as "You win N%". Documented in `docs/FORMULAS.md` + `formulas-content.js` (S21 node, `trade-finder` domain) + the legend.
+- **Reuses the proven My-Leagues engine** (`window.SLEEPER.*` in `sleeper-helpers.js`) — no new trade math.
+
+### Scrapped / dormant (not yet physically deleted)
+
+The old calculator chrome is **hidden via CSS** (`#filter-area-wrap, #active-filters, .side-controls, #builder-wrap, .balance-section, #calc-comps { display:none }`). The `_cc*` comparable-trades JS + the legacy in-page modal HTML (~55% of the file) are now **dead/hidden** — physical deletion is a noted follow-up cleanup. The manual builder + market archive were dropped from the design.
+
+### Verify (over HTTP — `start.bat` → `http://localhost:8000/trade-calculator.html`)
+
+(1) Logged out → centered sign-in, nothing else. (2) Log in (or auto-restore from My Leagues) → finder appears. (3) Add a player you want → "Find trades across my leagues" → opportunities grouped by target, each naming the league + owner + owner archetype + "You win N%", with a package from your roster. (4) Confirm an owner-archetype tilt (rebuilder owner → you're offered picks/youth). (5) Multi-target: add several players → a group each. **Audit:** `python scripts/check-colors.py` CLEAN. **Tokens:** `sleeper-session.js`/`legend-content.js`/`formulas-content.js → 1796900000`.
+
+### Noted refinements
+
+Trade-AWAY (find who wants YOUR player); physical deletion of the dormant `_cc*` + legacy-modal code; "you already own them in N / not rostered in M" is shown but could link to those rosters; surface per-position need ("you're 12th at TE").
+
+---
+
+## Where we are (end of 2026-06-09 — twenty-first session) — SUPERSEDED by the Trade Finder above
 
 **The trade calculator gained a Sleeper-login-gated "Find comparable real trades" panel — it ties the user-league feature into the calculator and grounds an offer in real market + own-league deals.** Built this session; **NOT yet committed/pushed** at handoff (verify with `git status -sb`).
 
@@ -41,13 +70,23 @@ score     = 1 - min(|ratio - 1|, 0.5) / 0.5       // 1.0 perfect; 0 at ±50%+
 ```
 Drop `ratio<0.5 || ratio>2`. Sort by score desc, recency tie-break. Pill: green ≥85% / yellow ≥60% / grey <60%. **Format filter is a prefix match** (`format.indexOf('sf')===0` / `'1qb'`), so it keeps **all** Superflex (resp. 1QB) variants — `sf`, `sf_tep`, `sf_10t`, `sf_10t_tep`, etc. (the archive carries **8** format tags; `sf_tep` is only ~40%, so restricting to `_tep` would have dropped ~60% of trades — a plan assumption real data falsified). "Limited 1QB data" notice when 1QB matches < 5 (SF corpus ≈13.4k vs 1QB ≈3.3k). **Possible refinement:** prefer same-TEP/same-team-count comps.
 
-### v1 scope / noted refinements (flagged in the UI)
+### ⚠ ANCHOR + DIRECTION REDESIGN (2026-06-09, after first browser test — supersedes the "Side B = target" model above)
 
-**Pick-only targets ARE supported** (added right after first browser test — "what does a 2027 1st go for?", matched by year+round any slot; verified 833 SF comps for give-Waddle/want-2027-1st). Remaining v1 refinements: multi-asset bundles on Side B (v1 = single highest-value asset); FAAB + 3-team returns shown but not scored; value-drift down-weighting of old trades; optional SF-corpus fallback for 1QB users; preferring same-TEP/team-count comps.
+User feedback: with Side A = Waddle + Side B = a 2027 1st, the tool anchored on **Side B** (the pick) and used Waddle only as the offer value — so results didn't involve the player the user cared about. **Fix: the search now anchors on ONE user-chosen asset + a Trade FOR / Trade AWAY direction.** Every result involves that anchor.
+- New panel controls: a **Trade FOR / Trade AWAY** toggle (`_ccDir` / `_ccSetDir`) + an **anchor `<select>`** (`#cc-anchor`, class `no-fpts-cs` so custom-select.js doesn't wrap it) listing every builder asset (players by value, then picks), defaulting to the highest-value player. `_ccSyncAnchor()` repopulates it via a hook in `renderAll()`.
+- New fns: `_ccBuilderAssets`, `_ccAssetToTarget`, `_ccSyncAnchor`, `_ccSetDir`, `_ccAnchorTarget`, `_ccPackageValue`. `_ccTarget` removed; `_ccMatchTrade` now takes the `target` descriptor; `_ccAssetIsTarget` recognizes builder assets (`type:'pick'` + `pickKey`).
+- **Package value** = Σ MVS of every builder asset EXCEPT the anchor (`_ccPackageValue`); falls back to the anchor's own value when nothing else is added. The match score now ranks `returnVal / packageVal`.
+- **Direction is framing only** — the same trades match either way; FOR shows "real price paid", AWAY shows "they got back".
+- **Verified in Python against the real archive:** anchor = Jaylen Waddle, package = 2,283 (a 2027 1st) → **51 SF matches, ALL involving Waddle (0 false positives)**; top comps include real Waddle ⇄ 2027-1st deals at 91-94%.
+- **Next (user-selected): roster-sourced packages** — pull the user's roster from their leagues so the package can come from assets they actually own (bigger Phase-2 build).
+
+### Earlier v1 scope / noted refinements (flagged in the UI)
+
+Pick anchors ARE supported (anchor a pick → "what does a 2027 1st go for?"). Remaining refinements: multi-asset bundles match on the one anchor; FAAB + 3-team returns shown but not scored; value-drift down-weighting; optional SF-corpus fallback for 1QB users; preferring same-TEP/team-count comps; **roster-sourced packages (Phase 2)**.
 
 ### Verify (over HTTP — `fetch()` is CORS-blocked on `file://`)
 
-`start.bat` → `http://localhost:8000/trade-calculator.html`. (1) logged out → `#calc-comps` shows sign-in; log in on My Leagues, reload calc → auto-restored. (2) Side B = a well-traded player, Side A = a plausible package → ★ own-league matches render first, then market matches stream in sorted by % match. (3) Network tab: `data/trades.json` fetched only on first click, once. (4) flip `f-qb` to 1QB → "limited 1QB data" notice. (5) Side B pick-only (e.g. a 2027 1st) → real comps for that pick. **Audit:** `python scripts/check-colors.py` — CLEAN across 35 files (the new module is the 35th).
+`start.bat` → `http://localhost:8000/trade-calculator.html`. (1) logged out → `#calc-comps` shows sign-in; log in on My Leagues, reload calc → auto-restored. (2) Build a trade, pick an anchor (e.g. a WR) + Trade FOR → ★ own-league matches + market matches, ALL involving that player, ranked vs your package. (3) Network tab: `data/trades.json` fetched only on first click, once. (4) flip `f-qb` to 1QB → "limited 1QB data" notice. (5) anchor a pick (e.g. a 2027 1st) → real comps for that pick. (6) toggle Trade FOR ↔ AWAY → labels reflip, same matches. **Audit:** `python scripts/check-colors.py` — CLEAN across 35 files.
 
 ### Cache tokens at session close
 

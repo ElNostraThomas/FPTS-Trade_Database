@@ -646,10 +646,11 @@ window.LegendContent = {
 
   // ════════════════════════════════════════════════════════════════════════
   'trade-calculator': {
-    title: 'Trade Calculator',
-    blurb: 'Build and value dynasty trades. Pull players + picks onto Side A, B (and optional C), see a real-time ' +
-           'balance bar based on the MVS canonical values. All values come from data/mvs.json (overlaid on ' +
-           'data/values.json metadata). Format settings (SF/1QB, PPR, TEP) apply multipliers to each asset.',
+    title: 'Trade Finder',
+    blurb: 'A cross-league Trade Finder (rebuilt 2026-06-09 from the old value calculator). Sign in with Sleeper, ' +
+           'list the player(s) you want, and it scans every one of your leagues to find where you can actually get ' +
+           'them — suggesting a package from your roster, tilted to the owner\'s archetype so they\'d accept, and ' +
+           'slightly in your favor. All values are MVS canonical (data/mvs.json), read in each league\'s own format.',
     sections: [
       {
         name: 'Format Settings (top of page)',
@@ -684,14 +685,13 @@ window.LegendContent = {
         ],
       },
       {
-        name: 'Find Comparable Real Trades (★ Sleeper-login gated)',
+        name: 'Cross-League Trade Finder',
         items: [
-          { label: 'What it does', what: 'Reuses the builder — Side A = what you GIVE, Side B = the player you want to GET — and finds real trades where that target player actually changed hands, ranked by how close the return matches your Side A package.', source: '#calc-comps section; _ccFind() in trade-calculator.html', values: 'Two zones: ★ "From your leagues" (pinned) + "From the trade market".', notes: 'Login with a Sleeper username is required to use it (the calculator itself still works without login).' },
-          { label: 'Match score', what: 'How "comparable" a real trade is to your offer. 100% = the return exactly equals your package value.', source: '_ccMatchTrade(): score = 1 − min(|ratio−1|, 0.5) / 0.5, where ratio = returnVal / yourOfferVal', values: 'Green pill ≥85% · yellow 60–84% · grey <60%. Trades outside ½×–2× your offer are dropped as non-comparable.', notes: 'Everything is compared in MVS units — archive `mvs` and FP_VALUES.valueSf/value1qb are the same scale (both from data/mvs.json).' },
-          { label: 'Target (v1)', what: 'Which Side B asset the search matches on.', source: '_ccTarget(): the single highest-MVS asset on Side B — a player, or (if Side B is picks-only) a pick matched by year + round, any slot ("what does a 2027 1st go for?")', values: 'A trade "involves the target" when a side holds that player (name-normalized) or a matching pick (_ccAssetIsTarget).', notes: 'Multi-player / multi-asset targets are a noted v1 refinement (matches on the highest-value one); the card flags when the target was acquired in a bundle.' },
-          { label: 'Two trade sources', what: 'Where comparable trades come from.', source: 'Market: data/trades.json (16,785-trade archive, lazy-loaded ~7 MB on first click). Your leagues: window.SLEEPER_SESSION.fetchMyTrades() → normalized to the archive shape via _calcNormalizeSleeperTrade().', values: 'Archive filtered to your format by prefix (all sf* variants in SF, all 1qb* in 1QB — the archive carries 8 format tags). Own-league matches pinned with a ★ badge.', notes: 'The archive downloads once per tab and is shared with the trade database page. SF corpus ≈13.4k vs 1QB ≈3.3k, so 1QB shows a "limited data" notice when matches are sparse.' },
-          { label: 'Login / session', what: 'Sign in with your Sleeper username; carries over from My Leagues automatically.', source: 'window.SLEEPER_SESSION (assets/js/sleeper-session.js) — restore/login/signOut/fetchMyTrades', values: 'Shared localStorage keys: fpts-sleeper-username / -user-id / -display-name / -avatar', notes: 'A login on My Leagues (or live-draft) auto-restores here; the card shows your avatar + a Sign out link.' },
-          { label: 'FAAB / 3-team trades', what: 'How edge cases are handled in v1.', source: '_ccMatchTrade / _calcNormalizeSleeperTrade', values: 'FAAB is shown but not scored (the archive carries none). 3-team trades treat the return as the union of the non-target sides.', notes: 'Down-weighting older trades for value drift is a noted future refinement.' },
+          { label: 'What it does', what: 'Sign in, list the player(s) you want, and it scans ALL your leagues to find where you can actually get them — then suggests a package from your roster, slightly in your favor. Forward-looking trade-making, not a past-trade log.', source: '#ws-finder-top + #ws-finder; _wsFindTrades() / _wsRenderFinder() in trade-calculator.html', values: 'Opportunities grouped by target player.', notes: 'Rebuilt 2026-06-09 (replaced the comparable-trades view). The whole page is login-gated via #ws-gate.' },
+          { label: 'Finding the opportunity', what: 'Per league: skips leagues where you already roster the target, finds which team owns it, and skips free-agents / not-in-league.', source: '_wsFindOwner(data, ctx, name) scans rosters by normalized name; _wsComputeLeague archetypes every team', values: 'Each league valued in its OWN format (SF/1QB) via _wsFmtKey.', notes: 'Surfaces how many leagues you already own them in, and where they\'re not rostered.' },
+          { label: 'The suggested package', what: 'A package from YOUR roster that lands the target, tilted to fit the OWNER\'s archetype so they\'d plausibly accept.', source: 'SLEEPER.generateTradeSuggestions(myAssetPool, targetVal × WIN_BIAS, owner.archetype, 3); myAssetPool = SLEEPER.buildAssetPool', values: 'Owner archetype (rebuilder → picks/youth, contender → veterans) drives which of your assets are offered.', notes: 'Reuses the engine that powers My Leagues; archetypes via SLEEPER.archetypeFromTotals.' },
+          { label: 'WIN_BIAS — slightly in your favor', what: 'Packages are built against target × WIN_BIAS, so you give a touch less than the player\'s value. Each card shows the edge ("You win N%") and sorts favor-first.', source: 'const WIN_BIAS = 0.93 (top of the finder script); edge = 1 − totalSent / targetVal', values: 'Toward 1.0 → fairer offers; toward 0.85 → bigger edge but fewer realistic ones. Offers worse than −6% edge are dropped.', notes: 'Tunable constant — documented in docs/FORMULAS.md.' },
+          { label: 'Login / leagues', what: 'Sign in with your Sleeper username; carries over from My Leagues automatically.', source: 'window.SLEEPER_SESSION (assets/js/sleeper-session.js) — fetchLeagues + fetchLeagueData, cached on window.CALC_LEAGUE_DATA', values: 'Shared localStorage keys: fpts-sleeper-username / -user-id / -display-name / -avatar', notes: 'Only your active DYNASTY leagues are scanned.' },
         ],
       },
       {
