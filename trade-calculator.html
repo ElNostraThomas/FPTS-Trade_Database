@@ -1359,10 +1359,11 @@
     .ws-pulse-league{padding:11px 0;border-bottom:1px solid var(--border)}
     .ws-pulse-league:last-child{border-bottom:none}
     .ws-pulse-lname{font-family:'Kanit',sans-serif;font-weight:700;font-style:italic;color:var(--white);font-size:13px;margin-bottom:7px}
-    .ws-pulse-teams{display:flex;flex-wrap:wrap;gap:6px}
-    .ws-pulse-team{display:inline-flex;align-items:center;gap:6px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:4px 8px;font-family:'Mulish',sans-serif;font-size:12px;color:var(--white)}
-    .ws-pulse-team.me{border-color:var(--red)}
-    .ws-pulse-team.tgt{outline:2px solid var(--green)}
+    .ws-pulse-arow{display:flex;gap:10px;align-items:baseline;padding:3px 0;flex-wrap:wrap}
+    .ws-pulse-arow .ws-opp-arch{flex-shrink:0;min-width:104px;text-align:center}
+    .ws-pulse-names{font-family:'Mulish',sans-serif;font-size:13px;color:var(--white);opacity:.8;line-height:1.6}
+    .ws-pulse-name.me{color:var(--red);font-weight:800}
+    .ws-pulse-name.tgt{color:var(--green);font-weight:800}
   </style>
   <section id="ws-finder-top" style="display:none">
     <div class="ws-userbar" id="ws-userbar"></div>
@@ -3397,16 +3398,20 @@ function _wsRenderPulse(){
   el.style.display = '';
   const open = _wsState.pulseOpen !== false;
   let body = '';
+  const ARCH_ORDER = ['contender','dynasty','rebuilder','emergency','tweener'];
   (_wsState.leagues||[]).forEach(lg => {
     const entry = _wsState.byId[lg.league_id]; if(!entry || !entry.ctx) return;
-    const teams = (entry.ctx.teams||[]).slice().sort((a,b)=> ((b.total||0)+(b.pickValue||0)) - ((a.total||0)+(a.pickValue||0)));
-    body += `<div class="ws-pulse-league"><div class="ws-pulse-lname">${_ccEsc(lg.name||'League')} <span style="opacity:.5;font-weight:600">· ${_ccEsc(entry.ctx.fmtLabel)}</span></div><div class="ws-pulse-teams">`
-      + teams.map(t => {
-          const tgt = _wsState.managers.indexOf(t.ownerUser) >= 0;
-          const lbl = window.SLEEPER ? SLEEPER.archetypeLabel(t.archetype) : t.archetype;
-          return `<span class="ws-pulse-team${t.isMe?' me':''}${tgt?' tgt':''}">${_ccEsc(t.name)}${t.isMe?' (you)':''} <span class="ws-opp-arch ${t.archetype}">${_ccEsc(lbl)}</span></span>`;
-        }).join('')
-      + `</div></div>`;
+    const byArch = {};
+    (entry.ctx.teams||[]).forEach(t => { (byArch[t.archetype] = byArch[t.archetype] || []).push(t); });
+    const rows = ARCH_ORDER.filter(a => byArch[a]).map(a => {
+      const lbl = window.SLEEPER ? SLEEPER.archetypeLabel(a) : a;
+      const names = byArch[a].map(t => {
+        const cls = (t.isMe?'me':'') + (_wsState.managers.indexOf(t.ownerUser) >= 0 ? ' tgt' : '');
+        return `<span class="ws-pulse-name ${cls}">${_ccEsc(t.name)}${t.isMe?' (you)':''}</span>`;
+      }).join('<span style="opacity:.3">, </span>');
+      return `<div class="ws-pulse-arow"><span class="ws-opp-arch ${a}">${_ccEsc(lbl)} ${byArch[a].length}</span><span class="ws-pulse-names">${names}</span></div>`;
+    }).join('');
+    body += `<div class="ws-pulse-league"><div class="ws-pulse-lname">${_ccEsc(lg.name||'League')} <span style="opacity:.5;font-weight:600">· ${_ccEsc(entry.ctx.fmtLabel)}</span></div>${rows}</div>`;
   });
   if(!body) body = `<div class="ws-pulse-body" style="border-top:none"><div class="ws-opp-info">${_wsState.ready ? 'No league rosters loaded.' : 'Loading your leagues…'}</div></div>`;
   else body = `<div class="ws-pulse-body">${body}</div>`;
