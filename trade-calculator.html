@@ -1387,8 +1387,8 @@
     <div class="ws-targets" id="ws-mgr-chips"></div>
     <button class="ws-find-btn" id="ws-find-btn" onclick="_wsFindTrades()">Find trades across my leagues</button>
   </section>
-  <section id="ws-pulse" style="display:none"></section>
   <section id="ws-finder" style="display:none"></section>
+  <section id="ws-pulse" style="display:none"></section>
 
   <!-- FORMAT -->
   <div class="filter-area" id="filter-area-wrap">
@@ -3514,9 +3514,16 @@ async function _wsFindTrades(){
     fEl.innerHTML = `<div class="ws-opp-info">Add a player you want, or a manager to target, then find trades.</div>`; return;
   }
   const btn = document.getElementById('ws-find-btn'); if(btn) btn.disabled = true;
-  if(!_wsState.ready){ fEl.innerHTML = `<div class="ws-opp-info">Loading your ${(_wsState.leagues||[]).length} leagues…</div>`; await _wsLoadAll(); }
-  _wsRenderFinder();
-  if(btn) btn.disabled = false;
+  try {
+    if(!_wsState.ready){ fEl.innerHTML = `<div class="ws-opp-info">Loading your ${(_wsState.leagues||[]).length} leagues…</div>`; await _wsLoadAll(); }
+    _wsRenderFinder();
+  } catch(e){
+    // Never leave the button dead with no feedback (OBS has no visible console).
+    fEl.innerHTML = `<div class="ws-opp-info">Something went wrong building trades — ${_ccEsc((e && e.message) || String(e))}</div>`;
+  } finally {
+    if(btn) btn.disabled = false;
+  }
+  try { fEl.scrollIntoView({ behavior:'smooth', block:'start' }); } catch(e){}
 }
 
 function _wsRenderFinder(){
