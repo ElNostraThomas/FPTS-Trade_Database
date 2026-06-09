@@ -45,6 +45,7 @@ window.FormulasContent = {
   // entrySessions below); the rest render as description-only update nodes so
   // the timeline is a complete record of what shipped.
   sessions: [
+    { id: 's21',        date: '2026-06-09', dateLabel: 'Jun 9, 2026',  tag: 'S21',  title: 'Comparable-trades finder',             blurb: 'The trade calculator gained a Sleeper-login-gated "Find comparable real trades" panel: build an offer (Side A = give, Side B = the player you want), and it ranks real trades where that player actually changed hands by how close the return matches your package — from the 16.8k-trade market archive and your own leagues.' },
     { id: 's20',        date: '2026-06-08', dateLabel: 'Jun 8, 2026',  tag: 'S20',  title: 'TEP value basis + trade depth',         blurb: 'Tight-end premium is now baked into every value site-wide (sync-mvs reads the *_tep columns); the trade calculator\'s redundant TEP multiplier was removed. Also: the accumulating trade archive deepened the database to ~16.8k trades, and the Top Risers/Fallers rows + Legend/Formulas docs were restyled.' },
     { id: 's19',        date: '2026-06-07', dateLabel: 'Jun 7, 2026',  tag: 'S19',  title: 'My Leagues — cross-league trades',      blurb: 'A cross-league "My Trades" sidebar tab pooling every trade you were a side of across all your leagues, plus a per-team filter on each league\'s Trade History.' },
     { id: 's18',        date: '2026-06-02', dateLabel: 'Jun 2, 2026',  tag: 'S18',  title: 'OBS zoom rewrite + ADP RDP fix',        blurb: 'Rewrote the OBS Browser-Source zoom widget (fit-to-screen at 100% + a floating horizontal scrollbar), fixed the ADP Picks-view rookie-pick (RDP) two-gate filter, and validated 5 years of picks-vs-rookies consistency.' },
@@ -87,6 +88,7 @@ window.FormulasContent = {
     'rankings-analysts': 's-rankings',
     'compare-page': 's10',
     'mock-draft': 's13',
+    'comparable-trades': 's21',
   },
   entrySessions: {
     // Changed in a later update than their domain — surface under the newest.
@@ -96,6 +98,58 @@ window.FormulasContent = {
   },
 
   domains: [
+
+    // ── 0. COMPARABLE TRADES (calculator) ─────────────────────────────────
+    {
+      id: 'comparable-trades',
+      name: 'Comparable-trades finder',
+      entries: [
+        {
+          id: 'cc-match-score',
+          label: '1. Comparable-trade match score',
+          location: 'trade-calculator.html:_ccMatchTrade',
+          provenance: { kind: 'hand-tuned', detail: 'The ±50% comparability window and the linear falloff are curator-chosen — wide enough to surface a useful spread of real deals, tight enough that a wildly lopsided trade scores ~0. Mirrors the valueFit shape in sleeper-helpers.generateTradeSuggestions (which uses a tighter ±30% cap).' },
+          inputs: 'userVal = Σ MVS value of your Side A assets (the package you give). returnVal = Σ mvs of the "return" side of a real trade — the side(s) NOT holding your target. Target = the highest-MVS Side B asset: a player (matched by normalized name) or, if Side B is picks-only, a pick (matched by year + round, any slot — via _ccAssetIsTarget). Both totals in MVS units (archive `mvs` and FP_VALUES.valueSf/value1qb share one scale, both from data/mvs.json).',
+          math: `ratio = returnVal / userVal
+// drop as non-comparable when wildly off:
+if (ratio < 0.5 || ratio > 2) return null;
+score = 1 - Math.min(Math.abs(ratio - 1), 0.5) / 0.5;`,
+          output: 'score in [0, 1], rendered as a % pill (green ≥0.85 / yellow ≥0.60 / grey <0.60). Results sorted by score desc, ties broken by recency.',
+          example: `You give a 2026 1st + Cooper Kupp ≈ 6,500 MVS, target = Garrett Wilson.
+A real Wilson trade returned a 2026 1st + Aiyuk ≈ 6,370:
+  ratio = 6370 / 6500 = 0.98
+  |0.98 - 1| = 0.02
+  score = 1 - 0.02 / 0.5 = 0.96  → 96% match (green)
+
+A real Wilson trade returned just one mid WR ≈ 3,500:
+  ratio = 3500 / 6500 = 0.538  (inside 0.5–2, kept)
+  score = 1 - min(0.462, 0.5)/0.5 = 0.076  → 8% match (grey)`,
+          notes: 'The ±50% window + linear falloff are hand-tuned. Format filter is a prefix match (format.indexOf("sf")===0 / "1qb"), so ALL Superflex/1QB variants are kept — the archive carries 8 format tags (sf, sf_tep, sf_10t, sf_10t_tep, 1qb, 1qb_tep, …); restricting to _tep would drop ~60% of trades. FAAB is excluded from both sides (the archive carries none). 3-team trades: the return is the union of all non-target sides. v1 matches on the single highest-MVS asset on Side B — player OR (picks-only) a pick by year+round; multi-asset bundles + preferring same-TEP/team-count comps are noted refinements. Value drift (archive `mvs` is value-at-trade-time) is unweighted in v1 beyond the recency tie-break.',
+          related: ['cc-mvs-value', 'adj-val']
+        },
+        {
+          id: 'cc-mvs-value',
+          label: '2. Asset MVS value resolver (_calcMvsValue)',
+          location: 'trade-calculator.html:_calcMvsValue',
+          provenance: { kind: 'derived-from-data', detail: 'Reads the canonical MVS values straight from data/mvs.json (via FP_VALUES / PICK_VALUES); no chosen constants. Format-aware: SF reads valueSf, 1QB reads value1qb.' },
+          inputs: 'A builder asset (player or pick) or a normalized archive asset. _calcQb() picks the SF/1QB column. Players → FP_VALUES (normalized-name fallback for own-league spellings). Picks → PICK_VALUES via _derivePickKey / _pickNumericValue.',
+          math: `const sf = _calcQb() === 'sf';
+if (isPick) {
+  key = asset.pickKey || _derivePickKey(asset.name);
+  return PICK_VALUES[key] ? Math.round(_pickNumericValue(PICK_VALUES[key]))
+                          : Math.round(asset.mvs ?? asset.value ?? 0);
+}
+rec = FP_VALUES[name] (or normalized-name match);
+return Math.round(sf ? rec.valueSf : rec.value1qb);  // 0 if unknown → offer flagged partial`,
+          output: 'An integer MVS value used for both the offer total and (for own-league trades) each normalized asset. Same scale as the archive `mvs`.',
+          example: `Cooper Kupp, Superflex → FP_VALUES['Cooper Kupp'].valueSf = 3,100
+2026 1st (key 2026-1) → _pickNumericValue(PICK_VALUES['2026-1']) ≈ 3,400
+Side A total = 6,500 MVS`,
+          notes: 'A player with no current MVS value resolves to 0 and flags the offer "partial" (excluded from the total) rather than zeroing the whole package. This is the single value path used for the user offer AND for normalizing own-league Sleeper trades, so both sides of every comparison are valued identically.',
+          related: ['cc-match-score', 'pick-numeric-value']
+        },
+      ],
+    },
 
     // ── 1. TRADE VALUES ───────────────────────────────────────────────────
     {

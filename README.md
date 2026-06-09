@@ -13,6 +13,55 @@ This file is the **resume-where-we-left-off** doc.
 
 ---
 
+## Where we are (end of 2026-06-09 — twenty-first session)
+
+**The trade calculator gained a Sleeper-login-gated "Find comparable real trades" panel — it ties the user-league feature into the calculator and grounds an offer in real market + own-league deals.** Built this session; **NOT yet committed/pushed** at handoff (verify with `git status -sb`).
+
+### The idea
+
+The calculator was a closed value-balance model. Now: build an offer in the existing A/B builder (**Side A = what you GIVE, Side B = the player you want to GET**), sign in with your Sleeper username, and click **Find comparable trades** → it surfaces **real trades where that target player actually changed hands**, ranked by how close the *return* (the other side of each real deal) matches your Side A package. Corpus = the **16,785-trade archive** (`data/trades.json`, primary) **+ your own cross-league trades** (pinned with a ★ badge).
+
+### What shipped
+
+1. **New shared module `assets/js/sleeper-session.js`** (`window.SLEEPER_SESSION`) — a lean, self-contained Sleeper client: `restore()` / `login()` / `signOut()` / `fetchMyTrades()`. **Reuses the same `fpts-sleeper-*` localStorage keys** as My Leagues + live-draft, so a login on any of those pages auto-restores on the calculator. It does **NOT** touch `my-leagues.html` (that page keeps its own inline copy — extracting the 8000-line page's login/trade machinery would be a destructive refactor; session continuity is free via the shared LS keys). `fetchMyTrades` self-contained: walks each league's `previous_league_id` chain, sweeps `transactions/{1..18}`, keeps the user's completed trades → `{years, byYear:{year:[{t,ctx}]}}` cached on `window.CALC_MY_TRADES`. Cache token `?v=1796800000`.
+2. **`trade-calculator.html` — `#calc-comps` section** at the old `<!-- SUGGESTIONS -->` mount (after `.balance-section`), with scoped `.cc-*` CSS (all brand-var colored; red-fill/black-text buttons per doctrine). Login gate → sign-in prompt until authed, then user chip + "Find comparable trades" CTA. Two result zones: **★ From your leagues** (pinned, un-paginated) + **From the trade market** (`RECENT_PAGE_SIZE`-style Load-more, 60/page).
+3. **Inline JS** (in the main calc `<script>`, after the `fpts:data-ready` handler which now calls `_ccInit()`): `_calcMvsValue` (one MVS value path for both sides), `_ccOfferValue`, `_ccTarget` (highest-MVS asset on Side B — player, or a pick by year+round if picks-only) + `_ccParsePick` / `_ccAssetIsTarget`, `_calcNormalizeSleeperTrade` (own-league raw Sleeper trade → archive `{sides[].assets[]{name,position,isPick,mvs}}` shape, so one matcher + one renderer serve both sources), `_ccMatchTrade` (the scorer), `_ccCardHtml` / `_ccRenderResults` / `_ccLoadMore`, `_ccEnsureArchive` (lazy-loads the 7 MB `data/trades.json` on first click only, shared with the DB page via `window.TRADES_ARCHIVE`), login-gate render + `_ccLogin`/`_ccSignOut`. **Perf:** `_ccFind` fires the market-archive fetch+scan and the own-league sweep **concurrently** (`Promise.all`), rendering each as it resolves — the market (one ~7 MB fetch + fast scan) shows in ~2-3s and is NOT blocked behind the slow own-league sweep (hundreds of Sleeper calls: 18 weekly-transaction endpoints × every league in the full history chain, + a ~5 MB `/players/nfl` download). Own-league is warmed in the background at login (`_ccInit` / `_ccLogin`) and cached on `window.CALC_MY_TRADES`, so by find-time it's often already done. A `_ccCur.target===target` guard prevents a stale in-flight result from clobbering a newer find.
+
+### The load-bearing fact (de-risks the whole feature)
+
+**Archive `mvs` and `FP_VALUES.valueSf`/`value1qb` are the SAME MVS scale** — both copied from `data/mvs.json` by `data-bootstrap._applyMvsPayload` (verified: it sets `target.valueSf = mvs.valueSf` etc.). So the offer side (FP_VALUES) and the return side (archive `mvs`) compare directly, **no cross-basis reconciliation**. If `sync-mvs.py` or the archive format ever changes, re-verify this before trusting the match scores.
+
+### Match score (documented in legend + FORMULAS + formulas-content as **S21**)
+
+```
+userVal   = Σ _calcMvsValue(Side A asset)        // MVS units, format-matched
+returnVal = Σ asset.mvs over the return side      // archive MVS, same scale
+ratio     = returnVal / userVal
+score     = 1 - min(|ratio - 1|, 0.5) / 0.5       // 1.0 perfect; 0 at ±50%+
+```
+Drop `ratio<0.5 || ratio>2`. Sort by score desc, recency tie-break. Pill: green ≥85% / yellow ≥60% / grey <60%. **Format filter is a prefix match** (`format.indexOf('sf')===0` / `'1qb'`), so it keeps **all** Superflex (resp. 1QB) variants — `sf`, `sf_tep`, `sf_10t`, `sf_10t_tep`, etc. (the archive carries **8** format tags; `sf_tep` is only ~40%, so restricting to `_tep` would have dropped ~60% of trades — a plan assumption real data falsified). "Limited 1QB data" notice when 1QB matches < 5 (SF corpus ≈13.4k vs 1QB ≈3.3k). **Possible refinement:** prefer same-TEP/same-team-count comps.
+
+### v1 scope / noted refinements (flagged in the UI)
+
+**Pick-only targets ARE supported** (added right after first browser test — "what does a 2027 1st go for?", matched by year+round any slot; verified 833 SF comps for give-Waddle/want-2027-1st). Remaining v1 refinements: multi-asset bundles on Side B (v1 = single highest-value asset); FAAB + 3-team returns shown but not scored; value-drift down-weighting of old trades; optional SF-corpus fallback for 1QB users; preferring same-TEP/team-count comps.
+
+### Verify (over HTTP — `fetch()` is CORS-blocked on `file://`)
+
+`start.bat` → `http://localhost:8000/trade-calculator.html`. (1) logged out → `#calc-comps` shows sign-in; log in on My Leagues, reload calc → auto-restored. (2) Side B = a well-traded player, Side A = a plausible package → ★ own-league matches render first, then market matches stream in sorted by % match. (3) Network tab: `data/trades.json` fetched only on first click, once. (4) flip `f-qb` to 1QB → "limited 1QB data" notice. (5) Side B pick-only (e.g. a 2027 1st) → real comps for that pick. **Audit:** `python scripts/check-colors.py` — CLEAN across 35 files (the new module is the 35th).
+
+### Cache tokens at session close
+
+- `sleeper-session.js` — new, `?v=1796800000`
+- `legend-content.js ?v=1796200000 → 1796800000` (11 consumers; new calc legend section)
+- `formulas-content.js ?v=1796600000 → 1796800000` (formulas.html; new S21 session + `comparable-trades` domain)
+- `trade-calculator.html` inline CSS/JS — page-local, no shared token; loads `sleeper-session.js`
+
+### Genuinely open (none blocking)
+
+The v1 refinements above; plus carryover from S20: calc QB/PPR/PassTD multipliers may double-count like TEP did (flagged, undecided); `FPTS-Tiers-Standalone` repo still needs the TAT→DPP rename; refine any mis-filed formula→session maps. Long-standing: 1QB `SEED_USERS` usernames, analyst feedback on the 14 heuristics, visual polish.
+
+---
+
 ## Where we are (end of 2026-06-08 — twentieth session)
 
 **Accumulating trade archive — the trade DB now keeps ALL history (16,785 trades) instead of just the latest rolling window.** New deep-trade subsystem decoupled from the value export, so future refreshes *grow* the DB instead of replacing it.

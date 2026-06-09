@@ -33,6 +33,10 @@
 
 ## Table of contents
 
+**Comparable trades (calculator)**
+- [Comparable-trade match score (`_ccMatchTrade`)](#comparable-trade-match-score)
+- [Asset MVS value resolver (`_calcMvsValue`)](#asset-mvs-value-resolver)
+
 **Trade values**
 1. [Player value — format multipliers (`getMultiplier`)](#1-player-value--format-multipliers)
 2. [Adjusted asset value (`adjVal`)](#2-adjusted-asset-value)
@@ -117,6 +121,61 @@
 **Glossary**
 55. [Magic-numbers glossary](#55-magic-numbers-glossary)
 56. [Open heuristics / flagged for analyst review](#56-open-heuristics)
+
+---
+
+## Comparable trades (calculator)
+
+The trade calculator's **Find comparable real trades** panel (`#calc-comps`, added
+2026-06-09, Sleeper-login gated). Side A = what you give, Side B = the player you
+want. It ranks real trades where the target player actually changed hands by how
+close the *return* (the other side) matches your Side A package. Corpus = the
+16.8k-trade archive (`data/trades.json`, lazy-loaded) + your own-league trades
+(via `window.SLEEPER_SESSION.fetchMyTrades`, normalized to the archive shape).
+
+### Comparable-trade match score
+`_ccMatchTrade(trade, targetNorm, userVal)` — `trade-calculator.html`
+
+**Inputs**
+- `userVal` — Σ MVS value of your Side A assets (via `_calcMvsValue`).
+- `returnVal` — Σ `mvs` of the return side of a real trade (all sides NOT holding the target).
+- Both in MVS units. The archive's `mvs` and `FP_VALUES.valueSf/value1qb` share one scale (both sourced from `data/mvs.json` by `data-bootstrap._applyMvsPayload`), so no cross-basis reconciliation is needed.
+
+**Math (verbatim)**
+```js
+const ratio = returnVal / userVal;
+if (ratio < 0.5 || ratio > 2) return null;          // non-comparable, dropped
+const score = 1 - Math.min(Math.abs(ratio - 1), 0.5) / 0.5;
+```
+
+**Output** `score ∈ [0, 1]`, shown as a % pill (green ≥0.85 / yellow ≥0.60 / grey <0.60). Results sorted by `score` desc, ties broken by recency.
+
+**Notes**
+- The ±50% window + linear falloff are hand-tuned (mirror the `valueFit` shape in `sleeper-helpers.generateTradeSuggestions`, which uses a tighter ±30%).
+- FAAB is excluded from both sides (the archive carries none). 3-team trades: the return is the union of all non-target sides.
+- v1 matches on the single highest-MVS asset on Side B — a player (by normalized name) or, when Side B is picks-only, a pick (by year + round, any slot — `_ccAssetIsTarget` / `_ccParsePick`). Multi-asset bundles and value-drift down-weighting of old trades are noted refinements.
+- Format filter is a **prefix match** — `String(t.format).indexOf(fmtPref) === 0` with `fmtPref = 'sf' | '1qb'` — so it keeps every Superflex (resp. 1QB) variant the archive carries (`sf`, `sf_tep`, `sf_10t`, `sf_10t_tep`, …; 8 tags total). The archive is mostly Superflex (~13.4k vs ~3.3k 1QB), so a "limited 1QB data" notice shows when 1QB matches are sparse. (TEP/team-count are not separately filtered in v1 — a noted refinement.)
+
+### Asset MVS value resolver
+`_calcMvsValue(asset)` — `trade-calculator.html`
+
+**Inputs** A builder asset (player/pick) or a normalized archive asset; `_calcQb()` selects the SF (`valueSf`) vs 1QB (`value1qb`) column.
+
+**Math (verbatim)**
+```js
+const sf = _calcQb() === 'sf';
+if (isPick) {
+  key = asset.pickKey || _derivePickKey(asset.name);
+  return PICK_VALUES[key] ? Math.round(_pickNumericValue(PICK_VALUES[key]))
+                          : Math.round(asset.mvs ?? asset.value ?? 0);
+}
+rec = FP_VALUES[name] (or normalized-name match);
+return Math.round(sf ? rec.valueSf : rec.value1qb);   // 0 if unknown → offer flagged "partial"
+```
+
+**Output** Integer MVS value, same scale as the archive `mvs`. Used both for the user's offer total and for valuing each asset of a normalized own-league trade, so both sides of every comparison use one valuation path.
+
+**Notes** A player with no current MVS value resolves to 0 and flags the offer "partial" (excluded from the total) rather than zeroing the whole package.
 
 ---
 
