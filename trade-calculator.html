@@ -3087,10 +3087,11 @@ async function _wsLoadAll(){
 function _wsBuildOpp(ctx, league, owner, target){
   const targetVal = _wsPlayerVal(target, ctx.fmtKey); if(!targetVal) return null;
   const pool = ctx.myAssetPool; if(!pool || !pool.length || !window.SLEEPER) return null;
-  // 1) archetype-tilted, win-biased, strict edge.
+  // 1) archetype-tilted, win-biased. Accept up to a 10% overpay (edge ≥ −0.10)
+  //    before falling back to a value match — tunable.
   let suggs = SLEEPER.generateTradeSuggestions(pool, targetVal * WIN_BIAS, owner.archetype, 3);
   suggs.forEach(x => x.edge = 1 - (x.totalSent / targetVal));
-  let best = suggs.filter(x => x.edge >= -0.06).sort((a,b)=> b.edge - a.edge)[0];
+  let best = suggs.filter(x => x.edge >= -0.10).sort((a,b)=> b.edge - a.edge)[0];
   let mode = 'fit';
   if(!best){
     // 2) VALUE fallback — when no archetype-fit offer lands, surface the closest
