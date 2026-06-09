@@ -402,7 +402,7 @@
   </div>
   <nav class="nav-links">
     <a class="nav-link" href="index.html">Database</a>
-    <a class="nav-link" href="trade-calculator.html">Calculator</a>
+    <a class="nav-link" href="trade-calculator.html">Trade Finder</a>
     <a class="nav-link" href="compare.html">Compare</a>
     <a class="nav-link" href="my-leagues.html">My Leagues</a>
     <a class="nav-link" href="live-draft.html">Live Draft</a>
@@ -415,7 +415,7 @@
   <div class="nav-right">
     <select class="mobile-nav-select" onchange="if(this.value)window.location.href=this.value">
       <option value="index.html">Database</option>
-      <option value="trade-calculator.html">Calculator</option>
+      <option value="trade-calculator.html">Trade Finder</option>
       <option value="compare.html">Compare</option>
       <option value="my-leagues.html">My Leagues</option>
       <option value="live-draft.html">Live Draft</option>
@@ -446,7 +446,7 @@
       <div class="page-subtitle">Superflex tier rankings · PPR, 0.5 TEP, 6PT Pass TDs · 10–11 starters · Updated <span id="tiers-updated">2/15/26</span></div>
       <div class="fpts-xpage-bar" style="margin-top:10px">
         <button class="fpts-xpage-btn" onclick="event.stopPropagation();_fptsXpageTiersToDb()" title="Open the Trade Database">Open in Database ↗</button>
-        <button class="fpts-xpage-btn" onclick="event.stopPropagation();_fptsXpageTiersToCalc()" title="Open the Trade Calculator">Open in Calculator ↗</button>
+        <button class="fpts-xpage-btn" onclick="event.stopPropagation();_fptsXpageTiersToCalc()" title="Open the Trade Finder">Open in Trade Finder ↗</button>
         <button class="fpts-xpage-btn" onclick="event.stopPropagation();_fptsXpageTiersToAdp()" title="Open the ADP tool">Open in ADP ↗</button>
         <button class="fpts-xpage-btn" onclick="event.stopPropagation();_fptsDownloadTiersCsv()" title="Download the full tier sheet as CSV — all players, all columns, matches the Google Sheet layout">Download CSV ↓</button>
       </div>
@@ -3265,7 +3265,7 @@ document.addEventListener('fpts:tiers-overrides-changed', () => {
       <div class="pp-top-title">Player Profile</div>
       <div class="pp-top-actions">
         <button class="pp-action-btn" type="button" onclick="_tiersXpageToDb()">Open in Database ↗</button>
-        <button class="pp-action-btn" type="button" onclick="_tiersXpageToCalc()">Open in Calculator ↗</button>
+        <button class="pp-action-btn" type="button" onclick="_tiersXpageToCalc()">Open in Trade Finder ↗</button>
         <button class="pp-action-btn" type="button" onclick="_tiersXpageToAdp()">Open in ADP ↗</button>
         <button class="pp-action-btn" type="button" onclick="_tiersXpageToLeagues()">Open in My Leagues ↗</button>
         <button class="pp-action-btn" type="button" onclick="_tiersCloseModal()">✕ Close</button>
