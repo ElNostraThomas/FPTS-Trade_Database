@@ -3086,11 +3086,23 @@ async function _wsLoadAll(){
 // FOR: build a package from MY roster → target, tilted to the owner's archetype.
 function _wsBuildOpp(ctx, league, owner, target){
   const targetVal = _wsPlayerVal(target, ctx.fmtKey); if(!targetVal) return null;
-  const suggs = (window.SLEEPER ? SLEEPER.generateTradeSuggestions(ctx.myAssetPool, targetVal * WIN_BIAS, owner.archetype, 3) : []);
+  const pool = ctx.myAssetPool; if(!pool || !pool.length || !window.SLEEPER) return null;
+  // 1) archetype-tilted, win-biased, strict edge.
+  let suggs = SLEEPER.generateTradeSuggestions(pool, targetVal * WIN_BIAS, owner.archetype, 3);
   suggs.forEach(x => x.edge = 1 - (x.totalSent / targetVal));
-  const best = suggs.filter(x => x.edge >= -0.06).sort((a,b)=> b.edge - a.edge)[0];
+  let best = suggs.filter(x => x.edge >= -0.06).sort((a,b)=> b.edge - a.edge)[0];
+  let mode = 'fit';
+  if(!best){
+    // 2) VALUE fallback — when no archetype-fit offer lands, surface the closest
+    //    VALUE package from your roster (ignore the archetype tilt + strict edge),
+    //    so a value trade with that manager still shows instead of nothing.
+    suggs = SLEEPER.generateTradeSuggestions(pool, targetVal * WIN_BIAS, 'tweener', 5);
+    suggs.forEach(x => x.edge = 1 - (x.totalSent / targetVal));
+    best = suggs.sort((a,b)=> Math.abs(a.edge) - Math.abs(b.edge))[0];
+    mode = 'value';
+  }
   if(!best) return null;
-  return { league, ctx, owner, target, targetVal, sugg:best };
+  return { league, ctx, owner, target, targetVal, sugg:best, mode };
 }
 
 // AWAY: build the RETURN from the buyer's roster for the player you're moving,
@@ -3101,11 +3113,20 @@ function _wsBuildAwayOpp(ctx, data, league, buyer, player){
   const myArch = (ctx.myTeam && ctx.myTeam.archetype) || 'tweener';
   const theirPool = (window.SLEEPER ? SLEEPER.buildAssetPool(data, buyer.rosterId, ctx.fmtKey) : []);
   if(!theirPool.length) return null;
-  const suggs = SLEEPER.generateTradeSuggestions(theirPool, playerVal / WIN_BIAS, myArch, 2);
+  let suggs = SLEEPER.generateTradeSuggestions(theirPool, playerVal / WIN_BIAS, myArch, 2);
   suggs.forEach(x => x.edge = (x.totalSent / playerVal) - 1);   // +ve = you GET more than you give
-  const best = suggs.filter(x => x.edge >= -0.02).sort((a,b)=> b.edge - a.edge)[0];
+  let best = suggs.filter(x => x.edge >= -0.02).sort((a,b)=> b.edge - a.edge)[0];
+  let mode = 'fit';
+  if(!best){
+    // VALUE fallback — closest-value return from the buyer's roster, ignoring
+    // the archetype tilt + strict edge, so a value deal still shows.
+    suggs = SLEEPER.generateTradeSuggestions(theirPool, playerVal / WIN_BIAS, 'tweener', 5);
+    suggs.forEach(x => x.edge = (x.totalSent / playerVal) - 1);
+    best = suggs.sort((a,b)=> Math.abs(a.edge) - Math.abs(b.edge))[0];
+    mode = 'value';
+  }
   if(!best) return null;
-  return { away:true, league, ctx, buyer, player, playerVal, sugg:best };
+  return { away:true, league, ctx, buyer, player, playerVal, sugg:best, mode };
 }
 function _wsGroupHtml(titleHtml, sub, opps, emptyMsg){
   return `<div class="ws-target-group">
@@ -3225,6 +3246,11 @@ function _wsOppCardHtml(o){
   const s = o.sugg, edge = s.edge, edgePct = Math.round(Math.abs(edge)*100);
   const win = edge >= 0.02, fair = !win && edge > -0.02;
   const pkg = s.sending.map(_wsAssetRow).join('');
+  const isValue = o.mode === 'value';
+  const valueTag = isValue ? `<span class="ws-opp-arch tweener" title="No archetype-fit offer — closest value match">VALUE</span>` : '';
+  const note = isValue
+    ? `Value match — closest by value (no archetype-fit offer) · ${_ccEsc(o.ctx.fmtLabel)}`
+    : `${s.fitNote?_ccEsc(s.fitNote)+' · ':''}${_ccEsc(o.ctx.fmtLabel)}`;
   if(o.away){
     const b = o.buyer, archLabel = window.SLEEPER ? SLEEPER.archetypeLabel(b.archetype) : b.archetype;
     const edgeBadge = win ? `<span class="ws-opp-edge">You win ${edgePct}%</span>` : (fair ? `<span class="ws-opp-edge fair">Fair</span>` : `<span class="ws-opp-edge fair">−${edgePct}% light</span>`);
@@ -3233,6 +3259,7 @@ function _wsOppCardHtml(o){
         <span class="ws-opp-league">${_ccEsc(o.league.name||'League')}</span>
         <span class="ws-opp-owner">→ ${_ccEsc(b.name)} would want them</span>
         <span class="ws-opp-arch ${b.archetype}">${_ccEsc(archLabel)}</span>
+        ${valueTag}
         ${edgeBadge}
       </div>
       <div class="ws-opp-flow">
@@ -3240,7 +3267,7 @@ function _wsOppCardHtml(o){
         <div class="cc-arrow">→</div>
         <div><div class="ws-opp-col-label">You get back</div>${pkg}</div>
       </div>
-      <div class="ws-opp-note">${s.fitNote?_ccEsc(s.fitNote)+' · ':''}${_ccEsc(o.ctx.fmtLabel)}</div>
+      <div class="ws-opp-note">${note}</div>
     </div>`;
   }
   const archLabel = window.SLEEPER ? SLEEPER.archetypeLabel(o.owner.archetype) : o.owner.archetype;
@@ -3250,6 +3277,7 @@ function _wsOppCardHtml(o){
       <span class="ws-opp-league">${_ccEsc(o.league.name||'League')}</span>
       <span class="ws-opp-owner">${_ccEsc(o.owner.name)} has them</span>
       <span class="ws-opp-arch ${o.owner.archetype}">${_ccEsc(archLabel)}</span>
+      ${valueTag}
       ${edgeBadge}
     </div>
     <div class="ws-opp-flow">
@@ -3257,7 +3285,7 @@ function _wsOppCardHtml(o){
       <div class="cc-arrow">→</div>
       <div><div class="ws-opp-col-label">You get</div>${_wsPlayerAssetHtml(o.target, o.targetVal)}</div>
     </div>
-    <div class="ws-opp-note">${s.fitNote?_ccEsc(s.fitNote)+' · ':''}${_ccEsc(o.ctx.fmtLabel)}</div>
+    <div class="ws-opp-note">${note}</div>
   </div>`;
 }
 
