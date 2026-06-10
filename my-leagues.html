@@ -8695,7 +8695,7 @@ function mlTfAssetRow(a){
   const isPick = a.type === 'pick';
   const sid = (!isPick && typeof SLEEPER_IDS !== 'undefined') ? SLEEPER_IDS[a.name] : null;
   const thumb = isPick
-    ? `<span class="ml-tf-thumb pick">◆</span>`
+    ? `<span class="ml-tf-thumb pick">${(typeof FLAME_ICON !== 'undefined') ? FLAME_ICON : '◆'}</span>`
     : (sid ? `<span class="ml-tf-thumb"><img src="${CDN}/content/nfl/players/thumb/${sid}.jpg" onerror="this.style.display='none'"></span>` : `<span class="ml-tf-thumb"></span>`);
   return `<div class="ml-tf-asset">${thumb}<span class="ml-tf-asset-n">${mlTfEsc(a.name)}</span><span class="ml-tf-asset-v">${Math.round(a.value||0).toLocaleString()}</span></div>`;
 }
