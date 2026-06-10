@@ -2993,7 +2993,7 @@
 <link rel="stylesheet" href="assets/css/heatmap.css?v=1782600000">
 <script src="assets/js/heatmap.js?v=1778670000"></script>
 <link rel="stylesheet" href="assets/css/legend.css?v=1796300000">
-<script src="assets/js/legend-content.js?v=1797000000"></script>
+<script src="assets/js/legend-content.js?v=1797200000"></script>
 <script src="assets/js/legend.js?v=1778949514"></script>
 <link rel="stylesheet" href="assets/css/player-panel.css?v=1791900000">
 <link rel="stylesheet" href="assets/css/trade-finder.css?v=1797000000">
@@ -3010,12 +3010,12 @@
 <!-- Shared league value/archetype compute (window.LC) — depends on sleeper-helpers + FP_VALUES. -->
 <script src="assets/js/league-compute.js?v=1797000000"></script>
 <!-- Cross-league Trade Finder (window.TradeFinder) — depends on LC + sleeper-helpers; init'd by the page. -->
-<script src="assets/js/trade-finder.js?v=1797000000"></script>
+<script src="assets/js/trade-finder.js?v=1797200000"></script>
 <!-- Trade Calculator + Builder (window.TradeCalc) — depends on LC + TradeFinder; init'd by the page. -->
 <script src="assets/js/trade-calc.js?v=1797100000"></script>
 <!-- Team logo helpers — load BEFORE player-panel.js so modal-hero badge works. -->
 <script src="assets/js/team-helpers.js?v=1778680002"></script>
-<script src="assets/js/player-panel.js?v=1797000000"></script>
+<script src="assets/js/player-panel.js?v=1797200000"></script>
 <style>
   /* ML uses the shared slide-out panel as an accordion (not horizontal tabs).
      Hide legacy modal + horizontal tab strip; show all five tab bodies stacked. */
@@ -3246,9 +3246,9 @@
   </div>
   <nav class="nav-links">
       <a class="nav-link" href="index.html">Database</a>
-      <!-- HIDDEN (redundant with My Leagues; un-comment to restore) <a class="nav-link" href="my-leagues.html?tab=finder" onclick="if(window.ML_EXPOSURE_READY){mlExposureSetTab('finder');return false;}">Trade Finder</a> -->
       <a class="nav-link" href="compare.html">Compare</a>
       <a class="nav-link active" href="my-leagues.html">My Leagues</a>
+      <a class="nav-link" href="trade-calculator.html">Trade Tools</a>
       <a class="nav-link" href="live-draft.html">Live Draft</a>
       <a class="nav-link" href="mock-draft.html">Mock Draft</a>
       <a class="nav-link" href="tiers.html">Tiers</a>
@@ -3259,9 +3259,9 @@
   <div class="nav-right">
       <select class="mobile-nav-select" onchange="if(this.value)window.location.href=this.value">
       <option value="index.html">Database</option>
-      <!-- HIDDEN <option value="my-leagues.html?tab=finder">Trade Finder</option> -->
       <option value="compare.html">Compare</option>
       <option value="my-leagues.html">My Leagues</option>
+      <option value="trade-calculator.html">Trade Tools</option>
       <option value="live-draft.html">Live Draft</option>
       <option value="mock-draft.html">Mock Draft</option>
       <option value="tiers.html">Tiers</option>
@@ -3355,7 +3355,7 @@
           <div class="ml-section-toggle ml-exposure-tabs" id="ml-exposure-tabs">
             <button class="ml-section-toggle-btn active" data-tab="exposure" onclick="mlExposureSetTab('exposure')">Exposure</button>
             <button class="ml-section-toggle-btn" data-tab="trades" onclick="mlExposureSetTab('trades')">My Trades</button>
-            <button class="ml-section-toggle-btn" data-tab="finder" id="ml-tf-tab-btn" style="display:none" onclick="mlExposureSetTab('finder')">Trade Finder</button>
+            <button class="ml-section-toggle-btn" data-tab="finder" id="ml-tf-tab-btn" onclick="mlExposureSetTab('finder')">Trade Finder</button>
           </div>
 
           <!-- PANEL 1: player exposure -->
@@ -8090,7 +8090,7 @@ function _fptsXpageMlPdToCalc() {
     TradeFinder.openWithPlayer(name);
     return;
   }
-  window.open('my-leagues.html?tab=finder', '_blank', 'noopener');
+  window.open('trade-calculator.html', '_blank', 'noopener');
 }
 function _fptsXpageMlPdToAdp() {
   const nameEl = document.getElementById('ml-pd-name');

@@ -352,7 +352,7 @@
 <link rel="stylesheet" href="assets/css/heatmap.css?v=1782600000">
 <script src="assets/js/heatmap.js?v=1778670000"></script>
 <link rel="stylesheet" href="assets/css/legend.css?v=1796300000">
-<script src="assets/js/legend-content.js?v=1797000000"></script>
+<script src="assets/js/legend-content.js?v=1797200000"></script>
 <script src="assets/js/legend.js?v=1778949514"></script>
 <script>document.addEventListener('DOMContentLoaded', function(){ if (window.Legend) Legend.init('tiers'); });</script>
 <!-- Shared player panel — DB's slide-in drawer, used identically on every page -->
@@ -360,7 +360,7 @@
 <link rel="stylesheet" href="assets/css/player-panel.css?v=1791900000">
 <!-- Team logo helpers — load BEFORE player-panel.js so modal-hero badge works. -->
 <script src="assets/js/team-helpers.js?v=1778680002"></script>
-<script src="assets/js/player-panel.js?v=1797000000" defer></script>
+<script src="assets/js/player-panel.js?v=1797200000" defer></script>
 <!-- Data bootstrap — fetches every data/*.json, populates window globals,
      fires 'fpts:data-ready' when done. First live page on the scaffold. -->
 <script src="assets/js/data-bootstrap.js?v=1796100000"></script>
@@ -402,9 +402,9 @@
   </div>
   <nav class="nav-links">
     <a class="nav-link" href="index.html">Database</a>
-    <!-- HIDDEN (redundant with My Leagues; un-comment to restore) <a class="nav-link" href="my-leagues.html?tab=finder">Trade Finder</a> -->
     <a class="nav-link" href="compare.html">Compare</a>
     <a class="nav-link" href="my-leagues.html">My Leagues</a>
+    <a class="nav-link" href="trade-calculator.html">Trade Tools</a>
     <a class="nav-link" href="live-draft.html">Live Draft</a>
     <a class="nav-link" href="mock-draft.html">Mock Draft</a>
     <a class="nav-link active" href="#">Tiers</a>
@@ -415,9 +415,9 @@
   <div class="nav-right">
     <select class="mobile-nav-select" onchange="if(this.value)window.location.href=this.value">
       <option value="index.html">Database</option>
-      <!-- HIDDEN <option value="my-leagues.html?tab=finder">Trade Finder</option> -->
       <option value="compare.html">Compare</option>
       <option value="my-leagues.html">My Leagues</option>
+      <option value="trade-calculator.html">Trade Tools</option>
       <option value="live-draft.html">Live Draft</option>
       <option value="mock-draft.html">Mock Draft</option>
       <option value="tiers.html" selected>Tiers</option>
@@ -2351,7 +2351,7 @@ function _fptsXpageTiersToDb() {
   _fptsWriteHandoff({ source: 'tiers' }, 'index.html');
 }
 function _fptsXpageTiersToCalc() {
-  _fptsWriteHandoff({ source: 'tiers' }, 'my-leagues.html?tab=finder');
+  _fptsWriteHandoff({ source: 'tiers' }, 'trade-calculator.html');
 }
 function _fptsXpageTiersToAdp() {
   _fptsWriteHandoff({ source: 'tiers' }, 'adp-tool.html');
@@ -3465,7 +3465,7 @@ function _tiersRenderDbCtaTab(tabName, name) {
 
 // Cross-page handoff helpers (modal action bar)
 window._tiersXpageToDb      = function () { _tiersHandoff('index.html'); };
-window._tiersXpageToCalc    = function () { _tiersHandoff('my-leagues.html?tab=finder'); };
+window._tiersXpageToCalc    = function () { _tiersHandoff('trade-calculator.html'); };
 window._tiersXpageToAdp     = function () { _tiersHandoff('adp-tool.html'); };
 window._tiersXpageToLeagues = function () { _tiersHandoff('my-leagues.html'); };
 function _tiersHandoff(destUrl) {

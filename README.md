@@ -2,7 +2,7 @@
 
 A static fantasy-football site deployed via GitHub Pages from `main`.
 **Ten HTML pages, all live and shipping:** `index.html` (trade DB),
-`trade-calculator.html` (now a redirect → My Leagues' Trade Finder tab),
+`trade-calculator.html` (public **Trade Tools** — Trade Finder + Calculator, built from shared modules),
 `compare.html` (player comparison),
 `my-leagues.html`, `live-draft.html`, `mock-draft.html` (AI-personality
 mock drafts), `tiers.html`, `adp-tool.html`, `rankings.html`,
@@ -14,7 +14,20 @@ This file is the **resume-where-we-left-off** doc.
 
 ---
 
-## Where we are (end of 2026-06-09 — twenty-third session) — Trade Finder MOVED to a My Leagues tab
+## Where we are (2026-06-10 — twenty-fourth session) — MODULARIZED the engine + PUBLIC Trade Tools page
+
+**The Trade Finder + editable Trade Calculator are now shared `assets/js` modules, and `trade-calculator.html` is a lean PUBLIC "Trade Tools" page built from them (one engine, two pages).** Done as 6 verified phases, each committed:
+
+- **Shared modules:** `assets/js/league-compute.js` (`window.LC` — value/archetype compute over `window.SLEEPER` + `FP_VALUES`), `assets/js/trade-finder.js` (`window.TradeFinder` — the `mlTf*` finder behind an init-config), `assets/js/trade-calc.js` (`window.TradeCalc` — MLCALC editable calculator + MLTB builder). Styles: `assets/css/trade-finder.css` + `assets/css/trade-calc.css`.
+- **`my-leagues.html`** loads the modules and calls `TradeFinder.init({...})` / `TradeCalc.init({...})` with its data/feature hooks; the inline finder/calc code was moved out (the `ml*` engine wrappers delegate to `LC`). The **Trade Finder tab is now public** (admin gate removed — `mlTfIsAdmin()` returns true).
+- **`trade-calculator.html`** (was a redirect) is the public **Trade Tools** page: Sleeper login → fetch all leagues into `CALC_LEAGUE_DATA` (aliased to `window.ML_ALL_LEAGUE_DATA`, + computed `ML_EXPOSURE_DATA`) → `Trade Finder | Trade Calculator` tabs, full-width. Reuses the finder panel markup + the `#ml-calc`/`#ml-ts` modal shells. Consumes the cross-page handoff (`fpts-handoff` → `TradeFinder.openWithPlayer`).
+- **Nav:** a **"Trade Tools"** link added to every page (+ mobile selects); the cross-page "Open in Trade Finder" handoffs (`player-panel.js`, `adp-tool`, `tiers`) now point at `trade-calculator.html`.
+- **Module boundary technique:** each phase byte-sliced the inline block into its module + concentrated page-coupling in a small adapter + init-config; inline-handler fns re-exposed on `window`. **Lesson learned (a regression):** when slicing, enumerate **every** moved function + check host-page callers — `mlGetPlayerStatus` slipped through and broke the My-Leagues player panel until exposed (`b8fd564`).
+- **Known debt:** `trade-calc.css` is a *copy* of my-leagues' inline `.ml-calc-*`/`.ml-tb-*`/`.ml-modal-*` styles — de-dupe later. Tokens: `trade-finder.js`/`player-panel.js`/`legend-content.js` = 1797200000; `trade-calc.js`/`trade-calc.css` = 1797100000; `league-compute.js`/`trade-finder.css` = 1797000000. `python scripts/check-colors.py` → CLEAN.
+
+---
+
+## (superseded) Where we are (end of 2026-06-09 — twenty-third session) — Trade Finder MOVED to a My Leagues tab
 
 **The cross-league Trade Finder now lives as a third sidebar tab in `my-leagues.html` (`Exposure | My Trades | Trade Finder`), not on its own page.** `trade-calculator.html` is now a thin redirect to `my-leagues.html?tab=finder` (keeps old bookmarks/OBS sources working); the nav "Trade Finder" link across all pages points there too (My Leagues' own link switches the tab in-page via `mlExposureSetTab('finder')`). All pushed and live.
 

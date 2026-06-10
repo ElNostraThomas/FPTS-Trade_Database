@@ -603,7 +603,7 @@
 <link rel="stylesheet" href="assets/css/heatmap.css?v=1782600000">
 <script src="assets/js/heatmap.js?v=1778670000"></script>
 <link rel="stylesheet" href="assets/css/legend.css?v=1796300000">
-<script src="assets/js/legend-content.js?v=1797000000"></script>
+<script src="assets/js/legend-content.js?v=1797200000"></script>
 <script src="assets/js/legend.js?v=1778949514"></script>
 <script>document.addEventListener('DOMContentLoaded', function(){ if (window.Legend) Legend.init('adp-tool'); });</script>
 <!-- Shared player panel — DB's slide-in drawer, used identically on every page -->
@@ -621,7 +621,7 @@
 <!-- Team logo helpers — must load BEFORE player-panel.js so the modal-hero
      badge wiring finds window.TeamHelpers. -->
 <script src="assets/js/team-helpers.js?v=1778680002"></script>
-<script src="assets/js/player-panel.js?v=1797000000" defer></script>
+<script src="assets/js/player-panel.js?v=1797200000" defer></script>
 <style>
   /* Hide the legacy in-page modal — openModal now routes to the shared panel. */
   #modal-backdrop { display: none !important; }
@@ -655,9 +655,9 @@
   </div>
   <nav class="nav-links">
     <a class="nav-link" href="index.html">Database</a>
-    <!-- HIDDEN (redundant with My Leagues; un-comment to restore) <a class="nav-link" href="my-leagues.html?tab=finder">Trade Finder</a> -->
     <a class="nav-link" href="compare.html">Compare</a>
     <a class="nav-link" href="my-leagues.html">My Leagues</a>
+    <a class="nav-link" href="trade-calculator.html">Trade Tools</a>
     <a class="nav-link" href="live-draft.html">Live Draft</a>
     <a class="nav-link" href="mock-draft.html">Mock Draft</a>
     <a class="nav-link" href="tiers.html">Tiers</a>
@@ -668,9 +668,9 @@
   <div class="nav-right">
     <select class="mobile-nav-select" onchange="if(this.value)window.location.href=this.value">
       <option value="index.html">Database</option>
-      <!-- HIDDEN <option value="my-leagues.html?tab=finder">Trade Finder</option> -->
       <option value="compare.html">Compare</option>
       <option value="my-leagues.html">My Leagues</option>
+      <option value="trade-calculator.html">Trade Tools</option>
       <option value="live-draft.html">Live Draft</option>
       <option value="mock-draft.html">Mock Draft</option>
       <option value="tiers.html">Tiers</option>
@@ -2539,14 +2539,14 @@ function _fptsXpageAdpToDb() {
 }
 function _fptsXpageAdpToCalc() {
   const p = CURRENT_MODAL_PLAYER;
-  if (!p) { window.open('my-leagues.html?tab=finder', '_blank', 'noopener'); return; }
+  if (!p) { window.open('trade-calculator.html', '_blank', 'noopener'); return; }
   const fp = lookupFpValue(p.name) || {};
   const pos = posOf(p) || (fp.posRank || 'WR').replace(/\d+$/, '') || 'WR';
   _fptsWriteHandoff({
     source: 'adp',
     primaryPlayer: p.name,
     trade: { sideA: [], sideB: [{ name: p.name, pos, value: fp.value || 0, type: 'player' }] },
-  }, 'my-leagues.html?tab=finder');
+  }, 'trade-calculator.html');
 }
 function _fptsXpageAdpToLeagues() {
   const p = CURRENT_MODAL_PLAYER;

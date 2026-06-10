@@ -282,14 +282,14 @@
 
   function _fptsXpageOpenCalcFromPanel() {
     const name = ppActivePlayer || null;
-    if (!name) { global.open('my-leagues.html?tab=finder', '_blank', 'noopener'); return; }
+    if (!name) { global.open('trade-calculator.html', '_blank', 'noopener'); return; }
     const ktc = _fp()[name] || {};
     const pos = (ktc.posRank || 'WR').replace(/\d+$/, '') || 'WR';
     global._fptsWriteHandoff({
       source: _currentPage || 'db',
       primaryPlayer: name,
       trade: { sideA: [], sideB: [{ name, pos, value: ktc.value || 0, type: 'player' }] }
-    }, 'my-leagues.html?tab=finder');
+    }, 'trade-calculator.html');
   }
   function _fptsXpageOpenLeaguesFromPanel() {
     const name = ppActivePlayer || null;
@@ -1305,7 +1305,7 @@
         }
       }
     } catch (e) {}
-    global._fptsWriteHandoff(payload, 'my-leagues.html?tab=finder');
+    global._fptsWriteHandoff(payload, 'trade-calculator.html');
   }
 
   // ────────────────────────────────────────────────────────────────────────

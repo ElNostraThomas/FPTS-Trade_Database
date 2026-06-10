@@ -740,12 +740,10 @@ function _mlExpandLeagueRow(leagueId){
 // True when signed in as the admin account, OR when ?admin=1 was used on this
 // browser (persisted). ?admin=0 clears it.
 function mlTfIsAdmin(){
-  try {
-    if (localStorage.getItem('fpts-admin') === '1') return true;
-    const u = (localStorage.getItem('fpts-sleeper-username') || '').toLowerCase().trim();
-    const d = (localStorage.getItem('fpts-sleeper-display-name') || '').toLowerCase().trim();
-    return u === 'elnostrathomas' || d === 'elnostrathomas';
-  } catch (e) { return false; }
+  // Trade Finder went public in phase 6 — the admin gate is removed. Kept as a
+  // function so the existing callers (mlExposureSetTab, the ?tab=finder handler,
+  // applyAdminGate) need no changes.
+  return true;
 }
 function mlTfApplyAdminGate(){
   try {
