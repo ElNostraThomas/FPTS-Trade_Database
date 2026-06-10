@@ -4769,10 +4769,13 @@ const ML_TAB_LABELS = {
 function _mlReadAccordionOpenSet() {
   try {
     const raw = localStorage.getItem(ML_ACCORDION_KEY);
-    if (!raw) return new Set(['pp-heatmap-tab']);
+    if (!raw) return new Set(['pp-trades-tab']);
     const arr = JSON.parse(raw);
-    return new Set(Array.isArray(arr) ? arr : ['pp-heatmap-tab']);
-  } catch (e) { return new Set(['pp-heatmap-tab']); }
+    const set = new Set(Array.isArray(arr) ? arr : []);
+    // Trades is open by default — never render a fully-collapsed panel.
+    if (set.size === 0) set.add('pp-trades-tab');
+    return set;
+  } catch (e) { return new Set(['pp-trades-tab']); }
 }
 
 function _mlWriteAccordionOpenSet(set) {
