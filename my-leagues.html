@@ -3437,6 +3437,9 @@
             .ml-tf-lg-fmt { margin-left:auto; font-size:10px; font-style:italic; opacity:.5; }
             .ml-tf-prop { display:none; padding:8px 2px 2px; }
             .ml-tf-card { border:1px solid var(--border); border-radius:6px; padding:9px; background:rgba(255,255,255,.02); }
+            /* In the (wide) Trade Builder modal, keep the finder card compact so it
+               reads like the sidebar version instead of stretching across the modal. */
+            .ml-tb-card .ml-tf-card { max-width:500px; margin-left:auto; margin-right:auto; }
             .ml-tf-card.win { border-color:var(--green); }
             .ml-tf-card-top { display:flex; align-items:center; gap:6px; margin-bottom:7px; }
             .ml-tf-edit { margin-left:auto; flex:none; font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:9.5px; text-transform:uppercase; letter-spacing:.04em; background:transparent; border:1px solid var(--border); color:var(--white); padding:2px 8px; border-radius:4px; cursor:pointer; }
