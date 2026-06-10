@@ -3439,6 +3439,8 @@
             .ml-tf-card { border:1px solid var(--border); border-radius:6px; padding:9px; background:rgba(255,255,255,.02); }
             .ml-tf-card.win { border-color:var(--green); }
             .ml-tf-card-top { display:flex; align-items:center; gap:6px; margin-bottom:7px; }
+            .ml-tf-edit { margin-left:auto; flex:none; font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:9.5px; text-transform:uppercase; letter-spacing:.04em; background:transparent; border:1px solid var(--border); color:var(--white); padding:2px 8px; border-radius:4px; cursor:pointer; }
+            .ml-tf-edit:hover { border-color:var(--red); color:var(--red); }
             .ml-tf-tag { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:9px; letter-spacing:.05em; padding:2px 6px; border-radius:3px; background:var(--border); color:var(--white); }
             .ml-tf-guru { display:inline-flex; align-items:center; gap:4px; font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:9.5px; letter-spacing:.04em; text-transform:uppercase; color:var(--green); border:1px solid var(--green); border-radius:3px; padding:2px 6px 2px 4px; white-space:nowrap; }
             .ml-tf-guru-img { width:22px; height:22px; flex:none; display:block; border-radius:50%; object-fit:cover; object-position:center 20%; background:#000000; }
@@ -6979,7 +6981,7 @@ function mlSignOut() {
   window.ML_EXPOSURE_FILTER = 'ALL';
   window.ML_EXPOSURE_TAB = 'exposure';
   window.ML_MY_TRADES_LOADING = false;
-  mlTfState = { targets:[], managers:[], dir:'for' }; mlTfCtxCache = {}; mlTfRegistry = {};
+  mlTfState = { targets:[], managers:[], dir:'for' }; mlTfCtxCache = {}; mlTfRegistry = {}; mlTfEditRegistry = {};
 
   // Reset UI
   document.getElementById('ml-app').classList.remove('open');
@@ -8266,6 +8268,7 @@ const ML_TF_WANTS = {
 let mlTfState = { targets:[], managers:[], dir:'for' };
 let mlTfCtxCache = {};
 let mlTfRegistry = {};
+let mlTfEditRegistry = {};
 
 function mlTfEsc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function mlTfThumb(name){
@@ -8481,7 +8484,7 @@ function mlTfRender(){
     out.innerHTML = `<div class="ml-tf-empty">Your leagues are still loading…</div>`;
     return;
   }
-  mlTfRegistry = {};
+  mlTfRegistry = {}; mlTfEditRegistry = {};
   const mgrs = mlTfBuildMap();
   if (!mgrs.length){
     out.innerHTML = `<div class="ml-tf-empty">No ${dir==='away'?'manager wants':'manager rosters'} your ${mlTfState.targets.length>1?'players':'player'}${mlTfState.managers.length?' among the selected managers':''} right now.</div>`;
@@ -8576,7 +8579,8 @@ function mlTfProposalHtml(reg){
       const offers = mlTfPickOffers(pool, targetVal, owner.archetype, 'for', myNeed, ownerNeed);
       if (!offers.length) return `<div class="ml-tf-note">No realistic value match from your roster here.</div>`;
       const tPos = mlTfPosOf(reg.target);
-      const cards = offers.map(o => {
+      const targetSid = ctx.nameToPid[normalizePlayerName(reg.target)];
+      const cards = offers.map((o, i) => {
         const need = {
           fillsMyNeedPos: (tPos && myNeed[tPos]) ? tPos : null,
           myRankAtTarget: (ctx.myTeam && ctx.myTeam.posRanks) ? ctx.myTeam.posRanks[tPos] : null,
@@ -8584,9 +8588,15 @@ function mlTfProposalHtml(reg){
           myThinSentPos: (o.sugg.sending||[]).map(a=>a.pos).find(p => p && myNeed[p]) || null,
           nT
         };
-        return mlTfCardHtml({ dir:'for', ctx, owner, target:reg.target, anchorVal:targetVal, sugg:o.sugg, mode:o.mode, need });
+        const editId = 'mltfedit-' + mlTfSlug(reg.leagueId) + '-' + mlTfSlug(reg.target) + '-' + i;
+        mlTfEditRegistry[editId] = {
+          targetName: reg.target, targetSid,
+          leagueId: reg.leagueId, ownerRosterId: owner.rosterId,
+          sending: (o.sugg.sending||[]).map(a => ({ name:a.name, value:a.value, pos:a.pos, type:a.type, season:a.season, round:a.round }))
+        };
+        return mlTfCardHtml({ dir:'for', ctx, owner, target:reg.target, anchorVal:targetVal, sugg:o.sugg, mode:o.mode, need, editId });
       }).join('');
-      return mlTfOffersWrap(ctx, offers.length, cards, { dir:'for', leagueId:reg.leagueId, targetSid: ctx.nameToPid[normalizePlayerName(reg.target)] });
+      return mlTfOffersWrap(ctx, offers.length, cards, { dir:'for', leagueId:reg.leagueId, targetSid });
     } else {
       const playerVal = mlTfPlayerVal(reg.target, reg.leagueId);
       if (!playerVal) return `<div class="ml-tf-note">No value on file for ${mlTfEsc(reg.target)}.</div>`;
@@ -8658,7 +8668,7 @@ function mlTfOffersWrap(ctx, count, cardsHtml, opts){
   let send;
   if (opts.dir === 'for' && opts.targetSid){
     // Open the existing My Leagues Trade Builder (editable + "Go To Sleeper").
-    send = `<button class="ml-tf-go primary" onclick="mlTfEditOnSleeper('${opts.leagueId}','${opts.targetSid}')">Edit &amp; send ↗</button>`;
+    send = `<button class="ml-tf-go primary" onclick="mlTfEditOnSleeper('${opts.leagueId}','${opts.targetSid}')">Get suggestions ↗</button>`;
   } else {
     send = `<a class="ml-tf-go primary" href="${(typeof _mlBuildSleeperLeagueUrl==='function')?_mlBuildSleeperLeagueUrl(opts.leagueId||ctx.leagueId):'#'}" target="_blank" rel="noopener">Open on Sleeper ↗</a>`;
   }
@@ -8675,6 +8685,24 @@ function mlTfEditOnSleeper(leagueId, targetSid){
     if (typeof openTradeSuggestModal === 'function' && targetSid) { openTradeSuggestModal(targetSid, leagueId); return; }
   } catch (e) {}
   try { if (typeof _mlBuildSleeperLeagueUrl === 'function') window.open(_mlBuildSleeperLeagueUrl(leagueId), '_blank', 'noopener'); } catch (e) {}
+}
+
+// Edit THIS exact package — open the editable trade calculator pre-loaded with it.
+function mlTfEditCard(editId){
+  const p = mlTfEditRegistry[editId];
+  if (!p) return;
+  try {
+    if (typeof openCalcModal === 'function'){
+      openCalcModal(p.targetName, p.targetSid, {
+        leagueId: p.leagueId,
+        ownerRosterId: p.ownerRosterId,
+        presetSendingAssets: p.sending,
+        targetAsset: null
+      });
+      return;
+    }
+  } catch (e) {}
+  try { if (typeof openTradeSuggestModal === 'function' && p.targetSid) openTradeSuggestModal(p.targetSid, p.leagueId); } catch (e) {}
 }
 
 function mlTfAssetRow(a){
@@ -8713,10 +8741,11 @@ function mlTfCardHtml(o){
   // Guru Approved — only when the trade is in your favor by 4%+.
   const guru = edge >= 0.04;
   const guruBadge = guru ? `<span class="ml-tf-guru" title="In your favor by 4%+ — Guru Approved"><img class="ml-tf-guru-img" src="assets/images/john-cartoon.png" alt="">Guru Approved</span>` : '';
+  const editBtn = o.editId ? `<button class="ml-tf-edit" onclick="mlTfEditCard('${o.editId}')" title="Edit this exact package in the trade calculator">Edit ✎</button>` : '';
   if (o.dir === 'away'){
     const edgeBadge = win ? `<span class="ml-tf-edge win">You win ${edgePct}%</span>` : (fair ? `<span class="ml-tf-edge">Fair</span>` : `<span class="ml-tf-edge">−${edgePct}% light</span>`);
     return `<div class="ml-tf-card${guru?' win':''}">
-        <div class="ml-tf-card-top">${guruBadge}${valueTag}${edgeBadge}</div>
+        <div class="ml-tf-card-top">${guruBadge}${valueTag}${edgeBadge}${editBtn}</div>
         <div class="ml-tf-flow">
           <div class="ml-tf-side"><div class="ml-tf-side-lab">You send</div>${mlTfAnchorAsset(o.target, o.anchorVal)}</div>
           <div class="ml-tf-arrow">→</div>
@@ -8728,7 +8757,7 @@ function mlTfCardHtml(o){
   }
   const edgeBadge = win ? `<span class="ml-tf-edge win">You win ${edgePct}%</span>` : (fair ? `<span class="ml-tf-edge">Fair</span>` : `<span class="ml-tf-edge">+${edgePct}% over</span>`);
   return `<div class="ml-tf-card${guru?' win':''}">
-      <div class="ml-tf-card-top">${guruBadge}${valueTag}${edgeBadge}</div>
+      <div class="ml-tf-card-top">${guruBadge}${valueTag}${edgeBadge}${editBtn}</div>
       <div class="ml-tf-flow">
         <div class="ml-tf-side"><div class="ml-tf-side-lab">You send</div>${pkg}</div>
         <div class="ml-tf-arrow">→</div>
