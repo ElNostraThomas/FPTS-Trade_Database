@@ -3053,7 +3053,7 @@ function _wsRenderPulse(){
       const lbl = window.SLEEPER ? SLEEPER.archetypeLabel(a) : a;
       const names = byArch[a].map(t => {
         const cls = (t.isMe?'me':'') + (_wsState.managers.indexOf(t.ownerUser) >= 0 ? ' tgt' : '');
-        return `<span class="ws-pulse-name ${cls}">${_ccEsc(t.name)}${t.isMe?' (you)':''}</span>`;
+        return `<span class="ws-pulse-name ${cls}">${_ccEsc(t.ownerUser)}${t.isMe?' (you)':''}</span>`;
       }).join('<span style="opacity:.3">, </span>');
       return `<div class="ws-pulse-arow"><span class="ws-opp-arch ${a}">${_ccEsc(lbl)} ${byArch[a].length}</span><span class="ws-pulse-names">${names}</span></div>`;
     }).join('');
@@ -3258,7 +3258,7 @@ function _wsOppCardHtml(o){
     return `<div class="ws-opp${win?' win':''}">
       <div class="ws-opp-head">
         <span class="ws-opp-league">${_ccEsc(o.league.name||'League')}</span>
-        <span class="ws-opp-owner">→ ${_ccEsc(b.name)} would want them</span>
+        <span class="ws-opp-owner">→ ${_ccEsc(b.ownerUser)} would want them${(b.name && b.name!==b.ownerUser)?` <span style="opacity:.55">(${_ccEsc(b.name)})</span>`:''}</span>
         <span class="ws-opp-arch ${b.archetype}">${_ccEsc(archLabel)}</span>
         ${valueTag}
         ${edgeBadge}
@@ -3276,7 +3276,7 @@ function _wsOppCardHtml(o){
   return `<div class="ws-opp${win?' win':''}">
     <div class="ws-opp-head">
       <span class="ws-opp-league">${_ccEsc(o.league.name||'League')}</span>
-      <span class="ws-opp-owner">${_ccEsc(o.owner.name)} has them</span>
+      <span class="ws-opp-owner">${_ccEsc(o.owner.ownerUser)} has them${(o.owner.name && o.owner.name!==o.owner.ownerUser)?` <span style="opacity:.55">(${_ccEsc(o.owner.name)})</span>`:''}</span>
       <span class="ws-opp-arch ${o.owner.archetype}">${_ccEsc(archLabel)}</span>
       ${valueTag}
       ${edgeBadge}
