@@ -8503,9 +8503,12 @@ function mlTfRender(){
     return;
   }
   mlTfRegistry = {}; mlTfEditRegistry = {};
+  // AWAY is organized LEAGUE → buyers (the leagues you roster the player in,
+  // then the managers who'd want him). FOR stays manager → player → leagues.
+  if (dir === 'away'){ mlTfRenderAway(out); return; }
   const mgrs = mlTfBuildMap();
   if (!mgrs.length){
-    out.innerHTML = `<div class="ml-tf-empty">No ${dir==='away'?'manager wants':'manager rosters'} your ${mlTfState.targets.length>1?'players':'player'}${mlTfState.managers.length?' among the selected managers':''} right now.</div>`;
+    out.innerHTML = `<div class="ml-tf-empty">No manager rosters your ${mlTfState.targets.length>1?'players':'player'}${mlTfState.managers.length?' among the selected managers':''} right now.</div>`;
     return;
   }
   // Single target → hoist the player to one header + flatten each manager straight
@@ -8514,6 +8517,67 @@ function mlTfRender(){
   const single = mlTfState.targets.length === 1;
   const head = single ? mlTfShoppingHtml(mlTfState.targets[0], mgrs) : '';
   out.innerHTML = head + mgrs.map(m => mlTfMgrGroupHtml(m, single)).join('');
+}
+
+// AWAY render: for each league YOU roster the player in, list the managers who'd
+// want him (your archetype-want parameters), each expandable to ≤3 trade offers.
+function mlTfRenderAway(out){
+  const groups = [];                 // { leagueId, target, leagueName, fmtLabel, buyers:[{ownerUser, rosterId}] }
+  const leagueIds = Object.keys(window.ML_ALL_LEAGUE_DATA || {});
+  mlTfState.targets.forEach(target => {
+    const mySid = mlTfMySidForName(target);
+    leagueIds.forEach(leagueId => {
+      const ctx = mlTfLeagueCtx(leagueId); if (!ctx || !ctx.myTeam) return;
+      if (!mlTfIOwnHere(leagueId, mySid)) return;     // ONLY leagues you roster him in
+      let buyers = ctx.teams.filter(t => !t.isMe && mlTfTeamWants(ctx, t, target));
+      if (mlTfState.managers.length) buyers = buyers.filter(t => mlTfState.managers.indexOf(t.ownerUser) >= 0);
+      if (!buyers.length) return;
+      groups.push({
+        leagueId, target,
+        leagueName: ctx.league.name || ('League ' + leagueId),
+        fmtLabel: ctx.fmtLabel,
+        buyers: buyers.map(t => ({ ownerUser: t.ownerUser, rosterId: t.rosterId }))
+      });
+    });
+  });
+  if (!groups.length){
+    out.innerHTML = `<div class="ml-tf-empty">No manager wants your ${mlTfState.targets.length>1?'players':'player'}${mlTfState.managers.length?' among the selected managers':''} in the leagues you roster ${mlTfState.targets.length>1?'them':'him'}.</div>`;
+    return;
+  }
+  groups.sort((a,b)=> b.buyers.length - a.buyers.length || a.leagueName.localeCompare(b.leagueName));
+  const single = mlTfState.targets.length === 1;
+  const head = single ? mlTfAwayShopHtml(mlTfState.targets[0], groups) : '';
+  out.innerHTML = head + groups.map(mlTfAwayLeagueHtml).join('');
+}
+
+function mlTfAwayShopHtml(pn, groups){
+  const fp = FP_VALUES[pn] || {};
+  const pr = fp.posRank || '';
+  const first = groups[0];
+  const val = first ? Math.round(mlTfPlayerVal(pn, first.leagueId)).toLocaleString() : '';
+  const buyers = groups.reduce((s,g)=> s + g.buyers.length, 0);
+  return `<div class="ml-tf-shop">${mlTfThumb(pn)}<div class="ml-tf-shop-main"><div class="ml-tf-shop-line1"><span class="ml-tf-shop-name">${mlTfEsc(pn)}</span>${pr?`<span class="ml-tf-shop-rank">${mlTfEsc(pr)}</span>`:''}${val?`<span class="ml-tf-shop-val">${val}</span>`:''}</div><span class="ml-tf-shop-sub">you roster in ${groups.length} league${groups.length>1?'s':''} · ${buyers} potential buyer${buyers>1?'s':''}</span></div></div>`;
+}
+
+function mlTfAwayLeagueHtml(g){
+  const pn = g.target;
+  const last = String(pn).split(' ').slice(1).join(' ') || pn;
+  const buyers = g.buyers.map(b => {
+    const rid = 'mltf-' + mlTfSlug(g.leagueId) + '-' + mlTfSlug(pn) + '-' + mlTfSlug(b.ownerUser);
+    mlTfRegistry[rid] = { leagueId:g.leagueId, rosterId:b.rosterId, target:pn, dir:'away' };
+    return `<div class="ml-tf-lg">
+        <button class="ml-tf-lg-btn" onclick="mlTfShowProposal('${rid}')">
+          <span class="ml-tf-lg-go" id="${rid}-go">▸</span>
+          <span class="ml-tf-lg-name">${mlTfEsc(b.ownerUser)}</span>
+          <span class="ml-tf-lg-fmt">wants ${mlTfEsc(last)}</span>
+        </button>
+        <div class="ml-tf-prop" id="${rid}"></div>
+      </div>`;
+  }).join('');
+  return `<div class="ml-tf-mgr">
+      <div class="ml-tf-mgr-head"><span class="ml-tf-mgr-name">${mlTfEsc(g.leagueName)}</span><span class="ml-tf-mgr-sub">${mlTfEsc(g.fmtLabel)} · ${g.buyers.length} buyer${g.buyers.length>1?'s':''}</span></div>
+      <div class="ml-tf-mgr-body">${buyers}</div>
+    </div>`;
 }
 
 function mlTfShoppingHtml(pn, mgrs){
