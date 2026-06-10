@@ -4959,52 +4959,8 @@ function mltbRender() {
 
   // Render the current suggestion as a single card
   const t = templates[currentIdx];
-  const totalSent = t.totalSent || t.sending.reduce((s,a) => s + (a.value||0), 0);
-  const ratio = targetPlayer.value > 0 ? totalSent / targetPlayer.value : 0;
-  const overpct = targetPlayer.value > 0 ? ((ratio - 1) * 100) : 0;
-  let balanceLabel, balanceColor;
-  if (Math.abs(overpct) < 2.5) {
-    balanceLabel = '⚖ Even trade';
-    balanceColor = 'var(--green)';
-  } else if (overpct > 0 && overpct <= 10) {
-    balanceLabel = `+${overpct.toFixed(1)}% overpay (you give more)`;
-    balanceColor = 'var(--yellow)';
-  } else if (overpct > 10) {
-    balanceLabel = `+${overpct.toFixed(1)}% heavy overpay`;
-    balanceColor = 'var(--red)';
-  } else if (overpct < 0 && overpct >= -10) {
-    balanceLabel = `${overpct.toFixed(1)}% steal (you give less)`;
-    balanceColor = 'var(--green)';
-  } else {
-    balanceLabel = `${overpct.toFixed(1)}% lopsided in your favor`;
-    balanceColor = '#5b9bd5';
-  }
-
-  // Render each "You send" asset row. The pos pill uses a modifier class
-  // (.ml-tb-asset-pos--<pos>) instead of inline background/color — see the
-  // .ml-tb-asset-pos--qb/--rb/--wr/--te/--k/--pick CSS rules.
-  const sentList = t.sending.map(a => {
-    const ageStr = a.type === 'player' && a.age ? ` · ${a.age}y` : '';
-    const posSlug = a.type === 'pick' ? 'pick' : (a.pos || 'wr').toLowerCase();
-    return `
-      <div class="ml-tb-asset">
-        <span class="ml-tb-asset-pos ml-tb-asset-pos--${posSlug}">${a.pos || '—'}</span>
-        <span class="ml-tb-asset-name">${a.name}${ageStr}</span>
-        <span class="ml-tb-asset-val">${(a.value||0).toLocaleString()}</span>
-      </div>
-    `;
-  }).join('');
-
-  const targetPosClass = (targetPlayer.pos || 'WR').toLowerCase();
-  const targetRow = `
-    <div class="ml-tb-asset">
-      <span class="ml-tb-asset-pos ml-tb-asset-pos--${targetPosClass}">${targetPlayer.pos || '—'}</span>
-      <span class="ml-tb-asset-name">${targetPlayer.name}</span>
-      <span class="ml-tb-asset-val">${targetPlayer.value.toLocaleString()}</span>
-    </div>
-  `;
-
-  const fitNote = t.fitNote || '';
+  // The send/receive card is now rendered by mltbFinderCard (same design as the
+  // sidebar finder); edge/value/need are computed inside mlTfCardHtml.
   const counterPos = (currentIdx + 1) + ' of ' + templates.length;
 
   // Build payload for the ✓ handler (encoded so we can stuff it in onclick)
@@ -5014,26 +4970,9 @@ function mltbRender() {
     <div class="ml-tb-card">
       <div class="ml-row-between">
         <span class="ml-section-head">Suggestion ${counterPos} — ${t.label}</span>
-        <span class="ml-tb-card-balance">${balanceLabel}</span>
       </div>
 
-      <div class="ml-tb-box">
-        <div class="ml-tb-side">
-          <div class="ml-tb-eyebrow">You send</div>
-          ${sentList}
-          <div class="ml-tb-total">
-            <span>Total</span><span class="ml-tb-total-val">${totalSent.toLocaleString()}</span>
-          </div>
-        </div>
-        <div class="ml-tb-side is-recv">
-          <div class="ml-tb-eyebrow">You receive</div>
-          ${targetRow}
-          <div class="ml-tb-total">
-            <span>Total</span><span class="ml-tb-total-val">${targetPlayer.value.toLocaleString()}</span>
-          </div>
-        </div>
-        ${fitNote ? `<div class="ml-tb-fitnote" style="--balance-color:${balanceColor}">${fitNote}</div>` : ''}
-      </div>
+      ${mltbFinderCard(t)}
 
       <div class="ml-tb-cta-row">
         <button type="button" class="ml-tb-cta is-skip" onclick="mltbReject()"
@@ -5046,6 +4985,50 @@ function mltbRender() {
       </div>
     </div>
   `;
+}
+
+// Render a Trade-Builder suggestion using the FINDER's card design (mlTfCardHtml)
+// so the modal and the sidebar Trade Finder look identical.
+function mltbFinderCard(t){
+  const tp = MLTB.targetPlayer || {};
+  const tv = tp.value || 0;
+  const totalSent = t.totalSent || (t.sending||[]).reduce((s,a)=> s + (a.value||0), 0);
+  const edge = tv > 0 ? (1 - totalSent / tv) : 0;
+  let need = null;
+  try {
+    const c = mlTfLeagueCtx(MLTB.leagueId);
+    if (c){
+      mlTfEnsurePosRanks(c);
+      const ownerT = c.teamById[MLTB.ownerRosterId];
+      const myNeed = mlTfNeedSet(c.myTeam, c.nTeams);
+      const ownerNeed = mlTfNeedSet(ownerT, c.nTeams);
+      const tPos = mlTfPosOf(tp.name);
+      need = {
+        fillsMyNeedPos: (tPos && myNeed[tPos]) ? tPos : null,
+        myRankAtTarget: (c.myTeam && c.myTeam.posRanks) ? c.myTeam.posRanks[tPos] : null,
+        ownerHelpPos: (t.sending||[]).map(a=>a.pos).find(p => p && ownerNeed[p]) || null,
+        myThinSentPos: (t.sending||[]).map(a=>a.pos).find(p => p && myNeed[p]) || null,
+        nT: c.nTeams
+      };
+    }
+  } catch (e) {}
+  let fmtLabel = '';
+  try {
+    const fmtKey = mlValueKey(MLTB.leagueId);
+    const lg = Object.values(ML.leagues||{}).flat().find(l => l.league_id === MLTB.leagueId);
+    const tep = !!(lg && lg.scoring_settings && lg.scoring_settings.bonus_rec_te > 0);
+    fmtLabel = (fmtKey === 'valueSf' ? 'SF' : '1QB') + (tep ? ' · TEP' : '');
+  } catch (e) {}
+  return mlTfCardHtml({
+    dir: 'for',
+    ctx: { leagueId: MLTB.leagueId, fmtLabel },
+    owner: { ownerUser: MLTB.ownerName || 'the owner' },
+    target: tp.name,
+    anchorVal: tv,
+    sugg: { sending: t.sending, edge },
+    mode: 'fit',
+    need
+  });
 }
 
 // Build the "open the calculator from scratch" CTA block (used when no/exhausted suggestions)
