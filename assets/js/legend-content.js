@@ -427,10 +427,10 @@ window.LegendContent = {
             what: 'Universal one-way handoff. Writes a JSON payload to localStorage key "fpts-handoff" tagged with the current timestamp, then opens destUrl in a new tab. Every "Open in Calculator / ADP / My Leagues" button on this page is a thin wrapper around this function.',
             source: 'index.html ~L757-763 (also duplicated on each page that emits handoffs)',
             values: '—',
-            inputs: 'payload: { source: string, primaryPlayer?: string, players?: string[], trade?: {sideA, sideB} }. destUrl: page-relative URL like "trade-calculator.html" or "my-leagues.html#auto-import".',
+            inputs: 'payload: { source: string, primaryPlayer?: string, players?: string[], trade?: {sideA, sideB} }. destUrl: page-relative URL like "my-leagues.html?tab=finder" or "index.html".',
             formula: 'localStorage.setItem("fpts-handoff", JSON.stringify({ ts: Date.now(), ...payload })); window.open(destUrl, "_blank", "noopener,noreferrer")',
             output: 'A localStorage key the destination page consumes within 60 seconds, OR garbage that expires silently.',
-            example: 'On panel button click: _fptsWriteHandoff({ source: "index", primaryPlayer: "Justin Jefferson" }, "trade-calculator.html"). Calculator opens, reads the handoff, auto-fills Jefferson into Side A.',
+            example: 'On panel button click: _fptsWriteHandoff({ source: "index", primaryPlayer: "Justin Jefferson" }, "my-leagues.html?tab=finder"). My Leagues opens the Trade Finder tab and pre-adds Jefferson as a Trade-FOR target.',
             codeRef: 'index.html:757 (_fptsWriteHandoff)',
             notes: 'No transactional safety — if user closes the destination tab before page load completes, the handoff is still consumed (and lost). This is acceptable because the source data lives in the player panel and can be re-opened.'
           },
