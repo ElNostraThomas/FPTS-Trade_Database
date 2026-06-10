@@ -667,6 +667,9 @@ function mlCalcRemove(sideId, idx) {
   global.mltbOpenCalculatorBlank = mltbOpenCalculatorBlank;
   // The builder state object is read cross-page (e.g. _fptsXpageMlTsToDb hand-off).
   global.MLTB = MLTB;
+  // Roster-ownership resolver — also used by My Leagues' player-panel status block
+  // (_mlBuildStatusBlock), so it must be reachable from the host page too.
+  global.mlGetPlayerStatus = mlGetPlayerStatus;
 
   // ── public API ──
   global.TradeCalc = {
