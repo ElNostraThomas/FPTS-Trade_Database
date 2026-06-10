@@ -5908,6 +5908,11 @@ async function fetchAllLeaguesData() {
     if (_tfParam === 'finder' && mlTfIsAdmin()) mlExposureSetTab('finder');
     else if (window.ML_EXPOSURE_TAB === 'finder') mlEnsureFinder();
   } catch (e) {}
+  // ?league=<id> deep-link — the finder's "Go to league" opens this in a new tab.
+  try {
+    const _lgParam = new URLSearchParams(location.search).get('league');
+    if (_lgParam) setTimeout(() => { try { _mlExpandLeagueRow(_lgParam); } catch (e) {} }, 250);
+  } catch (e) {}
 
   // Update user-bar stats — use post-filter league count
   const stats = document.getElementById('ml-user-bar-stats');
@@ -8649,7 +8654,7 @@ function mlTfSpread(list, n){
 
 function mlTfOffersWrap(ctx, count, cardsHtml, opts){
   opts = opts || {};
-  const goLeague = `<button class="ml-tf-go" onclick="mlTfGoToLeague('${ctx.leagueId}')">Go to league</button>`;
+  const goLeague = `<button class="ml-tf-go" onclick="mlTfGoToLeague('${ctx.leagueId}')">Go to league ↗</button>`;
   let send;
   if (opts.dir === 'for' && opts.targetSid){
     // Open the existing My Leagues Trade Builder (editable + "Go To Sleeper").
@@ -8735,10 +8740,17 @@ function mlTfCardHtml(o){
 }
 
 function mlTfGoToLeague(leagueId){
+  // Open the league in a NEW tab (keeps the finder open in this one); the
+  // ?league deep-link expands + scrolls to that league on load.
+  try { window.open('my-leagues.html?league=' + encodeURIComponent(leagueId), '_blank', 'noopener'); }
+  catch (e) { _mlExpandLeagueRow(leagueId); }
+}
+// Expand + scroll to a league row in THIS page (used by the ?league deep-link).
+function _mlExpandLeagueRow(leagueId){
   const row = document.getElementById('lr-'+leagueId);
   if (!row) return;
   if (!row.classList.contains('expanded') && typeof toggleLeagueExpand === 'function') toggleLeagueExpand(leagueId);
-  try { row.scrollIntoView({ behavior:'smooth', block:'start' }); } catch(e){}
+  setTimeout(() => { try { row.scrollIntoView({ behavior:'smooth', block:'start' }); } catch (e) {} }, 150);
 }
 
 // ── admin gate (Trade Finder is hidden for everyone but the admin for now) ──
