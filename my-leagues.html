@@ -3348,6 +3348,7 @@
           <div class="ml-section-toggle ml-exposure-tabs" id="ml-exposure-tabs">
             <button class="ml-section-toggle-btn active" data-tab="exposure" onclick="mlExposureSetTab('exposure')">Exposure</button>
             <button class="ml-section-toggle-btn" data-tab="trades" onclick="mlExposureSetTab('trades')">My Trades</button>
+            <button class="ml-section-toggle-btn" data-tab="finder" onclick="mlExposureSetTab('finder')">Trade Finder</button>
           </div>
 
           <!-- PANEL 1: player exposure -->
@@ -3382,6 +3383,89 @@
             <div class="ml-mytrades-year-tabs" id="ml-mytrades-year-tabs"></div>
             <div class="ml-mytrades-content" id="ml-mytrades-content"></div>
           </div><!-- /ml-mytrades-panel -->
+
+          <!-- PANEL 3: cross-league Trade Finder (reuses ML_ALL_LEAGUE_DATA) -->
+          <style>
+            #ml-finder-panel { padding: 4px 1px 14px; }
+            .ml-tf-dirs { display:flex; gap:6px; margin-bottom:10px; }
+            .ml-tf-dir { flex:1; font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:11px; text-transform:uppercase; letter-spacing:.05em; padding:7px 8px; border:1px solid var(--border); background:transparent; color:var(--white); cursor:pointer; border-radius:4px; }
+            .ml-tf-dir.active { background:var(--red); border-color:var(--red); color:#111111; }
+            .ml-tf-label { font-family:'Kanit',sans-serif; font-weight:700; font-size:10px; text-transform:uppercase; letter-spacing:.08em; color:var(--white); opacity:.7; margin:8px 0 5px; }
+            .ml-tf-hint { font-weight:500; text-transform:none; opacity:.75; letter-spacing:0; }
+            .ml-tf-field { position:relative; }
+            .ml-tf-input { width:100%; box-sizing:border-box; background:rgba(255,255,255,.04); border:1px solid var(--border); color:var(--white); font-family:inherit; font-size:13px; padding:9px 11px; border-radius:5px; outline:none; }
+            .ml-tf-input:focus { border-color:var(--red); }
+            .ml-tf-results { position:absolute; z-index:40; left:0; right:0; top:calc(100% + 3px); background:var(--surface2); border:1px solid var(--border); border-radius:6px; max-height:300px; overflow-y:auto; box-shadow:0 8px 24px rgba(0,0,0,.5); }
+            .ml-tf-opt { display:flex; align-items:center; gap:8px; padding:8px 11px; cursor:pointer; border-bottom:1px solid var(--border); }
+            .ml-tf-opt:last-child { border-bottom:none; }
+            .ml-tf-opt:hover { background:rgba(255,255,255,.07); }
+            .ml-tf-opt-n { flex:1; font-weight:700; font-size:13px; color:var(--white); }
+            .ml-tf-opt-r { font-size:11px; font-style:italic; opacity:.6; }
+            .ml-tf-chips { display:flex; flex-wrap:wrap; gap:5px; margin:6px 0 2px; }
+            .ml-tf-chip { display:inline-flex; align-items:center; gap:5px; background:rgba(255,255,255,.05); border:1px solid var(--border); border-radius:20px; padding:3px 6px 3px 4px; font-size:12px; font-weight:700; color:var(--white); }
+            .ml-tf-chip.tgt { border-color:var(--green); }
+            .ml-tf-chip-x { background:none; border:none; color:var(--white); opacity:.6; cursor:pointer; font-size:14px; line-height:1; padding:0 2px; }
+            .ml-tf-chip-x:hover { opacity:1; color:var(--red); }
+            .ml-tf-thumb { width:22px; height:22px; border-radius:50%; overflow:hidden; background:rgba(255,255,255,.06); display:inline-flex; align-items:center; justify-content:center; flex:none; font-size:12px; }
+            .ml-tf-thumb img { width:100%; height:100%; object-fit:cover; }
+            .ml-tf-out { margin-top:12px; }
+            .ml-tf-empty { font-size:12.5px; opacity:.6; line-height:1.5; padding:10px 2px; }
+            .ml-tf-mgr { border:1px solid var(--border); border-radius:7px; margin-bottom:10px; overflow:hidden; }
+            .ml-tf-mgr-head { padding:8px 11px; background:rgba(255,255,255,.04); border-bottom:1px solid var(--border); }
+            .ml-tf-mgr-name { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:14px; color:var(--red); }
+            .ml-tf-mgr-sub { font-size:11px; opacity:.6; margin-left:8px; }
+            .ml-tf-player { padding:6px 9px 8px; border-bottom:1px solid var(--border); }
+            .ml-tf-player:last-child { border-bottom:none; }
+            .ml-tf-player-head { display:flex; align-items:center; gap:7px; padding:3px 0; }
+            .ml-tf-player-name { font-weight:700; font-size:13px; color:var(--white); }
+            .ml-tf-player-rank { font-size:10px; font-style:italic; opacity:.6; }
+            .ml-tf-player-val { margin-left:auto; font-family:'Kanit',sans-serif; font-weight:700; font-style:italic; font-size:12px; color:var(--white); }
+            .ml-tf-lg { margin:3px 0 0; }
+            .ml-tf-lg-btn { display:flex; align-items:center; gap:7px; width:100%; text-align:left; background:rgba(255,255,255,.03); border:1px solid var(--border); border-radius:5px; padding:6px 9px; cursor:pointer; color:var(--white); }
+            .ml-tf-lg-btn:hover { border-color:var(--red); }
+            .ml-tf-lg-go { font-size:10px; opacity:.7; width:10px; flex:none; }
+            .ml-tf-lg-name { font-weight:600; font-size:12.5px; }
+            .ml-tf-lg-fmt { margin-left:auto; font-size:10px; font-style:italic; opacity:.55; }
+            .ml-tf-prop { display:none; padding:8px 2px 2px; }
+            .ml-tf-card { border:1px solid var(--border); border-radius:6px; padding:9px; background:rgba(255,255,255,.02); }
+            .ml-tf-card.win { border-color:var(--green); }
+            .ml-tf-card-top { display:flex; align-items:center; gap:6px; margin-bottom:7px; }
+            .ml-tf-tag { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:9px; letter-spacing:.05em; padding:2px 6px; border-radius:3px; background:var(--border); color:var(--white); }
+            .ml-tf-edge { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:11px; padding:2px 7px; border-radius:3px; border:1px solid var(--border); color:var(--white); }
+            .ml-tf-edge.win { background:var(--green); border-color:var(--green); color:#111111; }
+            .ml-tf-go { margin-left:auto; font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:10px; text-transform:uppercase; letter-spacing:.04em; background:transparent; border:1px solid var(--border); color:var(--white); padding:3px 8px; border-radius:4px; cursor:pointer; }
+            .ml-tf-go:hover { border-color:var(--red); color:var(--red); }
+            .ml-tf-flow { display:flex; align-items:center; gap:8px; }
+            .ml-tf-side { flex:1; min-width:0; }
+            .ml-tf-side-lab { font-size:9px; text-transform:uppercase; letter-spacing:.08em; opacity:.5; margin-bottom:3px; }
+            .ml-tf-arrow { opacity:.5; font-size:14px; flex:none; }
+            .ml-tf-asset { display:flex; align-items:center; gap:6px; padding:2px 0; }
+            .ml-tf-asset-n { flex:1; min-width:0; font-size:12px; font-weight:600; color:var(--white); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+            .ml-tf-asset-n.hot { color:var(--red); }
+            .ml-tf-asset-v { font-family:'Kanit',sans-serif; font-weight:700; font-style:italic; font-size:11px; opacity:.85; flex:none; }
+            .ml-tf-note { font-size:10.5px; opacity:.55; margin-top:7px; font-style:italic; }
+          </style>
+          <div class="ml-exposure-panel" id="ml-finder-panel" style="display:none">
+            <div class="ml-tf-dirs" id="ml-tf-dirs">
+              <button class="ml-tf-dir active" data-dir="for" onclick="mlTfSetDir('for')">Trade FOR</button>
+              <button class="ml-tf-dir" data-dir="away" onclick="mlTfSetDir('away')">Trade AWAY</button>
+            </div>
+            <div class="ml-tf-label" id="ml-tf-target-label">Players you want</div>
+            <div class="ml-tf-field">
+              <input id="ml-tf-target-input" class="ml-tf-input" placeholder="Add a player you want…" autocomplete="off"
+                oninput="mlTfTargetSearch(this.value)" onfocus="mlTfTargetSearch(this.value)" onblur="mlTfHideSoon('ml-tf-target-results')">
+              <div id="ml-tf-target-results" class="ml-tf-results" style="display:none"></div>
+            </div>
+            <div id="ml-tf-target-chips" class="ml-tf-chips"></div>
+            <div class="ml-tf-label">Managers to target <span class="ml-tf-hint">(optional — click to browse)</span></div>
+            <div class="ml-tf-field">
+              <input id="ml-tf-mgr-input" class="ml-tf-input" placeholder="Click to browse your managers…" autocomplete="off"
+                oninput="mlTfMgrSearch(this.value)" onfocus="mlTfMgrSearch(this.value)" onblur="mlTfHideSoon('ml-tf-mgr-results')">
+              <div id="ml-tf-mgr-results" class="ml-tf-results" style="display:none"></div>
+            </div>
+            <div id="ml-tf-mgr-chips" class="ml-tf-chips"></div>
+            <div id="ml-tf-results" class="ml-tf-out"></div>
+          </div><!-- /ml-finder-panel -->
 
         </div><!-- /ml-exposure-body -->
       </aside>
@@ -5796,6 +5880,14 @@ async function fetchAllLeaguesData() {
   renderExposureList();
   // If the user is currently viewing the My Trades tab, rebuild it for the new league set
   if (window.ML_EXPOSURE_TAB === 'trades' && typeof mlEnsureMyTrades === 'function') mlEnsureMyTrades();
+  // Trade Finder: drop stale per-league ctx now that fresh data is in; honor the
+  // ?tab=finder deep-link (the standalone page redirects here), else refresh if active.
+  mlTfCtxCache = {};
+  try {
+    const _tfParam = new URLSearchParams(location.search).get('tab');
+    if (_tfParam === 'finder') mlExposureSetTab('finder');
+    else if (window.ML_EXPOSURE_TAB === 'finder') mlEnsureFinder();
+  } catch (e) {}
 
   // Update user-bar stats — use post-filter league count
   const stats = document.getElementById('ml-user-bar-stats');
@@ -6862,6 +6954,7 @@ function mlSignOut() {
   window.ML_EXPOSURE_FILTER = 'ALL';
   window.ML_EXPOSURE_TAB = 'exposure';
   window.ML_MY_TRADES_LOADING = false;
+  mlTfState = { targets:[], managers:[], dir:'for' }; mlTfCtxCache = {}; mlTfRegistry = {};
 
   // Reset UI
   document.getElementById('ml-app').classList.remove('open');
@@ -8115,18 +8208,382 @@ function mlExposureSetTab(tab) {
     b.classList.toggle('active', b.dataset.tab === tab));
   const expPanel = document.getElementById('ml-exposure-panel');
   const trPanel  = document.getElementById('ml-mytrades-panel');
+  const fnPanel  = document.getElementById('ml-finder-panel');
   const titleEl  = document.querySelector('.ml-exposure-title');
+  if (expPanel) expPanel.style.display = (tab === 'exposure') ? '' : 'none';
+  if (trPanel)  trPanel.style.display  = (tab === 'trades')   ? '' : 'none';
+  if (fnPanel)  fnPanel.style.display  = (tab === 'finder')   ? '' : 'none';
   if (tab === 'trades') {
-    if (expPanel) expPanel.style.display = 'none';
-    if (trPanel)  trPanel.style.display = '';
-    if (titleEl)  titleEl.textContent = 'My Trades';
+    if (titleEl) titleEl.textContent = 'My Trades';
     mlEnsureMyTrades();
+  } else if (tab === 'finder') {
+    if (titleEl) titleEl.textContent = 'Trade Finder';
+    mlEnsureFinder();
   } else {
-    if (trPanel)  trPanel.style.display = 'none';
-    if (expPanel) expPanel.style.display = '';
-    if (titleEl)  titleEl.textContent = 'Player Exposure';
+    if (titleEl) titleEl.textContent = 'Player Exposure';
     renderExposureList(); // restores the count badge for the exposure view
   }
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// TRADE FINDER (mlTf*) — cross-league "who has the players I want + what to offer"
+// Ported from trade-calculator.html's _ws* finder, but reads the already-loaded
+// ML_ALL_LEAGUE_DATA + mlComputeLeagueValueData (no duplicate fetch / archetype
+// recompute). Results render as a manager → player(+rank) → leagues drill-down;
+// clicking a league lazily builds the win-biased proposal + jumps to that league.
+// ════════════════════════════════════════════════════════════════════════════
+const ML_TF_WIN_BIAS = 0.93;   // build offers ~7% in the user's favor (tunable)
+const ML_TF_WANTS = {
+  rebuilder:{young:1.0,vet:0.3}, emergency:{young:0.6,vet:0.4},
+  tweener:{young:0.5,vet:0.5}, contender:{young:0.3,vet:1.0}, dynasty:{young:0.7,vet:0.7}
+};
+let mlTfState = { targets:[], managers:[], dir:'for' };
+let mlTfCtxCache = {};
+let mlTfRegistry = {};
+
+function mlTfEsc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function mlTfThumb(name){
+  const sid = (typeof SLEEPER_IDS !== 'undefined') ? SLEEPER_IDS[name] : null;
+  return sid
+    ? `<span class="ml-tf-thumb"><img src="${CDN}/content/nfl/players/thumb/${sid}.jpg" onerror="this.style.display='none'"></span>`
+    : `<span class="ml-tf-thumb"></span>`;
+}
+
+// Per-league finder context (cached) — teams with archetype + ownerUser + the
+// roster's player ids, plus name→team and name→pid indexes for fast lookup.
+function mlTfLeagueCtx(leagueId){
+  if (mlTfCtxCache[leagueId]) return mlTfCtxCache[leagueId];
+  const d = (window.ML_ALL_LEAGUE_DATA || {})[leagueId];
+  if (!d) return null;
+  let cv = null;
+  try { cv = mlComputeLeagueValueData(leagueId); } catch (e) { return null; }
+  if (!cv) return null;
+  const league = ((ML.leagues && ML.leagues[ML.selectedSeason]) || []).find(l => l.league_id === leagueId) || {};
+  const fmtKey = mlValueKey(leagueId);
+  const tep = !!(league.scoring_settings && league.scoring_settings.bonus_rec_te > 0);
+  const fmtLabel = (fmtKey === 'valueSf' ? 'SF' : '1QB') + (tep ? ' · TEP' : '');
+  const userById = {}; (d.users || []).forEach(u => userById[u.user_id] = u);
+  const rosterById = {}; (d.rosters || []).forEach(r => rosterById[r.roster_id] = r);
+  const nameToTeam = {}, nameToPid = {}, teamById = {};
+  const teams = cv.teams.map(t => {
+    const r = rosterById[t.rosterId] || {};
+    const u = userById[r.owner_id];
+    const ownerUser = u ? (u.display_name || u.username) : (t.name || ('Team ' + t.rosterId));
+    const players = r.players || [];
+    players.forEach(pid => {
+      const p = d.players[pid]; if (!p) return;
+      const nm = p.full_name || ((p.first_name||'') + ' ' + (p.last_name||'')).trim();
+      if (!nm) return;
+      const norm = normalizePlayerName(nm);
+      nameToTeam[norm] = t.rosterId;
+      nameToPid[norm]  = pid;
+    });
+    const tt = Object.assign({}, t, { ownerUser, owner_id:r.owner_id, players });
+    teamById[t.rosterId] = tt;
+    return tt;
+  });
+  const myTeam = teams.find(t => t.isMe) || null;
+  const ctx = { leagueId, league, teams, teamById, myTeam, myRosterId:d.myRosterId, fmtKey, fmtLabel, nameToTeam, nameToPid, dPlayers:d.players };
+  mlTfCtxCache[leagueId] = ctx;
+  return ctx;
+}
+
+function mlTfFindOwner(ctx, targetName){
+  const rid = ctx.nameToTeam[normalizePlayerName(targetName)];
+  return (rid != null) ? ctx.teamById[rid] : null;
+}
+function mlTfPlayerVal(name, leagueId){ return mlFpValue(FP_VALUES[name], leagueId); }
+function mlTfTeamWants(ctx, team, playerName){
+  const pid = ctx.nameToPid[normalizePlayerName(playerName)];
+  const p = pid ? ctx.dPlayers[pid] : null;
+  const age = (p && p.age) ? p.age : 26;
+  const w = ML_TF_WANTS[team.archetype] || ML_TF_WANTS.tweener;
+  return (age <= 24 ? w.young : w.vet) >= 0.5;
+}
+function mlTfAllManagers(){
+  const counts = {};
+  Object.keys(window.ML_ALL_LEAGUE_DATA || {}).forEach(leagueId => {
+    const ctx = mlTfLeagueCtx(leagueId); if (!ctx) return;
+    ctx.teams.forEach(t => { if (t.isMe) return; counts[t.ownerUser] = (counts[t.ownerUser]||0) + 1; });
+  });
+  return Object.keys(counts).map(name => ({ name, count:counts[name] }))
+    .sort((a,b)=> b.count - a.count || a.name.localeCompare(b.name));
+}
+
+// ── pickers ──
+function mlTfTargetSearch(q){
+  const box = document.getElementById('ml-tf-target-results'); if (!box) return;
+  q = (q||'').trim().toLowerCase();
+  if (q.length < 2){ box.style.display='none'; box.innerHTML=''; return; }
+  const names = Object.keys(FP_VALUES)
+    .filter(n => n.toLowerCase().indexOf(q) >= 0 && mlTfState.targets.indexOf(n) < 0)
+    .sort((a,b)=> (FP_VALUES[b].value||0) - (FP_VALUES[a].value||0)).slice(0,8);
+  if (!names.length){ box.style.display='none'; box.innerHTML=''; return; }
+  box.innerHTML = names.map(n => {
+    const pr = FP_VALUES[n].posRank || '';
+    return `<div class="ml-tf-opt" data-n="${mlTfEsc(n)}" onmousedown="event.preventDefault()" onclick="mlTfAddTarget(this.dataset.n)">${mlTfThumb(n)}<span class="ml-tf-opt-n">${mlTfEsc(n)}</span><span class="ml-tf-opt-r">${mlTfEsc(pr)}</span></div>`;
+  }).join('');
+  box.style.display='';
+}
+function mlTfAddTarget(name){
+  if (!name || mlTfState.targets.indexOf(name) >= 0) return;
+  mlTfState.targets.push(name);
+  const inp = document.getElementById('ml-tf-target-input'); if (inp) inp.value='';
+  const box = document.getElementById('ml-tf-target-results'); if (box){ box.style.display='none'; box.innerHTML=''; }
+  mlTfRenderTargetChips(); mlTfRender();
+}
+function mlTfRemoveTarget(name){
+  mlTfState.targets = mlTfState.targets.filter(n => n !== name);
+  mlTfRenderTargetChips(); mlTfRender();
+}
+function mlTfRenderTargetChips(){
+  const el = document.getElementById('ml-tf-target-chips'); if (!el) return;
+  el.innerHTML = mlTfState.targets.map(n =>
+    `<span class="ml-tf-chip">${mlTfThumb(n)}<span>${mlTfEsc(n)}</span><button class="ml-tf-chip-x" data-n="${mlTfEsc(n)}" onclick="mlTfRemoveTarget(this.dataset.n)">×</button></span>`
+  ).join('');
+}
+function mlTfMgrSearch(q){
+  const box = document.getElementById('ml-tf-mgr-results'); if (!box) return;
+  q = (q||'').trim().toLowerCase();
+  const list = mlTfAllManagers()
+    .filter(m => (!q || m.name.toLowerCase().indexOf(q) >= 0) && mlTfState.managers.indexOf(m.name) < 0)
+    .slice(0,12);
+  if (!list.length){ box.style.display='none'; box.innerHTML=''; return; }
+  box.innerHTML = list.map(m =>
+    `<div class="ml-tf-opt" data-n="${mlTfEsc(m.name)}" onmousedown="event.preventDefault()" onclick="mlTfAddMgr(this.dataset.n)"><span class="ml-tf-opt-n">${mlTfEsc(m.name)}</span><span class="ml-tf-opt-r">${m.count} league${m.count>1?'s':''}</span></div>`
+  ).join('');
+  box.style.display='';
+}
+function mlTfAddMgr(name){
+  if (!name || mlTfState.managers.indexOf(name) >= 0) return;
+  mlTfState.managers.push(name);
+  const inp = document.getElementById('ml-tf-mgr-input'); if (inp) inp.value='';
+  const box = document.getElementById('ml-tf-mgr-results'); if (box){ box.style.display='none'; box.innerHTML=''; }
+  mlTfRenderMgrChips(); mlTfRender();
+}
+function mlTfRemoveMgr(name){
+  mlTfState.managers = mlTfState.managers.filter(n => n !== name);
+  mlTfRenderMgrChips(); mlTfRender();
+}
+function mlTfRenderMgrChips(){
+  const el = document.getElementById('ml-tf-mgr-chips'); if (!el) return;
+  el.innerHTML = mlTfState.managers.map(n =>
+    `<span class="ml-tf-chip tgt"><span>${mlTfEsc(n)}</span><button class="ml-tf-chip-x" data-n="${mlTfEsc(n)}" onclick="mlTfRemoveMgr(this.dataset.n)">×</button></span>`
+  ).join('');
+}
+function mlTfHideSoon(id){ setTimeout(()=>{ const b=document.getElementById(id); if(b){ b.style.display='none'; } }, 130); }
+function mlTfSetDir(d){
+  if (mlTfState.dir === d) return;
+  mlTfState.dir = d;
+  const wrap = document.getElementById('ml-tf-dirs');
+  if (wrap) wrap.querySelectorAll('.ml-tf-dir').forEach(b => b.classList.toggle('active', b.dataset.dir === d));
+  const lab = document.getElementById('ml-tf-target-label');
+  if (lab) lab.textContent = (d === 'away') ? "Players you'd move" : 'Players you want';
+  const inp = document.getElementById('ml-tf-target-input');
+  if (inp) inp.placeholder = (d === 'away') ? "Add a player you'd move…" : 'Add a player you want…';
+  mlTfRender();
+}
+
+// ── owner-lookup map (cheap, no proposal math) → sorted manager groups ──
+function mlTfBuildMap(){
+  const dir = mlTfState.dir;
+  const byMgr = {};
+  const ensure = (mgr) => byMgr[mgr] || (byMgr[mgr] = { ownerUser:mgr, leagues:{}, players:{} });
+  const leagueIds = Object.keys(window.ML_ALL_LEAGUE_DATA || {});
+  mlTfState.targets.forEach(target => {
+    leagueIds.forEach(leagueId => {
+      const ctx = mlTfLeagueCtx(leagueId); if (!ctx || !ctx.myTeam) return;
+      if (dir === 'for'){
+        const owner = mlTfFindOwner(ctx, target);
+        if (!owner || owner.isMe) return;
+        const e = ensure(owner.ownerUser); e.leagues[leagueId] = 1;
+        (e.players[target] = e.players[target] || []).push({ leagueId, ctx, team:owner, target });
+      } else {
+        const mine = mlTfFindOwner(ctx, target);
+        if (!mine || !mine.isMe) return;     // I must roster them here to move them
+        ctx.teams.forEach(t => {
+          if (t.isMe || !mlTfTeamWants(ctx, t, target)) return;
+          const e = ensure(t.ownerUser); e.leagues[leagueId] = 1;
+          (e.players[target] = e.players[target] || []).push({ leagueId, ctx, team:t, target });
+        });
+      }
+    });
+  });
+  let mgrs = Object.keys(byMgr).map(k => byMgr[k]);
+  if (mlTfState.managers.length) mgrs = mgrs.filter(m => mlTfState.managers.indexOf(m.ownerUser) >= 0);
+  mgrs.forEach(m => { m.leagueCount = Object.keys(m.leagues).length; m.playerNames = Object.keys(m.players); });
+  mgrs.sort((a,b)=> b.playerNames.length - a.playerNames.length || b.leagueCount - a.leagueCount || a.ownerUser.localeCompare(b.ownerUser));
+  return mgrs;
+}
+function mlTfSlug(s){ return String(s).replace(/[^a-zA-Z0-9]/g,'').slice(0,24); }
+
+function mlTfRender(){
+  const out = document.getElementById('ml-tf-results'); if (!out) return;
+  const dir = mlTfState.dir;
+  if (!mlTfState.targets.length){
+    out.innerHTML = `<div class="ml-tf-empty">${dir==='away'?"Add a player you'd move":'Add a player you want'} above — the finder scans every league you're in and ${dir==='away'?'lists managers who would want them.':'lists who rosters them + what to offer.'}</div>`;
+    return;
+  }
+  if (!window.ML_ALL_LEAGUE_DATA || !Object.keys(window.ML_ALL_LEAGUE_DATA).length){
+    out.innerHTML = `<div class="ml-tf-empty">Your leagues are still loading…</div>`;
+    return;
+  }
+  mlTfRegistry = {};
+  const mgrs = mlTfBuildMap();
+  if (!mgrs.length){
+    out.innerHTML = `<div class="ml-tf-empty">No ${dir==='away'?'manager wants':'manager rosters'} your ${mlTfState.targets.length>1?'players':'player'}${mlTfState.managers.length?' among the selected managers':''} right now.</div>`;
+    return;
+  }
+  out.innerHTML = mgrs.map(mlTfMgrGroupHtml).join('');
+}
+
+function mlTfMgrGroupHtml(m){
+  const dir = mlTfState.dir;
+  const sub = (dir==='away')
+    ? `wants ${m.playerNames.length} of your player${m.playerNames.length>1?'s':''} · ${m.leagueCount} league${m.leagueCount>1?'s':''}`
+    : `has ${m.playerNames.length} player${m.playerNames.length>1?'s':''} you want · ${m.leagueCount} league${m.leagueCount>1?'s':''}`;
+  const players = m.playerNames.map(pn => {
+    const fp = FP_VALUES[pn] || {};
+    const pr = fp.posRank || '';
+    const entries = m.players[pn];
+    const val = Math.round(mlTfPlayerVal(pn, entries[0].leagueId)).toLocaleString();
+    const leagues = entries.map(entry => {
+      const rid = 'mltf-' + mlTfSlug(m.ownerUser) + '-' + mlTfSlug(pn) + '-' + entry.leagueId;
+      mlTfRegistry[rid] = { leagueId:entry.leagueId, rosterId:entry.team.rosterId, target:pn, dir };
+      const lgName = entry.ctx.league.name || ('League ' + entry.leagueId);
+      return `<div class="ml-tf-lg">
+          <button class="ml-tf-lg-btn" onclick="mlTfShowProposal('${rid}')">
+            <span class="ml-tf-lg-go" id="${rid}-go">▸</span>
+            <span class="ml-tf-lg-name">${mlTfEsc(lgName)}</span>
+            <span class="ml-tf-lg-fmt">${mlTfEsc(entry.ctx.fmtLabel)}</span>
+          </button>
+          <div class="ml-tf-prop" id="${rid}"></div>
+        </div>`;
+    }).join('');
+    return `<div class="ml-tf-player">
+        <div class="ml-tf-player-head">${mlTfThumb(pn)}<span class="ml-tf-player-name">${mlTfEsc(pn)}</span>${pr?`<span class="ml-tf-player-rank">${mlTfEsc(pr)}</span>`:''}<span class="ml-tf-player-val">${val}</span></div>
+        ${leagues}
+      </div>`;
+  }).join('');
+  return `<div class="ml-tf-mgr">
+      <div class="ml-tf-mgr-head"><span class="ml-tf-mgr-name">${mlTfEsc(m.ownerUser)}</span><span class="ml-tf-mgr-sub">${sub}</span></div>
+      ${players}
+    </div>`;
+}
+
+function mlTfShowProposal(rid){
+  const el = document.getElementById(rid); if (!el) return;
+  const go = document.getElementById(rid+'-go');
+  if (el.dataset.open === '1'){ el.style.display='none'; el.dataset.open=''; if(go) go.textContent='▸'; return; }
+  if (el.dataset.loaded !== '1'){ el.innerHTML = mlTfProposalHtml(mlTfRegistry[rid]); el.dataset.loaded='1'; }
+  el.style.display=''; el.dataset.open='1'; if(go) go.textContent='▾';
+}
+
+function mlTfProposalHtml(reg){
+  if (!reg) return `<div class="ml-tf-note">Gone — re-run the search.</div>`;
+  const ctx = mlTfLeagueCtx(reg.leagueId); if (!ctx) return `<div class="ml-tf-note">League data unavailable.</div>`;
+  const owner = ctx.teamById[reg.rosterId];
+  if (!owner || !window.SLEEPER) return `<div class="ml-tf-note">Couldn't build a proposal here.</div>`;
+  try {
+    if (reg.dir === 'for'){
+      const targetVal = mlTfPlayerVal(reg.target, reg.leagueId);
+      if (!targetVal) return `<div class="ml-tf-note">No value on file for ${mlTfEsc(reg.target)}.</div>`;
+      const pool = mlBuildAssetPool(reg.leagueId, ctx.myRosterId);
+      if (!pool.length) return `<div class="ml-tf-note">You have no tradeable assets in this league.</div>`;
+      let suggs = mlGenerateTradeSuggestions(pool, targetVal*ML_TF_WIN_BIAS, owner.archetype, 3);
+      suggs.forEach(x => x.edge = 1 - (x.totalSent/targetVal));
+      let best = suggs.filter(x => x.edge >= -0.10).sort((a,b)=> b.edge - a.edge)[0];
+      let mode = 'fit';
+      if (!best){
+        suggs = mlGenerateTradeSuggestions(pool, targetVal*ML_TF_WIN_BIAS, 'tweener', 5);
+        suggs.forEach(x => x.edge = 1 - (x.totalSent/targetVal));
+        best = suggs.sort((a,b)=> Math.abs(a.edge) - Math.abs(b.edge))[0];
+        mode = 'value';
+      }
+      if (!best) return `<div class="ml-tf-note">No realistic value match from your roster here.</div>`;
+      return mlTfCardHtml({ dir:'for', ctx, owner, target:reg.target, anchorVal:targetVal, sugg:best, mode });
+    } else {
+      const playerVal = mlTfPlayerVal(reg.target, reg.leagueId);
+      if (!playerVal) return `<div class="ml-tf-note">No value on file for ${mlTfEsc(reg.target)}.</div>`;
+      const theirPool = mlBuildAssetPool(reg.leagueId, owner.rosterId);
+      if (!theirPool.length) return `<div class="ml-tf-note">${mlTfEsc(owner.ownerUser)} has no tradeable assets here.</div>`;
+      const myArch = (ctx.myTeam && ctx.myTeam.archetype) || 'tweener';
+      let suggs = mlGenerateTradeSuggestions(theirPool, playerVal/ML_TF_WIN_BIAS, myArch, 2);
+      suggs.forEach(x => x.edge = (x.totalSent/playerVal) - 1);
+      let best = suggs.filter(x => x.edge >= -0.02).sort((a,b)=> b.edge - a.edge)[0];
+      let mode = 'fit';
+      if (!best){
+        suggs = mlGenerateTradeSuggestions(theirPool, playerVal/ML_TF_WIN_BIAS, 'tweener', 5);
+        suggs.forEach(x => x.edge = (x.totalSent/playerVal) - 1);
+        best = suggs.sort((a,b)=> Math.abs(a.edge) - Math.abs(b.edge))[0];
+        mode = 'value';
+      }
+      if (!best) return `<div class="ml-tf-note">No fair return from ${mlTfEsc(owner.ownerUser)} here.</div>`;
+      return mlTfCardHtml({ dir:'away', ctx, owner, target:reg.target, anchorVal:playerVal, sugg:best, mode });
+    }
+  } catch(e){
+    return `<div class="ml-tf-note">Couldn't build a proposal — ${mlTfEsc((e&&e.message)||String(e))}</div>`;
+  }
+}
+
+function mlTfAssetRow(a){
+  const isPick = a.type === 'pick';
+  const sid = (!isPick && typeof SLEEPER_IDS !== 'undefined') ? SLEEPER_IDS[a.name] : null;
+  const thumb = isPick
+    ? `<span class="ml-tf-thumb pick">◆</span>`
+    : (sid ? `<span class="ml-tf-thumb"><img src="${CDN}/content/nfl/players/thumb/${sid}.jpg" onerror="this.style.display='none'"></span>` : `<span class="ml-tf-thumb"></span>`);
+  return `<div class="ml-tf-asset">${thumb}<span class="ml-tf-asset-n">${mlTfEsc(a.name)}</span><span class="ml-tf-asset-v">${Math.round(a.value||0).toLocaleString()}</span></div>`;
+}
+function mlTfAnchorAsset(name, val){
+  const sid = (typeof SLEEPER_IDS !== 'undefined') ? SLEEPER_IDS[name] : null;
+  return `<div class="ml-tf-asset"><span class="ml-tf-thumb">${sid?`<img src="${CDN}/content/nfl/players/thumb/${sid}.jpg" onerror="this.style.display='none'">`:''}</span><span class="ml-tf-asset-n hot">${mlTfEsc(name)}</span><span class="ml-tf-asset-v">${Math.round(val||0).toLocaleString()}</span></div>`;
+}
+
+function mlTfCardHtml(o){
+  const s = o.sugg, edge = s.edge, edgePct = Math.round(Math.abs(edge)*100);
+  const win = edge >= 0.02, fair = !win && edge > -0.02;
+  const isValue = o.mode === 'value';
+  const pkg = (s.sending||[]).map(mlTfAssetRow).join('');
+  const goBtn = `<button class="ml-tf-go" onclick="mlTfGoToLeague('${o.ctx.leagueId}')">Go to league ↗</button>`;
+  const valueTag = isValue ? `<span class="ml-tf-tag" title="No archetype-fit offer — closest value match">VALUE</span>` : '';
+  const note = `${isValue?'Closest value match (no archetype-fit offer) · ':''}${mlTfEsc(o.ctx.fmtLabel)}`;
+  if (o.dir === 'away'){
+    const edgeBadge = win ? `<span class="ml-tf-edge win">You win ${edgePct}%</span>` : (fair ? `<span class="ml-tf-edge">Fair</span>` : `<span class="ml-tf-edge">−${edgePct}% light</span>`);
+    return `<div class="ml-tf-card${win?' win':''}">
+        <div class="ml-tf-card-top">${valueTag}${edgeBadge}${goBtn}</div>
+        <div class="ml-tf-flow">
+          <div class="ml-tf-side"><div class="ml-tf-side-lab">You send</div>${mlTfAnchorAsset(o.target, o.anchorVal)}</div>
+          <div class="ml-tf-arrow">→</div>
+          <div class="ml-tf-side"><div class="ml-tf-side-lab">You get back</div>${pkg}</div>
+        </div>
+        <div class="ml-tf-note">${note}</div>
+      </div>`;
+  }
+  const edgeBadge = win ? `<span class="ml-tf-edge win">You win ${edgePct}%</span>` : (fair ? `<span class="ml-tf-edge">Fair</span>` : `<span class="ml-tf-edge">+${edgePct}% over</span>`);
+  return `<div class="ml-tf-card${win?' win':''}">
+      <div class="ml-tf-card-top">${valueTag}${edgeBadge}${goBtn}</div>
+      <div class="ml-tf-flow">
+        <div class="ml-tf-side"><div class="ml-tf-side-lab">You send</div>${pkg}</div>
+        <div class="ml-tf-arrow">→</div>
+        <div class="ml-tf-side"><div class="ml-tf-side-lab">You get</div>${mlTfAnchorAsset(o.target, o.anchorVal)}</div>
+      </div>
+      <div class="ml-tf-note">${note}</div>
+    </div>`;
+}
+
+function mlTfGoToLeague(leagueId){
+  const row = document.getElementById('lr-'+leagueId);
+  if (!row) return;
+  if (!row.classList.contains('expanded') && typeof toggleLeagueExpand === 'function') toggleLeagueExpand(leagueId);
+  try { row.scrollIntoView({ behavior:'smooth', block:'start' }); } catch(e){}
+}
+
+function mlEnsureFinder(){
+  const wrap = document.getElementById('ml-tf-dirs');
+  if (wrap) wrap.querySelectorAll('.ml-tf-dir').forEach(b => b.classList.toggle('active', b.dataset.dir === mlTfState.dir));
+  mlTfRenderTargetChips();
+  mlTfRenderMgrChips();
+  mlTfRender();
 }
 
 // Write the header count badge while the trades tab is active.
