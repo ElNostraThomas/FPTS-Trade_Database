@@ -5206,7 +5206,7 @@ async function fetchAllLeaguesData() {
   // ?league=<id> deep-link — the finder's "Go to league" opens this in a new tab.
   try {
     const _lgParam = new URLSearchParams(location.search).get('league');
-    if (_lgParam) setTimeout(() => { try { _mlExpandLeagueRow(_lgParam); } catch (e) {} }, 250);
+    if (_lgParam) setTimeout(() => { try { toggleLeagueExpand(_lgParam); } catch (e) {} }, 250);
   } catch (e) {}
 
   // Update user-bar stats — use post-filter league count
@@ -7458,7 +7458,7 @@ function mlExposureSetTab(tab) {
 // Initialize it with the My-Leagues data/feature hooks.
 TradeFinder.init({
   getLeague: function (id) { return ((ML.leagues && ML.leagues[ML.selectedSeason]) || []).find(function (l) { return l.league_id === id; }) || {}; },
-  goToLeague: function (id) { _mlExpandLeagueRow(id); },
+  goToLeague: function (id) { toggleLeagueExpand(id); },
   openBuilder: function (sid, id) { openTradeSuggestModal(sid, id); },
   openCalc: function (a, b, opts) { openCalcModal(a, b, opts); },
   setTab: function (t) { mlExposureSetTab(t); }
