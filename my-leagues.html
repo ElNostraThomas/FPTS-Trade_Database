@@ -3444,7 +3444,9 @@
             .ml-tf-guru-img { width:15px; height:15px; flex:none; display:block; }
             .ml-tf-offers-head { display:flex; align-items:center; gap:8px; margin-bottom:8px; }
             .ml-tf-offers-n { font-family:'Kanit',sans-serif; font-weight:700; font-style:italic; font-size:10px; text-transform:uppercase; letter-spacing:.05em; opacity:.6; }
-            .ml-tf-offers-head .ml-tf-go { margin-left:auto; }
+            .ml-tf-offers-actions { margin-left:auto; display:flex; gap:6px; flex:none; }
+            .ml-tf-go.primary { background:var(--red); border-color:var(--red); color:#111111; }
+            .ml-tf-go.primary:hover { opacity:.88; color:#111111; }
             .ml-tf-offers .ml-tf-card + .ml-tf-card { margin-top:8px; }
             .ml-tf-edge { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:11px; padding:2px 7px; border-radius:3px; border:1px solid var(--border); color:var(--white); }
             .ml-tf-edge.win { background:var(--green); border-color:var(--green); color:#111111; }
@@ -8578,7 +8580,7 @@ function mlTfProposalHtml(reg){
         };
         return mlTfCardHtml({ dir:'for', ctx, owner, target:reg.target, anchorVal:targetVal, sugg:o.sugg, mode:o.mode, need });
       }).join('');
-      return mlTfOffersWrap(ctx, offers.length, cards);
+      return mlTfOffersWrap(ctx, offers.length, cards, { dir:'for', leagueId:reg.leagueId, targetSid: ctx.nameToPid[normalizePlayerName(reg.target)] });
     } else {
       const playerVal = mlTfPlayerVal(reg.target, reg.leagueId);
       if (!playerVal) return `<div class="ml-tf-note">No value on file for ${mlTfEsc(reg.target)}.</div>`;
@@ -8591,7 +8593,7 @@ function mlTfProposalHtml(reg){
         const need = { getsMyNeedPos: (o.sugg.sending||[]).map(a=>a.pos).find(p => p && myNeed[p]) || null, nT };
         return mlTfCardHtml({ dir:'away', ctx, owner, target:reg.target, anchorVal:playerVal, sugg:o.sugg, mode:o.mode, need });
       }).join('');
-      return mlTfOffersWrap(ctx, offers.length, cards);
+      return mlTfOffersWrap(ctx, offers.length, cards, { dir:'away', leagueId:reg.leagueId });
     }
   } catch(e){
     return `<div class="ml-tf-note">Couldn't build a proposal — ${mlTfEsc((e&&e.message)||String(e))}</div>`;
@@ -8644,11 +8646,29 @@ function mlTfSpread(list, n){
   return picks;
 }
 
-function mlTfOffersWrap(ctx, count, cardsHtml){
+function mlTfOffersWrap(ctx, count, cardsHtml, opts){
+  opts = opts || {};
+  const goLeague = `<button class="ml-tf-go" onclick="mlTfGoToLeague('${ctx.leagueId}')">Go to league</button>`;
+  let send;
+  if (opts.dir === 'for' && opts.targetSid){
+    // Open the existing My Leagues Trade Builder (editable + "Go To Sleeper").
+    send = `<button class="ml-tf-go primary" onclick="mlTfEditOnSleeper('${opts.leagueId}','${opts.targetSid}')">Edit &amp; send ↗</button>`;
+  } else {
+    send = `<a class="ml-tf-go primary" href="${(typeof _mlBuildSleeperLeagueUrl==='function')?_mlBuildSleeperLeagueUrl(opts.leagueId||ctx.leagueId):'#'}" target="_blank" rel="noopener">Open on Sleeper ↗</a>`;
+  }
   return `<div class="ml-tf-offers">
-      <div class="ml-tf-offers-head"><span class="ml-tf-offers-n">${count} offer${count>1?'s':''} · best → fair</span><button class="ml-tf-go" onclick="mlTfGoToLeague('${ctx.leagueId}')">Go to league ↗</button></div>
+      <div class="ml-tf-offers-head"><span class="ml-tf-offers-n">${count} offer${count>1?'s':''} · best → fair</span><span class="ml-tf-offers-actions">${goLeague}${send}</span></div>
       ${cardsHtml}
     </div>`;
+}
+
+// Open the editable Trade Builder for this league's target (same modal the
+// My-Leagues trade suggestions use — edit the package, then "Go To Sleeper").
+function mlTfEditOnSleeper(leagueId, targetSid){
+  try {
+    if (typeof openTradeSuggestModal === 'function' && targetSid) { openTradeSuggestModal(targetSid, leagueId); return; }
+  } catch (e) {}
+  try { if (typeof _mlBuildSleeperLeagueUrl === 'function') window.open(_mlBuildSleeperLeagueUrl(leagueId), '_blank', 'noopener'); } catch (e) {}
 }
 
 function mlTfAssetRow(a){
