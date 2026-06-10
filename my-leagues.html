@@ -3348,7 +3348,7 @@
           <div class="ml-section-toggle ml-exposure-tabs" id="ml-exposure-tabs">
             <button class="ml-section-toggle-btn active" data-tab="exposure" onclick="mlExposureSetTab('exposure')">Exposure</button>
             <button class="ml-section-toggle-btn" data-tab="trades" onclick="mlExposureSetTab('trades')">My Trades</button>
-            <button class="ml-section-toggle-btn" data-tab="finder" onclick="mlExposureSetTab('finder')">Trade Finder</button>
+            <button class="ml-section-toggle-btn" data-tab="finder" id="ml-tf-tab-btn" style="display:none" onclick="mlExposureSetTab('finder')">Trade Finder</button>
           </div>
 
           <!-- PANEL 1: player exposure -->
@@ -5893,9 +5893,10 @@ async function fetchAllLeaguesData() {
   // Trade Finder: drop stale per-league ctx now that fresh data is in; honor the
   // ?tab=finder deep-link (the standalone page redirects here), else refresh if active.
   mlTfCtxCache = {};
+  mlTfApplyAdminGate();   // reveal the Trade Finder tab only for the admin
   try {
     const _tfParam = new URLSearchParams(location.search).get('tab');
-    if (_tfParam === 'finder') mlExposureSetTab('finder');
+    if (_tfParam === 'finder' && mlTfIsAdmin()) mlExposureSetTab('finder');
     else if (window.ML_EXPOSURE_TAB === 'finder') mlEnsureFinder();
   } catch (e) {}
 
@@ -8212,6 +8213,7 @@ window.ML_MY_TRADES_LOADING = false;
 
 // Top-level toggle between the Exposure panel and the My Trades panel.
 function mlExposureSetTab(tab) {
+  if (tab === 'finder' && !mlTfIsAdmin()) tab = 'exposure';   // Trade Finder is admin-only for now
   window.ML_EXPOSURE_TAB = tab;
   const tabsEl = document.getElementById('ml-exposure-tabs');
   if (tabsEl) tabsEl.querySelectorAll('.ml-section-toggle-btn').forEach(b =>
@@ -8681,6 +8683,27 @@ function mlTfGoToLeague(leagueId){
   if (!row) return;
   if (!row.classList.contains('expanded') && typeof toggleLeagueExpand === 'function') toggleLeagueExpand(leagueId);
   try { row.scrollIntoView({ behavior:'smooth', block:'start' }); } catch(e){}
+}
+
+// ── admin gate (Trade Finder is hidden for everyone but the admin for now) ──
+// True when signed in as the admin account, OR when ?admin=1 was used on this
+// browser (persisted). ?admin=0 clears it.
+function mlTfIsAdmin(){
+  try {
+    if (localStorage.getItem('fpts-admin') === '1') return true;
+    const u = (localStorage.getItem('fpts-sleeper-username') || '').toLowerCase().trim();
+    const d = (localStorage.getItem('fpts-sleeper-display-name') || '').toLowerCase().trim();
+    return u === 'elnostrathomas' || d === 'elnostrathomas';
+  } catch (e) { return false; }
+}
+function mlTfApplyAdminGate(){
+  try {
+    const p = new URLSearchParams(location.search).get('admin');
+    if (p === '1') localStorage.setItem('fpts-admin', '1');
+    else if (p === '0') localStorage.removeItem('fpts-admin');
+  } catch (e) {}
+  const btn = document.getElementById('ml-tf-tab-btn');
+  if (btn) btn.style.display = mlTfIsAdmin() ? '' : 'none';
 }
 
 function mlEnsureFinder(){
