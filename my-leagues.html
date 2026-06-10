@@ -3427,6 +3427,10 @@
             .ml-tf-mgr-sub { font-size:10.5px; opacity:.55; }
             .ml-tf-arch { display:inline-flex; align-items:center; font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:8.5px; letter-spacing:.04em; text-transform:uppercase; padding:1px 5px; border-radius:3px; background:var(--archetype-bg, var(--border)); color:var(--archetype-fg, var(--white)); flex:none; }
             .ml-tf-you { font-size:8.5px; font-weight:800; font-style:italic; text-transform:uppercase; letter-spacing:.06em; opacity:.5; }
+            .ml-tf-arch-filter { display:flex; flex-wrap:wrap; gap:5px; margin:1px 0 2px; }
+            .ml-tf-archbtn { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:9px; text-transform:uppercase; letter-spacing:.04em; padding:3px 9px; border:1px solid var(--border); background:transparent; color:var(--white); border-radius:4px; cursor:pointer; opacity:.6; }
+            .ml-tf-archbtn:hover { opacity:1; }
+            .ml-tf-archbtn.active { opacity:1; }
             .ml-tf-mgr-body { padding:4px 8px 6px; }
             .ml-tf-player { padding:2px 0; }
             .ml-tf-player:not(:last-child) { border-bottom:1px solid var(--border); margin-bottom:3px; padding-bottom:5px; }
@@ -3493,6 +3497,14 @@
               <div id="ml-tf-mgr-results" class="ml-tf-results" style="display:none"></div>
             </div>
             <div id="ml-tf-mgr-chips" class="ml-tf-chips"></div>
+            <div class="ml-tf-label">Team archetypes <span class="ml-tf-hint">(optional — only these team types)</span></div>
+            <div class="ml-tf-arch-filter" id="ml-tf-arch-filter">
+              <button class="ml-tf-archbtn" data-arch="dynasty"   onclick="mlTfToggleArch('dynasty')">Dynasty</button>
+              <button class="ml-tf-archbtn" data-arch="contender"  onclick="mlTfToggleArch('contender')">Contender</button>
+              <button class="ml-tf-archbtn" data-arch="tweener"    onclick="mlTfToggleArch('tweener')">Tweener</button>
+              <button class="ml-tf-archbtn" data-arch="rebuilder"  onclick="mlTfToggleArch('rebuilder')">Rebuilder</button>
+              <button class="ml-tf-archbtn" data-arch="emergency"  onclick="mlTfToggleArch('emergency')">Emergency</button>
+            </div>
             <div id="ml-tf-results" class="ml-tf-out"></div>
           </div><!-- /ml-finder-panel -->
 
@@ -6972,7 +6984,7 @@ function mlSignOut() {
   window.ML_EXPOSURE_FILTER = 'ALL';
   window.ML_EXPOSURE_TAB = 'exposure';
   window.ML_MY_TRADES_LOADING = false;
-  mlTfState = { targets:[], managers:[], dir:'for' }; mlTfCtxCache = {}; mlTfRegistry = {}; mlTfEditRegistry = {};
+  mlTfState = { targets:[], managers:[], archetypes:[], dir:'for' }; mlTfCtxCache = {}; mlTfRegistry = {}; mlTfEditRegistry = {};
 
   // Reset UI
   document.getElementById('ml-app').classList.remove('open');
@@ -8256,7 +8268,7 @@ const ML_TF_WANTS = {
   rebuilder:{young:1.0,vet:0.3}, emergency:{young:0.6,vet:0.4},
   tweener:{young:0.5,vet:0.5}, contender:{young:0.3,vet:1.0}, dynasty:{young:0.7,vet:0.7}
 };
-let mlTfState = { targets:[], managers:[], dir:'for' };
+let mlTfState = { targets:[], managers:[], archetypes:[], dir:'for' };
 let mlTfCtxCache = {};
 let mlTfRegistry = {};
 let mlTfEditRegistry = {};
@@ -8524,6 +8536,27 @@ function mlTfArchChip(archetype){
   return `<span class="ml-tf-arch" style="--archetype-bg:${bg};--archetype-fg:${fg}">${mlTfEsc(txt)}</span>`;
 }
 
+// Archetype filter — narrow results to managers of these team types (e.g. only
+// shop a player to emergency teams, or only buy from rebuilders).
+function mlTfToggleArch(a){
+  const i = mlTfState.archetypes.indexOf(a);
+  if (i >= 0) mlTfState.archetypes.splice(i, 1); else mlTfState.archetypes.push(a);
+  mlTfSyncArchBtns();
+  mlTfRender();
+}
+function mlTfSyncArchBtns(){
+  const wrap = document.getElementById('ml-tf-arch-filter'); if (!wrap) return;
+  wrap.querySelectorAll('.ml-tf-archbtn').forEach(b => {
+    const on = mlTfState.archetypes.indexOf(b.dataset.arch) >= 0;
+    b.classList.toggle('active', on);
+    if (on && typeof mlArchetypeBg === 'function'){
+      b.style.background = mlArchetypeBg(b.dataset.arch);
+      b.style.color = mlArchetypeFg(b.dataset.arch);
+      b.style.borderColor = mlArchetypeBg(b.dataset.arch);
+    } else { b.style.background = ''; b.style.color = ''; b.style.borderColor = ''; }
+  });
+}
+
 // FOR render: for each league where another manager rosters the player you want,
 // list that owner, each expandable to up to 3 trade offers from your roster.
 function mlTfRenderFor(out){
@@ -8535,6 +8568,7 @@ function mlTfRenderFor(out){
       const owner = mlTfFindOwner(ctx, target);
       if (!owner || owner.isMe) return;     // skip FAs + leagues where you already own him
       if (mlTfState.managers.length && mlTfState.managers.indexOf(owner.ownerUser) < 0) return;
+      if (mlTfState.archetypes.length && mlTfState.archetypes.indexOf(owner.archetype) < 0) return;
       const g = byLeague[leagueId] || (byLeague[leagueId] = { leagueId, leagueName: ctx.league.name || ('League '+leagueId), fmtLabel: ctx.fmtLabel, myArchetype: (ctx.myTeam && ctx.myTeam.archetype) || null, holders: [] });
       g.holders.push({ ownerUser: owner.ownerUser, rosterId: owner.rosterId, target, archetype: owner.archetype });
     });
@@ -8594,6 +8628,7 @@ function mlTfRenderAway(out){
       if (!mlTfIOwnHere(leagueId, mySid)) return;     // ONLY leagues you roster him in
       let buyers = ctx.teams.filter(t => !t.isMe && mlTfTeamWants(ctx, t, target));
       if (mlTfState.managers.length) buyers = buyers.filter(t => mlTfState.managers.indexOf(t.ownerUser) >= 0);
+      if (mlTfState.archetypes.length) buyers = buyers.filter(t => mlTfState.archetypes.indexOf(t.archetype) >= 0);
       if (!buyers.length) return;
       groups.push({
         leagueId, target,
@@ -8955,6 +8990,7 @@ function mlEnsureFinder(){
   if (wrap) wrap.querySelectorAll('.ml-tf-dir').forEach(b => b.classList.toggle('active', b.dataset.dir === mlTfState.dir));
   mlTfRenderTargetChips();
   mlTfRenderMgrChips();
+  mlTfSyncArchBtns();
   mlTfRender();
 }
 
