@@ -3006,6 +3006,8 @@
      it depends on) and BEFORE the inline script block below (whose ml*
      wrappers delegate to window.SLEEPER.*). -->
 <script src="assets/js/sleeper-helpers.js?v=1780800000"></script>
+<!-- Shared league value/archetype compute (window.LC) — depends on sleeper-helpers + FP_VALUES. -->
+<script src="assets/js/league-compute.js?v=1797000000"></script>
 <!-- Team logo helpers — load BEFORE player-panel.js so modal-hero badge works. -->
 <script src="assets/js/team-helpers.js?v=1778680002"></script>
 <script src="assets/js/player-panel.js?v=1797000000"></script>
@@ -4102,9 +4104,9 @@ function posColor(pos) {
 // Archetype + label both moved to assets/js/sleeper-helpers.js. These thin
 // wrappers keep my-leagues' existing callers working without changing names.
 function mlGetArchetype(avgAge, totalValue, pickValue, projValue, leagueAvg) {
-  return SLEEPER.archetypeFromTotals(avgAge, totalValue, pickValue, projValue, leagueAvg);
+  return LC.getArchetype(avgAge, totalValue, pickValue, projValue, leagueAvg);
 }
-function mlArchetypeLabel(key) { return SLEEPER.archetypeLabel(key); }
+function mlArchetypeLabel(key) { return LC.archetypeLabel(key); }
 
 // Render an archetype chip
 function mlArchetypeChip(key) {
@@ -4339,9 +4341,7 @@ function mlValueKey(leagueId) {
   if (!leagueId || typeof ML === 'undefined' || !ML.leagues) return 'value';
   for (const s in ML.leagues) {
     const lg = (ML.leagues[s] || []).find(l => l.league_id === leagueId);
-    if (lg && Array.isArray(lg.roster_positions)) {
-      return lg.roster_positions.indexOf('SUPER_FLEX') >= 0 ? 'valueSf' : 'value1qb';
-    }
+    if (lg && Array.isArray(lg.roster_positions)) return LC.valueKey(lg);
   }
   return 'value';
 }
@@ -4704,26 +4704,8 @@ function mlToggleExposure() {
 }
 
 // Helper: archetype color tokens (read from existing mlArchetypeChip CSS)
-function mlArchetypeBg(key) {
-  const map = {
-    dynasty: 'rgba(76,175,110,.15)',
-    contender: 'rgba(91,155,213,.15)',
-    tweener: 'rgba(155,145,212,.15)',
-    rebuilder: 'rgba(224,154,48,.15)',
-    emergency: 'rgba(237,129,12,.15)',
-  };
-  return map[key] || 'rgba(255,255,255,.08)';
-}
-function mlArchetypeFg(key) {
-  const map = {
-    dynasty: 'var(--green)',
-    contender: '#5b9bd5',
-    tweener: '#9b91d4',
-    rebuilder: '#e09a30',
-    emergency: 'var(--red)',
-  };
-  return map[key] || 'var(--white)';
-}
+function mlArchetypeBg(key) { return LC.archetypeBg(key); }
+function mlArchetypeFg(key) { return LC.archetypeFg(key); }
 
 // ────────────────────────────────────────────────────────────────────────────
 // TRADE SUGGESTION ENGINE
@@ -6090,105 +6072,13 @@ async function ensureLeagueDataLoaded(leagueId) {
 
 // Compute league value data: each team's positional values + ranks, archetype, etc.
 // Returns { teams: [...], myTeam, myRanks: { QB, RB, WR, TE, PICK } }
+// Thin wrapper — resolves the league data + object, delegates to the shared
+// compute module (assets/js/league-compute.js → window.LC).
 function mlComputeLeagueValueData(leagueId) {
-  const all = window.ML_ALL_LEAGUE_DATA || {};
-  const d = all[leagueId];
+  const d = (window.ML_ALL_LEAGUE_DATA || {})[leagueId];
   if (!d) return null;
-  const { rosters, users, players, myRosterId, myPickKeys } = d;
-
-  // Build team-level data
-  const teams = rosters.map(r => {
-    const u = users.find(u => u.user_id === r.owner_id);
-    const name = u ? (u.metadata?.team_name || u.display_name || u.username) : `Team ${r.roster_id}`;
-    // Avatar precedence: user's metadata avatar (Sleeper team avatar), then user's profile avatar.
-    // Both are Sleeper avatar IDs that resolve via /avatars/thumbs/{id}.
-    let avatarUrl = '';
-    const metaAv = u && u.metadata && u.metadata.avatar;
-    if (metaAv && metaAv.startsWith('http')) avatarUrl = metaAv;
-    else if (metaAv) avatarUrl = `${CDN}/avatars/thumbs/${metaAv}`;
-    else if (u && u.avatar) avatarUrl = `${CDN}/avatars/thumbs/${u.avatar}`;
-    const isMe = r.roster_id === myRosterId;
-    const posVals = { QB:0, RB:0, WR:0, TE:0 };
-    const ages = [];
-    (r.players || []).forEach(pid => {
-      const p = players[pid];
-      if (!p || !posVals.hasOwnProperty(p.position)) return;
-      const pname = p.full_name || `${p.first_name || ''} ${p.last_name || ''}`.trim();
-      if (!pname) return;
-      posVals[p.position] += mlFpValue(FP_VALUES[pname], leagueId);
-      if (p.age && p.age > 0) ages.push(p.age);
-    });
-    const avgAge = ages.length ? ages.reduce((s,a)=>s+a,0)/ages.length : 0;
-    const total  = posVals.QB + posVals.RB + posVals.WR + posVals.TE;
-    // Team projection now = sum of OPTIMAL STARTING LINEUP projected points,
-    // not sum-of-entire-roster. A 25-player roster's projected total isn't
-    // what they score — the Start-N lineup is. Uses SLEEPER.lineupProjection
-    // which reads STATS_DATA (data-suite stats) through the league's
-    // scoring_settings, then sums only the optimal-lineup players. Falls
-    // back gracefully (lineup-eligible-but-unprojected players contribute
-    // 0). This drives archetype's projValue input below — a calibrated
-    // composite for the contender/dynasty/rebuilder bucket assignment.
-    const league = (ML.leagues[ML.selectedSeason] || []).find(l => l.league_id === leagueId) || {};
-    let projTotal = 0;
-    if (window.SLEEPER && typeof SLEEPER.lineupProjection === 'function') {
-      projTotal = SLEEPER.lineupProjection(
-        r.players || [], players,
-        league.scoring_settings || {},
-        league.roster_positions || []
-      );
-    } else {
-      // Defensive legacy fallback — preserves original sum-of-roster behavior
-      // for any cold-load timing where sleeper-helpers.js hasn't loaded yet.
-      const _seasonProj = window.ML_SEASON_PROJ || {};
-      (r.players || []).forEach(pid => { projTotal += (+_seasonProj[pid] || 0); });
-    }
-    return { rosterId: r.roster_id, name, avatarUrl, isMe, posVals, total, avgAge, projTotal, pickValue: 0 };
-  });
-
-  // Compute pick value for EVERY team using the full owned-picks computation.
-  teams.forEach(t => {
-    const owned = mlGetOwnedPicks(t.rosterId, d.tradedPicks, d.draftRounds, d.leagueSeason, d.completedDraftSeasons);
-    t.pickValue = owned.reduce((sum, p) => sum + mlPickValue(p.season, p.round, leagueId), 0);
-    t.pickCount = owned.length;
-  });
-
-  // Compute ranks per position (and pick) — 1 = highest value
-  const rankBy = (key) => {
-    const sorted = [...teams].sort((a,b) => (b[key] || (b.posVals && b.posVals[key]) || 0) - (a[key] || (a.posVals && a.posVals[key]) || 0));
-    return sorted;
-  };
-  const myTeam = teams.find(t => t.isMe);
-  const myRanks = {};
-  ['QB','RB','WR','TE'].forEach(pos => {
-    const sorted = [...teams].sort((a,b) => (b.posVals[pos]||0) - (a.posVals[pos]||0));
-    myRanks[pos] = myTeam ? sorted.findIndex(t => t.isMe) + 1 : '—';
-  });
-  // Pick rank — based on total pick value, available for all teams now
-  const sortedByPicks = [...teams].sort((a,b) => (b.pickValue||0) - (a.pickValue||0));
-  myRanks.PICK = myTeam ? sortedByPicks.findIndex(t => t.isMe) + 1 : '—';
-  // Total roster rank (players + picks combined)
-  const sortedByGrand = [...teams].sort((a,b) => ((b.total||0) + (b.pickValue||0)) - ((a.total||0) + (a.pickValue||0)));
-  myRanks.TOTAL = myTeam ? sortedByGrand.findIndex(t => t.isMe) + 1 : '—';
-  // Player-only value rank (QB+RB+WR+TE total, no picks)
-  const sortedByPlayers = [...teams].sort((a,b) => (b.total||0) - (a.total||0));
-  myRanks.PLAYER = myTeam ? sortedByPlayers.findIndex(t => t.isMe) + 1 : '—';
-
-  // Compute archetype (uses league medians)
-  const median = arr => {
-    if (!arr.length) return 0;
-    const s = [...arr].sort((a,b)=>a-b);
-    const m = Math.floor(s.length/2);
-    return s.length%2 ? s[m] : (s[m-1]+s[m])/2;
-  };
-  const leagueAvg = {
-    age:       median(teams.filter(t => t.avgAge > 0).map(t => t.avgAge)),
-    value:     median(teams.map(t => t.total)),
-    pickValue: median(teams.map(t => t.pickValue || 0)),
-    proj:      median(teams.map(t => t.projTotal || 0).filter(v => v > 0)),
-  };
-  teams.forEach(t => { t.archetype = mlGetArchetype(t.avgAge, t.total, t.pickValue, t.projTotal, leagueAvg); });
-
-  return { teams, myTeam, myRanks, leagueAvg };
+  const league = (ML.leagues[ML.selectedSeason] || []).find(l => l.league_id === leagueId) || {};
+  return LC.computeLeagueValueData(d, league);
 }
 
 // Render the expanded content for a league: position rank cards + roster + trade history.
