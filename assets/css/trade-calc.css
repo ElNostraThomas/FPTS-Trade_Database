@@ -1,0 +1,363 @@
+/* ════════════════════════════════════════════════════════════════════════════
+   trade-calc.css — editable Trade Calculator (.ml-calc-*) + Trade Builder
+   (.ml-tb-*) + modal chrome (.ml-modal-*) styles for window.TradeCalc.
+   Copied from my-leagues.html's inline styles for the standalone trade-calculator
+   page; My Leagues still carries its own inline copy (de-dupe later). Brand vars
+   come from brand.css.
+   ════════════════════════════════════════════════════════════════════════════ */
+.ml-modal-backdrop {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+    z-index: 200; display: none; align-items: center; justify-content: center;
+    padding: 20px; overflow-y: auto;
+  }
+.ml-modal-backdrop.open { display: flex; }
+.ml-modal {
+    background: var(--surface); border: 1px solid var(--border2);
+    width: 100%; max-width: 640px; max-height: calc(100vh - 40px);
+    display: flex; flex-direction: column; overflow: hidden;
+  }
+.ml-modal.ml-calc-modal { max-width: 920px; }
+.ml-modal-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 20px; background: var(--surface2); border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+.ml-modal-title {
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 14px; color: var(--red); text-transform: uppercase; letter-spacing: .06em;
+  }
+.ml-modal-close {
+    background: none; border: 1px solid var(--border2); color: var(--white);
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 11px; padding: 6px 12px; cursor: pointer; letter-spacing: .04em;
+    transition: all .15s;
+  }
+.ml-modal-close:hover { border-color: var(--red); color: var(--red); }
+.ml-modal-body { padding: 24px; overflow-y: auto; flex: 1; }
+.ml-calc-yours-tag {
+    color: var(--green); font-size: 9px; font-style: italic;
+    font-family: 'Kanit', sans-serif; font-weight: 800;
+    margin-left: 6px;
+  }
+.ml-tb-headstrip {
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface2);
+  }
+.ml-tb-headstrip-row { display: flex; align-items: center; gap: 12px; }
+.ml-tb-headstrip-thumb {
+    width: 48px; height: 48px;
+    border-radius: 3px; object-fit: cover; background: var(--surface);
+  }
+.ml-tb-headstrip-name {
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 18px; color: var(--white);
+    text-transform: uppercase; line-height: 1.1;
+  }
+.ml-tb-headstrip-meta {
+    font-family: 'Mulish', sans-serif; font-size: 11px;
+    color: var(--muted); margin-top: 2px;
+  }
+.ml-tb-headstrip-owner {
+    font-family: 'Mulish', sans-serif; font-size: 11px;
+    color: var(--white); opacity: .8; margin-top: 2px;
+  }
+.ml-tb-edge { padding: 24px 20px; text-align: center; }
+.ml-tb-edge.is-fa { text-align: left; padding: 20px; }
+.ml-tb-edge.is-own {
+    padding: 24px;
+    color: var(--muted); font-size: 13px;
+    font-family: 'Mulish', sans-serif;
+  }
+.ml-tb-edge-msg {
+    font-family: 'Mulish', sans-serif; font-size: 13px;
+    color: var(--white); margin-bottom: 6px; line-height: 1.5;
+  }
+.ml-tb-edge-msg.is-sub {
+    font-size: 11px; color: var(--muted); margin-bottom: 18px;
+  }
+.ml-tb-edge-msg.is-fa-body { margin-bottom: 8px; }
+.ml-tb-edge-msg.is-fa-sub {
+    font-size: 12px; color: var(--muted); margin-bottom: 16px;
+  }
+.ml-tb-sleeper-link {
+    display: inline-block;
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 11px; color: #111111; background: var(--red);
+    text-decoration: none;
+    text-transform: uppercase; letter-spacing: .06em;
+    padding: 10px 18px; border-radius: 3px;
+  }
+.ml-tb-fullred-btn {
+    background: var(--red); border: none; color: #111111;
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 13px;
+    text-transform: uppercase; letter-spacing: .06em;
+    padding: 12px 24px; cursor: pointer; border-radius: 3px;
+    transition: opacity .15s;
+  }
+.ml-tb-fullred-btn:hover { opacity: .85; }
+.ml-tb-card { padding: 14px 18px; }
+.ml-tb-card-balance {
+    font-family: 'Mulish', sans-serif; font-size: 10px; color: var(--muted);
+  }
+.ml-tb-box {
+    border: 1px solid var(--border2); background: var(--surface2);
+    padding: 12px 14px; margin-bottom: 14px;
+  }
+.ml-tb-side { margin-bottom: 8px; }
+.ml-tb-side.is-recv {
+    border-top: 1px solid var(--border);
+    padding-top: 8px;
+    margin-top: 6px;
+  }
+.ml-tb-eyebrow {
+    font-family: 'Mulish', sans-serif; font-size: 9px; font-weight: 700;
+    text-transform: uppercase; color: var(--muted);
+    letter-spacing: .06em; margin-bottom: 2px;
+  }
+.ml-tb-asset {
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 0; border-bottom: 1px solid var(--border);
+  }
+.ml-tb-asset-pos {
+    font-family: 'Mulish', sans-serif; font-size: 9px; font-weight: 800;
+    text-transform: uppercase;
+    padding: 2px 5px; border-radius: 2px;
+    letter-spacing: .04em; flex-shrink: 0;
+  }
+.ml-tb-asset-pos--qb { background: var(--pos-qb-bg); color: var(--pos-qb); }
+.ml-tb-asset-pos--rb { background: var(--pos-rb-bg); color: var(--pos-rb); }
+.ml-tb-asset-pos--wr { background: var(--pos-wr-bg); color: var(--pos-wr); }
+.ml-tb-asset-pos--te { background: var(--pos-te-bg); color: var(--pos-te); }
+.ml-tb-asset-pos--k { background: var(--pos-k-bg);  color: var(--pos-k); }
+.ml-tb-asset-pos--pick {
+    background: var(--surface2); color: var(--pos-pick-bg);
+    border: 1px solid var(--border);
+  }
+.ml-tb-asset-name {
+    font-family: 'Mulish', sans-serif; font-size: 12px; font-weight: 700;
+    color: var(--white); flex: 1; min-width: 0;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+.ml-tb-asset-val {
+    font-family: 'Mulish', sans-serif; font-size: 10px;
+    color: var(--muted); flex-shrink: 0;
+  }
+.ml-tb-total {
+    display: flex; justify-content: space-between;
+    padding-top: 6px;
+    font-family: 'Mulish', sans-serif; font-size: 10px; color: var(--muted);
+  }
+.ml-tb-total-val { color: var(--white); font-weight: 700; }
+.ml-tb-fitnote {
+    margin-top: 10px; padding-top: 8px;
+    border-top: 1px solid var(--border);
+    font-family: 'Mulish', sans-serif; font-size: 11px;
+    color: var(--balance-color, var(--white));
+    font-style: italic;
+  }
+.ml-tb-cta {
+    flex: 1;
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 14px;
+    text-transform: uppercase; letter-spacing: .06em;
+    padding: 14px; cursor: pointer; border-radius: 3px;
+    border-width: 2px; border-style: solid;
+    transition: background .15s, opacity .15s;
+  }
+.ml-tb-cta.is-skip {
+    background: transparent; border-color: var(--red); color: var(--red);
+  }
+.ml-tb-cta.is-skip:hover { background: rgba(237,129,12,.12); }
+.ml-tb-cta.is-accept {
+    background: var(--green); border-color: var(--green); color: var(--black);
+  }
+.ml-tb-cta.is-accept:hover { opacity: .85; }
+.ml-tb-cta-hint {
+    text-align: center;
+    font-family: 'Mulish', sans-serif; font-size: 10px;
+    color: var(--muted); font-style: italic;
+  }
+.ml-tb-archchip {
+    font-family: 'Mulish', sans-serif; font-size: 9px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .04em;
+    padding: 2px 6px; border-radius: 2px; margin-left: 6px;
+    background: var(--archetype-bg, var(--surface2));
+    color: var(--archetype-fg, var(--white));
+  }
+.ml-calc-builder {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;
+  }
+.ml-calc-side {
+    background: var(--black); border: 1px solid var(--border);
+    display: flex; flex-direction: column;
+  }
+.ml-calc-side-header {
+    padding: 10px 14px; background: var(--surface2); border-bottom: 1px solid var(--border);
+    display: flex; justify-content: space-between; align-items: center;
+  }
+.ml-calc-side-label { font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 13px; color: var(--white); text-transform: uppercase; letter-spacing: .06em; }
+.ml-calc-side-total { font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 18px; color: rgba(255,255,255,0.4); }
+.ml-calc-side-total.has-value { color: var(--red); }
+.ml-calc-assets { padding: 10px; min-height: 80px; display: flex; flex-direction: column; gap: 6px; }
+.ml-calc-empty { font-family: 'Mulish', sans-serif; font-size: 11px; color: var(--white); opacity: .35; text-align: center; padding: 14px 0; }
+.ml-calc-asset-row {
+    display: flex; align-items: center; gap: 8px; padding: 6px 8px;
+    background: var(--surface); border: 1px solid var(--border);
+  }
+.ml-calc-asset-pos {
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 10px; padding: 2px 6px; flex-shrink: 0;
+  }
+.ml-calc-asset-name { font-family: 'Mulish', sans-serif; font-weight: 900; font-size: 12px; color: var(--white); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ml-calc-asset-val { font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 12px; color: var(--red); flex-shrink: 0; }
+.ml-calc-asset-remove {
+    background: none; border: none; color: var(--white); opacity: .4;
+    font-size: 14px; cursor: pointer; padding: 0 4px; flex-shrink: 0;
+  }
+.ml-calc-asset-remove:hover { opacity: 1; color: var(--red); }
+.ml-calc-search-wrap { padding: 8px 10px; border-top: 1px solid var(--border); position: relative; }
+.ml-calc-search-input {
+    width: 100%; background: var(--surface); border: 1px solid var(--border2);
+    color: var(--white); font-family: 'Mulish', sans-serif; font-size: 12px;
+    padding: 7px 10px; outline: none;
+  }
+.ml-calc-search-input:focus { border-color: var(--red); }
+.ml-calc-search-results {
+    position: absolute; top: calc(100% - 1px); left: 10px; right: 10px;
+    background: var(--surface2); border: 1px solid var(--border2);
+    max-height: 240px; overflow-y: auto; z-index: 5; display: none;
+  }
+.ml-calc-search-results.open { display: block; }
+.ml-calc-search-item {
+    display: flex; align-items: center; gap: 8px; padding: 7px 10px;
+    cursor: pointer; border-bottom: 1px solid var(--border);
+  }
+.ml-calc-search-item:hover { background: var(--surface); }
+.ml-calc-search-item:last-child { border-bottom: none; }
+.ml-calc-balance {
+    padding: 14px; border: 1px solid var(--border); background: var(--surface2);
+  }
+.ml-calc-balance-row { display: flex; justify-content: space-between; align-items: center; padding: 4px 0; font-family: 'Mulish', sans-serif; font-size: 13px; }
+.ml-calc-balance-row.diff { padding-top: 12px; border-top: 1px solid var(--border); margin-top: 8px; }
+.ml-calc-balance-label { color: var(--white); opacity: .65; }
+.ml-calc-balance-val { font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 14px; color: var(--white); color: var(--net-color, var(--white)); }
+.ml-calc-balance-row.diff .ml-calc-balance-val { font-size: 22px; }
+.ml-calc-sleeper-cta {
+    margin-top:14px; padding-top:14px; border-top:1px solid var(--border);
+    display:flex; flex-direction:column; gap:8px; align-items:center;
+  }
+.ml-calc-sleeper-btn {
+    display:inline-block; font-family:'Kanit',sans-serif; font-weight:800; font-style:italic;
+    font-size:12px; color:#111111; background:var(--red); text-decoration:none;
+    text-transform:uppercase; letter-spacing:.06em; padding:10px 20px; border-radius:3px;
+    transition: opacity .12s;
+  }
+.ml-calc-sleeper-btn:hover { opacity: .85; }
+.ml-calc-sleeper-note {
+    font-family:'Mulish',sans-serif; font-size:10px; color:var(--muted); font-style:italic;
+    text-align:center; line-height:1.5; max-width:520px;
+  }
+.ml-calc-search-empty { opacity: .5; }
+#ml-pep-backdrop .ml-modal { max-width: 540px; }
+.ml-calc-verdict {
+    margin-top: 10px; padding: 10px 14px; font-family: 'Kanit', sans-serif;
+    font-weight: 800; font-style: italic; font-size: 13px; text-transform: uppercase;
+    letter-spacing: .06em; text-align: center;
+  }
+.ml-calc-verdict.fair { background: rgba(76,175,110,.12); color: var(--green); border: 1px solid var(--green); }
+.ml-calc-verdict.unbalanced { background: rgba(224,154,48,.12); color: #e09a30; border: 1px solid #e09a30; }
+.ml-calc-verdict.heavy { background: rgba(237,129,12,.12); color: var(--red); border: 1px solid var(--red); }
+.ml-modal .ml-modal-header { padding: 14px 24px !important; background: var(--surface); border-bottom: 1px solid var(--border); }
+.ml-modal .ml-modal-title { font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 13px; color: var(--red); text-transform: uppercase; letter-spacing: .06em; }
+.ml-modal .ml-modal-close { font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 11px; padding: 6px 12px; text-transform: uppercase; letter-spacing: .05em; }
+.ml-modal .ml-pd-hero { gap: 24px; padding: 24px 28px 18px; border-bottom: 1px solid var(--border); }
+.ml-modal .ml-pd-avatar { width: 96px !important; height: 96px !important; border-radius: 50%; border: 2px solid var(--border2); background: var(--surface2); }
+.ml-modal .ml-pd-avatar-initials { font-size: 34px !important; opacity: .5; }
+.ml-modal .ml-pd-name { font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 32px !important; text-transform: uppercase; line-height: 1; color: var(--white); margin-bottom: 8px; }
+.ml-modal .ml-pd-team { font-family: 'Mulish', sans-serif; font-size: 13px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--white); opacity: .85; }
+.ml-modal .ml-pd-stat-label { font-family: 'Mulish', sans-serif; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--white); opacity: .55; margin-bottom: 2px; }
+.ml-modal .ml-pd-stat-val { font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 18px; line-height: 1.1; color: var(--white); }
+.ml-modal .ml-pd-status { padding: 4px 12px; }
+.ml-modal .ml-pd-status-label { font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; letter-spacing: .04em; }
+
+/* ── responsive ── */
+@media (max-width: 768px) {
+  .ml-modal { max-width: 100% !important; }
+  .ml-modal-header { flex-wrap: wrap !important; gap: 6px !important; padding: 10px 12px !important; }
+  .ml-modal-header .ml-modal-title { font-size: 12px !important; flex: 1 1 auto; min-width: 0; }
+  .ml-modal-header .fpts-xpage-bar { flex: 1 1 auto; }
+  .ml-modal-header .ml-modal-close { flex-shrink: 0; }
+  .ml-modal-body { padding: 16px; }
+  .ml-calc-builder { grid-template-columns: 1fr; }
+}
+@media (max-width: 768px) {
+  .ml-tb-cta-row {
+      flex-direction: column !important;
+      gap: 8px !important;
+    }
+  .ml-tb-cta-row button {
+      width: 100% !important;
+    }
+  .ml-tb-asset-row {
+      flex-wrap: wrap !important;
+    }
+  .ml-calc-sleeper-cta a {
+      width: 100% !important;
+      box-sizing: border-box !important;
+    }
+}
+@media (max-width: 768px) {
+  .ml-modal-backdrop {
+      padding: 10px 8px max(20px, env(safe-area-inset-bottom)) 8px !important;
+      align-items: flex-start !important;
+    }
+  .ml-modal {
+      max-height: calc(100vh - 40px - env(safe-area-inset-bottom)) !important;
+    }
+  .ml-modal-body {
+      padding-bottom: max(24px, calc(env(safe-area-inset-bottom) + 16px)) !important;
+    }
+  .page,
+    .ml-app,
+    .ml-shell,
+    .ml-leagues-col,
+    .ml-league-row,
+    .ml-modal {
+      max-width: 100% !important;
+      overflow-x: hidden !important;
+    }
+  .ml-modal {
+      max-width: calc(100vw - 16px) !important;
+      width: calc(100vw - 16px) !important;
+      margin: 0 auto;
+    }
+  .ml-modal.ml-calc-modal {
+      max-width: calc(100vw - 16px) !important;
+    }
+  .ml-modal-header {
+      flex-wrap: wrap !important;
+      gap: 8px !important;
+      padding: 10px 14px !important;
+    }
+  .ml-modal-header .ml-modal-title {
+      flex: 1 1 auto;
+      min-width: 0;
+      font-size: 13px !important;
+    }
+  .ml-btn,
+    .ml-btn-text,
+    .ml-modal-close,
+    .fpts-xpage-btn,
+    .ml-history-toggle button,
+    .ml-year-tab,
+    .ml-exposure-tab {
+      min-height: 36px !important;
+    }
+}
+@media (max-width: 768px) {
+  .ml-modal { max-width: calc(100vw - 8px) !important; width: calc(100vw - 8px) !important; }
+  .ml-modal-backdrop { padding: 4px 4px max(20px, env(safe-area-inset-bottom)) 4px !important; }
+  .ml-modal-header { padding: 8px 10px !important; }
+}
