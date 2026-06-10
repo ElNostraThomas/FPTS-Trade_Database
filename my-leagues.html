@@ -3439,6 +3439,7 @@
             .ml-tf-card.win { border-color:var(--green); }
             .ml-tf-card-top { display:flex; align-items:center; gap:6px; margin-bottom:7px; }
             .ml-tf-tag { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:9px; letter-spacing:.05em; padding:2px 6px; border-radius:3px; background:var(--border); color:var(--white); }
+            .ml-tf-guru { display:inline-flex; align-items:center; gap:3px; font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:9.5px; letter-spacing:.04em; text-transform:uppercase; color:var(--green); border:1px solid var(--green); border-radius:3px; padding:2px 6px; white-space:nowrap; }
             .ml-tf-edge { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:11px; padding:2px 7px; border-radius:3px; border:1px solid var(--border); color:var(--white); }
             .ml-tf-edge.win { background:var(--green); border-color:var(--green); color:#111111; }
             .ml-tf-go { margin-left:auto; font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:10px; text-transform:uppercase; letter-spacing:.04em; background:transparent; border:1px solid var(--border); color:var(--white); padding:3px 8px; border-radius:4px; cursor:pointer; }
@@ -8647,10 +8648,12 @@ function mlTfCardHtml(o){
   const valueTag = isValue ? `<span class="ml-tf-tag" title="No archetype-fit offer — closest value match">VALUE</span>` : '';
   const note = `${isValue?'Closest value match (no archetype-fit offer) · ':''}${mlTfEsc(o.ctx.fmtLabel)}`;
   const needHtml = mlTfNeedHtml(o);
+  // Guru Approved — any trade that lands fair or in your favor (not an overpay).
+  const guruBadge = (win || fair) ? `<span class="ml-tf-guru" title="Fair or in your favor — Guru Approved">&#10003; Guru Approved</span>` : '';
   if (o.dir === 'away'){
     const edgeBadge = win ? `<span class="ml-tf-edge win">You win ${edgePct}%</span>` : (fair ? `<span class="ml-tf-edge">Fair</span>` : `<span class="ml-tf-edge">−${edgePct}% light</span>`);
     return `<div class="ml-tf-card${win?' win':''}">
-        <div class="ml-tf-card-top">${valueTag}${edgeBadge}${goBtn}</div>
+        <div class="ml-tf-card-top">${guruBadge}${valueTag}${edgeBadge}${goBtn}</div>
         <div class="ml-tf-flow">
           <div class="ml-tf-side"><div class="ml-tf-side-lab">You send</div>${mlTfAnchorAsset(o.target, o.anchorVal)}</div>
           <div class="ml-tf-arrow">→</div>
@@ -8662,7 +8665,7 @@ function mlTfCardHtml(o){
   }
   const edgeBadge = win ? `<span class="ml-tf-edge win">You win ${edgePct}%</span>` : (fair ? `<span class="ml-tf-edge">Fair</span>` : `<span class="ml-tf-edge">+${edgePct}% over</span>`);
   return `<div class="ml-tf-card${win?' win':''}">
-      <div class="ml-tf-card-top">${valueTag}${edgeBadge}${goBtn}</div>
+      <div class="ml-tf-card-top">${guruBadge}${valueTag}${edgeBadge}${goBtn}</div>
       <div class="ml-tf-flow">
         <div class="ml-tf-side"><div class="ml-tf-side-lab">You send</div>${pkg}</div>
         <div class="ml-tf-arrow">→</div>
