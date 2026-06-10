@@ -621,7 +621,7 @@
 <!-- Team logo helpers — must load BEFORE player-panel.js so the modal-hero
      badge wiring finds window.TeamHelpers. -->
 <script src="assets/js/team-helpers.js?v=1778680002"></script>
-<script src="assets/js/player-panel.js?v=1781200000" defer></script>
+<script src="assets/js/player-panel.js?v=1797000000" defer></script>
 <style>
   /* Hide the legacy in-page modal — openModal now routes to the shared panel. */
   #modal-backdrop { display: none !important; }
@@ -2539,14 +2539,14 @@ function _fptsXpageAdpToDb() {
 }
 function _fptsXpageAdpToCalc() {
   const p = CURRENT_MODAL_PLAYER;
-  if (!p) { window.open('trade-calculator.html', '_blank', 'noopener'); return; }
+  if (!p) { window.open('my-leagues.html?tab=finder', '_blank', 'noopener'); return; }
   const fp = lookupFpValue(p.name) || {};
   const pos = posOf(p) || (fp.posRank || 'WR').replace(/\d+$/, '') || 'WR';
   _fptsWriteHandoff({
     source: 'adp',
     primaryPlayer: p.name,
     trade: { sideA: [], sideB: [{ name: p.name, pos, value: fp.value || 0, type: 'player' }] },
-  }, 'trade-calculator.html');
+  }, 'my-leagues.html?tab=finder');
 }
 function _fptsXpageAdpToLeagues() {
   const p = CURRENT_MODAL_PLAYER;

@@ -3008,7 +3008,7 @@
 <script src="assets/js/sleeper-helpers.js?v=1780800000"></script>
 <!-- Team logo helpers — load BEFORE player-panel.js so modal-hero badge works. -->
 <script src="assets/js/team-helpers.js?v=1778680002"></script>
-<script src="assets/js/player-panel.js?v=1781200000"></script>
+<script src="assets/js/player-panel.js?v=1797000000"></script>
 <style>
   /* ML uses the shared slide-out panel as an accordion (not horizontal tabs).
      Hide legacy modal + horizontal tab strip; show all five tab bodies stacked. */
@@ -5910,7 +5910,12 @@ async function fetchAllLeaguesData() {
   mlTfApplyAdminGate();   // reveal the Trade Finder tab only for the admin
   try {
     const _tfParam = new URLSearchParams(location.search).get('tab');
-    if (_tfParam === 'finder' && mlTfIsAdmin()) mlExposureSetTab('finder');
+    if (_tfParam === 'finder' && mlTfIsAdmin()) {
+      // A cross-page "Open in Trade Finder" handoff pre-loads the player.
+      const _ho = window._fptsPendingHandoff;
+      if (_ho && _ho.primaryPlayer) { mlTfOpenWithPlayer(_ho.primaryPlayer); window._fptsPendingHandoff = null; }
+      else mlExposureSetTab('finder');
+    }
     else if (window.ML_EXPOSURE_TAB === 'finder') mlEnsureFinder();
   } catch (e) {}
   // ?league=<id> deep-link — the finder's "Go to league" opens this in a new tab.
@@ -8985,6 +8990,15 @@ function mlTfApplyAdminGate(){
   if (btn) btn.style.display = mlTfIsAdmin() ? '' : 'none';
 }
 
+// Open the Trade Finder with a player pre-loaded as a FOR target — used by the
+// cross-page "Open in Trade Finder" handoffs + the My-Leagues player panel.
+function mlTfOpenWithPlayer(name){
+  mlTfState.dir = 'for';
+  if (name && mlTfState.targets.indexOf(name) < 0) mlTfState.targets.push(name);
+  const inp = document.getElementById('ml-tf-target-input'); if (inp) inp.placeholder = 'Add a player you want…';
+  mlExposureSetTab('finder');   // admin-gated; mlEnsureFinder renders the result
+}
+
 function mlEnsureFinder(){
   const wrap = document.getElementById('ml-tf-dirs');
   if (wrap) wrap.querySelectorAll('.ml-tf-dir').forEach(b => b.classList.toggle('active', b.dataset.dir === mlTfState.dir));
@@ -9611,14 +9625,13 @@ function _fptsXpageMlPdToDb() {
 function _fptsXpageMlPdToCalc() {
   const nameEl = document.getElementById('ml-pd-name');
   const name = nameEl ? nameEl.textContent.trim() : null;
-  if (!name) { window.open('trade-calculator.html', '_blank', 'noopener'); return; }
-  const ktc = (typeof FP_VALUES !== 'undefined' ? FP_VALUES[name] : null) || {};
-  const pos = (ktc.posRank || 'WR').replace(/\d+$/, '') || 'WR';
-  _fptsWriteHandoff({
-    source: 'leagues',
-    primaryPlayer: name,
-    trade: { sideA: [], sideB: [{ name, pos, value: mlFpValue(ktc, window.ML_LEAGUE_ID), type: 'player' }] }
-  }, 'trade-calculator.html');
+  // The Trade Finder lives on this page — switch to it in-place with the player loaded.
+  if (typeof mlTfIsAdmin === 'function' && mlTfIsAdmin() && typeof mlTfOpenWithPlayer === 'function') {
+    if (typeof closePlayerDetail === 'function') closePlayerDetail();
+    mlTfOpenWithPlayer(name);
+    return;
+  }
+  window.open('my-leagues.html?tab=finder', '_blank', 'noopener');
 }
 function _fptsXpageMlPdToAdp() {
   const nameEl = document.getElementById('ml-pd-name');

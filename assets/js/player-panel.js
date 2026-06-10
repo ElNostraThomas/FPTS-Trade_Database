@@ -88,7 +88,7 @@
         </div>
         <div class="fpts-xpage-bar" style="margin-right:6px">
           <button class="fpts-xpage-btn" data-page="db"   onclick="event.stopPropagation();_fptsXpageOpenDbFromPanel()"      title="Open the Trade Database with this player's profile">Open in Database ↗</button>
-          <button class="fpts-xpage-btn" data-page="calc" onclick="event.stopPropagation();_fptsXpageOpenCalcFromPanel()"    title="Open the trade calculator with this player on Side B">Open in Calculator ↗</button>
+          <button class="fpts-xpage-btn" data-page="calc" onclick="event.stopPropagation();_fptsXpageOpenCalcFromPanel()"    title="Open the Trade Finder (My Leagues) with this player">Open in Trade Finder ↗</button>
           <button class="fpts-xpage-btn" data-page="ml"   onclick="event.stopPropagation();_fptsXpageOpenLeaguesFromPanel()" title="Open My Leagues with this player pinned in Player Exposure">Open in My Leagues ↗</button>
           <button class="fpts-xpage-btn" data-page="adp"  onclick="event.stopPropagation();_fptsXpageOpenAdpFromPanel()"     title="Open the ADP tool with this player's modal">Open in ADP ↗</button>
         </div>
@@ -282,14 +282,14 @@
 
   function _fptsXpageOpenCalcFromPanel() {
     const name = ppActivePlayer || null;
-    if (!name) { global.open('trade-calculator.html', '_blank', 'noopener'); return; }
+    if (!name) { global.open('my-leagues.html?tab=finder', '_blank', 'noopener'); return; }
     const ktc = _fp()[name] || {};
     const pos = (ktc.posRank || 'WR').replace(/\d+$/, '') || 'WR';
     global._fptsWriteHandoff({
       source: _currentPage || 'db',
       primaryPlayer: name,
       trade: { sideA: [], sideB: [{ name, pos, value: ktc.value || 0, type: 'player' }] }
-    }, 'trade-calculator.html');
+    }, 'my-leagues.html?tab=finder');
   }
   function _fptsXpageOpenLeaguesFromPanel() {
     const name = ppActivePlayer || null;
@@ -1305,7 +1305,7 @@
         }
       }
     } catch (e) {}
-    global._fptsWriteHandoff(payload, 'trade-calculator.html');
+    global._fptsWriteHandoff(payload, 'my-leagues.html?tab=finder');
   }
 
   // ────────────────────────────────────────────────────────────────────────
