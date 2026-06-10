@@ -8359,13 +8359,20 @@ function mlTfAllManagers(){
 function mlTfTargetSearch(q){
   const box = document.getElementById('ml-tf-target-results'); if (!box) return;
   q = (q||'').trim().toLowerCase();
-  if (q.length < 2){ box.style.display='none'; box.innerHTML=''; return; }
-  const names = Object.keys(FP_VALUES)
-    .filter(n => n.toLowerCase().indexOf(q) >= 0 && mlTfState.targets.indexOf(n) < 0)
-    .sort((a,b)=> (FP_VALUES[b].value||0) - (FP_VALUES[a].value||0)).slice(0,8);
+  const away = mlTfState.dir === 'away';
+  // AWAY: you can only move players YOU roster — source from your Exposure, and
+  // make it browsable (small set). FOR: the whole player pool, needs ≥2 chars.
+  const source = away
+    ? Array.from(new Set((window.ML_EXPOSURE_DATA || []).map(p => p && p.name).filter(Boolean)))
+    : Object.keys(FP_VALUES);
+  if (!away && q.length < 2){ box.style.display='none'; box.innerHTML=''; return; }
+  const names = source
+    .filter(n => (!q || n.toLowerCase().indexOf(q) >= 0) && mlTfState.targets.indexOf(n) < 0)
+    .sort((a,b)=> (((FP_VALUES[b]||{}).value)||0) - (((FP_VALUES[a]||{}).value)||0))
+    .slice(0, away ? 12 : 8);
   if (!names.length){ box.style.display='none'; box.innerHTML=''; return; }
   box.innerHTML = names.map(n => {
-    const pr = FP_VALUES[n].posRank || '';
+    const pr = (FP_VALUES[n] && FP_VALUES[n].posRank) || '';
     return `<div class="ml-tf-opt" data-n="${mlTfEsc(n)}" onmousedown="event.preventDefault()" onclick="mlTfAddTarget(this.dataset.n)">${mlTfThumb(n)}<span class="ml-tf-opt-n">${mlTfEsc(n)}</span><span class="ml-tf-opt-r">${mlTfEsc(pr)}</span></div>`;
   }).join('');
   box.style.display='';
@@ -8420,12 +8427,15 @@ function mlTfHideSoon(id){ setTimeout(()=>{ const b=document.getElementById(id);
 function mlTfSetDir(d){
   if (mlTfState.dir === d) return;
   mlTfState.dir = d;
+  mlTfState.targets = [];   // "players you want" vs "players you'd move" are different lists
   const wrap = document.getElementById('ml-tf-dirs');
   if (wrap) wrap.querySelectorAll('.ml-tf-dir').forEach(b => b.classList.toggle('active', b.dataset.dir === d));
   const lab = document.getElementById('ml-tf-target-label');
   if (lab) lab.textContent = (d === 'away') ? "Players you'd move" : 'Players you want';
   const inp = document.getElementById('ml-tf-target-input');
-  if (inp) inp.placeholder = (d === 'away') ? "Add a player you'd move…" : 'Add a player you want…';
+  if (inp){ inp.value = ''; inp.placeholder = (d === 'away') ? "Search a player you roster…" : 'Add a player you want…'; }
+  const box = document.getElementById('ml-tf-target-results'); if (box){ box.style.display='none'; box.innerHTML=''; }
+  mlTfRenderTargetChips();
   mlTfRender();
 }
 
