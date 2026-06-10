@@ -8439,6 +8439,23 @@ function mlTfSetDir(d){
   mlTfRender();
 }
 
+// Do YOU roster this player in this league? Uses the SAME signal as Exposure
+// (the league's myPlayerIds set, by sleeperId) so AWAY's league set matches
+// your Exposure shares exactly — not name-matching, which can drift.
+function mlTfMySidForName(name){
+  const ex = (window.ML_EXPOSURE_DATA || []).find(p => p && p.name === name);
+  return ex ? String(ex.sleeperId) : null;
+}
+function mlTfIOwnHere(leagueId, sid){
+  if (!sid) return false;
+  const d = (window.ML_ALL_LEAGUE_DATA || {})[leagueId];
+  if (!d || !d.myPlayerIds) return false;
+  const mp = d.myPlayerIds;
+  if (typeof mp.has === 'function') return mp.has(sid) || mp.has(Number(sid));
+  if (Array.isArray(mp)) return mp.indexOf(sid) >= 0 || mp.indexOf(Number(sid)) >= 0;
+  return false;
+}
+
 // ── owner-lookup map (cheap, no proposal math) → sorted manager groups ──
 function mlTfBuildMap(){
   const dir = mlTfState.dir;
@@ -8446,6 +8463,7 @@ function mlTfBuildMap(){
   const ensure = (mgr) => byMgr[mgr] || (byMgr[mgr] = { ownerUser:mgr, leagues:{}, players:{} });
   const leagueIds = Object.keys(window.ML_ALL_LEAGUE_DATA || {});
   mlTfState.targets.forEach(target => {
+    const mySid = (dir === 'away') ? mlTfMySidForName(target) : null;
     leagueIds.forEach(leagueId => {
       const ctx = mlTfLeagueCtx(leagueId); if (!ctx || !ctx.myTeam) return;
       if (dir === 'for'){
@@ -8454,8 +8472,9 @@ function mlTfBuildMap(){
         const e = ensure(owner.ownerUser); e.leagues[leagueId] = 1;
         (e.players[target] = e.players[target] || []).push({ leagueId, ctx, team:owner, target });
       } else {
-        const mine = mlTfFindOwner(ctx, target);
-        if (!mine || !mine.isMe) return;     // I must roster them here to move them
+        // Only leagues where YOU actually roster the player (same signal as
+        // Exposure → the league set matches your Exposure shares exactly).
+        if (!mlTfIOwnHere(leagueId, mySid)) return;
         ctx.teams.forEach(t => {
           if (t.isMe || !mlTfTeamWants(ctx, t, target)) return;
           const e = ensure(t.ownerUser); e.leagues[leagueId] = 1;
