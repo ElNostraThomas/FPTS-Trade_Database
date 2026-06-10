@@ -2,7 +2,8 @@
 
 A static fantasy-football site deployed via GitHub Pages from `main`.
 **Ten HTML pages, all live and shipping:** `index.html` (trade DB),
-`trade-calculator.html`, `compare.html` (player comparison),
+`trade-calculator.html` (now a redirect → My Leagues' Trade Finder tab),
+`compare.html` (player comparison),
 `my-leagues.html`, `live-draft.html`, `mock-draft.html` (AI-personality
 mock drafts), `tiers.html`, `adp-tool.html`, `rankings.html`,
 `formulas.html`.
@@ -13,7 +14,27 @@ This file is the **resume-where-we-left-off** doc.
 
 ---
 
-## Where we are (end of 2026-06-09 — twenty-second session)
+## Where we are (end of 2026-06-09 — twenty-third session) — Trade Finder MOVED to a My Leagues tab
+
+**The cross-league Trade Finder now lives as a third sidebar tab in `my-leagues.html` (`Exposure | My Trades | Trade Finder`), not on its own page.** `trade-calculator.html` is now a thin redirect to `my-leagues.html?tab=finder` (keeps old bookmarks/OBS sources working); the nav "Trade Finder" link across all pages points there too (My Leagues' own link switches the tab in-page via `mlExposureSetTab('finder')`). All pushed and live.
+
+**Why:** My Leagues already loads every league's rosters (`ML_ALL_LEAGUE_DATA`) + every team's archetype (`mlComputeLeagueValueData`) + the engine wrappers (`mlBuildAssetPool` / `mlGenerateTradeSuggestions`). The standalone page re-fetched all of that itself (its slowness). The tab **reuses** it → instant, no duplicate fetch.
+
+**The code** — a self-contained `mlTf*` block in `my-leagues.html` (just after `mlExposureSetTab`):
+- **Pickers:** target typeahead over `FP_VALUES`; **browsable** manager dropdown (`mlTfMgrSearch` — clicking the box lists all managers by league count, no typing); `Trade FOR / AWAY` toggle.
+- **Per-league ctx** (`mlTfLeagueCtx`, cached): merges `mlComputeLeagueValueData` archetypes with `ML_ALL_LEAGUE_DATA` rosters/users → teams with `{archetype, ownerUser, players}` + name→team / name→pid indexes.
+- **Drill-down** (`mlTfBuildMap` → `mlTfRender`): **manager → player(+`posRank`) → leagues**. Single target hoists the player to one header (`mlTfShoppingHtml`) and flattens each manager straight to its leagues; multi-target keeps the player sub-grouping.
+- **Lazy proposal** (`mlTfShowProposal` → `mlTfProposalHtml`): clicking a league builds the package only then — `mlGenerateTradeSuggestions(mlBuildAssetPool(...), targetVal × ML_TF_WIN_BIAS, owner.archetype, 3)`, **value fallback** (`mode:'value'`, "VALUE" tag) when no archetype-fit lands, FOR edge ≥ −0.10 / AWAY ≥ −0.02. **"Go to league ↗"** (`mlTfGoToLeague`) expands that league's row in-page (`toggleLeagueExpand`) + scrolls.
+- `?tab=finder` deep-link honored at `ML_EXPOSURE_READY`; finder state reset on logout.
+
+Ported from the old `trade-calculator.html` `_ws*` finder (same WIN_BIAS 0.93, value fallback, archetype-want heuristic, manager-username display), swapping the data source. **Refinements noted:** wire `_fptsReadHandoff` so a player-panel "Open in Trade Finder" pre-adds the target; League Pulse archetype overview; per-position need hints.
+
+### Verify (over HTTP — `start.bat` → `http://localhost:8000/my-leagues.html`)
+Sign in → sidebar `Trade Finder` tab → add a player → manager → player → leagues drill-down → click a league → win-biased proposal + "Go to league". `?tab=finder` opens straight to it; `trade-calculator.html` redirects there. `python scripts/check-colors.py` → CLEAN.
+
+---
+
+## (superseded) 2026-06-09 — twenty-second session: standalone Trade Finder page
 
 **`trade-calculator.html` was rebuilt into a cross-league TRADE FINDER (page is now login-first; the old value calculator + comparable-trades panel are gone from the UI).** This supersedes the twenty-first-session comparable-trades feature below. **NOT yet committed/pushed at the time of writing** (verify with `git status -sb`).
 
