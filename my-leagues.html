@@ -3441,7 +3441,7 @@
             .ml-tf-card-top { display:flex; align-items:center; gap:6px; margin-bottom:7px; }
             .ml-tf-tag { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:9px; letter-spacing:.05em; padding:2px 6px; border-radius:3px; background:var(--border); color:var(--white); }
             .ml-tf-guru { display:inline-flex; align-items:center; gap:4px; font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:9.5px; letter-spacing:.04em; text-transform:uppercase; color:var(--green); border:1px solid var(--green); border-radius:3px; padding:2px 6px 2px 4px; white-space:nowrap; }
-            .ml-tf-guru-img { width:15px; height:15px; flex:none; display:block; }
+            .ml-tf-guru-img { width:17px; height:17px; flex:none; display:block; border-radius:50%; object-fit:cover; object-position:center 20%; background:#000000; }
             .ml-tf-offers-head { display:flex; align-items:center; gap:8px; margin-bottom:8px; }
             .ml-tf-offers-n { font-family:'Kanit',sans-serif; font-weight:700; font-style:italic; font-size:10px; text-transform:uppercase; letter-spacing:.05em; opacity:.6; }
             .ml-tf-offers-actions { margin-left:auto; display:flex; gap:6px; flex:none; }
@@ -8706,7 +8706,7 @@ function mlTfCardHtml(o){
   const needHtml = mlTfNeedHtml(o);
   // Guru Approved — only when the trade is in your favor by 4%+.
   const guru = edge >= 0.04;
-  const guruBadge = guru ? `<span class="ml-tf-guru" title="In your favor by 4%+ — Guru Approved"><img class="ml-tf-guru-img" src="assets/images/guru-approved.svg" alt="">Guru Approved</span>` : '';
+  const guruBadge = guru ? `<span class="ml-tf-guru" title="In your favor by 4%+ — Guru Approved"><img class="ml-tf-guru-img" src="assets/images/john-cartoon.png" alt="">Guru Approved</span>` : '';
   if (o.dir === 'away'){
     const edgeBadge = win ? `<span class="ml-tf-edge win">You win ${edgePct}%</span>` : (fair ? `<span class="ml-tf-edge">Fair</span>` : `<span class="ml-tf-edge">−${edgePct}% light</span>`);
     return `<div class="ml-tf-card${guru?' win':''}">
