@@ -8427,7 +8427,6 @@ function mlTfHideSoon(id){ setTimeout(()=>{ const b=document.getElementById(id);
 function mlTfSetDir(d){
   if (mlTfState.dir === d) return;
   mlTfState.dir = d;
-  mlTfState.targets = [];   // "players you want" vs "players you'd move" are different lists
   const wrap = document.getElementById('ml-tf-dirs');
   if (wrap) wrap.querySelectorAll('.ml-tf-dir').forEach(b => b.classList.toggle('active', b.dataset.dir === d));
   const lab = document.getElementById('ml-tf-target-label');
@@ -8503,20 +8502,68 @@ function mlTfRender(){
     return;
   }
   mlTfRegistry = {}; mlTfEditRegistry = {};
-  // AWAY is organized LEAGUE → buyers (the leagues you roster the player in,
-  // then the managers who'd want him). FOR stays manager → player → leagues.
-  if (dir === 'away'){ mlTfRenderAway(out); return; }
-  const mgrs = mlTfBuildMap();
-  if (!mgrs.length){
-    out.innerHTML = `<div class="ml-tf-empty">No manager rosters your ${mlTfState.targets.length>1?'players':'player'}${mlTfState.managers.length?' among the selected managers':''} right now.</div>`;
+  // Both modes are organized LEAGUE → people → ≤3 trades.
+  //   AWAY: leagues YOU roster the player in → managers who'd want him.
+  //   FOR:  leagues where someone ELSE rosters the player → that owner.
+  if (dir === 'away') mlTfRenderAway(out);
+  else mlTfRenderFor(out);
+}
+
+// FOR render: for each league where another manager rosters the player you want,
+// list that owner, each expandable to up to 3 trade offers from your roster.
+function mlTfRenderFor(out){
+  const byLeague = {};
+  const leagueIds = Object.keys(window.ML_ALL_LEAGUE_DATA || {});
+  mlTfState.targets.forEach(target => {
+    leagueIds.forEach(leagueId => {
+      const ctx = mlTfLeagueCtx(leagueId); if (!ctx || !ctx.myTeam) return;
+      const owner = mlTfFindOwner(ctx, target);
+      if (!owner || owner.isMe) return;     // skip FAs + leagues where you already own him
+      if (mlTfState.managers.length && mlTfState.managers.indexOf(owner.ownerUser) < 0) return;
+      const g = byLeague[leagueId] || (byLeague[leagueId] = { leagueId, leagueName: ctx.league.name || ('League '+leagueId), fmtLabel: ctx.fmtLabel, holders: [] });
+      g.holders.push({ ownerUser: owner.ownerUser, rosterId: owner.rosterId, target });
+    });
+  });
+  const groups = Object.keys(byLeague).map(k => byLeague[k]);
+  if (!groups.length){
+    out.innerHTML = `<div class="ml-tf-empty">No one rosters your ${mlTfState.targets.length>1?'players':'player'}${mlTfState.managers.length?' among the selected managers':''} in your leagues right now.</div>`;
     return;
   }
-  // Single target → hoist the player to one header + flatten each manager straight
-  // to its leagues (no per-manager player repeat). Multi target → keep the
-  // manager → player → leagues grouping.
+  groups.sort((a,b)=> b.holders.length - a.holders.length || a.leagueName.localeCompare(b.leagueName));
   const single = mlTfState.targets.length === 1;
-  const head = single ? mlTfShoppingHtml(mlTfState.targets[0], mgrs) : '';
-  out.innerHTML = head + mgrs.map(m => mlTfMgrGroupHtml(m, single)).join('');
+  const head = single ? mlTfForShopHtml(mlTfState.targets[0], groups) : '';
+  out.innerHTML = head + groups.map(mlTfForLeagueHtml).join('');
+}
+
+function mlTfForShopHtml(pn, groups){
+  const fp = FP_VALUES[pn] || {};
+  const pr = fp.posRank || '';
+  const first = groups[0];
+  const val = first ? Math.round(mlTfPlayerVal(pn, first.leagueId)).toLocaleString() : '';
+  const mgrs = {}; groups.forEach(g => g.holders.forEach(h => { mgrs[h.ownerUser] = 1; }));
+  const nM = Object.keys(mgrs).length;
+  return `<div class="ml-tf-shop">${mlTfThumb(pn)}<div class="ml-tf-shop-main"><div class="ml-tf-shop-line1"><span class="ml-tf-shop-name">${mlTfEsc(pn)}</span>${pr?`<span class="ml-tf-shop-rank">${mlTfEsc(pr)}</span>`:''}${val?`<span class="ml-tf-shop-val">${val}</span>`:''}</div><span class="ml-tf-shop-sub">rostered in ${groups.length} of your league${groups.length>1?'s':''} · ${nM} manager${nM>1?'s':''}</span></div></div>`;
+}
+
+function mlTfForLeagueHtml(g){
+  const rows = g.holders.map(h => {
+    const pn = h.target;
+    const last = String(pn).split(' ').slice(1).join(' ') || pn;
+    const rid = 'mltf-' + mlTfSlug(g.leagueId) + '-' + mlTfSlug(pn) + '-' + mlTfSlug(h.ownerUser);
+    mlTfRegistry[rid] = { leagueId:g.leagueId, rosterId:h.rosterId, target:pn, dir:'for' };
+    return `<div class="ml-tf-lg">
+        <button class="ml-tf-lg-btn" onclick="mlTfShowProposal('${rid}')">
+          <span class="ml-tf-lg-go" id="${rid}-go">▸</span>
+          <span class="ml-tf-lg-name">${mlTfEsc(h.ownerUser)}</span>
+          <span class="ml-tf-lg-fmt">has ${mlTfEsc(last)}</span>
+        </button>
+        <div class="ml-tf-prop" id="${rid}"></div>
+      </div>`;
+  }).join('');
+  return `<div class="ml-tf-mgr">
+      <div class="ml-tf-mgr-head"><span class="ml-tf-mgr-name">${mlTfEsc(g.leagueName)}</span><span class="ml-tf-mgr-sub">${mlTfEsc(g.fmtLabel)}${g.holders.length>1?' · '+g.holders.length+' players':''}</span></div>
+      <div class="ml-tf-mgr-body">${rows}</div>
+    </div>`;
 }
 
 // AWAY render: for each league YOU roster the player in, list the managers who'd
