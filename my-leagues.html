@@ -3451,7 +3451,8 @@
             .ml-tf-asset-n { flex:1; min-width:0; font-size:12px; font-weight:600; color:var(--white); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
             .ml-tf-asset-n.hot { color:var(--red); }
             .ml-tf-asset-v { font-family:'Kanit',sans-serif; font-weight:700; font-style:italic; font-size:11px; opacity:.85; flex:none; }
-            .ml-tf-note { font-size:10.5px; opacity:.55; margin-top:7px; font-style:italic; }
+            .ml-tf-need { font-size:11px; margin-top:7px; color:var(--green); font-weight:600; line-height:1.35; }
+            .ml-tf-note { font-size:10.5px; opacity:.55; margin-top:5px; font-style:italic; }
           </style>
           <div class="ml-exposure-panel" id="ml-finder-panel" style="display:none">
             <div class="ml-tf-dirs" id="ml-tf-dirs">
@@ -8308,6 +8309,33 @@ function mlTfTeamWants(ctx, team, playerName){
   const w = ML_TF_WANTS[team.archetype] || ML_TF_WANTS.tweener;
   return (age <= 24 ? w.young : w.vet) >= 0.5;
 }
+
+// ── positional need (re-rank signal, not an engine change) ──
+// FP_VALUES posRank → bare position ("WR8" → "WR").
+function mlTfPosOf(name){
+  const fp = FP_VALUES[name]; const pr = fp && fp.posRank;
+  return pr ? pr.replace(/[0-9]/g,'').toUpperCase() : '';
+}
+// Rank EVERY team within the league at each position (1 = most value). Cached on ctx.
+function mlTfEnsurePosRanks(ctx){
+  if (ctx._posRanksDone) return;
+  ['QB','RB','WR','TE'].forEach(pos => {
+    const sorted = ctx.teams.slice().sort((a,b)=> ((b.posVals&&b.posVals[pos])||0) - ((a.posVals&&a.posVals[pos])||0));
+    sorted.forEach((t,i)=> { (t.posRanks = t.posRanks || {})[pos] = i + 1; });
+  });
+  ctx.nTeams = ctx.teams.length;
+  ctx._posRanksDone = true;
+}
+// A team's "needs" = positions where it ranks in the bottom ~40% of the league.
+function mlTfNeedSet(team, nTeams){
+  const need = {};
+  if (!team || !team.posRanks || !nTeams) return need;
+  ['QB','RB','WR','TE'].forEach(pos => {
+    const r = team.posRanks[pos];
+    if (r && r > nTeams * 0.6) need[pos] = r;
+  });
+  return need;
+}
 function mlTfAllManagers(){
   const counts = {};
   Object.keys(window.ML_ALL_LEAGUE_DATA || {}).forEach(leagueId => {
@@ -8519,41 +8547,66 @@ function mlTfProposalHtml(reg){
   const owner = ctx.teamById[reg.rosterId];
   if (!owner || !window.SLEEPER) return `<div class="ml-tf-note">Couldn't build a proposal here.</div>`;
   try {
+    mlTfEnsurePosRanks(ctx);
+    const nT = ctx.nTeams;
+    const myNeed = mlTfNeedSet(ctx.myTeam, nT);
     if (reg.dir === 'for'){
       const targetVal = mlTfPlayerVal(reg.target, reg.leagueId);
       if (!targetVal) return `<div class="ml-tf-note">No value on file for ${mlTfEsc(reg.target)}.</div>`;
       const pool = mlBuildAssetPool(reg.leagueId, ctx.myRosterId);
       if (!pool.length) return `<div class="ml-tf-note">You have no tradeable assets in this league.</div>`;
-      let suggs = mlGenerateTradeSuggestions(pool, targetVal*ML_TF_WIN_BIAS, owner.archetype, 3);
-      suggs.forEach(x => x.edge = 1 - (x.totalSent/targetVal));
-      let best = suggs.filter(x => x.edge >= -0.10).sort((a,b)=> b.edge - a.edge)[0];
+      const ownerNeed = mlTfNeedSet(owner, nT);
+      // Re-rank value-acceptable packages: don't deplete MY weak spot; favor
+      // sending a position the OWNER is thin at (likelier to be accepted).
+      const rerank = (x) => {
+        let adj = 0;
+        (x.sending||[]).forEach(a => {
+          if (a.pos && myNeed[a.pos])    adj -= 0.05;
+          if (a.pos && ownerNeed[a.pos]) adj += 0.04;
+        });
+        return adj;
+      };
+      let suggs = mlGenerateTradeSuggestions(pool, targetVal*ML_TF_WIN_BIAS, owner.archetype, 6);
+      suggs.forEach(x => { x.edge = 1 - (x.totalSent/targetVal); x.rankScore = x.edge + rerank(x); });
+      let best = suggs.filter(x => x.edge >= -0.10).sort((a,b)=> b.rankScore - a.rankScore)[0];
       let mode = 'fit';
       if (!best){
-        suggs = mlGenerateTradeSuggestions(pool, targetVal*ML_TF_WIN_BIAS, 'tweener', 5);
-        suggs.forEach(x => x.edge = 1 - (x.totalSent/targetVal));
-        best = suggs.sort((a,b)=> Math.abs(a.edge) - Math.abs(b.edge))[0];
+        suggs = mlGenerateTradeSuggestions(pool, targetVal*ML_TF_WIN_BIAS, 'tweener', 6);
+        suggs.forEach(x => { x.edge = 1 - (x.totalSent/targetVal); x.rankScore = -Math.abs(x.edge) + rerank(x); });
+        best = suggs.sort((a,b)=> b.rankScore - a.rankScore)[0];
         mode = 'value';
       }
       if (!best) return `<div class="ml-tf-note">No realistic value match from your roster here.</div>`;
-      return mlTfCardHtml({ dir:'for', ctx, owner, target:reg.target, anchorVal:targetVal, sugg:best, mode });
+      const tPos = mlTfPosOf(reg.target);
+      const need = {
+        fillsMyNeedPos: (tPos && myNeed[tPos]) ? tPos : null,
+        myRankAtTarget: (ctx.myTeam && ctx.myTeam.posRanks) ? ctx.myTeam.posRanks[tPos] : null,
+        ownerHelpPos: (best.sending||[]).map(a=>a.pos).find(p => p && ownerNeed[p]) || null,
+        myThinSentPos: (best.sending||[]).map(a=>a.pos).find(p => p && myNeed[p]) || null,
+        nT
+      };
+      return mlTfCardHtml({ dir:'for', ctx, owner, target:reg.target, anchorVal:targetVal, sugg:best, mode, need });
     } else {
       const playerVal = mlTfPlayerVal(reg.target, reg.leagueId);
       if (!playerVal) return `<div class="ml-tf-note">No value on file for ${mlTfEsc(reg.target)}.</div>`;
       const theirPool = mlBuildAssetPool(reg.leagueId, owner.rosterId);
       if (!theirPool.length) return `<div class="ml-tf-note">${mlTfEsc(owner.ownerUser)} has no tradeable assets here.</div>`;
       const myArch = (ctx.myTeam && ctx.myTeam.archetype) || 'tweener';
-      let suggs = mlGenerateTradeSuggestions(theirPool, playerVal/ML_TF_WIN_BIAS, myArch, 2);
-      suggs.forEach(x => x.edge = (x.totalSent/playerVal) - 1);
-      let best = suggs.filter(x => x.edge >= -0.02).sort((a,b)=> b.edge - a.edge)[0];
+      // Favor a return package that fills MY weak position.
+      const rerank = (x) => { let adj = 0; (x.sending||[]).forEach(a => { if (a.pos && myNeed[a.pos]) adj += 0.05; }); return adj; };
+      let suggs = mlGenerateTradeSuggestions(theirPool, playerVal/ML_TF_WIN_BIAS, myArch, 5);
+      suggs.forEach(x => { x.edge = (x.totalSent/playerVal) - 1; x.rankScore = x.edge + rerank(x); });
+      let best = suggs.filter(x => x.edge >= -0.02).sort((a,b)=> b.rankScore - a.rankScore)[0];
       let mode = 'fit';
       if (!best){
         suggs = mlGenerateTradeSuggestions(theirPool, playerVal/ML_TF_WIN_BIAS, 'tweener', 5);
-        suggs.forEach(x => x.edge = (x.totalSent/playerVal) - 1);
-        best = suggs.sort((a,b)=> Math.abs(a.edge) - Math.abs(b.edge))[0];
+        suggs.forEach(x => { x.edge = (x.totalSent/playerVal) - 1; x.rankScore = -Math.abs(x.edge) + rerank(x); });
+        best = suggs.sort((a,b)=> b.rankScore - a.rankScore)[0];
         mode = 'value';
       }
       if (!best) return `<div class="ml-tf-note">No fair return from ${mlTfEsc(owner.ownerUser)} here.</div>`;
-      return mlTfCardHtml({ dir:'away', ctx, owner, target:reg.target, anchorVal:playerVal, sugg:best, mode });
+      const need = { getsMyNeedPos: (best.sending||[]).map(a=>a.pos).find(p => p && myNeed[p]) || null, nT };
+      return mlTfCardHtml({ dir:'away', ctx, owner, target:reg.target, anchorVal:playerVal, sugg:best, mode, need });
     }
   } catch(e){
     return `<div class="ml-tf-note">Couldn't build a proposal — ${mlTfEsc((e&&e.message)||String(e))}</div>`;
@@ -8573,6 +8626,18 @@ function mlTfAnchorAsset(name, val){
   return `<div class="ml-tf-asset"><span class="ml-tf-thumb">${sid?`<img src="${CDN}/content/nfl/players/thumb/${sid}.jpg" onerror="this.style.display='none'">`:''}</span><span class="ml-tf-asset-n hot">${mlTfEsc(name)}</span><span class="ml-tf-asset-v">${Math.round(val||0).toLocaleString()}</span></div>`;
 }
 
+function mlTfNeedHtml(o){
+  const n = o.need; if (!n) return '';
+  const parts = [];
+  if (o.dir === 'away'){
+    if (n.getsMyNeedPos) parts.push(`✓ gets you ${n.getsMyNeedPos} help (you're thin there)`);
+  } else {
+    if (n.fillsMyNeedPos) parts.push(`✓ fills your ${n.fillsMyNeedPos} need${n.myRankAtTarget?` (${n.myRankAtTarget}/${n.nT})`:''}`);
+    if (n.ownerHelpPos) parts.push(`sends ${mlTfEsc(o.owner.ownerUser)} ${n.ownerHelpPos} help`);
+    if (n.myThinSentPos && n.myThinSentPos !== n.fillsMyNeedPos) parts.push(`⚠ gives up ${n.myThinSentPos} (you're thin)`);
+  }
+  return parts.length ? `<div class="ml-tf-need">${parts.join(' · ')}</div>` : '';
+}
 function mlTfCardHtml(o){
   const s = o.sugg, edge = s.edge, edgePct = Math.round(Math.abs(edge)*100);
   const win = edge >= 0.02, fair = !win && edge > -0.02;
@@ -8581,6 +8646,7 @@ function mlTfCardHtml(o){
   const goBtn = `<button class="ml-tf-go" onclick="mlTfGoToLeague('${o.ctx.leagueId}')">Go to league ↗</button>`;
   const valueTag = isValue ? `<span class="ml-tf-tag" title="No archetype-fit offer — closest value match">VALUE</span>` : '';
   const note = `${isValue?'Closest value match (no archetype-fit offer) · ':''}${mlTfEsc(o.ctx.fmtLabel)}`;
+  const needHtml = mlTfNeedHtml(o);
   if (o.dir === 'away'){
     const edgeBadge = win ? `<span class="ml-tf-edge win">You win ${edgePct}%</span>` : (fair ? `<span class="ml-tf-edge">Fair</span>` : `<span class="ml-tf-edge">−${edgePct}% light</span>`);
     return `<div class="ml-tf-card${win?' win':''}">
@@ -8590,6 +8656,7 @@ function mlTfCardHtml(o){
           <div class="ml-tf-arrow">→</div>
           <div class="ml-tf-side"><div class="ml-tf-side-lab">You get back</div>${pkg}</div>
         </div>
+        ${needHtml}
         <div class="ml-tf-note">${note}</div>
       </div>`;
   }
@@ -8601,6 +8668,7 @@ function mlTfCardHtml(o){
         <div class="ml-tf-arrow">→</div>
         <div class="ml-tf-side"><div class="ml-tf-side-lab">You get</div>${mlTfAnchorAsset(o.target, o.anchorVal)}</div>
       </div>
+      ${needHtml}
       <div class="ml-tf-note">${note}</div>
     </div>`;
 }
