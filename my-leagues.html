@@ -3440,7 +3440,12 @@
             .ml-tf-card.win { border-color:var(--green); }
             .ml-tf-card-top { display:flex; align-items:center; gap:6px; margin-bottom:7px; }
             .ml-tf-tag { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:9px; letter-spacing:.05em; padding:2px 6px; border-radius:3px; background:var(--border); color:var(--white); }
-            .ml-tf-guru { display:inline-flex; align-items:center; gap:3px; font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:9.5px; letter-spacing:.04em; text-transform:uppercase; color:var(--green); border:1px solid var(--green); border-radius:3px; padding:2px 6px; white-space:nowrap; }
+            .ml-tf-guru { display:inline-flex; align-items:center; gap:4px; font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:9.5px; letter-spacing:.04em; text-transform:uppercase; color:var(--green); border:1px solid var(--green); border-radius:3px; padding:2px 6px 2px 4px; white-space:nowrap; }
+            .ml-tf-guru-img { width:15px; height:15px; flex:none; display:block; }
+            .ml-tf-offers-head { display:flex; align-items:center; gap:8px; margin-bottom:8px; }
+            .ml-tf-offers-n { font-family:'Kanit',sans-serif; font-weight:700; font-style:italic; font-size:10px; text-transform:uppercase; letter-spacing:.05em; opacity:.6; }
+            .ml-tf-offers-head .ml-tf-go { margin-left:auto; }
+            .ml-tf-offers .ml-tf-card + .ml-tf-card { margin-top:8px; }
             .ml-tf-edge { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:11px; padding:2px 7px; border-radius:3px; border:1px solid var(--border); color:var(--white); }
             .ml-tf-edge.win { background:var(--green); border-color:var(--green); color:#111111; }
             .ml-tf-go { margin-left:auto; font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:10px; text-transform:uppercase; letter-spacing:.04em; background:transparent; border:1px solid var(--border); color:var(--white); padding:3px 8px; border-radius:4px; cursor:pointer; }
@@ -8560,61 +8565,90 @@ function mlTfProposalHtml(reg){
       const pool = mlBuildAssetPool(reg.leagueId, ctx.myRosterId);
       if (!pool.length) return `<div class="ml-tf-note">You have no tradeable assets in this league.</div>`;
       const ownerNeed = mlTfNeedSet(owner, nT);
-      // Re-rank value-acceptable packages: don't deplete MY weak spot; favor
-      // sending a position the OWNER is thin at (likelier to be accepted).
-      const rerank = (x) => {
-        let adj = 0;
-        (x.sending||[]).forEach(a => {
-          if (a.pos && myNeed[a.pos])    adj -= 0.05;
-          if (a.pos && ownerNeed[a.pos]) adj += 0.04;
-        });
-        return adj;
-      };
-      let suggs = mlGenerateTradeSuggestions(pool, targetVal*ML_TF_WIN_BIAS, owner.archetype, 6);
-      suggs.forEach(x => { x.edge = 1 - (x.totalSent/targetVal); x.rankScore = x.edge + rerank(x); });
-      let best = suggs.filter(x => x.edge >= -0.10).sort((a,b)=> b.rankScore - a.rankScore)[0];
-      let mode = 'fit';
-      if (!best){
-        suggs = mlGenerateTradeSuggestions(pool, targetVal*ML_TF_WIN_BIAS, 'tweener', 6);
-        suggs.forEach(x => { x.edge = 1 - (x.totalSent/targetVal); x.rankScore = -Math.abs(x.edge) + rerank(x); });
-        best = suggs.sort((a,b)=> b.rankScore - a.rankScore)[0];
-        mode = 'value';
-      }
-      if (!best) return `<div class="ml-tf-note">No realistic value match from your roster here.</div>`;
+      const offers = mlTfPickOffers(pool, targetVal, owner.archetype, 'for', myNeed, ownerNeed);
+      if (!offers.length) return `<div class="ml-tf-note">No realistic value match from your roster here.</div>`;
       const tPos = mlTfPosOf(reg.target);
-      const need = {
-        fillsMyNeedPos: (tPos && myNeed[tPos]) ? tPos : null,
-        myRankAtTarget: (ctx.myTeam && ctx.myTeam.posRanks) ? ctx.myTeam.posRanks[tPos] : null,
-        ownerHelpPos: (best.sending||[]).map(a=>a.pos).find(p => p && ownerNeed[p]) || null,
-        myThinSentPos: (best.sending||[]).map(a=>a.pos).find(p => p && myNeed[p]) || null,
-        nT
-      };
-      return mlTfCardHtml({ dir:'for', ctx, owner, target:reg.target, anchorVal:targetVal, sugg:best, mode, need });
+      const cards = offers.map(o => {
+        const need = {
+          fillsMyNeedPos: (tPos && myNeed[tPos]) ? tPos : null,
+          myRankAtTarget: (ctx.myTeam && ctx.myTeam.posRanks) ? ctx.myTeam.posRanks[tPos] : null,
+          ownerHelpPos: (o.sugg.sending||[]).map(a=>a.pos).find(p => p && ownerNeed[p]) || null,
+          myThinSentPos: (o.sugg.sending||[]).map(a=>a.pos).find(p => p && myNeed[p]) || null,
+          nT
+        };
+        return mlTfCardHtml({ dir:'for', ctx, owner, target:reg.target, anchorVal:targetVal, sugg:o.sugg, mode:o.mode, need });
+      }).join('');
+      return mlTfOffersWrap(ctx, offers.length, cards);
     } else {
       const playerVal = mlTfPlayerVal(reg.target, reg.leagueId);
       if (!playerVal) return `<div class="ml-tf-note">No value on file for ${mlTfEsc(reg.target)}.</div>`;
       const theirPool = mlBuildAssetPool(reg.leagueId, owner.rosterId);
       if (!theirPool.length) return `<div class="ml-tf-note">${mlTfEsc(owner.ownerUser)} has no tradeable assets here.</div>`;
       const myArch = (ctx.myTeam && ctx.myTeam.archetype) || 'tweener';
-      // Favor a return package that fills MY weak position.
-      const rerank = (x) => { let adj = 0; (x.sending||[]).forEach(a => { if (a.pos && myNeed[a.pos]) adj += 0.05; }); return adj; };
-      let suggs = mlGenerateTradeSuggestions(theirPool, playerVal/ML_TF_WIN_BIAS, myArch, 5);
-      suggs.forEach(x => { x.edge = (x.totalSent/playerVal) - 1; x.rankScore = x.edge + rerank(x); });
-      let best = suggs.filter(x => x.edge >= -0.02).sort((a,b)=> b.rankScore - a.rankScore)[0];
-      let mode = 'fit';
-      if (!best){
-        suggs = mlGenerateTradeSuggestions(theirPool, playerVal/ML_TF_WIN_BIAS, 'tweener', 5);
-        suggs.forEach(x => { x.edge = (x.totalSent/playerVal) - 1; x.rankScore = -Math.abs(x.edge) + rerank(x); });
-        best = suggs.sort((a,b)=> b.rankScore - a.rankScore)[0];
-        mode = 'value';
-      }
-      if (!best) return `<div class="ml-tf-note">No fair return from ${mlTfEsc(owner.ownerUser)} here.</div>`;
-      const need = { getsMyNeedPos: (best.sending||[]).map(a=>a.pos).find(p => p && myNeed[p]) || null, nT };
-      return mlTfCardHtml({ dir:'away', ctx, owner, target:reg.target, anchorVal:playerVal, sugg:best, mode, need });
+      const offers = mlTfPickOffers(theirPool, playerVal, myArch, 'away', myNeed, null);
+      if (!offers.length) return `<div class="ml-tf-note">No fair return from ${mlTfEsc(owner.ownerUser)} here.</div>`;
+      const cards = offers.map(o => {
+        const need = { getsMyNeedPos: (o.sugg.sending||[]).map(a=>a.pos).find(p => p && myNeed[p]) || null, nT };
+        return mlTfCardHtml({ dir:'away', ctx, owner, target:reg.target, anchorVal:playerVal, sugg:o.sugg, mode:o.mode, need });
+      }).join('');
+      return mlTfOffersWrap(ctx, offers.length, cards);
     }
   } catch(e){
     return `<div class="ml-tf-note">Couldn't build a proposal — ${mlTfEsc((e&&e.message)||String(e))}</div>`;
   }
+}
+
+// Build up to 3 DISTINCT offers spanning a range of edges. Merge archetype-tilted
+// + neutral "value" candidates (the value fallback fills in when archetype-fit is
+// thin), dedupe by package, order by favor, then spread the picks across the
+// range so you see a high / mid / fair option — not three near-identical packages.
+function mlTfPickOffers(pool, anchorVal, archetype, dir, myNeed, ownerNeed){
+  const isFor = dir === 'for';
+  const target = isFor ? anchorVal * ML_TF_WIN_BIAS : anchorVal / ML_TF_WIN_BIAS;
+  const edgeOf = (c) => isFor ? (1 - c.totalSent/anchorVal) : (c.totalSent/anchorVal - 1);
+  const needAdj = (c) => {
+    let adj = 0;
+    (c.sending||[]).forEach(a => {
+      if (a.pos && myNeed && myNeed[a.pos])       adj += isFor ? -0.05 : 0.05;
+      if (a.pos && ownerNeed && ownerNeed[a.pos]) adj += 0.04;
+    });
+    return adj;
+  };
+  const seen = {}, uniq = [];
+  const add = (arr, mode) => (arr||[]).forEach(c => {
+    const sig = (c.sending||[]).map(a=>a.name).slice().sort().join('|');
+    if (!sig || seen[sig]) return; seen[sig] = 1;
+    c.edge = edgeOf(c); c.mode = mode; c.needAdj = needAdj(c);
+    uniq.push(c);
+  });
+  add(mlGenerateTradeSuggestions(pool, target, archetype, 8), 'fit');
+  add(mlGenerateTradeSuggestions(pool, target, 'tweener', 8), 'value');
+  if (!uniq.length) return [];
+  let list = uniq.filter(c => c.edge >= -0.15);     // keep it realistic (no wild overpays)
+  if (list.length < 3) list = uniq.slice();
+  list.sort((a,b) => (b.edge - a.edge) || (b.needAdj - a.needAdj));
+  return mlTfSpread(list, 3).map(c => ({ sugg:c, mode:c.mode }));
+}
+
+// Pick up to n items spread across a sorted list so the result spans the range.
+function mlTfSpread(list, n){
+  if (list.length <= n) return list.slice();
+  const picks = [], used = new Set();
+  for (let i = 0; i < n; i++){
+    let idx = Math.round(i * (list.length - 1) / (n - 1));
+    while (used.has(idx) && idx < list.length - 1) idx++;
+    while (used.has(idx) && idx > 0) idx--;
+    if (used.has(idx)) continue;
+    used.add(idx); picks.push(list[idx]);
+  }
+  return picks;
+}
+
+function mlTfOffersWrap(ctx, count, cardsHtml){
+  return `<div class="ml-tf-offers">
+      <div class="ml-tf-offers-head"><span class="ml-tf-offers-n">${count} offer${count>1?'s':''} · best → fair</span><button class="ml-tf-go" onclick="mlTfGoToLeague('${ctx.leagueId}')">Go to league ↗</button></div>
+      ${cardsHtml}
+    </div>`;
 }
 
 function mlTfAssetRow(a){
@@ -8647,16 +8681,16 @@ function mlTfCardHtml(o){
   const win = edge >= 0.02, fair = !win && edge > -0.02;
   const isValue = o.mode === 'value';
   const pkg = (s.sending||[]).map(mlTfAssetRow).join('');
-  const goBtn = `<button class="ml-tf-go" onclick="mlTfGoToLeague('${o.ctx.leagueId}')">Go to league ↗</button>`;
-  const valueTag = isValue ? `<span class="ml-tf-tag" title="No archetype-fit offer — closest value match">VALUE</span>` : '';
-  const note = `${isValue?'Closest value match (no archetype-fit offer) · ':''}${mlTfEsc(o.ctx.fmtLabel)}`;
+  const valueTag = isValue ? `<span class="ml-tf-tag" title="Value-based offer (no archetype tilt)">VALUE</span>` : '';
+  const note = `${isValue?'Value-based offer · ':''}${mlTfEsc(o.ctx.fmtLabel)}`;
   const needHtml = mlTfNeedHtml(o);
-  // Guru Approved — any trade that lands fair or in your favor (not an overpay).
-  const guruBadge = (win || fair) ? `<span class="ml-tf-guru" title="Fair or in your favor — Guru Approved">&#10003; Guru Approved</span>` : '';
+  // Guru Approved — only when the trade is in your favor by 4%+.
+  const guru = edge >= 0.04;
+  const guruBadge = guru ? `<span class="ml-tf-guru" title="In your favor by 4%+ — Guru Approved"><img class="ml-tf-guru-img" src="assets/images/guru-approved.svg" alt="">Guru Approved</span>` : '';
   if (o.dir === 'away'){
     const edgeBadge = win ? `<span class="ml-tf-edge win">You win ${edgePct}%</span>` : (fair ? `<span class="ml-tf-edge">Fair</span>` : `<span class="ml-tf-edge">−${edgePct}% light</span>`);
-    return `<div class="ml-tf-card${win?' win':''}">
-        <div class="ml-tf-card-top">${guruBadge}${valueTag}${edgeBadge}${goBtn}</div>
+    return `<div class="ml-tf-card${guru?' win':''}">
+        <div class="ml-tf-card-top">${guruBadge}${valueTag}${edgeBadge}</div>
         <div class="ml-tf-flow">
           <div class="ml-tf-side"><div class="ml-tf-side-lab">You send</div>${mlTfAnchorAsset(o.target, o.anchorVal)}</div>
           <div class="ml-tf-arrow">→</div>
@@ -8667,8 +8701,8 @@ function mlTfCardHtml(o){
       </div>`;
   }
   const edgeBadge = win ? `<span class="ml-tf-edge win">You win ${edgePct}%</span>` : (fair ? `<span class="ml-tf-edge">Fair</span>` : `<span class="ml-tf-edge">+${edgePct}% over</span>`);
-  return `<div class="ml-tf-card${win?' win':''}">
-      <div class="ml-tf-card-top">${guruBadge}${valueTag}${edgeBadge}${goBtn}</div>
+  return `<div class="ml-tf-card${guru?' win':''}">
+      <div class="ml-tf-card-top">${guruBadge}${valueTag}${edgeBadge}</div>
       <div class="ml-tf-flow">
         <div class="ml-tf-side"><div class="ml-tf-side-lab">You send</div>${pkg}</div>
         <div class="ml-tf-arrow">→</div>
