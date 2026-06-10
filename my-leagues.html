@@ -8511,6 +8511,10 @@ function mlTfRender(){
   else mlTfRenderFor(out);
 }
 
+// Archetype display order: strongest (dynasty) → weakest (emergency).
+const ML_TF_ARCH_ORDER = ['dynasty','contender','tweener','rebuilder','emergency'];
+function mlTfArchRank(a){ const i = ML_TF_ARCH_ORDER.indexOf(a); return i < 0 ? 99 : i; }
+
 // Small archetype chip (reuses My-Leagues archetype colors).
 function mlTfArchChip(archetype){
   if (!archetype) return '';
@@ -8557,7 +8561,7 @@ function mlTfForShopHtml(pn, groups){
 }
 
 function mlTfForLeagueHtml(g){
-  const rows = g.holders.map(h => {
+  const rows = g.holders.slice().sort((a,b)=> mlTfArchRank(a.archetype) - mlTfArchRank(b.archetype)).map(h => {
     const pn = h.target;
     const last = String(pn).split(' ').slice(1).join(' ') || pn;
     const rid = 'mltf-' + mlTfSlug(g.leagueId) + '-' + mlTfSlug(pn) + '-' + mlTfSlug(h.ownerUser);
@@ -8622,7 +8626,7 @@ function mlTfAwayShopHtml(pn, groups){
 function mlTfAwayLeagueHtml(g){
   const pn = g.target;
   const last = String(pn).split(' ').slice(1).join(' ') || pn;
-  const buyers = g.buyers.map(b => {
+  const buyers = g.buyers.slice().sort((a,b)=> mlTfArchRank(a.archetype) - mlTfArchRank(b.archetype)).map(b => {
     const rid = 'mltf-' + mlTfSlug(g.leagueId) + '-' + mlTfSlug(pn) + '-' + mlTfSlug(b.ownerUser);
     mlTfRegistry[rid] = { leagueId:g.leagueId, rosterId:b.rosterId, target:pn, dir:'away' };
     return `<div class="ml-tf-lg">
