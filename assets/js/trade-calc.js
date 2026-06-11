@@ -517,7 +517,11 @@ function renderCalcModal() {
     verdictText = diff > 0 ? '⚠ Side A overpays' : '⚠ Side B overpays';
   }
 
-  const renderSide = (sideId, side, label) => {
+  // The trade favors the user when they receive more value than they send (diff < 0).
+  // When it does, stamp Side A (You Send) as Guru Approved.
+  const favorsUser = (totalA > 0 && totalB > 0 && diff < 0);
+  const guruStamp = '<span class="ml-tf-guru ml-calc-guru" title="Guru Approved — this trade comes out in your favor"><img class="ml-tf-guru-img" src="assets/images/john-cartoon.png" alt="">Guru Approved</span>';
+  const renderSide = (sideId, side, label, showGuru) => {
     const total = mlCalcSideTotal(side);
     const items = side.length ? side.map((a, i) => `
       <div class="ml-calc-asset-row">
@@ -537,7 +541,7 @@ function renderCalcModal() {
     return `
       <div class="ml-calc-side">
         <div class="ml-calc-side-header">
-          <span class="ml-calc-side-label">${label}</span>
+          <span class="ml-calc-side-headL"><span class="ml-calc-side-label">${label}</span>${showGuru ? guruStamp : ''}</span>
           <span class="ml-calc-side-total ${total > 0 ? 'has-value' : ''}">${total > 0 ? total.toLocaleString() : '—'}</span>
         </div>
         <div class="ml-calc-assets">${items}</div>
@@ -566,8 +570,8 @@ function renderCalcModal() {
 
   document.getElementById('ml-calc-body').innerHTML = `
     <div class="ml-calc-builder">
-      ${renderSide('A', MLCALC.sides.A, 'You Send')}
-      ${renderSide('B', MLCALC.sides.B, 'You Receive')}
+      ${renderSide('A', MLCALC.sides.A, 'You Send', favorsUser)}
+      ${renderSide('B', MLCALC.sides.B, 'You Receive', false)}
     </div>
     <div class="ml-calc-balance">
       <div class="ml-calc-balance-row"><span class="ml-calc-balance-label">You Send</span><span class="ml-calc-balance-val">${totalA.toLocaleString()}</span></div>
@@ -587,6 +591,18 @@ function mlCalcSearch(sideId, query) {
     const q = (query || '').trim().toLowerCase();
     const taken = new Set(MLCALC.sides[sideId].map(a => a.name));
 
+    // Gap-targeting: when browsing (no text query) and THIS side is the lighter one,
+    // surface the players whose value is closest to the amount still needed to
+    // balance the trade — the "remaining value that is off" — instead of just the
+    // highest-value players. With a query, fall back to value-desc (named search).
+    const _thisTotal  = mlCalcSideTotal(MLCALC.sides[sideId]);
+    const _otherTotal = mlCalcSideTotal(MLCALC.sides[sideId === 'A' ? 'B' : 'A']);
+    const _need = _otherTotal - _thisTotal;        // value to add to THIS side to balance
+    const _gapSort = (!q && _need > 0);
+    const _cmp = _gapSort
+      ? (a, b) => Math.abs((a.value || 0) - _need) - Math.abs((b.value || 0) - _need)
+      : (a, b) => (b.value || 0) - (a.value || 0);
+
     let assets = [];
 
     // SCOPED MODE: when opened from the trade builder, both sides are restricted to
@@ -602,7 +618,7 @@ function mlCalcSearch(sideId, query) {
         assets = pool
           .filter(a => !taken.has(a.name))
           .filter(a => !q || a.name.toLowerCase().includes(q) || (a.pos || '').toLowerCase().includes(q))
-          .sort((a, b) => (b.value || 0) - (a.value || 0))
+          .sort(_cmp)
           .map(a => ({ name: a.name, value: a.value, pos: a.pos, type: a.type, isMine: isMineFlag }));
       }
     }
@@ -620,15 +636,15 @@ function mlCalcSearch(sideId, query) {
         })
         .filter(Boolean)
         .filter(a => !taken.has(a.name))
-        .sort((a, b) => b.value - a.value);
+        .sort(_cmp);
     } else {
       // All FP-tracked players + picks
       assets = Object.entries(window.FP_VALUES)
         .map(([name, d]) => ({ name, value: d.value, pos: d.posRank ? d.posRank.replace(/\d+/g,'') : 'WR', type: 'player' }))
         .filter(a => !taken.has(a.name))
         .filter(a => !q || a.name.toLowerCase().includes(q))
-        .sort((a, b) => b.value - a.value)
-        .slice(0, 16);
+        .sort(_cmp)
+        .slice(0, 60);
     }
 
     if (!assets.length) {

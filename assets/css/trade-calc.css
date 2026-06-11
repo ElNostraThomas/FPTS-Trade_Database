@@ -198,6 +198,7 @@
     display: flex; justify-content: space-between; align-items: center;
   }
 .ml-calc-side-label { font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 13px; color: var(--white); text-transform: uppercase; letter-spacing: .06em; }
+.ml-calc-side-headL { display: inline-flex; align-items: center; gap: 9px; min-width: 0; }
 .ml-calc-side-total { font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 18px; color: rgba(255,255,255,0.4); }
 .ml-calc-side-total.has-value { color: var(--red); }
 .ml-calc-assets { padding: 10px; min-height: 80px; display: flex; flex-direction: column; gap: 6px; }
@@ -229,7 +230,7 @@
 .ml-calc-search-results {
     position: absolute; top: calc(100% - 1px); left: 10px; right: 10px;
     background: var(--surface2); border: 1px solid var(--border2);
-    max-height: 240px; overflow-y: auto; z-index: 5; display: none;
+    max-height: 360px; overflow-y: auto; z-index: 5; display: none;
   }
 .ml-calc-search-results.open { display: block; }
 .ml-calc-search-item {
