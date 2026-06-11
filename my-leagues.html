@@ -6844,22 +6844,20 @@ async function mlHistorySetMode(leagueId, mode) {
       renderTradeYear(leagueId, 0, cache.trades, cache.players, cache.leagueChain);
     }
   } else if (mode === 'waivers') {
-    // Always reset to leaderboard
-    window.ML_WAIVERS_SUBTAB[leagueId] = 'leaderboard';
+    // Default to Best Available (instant — rosters + FP_VALUES already loaded);
+    // the FAAB views fetch transactions on demand.
+    window.ML_WAIVERS_SUBTAB[leagueId] = 'available';
     const tabsEl = document.getElementById(`ml-trade-year-tabs-${leagueId}`);
     if (tabsEl) {
       tabsEl.innerHTML = `
-        <div class="ml-history-tab active" onclick="mlWaiversSetSubtab('${leagueId}','leaderboard',this)" data-subtab="leaderboard">Leaderboard</div>
+        <div class="ml-history-tab active" onclick="mlWaiversSetSubtab('${leagueId}','available',this)" data-subtab="available">Best Available</div>
+        <div class="ml-history-tab" onclick="mlWaiversSetSubtab('${leagueId}','leaderboard',this)" data-subtab="leaderboard">Leaderboard</div>
         <div class="ml-history-tab" onclick="mlWaiversSetSubtab('${leagueId}','topbids',this)" data-subtab="topbids">Top Bids</div>
         <div class="ml-history-tab" onclick="mlWaiversSetSubtab('${leagueId}','recent',this)" data-subtab="recent">Recent Activity</div>
         <div class="ml-history-tab" onclick="mlWaiversSetSubtab('${leagueId}','byteam',this)" data-subtab="byteam">By Team</div>`;
     }
-    const contentEl = document.getElementById(`trades-content-${leagueId}`);
-    if (contentEl) {
-      contentEl.innerHTML = `<div class="ml-spinner"><div class="ml-spinner-dot"></div><div class="ml-spinner-dot"></div><div class="ml-spinner-dot"></div><span class="ml-spinner-text">Loading waivers...</span></div>`;
-    }
-    await mlEnsureWaiversRaw(leagueId);
-    renderWaiversSubtab(leagueId, 'leaderboard');
+    renderWaiversSubtab(leagueId, 'available');
+    mlEnsureWaiversRaw(leagueId);   // pre-warm the FAAB transactions in the background
   } else if (mode === 'standings') {
     // Standings has no sub-tabs — clear the year/sub-tab row
     const tabsEl = document.getElementById(`ml-trade-year-tabs-${leagueId}`);
@@ -6887,11 +6885,17 @@ async function mlHistorySetMode(leagueId, mode) {
 }
 
 // Click handler for waivers sub-tabs
-function mlWaiversSetSubtab(leagueId, subtab, tabEl) {
+async function mlWaiversSetSubtab(leagueId, subtab, tabEl) {
   window.ML_WAIVERS_SUBTAB[leagueId] = subtab;
   const parent = tabEl.parentNode;
   if (parent) parent.querySelectorAll('.ml-history-tab').forEach(t => t.classList.remove('active'));
   tabEl.classList.add('active');
+  // FAAB views need the transactions; Best Available is instant. Fetch on first FAAB click.
+  if (subtab !== 'available' && !window.ML_WAIVERS_RAW[leagueId]) {
+    const el = document.getElementById(`trades-content-${leagueId}`);
+    if (el) el.innerHTML = `<div class="ml-spinner"><div class="ml-spinner-dot"></div><div class="ml-spinner-dot"></div><div class="ml-spinner-dot"></div><span class="ml-spinner-text">Loading waivers...</span></div>`;
+    await mlEnsureWaiversRaw(leagueId);
+  }
   renderWaiversSubtab(leagueId, subtab);
 }
 
@@ -6943,6 +6947,7 @@ async function mlEnsureWaiversRaw(leagueId) {
 function renderWaiversSubtab(leagueId, subtab) {
   const el = document.getElementById(`trades-content-${leagueId}`);
   if (!el) return;
+  if (subtab === 'available')    return renderWaiversBestAvailable(el, leagueId);   // no transactions needed
   const data = window.ML_WAIVERS_RAW[leagueId];
   if (!data) { el.innerHTML = `<div class="ml-empty">Waivers data not available</div>`; return; }
   if (subtab === 'leaderboard')  return renderWaiversLeaderboard(el, leagueId, data);
@@ -6950,6 +6955,40 @@ function renderWaiversSubtab(leagueId, subtab) {
   if (subtab === 'recent')       return renderWaiversRecent(el, leagueId, data);
   if (subtab === 'byteam')       return renderWaiversByTeam(el, leagueId, data);
   el.innerHTML = `<div class="ml-empty">Unknown waivers tab</div>`;
+}
+
+// SUB-VIEW 0: BEST AVAILABLE — this league's top free agents by dynasty value.
+// Instant: reads the already-loaded rosters (to exclude the rostered) + FP_VALUES
+// (format-aware value via mlFpValue). Tap a player → the player detail panel.
+function renderWaiversBestAvailable(el, leagueId) {
+  const d = (window.ML_ALL_LEAGUE_DATA || {})[leagueId];
+  if (!d || !d.rosters) { el.innerHTML = `<div class="ml-empty">League data not loaded.</div>`; return; }
+  const rostered = new Set();
+  (d.rosters || []).forEach(r => (r.players || []).forEach(pid => rostered.add(String(pid))));
+  const fp = window.FP_VALUES || {};
+  const rows = [];
+  Object.keys(fp).forEach(name => {
+    const k = fp[name];
+    const sid = k.sleeperId || (window.SLEEPER_IDS || {})[name];
+    if (!sid || rostered.has(String(sid))) return;
+    const v = mlFpValue(k, leagueId);
+    if (!v || v <= 0) return;
+    rows.push({ sid: String(sid), name, pos: k.pos || (k.posRank || '').replace(/[0-9]+$/, '') || 'WR',
+      posRank: k.posRank || '', age: k.age || null, value: v });
+  });
+  rows.sort((a, b) => b.value - a.value);
+  const top = rows.slice(0, 50);
+  if (!top.length) { el.innerHTML = `<div class="ml-empty">No valued free agents found for this league.</div>`; return; }
+  el.innerHTML = `<div class="ml-section-meta ml-mb-12">Top free agents by dynasty value — not rostered in this league. Tap a player for details.</div>`
+    + `<div>` + top.map(p =>
+        `<div onclick="openPlayerDetail('${p.sid}')" class="ml-team-roster-row pos-${p.pos}">`
+        + `${playerThumb(p.sid)}`
+        + `<div class="mlr-name-wrap"><div class="ml-team-roster-name">${posBadge(p.pos)}<span class="mlr-name">${p.name}</span></div></div>`
+        + `<span class="mlr-age">${p.age ? Math.round(p.age) + 'y' : ''}</span>`
+        + `<span class="mlr-posr">${p.posRank}</span>`
+        + `<span class="mlr-val">${p.value.toLocaleString()}</span>`
+        + `</div>`
+      ).join('') + `</div>`;
 }
 
 // Helper: fmt player display name + team
