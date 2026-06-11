@@ -10,7 +10,7 @@
 <link rel="stylesheet" href="assets/css/brand.css?v=1787500000">
 <!-- Shared Trade Finder + Calculator styles -->
 <link rel="stylesheet" href="assets/css/trade-finder.css?v=1797000000">
-<link rel="stylesheet" href="assets/css/trade-calc.css?v=1797100000">
+<link rel="stylesheet" href="assets/css/trade-calc.css?v=1797300000">
 
 <script>window.FPTS_CURRENT_PAGE = 'calc';</script>
 <script src="assets/js/iframe-scroll-fix.js?v=1791700000"></script>
@@ -25,7 +25,7 @@
 <script src="assets/js/sleeper-session.js?v=1797000000"></script>
 <script src="assets/js/league-compute.js?v=1797000000"></script>
 <script src="assets/js/trade-finder.js?v=1797200000"></script>
-<script src="assets/js/trade-calc.js?v=1797100000"></script>
+<script src="assets/js/trade-calc.js?v=1797300000"></script>
 
 <style>
   /* ── page-specific chrome (tc-*) ── */
@@ -51,6 +51,15 @@
   .tc-tab { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:14px; text-transform:uppercase; letter-spacing:.04em; color:var(--white); opacity:.55; padding:11px 20px; cursor:pointer; border:none; background:none; border-bottom:2px solid transparent; margin-bottom:-1px; }
   .tc-tab:hover { opacity:.85; }
   .tc-tab.active { opacity:1; border-bottom-color:var(--red); }
+
+  /* Position pill colours — defined per-page across the site (not in brand.css);
+     needed here by the calculator + finder asset rows. */
+  .pos-wr { background: var(--pos-wr-bg); color: var(--pos-wr); }
+  .pos-rb { background: var(--pos-rb-bg); color: var(--pos-rb); }
+  .pos-qb { background: var(--pos-qb-bg); color: var(--pos-qb); }
+  .pos-te { background: var(--pos-te-bg); color: var(--pos-te); }
+  .pos-k    { background: var(--pos-k-bg);    color: var(--pos-k);    }
+  .pos-pick { background: var(--pos-pick-bg); color: var(--pos-pick); }
 
   /* The finder needs a flex-column container with a constrained height so its
      results region (.ml-tf-out) scrolls. Center it for readability. */

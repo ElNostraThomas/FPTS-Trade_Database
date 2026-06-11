@@ -483,6 +483,19 @@ function mlCalcSideTotal(side) {
   return side.reduce((sum, a) => sum + (a.value || 0), 0);
 }
 
+// Player headshot for a calc asset row. Assets don't always carry a sleeperId
+// (search results are name-keyed), so fall back to SLEEPER_IDS / FP_VALUES.
+// Returns a same-width spacer for picks / unknown players so rows stay aligned.
+function _mlCalcThumb(a) {
+  var sid = (a && a.sleeperId)
+    || (window.SLEEPER_IDS && a && window.SLEEPER_IDS[a.name])
+    || (window.FP_VALUES && a && window.FP_VALUES[a.name] && window.FP_VALUES[a.name].sleeperId)
+    || null;
+  if (!sid) return '<span class="ml-calc-asset-thumb ml-calc-asset-thumb-empty"></span>';
+  return '<img class="ml-calc-asset-thumb" src="https://sleepercdn.com/content/nfl/players/thumb/'
+    + sid + '.jpg" onerror="this.style.visibility=\'hidden\'">';
+}
+
 function renderCalcModal() {
   const totalA = mlCalcSideTotal(MLCALC.sides.A);
   const totalB = mlCalcSideTotal(MLCALC.sides.B);
@@ -508,7 +521,7 @@ function renderCalcModal() {
     const total = mlCalcSideTotal(side);
     const items = side.length ? side.map((a, i) => `
       <div class="ml-calc-asset-row">
-        <span class="ml-calc-asset-pos pos-${(a.pos || 'wr').toLowerCase()}">${a.pos}</span>
+        ${_mlCalcThumb(a)}<span class="ml-calc-asset-pos pos-${(a.pos || 'wr').toLowerCase()}">${a.pos}</span>
         <span class="ml-calc-asset-name">${a.name}</span>
         <span class="ml-calc-asset-val">${(a.value || 0).toLocaleString()}</span>
         <button class="ml-calc-asset-remove" onclick="mlCalcRemove('${sideId}',${i})">✕</button>
@@ -625,7 +638,7 @@ function mlCalcSearch(sideId, query) {
     }
     resultsEl.innerHTML = assets.map(a => `
       <div class="ml-calc-search-item" onmousedown="mlCalcAdd('${sideId}',${JSON.stringify(a).replace(/"/g,'&quot;')})">
-        <span class="ml-calc-asset-pos pos-${(a.pos || 'wr').toLowerCase()}">${a.pos}</span>
+        ${_mlCalcThumb(a)}<span class="ml-calc-asset-pos pos-${(a.pos || 'wr').toLowerCase()}">${a.pos}</span>
         <span class="ml-calc-asset-name">${a.name}${a.isMine ? ' <span class="ml-calc-yours-tag">YOURS</span>' : ''}</span>
         <span class="ml-calc-asset-val">${(a.value || 0).toLocaleString()}</span>
       </div>

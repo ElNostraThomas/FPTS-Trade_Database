@@ -2565,6 +2565,8 @@
     display: flex; align-items: center; gap: 8px; padding: 6px 8px;
     background: var(--surface); border: 1px solid var(--border);
   }
+  .ml-calc-asset-thumb { width: 24px; height: 24px; border-radius: 50%; object-fit: cover; flex-shrink: 0; background: rgba(255,255,255,.06); }
+  .ml-calc-asset-thumb-empty { display: inline-block; background: transparent; }
   .ml-calc-asset-pos {
     font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
     font-size: 10px; padding: 2px 6px; flex-shrink: 0;
@@ -3012,7 +3014,7 @@
 <!-- Cross-league Trade Finder (window.TradeFinder) — depends on LC + sleeper-helpers; init'd by the page. -->
 <script src="assets/js/trade-finder.js?v=1797200000"></script>
 <!-- Trade Calculator + Builder (window.TradeCalc) — depends on LC + TradeFinder; init'd by the page. -->
-<script src="assets/js/trade-calc.js?v=1797100000"></script>
+<script src="assets/js/trade-calc.js?v=1797300000"></script>
 <!-- Team logo helpers — load BEFORE player-panel.js so modal-hero badge works. -->
 <script src="assets/js/team-helpers.js?v=1778680002"></script>
 <script src="assets/js/player-panel.js?v=1797200000"></script>
