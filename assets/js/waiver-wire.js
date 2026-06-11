@@ -19,13 +19,14 @@
   function thumbByName(name) { return thumbBySid((global.SLEEPER_IDS || {})[name]); }
   // Player's NFL team logo. Free agents (no team) get the NFL shield instead of a
   // blank/broken logo; a missing team-logo PNG also falls back to the shield.
-  function teamLogo(team) {
+  function teamLogo(team, extraCls) {
     var t = team ? String(team).trim() : '';
+    var cls = 'tc-wv-team' + (extraCls ? ' ' + extraCls : '');
     var shield = 'https://a.espncdn.com/i/teamlogos/leagues/500/nfl.png';
     if (!t || t === 'FA' || t === '—' || t === 'N/A') {
-      return '<img class="tc-wv-team" src="' + shield + '" alt="NFL" title="Free agent" onerror="this.style.display=\'none\'">';
+      return '<img class="' + cls + '" src="' + shield + '" alt="NFL" title="Free agent" onerror="this.style.display=\'none\'">';
     }
-    return '<img class="tc-wv-team" src="' + CDN + '/images/team_logos/nfl/' + t.toLowerCase() + '.png" alt="' + esc(t) + '" title="' + esc(t) + '" onerror="this.onerror=function(){this.style.display=\'none\'};this.src=\'' + shield + '\'">';
+    return '<img class="' + cls + '" src="' + CDN + '/images/team_logos/nfl/' + t.toLowerCase() + '.png" alt="' + esc(t) + '" title="' + esc(t) + '" onerror="this.onerror=function(){this.style.display=\'none\'};this.src=\'' + shield + '\'">';
   }
   function sleeperUrl(lid) {
     if (!lid) return '#';
@@ -122,7 +123,7 @@
     };
     var parts = ['<div class="tc-wv-avail-head">' + thumbBySid(sid) +
       '<span class="tc-wv-avail-name">' + esc(name) + '</span>' + teamLogo(fp.team) +
-      (fp.value ? '<span class="tc-wv-avail-val">' + fp.value.toLocaleString() + '</span>' : '') +
+      (fp.value ? '<span class="tc-wv-avail-val">' + fp.value.toLocaleString() + '</span>' : '<span class="tc-wv-avail-val tc-wv-nr" title="No dynasty value — not ranked">NR</span>') +
       '<span class="tc-wv-avail-summary">Available in ' + free.length + ' of ' + rows.length + ' leagues</span></div>'];
     if (free.length) {
       parts.push('<div class="tc-wv-group">Available — Free Agent <span class="tc-wv-group-n">' + free.length + '</span></div>');
@@ -152,7 +153,7 @@
       var p = pdict[pid] || {};
       var name = p.full_name || ((p.first_name || '') + ' ' + (p.last_name || '')).trim() || pid;
       var fp = (global.FP_VALUES || {})[name] || {};
-      return { sid: pid, name: name, pos: p.position || '', value: fp.value || 0, count: t.count || 0, free: freeCount(pid) };
+      return { sid: pid, name: name, pos: p.position || '', team: p.team || fp.team || '', value: fp.value || 0, count: t.count || 0, free: freeCount(pid) };
     });
   }
   function loadTrending() {
@@ -170,12 +171,14 @@
     var tag = p.free > 0
       ? '<span class="tc-wv-tag free">in ' + p.free + ' of your leagues</span>'
       : '<span class="tc-wv-tag none">rostered</span>';
+    var val = p.value
+      ? '<span class="tc-wv-trend-val">' + p.value.toLocaleString() + '</span>'
+      : '<span class="tc-wv-trend-val tc-wv-nr" title="No dynasty value — not ranked">NR</span>';
     return '<div class="tc-wv-trend-row" onclick="WaiverWire.pick(\'' + jsq(p.name) + '\')">' +
       thumbBySid(p.sid) +
       '<span class="ml-calc-asset-pos pos-' + pos.toLowerCase() + '">' + esc(pos) + '</span>' +
-      '<span class="tc-wv-trend-name">' + esc(p.name) + '</span>' +
-      (p.value ? '<span class="tc-wv-trend-val">' + p.value.toLocaleString() + '</span>' : '<span class="tc-wv-trend-val"></span>') +
-      tag + '</div>';
+      '<span class="tc-wv-trend-id"><span class="tc-wv-trend-name">' + esc(p.name) + '</span>' + teamLogo(p.team, 'tc-wv-team--sm') + '</span>' +
+      val + tag + '</div>';
   }
   function renderTrending() {
     if (!_raw) return;
