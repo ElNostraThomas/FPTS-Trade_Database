@@ -2,7 +2,7 @@
 
 A static fantasy-football site deployed via GitHub Pages from `main`.
 **Ten HTML pages, all live and shipping:** `index.html` (trade DB),
-`trade-calculator.html` (public **Trade Tools** — Trade Finder + Calculator, built from shared modules),
+`trade-calculator.html` (public **Roster Moves** — Trade Finder + Calculator + Waiver Wire, built from shared modules),
 `compare.html` (player comparison),
 `my-leagues.html`, `live-draft.html`, `mock-draft.html` (AI-personality
 mock drafts), `tiers.html`, `adp-tool.html`, `rankings.html`,
@@ -11,6 +11,21 @@ mock drafts), `tiers.html`, `adp-tool.html`, `rankings.html`,
 Full operator manual: [`docs/WORKFLOW.md`](docs/WORKFLOW.md).
 Session-by-session changelog: [`docs/CHANGES.md`](docs/CHANGES.md).
 This file is the **resume-where-we-left-off** doc.
+
+---
+
+## Where we are (2026-06-11 — twenty-fifth session) — Waiver Wire + Live Draft "Your Drafts"; Trade Tools → "Roster Moves"
+
+Built on the modular engine below (24th session). Everything pushed; `python scripts/check-colors.py` CLEAN throughout.
+
+- **"Trade Tools" → "Roster Moves".** `trade-calculator.html` renamed site-wide (nav link + mobile selects on all 11 pages + `<title>` + page header). It now hosts three tabs: **Trade Finder · Trade Calculator · Waiver Wire**.
+- **Waiver Wire** — new shared module `assets/js/waiver-wire.js` (`window.WaiverWire`) + `assets/css/waiver-wire.css`. Search a player → per-league availability across your leagues (Free-Agent leagues first with a **"Claim On Sleeper ↗"** link, then owned-by-manager / on-your-roster); plus a global **Most Added / Most Dropped** board (Sleeper `/players/nfl/trending/add|drop?lookback_hours=168`). Each row is tagged "available in N of your leagues" and shows the player's **NFL team logo** (an NFL shield for true free agents) + dynasty value (or **"NR"** when MVS carries no value). Added as a Roster Moves tab **and** as a 4th **My Leagues** sidebar tab (`mlEnsureWaiverPanel` enriches `ML_ALL_LEAGUE_DATA[id].league` from `ML.leagues` so the module's format/avatar resolve; trending stacked 1-col in the narrow sidebar). Trending maps at **render time** (not fetch) so names/availability resolve even if the trending fetch beats the league load (`e25acee`).
+- **Calculator: roster-style "Add player" dropdowns** — browsing a side (no query) groups candidates by position (QB→RB→WR→TE→K/Other→Picks); in scoped mode the candidates ARE the rosters (yours on Send, the manager's on Receive). Plus gap-targeted suggestions + a **Guru-Approved** seal (lights when `diff ≤ 0` or `pctOff ≤ 5%`).
+- **Live Draft — "Your Drafts" after sign-in** (`live-draft.html`, `001dac8`). The existing active-draft probe now keeps the drafts it finds and renders a card row above the pickers: every in-progress (**Live**) + scheduled (**Upcoming**) draft across your current-season leagues, tagged Startup/Rookie; click a card → drives the existing cascade (`ldFetchLeagues`→`ldOnLeagueChange`→`ldOnDraftChange`→`ldLoadDraft`) to load the board. No new Sleeper calls.
+- **Mobile sweep** (`ff68715`, `82e8a00`) — Roster Moves had no mobile `@media`; added a horizontally-scrollable tab strip + tighter chrome; shared waiver CSS got phone tap-targets, 16px search input (no iOS focus-zoom), compact tags, and a wrapping availability header.
+- **Updates timeline** — S22–S24 added to `assets/js/formulas-content.js` (the "Updates & Formulas" page).
+- **Tokens (latest):** `waiver-wire.js` 1798100000, `waiver-wire.css` 1798300000, `trade-calc.js`/`trade-calc.css` 1797700000, `formulas-content.js` 1798400000. **Latest commit `47b12af`.**
+- **Open (user-verify, can't be done headless):** the Waiver Wire on a real phone; the Live Draft cards against a real live Sleeper draft. **Carried debt:** `trade-calc.css` still duplicates my-leagues' inline calc styles (de-dupe later). Optional follow-up: file the Guru-seal + gap-targeting heuristics as full formula cards (Legend + FORMULAS), not just timeline blurbs.
 
 ---
 

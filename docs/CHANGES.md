@@ -6,6 +6,47 @@ the operator manual see [`WORKFLOW.md`](WORKFLOW.md).
 
 ---
 
+## 2026-06-11 (twenty-fifth session) — Waiver Wire + Live Draft "Your Drafts" + Roster Moves rename + mobile sweep
+
+All pushed; `check-colors.py` CLEAN (42 files).
+
+### Waiver Wire (`ab2f781`, `e25acee`, `15434e4`, `eb6b618`, `a75bfba`, `91ff100`)
+New shared module `assets/js/waiver-wire.js` (`window.WaiverWire`) + `assets/css/waiver-wire.css`. Search a player → per-league availability across your leagues (FA leagues first with a "Claim On Sleeper ↗" link, then owned/yours — a lean port of my-leagues' `mlGetPlayerAvailability` over `window.ML_ALL_LEAGUE_DATA`), plus a global Most-Added / Most-Dropped board (Sleeper `/players/nfl/trending/add|drop?lookback_hours=168`) annotated "available in N of your leagues". Added as a tab on Roster Moves and as a 4th My Leagues sidebar tab (`15434e4`; `mlEnsureWaiverPanel` enriches `ML_ALL_LEAGUE_DATA[id].league` from `ML.leagues`, trending stacked 1-col). Polish: trending mapped at **render time** so it survives the league-load race (was showing raw player IDs + all "rostered"); player **NFL team logo** in the header + clearing the search resets to the board; **NFL shield** for free agents instead of a blank/broken logo; **"NR"** indicator for players MVS doesn't value + team logos on the trending rows.
+
+### Live Draft — "Your Drafts" after sign-in (`001dac8`)
+`live-draft.html`: the active-draft probe (which only marked leagues 🔥 and discarded the drafts) now keeps them and renders a "Your Drafts" card row above the pickers — every in-progress (Live) + scheduled (Upcoming) draft across current-season leagues, tagged Startup/Rookie. Clicking a card drives the existing cascade (`ldFetchLeagues`→`ldOnLeagueChange`→`ldOnDraftChange`→`ldLoadDraft`) to load the board; no new Sleeper calls.
+
+### "Trade Tools" → "Roster Moves" + roster-style dropdowns (`8654cfe`, `422b998`)
+Renamed `trade-calculator.html` site-wide (nav + mobile selects on all 11 pages + title/header). Roster-style grouped "Add player" dropdowns on the calculator: browsing a side (no query) groups candidates by position (QB→RB→WR→TE→K/Other→Picks); in scoped mode the candidates ARE the rosters (yours on Send, the manager's on Receive), with a "Need ~X to balance" hint.
+
+### Mobile sweep (`ff68715`, `82e8a00`)
+Roster Moves had no mobile `@media` → the 3-tab strip overflowed; added a horizontally-scrollable tab strip + tighter chrome. Shared waiver CSS: phone tap-targets, 16px search input (no iOS focus-zoom), compact tags, wrapping availability header.
+
+### Updates timeline (`47b12af`)
+S22 (Roster Moves hub), S23 (Waiver Wire), S24 (Live Draft cards) added as description-only nodes to `formulas-content.js`.
+
+---
+
+## 2026-06-10 (twenty-fourth session) — Modularized the trade engine → public Roster Moves page
+
+The Trade Finder + editable Trade Calculator were extracted into shared `assets/js` modules (one engine, two pages), as 6 verified phases (`6a40993` … `b036fa2`).
+
+- New modules: `assets/js/league-compute.js` (`window.LC` — value/archetype compute over `window.SLEEPER` + `FP_VALUES`), `assets/js/trade-finder.js` (`window.TradeFinder`), `assets/js/trade-calc.js` (`window.TradeCalc`); styles `assets/css/trade-finder.css` + `trade-calc.css`.
+- `my-leagues.html` loads the modules + inits them with data/feature hooks; inline finder/calc moved out (`ml*` wrappers delegate to `LC`); the Trade Finder tab is now public (admin gate removed).
+- `trade-calculator.html` (was a redirect) became the public page built from the modules: Sleeper login → all leagues → `Trade Finder | Trade Calculator` tabs, full-width; consumes the cross-page handoff.
+- Nav: a "Trade Tools" link added to every page (later renamed → "Roster Moves").
+- Regression caught + fixed: `mlGetPlayerStatus` slipped out of the slice and broke the My-Leagues player panel until re-exposed (`b8fd564`). **Lesson:** when byte-slicing, enumerate every moved fn + check host-page callers.
+- Calculator iterations: gap-targeted suggestions + longer list (`92d8f25`), a Guru-Approved seal that lights for fair-or-better (`eff02aa`), de-coined guru image (`5a85e6d`).
+- Carried debt: `trade-calc.css` duplicates my-leagues' inline `.ml-calc-*`/`.ml-tb-*`/`.ml-modal-*` styles.
+
+---
+
+## 2026-06-09 (sessions 21–23) — Cross-league Trade Finder
+
+The trade calculator's "find comparable real trades" idea evolved into a login-gated **cross-league Trade Finder**: list the player(s) you want → it scans all your leagues for who rosters them → suggests a package from your roster, tilted to the owner's archetype and built against `value × WIN_BIAS (0.93)` so it lands ~5–8% in your favor (`edge = 1 − totalSent / targetVal`, shown as "You win N%"). Built first as a standalone page, then moved to a My Leagues sidebar tab. Documented in `docs/FORMULAS.md` + `formulas-content.js` (S21 node, `trade-finder` domain) + the legend. See `README.md` for the full session-21–23 handoffs.
+
+---
+
 ## 2026-06-08 (twentieth session) — Accumulating trade archive + TEP value basis + docs-as-timeline + TAT→DPP
 
 Large multi-part session; all pushed live. `check-colors.py` CLEAN across 34 files throughout.
