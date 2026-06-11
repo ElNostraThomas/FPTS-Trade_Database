@@ -52,3 +52,15 @@
 .tc-wv-tag.none { color: var(--muted); opacity: .5; }
 
 @media (max-width: 680px) { .tc-wv-trending { grid-template-columns: 1fr; } }
+
+/* ── phones: bigger tap targets, no iOS focus-zoom, compact tags, safe truncation ── */
+@media (max-width: 600px) {
+  .tc-wv-search { font-size: 16px; }                 /* <16px makes iOS zoom on focus */
+  .tc-wv-opt { padding: 11px; }                      /* comfortable tap target (search result) */
+  .tc-wv-claim { padding: 8px 12px; }                /* comfortable tap target */
+  .tc-wv-trend-row { padding: 9px 4px; }             /* taller tap target */
+  .tc-wv-lg-row { padding: 10px; }
+  .tc-wv-tag { font-size: 8.5px; padding: 2px 5px; }
+  .tc-wv-lg-fmt { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .tc-wv-avail-summary { font-size: 10px; }
+}

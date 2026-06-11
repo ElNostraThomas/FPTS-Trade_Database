@@ -11,7 +11,7 @@
 <!-- Shared Trade Finder + Calculator styles -->
 <link rel="stylesheet" href="assets/css/trade-finder.css?v=1797000000">
 <link rel="stylesheet" href="assets/css/trade-calc.css?v=1797700000">
-<link rel="stylesheet" href="assets/css/waiver-wire.css?v=1798100000">
+<link rel="stylesheet" href="assets/css/waiver-wire.css?v=1798200000">
 
 <script>window.FPTS_CURRENT_PAGE = 'calc';</script>
 <script src="assets/js/iframe-scroll-fix.js?v=1791700000"></script>
@@ -74,6 +74,16 @@
   .tc-calc-intro p { font-family:'Mulish',sans-serif; font-size:13px; color:var(--muted); opacity:.8; line-height:1.6; margin:0 0 20px; }
   .tc-calc-btn { background:var(--red); border:none; color:#111111; font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:14px; padding:13px 28px; text-transform:uppercase; letter-spacing:.05em; cursor:pointer; }
   .tc-calc-btn:hover { background:var(--orange); }
+
+  /* ── mobile: horizontally-scrollable tabs (3 don't fit a phone) + tighter chrome ── */
+  @media (max-width: 600px) {
+    .page-header { margin-bottom: 10px; }
+    .tc-tabs { overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; margin-bottom: 14px; }
+    .tc-tabs::-webkit-scrollbar { display: none; }
+    .tc-tab { flex: 0 0 auto; white-space: nowrap; padding: 11px 13px; font-size: 13px; }
+    .tc-userbar { padding: 10px 12px; gap: 9px; }
+    #tc-finder-view #ml-finder-panel { height: calc(100vh - 230px); min-height: 360px; }
+  }
 </style>
 </head>
 <body>
