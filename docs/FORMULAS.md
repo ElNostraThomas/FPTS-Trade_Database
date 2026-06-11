@@ -674,7 +674,7 @@ leagueAvg = {
 ---
 
 ### 22. Team archetype classification
-`mlGetArchetype(avgAge, totalValue, pickValue, projValue, leagueAvg)` — `my-leagues.html:2937-2959`
+`archetypeFromTotals(avgAge, totalValue, pickValue, projValue, leagueAvg)` — `assets/js/sleeper-helpers.js` (reached via `LC.getArchetype` in `league-compute.js` + the `mlGetArchetype` wrapper in `my-leagues.html`)
 
 **Composite (verbatim)**
 ```js

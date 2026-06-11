@@ -676,7 +676,7 @@ projTotal  = sum(ML_SEASON_PROJ[pid] || 0 for each player_id);`,
         {
           id: 'per-position-rankings',
           label: '20. Per-position power rankings',
-          location: 'my-leagues.html (same function)',
+          location: 'assets/js/league-compute.js (same function)',
           provenance: { kind: 'site-convention', detail: 'Standard descending sort + 1-indexed rank.' },
           inputs: 'teams[] with posVals.',
           math: `// Per position (QB, RB, WR, TE):
@@ -702,7 +702,7 @@ myRanks.TOTAL = sortedByGrand.findIndex(t => t.isMe) + 1;`,
         {
           id: 'league-medians',
           label: '21. League medians (per metric)',
-          location: 'my-leagues.html (same function)',
+          location: 'assets/js/league-compute.js (same function)',
           provenance: { kind: 'site-convention', detail: 'Standard median computation.' },
           inputs: 'teams[] with avgAge, total, pickValue, projTotal.',
           math: `const median = arr => {
@@ -1742,7 +1742,7 @@ ADP-implied value: maxVal = 10000, decay 0.93/slot.`,
         {
           id: 'mn-archetype-scoring',
           label: '55f. Archetype scoring (my-leagues)',
-          location: 'my-leagues.html:2937+',
+          location: 'assets/js/sleeper-helpers.js (archetypeFromTotals); via LC.getArchetype in league-compute.js + the mlGetArchetype wrapper.',
           provenance: { kind: 'hand-tuned', detail: 'See entry 22.' },
           inputs: '—',
           math: `0.6 / 0.2 / 0.2   Composite weights: value / picks / projections (:2942)
@@ -1948,7 +1948,7 @@ MIN_PLAYERS_PER_SECTION = 10 Per analyst per position (sync-analysts)`,
         {
           id: 'heur-13-misnamed-avg',
           label: '56-13. `leagueAvg` is a median, not a mean',
-          location: 'my-leagues.html:5093-5174',
+          location: 'assets/js/league-compute.js (LC.computeLeagueValueData — the leagueAvg median computation)',
           provenance: { kind: 'unknown', detail: 'Naming inherited from older code that used means before refactor.' },
           inputs: '—',
           math: 'See entry 21.',
