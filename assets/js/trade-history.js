@@ -41,6 +41,7 @@
     if (global.ML_MY_TRADES) return Promise.resolve(global.ML_MY_TRADES);
     if (_loading) return _loading;
     _loading = (async function () {
+      try {
       var players = _playersDict();
       var all = global.ML_ALL_LEAGUE_DATA || {};
       var leagues = (cfg.getLeagues && cfg.getLeagues()) || [];
@@ -98,6 +99,7 @@
       var years = Object.keys(byYear).sort(function (a, b) { return Number(b) - Number(a); });
       global.ML_MY_TRADES = { years: years, byYear: byYear, activeIdx: 0 };
       return global.ML_MY_TRADES;
+      } catch (e) { _loading = null; throw e; }   // reset so a transient failure can retry
     })();
     return _loading;
   }
@@ -205,7 +207,8 @@
     if (cfg.onSearch) cfg.onSearch(name);   // let the host toggle its own default view
     var sid = (global.SLEEPER_IDS || {})[name];
     mount.innerHTML = '<div class="th-msg">Loading your trade history…</div>';
-    await ensure();
+    try { await ensure(); }
+    catch (e) { mount.innerHTML = '<div class="th-msg">Could not load your trade history — please try again.</div>'; return; }
     if (!sid) { mount.innerHTML = '<div class="th-msg">No Sleeper match for ' + esc(name) + '.</div>'; return; }
     var recs = tradesForSid(sid);
     if (!recs.length) { mount.innerHTML = '<div class="th-msg">No trades found for <b>' + esc(name) + '</b> across your leagues.</div>'; return; }
