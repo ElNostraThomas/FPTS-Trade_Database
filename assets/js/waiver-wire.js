@@ -17,6 +17,7 @@
   function jsq(s) { return String(s == null ? '' : s).replace(/\\/g, '\\\\').replace(/'/g, "\\'"); }
   function thumbBySid(sid) { return sid ? ('<img class="tc-wv-thumb" src="' + CDN + '/content/nfl/players/thumb/' + sid + '.jpg" onerror="this.style.visibility=\'hidden\'">') : '<span class="tc-wv-thumb"></span>'; }
   function thumbByName(name) { return thumbBySid((global.SLEEPER_IDS || {})[name]); }
+  function teamLogo(team) { return team ? ('<img class="tc-wv-team" src="' + CDN + '/images/team_logos/nfl/' + String(team).toLowerCase() + '.png" onerror="this.style.display=\'none\'">') : ''; }
   function sleeperUrl(lid) {
     if (!lid) return '#';
     var m = false; try { m = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent || ''); } catch (e) {}
@@ -67,7 +68,9 @@
   function search(query) {
     var box = document.getElementById('tc-wv-results'); if (!box) return;
     var q = (query || '').trim().toLowerCase();
-    if (!q) { box.style.display = 'none'; box.innerHTML = ''; return; }
+    // Empty box → clear the dropdown AND the selected-player availability, so deleting
+    // the name returns to the "board" (just the trending lists below).
+    if (!q) { box.style.display = 'none'; box.innerHTML = ''; var av = document.getElementById('tc-wv-avail'); if (av) av.innerHTML = ''; return; }
     var fp = global.FP_VALUES || {};
     var names = Object.keys(fp)
       .filter(function (n) { return n.toLowerCase().indexOf(q) >= 0; })
@@ -109,7 +112,7 @@
         action + '</div>';
     };
     var parts = ['<div class="tc-wv-avail-head">' + thumbBySid(sid) +
-      '<span class="tc-wv-avail-name">' + esc(name) + '</span>' +
+      '<span class="tc-wv-avail-name">' + esc(name) + '</span>' + teamLogo(fp.team) +
       (fp.value ? '<span class="tc-wv-avail-val">' + fp.value.toLocaleString() + '</span>' : '') +
       '<span class="tc-wv-avail-summary">Available in ' + free.length + ' of ' + rows.length + ' leagues</span></div>'];
     if (free.length) {

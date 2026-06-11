@@ -22,6 +22,7 @@
 .tc-wv-avail { margin-bottom: 24px; }
 .tc-wv-avail-head { display: flex; align-items: center; gap: 10px; padding: 8px 4px 10px; border-bottom: 1px solid var(--border); margin-bottom: 6px; }
 .tc-wv-avail-name { font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 18px; color: var(--white); }
+.tc-wv-team { width: 22px; height: 22px; object-fit: contain; flex: none; margin-left: -2px; }
 .tc-wv-avail-val { font-family: 'Kanit', sans-serif; font-weight: 700; font-style: italic; font-size: 13px; opacity: .8; }
 .tc-wv-avail-summary { margin-left: auto; font-size: 11px; font-style: italic; opacity: .6; }
 .tc-wv-group { font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic; font-size: 10px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); opacity: .75; padding: 10px 4px 5px; }
