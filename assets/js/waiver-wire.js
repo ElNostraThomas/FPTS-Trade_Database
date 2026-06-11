@@ -17,7 +17,16 @@
   function jsq(s) { return String(s == null ? '' : s).replace(/\\/g, '\\\\').replace(/'/g, "\\'"); }
   function thumbBySid(sid) { return sid ? ('<img class="tc-wv-thumb" src="' + CDN + '/content/nfl/players/thumb/' + sid + '.jpg" onerror="this.style.visibility=\'hidden\'">') : '<span class="tc-wv-thumb"></span>'; }
   function thumbByName(name) { return thumbBySid((global.SLEEPER_IDS || {})[name]); }
-  function teamLogo(team) { return team ? ('<img class="tc-wv-team" src="' + CDN + '/images/team_logos/nfl/' + String(team).toLowerCase() + '.png" onerror="this.style.display=\'none\'">') : ''; }
+  // Player's NFL team logo. Free agents (no team) get the NFL shield instead of a
+  // blank/broken logo; a missing team-logo PNG also falls back to the shield.
+  function teamLogo(team) {
+    var t = team ? String(team).trim() : '';
+    var shield = 'https://a.espncdn.com/i/teamlogos/leagues/500/nfl.png';
+    if (!t || t === 'FA' || t === '—' || t === 'N/A') {
+      return '<img class="tc-wv-team" src="' + shield + '" alt="NFL" title="Free agent" onerror="this.style.display=\'none\'">';
+    }
+    return '<img class="tc-wv-team" src="' + CDN + '/images/team_logos/nfl/' + t.toLowerCase() + '.png" alt="' + esc(t) + '" title="' + esc(t) + '" onerror="this.onerror=function(){this.style.display=\'none\'};this.src=\'' + shield + '\'">';
+  }
   function sleeperUrl(lid) {
     if (!lid) return '#';
     var m = false; try { m = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent || ''); } catch (e) {}
