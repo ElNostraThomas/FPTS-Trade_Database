@@ -11,7 +11,7 @@
 <!-- Shared Trade Finder + Calculator styles -->
 <link rel="stylesheet" href="assets/css/trade-finder.css?v=1797000000">
 <link rel="stylesheet" href="assets/css/trade-calc.css?v=1797700000">
-<link rel="stylesheet" href="assets/css/waiver-wire.css?v=1798600000">
+<link rel="stylesheet" href="assets/css/waiver-wire.css?v=1798700000">
 <link rel="stylesheet" href="assets/css/trade-history.css?v=1798500000">
 
 <script>window.FPTS_CURRENT_PAGE = 'calc';</script>
@@ -28,7 +28,7 @@
 <script src="assets/js/league-compute.js?v=1797000000"></script>
 <script src="assets/js/trade-finder.js?v=1797200000"></script>
 <script src="assets/js/trade-calc.js?v=1797700000"></script>
-<script src="assets/js/waiver-wire.js?v=1798600000"></script>
+<script src="assets/js/waiver-wire.js?v=1798700000"></script>
 <script src="assets/js/trade-history.js?v=1798500000"></script>
 
 <style>
@@ -234,6 +234,7 @@
           <input id="tc-wv-search" class="tc-wv-search" type="text" autocomplete="off"
             placeholder="Search a player to see which of your leagues he's available in…"
             oninput="WaiverWire.search(this.value)" onblur="WaiverWire.hideResultsSoon()">
+          <button type="button" id="tc-wv-clear" class="tc-wv-clear" onclick="WaiverWire.clearSearch()" style="display:none" aria-label="Clear search">✕</button>
           <div id="tc-wv-results" class="tc-wv-results" style="display:none"></div>
         </div>
         <div id="tc-wv-avail" class="tc-wv-avail"></div>

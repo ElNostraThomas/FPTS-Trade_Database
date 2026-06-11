@@ -3009,7 +3009,7 @@
 <script src="assets/js/legend.js?v=1778949514"></script>
 <link rel="stylesheet" href="assets/css/player-panel.css?v=1791900000">
 <link rel="stylesheet" href="assets/css/trade-finder.css?v=1797000000">
-<link rel="stylesheet" href="assets/css/waiver-wire.css?v=1798600000">
+<link rel="stylesheet" href="assets/css/waiver-wire.css?v=1798700000">
 <link rel="stylesheet" href="assets/css/trade-history.css?v=1798500000">
 <script>window.FPTS_CURRENT_PAGE = 'ml';</script>
 <!-- Shared data layer: fetches data/*.json, populates FP_VALUES / PICK_VALUES /
@@ -3028,7 +3028,7 @@
 <!-- Trade Calculator + Builder (window.TradeCalc) — depends on LC + TradeFinder; init'd by the page. -->
 <script src="assets/js/trade-calc.js?v=1797700000"></script>
 <!-- Cross-league Waiver Wire (window.WaiverWire) — reads ML_ALL_LEAGUE_DATA + FP_VALUES. -->
-<script src="assets/js/waiver-wire.js?v=1798600000"></script>
+<script src="assets/js/waiver-wire.js?v=1798700000"></script>
 <!-- Trade History Search (window.TradeHistory) — reuses the cross-league ML_MY_TRADES pool. -->
 <script src="assets/js/trade-history.js?v=1798500000"></script>
 <!-- Team logo helpers — load BEFORE player-panel.js so modal-hero badge works. -->
@@ -3457,6 +3457,7 @@
                 <input id="tc-wv-search" class="tc-wv-search" type="text" autocomplete="off"
                   placeholder="Search a player to check availability…"
                   oninput="WaiverWire.search(this.value)" onblur="WaiverWire.hideResultsSoon()">
+                <button type="button" id="tc-wv-clear" class="tc-wv-clear" onclick="WaiverWire.clearSearch()" style="display:none" aria-label="Clear search">✕</button>
                 <div id="tc-wv-results" class="tc-wv-results" style="display:none"></div>
               </div>
               <div id="tc-wv-avail" class="tc-wv-avail"></div>
@@ -7522,6 +7523,8 @@ function mlEnsureWaiverPanel() {
   } catch (e) {}
   if (!window._mlWaiverInited) { window._mlWaiverInited = true; WaiverWire.init({}); }
   WaiverWire.loadTrending();
+  // Default the league board to the league the user is focused on (the expanded one).
+  if (ML.selectedLeagueId && window.ML_ALL_LEAGUE_DATA && window.ML_ALL_LEAGUE_DATA[ML.selectedLeagueId]) WaiverWire.setLeague(ML.selectedLeagueId);
 }
 
 // Trade Finder lives in assets/js/trade-finder.js (window.TradeFinder).

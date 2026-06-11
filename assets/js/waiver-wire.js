@@ -78,6 +78,7 @@
   function search(query) {
     var box = document.getElementById('tc-wv-results'); if (!box) return;
     var q = (query || '').trim().toLowerCase();
+    var _cl = document.getElementById('tc-wv-clear'); if (_cl) _cl.style.display = q ? '' : 'none';
     // Empty box → clear the dropdown AND the selected-player availability, so deleting
     // the name returns to the "board" (just the trending lists below).
     if (!q) { box.style.display = 'none'; box.innerHTML = ''; var av = document.getElementById('tc-wv-avail'); if (av) av.innerHTML = ''; return; }
@@ -95,6 +96,15 @@
     box.style.display = '';
   }
   function hideResultsSoon() { setTimeout(function () { var b = document.getElementById('tc-wv-results'); if (b) b.style.display = 'none'; }, 150); }
+  // One-click reset: clear the input + dropdown + the selected-player availability →
+  // back to the league board (no need to backspace the search bar).
+  function clearSearch() {
+    var inp = document.getElementById('tc-wv-search'); if (inp) inp.value = '';
+    var box = document.getElementById('tc-wv-results'); if (box) { box.style.display = 'none'; box.innerHTML = ''; }
+    var av = document.getElementById('tc-wv-avail'); if (av) av.innerHTML = '';
+    var cl = document.getElementById('tc-wv-clear'); if (cl) cl.style.display = 'none';
+    if (inp) inp.focus();
+  }
   function pick(name) {
     var inp = document.getElementById('tc-wv-search'); if (inp) inp.value = name;
     var box = document.getElementById('tc-wv-results'); if (box) box.style.display = 'none';
@@ -104,6 +114,7 @@
   // Render the per-league availability for the picked player.
   function selectPlayer(name) {
     var mount = document.getElementById('tc-wv-avail'); if (!mount) return;
+    var _cl = document.getElementById('tc-wv-clear'); if (_cl) _cl.style.display = '';
     var sid = (global.SLEEPER_IDS || {})[name];
     if (!sid) { mount.innerHTML = '<div class="tc-wv-empty">No Sleeper match for ' + esc(name) + '.</div>'; return; }
     var rows = availability(sid);
@@ -258,6 +269,7 @@
     availability: availability,
     search: search,
     hideResultsSoon: hideResultsSoon,
+    clearSearch: clearSearch,
     pick: pick,
     selectPlayer: selectPlayer,
     loadTrending: loadTrending,
