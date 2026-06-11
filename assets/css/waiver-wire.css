@@ -62,5 +62,7 @@
   .tc-wv-lg-row { padding: 10px; }
   .tc-wv-tag { font-size: 8.5px; padding: 2px 5px; }
   .tc-wv-lg-fmt { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .tc-wv-avail-head { flex-wrap: wrap; row-gap: 4px; }   /* summary wraps below instead of overflowing */
+  .tc-wv-avail-name { font-size: 16px; }
   .tc-wv-avail-summary { font-size: 10px; }
 }
