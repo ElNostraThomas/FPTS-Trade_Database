@@ -11,7 +11,7 @@
   var API = 'https://api.sleeper.app/v1';
   var CDN = 'https://sleepercdn.com';
   var cfg = {};
-  var _trending = null;     // { adds:[], drops:[] } cached per session
+  var _raw = null;          // raw Sleeper trending [{player_id,count}] cached per session (mapped at render time)
 
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   function jsq(s) { return String(s == null ? '' : s).replace(/\\/g, '\\\\').replace(/'/g, "\\'"); }
@@ -144,12 +144,12 @@
     });
   }
   function loadTrending() {
-    if (_trending) { renderTrending(); return; }
+    if (_raw) { renderTrending(); return; }
     Promise.all([
       fetch(API + '/players/nfl/trending/add?lookback_hours=168&limit=25').then(function (r) { return r.json(); }).catch(function () { return []; }),
       fetch(API + '/players/nfl/trending/drop?lookback_hours=168&limit=25').then(function (r) { return r.json(); }).catch(function () { return []; })
     ]).then(function (res) {
-      _trending = { adds: _mapTrending(res[0]), drops: _mapTrending(res[1]) };
+      _raw = { adds: res[0] || [], drops: res[1] || [] };
       renderTrending();
     });
   }
@@ -166,11 +166,21 @@
       tag + '</div>';
   }
   function renderTrending() {
-    if (!_trending) return;
+    if (!_raw) return;
     var addsEl = document.getElementById('tc-wv-adds');
     var dropsEl = document.getElementById('tc-wv-drops');
-    if (addsEl) addsEl.innerHTML = '<div class="tc-wv-trend-head">Most Added · 7d</div>' + (_trending.adds.map(_trendRow).join('') || '<div class="tc-wv-empty">—</div>');
-    if (dropsEl) dropsEl.innerHTML = '<div class="tc-wv-trend-head">Most Dropped · 7d</div>' + (_trending.drops.map(_trendRow).join('') || '<div class="tc-wv-empty">—</div>');
+    // Map at RENDER time (not fetch time): names + availability come from your leagues'
+    // player dict, which may finish loading AFTER the (fast) trending fetch. If it's not
+    // ready yet, show a placeholder — tcLoadData re-calls this once the leagues are in.
+    var pdict = _playersDict();
+    if (!Object.keys(pdict).length) {
+      if (addsEl) addsEl.innerHTML = '<div class="tc-wv-trend-head">Most Added · 7d</div><div class="tc-wv-empty">Loading your leagues…</div>';
+      if (dropsEl) dropsEl.innerHTML = '<div class="tc-wv-trend-head">Most Dropped · 7d</div><div class="tc-wv-empty">Loading your leagues…</div>';
+      return;
+    }
+    var adds = _mapTrending(_raw.adds), drops = _mapTrending(_raw.drops);
+    if (addsEl) addsEl.innerHTML = '<div class="tc-wv-trend-head">Most Added · 7d</div>' + (adds.map(_trendRow).join('') || '<div class="tc-wv-empty">—</div>');
+    if (dropsEl) dropsEl.innerHTML = '<div class="tc-wv-trend-head">Most Dropped · 7d</div>' + (drops.map(_trendRow).join('') || '<div class="tc-wv-empty">—</div>');
   }
 
   global.WaiverWire = {

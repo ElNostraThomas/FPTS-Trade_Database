@@ -27,7 +27,7 @@
 <script src="assets/js/league-compute.js?v=1797000000"></script>
 <script src="assets/js/trade-finder.js?v=1797200000"></script>
 <script src="assets/js/trade-calc.js?v=1797700000"></script>
-<script src="assets/js/waiver-wire.js?v=1797700000"></script>
+<script src="assets/js/waiver-wire.js?v=1797800000"></script>
 
 <style>
   /* ── page-specific chrome (tc-*) ── */
@@ -332,6 +332,7 @@ async function tcLoadData(session) {
     if (panel) panel.style.display = '';
     tcConsumeHandoff();
     if (window.TradeFinder) TradeFinder.render();
+    if (window.WaiverWire) WaiverWire.renderTrending();  // re-map trending now that leagues are loaded
   } catch (e) {
     if (loading) loading.textContent = 'Could not load your leagues — refresh to retry.';
   }
