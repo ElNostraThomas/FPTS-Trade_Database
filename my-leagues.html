@@ -1076,7 +1076,10 @@
     font-size:12px; color:var(--muted); opacity:.45; }
 
   /* Sidebar Exposure | My Trades tab strip + panels */
-  .ml-exposure-tabs { margin:0; padding:0 8px; border-bottom:1px solid var(--border); flex-shrink:0; }
+  .ml-exposure-tabs { margin:0; padding:0 8px; border-bottom:1px solid var(--border); flex-shrink:0; flex-wrap:wrap; }
+  /* Waiver Wire in the narrow sidebar: full width + stack the trending columns. */
+  #ml-waiver-panel .tc-wv { max-width:none; }
+  #ml-waiver-panel .tc-wv-trending { grid-template-columns:1fr; }
   .ml-exposure-tabs .ml-section-toggle-btn { font-size:12px; padding:8px 12px 9px; }
   .ml-exposure-panel { display:flex; flex-direction:column; flex:1; min-height:0; overflow:hidden; }
   .ml-mytrades-year-tabs { display:flex; gap:6px; flex-wrap:wrap; padding:12px 14px 10px; margin:0; flex-shrink:0; }
@@ -3006,6 +3009,7 @@
 <script src="assets/js/legend.js?v=1778949514"></script>
 <link rel="stylesheet" href="assets/css/player-panel.css?v=1791900000">
 <link rel="stylesheet" href="assets/css/trade-finder.css?v=1797000000">
+<link rel="stylesheet" href="assets/css/waiver-wire.css?v=1797700000">
 <script>window.FPTS_CURRENT_PAGE = 'ml';</script>
 <!-- Shared data layer: fetches data/*.json, populates FP_VALUES / PICK_VALUES /
      ADP_PAYLOAD / AUCTION_PAYLOAD / MVS_PAYLOAD / PLAYER_ARTICLES /
@@ -3022,6 +3026,8 @@
 <script src="assets/js/trade-finder.js?v=1797200000"></script>
 <!-- Trade Calculator + Builder (window.TradeCalc) — depends on LC + TradeFinder; init'd by the page. -->
 <script src="assets/js/trade-calc.js?v=1797700000"></script>
+<!-- Cross-league Waiver Wire (window.WaiverWire) — reads ML_ALL_LEAGUE_DATA + FP_VALUES. -->
+<script src="assets/js/waiver-wire.js?v=1797800000"></script>
 <!-- Team logo helpers — load BEFORE player-panel.js so modal-hero badge works. -->
 <script src="assets/js/team-helpers.js?v=1778680002"></script>
 <script src="assets/js/player-panel.js?v=1797200000"></script>
@@ -3365,6 +3371,7 @@
             <button class="ml-section-toggle-btn active" data-tab="exposure" onclick="mlExposureSetTab('exposure')">Exposure</button>
             <button class="ml-section-toggle-btn" data-tab="trades" onclick="mlExposureSetTab('trades')">My Trades</button>
             <button class="ml-section-toggle-btn" data-tab="finder" id="ml-tf-tab-btn" onclick="mlExposureSetTab('finder')">Trade Finder</button>
+            <button class="ml-section-toggle-btn" data-tab="waivers" onclick="mlExposureSetTab('waivers')">Waivers</button>
           </div>
 
           <!-- PANEL 1: player exposure -->
@@ -3431,6 +3438,23 @@
             </div>
             <div id="ml-tf-results" class="ml-tf-out"></div>
           </div><!-- /ml-finder-panel -->
+
+          <!-- PANEL 4: cross-league Waiver Wire (window.WaiverWire — search availability + 7d trends) -->
+          <div class="ml-exposure-panel" id="ml-waiver-panel" style="display:none">
+            <div class="tc-wv">
+              <div class="tc-wv-searchwrap">
+                <input id="tc-wv-search" class="tc-wv-search" type="text" autocomplete="off"
+                  placeholder="Search a player to check availability…"
+                  oninput="WaiverWire.search(this.value)" onblur="WaiverWire.hideResultsSoon()">
+                <div id="tc-wv-results" class="tc-wv-results" style="display:none"></div>
+              </div>
+              <div id="tc-wv-avail" class="tc-wv-avail"></div>
+              <div class="tc-wv-trending">
+                <div id="tc-wv-adds"></div>
+                <div id="tc-wv-drops"></div>
+              </div>
+            </div>
+          </div><!-- /ml-waiver-panel -->
 
         </div><!-- /ml-exposure-body -->
       </aside>
@@ -7450,20 +7474,42 @@ function mlExposureSetTab(tab) {
   const expPanel = document.getElementById('ml-exposure-panel');
   const trPanel  = document.getElementById('ml-mytrades-panel');
   const fnPanel  = document.getElementById('ml-finder-panel');
+  const waPanel  = document.getElementById('ml-waiver-panel');
   const titleEl  = document.querySelector('.ml-exposure-title');
   if (expPanel) expPanel.style.display = (tab === 'exposure') ? '' : 'none';
   if (trPanel)  trPanel.style.display  = (tab === 'trades')   ? '' : 'none';
   if (fnPanel)  fnPanel.style.display  = (tab === 'finder')   ? '' : 'none';
+  if (waPanel)  waPanel.style.display  = (tab === 'waivers')  ? '' : 'none';
   if (tab === 'trades') {
     if (titleEl) titleEl.textContent = 'My Trades';
     mlEnsureMyTrades();
   } else if (tab === 'finder') {
     if (titleEl) titleEl.textContent = 'Trade Finder';
     TradeFinder.ensure();
+  } else if (tab === 'waivers') {
+    if (titleEl) titleEl.textContent = 'Waivers';
+    mlEnsureWaiverPanel();
   } else {
     if (titleEl) titleEl.textContent = 'Player Exposure';
     renderExposureList(); // restores the count badge for the exposure view
   }
+}
+
+// Mount the shared Waiver Wire (window.WaiverWire) into the sidebar panel. My Leagues
+// stores leagueName (not the full league object) on ML_ALL_LEAGUE_DATA, so enrich each
+// entry with the league object from ML.leagues first (WaiverWire needs roster_positions/
+// scoring/avatar for the format + league chip).
+function mlEnsureWaiverPanel() {
+  if (!window.WaiverWire) return;
+  try {
+    const leagues = (typeof ML !== 'undefined' && ML.leagues && ML.leagues[ML.selectedSeason]) || [];
+    const byId = {};
+    leagues.forEach(l => { byId[l.league_id] = l; });
+    const all = window.ML_ALL_LEAGUE_DATA || {};
+    Object.keys(all).forEach(lid => { if (all[lid] && !all[lid].league) all[lid].league = byId[lid] || {}; });
+  } catch (e) {}
+  if (!window._mlWaiverInited) { window._mlWaiverInited = true; WaiverWire.init({}); }
+  WaiverWire.loadTrending();
 }
 
 // Trade Finder lives in assets/js/trade-finder.js (window.TradeFinder).
