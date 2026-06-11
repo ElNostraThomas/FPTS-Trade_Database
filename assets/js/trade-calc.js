@@ -517,9 +517,10 @@ function renderCalcModal() {
     verdictText = diff > 0 ? '⚠ Side A overpays' : '⚠ Side B overpays';
   }
 
-  // The trade favors the user when they receive more value than they send (diff < 0).
-  // When it does, stamp Side A (You Send) as Guru Approved.
-  const favorsUser = (totalA > 0 && totalB > 0 && diff < 0);
+  // Guru-approve any trade that's FAIR OR ABOVE for the user — i.e. you aren't
+  // overpaying beyond the fair tolerance: diff <= 0 (even, or in your favor) OR the
+  // imbalance is still inside the "fair" band (pctOff <= 5). Stamp Side A (You Send).
+  const guruApprove = (totalA > 0 && totalB > 0 && (diff <= 0 || pctOff <= 5));
   const guruStamp = '<span class="ml-tf-guru ml-calc-guru" title="Guru Approved — this trade comes out in your favor"><img class="ml-tf-guru-img" src="assets/images/john-cartoon.png" alt="">Guru Approved</span>';
   const renderSide = (sideId, side, label, showGuru) => {
     const total = mlCalcSideTotal(side);
@@ -570,7 +571,7 @@ function renderCalcModal() {
 
   document.getElementById('ml-calc-body').innerHTML = `
     <div class="ml-calc-builder">
-      ${renderSide('A', MLCALC.sides.A, 'You Send', favorsUser)}
+      ${renderSide('A', MLCALC.sides.A, 'You Send', guruApprove)}
       ${renderSide('B', MLCALC.sides.B, 'You Receive', false)}
     </div>
     <div class="ml-calc-balance">
