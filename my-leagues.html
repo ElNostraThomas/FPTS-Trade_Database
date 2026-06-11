@@ -3010,6 +3010,7 @@
 <link rel="stylesheet" href="assets/css/player-panel.css?v=1791900000">
 <link rel="stylesheet" href="assets/css/trade-finder.css?v=1797000000">
 <link rel="stylesheet" href="assets/css/waiver-wire.css?v=1798300000">
+<link rel="stylesheet" href="assets/css/trade-history.css?v=1798500000">
 <script>window.FPTS_CURRENT_PAGE = 'ml';</script>
 <!-- Shared data layer: fetches data/*.json, populates FP_VALUES / PICK_VALUES /
      ADP_PAYLOAD / AUCTION_PAYLOAD / MVS_PAYLOAD / PLAYER_ARTICLES /
@@ -3028,6 +3029,8 @@
 <script src="assets/js/trade-calc.js?v=1797700000"></script>
 <!-- Cross-league Waiver Wire (window.WaiverWire) — reads ML_ALL_LEAGUE_DATA + FP_VALUES. -->
 <script src="assets/js/waiver-wire.js?v=1798100000"></script>
+<!-- Trade History Search (window.TradeHistory) — reuses the cross-league ML_MY_TRADES pool. -->
+<script src="assets/js/trade-history.js?v=1798500000"></script>
 <!-- Team logo helpers — load BEFORE player-panel.js so modal-hero badge works. -->
 <script src="assets/js/team-helpers.js?v=1778680002"></script>
 <script src="assets/js/player-panel.js?v=1797200000"></script>
@@ -3403,6 +3406,14 @@
 
           <!-- PANEL 2: my trades across all leagues (year-switchable) -->
           <div class="ml-exposure-panel" id="ml-mytrades-panel" style="display:none">
+            <!-- Trade History Search: type a player → your trades for him + who initiated -->
+            <div class="th-searchwrap" style="margin:0 0 12px;">
+              <input id="th-search" class="th-search" type="text" autocomplete="off"
+                placeholder="Search a player to find your trades for him…"
+                oninput="mlTradeHistInput(this.value)" onblur="if(window.TradeHistory)TradeHistory.hideResultsSoon()">
+              <div id="th-results" class="th-results" style="display:none"></div>
+            </div>
+            <div id="th-cards" style="display:none"></div>
             <div class="ml-mytrades-year-tabs" id="ml-mytrades-year-tabs"></div>
             <div class="ml-mytrades-content" id="ml-mytrades-content"></div>
           </div><!-- /ml-mytrades-panel -->
@@ -7530,6 +7541,31 @@ function mlSetMyTradesCount(n) {
 }
 
 // Build (lazily, once) the user's trades across every league + season chain.
+// Trade History Search input handler — empty restores the by-year list; typing drives
+// the shared TradeHistory module (which renders results into #th-cards on pick).
+function mlTradeHistInput(val) {
+  if (window.TradeHistory && !window._mlThInit) {
+    window._mlThInit = true;
+    TradeHistory.init({
+      userId: ML.userId,
+      getLeagues: function () { return (ML.leagues && ML.leagues[ML.selectedSeason]) || []; },
+      onSearch: function () {
+        var c = document.getElementById('th-cards'); if (c) c.style.display = '';
+        var tb = document.getElementById('ml-mytrades-year-tabs'); if (tb) tb.style.display = 'none';
+        var ct = document.getElementById('ml-mytrades-content'); if (ct) ct.style.display = 'none';
+      }
+    });
+  }
+  if (!val || !val.trim()) {
+    var cards = document.getElementById('th-cards'); if (cards) { cards.style.display = 'none'; cards.innerHTML = ''; }
+    var box = document.getElementById('th-results'); if (box) box.style.display = 'none';
+    var tabs = document.getElementById('ml-mytrades-year-tabs'); if (tabs) tabs.style.display = '';
+    var content = document.getElementById('ml-mytrades-content'); if (content) content.style.display = '';
+    return;
+  }
+  if (window.TradeHistory) TradeHistory.suggest(val);
+}
+
 async function mlEnsureMyTrades(force) {
   const contentEl = document.getElementById('ml-mytrades-content');
   if (window.ML_MY_TRADES && !force) { mlRenderMyTradesYears(); return; }

@@ -12,6 +12,7 @@
 <link rel="stylesheet" href="assets/css/trade-finder.css?v=1797000000">
 <link rel="stylesheet" href="assets/css/trade-calc.css?v=1797700000">
 <link rel="stylesheet" href="assets/css/waiver-wire.css?v=1798300000">
+<link rel="stylesheet" href="assets/css/trade-history.css?v=1798500000">
 
 <script>window.FPTS_CURRENT_PAGE = 'calc';</script>
 <script src="assets/js/iframe-scroll-fix.js?v=1791700000"></script>
@@ -28,6 +29,7 @@
 <script src="assets/js/trade-finder.js?v=1797200000"></script>
 <script src="assets/js/trade-calc.js?v=1797700000"></script>
 <script src="assets/js/waiver-wire.js?v=1798100000"></script>
+<script src="assets/js/trade-history.js?v=1798500000"></script>
 
 <style>
   /* ── page-specific chrome (tc-*) ── */
@@ -180,6 +182,7 @@
       <button class="tc-tab active" data-tab="finder" onclick="tcSetTab('finder')">Trade Finder</button>
       <button class="tc-tab" data-tab="calc" onclick="tcSetTab('calc')">Trade Calculator</button>
       <button class="tc-tab" data-tab="waiver" onclick="tcSetTab('waiver')">Waiver Wire</button>
+      <button class="tc-tab" data-tab="history" onclick="tcSetTab('history')">Trade History</button>
     </div>
 
     <div id="tc-finder-view">
@@ -238,6 +241,18 @@
           <div id="tc-wv-adds"></div>
           <div id="tc-wv-drops"></div>
         </div>
+      </div>
+    </div>
+
+    <div id="tc-th-view" style="display:none">
+      <div class="th">
+        <div class="th-searchwrap">
+          <input id="th-search" class="th-search" type="text" autocomplete="off"
+            placeholder="Search a player to see every trade you've made for him…"
+            oninput="TradeHistory.suggest(this.value)" onblur="TradeHistory.hideResultsSoon()">
+          <div id="th-results" class="th-results" style="display:none"></div>
+        </div>
+        <div id="th-cards"><div class="th-msg">Type a player above to see every trade you've made for him across your leagues — and who proposed each one.</div></div>
       </div>
     </div>
   </div>
@@ -324,6 +339,7 @@ function tcSignOut() {
 
 // ── Load all leagues → the shared globals the modules read ──────────────────
 async function tcLoadData(session) {
+  window._TC_USER_ID = session && session.userId;
   const loading = document.getElementById('tc-finder-loading');
   const panel = document.getElementById('ml-finder-panel');
   try {
@@ -384,6 +400,10 @@ function tcInitModules() {
     closeDetail: function () {}
   });
   if (window.WaiverWire) WaiverWire.init({});
+  if (window.TradeHistory) TradeHistory.init({
+    userId: window._TC_USER_ID,
+    getLeagues: function () { return Object.values(window.CALC_LEAGUE_DATA || {}).map(function (d) { return d.league; }).filter(Boolean); }
+  });
 }
 
 // ── Tabs ─────────────────────────────────────────────────────────────────────
@@ -392,8 +412,10 @@ function tcSetTab(tab) {
   document.getElementById('tc-finder-view').style.display = (tab === 'finder') ? '' : 'none';
   document.getElementById('tc-calc-view').style.display = (tab === 'calc') ? '' : 'none';
   var _wv = document.getElementById('tc-waiver-view'); if (_wv) _wv.style.display = (tab === 'waiver') ? '' : 'none';
+  var _th = document.getElementById('tc-th-view'); if (_th) _th.style.display = (tab === 'history') ? '' : 'none';
   if (tab === 'finder' && window._tcInited) TradeFinder.render();
   if (tab === 'waiver' && window.WaiverWire) WaiverWire.loadTrending();
+  if (tab === 'history' && window.TradeHistory) TradeHistory.ensure();
 }
 
 function tcOpenBlankCalc() {
