@@ -156,46 +156,101 @@
       return { sid: pid, name: name, pos: p.position || '', team: p.team || fp.team || '', value: fp.value || 0, count: t.count || 0, free: freeCount(pid) };
     });
   }
-  function loadTrending() {
-    if (_raw) { renderTrending(); return; }
-    Promise.all([
-      fetch(API + '/players/nfl/trending/add?lookback_hours=168&limit=25').then(function (r) { return r.json(); }).catch(function () { return []; }),
-      fetch(API + '/players/nfl/trending/drop?lookback_hours=168&limit=25').then(function (r) { return r.json(); }).catch(function () { return []; })
-    ]).then(function (res) {
-      _raw = { adds: res[0] || [], drops: res[1] || [] };
-      renderTrending();
-    });
+  // ── league-scoped board: Most Valuable Available + Most Added (available here) ──
+  var _leagueId = null, _trendingLoading = false;
+
+  function _leagues() {
+    var all = global.ML_ALL_LEAGUE_DATA || {};
+    return Object.keys(all).filter(function (id) { return all[id]; }).map(function (id) {
+      var d = all[id], lg = d.league || {};
+      return { id: id, name: lg.name || d.leagueName || ('League ' + id) };
+    }).sort(function (a, b) { return a.name.localeCompare(b.name); });
   }
-  function _trendRow(p) {
-    var pos = (p.pos || 'WR');
-    var tag = p.free > 0
-      ? '<span class="tc-wv-tag free">in ' + p.free + ' of your leagues</span>'
-      : '<span class="tc-wv-tag none">rostered</span>';
-    var val = p.value
-      ? '<span class="tc-wv-trend-val">' + p.value.toLocaleString() + '</span>'
-      : '<span class="tc-wv-trend-val tc-wv-nr" title="No dynasty value — not ranked">NR</span>';
+  function _valueKey(leagueId) {
+    var d = (global.ML_ALL_LEAGUE_DATA || {})[leagueId];
+    var rp = (d && d.league && d.league.roster_positions) || [];
+    return rp.indexOf('SUPER_FLEX') >= 0 ? 'valueSf' : 'value1qb';
+  }
+  function _rosteredSet(leagueId) {
+    var d = (global.ML_ALL_LEAGUE_DATA || {})[leagueId], s = {};
+    ((d && d.rosters) || []).forEach(function (r) { (r.players || []).forEach(function (pid) { s[String(pid)] = 1; }); });
+    return s;
+  }
+  // Highest-value players NOT rostered in this league (best free agents by value).
+  function _bestAvailable(leagueId) {
+    var fp = global.FP_VALUES || {}, rostered = _rosteredSet(leagueId), key = _valueKey(leagueId), out = [];
+    Object.keys(fp).forEach(function (name) {
+      var k = fp[name]; if (!k) return;
+      var sid = k.sleeperId || (global.SLEEPER_IDS || {})[name];
+      if (!sid || rostered[String(sid)]) return;
+      var v = k[key] || k.value || 0; if (v <= 0) return;
+      out.push({ sid: String(sid), name: name, pos: k.pos || (k.posRank || '').replace(/[0-9]+$/, '') || 'WR', team: k.team || '', value: v, posRank: k.posRank || '' });
+    });
+    out.sort(function (a, b) { return b.value - a.value; });
+    return out.slice(0, 30);
+  }
+  // Global trending adds, filtered to players available (not rostered) in this league.
+  function _addedHere(leagueId) {
+    if (!_raw) return null;
+    var rostered = _rosteredSet(leagueId);
+    return _mapTrending(_raw.adds).filter(function (p) { return !rostered[String(p.sid)]; });
+  }
+  function _fmtCount(n) { n = n || 0; return n >= 1000 ? (Math.round(n / 100) / 10) + 'k' : String(n); }
+
+  function _valueRow(p) {
+    var pos = p.pos || 'WR';
     return '<div class="tc-wv-trend-row" onclick="WaiverWire.pick(\'' + jsq(p.name) + '\')">' +
       thumbBySid(p.sid) +
       '<span class="ml-calc-asset-pos pos-' + pos.toLowerCase() + '">' + esc(pos) + '</span>' +
       '<span class="tc-wv-trend-id"><span class="tc-wv-trend-name">' + esc(p.name) + '</span>' + teamLogo(p.team, 'tc-wv-team--sm') + '</span>' +
-      val + tag + '</div>';
+      (p.posRank ? '<span class="tc-wv-tag none">' + esc(p.posRank) + '</span>' : '') +
+      '<span class="tc-wv-trend-val">' + (p.value || 0).toLocaleString() + '</span></div>';
   }
-  function renderTrending() {
-    if (!_raw) return;
-    var addsEl = document.getElementById('tc-wv-adds');
-    var dropsEl = document.getElementById('tc-wv-drops');
-    // Map at RENDER time (not fetch time): names + availability come from your leagues'
-    // player dict, which may finish loading AFTER the (fast) trending fetch. If it's not
-    // ready yet, show a placeholder — tcLoadData re-calls this once the leagues are in.
-    var pdict = _playersDict();
-    if (!Object.keys(pdict).length) {
-      if (addsEl) addsEl.innerHTML = '<div class="tc-wv-trend-head">Most Added · 7d</div><div class="tc-wv-empty">Loading your leagues…</div>';
-      if (dropsEl) dropsEl.innerHTML = '<div class="tc-wv-trend-head">Most Dropped · 7d</div><div class="tc-wv-empty">Loading your leagues…</div>';
+  function _addedRow(p) {
+    var pos = p.pos || 'WR';
+    var val = p.value ? '<span class="tc-wv-trend-val">' + p.value.toLocaleString() + '</span>' : '<span class="tc-wv-trend-val tc-wv-nr">NR</span>';
+    return '<div class="tc-wv-trend-row" onclick="WaiverWire.pick(\'' + jsq(p.name) + '\')">' +
+      thumbBySid(p.sid) +
+      '<span class="ml-calc-asset-pos pos-' + pos.toLowerCase() + '">' + esc(pos) + '</span>' +
+      '<span class="tc-wv-trend-id"><span class="tc-wv-trend-name">' + esc(p.name) + '</span>' + teamLogo(p.team, 'tc-wv-team--sm') + '</span>' +
+      val + '<span class="tc-wv-addcount">🔥 ' + _fmtCount(p.count) + '</span></div>';
+  }
+
+  function setLeague(id) { _leagueId = id; renderBoard(); }
+
+  function loadTrending() {
+    if (!_raw && !_trendingLoading) {
+      _trendingLoading = true;
+      fetch(API + '/players/nfl/trending/add?lookback_hours=168&limit=40').then(function (r) { return r.json(); }).catch(function () { return []; })
+        .then(function (adds) { _raw = { adds: adds || [] }; _trendingLoading = false; renderBoard(); });
+    }
+    renderBoard();
+  }
+
+  function renderBoard() {
+    var valEl = document.getElementById('tc-wv-value');
+    var addEl = document.getElementById('tc-wv-added');
+    var sel = document.getElementById('tc-wv-league');
+    var leagues = _leagues();
+    // Populate the league picker once the leagues are loaded (and keep it in sync).
+    if (sel && sel.dataset.count !== String(leagues.length)) {
+      sel.innerHTML = leagues.map(function (l) { return '<option value="' + l.id + '">' + esc(l.name) + '</option>'; }).join('');
+      sel.dataset.count = String(leagues.length);
+      if (!_leagueId || !leagues.some(function (l) { return l.id === _leagueId; })) _leagueId = leagues.length ? leagues[0].id : null;
+      if (_leagueId) sel.value = _leagueId;
+    }
+    if (!leagues.length || !Object.keys(_playersDict()).length) {
+      if (valEl) valEl.innerHTML = '<div class="tc-wv-trend-head">Most Valuable Available</div><div class="tc-wv-empty">Loading your leagues…</div>';
+      if (addEl) addEl.innerHTML = '<div class="tc-wv-trend-head">Most Added · 7d</div><div class="tc-wv-empty">Loading your leagues…</div>';
       return;
     }
-    var adds = _mapTrending(_raw.adds), drops = _mapTrending(_raw.drops);
-    if (addsEl) addsEl.innerHTML = '<div class="tc-wv-trend-head">Most Added · 7d</div>' + (adds.map(_trendRow).join('') || '<div class="tc-wv-empty">—</div>');
-    if (dropsEl) dropsEl.innerHTML = '<div class="tc-wv-trend-head">Most Dropped · 7d</div>' + (drops.map(_trendRow).join('') || '<div class="tc-wv-empty">—</div>');
+    if (!_leagueId) _leagueId = leagues[0].id;
+    var best = _bestAvailable(_leagueId);
+    if (valEl) valEl.innerHTML = '<div class="tc-wv-trend-head">Most Valuable Available</div>' + (best.map(_valueRow).join('') || '<div class="tc-wv-empty">—</div>');
+    var added = _addedHere(_leagueId);
+    if (addEl) addEl.innerHTML = '<div class="tc-wv-trend-head">Most Added · 7d</div>' +
+      (added === null ? '<div class="tc-wv-empty">Loading trends…</div>'
+        : (added.length ? added.map(_addedRow).join('') : '<div class="tc-wv-empty">No trending adds available here.</div>'));
   }
 
   global.WaiverWire = {
@@ -206,6 +261,7 @@
     pick: pick,
     selectPlayer: selectPlayer,
     loadTrending: loadTrending,
-    renderTrending: renderTrending
+    setLeague: setLeague,
+    renderTrending: renderBoard
   };
 })(window);
