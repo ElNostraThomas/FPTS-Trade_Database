@@ -11,6 +11,7 @@
 <!-- Shared Trade Finder + Calculator styles -->
 <link rel="stylesheet" href="assets/css/trade-finder.css?v=1797000000">
 <link rel="stylesheet" href="assets/css/trade-calc.css?v=1797700000">
+<link rel="stylesheet" href="assets/css/waiver-wire.css?v=1797700000">
 
 <script>window.FPTS_CURRENT_PAGE = 'calc';</script>
 <script src="assets/js/iframe-scroll-fix.js?v=1791700000"></script>
@@ -26,6 +27,7 @@
 <script src="assets/js/league-compute.js?v=1797000000"></script>
 <script src="assets/js/trade-finder.js?v=1797200000"></script>
 <script src="assets/js/trade-calc.js?v=1797700000"></script>
+<script src="assets/js/waiver-wire.js?v=1797700000"></script>
 
 <style>
   /* ── page-specific chrome (tc-*) ── */
@@ -167,6 +169,7 @@
     <div class="tc-tabs">
       <button class="tc-tab active" data-tab="finder" onclick="tcSetTab('finder')">Trade Finder</button>
       <button class="tc-tab" data-tab="calc" onclick="tcSetTab('calc')">Trade Calculator</button>
+      <button class="tc-tab" data-tab="waiver" onclick="tcSetTab('waiver')">Waiver Wire</button>
     </div>
 
     <div id="tc-finder-view">
@@ -209,6 +212,22 @@
         <p>Build a trade and see the value balance for both sides. Add any players or picks
            to each side — or hit <strong>Edit</strong> on any Trade-Finder suggestion to load it here.</p>
         <button class="tc-calc-btn" onclick="tcOpenBlankCalc()">Build a trade →</button>
+      </div>
+    </div>
+
+    <div id="tc-waiver-view" style="display:none">
+      <div class="tc-wv">
+        <div class="tc-wv-searchwrap">
+          <input id="tc-wv-search" class="tc-wv-search" type="text" autocomplete="off"
+            placeholder="Search a player to see which of your leagues he's available in…"
+            oninput="WaiverWire.search(this.value)" onblur="WaiverWire.hideResultsSoon()">
+          <div id="tc-wv-results" class="tc-wv-results" style="display:none"></div>
+        </div>
+        <div id="tc-wv-avail" class="tc-wv-avail"></div>
+        <div class="tc-wv-trending">
+          <div id="tc-wv-adds"></div>
+          <div id="tc-wv-drops"></div>
+        </div>
       </div>
     </div>
   </div>
@@ -353,6 +372,7 @@ function tcInitModules() {
     allLeagues: function () { return Object.values(window.CALC_LEAGUE_DATA || {}).map(function (d) { return d.league; }).filter(Boolean); },
     closeDetail: function () {}
   });
+  if (window.WaiverWire) WaiverWire.init({});
 }
 
 // ── Tabs ─────────────────────────────────────────────────────────────────────
@@ -360,7 +380,9 @@ function tcSetTab(tab) {
   document.querySelectorAll('.tc-tab').forEach(function (b) { b.classList.toggle('active', b.dataset.tab === tab); });
   document.getElementById('tc-finder-view').style.display = (tab === 'finder') ? '' : 'none';
   document.getElementById('tc-calc-view').style.display = (tab === 'calc') ? '' : 'none';
+  var _wv = document.getElementById('tc-waiver-view'); if (_wv) _wv.style.display = (tab === 'waiver') ? '' : 'none';
   if (tab === 'finder' && window._tcInited) TradeFinder.render();
+  if (tab === 'waiver' && window.WaiverWire) WaiverWire.loadTrending();
 }
 
 function tcOpenBlankCalc() {
