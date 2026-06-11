@@ -165,6 +165,45 @@
   }
   .ld-user-chip-signout:hover { border-color: var(--red); color: var(--red); }
 
+  /* ── YOUR DRAFTS (live + upcoming, surfaced after sign-in) ─────────── */
+  .ld-active-drafts { margin-bottom: 16px; }
+  .ld-section-head {
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 12px; color: var(--white); text-transform: uppercase;
+    letter-spacing: .04em; margin-bottom: 8px;
+  }
+  .ld-ad-empty {
+    font-family: 'Mulish', sans-serif; font-size: 12px; font-style: italic;
+    color: rgba(255,255,255,0.5); padding: 4px 2px;
+  }
+  .ld-draft-cards {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 10px;
+  }
+  .ld-draft-card {
+    display: block; width: 100%; text-align: left; cursor: pointer;
+    background: var(--surface); border: 1px solid var(--border);
+    padding: 11px 13px; transition: border-color .15s, background .15s;
+  }
+  .ld-draft-card:hover { border-color: var(--red); background: var(--surface2); }
+  .ld-draft-card-top { margin-bottom: 6px; }
+  .ld-draft-card-name {
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 15px; color: var(--white); line-height: 1.15;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .ld-draft-card-meta {
+    font-family: 'Mulish', sans-serif; font-size: 10.5px; font-weight: 700;
+    color: rgba(255,255,255,0.55); text-transform: uppercase; letter-spacing: .04em;
+    margin-top: 3px;
+  }
+  .ld-ad-pill {
+    display: inline-block; font-family: 'Mulish', sans-serif; font-size: 9px;
+    font-weight: 800; text-transform: uppercase; letter-spacing: .05em;
+    padding: 2px 7px; border-radius: 3px;
+  }
+  .ld-ad-pill.live { background: var(--green); color: #111111; }
+  .ld-ad-pill.up { background: none; border: 1px solid var(--border2); color: rgba(255,255,255,0.6); }
+
   /* ── CASCADING PICKERS (year / league / draft) ────────────────────── */
   .ld-pickers {
     display: grid; grid-template-columns: 100px 1fr 1fr; gap: 8px;
@@ -1213,6 +1252,9 @@
       <button class="ld-user-chip-signout" onclick="ldLogout()">Sign out</button>
     </div>
 
+    <!-- Your live / upcoming drafts — surfaced after sign-in; click a card to open -->
+    <div id="ld-active-drafts" class="ld-active-drafts" style="display:none"></div>
+
     <!-- Year / League / Draft picker row -->
     <div class="ld-pickers">
       <div class="ld-picker-group">
@@ -1836,6 +1878,8 @@
     }
     if (!leagues.length) {
       leagueSel.innerHTML = '<option value="">No leagues found for ' + year + '</option>';
+      const _ad = document.getElementById('ld-active-drafts');
+      if (_ad) _ad.style.display = 'none';
       return;
     }
     // Populate dropdown WITHOUT active-draft markers first (instant render),
@@ -1864,16 +1908,42 @@
 
   async function _probeActiveLeagues(leagues, leagueSel) {
     if (!leagues || !leagues.length) return;
+    const adEl = document.getElementById('ld-active-drafts');
+    if (adEl) {
+      adEl.style.display = '';
+      adEl.innerHTML = '<div class="ld-section-head">Your Drafts</div>'
+        + '<div class="ld-ad-empty">Checking for live drafts…</div>';
+    }
     const probes = leagues.map(l =>
       apiFetch(SLEEPER_API + '/league/' + encodeURIComponent(l.league_id) + '/drafts')
-        .then(drafts => ({
-          id: l.league_id,
-          active: (drafts || []).some(d => d.status === 'drafting' || d.status === 'paused'),
-        }))
-        .catch(() => ({ id: l.league_id, active: false }))
+        .then(drafts => ({ league: l, drafts: drafts || [] }))
+        .catch(() => ({ league: l, drafts: [] }))
     );
     const results = await Promise.all(probes);
-    const activeIds = new Set(results.filter(r => r.active).map(r => r.id));
+
+    // Surface in-progress (drafting/paused → LIVE) + scheduled (pre_draft →
+    // UPCOMING) drafts as clickable cards so the user doesn't have to cascade
+    // the pickers to reach a draft they need to act on right now.
+    const cards = [];
+    results.forEach(r => {
+      (r.drafts || []).forEach(d => {
+        const st = d.status;
+        if (st === 'drafting' || st === 'paused' || st === 'pre_draft') {
+          const rounds = (d.settings && d.settings.rounds) || 0;
+          cards.push({
+            year: DRAFT.year, leagueId: r.league.league_id, leagueName: r.league.name || 'League',
+            draftId: d.draft_id, rounds: rounds, type: d.type || 'snake',
+            isStartup: rounds >= 7, live: (st === 'drafting' || st === 'paused'),
+          });
+        }
+      });
+    });
+    _renderActiveDrafts(cards);
+
+    const activeIds = new Set(
+      results.filter(r => (r.drafts || []).some(d => d.status === 'drafting' || d.status === 'paused'))
+             .map(r => r.league.league_id)
+    );
     if (!activeIds.size) return;
 
     // Reorder so leagues with an active draft bubble to the top of the
@@ -1894,6 +1964,56 @@
             + marker + _escapeHtml(l.name) + '</option>';
         }).join('');
     if (currentVal) leagueSel.value = currentVal;
+  }
+
+  // Render the "Your Drafts" cards (LIVE before UPCOMING; startup before rookie).
+  function _renderActiveDrafts(cards) {
+    const el = document.getElementById('ld-active-drafts');
+    if (!el) return;
+    el.style.display = '';
+    if (!cards || !cards.length) {
+      el.innerHTML = '<div class="ld-section-head">Your Drafts</div>'
+        + '<div class="ld-ad-empty">No live or upcoming drafts right now — pick one below.</div>';
+      return;
+    }
+    cards.sort((a, b) => (Number(b.live) - Number(a.live)) || (Number(b.isStartup) - Number(a.isStartup)));
+    const cardHtml = c => {
+      const pill = c.live
+        ? '<span class="ld-ad-pill live">🔥 Live</span>'
+        : '<span class="ld-ad-pill up">Upcoming</span>';
+      const kind = c.isStartup ? 'Startup' : 'Rookie';
+      const meta = kind + (c.rounds ? ' · ' + c.rounds + 'R' : '') + ' · ' + String(c.type).toUpperCase();
+      return '<button type="button" class="ld-draft-card" '
+        + 'onclick="ldOpenDraftCard(\'' + c.year + '\',\'' + c.leagueId + '\',\'' + c.draftId + '\')">'
+        + '<div class="ld-draft-card-top">' + pill + '</div>'
+        + '<div class="ld-draft-card-name">' + _escapeHtml(c.leagueName) + '</div>'
+        + '<div class="ld-draft-card-meta">' + _escapeHtml(meta) + '</div>'
+        + '</button>';
+    };
+    el.innerHTML = '<div class="ld-section-head">Your Drafts</div>'
+      + '<div class="ld-draft-cards">' + cards.map(cardHtml).join('') + '</div>';
+  }
+
+  // Open a draft straight from a card — drives the normal cascade so all the
+  // state ldLoadDraft depends on (DRAFT.league, draftsByLeague, the selects)
+  // gets populated the usual way.
+  async function ldOpenDraftCard(year, leagueId, draftId) {
+    year = parseInt(year, 10);
+    const yearSel = document.getElementById('ld-year-select');
+    if (DRAFT.year !== year) {
+      if (yearSel) yearSel.value = String(year);
+      DRAFT.year = year;
+      try { localStorage.setItem(LS.LAST_YEAR, String(year)); } catch (e) {}
+      await ldFetchLeagues(year);
+    }
+    const leagueSel = document.getElementById('ld-league-select');
+    if (leagueSel) leagueSel.value = leagueId;
+    await ldOnLeagueChange();
+    const draftSel = document.getElementById('ld-draft-select');
+    if (draftSel) draftSel.value = draftId;
+    await ldOnDraftChange();
+    const info = document.getElementById('ld-draft-info');
+    if (info && info.scrollIntoView) info.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
   async function ldOnLeagueChange() {
