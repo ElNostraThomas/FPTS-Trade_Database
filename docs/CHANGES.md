@@ -22,8 +22,14 @@ Renamed `trade-calculator.html` site-wide (nav + mobile selects on all 11 pages 
 ### Mobile sweep (`ff68715`, `82e8a00`)
 Roster Moves had no mobile `@media` → the 3-tab strip overflowed; added a horizontally-scrollable tab strip + tighter chrome. Shared waiver CSS: phone tap-targets, 16px search input (no iOS focus-zoom), compact tags, wrapping availability header.
 
-### Updates timeline (`47b12af`)
-S22 (Roster Moves hub), S23 (Waiver Wire), S24 (Live Draft cards) added as description-only nodes to `formulas-content.js`.
+### Trade History Search (`0363ca5`)
+New shared module `assets/js/trade-history.js` (`window.TradeHistory`) + `trade-history.css`. Type a player → every trade across your leagues/seasons that involved him and that you were a side of, each card flagged with who proposed it (🫵 You / the manager, from Sleeper's transaction `creator` vs your user id), the searched player highlighted, your side marked. Reuses/builds the cross-league `window.ML_MY_TRADES` pool (ports `mlEnsureMyTrades`: walks `previous_league_id` chains, fetches `/league/{id}/transactions/{week}` w1–18, keeps complete trades where `roster_ids` includes your roster; lazy + cached + shared with My Leagues' My Trades tab). Self-contained `cardHtml` (adds/drops/picks/FAAB, format-aware values), autocomplete over `FP_VALUES`, match by sleeperId in adds/drops. Mounted on the Roster Moves **"Trade History"** tab + atop the My Leagues **"My Trades"** tab.
+
+### Waiver Wire → league-scoped board (`acd5f1c`, `b355e81`)
+Replaced the global Most Added/Dropped with a **league picker** + two columns: **Most Valuable Available** (highest-value players NOT rostered in the selected league — best free agents by format-aware dynasty value, `FP_VALUES` minus the league's rostered sleeperIds, top 30) + **Most Added** (the one global Sleeper trending-add fetch filtered to players available in that league, "🔥 N adds"). All in-memory from already-loaded rosters + FP_VALUES; no new Sleeper calls. **User-feedback fixes (`b355e81`):** the My Leagues board now opens on the league you're focused on (`mlEnsureWaiverPanel` → `WaiverWire.setLeague(ML.selectedLeagueId)`), and the player search gained a one-click **✕ clear** (`WaiverWire.clearSearch` — resets input + dropdown + availability back to the board, no backspacing).
+
+### Updates timeline (`47b12af` + S25/S26)
+S22 (Roster Moves hub), S23 (Waiver Wire), S24 (Live Draft cards), S25 (Trade History Search), S26 (league-scoped Waiver Wire) added as description-only nodes to `formulas-content.js`; README + this file + the function-reference PDF kept in sync.
 
 ---
 
