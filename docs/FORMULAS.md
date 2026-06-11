@@ -601,7 +601,7 @@ return 't-' + (tier || 'S').toLowerCase().replace(/\+/g, 'p').replace(/-/g, 'm')
 ## My Leagues — team analysis
 
 ### 19. Team value aggregation
-`mlComputeLeagueValueData` — `my-leagues.html:5093-5174`
+`computeLeagueValueData` — `assets/js/league-compute.js` (`LC`; `my-leagues.html` `mlComputeLeagueValueData` is now a thin wrapper after the modular refactor)
 
 **Per-roster** for each `roster.players` (filtered to active starters via Sleeper API metadata)
 ```js
@@ -624,7 +624,7 @@ projTotal = sum(ML_SEASON_PROJ[pid] || 0 for each player_id);
 ---
 
 ### 20. Per-position power rankings
-`mlComputeLeagueValueData` — `my-leagues.html` (same function)
+`computeLeagueValueData` — `assets/js/league-compute.js` (same function)
 
 **Per-position** (`QB`, `RB`, `WR`, `TE`):
 ```js
@@ -647,7 +647,7 @@ myRanks.TOTAL = sortedByGrand.findIndex(t => t.isMe) + 1;
 ---
 
 ### 21. League medians
-`mlComputeLeagueValueData` — `my-leagues.html`
+`computeLeagueValueData` — `assets/js/league-compute.js`
 
 **Median helper**
 ```js

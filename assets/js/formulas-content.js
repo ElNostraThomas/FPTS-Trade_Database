@@ -649,7 +649,7 @@ Player with no tag      → no chip rendered`,
         {
           id: 'team-value-aggregation',
           label: '19. Team value aggregation (per roster)',
-          location: 'my-leagues.html:5093-5174 (mlComputeLeagueValueData)',
+          location: 'assets/js/league-compute.js (LC.computeLeagueValueData) — moved here in the modular refactor; my-leagues.html mlComputeLeagueValueData is now a thin wrapper.',
           provenance: { kind: 'site-convention', detail: 'Sum of FP_VALUES per skill position; no chosen weights.' },
           inputs: 'roster.players (Sleeper player IDs), FP_VALUES, ML_SEASON_PROJ.',
           math: `posVals = { QB:0, RB:0, WR:0, TE:0 };
@@ -728,7 +728,7 @@ leagueAvg = {
         {
           id: 'team-archetype',
           label: '22. Team archetype classification (mlGetArchetype)',
-          location: 'my-leagues.html:2937-2959',
+          location: 'assets/js/sleeper-helpers.js (SLEEPER.archetypeFromTotals) — the archetype math; reached via assets/js/league-compute.js LC.getArchetype and the my-leagues.html mlGetArchetype wrapper.',
           provenance: { kind: 'hand-tuned', detail: 'Composite weights (60/20/20), value/age thresholds (±10%, ±0.6yr), and 9-cell decision grid all chosen by the curator.' },
           inputs: 'avgAge, totalValue, pickValue, projValue, leagueAvg {age, value, pickValue, proj}.',
           math: `const valNorm  = (totalValue || 0) / (leagueAvg.value || 1);
