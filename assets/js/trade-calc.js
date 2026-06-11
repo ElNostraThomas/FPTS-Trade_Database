@@ -653,13 +653,39 @@ function mlCalcSearch(sideId, query) {
       resultsEl.classList.add('open');
       return;
     }
-    resultsEl.innerHTML = assets.map(a => `
+    // Row renderer — shared by the flat (query) + grouped (browse) views; click-to-add unchanged.
+    const _row = (a) => `
       <div class="ml-calc-search-item" onmousedown="mlCalcAdd('${sideId}',${JSON.stringify(a).replace(/"/g,'&quot;')})">
         ${_mlCalcThumb(a)}<span class="ml-calc-asset-pos pos-${(a.pos || 'wr').toLowerCase()}">${a.pos}</span>
         <span class="ml-calc-asset-name">${a.name}${a.isMine ? ' <span class="ml-calc-yours-tag">YOURS</span>' : ''}</span>
         <span class="ml-calc-asset-val">${(a.value || 0).toLocaleString()}</span>
-      </div>
-    `).join('');
+      </div>`;
+    if (q) {
+      // Typed query → flat named-search list.
+      resultsEl.innerHTML = assets.map(_row).join('');
+    } else {
+      // Browsing (no query) → roster-style view: group by position so the dropdown
+      // reads like a roster (in scoped mode the candidates ARE the roster).
+      const _order = ['QB', 'RB', 'WR', 'TE', 'K', 'OTHER', 'PICK'];
+      const _label = { QB: 'QB', RB: 'RB', WR: 'WR', TE: 'TE', K: 'K', OTHER: 'Other', PICK: 'Picks' };
+      const _groups = {};
+      assets.forEach(a => {
+        let p = String(a.pos || 'WR').toUpperCase();
+        if (a.type === 'pick' || p === 'PICK' || p === 'PK') p = 'PICK';
+        else if (_order.indexOf(p) < 0) p = 'OTHER';
+        (_groups[p] = _groups[p] || []).push(a);
+      });
+      const _parts = [];
+      if (_need > 0) _parts.push(`<div class="ml-calc-search-hint">Need ~${Math.round(_need).toLocaleString()} to balance</div>`);
+      _order.forEach(p => {
+        const g = _groups[p];
+        if (!g || !g.length) return;
+        g.sort((x, y) => (y.value || 0) - (x.value || 0));
+        _parts.push(`<div class="ml-calc-search-group">${_label[p]} <span class="ml-calc-search-group-n">${g.length}</span></div>`);
+        _parts.push(g.map(_row).join(''));
+      });
+      resultsEl.innerHTML = _parts.join('');
+    }
     resultsEl.classList.add('open');
   }, 80);
 }
