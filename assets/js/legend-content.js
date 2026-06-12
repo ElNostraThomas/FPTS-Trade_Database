@@ -30,8 +30,9 @@
 
    data/mvs.json            MVS canonical values (TEP basis)      sync-mvs.py
      → MVS_PAYLOAD.players + .picks  (overlays FP_VALUES wholesale)
-     → values sourced from the CSV's *_tep columns (tight-end premium
-       baked in site-wide, 2026-06-08); both SF and 1QB
+     → values use the STABLE base columns + a modeled per-position TEP
+       premium (TE ×1.12, others ×1.0); both SF and 1QB. The raw *_tep
+       source columns were too noisy per-player (replaced 2026-06-12).
 
    data/articles.json       FantasyPoints recent articles         sync-fp.py
      → PLAYER_ARTICLES[name] = [{ title, url, snippet, image }]
@@ -656,7 +657,7 @@ window.LegendContent = {
         name: 'Format Settings (top of page)',
         items: [
           { label: 'QB Format Picker (SF / 1QB)', what: 'Switch between Superflex (2QB) and Single-QB value scales. Persists cross-page via localStorage.', source: 'tradeState.qb → toggles which value (valueSf vs value1qb) FP_VALUES asset values read', values: 'sf (default) / 1qb', notes: 'localStorage key: fpts-adp-format. Switching also re-hydrates FP_VALUES.adp + trend for the chosen format.' },
-          { label: 'TEP (Tight End Premium) — now baked in', what: 'Tight-end premium is built into the canonical value, not a toggle. sync-mvs.py sources every value from the CSV\'s *_tep columns, so TE values already include the premium site-wide.', source: 'sync-mvs.py COL_* → data/mvs.json valueSf / value1qb', values: 'Always on (TEP basis)', notes: 'The old calculator TEP dropdown + ×(1+tep·0.12) TE multiplier were removed 2026-06-08 because they double-counted the now-baked-in premium.' },
+          { label: 'TEP (Tight End Premium) — modeled into the value', what: 'Tight-end premium is built into the canonical value, not a toggle. sync-mvs.py takes the STABLE base market columns and applies a modeled per-position TEP premium (TE ×1.12, everyone else ×1.0), so TE values already include the premium site-wide.', source: 'sync-mvs.py COL_* (base columns) × TEP_PREMIUM → data/mvs.json valueSf / value1qb', values: 'Always on · TE ×1.12 (tunable)', notes: 'Replaced the raw *_tep source columns on 2026-06-12: those came from a thin TEP-only trade sample and were too noisy per-player (36–60% stdev — a depth WR could out-value a stud WR). The 1.12 default is the robust median of the source *_tep/base ratio for TEs. The old calculator TEP dropdown + ×(1+tep·0.12) multiplier were removed 2026-06-08 (would double-count the baked-in premium).' },
           { label: 'PPR Variant', what: 'Standard / Half / Full PPR scoring. WR and RB values shift slightly based on PPR.', source: 'tradeState.ppr → getMultiplier(pos) at L2146-2154', values: '0 / 0.5 / 1', notes: 'WR: full PPR = 1.0×, half = 0.96×, std = 0.90×. RB: full = 1.04×, half = 1.0×, std = 0.93×.' },
           { label: '3-Team Toggle', what: 'Add a third side (Side C) for three-way trades.', source: 'tradeState.threeTeam boolean; toggles .builder-wrap.three-sides class', values: 'On / Off', notes: 'Balance bar logic handles 3-side fairness; threshold is broader.' },
         ],
@@ -846,6 +847,7 @@ window.LegendContent = {
           { label: 'Articles Section', what: 'FantasyPoints recent articles for this player.', source: 'PLAYER_ARTICLES[name] via mountPlayerArticles()', values: 'Dropdown preview + "Sign in" link', notes: 'Shared mount function used by all pages.' },
           { label: 'Status Block', what: 'Cross-league status: on your roster / on another team / available.', source: 'Cross-league lookup of player ID against ML_ALL_LEAGUE_DATA', values: '★ On Your Roster (mine) / On {Team Name} (taken) / Available — Waivers/FA (free)', notes: 'Different CTAs per state: Trade For / Send Offer / Claim.' },
           { label: 'Availability Mount', what: 'Sleeper-style "Availability in Other Leagues" panel.', source: 'mlBuildAvailabilityHtml()', values: 'Per-league row: your roster ID, FAAB history, owner', notes: 'Helps users decide which league to make the move in.' },
+          { label: 'Three-Number Value (Market / To-Team / In-League)', what: 'Beside each availability row\'s league market value, two context-aware numbers: VALUE TO THAT TEAM (the startable-lineup value the player adds to that specific roster — Geno Smith is huge to a team starting Mason Rudolph in SF, near-nothing to one with 4 startable QBs — scaled vs a typical team and floored so a 3rd stud QB still has trade value) and VALUE IN THAT LEAGUE (market adjusted for how tightly the position is held across those rosters). A ×multiplier tints green above 1, red below.', source: 'assets/js/valuation-core.js (window.Valuation): teamValue + positionScarcity. The In-League scarcity→price slope is CALIBRATED per-user from your real trades by valuation-calibrate.js (window.ValuationCalibrate) — replaying each league\'s transaction log to reconstruct rosters at trade time — the thing market-average calculators (KTC/FantasyCalc) structurally can\'t do.', values: 'To you / To them <value> ×ratio · In league <value> ×liquidity', notes: 'Picks show market only. The In-League number renders on a default slope first and sharpens once the per-user calibration lands (lazy, ~0 extra fetches, 24h cached). All constants tunable at the top of valuation-core.js; full math on the Updates & Formulas page (S29).' },
           { label: 'Waiver / FAAB History', what: 'Prior FAAB claims on this player in the league: count + average $ bid.', source: 'fetchAndCacheWaivers() at L2998', values: '"X prior claims · avg $Y"', notes: 'Pulls all weekly /transactions endpoints and counts type==="waiver" + bid amount.' },
         ],
       },

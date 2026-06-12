@@ -39,6 +39,11 @@
 - [Owner-willingness + startability](#owner-willingness--startability)
 - [Opportunity = owner-archetype-tilted package](#opportunity--owner-archetype-tilted-package)
 
+**Player valuation (three numbers)**
+- [Value to this team — marginal lineup value](#value-to-this-team--marginal-lineup-value)
+- [Value in this league — position liquidity](#value-in-this-league--position-liquidity)
+- [Liquidity calibration — fit scarcity→price from your trades](#liquidity-calibration--fit-scarcityprice-from-your-trades)
+
 **Trade values**
 1. [Player value — format multipliers (`getMultiplier`)](#1-player-value--format-multipliers)
 2. [Adjusted asset value (`adjVal`)](#2-adjusted-asset-value)
@@ -199,6 +204,67 @@ A willingness banner shows above the FOR offers (✓ deep / ⚠ thin / neutral);
 
 ---
 
+## Player valuation (three numbers)
+
+Every public calculator (KTC, FantasyCalc) gives **one** value per player: the average price across thousands of leagues. But nobody trades in "the market" — they trade in one league with specific rosters and lineup settings. Added 2026-06-12 (S29), the My Leagues player panel shows **three** numbers per league: **Market** (the league-agnostic value), **To this team** (marginal starting-lineup value), and **In this league** (market adjusted for position scarcity, with the scarcity→price slope calibrated from your own real trades). New modules `assets/js/valuation-core.js` (`window.Valuation`, pure math) + `assets/js/valuation-calibrate.js` (`window.ValuationCalibrate`, the replay + regression).
+
+### Value to this team — marginal lineup value
+`teamValue` / `marginalValue` — `assets/js/valuation-core.js`
+
+A player isn't worth his points; he's worth the points he adds to *your* starting lineup. Geno Smith is huge to a team starting Mason Rudolph in Superflex, near-worthless to one with four startable QBs.
+
+**Math (verbatim)**
+```js
+// optimalLineup falls back to FP value when given NO projections, so both the
+// SELECTION and the SUM are in MVS market units → scales cleanly against market:
+lineupValue(R) = Σ value(optimalLineup(R, {}));
+marginal       = lineupValue(R ∪ player) − lineupValue(R ∖ player);
+ratio     = marginal / median(marginals over every league team);   // vs a TYPICAL team
+teamValue = market × clamp(ratio, TEAM_FLOOR, TEAM_CEIL);           // 0.55 … 1.60
+```
+
+**Output** High for a player who fills that lineup; floored near 55% of market for one who never cracks it (a 3rd stud QB is still a flippable asset). Picks pass market through.
+
+**Notes** Denominator is the **median** of per-team marginals (robust) rather than a synthetic average roster. **Constants** (tunable, top of `valuation-core.js`): `TEAM_FLOOR` 0.55 · `TEAM_CEIL` 1.60. Reuses `SLEEPER.optimalLineup` + `LC.fpValue`.
+
+### Value in this league — position liquidity
+`positionScarcity` / `leagueLiquidity` — `assets/js/valuation-core.js`
+
+Supply and demand at each position is whatever the rosters say. If two teams hoard every startable TE in a TEP league, TEs cost more **there**.
+
+**Math (verbatim)**
+```js
+// how tightly is each position held? normalized Herfindahl concentration of
+// positional value across teams (0 = even, 1 = one owner), DE-MEANED across
+// QB/RB/WR/TE so it centers per league:
+x_pos     = concentration(posValueByTeam) − mean(concentration over QB,RB,WR,TE);
+liquidity = clamp(1 + k · x_pos, LIQ_LO, LIQ_HI);   // 0.75 … 1.35
+inLeagueValue = market × liquidity;
+```
+
+**Output** Market nudged **up** where a position is hoarded relative to the league's other positions, **down** where it's spread evenly.
+
+**Notes** One scarcity metric `x` is used **both** live and in calibration so the fitted slope applies to the same number. `k` defaults to `LIQ_K_DEFAULT` 0.6 and is replaced per-position by the calibrated slope below. Concentration was chosen over literal buyers-vs-sellers counting (which needs a fragile startable-quality bar). **Constants:** `LIQ_K_DEFAULT` 0.6 · `LIQ_LO` 0.75 · `LIQ_HI` 1.35.
+
+### Liquidity calibration — fit scarcity→price from your trades
+`compute` / `nodePoints` — `assets/js/valuation-calibrate.js`
+
+The part a market-average calculator structurally **can't** do: rather than guess how much scarcity moves price, measure it from your real trades.
+
+**Math (verbatim)**
+```js
+// replay each league's txn log BACKWARD from today's rosters to the trade's moment:
+stateBefore(trade) = undo(every newer add/drop) applied to current rosters;
+overpayShare = (whatBuyerGave − whatBuyerGot) / headlineValue;   // buyer over/under-pay
+k_pos = Σ(x · overpayShare) / Σ(x²);   // least squares through origin, clamped [0, 1.5]
+```
+
+**Output** A per-position slope `k` replacing the default — your leagues' actual scarcity→price elasticity.
+
+**Notes** A position needs ≥ `MIN_TRADES_PER_POS` 8 trades to fit its own slope, else a pooled global slope, else the default 0.6. Nodes whose transaction log can't reconcile with current rosters (missing / draft / commish moves) are **excluded** so corrupt scarcity never enters the fit. Cached 24h in `localStorage`; runs lazily with ~0 extra fetches (reuses the My-Trades transaction log via `window.ML_TXN_LOG`); In-League renders on the default slope first and sharpens when the fit lands. Sample is one user's ~10 leagues — honest about confidence. **Constants:** `MIN_TRADES_PER_POS` 8 · `LIQ_K_MAX` 1.5 · `CALIB_TTL_MS` 24h.
+
+---
+
 ## Trade values
 
 ### 1. Player value — format multipliers
@@ -208,7 +274,7 @@ A willingness banner shows above the FOR offers (✓ deep / ⚠ thin / neutral);
 - `qb` ← `_calcQb()` returns `'sf'` or `'1qb'`. Reads visible `f-qb` filter dropdown; default `'sf'`.
 - `ppr` ← `_calcPpr()` returns `1` (Full) / `0.5` (Half) / `0` (Std). Reads `f-ppr`; default `1`.
 - `passtd` ← `_calcPasstd()` returns `4` / `5` / `6`. Reads `f-passtd`; default `4`.
-- _(TEP removed 2026-06-08 — tight-end premium is baked into the base MVS value via the `*_tep` columns in `sync-mvs.py`, so the calculator no longer reads a TEP setting or applies a TE multiplier; doing both would double-count.)_
+- _(TEP removed 2026-06-08 — tight-end premium is baked into the MVS value via a modeled per-position premium in `sync-mvs.py` (TE ×1.12; replaced the noisy raw `*_tep` columns 2026-06-12), so the calculator no longer reads a TEP setting or applies a TE multiplier; doing both would double-count.)_
 
 **Math (verbatim)**
 ```js
@@ -236,7 +302,7 @@ return m;
 
 **Notes**
 - Stacks multiplicatively across QB/passtd. WR/RB multipliers are mutually exclusive (each position checked separately).
-- TE / K / PK return `1.0` — TEP is baked into the base value (the `*_tep` columns), so no TE premium is applied here (removed 2026-06-08).
+- TE / K / PK return `1.0` — TEP is baked into the base value (a modeled per-position premium in `sync-mvs.py`), so no TE premium is applied here (removed 2026-06-08).
 
 ---
 

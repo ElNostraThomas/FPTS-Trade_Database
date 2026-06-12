@@ -55,13 +55,13 @@
         var lg = leagueById[lid] || (all[lid] && all[lid].league) || null;
         var baseName = (all[lid] && all[lid].leagueName) || (lg && lg.name) || 'League';
         var baseSeason = String((lg && lg.season) || (all[lid] && all[lid].leagueSeason) || '');
-        if (!seen[lid]) { seen[lid] = 1; nodes.push({ leagueId: lid, season: baseSeason, name: baseName }); }
+        if (!seen[lid]) { seen[lid] = 1; nodes.push({ leagueId: lid, season: baseSeason, name: baseName, rp: (lg && lg.roster_positions) || (all[lid] && all[lid].league && all[lid].league.roster_positions) || null }); }
         var prevId = lg ? lg.previous_league_id : null;
         var prevSeason = parseInt(baseSeason, 10) - 1, guard = 0;
         while (prevId && prevSeason >= 2017 && guard < 10) {
           var prev = await _api('/league/' + prevId);
           if (!prev) break;
-          if (!seen[prevId]) { seen[prevId] = 1; nodes.push({ leagueId: prevId, season: String(prev.season || prevSeason), name: prev.name || baseName }); }
+          if (!seen[prevId]) { seen[prevId] = 1; nodes.push({ leagueId: prevId, season: String(prev.season || prevSeason), name: prev.name || baseName, rp: prev.roster_positions || null }); }
           prevId = prev.previous_league_id;
           prevSeason = parseInt(prev.season || prevSeason, 10) - 1;
           guard++;
@@ -86,7 +86,14 @@
           var userToName = {};
           (users || []).forEach(function (u) { userToName[u.user_id] = (u.metadata && u.metadata.team_name) || u.display_name || u.username; });
           var weeks = await Promise.all(Array.from({ length: 18 }, function (_, w) { return _api('/league/' + node.leagueId + '/transactions/' + (w + 1)).then(function (x) { return x || []; }); }));
-          var trades = weeks.reduce(function (a, b) { return a.concat(b); }, []).filter(function (t) {
+          var allTxns = weeks.reduce(function (a, b) { return a.concat(b); }, []);
+          // Stash the FULL transaction log (+ this node's final rosters/users/slots) so
+          // the valuation calibrator can replay roster state — zero extra fetches.
+          (global.ML_TXN_LOG = global.ML_TXN_LOG || {})[node.leagueId] = {
+            season: node.season, name: node.name, transactions: allTxns,
+            rosters: rosters, users: users, rosterPositions: node.rp || null
+          };
+          var trades = allTxns.filter(function (t) {
             return t && t.type === 'trade' && t.status === 'complete' && (t.roster_ids || []).indexOf(myRosterId) >= 0;
           });
           if (!trades.length) return;

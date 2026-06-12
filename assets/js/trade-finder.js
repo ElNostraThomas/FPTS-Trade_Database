@@ -591,6 +591,39 @@ function mlTfStartThresholds(team, ctx){
   return thr;
 }
 
+// ── value-to-YOUR-team lens (window.Valuation) ───────────────────────────────
+// Net change to your OPTIMAL STARTING LINEUP if this trade happens — the signal
+// raw market value can't see. gain = lineup value the acquired player(s) add;
+// loss = lineup value the sent player(s) take away; delta = gain − loss (MVS
+// units). This is what stops "give up your startable stud for a lesser piece":
+// such an offer can score fair on market value yet be negative here. The finder
+// uses it to DEMOTE lineup-downgrading offers + label them — never to change the
+// market-value edge (engine math is unchanged). Null when Valuation/roster absent.
+const ML_TF_LINEUP_TOL = 150;   // |delta| below this reads neutral (don't flag or demote)
+function mlTfLineupFit(ctx, getNames, sendNames){
+  const Val = window.Valuation;
+  if (!Val || typeof Val.lineupValue !== 'function' || !ctx || !ctx.myTeam || !ctx.league) return null;
+  const players = ctx.dPlayers || {};
+  const myIds = (ctx.myTeam.players || []).map(String);
+  if (!myIds.length) return null;
+  const sidOf = nm => { const pid = ctx.nameToPid[normalizePlayerName(nm)]; return pid ? String(pid) : null; };
+  const getIds  = (getNames  || []).map(sidOf).filter(Boolean);
+  const sendIds = (sendNames || []).map(sidOf).filter(Boolean);
+  const base    = Val.lineupValue(myIds, players, ctx.league);
+  const withGet = myIds.concat(getIds.filter(id => myIds.indexOf(id) < 0));
+  const gain    = Val.lineupValue(withGet, players, ctx.league) - base;
+  const finalIds = withGet.filter(id => sendIds.indexOf(id) < 0);
+  const delta   = Val.lineupValue(finalIds, players, ctx.league) - base;
+  return { delta: Math.round(delta), gain: Math.round(gain), loss: Math.round(gain - delta) };
+}
+// Sink offers that downgrade your starting lineup below ones that don't, keeping
+// the existing (fairness / edge) order within each group.
+function mlTfRankByFit(offers){
+  const good = [], bad = [];
+  (offers || []).forEach(o => { (o._fit && o._fit.delta < -ML_TF_LINEUP_TOL ? bad : good).push(o); });
+  return good.concat(bad);
+}
+
 function mlTfProposalHtml(reg){
   if (!reg) return `<div class="ml-tf-note">Gone — re-run the search.</div>`;
   const ctx = mlTfLeagueCtx(reg.leagueId); if (!ctx) return `<div class="ml-tf-note">League data unavailable.</div>`;
@@ -608,15 +641,20 @@ function mlTfProposalHtml(reg){
       const ownerNeed = mlTfNeedSet(owner, nT);
       const offers = mlTfPickOffers(pool, targetVal, owner.archetype, 'for', myNeed, ownerNeed, mlTfStartThresholds(owner, ctx));
       if (!offers.length) return `<div class="ml-tf-note">No realistic value match from your roster here.</div>`;
+      // value-to-YOUR-team lens: you GET the target, you SEND the package. Demote
+      // offers that downgrade your starting lineup (give up your stud for a lesser fit).
+      offers.forEach(o => { o._fit = mlTfLineupFit(ctx, [reg.target], (o.sugg.sending||[]).map(a=>a.name)); });
+      const ranked = mlTfRankByFit(offers);
       const tPos = mlTfPosOf(reg.target);
       const sellHtml = mlTfSellHtml(mlTfOwnerSell(owner, ownerNeed, tPos, nT), owner.ownerUser);
       const targetSid = ctx.nameToPid[normalizePlayerName(reg.target)];
-      const cards = offers.map((o, i) => {
+      const cards = ranked.map((o, i) => {
         const need = {
           fillsMyNeedPos: (tPos && myNeed[tPos]) ? tPos : null,
           myRankAtTarget: (ctx.myTeam && ctx.myTeam.posRanks) ? ctx.myTeam.posRanks[tPos] : null,
           ownerHelpPos: (o.sugg.sending||[]).map(a=>a.pos).find(p => p && ownerNeed[p]) || null,
           myThinSentPos: (o.sugg.sending||[]).map(a=>a.pos).find(p => p && myNeed[p]) || null,
+          lineup: o._fit,
           nT
         };
         const editId = 'mltfedit-' + mlTfSlug(reg.leagueId) + '-' + mlTfSlug(reg.target) + '-' + i;
@@ -636,8 +674,11 @@ function mlTfProposalHtml(reg){
       const myArch = (ctx.myTeam && ctx.myTeam.archetype) || 'tweener';
       const offers = mlTfPickOffers(theirPool, playerVal, myArch, 'away', myNeed, null, mlTfStartThresholds(ctx.myTeam, ctx));
       if (!offers.length) return `<div class="ml-tf-note">No fair return from ${mlTfEsc(owner.ownerUser)} here.</div>`;
-      const cards = offers.map(o => {
-        const need = { getsMyNeedPos: (o.sugg.sending||[]).map(a=>a.pos).find(p => p && myNeed[p]) || null, nT };
+      // value-to-YOUR-team lens: you SEND the target, you GET the return package.
+      offers.forEach(o => { o._fit = mlTfLineupFit(ctx, (o.sugg.sending||[]).map(a=>a.name), [reg.target]); });
+      const ranked = mlTfRankByFit(offers);
+      const cards = ranked.map(o => {
+        const need = { getsMyNeedPos: (o.sugg.sending||[]).map(a=>a.pos).find(p => p && myNeed[p]) || null, lineup: o._fit, nT };
         return mlTfCardHtml({ dir:'away', ctx, owner, target:reg.target, anchorVal:playerVal, sugg:o.sugg, mode:o.mode, need });
       }).join('');
       return mlTfOffersWrap(ctx, offers.length, cards, { dir:'away', leagueId:reg.leagueId });
@@ -707,9 +748,13 @@ function mlTfPickOffers(pool, anchorVal, archetype, dir, myNeed, ownerNeed, star
   // show the THREE FAIREST distinct packages (closest to even first). Aggressive mode keeps the old
   // wide band + spread across the edge range.
   if (ML_TF_FAIR_MODE) {
-    let list = uniq.filter(c => c.edge >= -ML_TF_OVERPAY_CAP && c.edge <= ML_TF_RECIP_CAP);
-    if (list.length < 3) list = uniq.filter(c => c.edge >= -ML_TF_OVERPAY_CAP);
-    if (list.length < 3) list = uniq.slice();
+    // Fair mode must NEVER surface a recipient lowball (edge above the recip cap) — better to
+    // show 1-2 genuinely fair offers than to pad the list with a lopsided single-player steal.
+    // If short on offers, relax ONLY the overpay side (you choosing to pay a bit more is fine);
+    // keep the recip cap in every tier so a "you win 14%" lone stud can't lead Fair mode.
+    let list = uniq.filter(c => c.edge <= ML_TF_RECIP_CAP && c.edge >= -ML_TF_OVERPAY_CAP);
+    if (list.length < 3) list = uniq.filter(c => c.edge <= ML_TF_RECIP_CAP);
+    if (!list.length)    list = uniq.slice();   // nothing fair exists → show the least-lopsided
     list.sort((a,b) => (Math.abs(a.edge) - Math.abs(b.edge)) || (b.quality - a.quality));
     return list.slice(0, 3).map(c => ({ sugg:c, mode:c.mode }));
   }
@@ -799,7 +844,16 @@ function mlTfNeedHtml(o){
     if (n.ownerHelpPos) parts.push(`sends ${mlTfEsc(o.owner.ownerUser)} ${n.ownerHelpPos} help`);
     if (n.myThinSentPos && n.myThinSentPos !== n.fillsMyNeedPos) parts.push(`⚠ gives up ${n.myThinSentPos} (you're thin)`);
   }
-  return parts.length ? `<div class="ml-tf-need">${parts.join(' · ')}</div>` : '';
+  const needLine = parts.length ? `<div class="ml-tf-need">${parts.join(' · ')}</div>` : '';
+  // value-to-YOUR-team lens — the lineup impact market value can't see (shown first)
+  const fit = n.lineup;
+  let fitLine = '';
+  if (fit && Math.abs(fit.delta) >= ML_TF_LINEUP_TOL){
+    fitLine = fit.delta > 0
+      ? `<div class="ml-tf-fit up" title="Net gain to your optimal starting lineup — value to YOUR team, beyond raw market value">✓ +${fit.delta.toLocaleString()} to your starting lineup</div>`
+      : `<div class="ml-tf-fit down" title="This weakens your starting lineup even though the market values look fair">⚠ −${Math.abs(fit.delta).toLocaleString()} from your starters — lineup downgrade</div>`;
+  }
+  return fitLine + needLine;
 }
 function mlTfCardHtml(o){
   const s = o.sugg, edge = s.edge, edgePct = Math.round(Math.abs(edge)*100);

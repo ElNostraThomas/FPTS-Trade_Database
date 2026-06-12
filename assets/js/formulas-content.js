@@ -45,6 +45,7 @@ window.FormulasContent = {
   // entrySessions below); the rest render as description-only update nodes so
   // the timeline is a complete record of what shipped.
   sessions: [
+    { id: 's29',        date: '2026-06-12', dateLabel: 'Jun 12, 2026', tag: 'S29',  title: 'Three-number player valuation', blurb: 'Every public calculator gives one value per player — the average price across thousands of leagues. This adds two context-aware numbers beside it: VALUE TO THIS TEAM (the startable-lineup value a player adds to a specific roster, scaled against a typical team and floored so a 3rd stud QB still has trade value) and VALUE IN THIS LEAGUE (market adjusted for how tightly the position is held across these rosters). The league multiplier is calibrated from your OWN real trades — replaying each league\'s transaction log to reconstruct who rostered what when, measuring how much buyers overpaid, and fitting the scarcity→price slope no market-average tool can. Shown per league on the My Leagues player panel.' },
     { id: 's28',        date: '2026-06-11', dateLabel: 'Jun 11, 2026', tag: 'S28',  title: 'Smarter Trade Finder suggestions', blurb: 'The Trade Finder now proposes trades the other manager would actually take. Offers default to FAIR (built to land near-even, not tilted to you) and surface the three fairest packages, with a Fair/Aggressive toggle if you want to push your edge. It demotes "rookie flier + a pick for my real player" lowballs, tells you whether the owner is deep at the target\'s position (likely to sell) or thin (probably won\'t), and weights the players you send by whether they\'d actually start for the other team — so a package that fills their lineup ranks above bench filler of the same raw value.' },
     { id: 's27',        date: '2026-06-11', dateLabel: 'Jun 11, 2026', tag: 'S27',  title: 'Headshot fallbacks + calculator docs', blurb: 'Players without a Sleeper headshot (usually rookies) now show a clean placeholder avatar instead of knocking their row out of alignment — fixed everywhere a player photo appears: the My Leagues rosters and Best Available list, the Waiver Wire, the trade cards across every page, and the Standings. The My Leagues sidebar Waiver tab was also slimmed to its unique cross-league player search plus the 7-day trending board (each league\'s own "Best Available" sub-tab now covers the rest), and the Guru-Approved seal and gap-targeted "Add player" suggestions gained full write-ups on this Updates & Formulas page.' },
     { id: 's26',        date: '2026-06-11', dateLabel: 'Jun 11, 2026', tag: 'S26',  title: 'League-scoped Waiver Wire',             blurb: 'The Waiver Wire board was reframed by league: pick a league to see its Most Valuable Available free agents (the highest-value players not rostered there, by dynasty value) alongside Most Added — Sleeper\'s 7-day trending adds filtered to players actually available in that league. The board now opens on the league you are focused on, and the player search gained a one-click clear so you no longer have to backspace to dismiss a player.' },
@@ -96,6 +97,7 @@ window.FormulasContent = {
     'compare-page': 's10',
     'mock-draft': 's13',
     'trade-finder': 's21',
+    'player-valuation': 's29',
   },
   entrySessions: {
     // Changed in a later update than their domain — surface under the newest.
@@ -196,6 +198,66 @@ startBonus = Σ(value * startFit) / Σvalue;       // folded into quality at wei
       ],
     },
 
+    // ── 0b. THREE-NUMBER PLAYER VALUATION ─────────────────────────────────
+    {
+      id: 'player-valuation',
+      name: 'Three-number player valuation',
+      entries: [
+        {
+          id: 'val-team',
+          label: '1. Value to this team — marginal starting-lineup value',
+          location: 'valuation-core.js: teamValue / marginalValue',
+          provenance: { kind: 'derived-from-data', detail: 'Computed from the team\'s real roster + the league\'s starting-lineup settings via the shared optimalLineup engine; floor/ceiling are curator-tunable.' },
+          inputs: 'The focal player, the target team\'s rostered players, and the league roster_positions. Reuses SLEEPER.optimalLineup (value basis) + LC.fpValue.',
+          math: `// best legal starting lineup, summed in MVS value. optimalLineup falls back to
+// FP value when given NO projections, so selection AND sum are in market units:
+lineupValue(R) = Σ value(optimalLineup(R, {}));
+marginal       = lineupValue(R ∪ player) − lineupValue(R ∖ player);
+// scale vs a TYPICAL team = the MEDIAN marginal across every league team:
+ratio     = marginal / median(marginals over all teams);
+teamValue = market × clamp(ratio, TEAM_FLOOR, TEAM_CEIL);   // 0.55 … 1.60`,
+          output: 'A per-team value: high for a player who fills that lineup, floored near 55% of market for one who never cracks it (a 3rd stud QB).',
+          example: `Geno Smith to a team starting Mason Rudolph in Superflex → marginal far above the median team → teamValue near market × 1.6. To a team with four startable QBs → marginal ≈ 0 → teamValue = market × 0.55 (still tradeable).`,
+          notes: 'Picks pass market through (no lineup contribution). The FLOOR exists because a zero-fit player is still a flippable asset. The denominator is the MEDIAN of per-team marginals (robust to the one team he\'d hugely upgrade) rather than a synthetic average roster. Constants TEAM_FLOOR 0.55 / TEAM_CEIL 1.60 at the top of valuation-core.js.',
+          related: ['val-league', 'val-calibration', 'lineup-optimizer']
+        },
+        {
+          id: 'val-league',
+          label: '2. Value in this league — position liquidity',
+          location: 'valuation-core.js: positionScarcity / leagueLiquidity',
+          provenance: { kind: 'derived-from-data', detail: 'Concentration of each position\'s value across the league\'s rosters; multiplier bounds + default slope curator-tunable, the slope itself calibrated (entry 3).' },
+          inputs: 'Every team\'s positional value totals in the league. No external constants beyond the multiplier bounds + default slope.',
+          math: `// how tightly is each position held? normalized Herfindahl concentration of
+// positional value across teams (0 = even, 1 = one owner holds it), then
+// DE-MEANED across QB/RB/WR/TE so it centers per league (Σ over positions ≈ 0):
+x_pos     = concentration(posValueByTeam) − mean(concentration over QB,RB,WR,TE);
+liquidity = clamp(1 + k · x_pos, LIQ_LO, LIQ_HI);   // 0.75 … 1.35
+inLeagueValue = market × liquidity;`,
+          output: 'Market nudged UP where a position is hoarded (held tightly vs the league\'s other positions) and DOWN where it\'s spread evenly.',
+          example: `Two teams hold every startable TE in a TEP league → TE concentration ≫ the other positions → x_TE > 0 → TEs carry a premium THERE. A league where RBs are evenly spread → x_RB < 0 → slight discount.`,
+          notes: 'ONE scarcity metric x is used BOTH live and in calibration so a fitted slope applies to the same number. k defaults to LIQ_K_DEFAULT 0.6 and is replaced per-position by the calibrated slope (entry 3) when available. Bounds LIQ_LO 0.75 / LIQ_HI 1.35. (Chosen over literal buyers-vs-sellers counting, which needs a fragile startable-quality bar.)',
+          related: ['val-team', 'val-calibration']
+        },
+        {
+          id: 'val-calibration',
+          label: '3. Liquidity calibration — fit scarcity→price from your real trades',
+          location: 'valuation-calibrate.js: compute / nodePoints',
+          provenance: { kind: 'derived-from-data', detail: 'Least-squares fit over the user\'s own completed trades; falls back to a pooled then a default slope below a sample-size guard.' },
+          inputs: 'Every completed trade across your leagues + seasons (reused from the My-Trades chain) + each league\'s full transaction log (window.ML_TXN_LOG) to reconstruct rosters at trade time.',
+          math: `// replay each league's txn log BACKWARD from today's rosters to the trade's moment:
+stateBefore(trade) = undo(every newer add/drop) applied to current rosters;
+// per trade: how much did the buyer of the headline player overpay vs market?
+overpayShare = (whatBuyerGave − whatBuyerGot) / headlineValue;
+// regressed on how scarce that position was THEN (same x as entry 2):
+k_pos = Σ(x · overpayShare) / Σ(x²)   // least squares through origin, clamped [0, 1.5]`,
+          output: 'A per-position slope k that replaces the default in entry 2 — the actual scarcity→price elasticity from YOUR leagues. The piece a market-average calculator structurally cannot produce.',
+          example: `If across your trades buyers paid ~12% over market for a position each time it was scarce, k for that position fits near the slope that reproduces 12% at that scarcity.`,
+          notes: 'A position needs ≥ MIN_TRADES_PER_POS 8 trades to fit its own slope, else a pooled global slope, else the default 0.6. Nodes whose transaction log can\'t reconcile with current rosters (missing / draft / commish moves) are EXCLUDED so corrupt scarcity never enters the fit. Cached 24h in localStorage; runs lazily with ~0 extra fetches (reuses the My-Trades data); In-League renders on the default slope first and sharpens when the fit lands. Sample is one user\'s ~10 leagues — honest about confidence.',
+          related: ['val-team', 'val-league']
+        },
+      ],
+    },
+
     // ── 1. TRADE VALUES ───────────────────────────────────────────────────
     {
       id: 'trade-values',
@@ -206,7 +268,7 @@ startBonus = Σ(value * startFit) / Σvalue;       // folded into quality at wei
           label: '1. Player value — format multipliers (getMultiplier)',
           location: 'trade-calculator.html:2302',
           provenance: { kind: 'hand-tuned', detail: 'Per-format multiplier scalars chosen by the curator to mirror dynasty-community-standard format-vs-1QB-Standard PPR conversions.' },
-          inputs: 'qb (\'sf\' or \'1qb\'), ppr (1 / 0.5 / 0), passtd (4 / 5 / 6). All read from the visible f-* filter dropdowns via _calcQb / _calcPpr / _calcPasstd. Defaults: sf, 1, 4. (TEP removed 2026-06-08 — tight-end premium is baked into the base MVS value via the *_tep columns, so a separate TE multiplier here would double-count.)',
+          inputs: 'qb (\'sf\' or \'1qb\'), ppr (1 / 0.5 / 0), passtd (4 / 5 / 6). All read from the visible f-* filter dropdowns via _calcQb / _calcPpr / _calcPasstd. Defaults: sf, 1, 4. (TEP removed 2026-06-08 — tight-end premium is baked into the MVS value via a modeled per-position premium in sync-mvs.py (TE ×1.12; replaced the noisy raw *_tep columns 2026-06-12), so a separate TE multiplier here would double-count.)',
           math: `let m = 1.0;
 if (pos === 'QB') {
   if (qb === 'sf')    m *= 1.15;     // SF gives QBs +15%
@@ -239,7 +301,7 @@ Justin Jefferson (WR) in Standard PPR:
 
 Travis Kelce (TE): m = 1.0 — no multiplier (TEP is in the base value)
   → multiplier = 1.0`,
-          notes: 'QB and PassTD bonuses stack multiplicatively. WR/RB multipliers are mutually exclusive (each position checked separately). TE / K / PK return 1.0 — TEP is baked into the base MVS value (the *_tep columns), so the calculator no longer applies a TE premium (removed 2026-06-08).',
+          notes: 'QB and PassTD bonuses stack multiplicatively. WR/RB multipliers are mutually exclusive (each position checked separately). TE / K / PK return 1.0 — TEP is baked into the base MVS value (a modeled per-position premium in sync-mvs.py), so the calculator no longer applies a TE premium (removed 2026-06-08).',
           related: ['adj-val', 'league-format-detect']
         },
         {

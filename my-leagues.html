@@ -1917,6 +1917,18 @@
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
 
+  /* Three-number value breakdown chips — value TO this team + value IN this league
+     per row (Market is the panel header). A ×mult above 1 tints green, below 1 red. */
+  .ml-pd-val3 { display: flex; flex-wrap: wrap; gap: 3px 10px; margin-top: 3px; }
+  .ml-pd-v3 {
+    font-family: 'Mulish', sans-serif; font-size: 10px; font-weight: 700;
+    color: var(--muted); white-space: nowrap;
+  }
+  .ml-pd-v3 b { color: var(--white); font-weight: 800; margin-left: 2px; }
+  .ml-pd-v3-mult { font-size: 9px; font-weight: 800; margin-left: 3px; color: var(--muted); opacity: .8; }
+  .ml-pd-v3-mult.up { color: var(--green); opacity: 1; }
+  .ml-pd-v3-mult.down { color: var(--red); opacity: 1; }
+
   /* Status badges — three variants for the three row states. */
   .ml-pd-avail-status {
     font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
@@ -2596,10 +2608,10 @@
 <link rel="stylesheet" href="assets/css/heatmap.css?v=1782600000">
 <script src="assets/js/heatmap.js?v=1778670000"></script>
 <link rel="stylesheet" href="assets/css/legend.css?v=1796300000">
-<script src="assets/js/legend-content.js?v=1799200000"></script>
+<script src="assets/js/legend-content.js?v=1799300000"></script>
 <script src="assets/js/legend.js?v=1778949514"></script>
 <link rel="stylesheet" href="assets/css/player-panel.css?v=1791900000">
-<link rel="stylesheet" href="assets/css/trade-finder.css?v=1799200000">
+<link rel="stylesheet" href="assets/css/trade-finder.css?v=1799300000">
 <!-- Editable Trade Calculator + builder + modal/player-detail/core mobile CSS — shared with the
      standalone Roster Moves page. De-duped from the inline <style> above 2026-06-11: my-leagues
      previously carried a byte-identical inline copy of these 132 rules; both pages now load this
@@ -2619,14 +2631,18 @@
 <script src="assets/js/sleeper-helpers.js?v=1780800000"></script>
 <!-- Shared league value/archetype compute (window.LC) — depends on sleeper-helpers + FP_VALUES. -->
 <script src="assets/js/league-compute.js?v=1797000000"></script>
+<!-- Three-number player valuation core (window.Valuation) — pure math over SLEEPER+LC+FP_VALUES. -->
+<script src="assets/js/valuation-core.js?v=1799300000"></script>
 <!-- Cross-league Trade Finder (window.TradeFinder) — depends on LC + sleeper-helpers; init'd by the page. -->
-<script src="assets/js/trade-finder.js?v=1799200000"></script>
+<script src="assets/js/trade-finder.js?v=1799300000"></script>
 <!-- Trade Calculator + Builder (window.TradeCalc) — depends on LC + TradeFinder; init'd by the page. -->
 <script src="assets/js/trade-calc.js?v=1797700000"></script>
 <!-- Cross-league Waiver Wire (window.WaiverWire) — reads ML_ALL_LEAGUE_DATA + FP_VALUES. -->
 <script src="assets/js/waiver-wire.js?v=1799000000"></script>
 <!-- Trade History Search (window.TradeHistory) — reuses the cross-league ML_MY_TRADES pool. -->
-<script src="assets/js/trade-history.js?v=1798900000"></script>
+<script src="assets/js/trade-history.js?v=1799300000"></script>
+<!-- Liquidity calibration (window.ValuationCalibrate) — replays the user's trades to fit scarcity→price; reuses TradeHistory + ML_TXN_LOG. -->
+<script src="assets/js/valuation-calibrate.js?v=1799300000"></script>
 <!-- Team logo helpers — load BEFORE player-panel.js so modal-hero badge works. -->
 <script src="assets/js/team-helpers.js?v=1778680002"></script>
 <script src="assets/js/player-panel.js?v=1799000000"></script>
@@ -3975,8 +3991,69 @@ async function fetchAndCacheWaivers(leagueId, players, displayWeek) {
 // in every league they're a member of. Returns one row per league with the
 // information needed to render an action row (status, owner, archetype,
 // deep-link to Sleeper).
-function mlGetPlayerAvailability(sleeperId) {
+// ── Three-number valuation (Market / To-this-team / In-this-league) ──────────
+// Lazy-init the shared TradeHistory module (used by both the My-Trades search and
+// the valuation calibrator) so its chain-walk + transaction fetch are shared.
+function _mlInitTradeHistory() {
+  if (!window.TradeHistory || window._mlThInit) return;
+  window._mlThInit = true;
+  TradeHistory.init({
+    userId: ML.userId,
+    getLeagues: function () { return (ML.leagues && ML.leagues[ML.selectedSeason]) || []; },
+    onSearch: function () {
+      var c = document.getElementById('th-cards'); if (c) c.style.display = '';
+      var tb = document.getElementById('ml-mytrades-year-tabs'); if (tb) tb.style.display = 'none';
+      var ct = document.getElementById('ml-mytrades-content'); if (ct) ct.style.display = 'none';
+    }
+  });
+}
+function _mlEnsureValInit() {
+  if (window._mlValInit || !window.Valuation) return;
+  window._mlValInit = true;
+  _mlInitTradeHistory();
+  if (window.ValuationCalibrate) ValuationCalibrate.init({ userId: ML.userId });
+}
+// teamMarginals is the heavy part (per-team optimal-lineup recompute) but is
+// independent of the calibrated k, so memoize it per (focal sid, leagueId) and
+// reset when the focal player changes — keeps re-renders (hide-names toggle,
+// calibration-resolve) cheap.
+function _mlTeamMarginals(focal, teams, players, league, leagueId) {
+  var C = window._mlTmCache || (window._mlTmCache = { sid: null, m: {} });
+  if (C.sid !== focal.sid) { C.sid = focal.sid; C.m = {}; }
+  if (C.m[leagueId]) return C.m[leagueId];
+  var tm = window.Valuation.teamMarginals(focal, teams, players, league);
+  C.m[leagueId] = tm; return tm;
+}
+function _mlMultLabel(m) { return '×' + (m || 1).toFixed(2); }
+// Compute { market, teamVal, ratio, leagueVal, liq } for a player in one league.
+// ownerRosterId = the team the To-Team number is FOR (owner for 'taken', you for
+// 'mine'/'free'). Returns null when valuation can't run (no module / no value / pick).
+function _mlVal3(sid, name, pos, l, data, ownerRosterId) {
+  if (!window.Valuation || !l || !data || !data.rosters || !name || !pos) return null;
+  var market = mlFpValue((window.FP_VALUES || {})[name], l.league_id);
+  if (!market) return null;
+  var players = data.players || {};
+  var teams = data.rosters.map(function (r) { return { rosterId: r.roster_id, playerIds: (r.players || []).map(String) }; });
+  var focal = { sid: String(sid), name: name, position: String(pos).toUpperCase() };
+  var res = { market: market };
+  var rid = (ownerRosterId != null) ? ownerRosterId : data.myRosterId;
+  if (rid != null && focal.position) {
+    var tm = _mlTeamMarginals(focal, teams, players, l, l.league_id);
+    var mt = tm.perTeam[rid]; if (mt == null) mt = tm.perTeam[String(rid)];
+    res.teamVal = window.Valuation.teamValue(market, mt || 0, tm.denom);
+    res.ratio = (tm.denom > 0 && mt != null) ? (mt / tm.denom) : 1;
+  }
+  var scar = window.Valuation.positionScarcity(teams, players, l);
+  var kByPos = (window.ValuationCalibrate && window.ValuationCalibrate.getK && window.ValuationCalibrate.getK()) || null;
+  res.leagueVal = window.Valuation.inLeagueValue(market, focal.position, scar, kByPos);
+  res.liq = market > 0 ? (res.leagueVal / market) : 1;
+  return res;
+}
+
+function mlGetPlayerAvailability(sleeperId, focalName, focalPos) {
   const sid = String(sleeperId);
+  const fName = focalName || (window.ML_PD_CURRENT_NAME || '');
+  const fPos = (focalPos || window.ML_PD_CURRENT_POS || '').toUpperCase();
   const allData = window.ML_ALL_LEAGUE_DATA || {};
   const leaguesByYear = ML.leagues || {};
   // Build a flat list of all known leagues (with avatar/name from the leagues array)
@@ -4026,12 +4103,14 @@ function mlGetPlayerAvailability(sleeperId) {
       return {
         leagueId: lid, leagueName: l.name || `League ${lid}`, leagueAvatar: l.avatar,
         format: fmt, status: 'free',
+        val3: _mlVal3(sid, fName, fPos, l, data, null),
       };
     }
     if (String(owningRoster.roster_id) === String(myRosterId)) {
       return {
         leagueId: lid, leagueName: l.name || `League ${lid}`, leagueAvatar: l.avatar,
         format: fmt, status: 'mine',
+        val3: _mlVal3(sid, fName, fPos, l, data, owningRoster.roster_id),
       };
     }
     // Owned by another team
@@ -4045,6 +4124,7 @@ function mlGetPlayerAvailability(sleeperId) {
       leagueId: lid, leagueName: l.name || `League ${lid}`, leagueAvatar: l.avatar,
       format: fmt, status: 'taken',
       ownerName, ownerRosterId: owningRoster.roster_id, ownerArchetype,
+      val3: _mlVal3(sid, fName, fPos, l, data, owningRoster.roster_id),
     };
   });
 }
@@ -4061,12 +4141,12 @@ function mlSetHideUsernames(on) {
 }
 
 // Render the availability section into #ml-pd-availability-mount
-function renderPlayerAvailability(sleeperId) {
+function renderPlayerAvailability(sleeperId, focalName, focalPos) {
   const mount = document.getElementById('ml-pd-availability-mount');
   if (!mount) return;
   const sid = String(sleeperId);
 
-  const rows = mlGetPlayerAvailability(sid);
+  const rows = mlGetPlayerAvailability(sid, focalName, focalPos);
   if (!rows.length) {
     mount.innerHTML = '';
     return;
@@ -4137,12 +4217,25 @@ function renderPlayerAvailability(sleeperId) {
         title="Opens this league on Sleeper — search for the player and submit your waiver claim there">Claim On Sleeper ↗</a>`;
     }
 
+    // Three-number breakdown chips: value TO this team + value IN this league.
+    // "To you" for your own roster / a free agent (what you'd gain); "To them" for
+    // a rival owner. A ×mult > 1 is tinted up (green), < 1 down (red).
+    const v = r.val3;
+    const toWho = r.status === 'taken' ? 'them' : 'you';
+    const multCls = (m) => m >= 1.02 ? ' up' : (m <= 0.98 ? ' down' : '');
+    const v3Html = v ? `
+        <div class="ml-pd-val3">
+          ${v.teamVal != null ? `<span class="ml-pd-v3" title="Value to this team — the startable-lineup value ${toWho==='you'?'you':'they'}'d gain by adding him, scaled against an average roster and floored (a 3rd stud QB still has trade value).">To ${toWho} <b>${Math.round(v.teamVal).toLocaleString()}</b><i class="ml-pd-v3-mult${multCls(v.ratio)}">${_mlMultLabel(v.ratio)}</i></span>` : ''}
+          <span class="ml-pd-v3" title="Value in this league — market adjusted for how tightly this position is held across these rosters (scarce → premium, plentiful → discount).">In league <b>${Math.round(v.leagueVal).toLocaleString()}</b><i class="ml-pd-v3-mult${multCls(v.liq)}">${_mlMultLabel(v.liq)}</i></span>
+        </div>` : '';
+
     return `
       <div class="ml-pd-avail-row${rowExtraClass}" ${rowClickAttr}>
         ${av}
         <div class="ml-pd-avail-info ml-flex1">
           <div class="ml-pd-avail-name">${r.leagueName}</div>
           <div class="ml-pd-avail-format">${r.format}</div>
+          ${v3Html}
         </div>
         <div class="ml-pd-avail-actions">
           ${statusBlock}
@@ -4515,11 +4608,28 @@ function _mlApplyAccordion() {
 }
 
 function _mlAfterPanelOpen(name, sid, pos, team) {
+  // Stash the focal player so re-renders (hide-names toggle, calibration resolve)
+  // keep the three-number breakdown without re-plumbing name/pos.
+  window.ML_PD_CURRENT_NAME = name;
+  window.ML_PD_CURRENT_POS = pos;
+
   // 1. Populate the league-context slot with status badge + availability section.
   const slot = document.getElementById('pp-league-context');
   if (slot) {
     slot.innerHTML = `${_mlBuildStatusBlock(sid)}<div id="ml-pd-availability-mount"></div>`;
-    renderPlayerAvailability(sid);
+    renderPlayerAvailability(sid, name, pos);
+    // Kick the per-user liquidity calibration (lazy, cached, ~0 extra fetches). When
+    // it lands, re-render so the In-League numbers sharpen from default k → fitted k.
+    _mlEnsureValInit();
+    if (window.ValuationCalibrate && window.ValuationCalibrate.ensure) {
+      window.ValuationCalibrate.ensure().then(function (info) {
+        if (info && info.kByPos && Object.keys(info.kByPos).length &&
+            String(window.ML_PD_CURRENT_SID) === String(sid) &&
+            document.getElementById('ml-pd-availability-mount')) {
+          renderPlayerAvailability(sid, name, pos);
+        }
+      }).catch(function () {});
+    }
   }
 
   // 2. Force-render the four secondary tab bodies. (Trades auto-renders inside
@@ -7194,18 +7304,7 @@ function mlSetMyTradesCount(n) {
 // Trade History Search input handler — empty restores the by-year list; typing drives
 // the shared TradeHistory module (which renders results into #th-cards on pick).
 function mlTradeHistInput(val) {
-  if (window.TradeHistory && !window._mlThInit) {
-    window._mlThInit = true;
-    TradeHistory.init({
-      userId: ML.userId,
-      getLeagues: function () { return (ML.leagues && ML.leagues[ML.selectedSeason]) || []; },
-      onSearch: function () {
-        var c = document.getElementById('th-cards'); if (c) c.style.display = '';
-        var tb = document.getElementById('ml-mytrades-year-tabs'); if (tb) tb.style.display = 'none';
-        var ct = document.getElementById('ml-mytrades-content'); if (ct) ct.style.display = 'none';
-      }
-    });
-  }
+  _mlInitTradeHistory();
   if (!val || !val.trim()) {
     var cards = document.getElementById('th-cards'); if (cards) { cards.style.display = 'none'; cards.innerHTML = ''; }
     var box = document.getElementById('th-results'); if (box) box.style.display = 'none';
