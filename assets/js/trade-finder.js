@@ -47,6 +47,10 @@ const ML_TF_LOWBALL_PENALTY   = 0.5;  // strength of the pick-share-over-cap pen
 // A — owner willingness: a manager sells from positional DEPTH. Rank the owner at the target's
 // position (1 = deepest). Top this fraction of the league = likely seller; a "need" there = unlikely.
 const ML_TF_OWNER_SURPLUS_RANK = 0.5; // owner must rank in the top half at the target's pos to read as a seller
+// B — startability: a sent player the RECIPIENT already has enough better bodies at is bench filler,
+// worth less to them than its raw MVS. Discount it in the desirability score (not the displayed value).
+const ML_TF_BENCH_DISCOUNT = 0.55; // a bench-clogging piece counts this fraction toward "wanted" value
+const ML_TF_START_WEIGHT   = 0.15; // weight of the startability factor in the sort tie-breaker
 const ML_TF_WANTS = {
   rebuilder:{young:1.0,vet:0.3}, emergency:{young:0.6,vet:0.4},
   tweener:{young:0.5,vet:0.5}, contender:{young:0.3,vet:1.0}, dynasty:{young:0.7,vet:0.7}
@@ -544,6 +548,39 @@ function mlTfOwnerSell(owner, ownerNeed, tPos, nT){
   return null; // middle of the pack — neutral, no banner
 }
 
+// B — per-position starter counts from the league's roster_positions (FLEX feeds RB/WR/TE,
+// SUPER_FLEX feeds QB). A proxy for how many bodies the recipient can actually start at a position.
+function mlTfStarterCounts(league){
+  const rp = (league && league.roster_positions) || [];
+  const c = { QB:0, RB:0, WR:0, TE:0 }; let flex = 0, sflex = 0;
+  rp.forEach(s => {
+    if (c[s] != null) c[s]++;
+    else if (s === 'FLEX' || s === 'WRRB_FLEX' || s === 'REC_FLEX') flex++;
+    else if (s === 'SUPER_FLEX' || s === 'QB_FLEX') sflex++;
+  });
+  return { QB:c.QB + sflex, RB:c.RB + flex, WR:c.WR + flex, TE:c.TE + flex };
+}
+// B — value of the recipient's WORST current starter at each position (0 if they don't even fill
+// the slots). A sent player at/above that bar would crack their lineup; below it is bench filler.
+function mlTfStartThresholds(team, ctx){
+  if (!team || !ctx) return null;
+  const counts = mlTfStarterCounts(ctx.league);
+  let pool; try { pool = mlBuildAssetPool(ctx.leagueId, team.rosterId); } catch (e) { return null; }
+  const byPos = {};
+  (pool || []).forEach(a => {
+    if (a.type === 'pick') return;
+    const p = (a.pos || '').toUpperCase(); if (!p) return;
+    (byPos[p] = byPos[p] || []).push(a.value || 0);
+  });
+  const thr = {};
+  Object.keys(counts).forEach(p => {
+    const arr = (byPos[p] || []).sort((x, y) => y - x);
+    const n = counts[p];
+    thr[p] = (n > 0 && arr.length >= n) ? (arr[n - 1] || 0) : 0;
+  });
+  return thr;
+}
+
 function mlTfProposalHtml(reg){
   if (!reg) return `<div class="ml-tf-note">Gone — re-run the search.</div>`;
   const ctx = mlTfLeagueCtx(reg.leagueId); if (!ctx) return `<div class="ml-tf-note">League data unavailable.</div>`;
@@ -559,7 +596,7 @@ function mlTfProposalHtml(reg){
       const pool = mlBuildAssetPool(reg.leagueId, ctx.myRosterId);
       if (!pool.length) return `<div class="ml-tf-note">You have no tradeable assets in this league.</div>`;
       const ownerNeed = mlTfNeedSet(owner, nT);
-      const offers = mlTfPickOffers(pool, targetVal, owner.archetype, 'for', myNeed, ownerNeed);
+      const offers = mlTfPickOffers(pool, targetVal, owner.archetype, 'for', myNeed, ownerNeed, mlTfStartThresholds(owner, ctx));
       if (!offers.length) return `<div class="ml-tf-note">No realistic value match from your roster here.</div>`;
       const tPos = mlTfPosOf(reg.target);
       const sellHtml = mlTfSellHtml(mlTfOwnerSell(owner, ownerNeed, tPos, nT), owner.ownerUser);
@@ -587,7 +624,7 @@ function mlTfProposalHtml(reg){
       const theirPool = mlBuildAssetPool(reg.leagueId, owner.rosterId);
       if (!theirPool.length) return `<div class="ml-tf-note">${mlTfEsc(owner.ownerUser)} has no tradeable assets here.</div>`;
       const myArch = (ctx.myTeam && ctx.myTeam.archetype) || 'tweener';
-      const offers = mlTfPickOffers(theirPool, playerVal, myArch, 'away', myNeed, null);
+      const offers = mlTfPickOffers(theirPool, playerVal, myArch, 'away', myNeed, null, mlTfStartThresholds(ctx.myTeam, ctx));
       if (!offers.length) return `<div class="ml-tf-note">No fair return from ${mlTfEsc(owner.ownerUser)} here.</div>`;
       const cards = offers.map(o => {
         const need = { getsMyNeedPos: (o.sugg.sending||[]).map(a=>a.pos).find(p => p && myNeed[p]) || null, nT };
@@ -604,7 +641,7 @@ function mlTfProposalHtml(reg){
 // + neutral "value" candidates (the value fallback fills in when archetype-fit is
 // thin), dedupe by package, order by favor, then spread the picks across the
 // range so you see a high / mid / fair option — not three near-identical packages.
-function mlTfPickOffers(pool, anchorVal, archetype, dir, myNeed, ownerNeed){
+function mlTfPickOffers(pool, anchorVal, archetype, dir, myNeed, ownerNeed, startThresh){
   const isFor = dir === 'for';
   const bias  = ML_TF_FAIR_MODE ? ML_TF_FAIR_BIAS : ML_TF_WIN_BIAS;
   const target = isFor ? anchorVal * bias : anchorVal / bias;
@@ -627,13 +664,29 @@ function mlTfPickOffers(pool, anchorVal, archetype, dir, myNeed, ownerNeed){
     const share = pickVal / tot;
     return share > ML_TF_LOWBALL_PICKSHARE ? (share - ML_TF_LOWBALL_PICKSHARE) * ML_TF_LOWBALL_PENALTY : 0;
   };
+  // B — startability: value-weighted fraction of the package the recipient would actually start
+  // (picks are neutral here — they're covered by the lowball penalty). 1.0 = all starters.
+  const startBonus = (c) => {
+    if (!startThresh) return 1;
+    let sv = 0, wv = 0;
+    (c.sending||[]).forEach(a => {
+      const w = a.value || 0; wv += w;
+      if (a.type === 'pick') { sv += w; return; }
+      const t = startThresh[(a.pos || '').toUpperCase()];
+      const starts = (t == null) || t === 0 || w >= t;
+      sv += w * (starts ? 1 : ML_TF_BENCH_DISCOUNT);
+    });
+    return wv > 0 ? sv / wv : 1;
+  };
   const seen = {}, uniq = [];
   const add = (arr, mode) => (arr||[]).forEach(c => {
     const sig = (c.sending||[]).map(a=>a.name).slice().sort().join('|');
     if (!sig || seen[sig]) return; seen[sig] = 1;
     c.edge = edgeOf(c); c.mode = mode; c.needAdj = needAdj(c);
     c.lowball = lowballPenalty(c);
-    c.quality = c.needAdj - c.lowball;   // non-value tie-breaker (need-fit minus lowball)
+    c.startBonus = startBonus(c);
+    // non-value tie-breaker: need-fit − lowball + startability nudge
+    c.quality = c.needAdj - c.lowball + (c.startBonus - 1) * ML_TF_START_WEIGHT;
     uniq.push(c);
   });
   add(mlGenerateTradeSuggestions(pool, target, archetype, 8), 'fit');
