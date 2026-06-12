@@ -45,6 +45,7 @@ window.FormulasContent = {
   // entrySessions below); the rest render as description-only update nodes so
   // the timeline is a complete record of what shipped.
   sessions: [
+    { id: 's28',        date: '2026-06-11', dateLabel: 'Jun 11, 2026', tag: 'S28',  title: 'Smarter Trade Finder suggestions', blurb: 'The Trade Finder now proposes trades the other manager would actually take. Offers default to FAIR (built to land near-even, not tilted to you) and surface the three fairest packages, with a Fair/Aggressive toggle if you want to push your edge. It demotes "rookie flier + a pick for my real player" lowballs, tells you whether the owner is deep at the target\'s position (likely to sell) or thin (probably won\'t), and weights the players you send by whether they\'d actually start for the other team — so a package that fills their lineup ranks above bench filler of the same raw value.' },
     { id: 's27',        date: '2026-06-11', dateLabel: 'Jun 11, 2026', tag: 'S27',  title: 'Headshot fallbacks + calculator docs', blurb: 'Players without a Sleeper headshot (usually rookies) now show a clean placeholder avatar instead of knocking their row out of alignment — fixed everywhere a player photo appears: the My Leagues rosters and Best Available list, the Waiver Wire, the trade cards across every page, and the Standings. The My Leagues sidebar Waiver tab was also slimmed to its unique cross-league player search plus the 7-day trending board (each league\'s own "Best Available" sub-tab now covers the rest), and the Guru-Approved seal and gap-targeted "Add player" suggestions gained full write-ups on this Updates & Formulas page.' },
     { id: 's26',        date: '2026-06-11', dateLabel: 'Jun 11, 2026', tag: 'S26',  title: 'League-scoped Waiver Wire',             blurb: 'The Waiver Wire board was reframed by league: pick a league to see its Most Valuable Available free agents (the highest-value players not rostered there, by dynasty value) alongside Most Added — Sleeper\'s 7-day trending adds filtered to players actually available in that league. The board now opens on the league you are focused on, and the player search gained a one-click clear so you no longer have to backspace to dismiss a player.' },
     { id: 's25',        date: '2026-06-11', dateLabel: 'Jun 11, 2026', tag: 'S25',  title: 'Trade History Search',                  blurb: 'On both the Roster Moves hub and the My Leagues "My Trades" tab: type a player and see every trade across your leagues and seasons that involved him and that you were a side of — each card flagged with who proposed it (you vs the other manager, from Sleeper\'s transaction creator), the searched player highlighted and your side marked.' },
@@ -103,6 +104,8 @@ window.FormulasContent = {
     'mn-format-multipliers': 's20', // multiplier table note updated for TEP
     'calc-guru-seal':     's22',   // Guru-Approved seal — modular trade tools
     'calc-gap-targeting': 's22',   // gap-targeted Add-player suggestions
+    'tf-fair-offers':     's28',   // fair-by-default + anti-lowball
+    'tf-realism-signals': 's28',   // owner-willingness + startability
   },
 
   domains: [
@@ -115,7 +118,7 @@ window.FormulasContent = {
         {
           id: 'win-bias',
           label: '1. WIN_BIAS — offers slightly in your favor',
-          location: 'trade-calculator.html: const WIN_BIAS',
+          location: 'trade-finder.js: ML_TF_WIN_BIAS',
           provenance: { kind: 'hand-tuned', detail: '0.93 chosen so suggested packages give ~5–8% less than the target — a realistic edge a counterparty would still accept. Curator-tunable.' },
           inputs: 'targetVal = the wanted player\'s MVS value in the league\'s format (_wsPlayerVal). The finder asks the engine for packages worth targetVal × WIN_BIAS, then scores each against the TRUE value.',
           math: `// build offers a touch UNDER the player's value:
@@ -130,8 +133,8 @@ shown  = suggs.filter(s => s.edge >= -0.06).sort((a,b) => b.edge - a.edge);`,
 target = 5,200 × 0.93 = 4,836.
 Engine returns Najee Harris + 2026 2nd = 4,880 (totalSent).
 edge = 1 − 4,880 / 5,200 = 0.062 → "You win 6%".`,
-          notes: 'Tunable: toward 1.0 → fairer offers (more matches, smaller edge); toward 0.85 → bigger edge but fewer realistic ones. Offers worse than −6% edge are dropped. Lives at the top of the finder script in trade-calculator.html.',
-          related: ['tf-opportunity']
+          notes: 'As of 2026-06-11 WIN_BIAS is the AGGRESSIVE-mode target — the finder defaults to FAIR mode (ML_TF_FAIR_BIAS 0.99, near-even) so offers are ones the counterparty would accept; the Fair/Aggressive toggle switches between them (see entry 3). Tunable: toward 1.0 → fairer; toward 0.85 → bigger edge, fewer realistic. Lives at the top of trade-finder.js.',
+          related: ['tf-opportunity', 'tf-fair-offers']
         },
         {
           id: 'tf-opportunity',
@@ -149,7 +152,46 @@ pkg = generateTradeSuggestions(myAssetPool, targetVal * WIN_BIAS, owner.archetyp
           output: 'Opportunities grouped by target: "[League] · [Owner] has them · [OwnerArchetype] · You win N% · you send [package] → [target]". Sorted favor-first.',
           example: `Owner of Wilson is a REBUILDER → the engine prefers offering your picks + youth at ~4,836 value.`,
           notes: 'Tilting to the OWNER\'s archetype (not yours) is what makes the trade realistic — you offer what they want. Each league is valued in its own format (SF/1QB). Trade-AWAY (find who wants YOUR player) is a noted refinement. The backward-looking comparable-trades view + the market archive were removed 2026-06-09.',
-          related: ['win-bias']
+          related: ['win-bias', 'tf-fair-offers']
+        },
+        {
+          id: 'tf-fair-offers',
+          label: '3. Fair offer selection + anti-lowball',
+          location: 'trade-finder.js: mlTfPickOffers',
+          provenance: { kind: 'hand-tuned', detail: 'Added 2026-06-11 after users reported suggested offers the counterparty rejected. Every threshold is a constant at the top of trade-finder.js.' },
+          inputs: 'Candidate packages from the engine, the target (anchor) value, direction (FOR/AWAY), and the mode flag ML_TF_FAIR_MODE (Fair by default; a Fair/Aggressive toggle sits beside Trade FOR/AWAY).',
+          math: `edge = isFor ? 1 - totalSent/anchorVal : totalSent/anchorVal - 1;   // + = in YOUR favor
+// FAIR (default): build to ~even and only surface offers the other side would take
+target = anchorVal * ML_TF_FAIR_BIAS;            // 0.99  (Aggressive: ML_TF_WIN_BIAS 0.93)
+keep   = edge >= -ML_TF_OVERPAY_CAP && edge <= ML_TF_RECIP_CAP;   // [-0.15, +0.08]
+show   = the 3 FAIREST (|edge| ascending), tie-broken by quality;
+// E — anti-lowball: demote pick-heavy "fliers + a pick for my real player" packages
+pickShare = pickValue / totalSent;
+lowball   = pickShare > ML_TF_LOWBALL_PICKSHARE ? (pickShare - 0.45) * ML_TF_LOWBALL_PENALTY : 0;
+quality   = needAdj - lowball + (startBonus - 1) * ML_TF_START_WEIGHT;   // sort tie-breaker`,
+          output: 'Up to 3 offers, fairest-first in Fair mode. Aggressive mode restores the old max-your-edge wide band + spread.',
+          example: `Fair mode, target 5,000: an offer sending 5,050 (edge −1%) ranks above one sending 4,300 (edge +14% — a recipient lowball Fair mode drops). A "rookie flier + a 2nd" (pickShare 0.6) is penalized vs an even player-for-player.`,
+          notes: 'Constants (all curator-tunable): ML_TF_FAIR_BIAS 0.99, ML_TF_WIN_BIAS 0.93, ML_TF_RECIP_CAP 0.08, ML_TF_OVERPAY_CAP 0.15, ML_TF_LOWBALL_PICKSHARE 0.45, ML_TF_LOWBALL_PENALTY 0.5.',
+          related: ['win-bias', 'tf-realism-signals']
+        },
+        {
+          id: 'tf-realism-signals',
+          label: '4. Owner-willingness + startability',
+          location: 'trade-finder.js: mlTfOwnerSell / mlTfStartThresholds',
+          provenance: { kind: 'derived-from-data', detail: 'Computed from each team\'s positional-value ranks + the league\'s roster_positions; no new value math. Added 2026-06-11.' },
+          inputs: 'The owner\'s positional ranks, the target\'s position, the league\'s starting slots (roster_positions), and the recipient\'s depth chart.',
+          math: `// A — would the owner SELL the target? Managers sell from DEPTH.
+ownerRank = owner.posRanks[targetPos];           // 1 = deepest in the league
+seller    = ownerRank <= nTeams * ML_TF_OWNER_SURPLUS_RANK;   // top half -> likely; a need there -> "may not sell"
+// B — would a SENT player START for the recipient? (else it's bench filler, worth less to them)
+starters[pos] = dedicated slots + FLEX(RB/WR/TE) + SUPER_FLEX(QB);
+threshold[pos] = value of the recipient's WORST current starter at pos;
+startFit  = sentValue >= threshold[pos] ? 1 : ML_TF_BENCH_DISCOUNT;   // 0.55
+startBonus = Σ(value * startFit) / Σvalue;       // folded into quality at weight ML_TF_START_WEIGHT 0.15`,
+          output: 'A willingness banner above the FOR offers (✓ deep / ⚠ thin / neutral) and a startability nudge that ranks lineup-filling packages higher.',
+          example: `Owner is 2nd of 12 at RB (deep) → "✓ deep at RB — more likely to move him". A WR you send who'd be the owner's WR5 (below their worst starter) counts 0.55 in the desirability score.`,
+          notes: 'Signals only re-rank / inform — they never change the displayed MVS value or the edge. Constants: ML_TF_OWNER_SURPLUS_RANK 0.5, ML_TF_BENCH_DISCOUNT 0.55, ML_TF_START_WEIGHT 0.15. League-specific market calibration was deferred — it needs per-league trade data the finder doesn\'t load.',
+          related: ['tf-fair-offers', 'win-bias']
         },
       ],
     },

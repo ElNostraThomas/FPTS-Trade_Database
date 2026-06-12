@@ -679,6 +679,15 @@ window.LegendContent = {
         ],
       },
       {
+        name: 'Smarter Suggestions (Fair mode)',
+        items: [
+          { label: 'Fair / Aggressive toggle', what: 'Fair (default) proposes trades the other manager would actually take — built near-even, showing the three fairest packages. Aggressive maximizes your edge (the old behavior).', source: 'trade-finder.js mlTfPickOffers / mlTfSetMode — ML_TF_FAIR_BIAS 0.99 vs ML_TF_WIN_BIAS 0.93', values: 'Fair caps offers to +8% your favor / −15% overpay; Aggressive uses the wide band', notes: 'Toggle sits beside Trade FOR/AWAY. See Formulas §3 (trade-finder).' },
+          { label: 'Anti-lowball', what: 'Demotes "rookie flier + a pick for my real player" packages — the kind that get waved off.', source: 'pickShare > ML_TF_LOWBALL_PICKSHARE (0.45) penalized into the sort score', values: '—', notes: 'Prefers player-for-player near value.' },
+          { label: 'Owner willingness', what: 'A banner above the offers: is the owner DEEP at the target\'s position (likely to sell) or thin (probably won\'t)?', source: 'trade-finder.js mlTfOwnerSell — owner\'s positional rank vs ML_TF_OWNER_SURPLUS_RANK (0.5)', values: 'Green "deep" / red "thin" / neutral when mid-pack', notes: 'Managers sell from depth. See Formulas §4.' },
+          { label: 'Startability weighting', what: 'The players you send are weighted by whether they\'d actually START for the other team — bench filler is worth less to them than its raw value.', source: 'trade-finder.js mlTfStartThresholds from league.roster_positions; ML_TF_BENCH_DISCOUNT 0.55', values: '—', notes: 'Lineup-filling packages rank above equal-value filler.' },
+        ],
+      },
+      {
         name: 'Search + Pick Selector',
         items: [
           { label: 'Side Search Input', what: 'Type a player name; autocomplete dropdown appears. Pressing Enter or clicking adds to the side.', source: 'Autocomplete against FP_VALUES keys; renders .pp-search-result rows', values: 'HS thumbnail + position pill + name per result', notes: 'Search is per-side — Side A search adds to Side A, etc.' },

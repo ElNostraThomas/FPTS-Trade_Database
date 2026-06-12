@@ -35,6 +35,8 @@
 
 **Trade Finder (calculator)**
 - [WIN_BIAS — offers slightly in your favor](#win_bias--offers-slightly-in-your-favor)
+- [Fair offer selection + anti-lowball (Fair mode)](#fair-offer-selection--anti-lowball-fair-mode--default)
+- [Owner-willingness + startability](#owner-willingness--startability)
 - [Opportunity = owner-archetype-tilted package](#opportunity--owner-archetype-tilted-package)
 
 **Trade values**
@@ -155,6 +157,45 @@ shown  = suggs.filter(s => s.edge >= -0.06).sort((a,b) => b.edge - a.edge);  // 
 Per league, per wanted player: skip if you already roster them; `_wsFindOwner` locates the owning team (by normalized name); skip free-agents / not-in-league. Then `generateTradeSuggestions(myAssetPool, targetVal × WIN_BIAS, owner.archetype, 3)` — the **owner's** archetype tilts which of your assets are offered (rebuilder → picks/youth, contender → veterans), so the deal makes sense to them. Opportunities are grouped by target player.
 
 **Notes** Tilting to the **owner's** archetype (not yours) is what makes a trade realistic. Trade-AWAY (find who wants YOUR player) is a noted refinement.
+
+---
+
+### Fair offer selection + anti-lowball (Fair mode — default)
+`mlTfPickOffers` — `assets/js/trade-finder.js`. Added 2026-06-11 (S28), after users reported suggestions the counterparty rejected.
+
+Suggestions default to **FAIR** — built near-even so the other side would accept — with a **Fair / Aggressive** toggle beside Trade FOR/AWAY.
+
+```js
+edge = isFor ? 1 - totalSent/anchorVal : totalSent/anchorVal - 1;   // + = YOUR favor
+// FAIR (default):
+target = anchorVal * ML_TF_FAIR_BIAS;            // 0.99  (Aggressive: ML_TF_WIN_BIAS 0.93)
+keep   = edge >= -ML_TF_OVERPAY_CAP && edge <= ML_TF_RECIP_CAP;   // [-0.15, +0.08]
+show   = the 3 FAIREST (|edge| ascending), tie-broken by quality;
+// anti-lowball — demote pick-heavy "fliers + a pick for my real player":
+pickShare = pickValue / totalSent;
+lowball   = pickShare > ML_TF_LOWBALL_PICKSHARE ? (pickShare - 0.45) * ML_TF_LOWBALL_PENALTY : 0;
+quality   = needAdj - lowball + (startBonus - 1) * ML_TF_START_WEIGHT;
+```
+
+**Constants** (tunable): `ML_TF_FAIR_BIAS` 0.99 · `ML_TF_WIN_BIAS` 0.93 · `ML_TF_RECIP_CAP` 0.08 · `ML_TF_OVERPAY_CAP` 0.15 · `ML_TF_LOWBALL_PICKSHARE` 0.45 · `ML_TF_LOWBALL_PENALTY` 0.5.
+
+---
+
+### Owner-willingness + startability
+`mlTfOwnerSell` / `mlTfStartThresholds` — `assets/js/trade-finder.js` (S28).
+
+```js
+// A — would the owner SELL the target? Managers sell from positional DEPTH.
+ownerRank = owner.posRanks[targetPos];           // 1 = deepest in the league
+seller    = ownerRank <= nTeams * ML_TF_OWNER_SURPLUS_RANK;   // 0.5 → top half likely; a need there = "may not sell"
+// B — would a SENT player START for the recipient? (else bench filler, worth less to them)
+starters[pos] = dedicated slots + FLEX(RB/WR/TE) + SUPER_FLEX(QB);
+threshold[pos] = value of the recipient's WORST current starter at pos;
+startFit  = sentValue >= threshold[pos] ? 1 : ML_TF_BENCH_DISCOUNT;   // 0.55
+startBonus = Σ(value * startFit) / Σvalue;       // weight ML_TF_START_WEIGHT 0.15
+```
+
+A willingness banner shows above the FOR offers (✓ deep / ⚠ thin / neutral); startability nudges lineup-filling packages up. Both only **re-rank / inform** — they never change the displayed MVS value or the edge. **Constants:** `ML_TF_OWNER_SURPLUS_RANK` 0.5 · `ML_TF_BENCH_DISCOUNT` 0.55 · `ML_TF_START_WEIGHT` 0.15. League-specific market calibration (C) was **deferred** — it needs per-league trade data the finder doesn't load.
 
 ---
 
