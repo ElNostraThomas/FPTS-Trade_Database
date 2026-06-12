@@ -100,6 +100,8 @@ window.FormulasContent = {
     'get-multiplier':     's20',   // TEP TE-multiplier removed
     'pick-numeric-value': 's20',   // TEP valueTep branch removed
     'mn-format-multipliers': 's20', // multiplier table note updated for TEP
+    'calc-guru-seal':     's22',   // Guru-Approved seal — modular trade tools
+    'calc-gap-targeting': 's22',   // gap-targeted Add-player suggestions
   },
 
   domains: [
@@ -919,7 +921,7 @@ Better candidate: [my 2026 R1 (value 4800), 2026 R3 (value 600)]
         {
           id: 'inline-calc-bands',
           label: '27. Inline trade calculator bands (mlCalc)',
-          location: 'my-leagues.html:4528-4551',
+          location: 'assets/js/trade-calc.js renderCalcModal (~L505) — shared by My Leagues + Roster Moves',
           provenance: { kind: 'hand-tuned', detail: '5%/15% two-band system chosen by the curator; differs from main calc\'s single 5% cutoff.' },
           inputs: 'MLCALC.sides.A, MLCALC.sides.B (arrays of assets).',
           math: `totalA = side.A.reduce((sum, a) => sum + (a.value || 0), 0);
@@ -947,7 +949,7 @@ Side A 5000 vs Side B 3500:
         {
           id: 'trade-suggester-balance',
           label: '28. Trade-suggester balance label (mltbRender)',
-          location: 'my-leagues.html:4048-4067',
+          location: 'assets/js/trade-calc.js mltbRender — shared by My Leagues + Roster Moves',
           provenance: { kind: 'hand-tuned', detail: '5-band system with tighter 2.5% tolerance for the suggester (vs 5% for general calc).' },
           inputs: 'targetPlayer.value, totalSent.',
           math: `ratio   = targetPlayer.value > 0 ? totalSent / targetPlayer.value : 0;
@@ -972,6 +974,48 @@ Target 5000. totalSent 4400:
   -12 < -10 → '-12.0% lopsided in your favor' (blue)`,
           notes: '5-band system specifically for the suggester. Tighter tolerance (2.5%) than the inline calc (5%) because suggestions should land near-fair by design.',
           related: ['trade-suggestion-fit']
+        },
+        {
+          id: 'calc-guru-seal',
+          label: '29. Guru-Approved seal (calculator)',
+          location: 'assets/js/trade-calc.js renderCalcModal (~L523)',
+          provenance: { kind: 'hand-tuned', detail: 'Stamps the "You Send" side when the trade is fair-or-better for you. Reuses the inline-calc 5% "fair" band as the overpay tolerance; the John (john-cartoon.png) seal is the brand mark.' },
+          inputs: 'totalA (You Send) and totalB (You Receive) — Σ asset.value per side. Same diff / pctOff as the verdict bands: diff = totalA − totalB; pctOff = |diff| / max(totalA,totalB) × 100.',
+          math: `// stamp Side A ("You Send") when you are NOT overpaying past the fair band:
+guruApprove = (totalA > 0 && totalB > 0 && (diff <= 0 || pctOff <= 5));
+//   diff <= 0   → even, or in your favor (you send <= you receive)
+//   pctOff <= 5 → still inside the "Fair Trade" tolerance even if you give a little more`,
+          output: 'A "Guru Approved" seal (John cartoon) on the You-Send header when guruApprove is true; absent otherwise.',
+          example: `You Send 4,900 vs You Receive 5,000:
+  diff = −100 (≤ 0) → Guru Approved ✓ (in your favor)
+
+You Send 5,100 vs You Receive 5,000:
+  diff = +100, pctOff = 100 / 5,100 = 2.0% (≤ 5) → Guru Approved ✓ (inside fair band)
+
+You Send 5,800 vs You Receive 5,000:
+  diff = +800, pctOff = 800 / 5,800 = 13.8% (> 5) → no seal (you overpay)`,
+          notes: 'Tunable: the 5% band is the SAME constant as the "Fair Trade" verdict (entry 27) — raise it to stamp more give-a-little trades, lower it to restrict the seal to even-or-better. Fair-OR-better only; never stamps a trade that overpays past the band. Empty sides (totalA or totalB = 0) never stamp.',
+          related: ['inline-calc-bands', 'calc-gap-targeting']
+        },
+        {
+          id: 'calc-gap-targeting',
+          label: '30. Gap-targeted Add-player suggestions (calculator)',
+          location: 'assets/js/trade-calc.js calc search (~L595)',
+          provenance: { kind: 'derived-from-data', detail: 'Re-sorts the existing candidate pool toward the exact value still needed to balance the trade; introduces no new constants.' },
+          inputs: 'thisTotal (the side you are browsing) and otherTotal (the other side). need = otherTotal − thisTotal. Engages only when browsing (no text query) AND need > 0 (this side is the lighter one).',
+          math: `need    = otherTotal - thisTotal;        // value to add to THIS side to balance
+gapSort = (!query && need > 0);
+// browsing the lighter side → rank candidates by closeness to the gap:
+cmp = gapSort
+  ? (a,b) => Math.abs(a.value - need) - Math.abs(b.value - need)   // nearest-to-need first
+  : (a,b) => (b.value || 0) - (a.value || 0);                      // else value-desc`,
+          output: 'When gap-sorting, the Add-player dropdown leads with players whose value is closest to "need", plus a "Need ~{need} to balance" hint. With a typed query it reverts to value-desc named search.',
+          example: `You Send 3,000, You Receive 5,000 → need = 2,000.
+Browsing your roster (no query): candidates re-ranked by |value − 2,000|:
+  worth 2,050 (Δ50) first, then 1,900 (Δ100), 2,400 (Δ400), 900 (Δ1,100) …
+Hint shows "Need ~2,000 to balance".`,
+          notes: 'Re-sorts only — the candidate pool (your roster in scoped mode, or all FP_VALUES otherwise) is unchanged. Within each position group rows still sort value-desc; the gap-sort governs the overall lead. Disengages the moment you type (named search) or once this side is no longer the lighter one (need ≤ 0).',
+          related: ['calc-guru-seal', 'inline-calc-bands', 'trade-suggestion-fit']
         }
       ]
     },

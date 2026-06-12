@@ -78,6 +78,8 @@
 26. [Trade-suggestion fit score (`mlPackageFit` + `mlGenerateTradeSuggestions`)](#26-trade-suggestion-fit-score)
 27. [Inline trade calculator (`mlCalcSideTotal` verdict bands)](#27-inline-trade-calculator-bands)
 28. [Trade-suggester balance label](#28-trade-suggester-balance-label)
+28a. [Guru-Approved seal (calculator)](#28a-guru-approved-seal-calculator)
+28b. [Gap-targeted Add-player suggestions (calculator)](#28b-gap-targeted-add-player-suggestions-calculator)
 
 **My Leagues — performance + waivers**
 29. [Max-points efficiency (mpxPct)](#29-max-points-efficiency)
@@ -822,7 +824,7 @@ fitScore = (valueFit * 0.55 + archFit * 0.35 + fewer * 0.10);
 ---
 
 ### 27. Inline trade calculator bands
-`mlCalcRender` — `my-leagues.html:4528-4551`
+`renderCalcModal` — `assets/js/trade-calc.js` (~L505; shared by My Leagues + Roster Moves)
 
 **Math**
 ```js
@@ -844,7 +846,7 @@ pctOff = (absDiff / larger) * 100;
 ---
 
 ### 28. Trade-suggester balance label
-`mltbRender` — `my-leagues.html:4048-4067`
+`mltbRender` — `assets/js/trade-calc.js` (shared by My Leagues + Roster Moves)
 
 **Math**
 ```js
@@ -858,6 +860,49 @@ overpct = (ratio - 1) * 100;
 - `overpct > 10`            → "+pct% heavy overpay" (red)
 - `-10 ≤ overpct < 0`       → "-pct% steal (you give less)" (green)
 - `overpct < -10`           → "-pct% lopsided in your favor" (blue)
+
+---
+
+### 28a. Guru-Approved seal (calculator)
+`renderCalcModal` — `assets/js/trade-calc.js` (~L523). Introduced S22 (modular trade tools).
+
+Stamps a "Guru Approved" seal (John cartoon) on the **You Send** side when the trade comes out fair or better for you.
+
+**Math**
+```js
+diff   = totalA - totalB;                      // You Send − You Receive
+pctOff = Math.abs(diff) / Math.max(totalA, totalB) * 100;   // same as the verdict bands
+guruApprove = (totalA > 0 && totalB > 0 && (diff <= 0 || pctOff <= 5));
+//   diff <= 0   → even, or in your favor
+//   pctOff <= 5 → still inside the "Fair Trade" tolerance even if you give a little more
+```
+
+**Example**
+- You Send 4,900 vs Receive 5,000 → `diff = −100 (≤ 0)` → **seal** (in your favor)
+- You Send 5,100 vs Receive 5,000 → `pctOff = 2.0% (≤ 5)` → **seal** (inside fair band)
+- You Send 5,800 vs Receive 5,000 → `pctOff = 13.8% (> 5)` → **no seal** (you overpay)
+
+**Notes** Reuses the same `5%` band as the "Fair Trade" verdict (entry 27) — curator-tunable. Fair-OR-better only; never stamps an overpay. Empty sides never stamp.
+
+---
+
+### 28b. Gap-targeted Add-player suggestions (calculator)
+calc search — `assets/js/trade-calc.js` (~L595). Introduced S22.
+
+When you **browse** a side (no search text) and that side is the lighter one, the Add-player dropdown leads with the players whose value is closest to the amount still needed to balance, plus a "Need ~X to balance" hint.
+
+**Math**
+```js
+need    = otherTotal - thisTotal;        // value to add to THIS side to balance
+gapSort = (!query && need > 0);
+cmp = gapSort
+  ? (a,b) => Math.abs(a.value - need) - Math.abs(b.value - need)   // nearest-to-need first
+  : (a,b) => (b.value || 0) - (a.value || 0);                      // else value-desc
+```
+
+**Example** You Send 3,000, Receive 5,000 → `need = 2,000`. Browsing your roster re-ranks by `|value − 2,000|`: 2,050 (Δ50) → 1,900 (Δ100) → 2,400 (Δ400) → … Hint: "Need ~2,000 to balance".
+
+**Notes** Re-sorts the candidate pool only (your roster in scoped mode, else all FP_VALUES). Disengages the moment you type, or once this side is no longer lighter (`need ≤ 0`).
 
 ---
 
@@ -1406,10 +1451,11 @@ QB Position Rankings card displays: **MPX 19%** below the "of Max PF" caption. A
 | Constant | Where | Meaning |
 |----------|-------|---------|
 | `0.05` (5%) | trade-calc:2478, 2498 | "Fair Trade" cutoff (main calc) |
-| `5%`        | my-leagues:4542 | "Fair" cutoff (inline calc) |
-| `15%`       | my-leagues:4545 | "Slightly Unbalanced" cutoff |
+| `5%`        | trade-calc.js renderCalcModal | "Fair" cutoff (inline calc) — also the **Guru-Approved** tolerance |
+| `15%`       | trade-calc.js renderCalcModal | "Slightly Unbalanced" cutoff |
 | `10`        | trade-calc:2346 | FAAB → MVS ratio ($1 = 10 MVS) |
-| `2.5%`      | my-leagues:4052 | "Even trade" tolerance (suggester) |
+| `2.5%`      | trade-calc.js mltbRender | "Even trade" tolerance (suggester) |
+| `need > 0`  | trade-calc.js calc search | gap-sort engages (browsing the lighter side; sorts by \|value − need\|) |
 | `10%`       | my-leagues:4055 | Mild overpay cutoff (suggester) |
 
 **Volume / liquidity**

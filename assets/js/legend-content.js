@@ -675,6 +675,7 @@ window.LegendContent = {
         items: [
           { label: 'Verdict Chip', what: 'Plain-text balance assessment colored by severity.', source: 'Computed from |sideA - sideB| / max(sideA, sideB)', values: 'Fair trade (within 5%) green / Slight edge (5-15%) yellow / Big imbalance (>15%) red', notes: 'Color uses --green and --red brand tokens.' },
           { label: 'Visual Bar', what: 'Horizontal bar showing each side\'s share of total value. Filled left from side A, right from side B.', source: 'side A% + side B% drive width of bar segments', values: 'Left = A%, right = B%; midpoint is fair', notes: 'Drag-to-imbalance is purely visual; user can\'t drag values.' },
+          { label: 'Guru-Approved Seal', what: 'A "Guru Approved" stamp (John cartoon) on the You-Send side when the trade comes out fair or better for you.', source: 'assets/js/trade-calc.js renderCalcModal — guruApprove = totalA>0 && totalB>0 && (diff<=0 || pctOff<=5)', values: 'Lights when you give equal-or-less value (diff ≤ 0) OR are still within the 5% "fair" band; hidden once you overpay past 5%.', notes: 'Reuses the same 5% tolerance as the Fair-Trade verdict (curator-tunable). Fair-OR-better only — it never stamps an overpay. See Formulas §29.' },
         ],
       },
       {
@@ -682,6 +683,7 @@ window.LegendContent = {
         items: [
           { label: 'Side Search Input', what: 'Type a player name; autocomplete dropdown appears. Pressing Enter or clicking adds to the side.', source: 'Autocomplete against FP_VALUES keys; renders .pp-search-result rows', values: 'HS thumbnail + position pill + name per result', notes: 'Search is per-side — Side A search adds to Side A, etc.' },
           { label: 'Pick Selector', what: 'Add rookie / future picks (2026-2028) via a dropdown of available pick keys.', source: 'PICK_VALUES keyed by "YYYY-R.SS" or generic "YYYY-R"', values: 'Specific slots (2026-1.01 through 2026-4.12) + generics (2027-1, 2028-1)', notes: 'Pick fallback to generic key when specific slot missing.' },
+          { label: 'Gap-targeted Add-player suggestions', what: 'When you browse a side with no search text, the dropdown leads with players whose value is closest to the amount still needed to balance, with a "Need ~X to balance" hint.', source: 'assets/js/trade-calc.js calc search — need = otherTotal − thisTotal; sort by |value − need| while browsing the lighter side', values: 'Engages only while browsing (no query) and this side is lighter; typing reverts to value-desc named search.', notes: 'Re-sorts the candidate pool only — your roster in scoped mode, or all FP_VALUES otherwise. See Formulas §30.' },
         ],
       },
       {
