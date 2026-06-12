@@ -238,6 +238,16 @@ function mlTfSetDir(d){
   mlTfRenderTargetChips();
   mlTfRender();
 }
+// D — Fair / Aggressive offer mode. Fair (default) builds offers the counterparty would accept;
+// Aggressive maximizes your edge (the old WIN_BIAS behavior). Re-renders so open proposals rebuild.
+function mlTfSetMode(m){
+  const fair = (m !== 'aggressive');
+  if (ML_TF_FAIR_MODE === fair) return;
+  ML_TF_FAIR_MODE = fair;
+  const wrap = document.getElementById('ml-tf-modes');
+  if (wrap) wrap.querySelectorAll('.ml-tf-dir').forEach(b => b.classList.toggle('active', b.dataset.mode === (fair ? 'fair' : 'aggressive')));
+  mlTfRender();
+}
 
 // Do YOU roster this player in this league? Uses the SAME signal as Exposure
 // (the league's myPlayerIds set, by sleeperId) so AWAY's league set matches
@@ -890,6 +900,7 @@ function mlEnsureFinder(){
   global.mlTfAddMgr = mlTfAddMgr;
   global.mlTfRemoveMgr = mlTfRemoveMgr;
   global.mlTfSetDir = mlTfSetDir;
+  global.mlTfSetMode = mlTfSetMode;
   global.mlTfToggleArch = mlTfToggleArch;
   global.mlTfEditCard = mlTfEditCard;
   global.mlTfGoToLeague = mlTfGoToLeague;

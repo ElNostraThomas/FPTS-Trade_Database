@@ -3021,6 +3021,10 @@
               <button class="ml-tf-dir active" data-dir="for" onclick="mlTfSetDir('for')">Trade FOR</button>
               <button class="ml-tf-dir" data-dir="away" onclick="mlTfSetDir('away')">Trade AWAY</button>
             </div>
+            <div class="ml-tf-dirs" id="ml-tf-modes" title="Fair = offers the other side would accept · Aggressive = built to maximize your edge">
+              <button class="ml-tf-dir active" data-mode="fair" onclick="mlTfSetMode('fair')">Fair</button>
+              <button class="ml-tf-dir" data-mode="aggressive" onclick="mlTfSetMode('aggressive')">Aggressive</button>
+            </div>
             <div class="ml-tf-label" id="ml-tf-target-label">Players you want</div>
             <div class="ml-tf-field">
               <input id="ml-tf-target-input" class="ml-tf-input" placeholder="Add a player you want…" autocomplete="off"
