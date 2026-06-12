@@ -767,7 +767,7 @@
         const thumbUrl = sid ? `https://sleepercdn.com/content/nfl/players/thumb/${sid}.jpg` : null;
         const thumbHtml = thumbUrl ? `<img src="${thumbUrl}" alt="" style="width:28px;height:28px;min-width:28px;border-radius:50%;object-fit:cover;flex-shrink:0;" onerror="this.style.display='none'">` : '';
         items.push(`<div class="tc-asset">
-          <span style="width:28px;height:28px;flex-shrink:0;display:inline-block;">${thumbHtml}</span>
+          <span style="width:28px;height:28px;flex-shrink:0;display:inline-block;border-radius:50%;background:var(--surface2);overflow:hidden;">${thumbHtml}</span>
           <span class="pos-badge ${_pc(ppos)}">${ppos}</span>
           <span class="tc-asset-name clickable-player" onclick="openPanel('${pname.replace(/'/g, "\\'")}')">${pname}</span>${nflTeam && global.TeamHelpers ? `<span class="tc-nfl-team">${global.TeamHelpers.logoImg(nflTeam, { size: 22, coin: true })}</span>` : (nflTeam ? `<span class="tc-nfl-team">${nflTeam}</span>` : '')}
         </div>`);

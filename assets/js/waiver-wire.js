@@ -15,7 +15,10 @@
 
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   function jsq(s) { return String(s == null ? '' : s).replace(/\\/g, '\\\\').replace(/'/g, "\\'"); }
-  function thumbBySid(sid) { return sid ? ('<img class="tc-wv-thumb" src="' + CDN + '/content/nfl/players/thumb/' + sid + '.jpg" onerror="this.style.visibility=\'hidden\'">') : '<span class="tc-wv-thumb"></span>'; }
+  // On a missing headshot, drop the broken img but KEEP the element visible so its
+  // .tc-wv-thumb disc background shows (matches the no-sid <span> placeholder) — the old
+  // visibility:hidden hid the disc too, leaving a blank gap.
+  function thumbBySid(sid) { return sid ? ('<img class="tc-wv-thumb" src="' + CDN + '/content/nfl/players/thumb/' + sid + '.jpg" onerror="this.onerror=null;this.removeAttribute(\'src\')">') : '<span class="tc-wv-thumb"></span>'; }
   function thumbByName(name) { return thumbBySid((global.SLEEPER_IDS || {})[name]); }
   // Player's NFL team logo. Free agents (no team) get the NFL shield instead of a
   // blank/broken logo; a missing team-logo PNG also falls back to the shield.

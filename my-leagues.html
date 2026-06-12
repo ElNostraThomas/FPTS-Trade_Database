@@ -1172,8 +1172,13 @@
   .ml-thumb-32 {
     width:32px; height:32px; flex-shrink:0; display:inline-block;
   }
+  /* Placeholder circle shown when a player's Sleeper headshot is missing/404s, so the
+     row keeps its 32px slot (no scramble) and reads as a neutral avatar. */
+  .ml-thumb-ph {
+    border-radius:50%; background:var(--surface2); overflow:hidden; line-height:0;
+  }
   .ml-thumb-32-img {
-    width:32px; height:32px; border-radius:50%; object-fit:cover; flex-shrink:0;
+    width:32px; height:32px; border-radius:50%; object-fit:cover; flex-shrink:0; display:block;
   }
   .ml-pick-thumb-32 {
     width:32px; height:32px; border-radius:50%; background:var(--surface2);
@@ -1309,7 +1314,8 @@
   .ml-tc-side-label.is-mine { color: var(--red); }
   .ml-tc-asset-thumb {
     width:28px; height:28px; flex-shrink:0;
-    display:inline-flex; align-items:center;
+    display:inline-flex; align-items:center; justify-content:center;
+    border-radius:50%; background:var(--surface2); overflow:hidden;
   }
   .ml-tc-asset-thumb-img {
     width:28px; height:28px; border-radius:50%; object-fit:cover;
@@ -3028,12 +3034,12 @@
 <!-- Trade Calculator + Builder (window.TradeCalc) — depends on LC + TradeFinder; init'd by the page. -->
 <script src="assets/js/trade-calc.js?v=1797700000"></script>
 <!-- Cross-league Waiver Wire (window.WaiverWire) — reads ML_ALL_LEAGUE_DATA + FP_VALUES. -->
-<script src="assets/js/waiver-wire.js?v=1798700000"></script>
+<script src="assets/js/waiver-wire.js?v=1799000000"></script>
 <!-- Trade History Search (window.TradeHistory) — reuses the cross-league ML_MY_TRADES pool. -->
 <script src="assets/js/trade-history.js?v=1798900000"></script>
 <!-- Team logo helpers — load BEFORE player-panel.js so modal-hero badge works. -->
 <script src="assets/js/team-helpers.js?v=1778680002"></script>
-<script src="assets/js/player-panel.js?v=1797200000"></script>
+<script src="assets/js/player-panel.js?v=1799000000"></script>
 <style>
   /* ML uses the shared slide-out panel as an accordion (not horizontal tabs).
      Hide legacy modal + horizontal tab strip; show all five tab bodies stacked. */
@@ -4084,8 +4090,13 @@ function posBadge(pos) {
 }
 
 function playerThumb(sleeperId) {
-  if (!sleeperId) return `<span class="ml-thumb-32"></span>`;
-  return `<img class="ml-thumb-32-img" src="${CDN}/content/nfl/players/thumb/${sleeperId}.jpg" onerror="this.style.display='none'">`;
+  // Wrap the <img> in a fixed-size span so the 32px slot ALWAYS holds, even when the
+  // headshot 404s (rookies/players Sleeper has no photo for). Previously the bare <img>
+  // was the grid cell itself, so onerror display:none collapsed it and scrambled the row
+  // (name/age/value all shifted one grid column left). The span keeps the slot; the
+  // .ml-thumb-ph placeholder circle shows through when the photo is missing.
+  if (!sleeperId) return `<span class="ml-thumb-32 ml-thumb-ph"></span>`;
+  return `<span class="ml-thumb-32 ml-thumb-ph"><img class="ml-thumb-32-img" src="${CDN}/content/nfl/players/thumb/${sleeperId}.jpg" onerror="this.style.display='none'"></span>`;
 }
 
 // Flame icon thumbnail for draft picks — 32x32 to match player thumbs.
@@ -8029,7 +8040,7 @@ function renderStandingsTable() {
   const valueRows = sorted.map((r, i) => {
     const rowClass = r.isMe ? 'ml-st-row is-mine' : 'ml-st-row';
     const avHtml = r.avatar
-      ? `<img class="ml-st-avatar" src="${r.avatar}" onerror="this.style.display='none'">`
+      ? `<img class="ml-st-avatar" src="${r.avatar}" onerror="this.onerror=null;this.classList.add('is-fallback');this.removeAttribute('src')">`
       : `<div class="ml-st-avatar is-fallback"></div>`;
 
     // Position-value progress-bar segments. Per-segment width + color
