@@ -35,7 +35,15 @@
 // recompute). Results render as a manager → player(+rank) → leagues drill-down;
 // clicking a league lazily builds the win-biased proposal + jumps to that league.
 // ════════════════════════════════════════════════════════════════════════════
-const ML_TF_WIN_BIAS = 0.93;   // build offers ~7% in the user's favor (tunable)
+const ML_TF_WIN_BIAS = 0.93;   // AGGRESSIVE build target — offers ~7% in your favor (tunable)
+// ── Suggestion-quality knobs (2026-06-11) — all curator-tunable. Fair mode is the default so the
+//    surfaced offers are ones the COUNTERPARTY would actually accept, not lowballs tilted to you. ──
+const ML_TF_FAIR_BIAS  = 0.99;  // FAIR (default) build target — near-even
+let   ML_TF_FAIR_MODE  = true;  // default fair; aggressive mode uses ML_TF_WIN_BIAS (UI toggle = follow-up)
+const ML_TF_RECIP_CAP  = 0.08;  // fair mode: don't surface offers that lowball the recipient past 8%
+const ML_TF_OVERPAY_CAP = 0.15; // never surface offers where YOU overpay past 15%
+const ML_TF_LOWBALL_PICKSHARE = 0.45; // anti-lowball: penalize packages where picks exceed this value share
+const ML_TF_LOWBALL_PENALTY   = 0.5;  // strength of the pick-share-over-cap penalty (sort tie-breaker)
 const ML_TF_WANTS = {
   rebuilder:{young:1.0,vet:0.3}, emergency:{young:0.6,vet:0.4},
   tweener:{young:0.5,vet:0.5}, contender:{young:0.3,vet:1.0}, dynasty:{young:0.7,vet:0.7}
@@ -576,7 +584,9 @@ function mlTfProposalHtml(reg){
 // range so you see a high / mid / fair option — not three near-identical packages.
 function mlTfPickOffers(pool, anchorVal, archetype, dir, myNeed, ownerNeed){
   const isFor = dir === 'for';
-  const target = isFor ? anchorVal * ML_TF_WIN_BIAS : anchorVal / ML_TF_WIN_BIAS;
+  const bias  = ML_TF_FAIR_MODE ? ML_TF_FAIR_BIAS : ML_TF_WIN_BIAS;
+  const target = isFor ? anchorVal * bias : anchorVal / bias;
+  // edge = YOUR favor. FOR: you send less than the target is worth. AWAY: you get back more.
   const edgeOf = (c) => isFor ? (1 - c.totalSent/anchorVal) : (c.totalSent/anchorVal - 1);
   const needAdj = (c) => {
     let adj = 0;
@@ -586,19 +596,41 @@ function mlTfPickOffers(pool, anchorVal, archetype, dir, myNeed, ownerNeed){
     });
     return adj;
   };
+  // E — anti-lowball: a package that reads as "fliers + a pick for my real player". Penalize by how
+  // far the package's PICK share exceeds the cap (picks are the easiest sweetener to overvalue and
+  // the least wanted by a win-now owner).
+  const lowballPenalty = (c) => {
+    const tot = c.totalSent || 0; if (tot <= 0) return 0;
+    const pickVal = (c.sending||[]).filter(a => a.type === 'pick').reduce((s,a)=>s+(a.value||0),0);
+    const share = pickVal / tot;
+    return share > ML_TF_LOWBALL_PICKSHARE ? (share - ML_TF_LOWBALL_PICKSHARE) * ML_TF_LOWBALL_PENALTY : 0;
+  };
   const seen = {}, uniq = [];
   const add = (arr, mode) => (arr||[]).forEach(c => {
     const sig = (c.sending||[]).map(a=>a.name).slice().sort().join('|');
     if (!sig || seen[sig]) return; seen[sig] = 1;
     c.edge = edgeOf(c); c.mode = mode; c.needAdj = needAdj(c);
+    c.lowball = lowballPenalty(c);
+    c.quality = c.needAdj - c.lowball;   // non-value tie-breaker (need-fit minus lowball)
     uniq.push(c);
   });
   add(mlGenerateTradeSuggestions(pool, target, archetype, 8), 'fit');
   add(mlGenerateTradeSuggestions(pool, target, 'tweener', 8), 'value');
   if (!uniq.length) return [];
-  let list = uniq.filter(c => c.edge >= -0.15);     // keep it realistic (no wild overpays)
+  // D — fairness: in fair mode keep offers inside [−overpay cap, +recipient cap] of YOUR edge — so we
+  // never surface offers that lowball the counterparty past the cap (or that wildly overpay) — and
+  // show the THREE FAIREST distinct packages (closest to even first). Aggressive mode keeps the old
+  // wide band + spread across the edge range.
+  if (ML_TF_FAIR_MODE) {
+    let list = uniq.filter(c => c.edge >= -ML_TF_OVERPAY_CAP && c.edge <= ML_TF_RECIP_CAP);
+    if (list.length < 3) list = uniq.filter(c => c.edge >= -ML_TF_OVERPAY_CAP);
+    if (list.length < 3) list = uniq.slice();
+    list.sort((a,b) => (Math.abs(a.edge) - Math.abs(b.edge)) || (b.quality - a.quality));
+    return list.slice(0, 3).map(c => ({ sugg:c, mode:c.mode }));
+  }
+  let list = uniq.filter(c => c.edge >= -0.15);     // aggressive: keep it realistic (no wild overpays)
   if (list.length < 3) list = uniq.slice();
-  list.sort((a,b) => (b.edge - a.edge) || (b.needAdj - a.needAdj));
+  list.sort((a,b) => (b.edge - a.edge) || (b.quality - a.quality));
   return mlTfSpread(list, 3).map(c => ({ sugg:c, mode:c.mode }));
 }
 
