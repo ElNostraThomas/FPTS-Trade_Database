@@ -6,6 +6,27 @@ the operator manual see [`WORKFLOW.md`](WORKFLOW.md).
 
 ---
 
+## 2026-06-11 (follow-on) — Headshot placeholder fix + sidebar Waiver slim + calculator formula docs + trade-calc.css de-dupe
+
+All pushed; `check-colors.py` CLEAN (44 files).
+
+### Player headshot placeholder (`321917b`)
+Players Sleeper has no photo for (usually rookies) were breaking row layout: `playerThumb` returned a bare `<img>` that WAS the roster-row grid's first cell, so `onerror` `display:none` collapsed the cell and scrambled the row one column left. Wrapped the img in the fixed-32px span (the codebase's own safe pattern) + a `.ml-thumb-ph` placeholder disc. Swept the same disc to every other player-headshot wrapper so a missing photo reads as a neutral avatar site-wide: calc trade cards, Recent-Trades cards (`index.html`), shared trade cards (`player-panel.js`, all pages), Waiver rows (`waiver-wire.js`), and Standings avatars. Tokens: `player-panel.js`/`waiver-wire.js` → 1799000000.
+
+### Slimmed the My Leagues sidebar Waiver tab (`a2f0e9b`)
+Dropped the redundant "Most Valuable Available" column (each league's Waivers → Best Available sub-tab covers it now); `renderBoard`'s `if (valEl)` guard skips it (no JS change). The sidebar keeps its unique cross-league search + "Most Added · 7d". The standalone Roster Moves page still renders both columns.
+
+### Guru-Approved seal + gap-targeted suggestions → formula cards (`0b7d440`)
+Filed the two S22 calculator heuristics as full cards: `formulas-content.js` entries 29/30 (trade-tools domain), `docs/FORMULAS.md` §28a/§28b + TOC + constants table, `legend-content.js` items, README marked done. Guru: `guruApprove = totalA>0 && totalB>0 && (diff<=0 || pctOff<=5)` (reuses the 5% fair band). Gap: browsing the lighter side with no query sorts by `|value − need|`. Also repointed two stale `my-leagues.html → assets/js/trade-calc.js` line refs.
+
+### trade-calc.css de-dupe (`de1f9f9`)
+my-leagues carried a byte-identical inline copy of the 132 `.ml-calc-*`/`.ml-tb-*`/`.ml-modal*` + `.ml-pd-*` mobile + grouped-core/picker rules already in `assets/css/trade-calc.css`. Both pages now load the one file: removed the 132 duplicated inline rules (−415 lines) via a comment/string-aware CSS tokenizer matching each rule by exact (media-context, selector, body), and linked `trade-calc.css`. Page-unique rules stay inline. Verified: 0 calc/modal defs remain inline, 0 non-duplicates removed, `<style>` CSS brace-balanced, standalone untouched.
+
+### Updates timeline (`this commit`)
+Added S27 to the "Updates & Formulas" page (`formulas-content.js` sessions; token → 1799100000).
+
+---
+
 ## 2026-06-11 (twenty-fifth session) — Waiver Wire + Live Draft "Your Drafts" + Roster Moves rename + mobile sweep
 
 All pushed; `check-colors.py` CLEAN (42 files).
