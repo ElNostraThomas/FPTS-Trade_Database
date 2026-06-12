@@ -1,6 +1,452 @@
 {
-  "version": "2026-06-09T21:55:05.728742+00:00",
+  "version": "2026-06-12T01:30:57.433304+00:00",
   "players": {
+    "Parker Washington": [
+      {
+        "title": "5 Small Samples to Guide 2026 Fantasy Drafts",
+        "url": "https://www.fantasypoints.com/nfl/articles/5-small-samples-to-guide-fantasy-drafts",
+        "date": "2026-06-11T15:00:00.000Z",
+        "author": "Akash Bhatia"
+      }
+    ],
+    "Colston Loveland": [
+      {
+        "title": "5 Small Samples to Guide 2026 Fantasy Drafts",
+        "url": "https://www.fantasypoints.com/nfl/articles/5-small-samples-to-guide-fantasy-drafts",
+        "date": "2026-06-11T15:00:00.000Z",
+        "author": "Akash Bhatia"
+      },
+      {
+        "title": "Finding the Next Jaxon Smith-Njigba: Playcaller Tendencies",
+        "url": "https://www.fantasypoints.com/nfl/articles/finding-the-next-jaxon-smith-njigba-playcaller-tendencies",
+        "date": "2026-05-14T15:00:00.000Z",
+        "author": "Ryan Heath"
+      }
+    ],
+    "Justin Herbert": [
+      {
+        "title": "5 Small Samples to Guide 2026 Fantasy Drafts",
+        "url": "https://www.fantasypoints.com/nfl/articles/5-small-samples-to-guide-fantasy-drafts",
+        "date": "2026-06-11T15:00:00.000Z",
+        "author": "Akash Bhatia"
+      },
+      {
+        "title": "2026 Fantasy Football QB Stats: What Matters",
+        "url": "https://www.fantasypoints.com/nfl/articles/fantasy-football-qb-stats-what-matters",
+        "date": "2026-06-09T20:00:00.000Z",
+        "author": "Ryan Heath"
+      },
+      {
+        "title": "2026 NFL Player Props: Passing Yards",
+        "url": "https://www.fantasypoints.com/nfl/articles/nfl-player-props-passing-yards",
+        "date": "2026-06-03T22:00:00.000Z",
+        "author": "Tom Brolley"
+      }
+    ],
+    "Harold Fannin": [
+      {
+        "title": "5 Small Samples to Guide 2026 Fantasy Drafts",
+        "url": "https://www.fantasypoints.com/nfl/articles/5-small-samples-to-guide-fantasy-drafts",
+        "date": "2026-06-11T15:00:00.000Z",
+        "author": "Akash Bhatia"
+      },
+      {
+        "title": "Finding the Next Jaxon Smith-Njigba: Playcaller Tendencies",
+        "url": "https://www.fantasypoints.com/nfl/articles/finding-the-next-jaxon-smith-njigba-playcaller-tendencies",
+        "date": "2026-05-14T15:00:00.000Z",
+        "author": "Ryan Heath"
+      }
+    ],
+    "Jakobi Meyers": [
+      {
+        "title": "5 Small Samples to Guide 2026 Fantasy Drafts",
+        "url": "https://www.fantasypoints.com/nfl/articles/5-small-samples-to-guide-fantasy-drafts",
+        "date": "2026-06-11T15:00:00.000Z",
+        "author": "Akash Bhatia"
+      }
+    ],
+    "Luther Burden": [
+      {
+        "title": "5 Small Samples to Guide 2026 Fantasy Drafts",
+        "url": "https://www.fantasypoints.com/nfl/articles/5-small-samples-to-guide-fantasy-drafts",
+        "date": "2026-06-11T15:00:00.000Z",
+        "author": "Akash Bhatia"
+      },
+      {
+        "title": "Finding the Next Jaxon Smith-Njigba: Playcaller Tendencies",
+        "url": "https://www.fantasypoints.com/nfl/articles/finding-the-next-jaxon-smith-njigba-playcaller-tendencies",
+        "date": "2026-05-14T15:00:00.000Z",
+        "author": "Ryan Heath"
+      }
+    ],
+    "Rome Odunze": [
+      {
+        "title": "5 Small Samples to Guide 2026 Fantasy Drafts",
+        "url": "https://www.fantasypoints.com/nfl/articles/5-small-samples-to-guide-fantasy-drafts",
+        "date": "2026-06-11T15:00:00.000Z",
+        "author": "Akash Bhatia"
+      },
+      {
+        "title": "Finding the Next Jaxon Smith-Njigba: Playcaller Tendencies",
+        "url": "https://www.fantasypoints.com/nfl/articles/finding-the-next-jaxon-smith-njigba-playcaller-tendencies",
+        "date": "2026-05-14T15:00:00.000Z",
+        "author": "Ryan Heath"
+      }
+    ],
+    "Kyle Pitts": [
+      {
+        "title": "5 Small Samples to Guide 2026 Fantasy Drafts",
+        "url": "https://www.fantasypoints.com/nfl/articles/5-small-samples-to-guide-fantasy-drafts",
+        "date": "2026-06-11T15:00:00.000Z",
+        "author": "Akash Bhatia"
+      },
+      {
+        "title": "Finding the Next Jaxon Smith-Njigba: Playcaller Tendencies",
+        "url": "https://www.fantasypoints.com/nfl/articles/finding-the-next-jaxon-smith-njigba-playcaller-tendencies",
+        "date": "2026-05-14T15:00:00.000Z",
+        "author": "Ryan Heath"
+      }
+    ],
+    "Christian McCaffrey": [
+      {
+        "title": "2026 NFL Player Props: Rushing Yards",
+        "url": "https://www.fantasypoints.com/nfl/articles/nfl-player-props-rushing-yards",
+        "date": "2026-06-09T19:30:00.000Z",
+        "author": "Tom Brolley"
+      },
+      {
+        "title": "2026 NFL Offensive Player of the Year",
+        "url": "https://www.fantasypoints.com/nfl/articles/nfl-offensive-player-of-the-year",
+        "date": "2026-05-20T20:30:00.000Z",
+        "author": "Tom Brolley"
+      }
+    ],
+    "David Montgomery": [
+      {
+        "title": "2026 NFL Player Props: Rushing Yards",
+        "url": "https://www.fantasypoints.com/nfl/articles/nfl-player-props-rushing-yards",
+        "date": "2026-06-09T19:30:00.000Z",
+        "author": "Tom Brolley"
+      },
+      {
+        "title": "2026 NFL Power Rankings: Post Draft",
+        "url": "https://www.fantasypoints.com/nfl/articles/nfl-power-rankings-post-draft",
+        "date": "2026-05-05T14:00:00.000Z",
+        "author": "Tom Brolley"
+      }
+    ],
+    "Bijan Robinson": [
+      {
+        "title": "2026 NFL Player Props: Rushing Yards",
+        "url": "https://www.fantasypoints.com/nfl/articles/nfl-player-props-rushing-yards",
+        "date": "2026-06-09T19:30:00.000Z",
+        "author": "Tom Brolley"
+      }
+    ],
+    "Saquon Barkley": [
+      {
+        "title": "2026 NFL Player Props: Rushing Yards",
+        "url": "https://www.fantasypoints.com/nfl/articles/nfl-player-props-rushing-yards",
+        "date": "2026-06-09T19:30:00.000Z",
+        "author": "Tom Brolley"
+      },
+      {
+        "title": "2026 NFL Offensive Player of the Year",
+        "url": "https://www.fantasypoints.com/nfl/articles/nfl-offensive-player-of-the-year",
+        "date": "2026-05-20T20:30:00.000Z",
+        "author": "Tom Brolley"
+      }
+    ],
+    "Ashton Jeanty": [
+      {
+        "title": "2026 NFL Player Props: Rushing Yards",
+        "url": "https://www.fantasypoints.com/nfl/articles/nfl-player-props-rushing-yards",
+        "date": "2026-06-09T19:30:00.000Z",
+        "author": "Tom Brolley"
+      }
+    ],
+    "Patrick Mahomes": [
+      {
+        "title": "2026 Fantasy Football QB Stats: What Matters",
+        "url": "https://www.fantasypoints.com/nfl/articles/fantasy-football-qb-stats-what-matters",
+        "date": "2026-06-09T20:00:00.000Z",
+        "author": "Ryan Heath"
+      }
+    ],
+    "Caleb Williams": [
+      {
+        "title": "2026 Fantasy Football QB Stats: What Matters",
+        "url": "https://www.fantasypoints.com/nfl/articles/fantasy-football-qb-stats-what-matters",
+        "date": "2026-06-09T20:00:00.000Z",
+        "author": "Ryan Heath"
+      }
+    ],
+    "Deshaun Watson": [
+      {
+        "title": "2026 Fantasy Football QB Stats: What Matters",
+        "url": "https://www.fantasypoints.com/nfl/articles/fantasy-football-qb-stats-what-matters",
+        "date": "2026-06-09T20:00:00.000Z",
+        "author": "Ryan Heath"
+      }
+    ],
+    "Jayden Daniels": [
+      {
+        "title": "2026 Fantasy Football QB Stats: What Matters",
+        "url": "https://www.fantasypoints.com/nfl/articles/fantasy-football-qb-stats-what-matters",
+        "date": "2026-06-09T20:00:00.000Z",
+        "author": "Ryan Heath"
+      },
+      {
+        "title": "2026 NFL Player Props: Passing Yards",
+        "url": "https://www.fantasypoints.com/nfl/articles/nfl-player-props-passing-yards",
+        "date": "2026-06-03T22:00:00.000Z",
+        "author": "Tom Brolley"
+      }
+    ],
+    "Lamar Jackson": [
+      {
+        "title": "2026 Fantasy Football QB Stats: What Matters",
+        "url": "https://www.fantasypoints.com/nfl/articles/fantasy-football-qb-stats-what-matters",
+        "date": "2026-06-09T20:00:00.000Z",
+        "author": "Ryan Heath"
+      },
+      {
+        "title": "2026 NFL Player Props: Passing Yards",
+        "url": "https://www.fantasypoints.com/nfl/articles/nfl-player-props-passing-yards",
+        "date": "2026-06-03T22:00:00.000Z",
+        "author": "Tom Brolley"
+      },
+      {
+        "title": "Heath's Favorite 2026 Best Ball Values",
+        "url": "https://www.fantasypoints.com/nfl/articles/heaths-favorite-best-ball-values",
+        "date": "2026-05-26T14:30:00.000Z",
+        "author": "Ryan Heath"
+      }
+    ],
+    "Carson Wentz": [
+      {
+        "title": "2026 Fantasy Football QB Stats: What Matters",
+        "url": "https://www.fantasypoints.com/nfl/articles/fantasy-football-qb-stats-what-matters",
+        "date": "2026-06-09T20:00:00.000Z",
+        "author": "Ryan Heath"
+      }
+    ],
+    "Kyler Murray": [
+      {
+        "title": "2026 Fantasy Football QB Stats: What Matters",
+        "url": "https://www.fantasypoints.com/nfl/articles/fantasy-football-qb-stats-what-matters",
+        "date": "2026-06-09T20:00:00.000Z",
+        "author": "Ryan Heath"
+      },
+      {
+        "title": "2026 NFL Power Rankings: Post Draft",
+        "url": "https://www.fantasypoints.com/nfl/articles/nfl-power-rankings-post-draft",
+        "date": "2026-05-05T14:00:00.000Z",
+        "author": "Tom Brolley"
+      }
+    ],
+    "Malik Willis": [
+      {
+        "title": "2026 Fantasy Football QB Stats: What Matters",
+        "url": "https://www.fantasypoints.com/nfl/articles/fantasy-football-qb-stats-what-matters",
+        "date": "2026-06-09T20:00:00.000Z",
+        "author": "Ryan Heath"
+      },
+      {
+        "title": "2026 NFL Power Rankings: Post Draft",
+        "url": "https://www.fantasypoints.com/nfl/articles/nfl-power-rankings-post-draft",
+        "date": "2026-05-05T14:00:00.000Z",
+        "author": "Tom Brolley"
+      }
+    ],
+    "Nick Mullens": [
+      {
+        "title": "2026 Fantasy Football QB Stats: What Matters",
+        "url": "https://www.fantasypoints.com/nfl/articles/fantasy-football-qb-stats-what-matters",
+        "date": "2026-06-09T20:00:00.000Z",
+        "author": "Ryan Heath"
+      }
+    ],
+    "Brock Purdy": [
+      {
+        "title": "2026 Fantasy Football QB Stats: What Matters",
+        "url": "https://www.fantasypoints.com/nfl/articles/fantasy-football-qb-stats-what-matters",
+        "date": "2026-06-09T20:00:00.000Z",
+        "author": "Ryan Heath"
+      }
+    ],
+    "Jalen Hurts": [
+      {
+        "title": "2026 Fantasy Football QB Stats: What Matters",
+        "url": "https://www.fantasypoints.com/nfl/articles/fantasy-football-qb-stats-what-matters",
+        "date": "2026-06-09T20:00:00.000Z",
+        "author": "Ryan Heath"
+      },
+      {
+        "title": "Fantasy Fallout: AJ Brown Traded to Patriots",
+        "url": "https://www.fantasypoints.com/nfl/articles/fantasy-fallout-aj-brown-traded-to-patriots",
+        "date": "2026-06-03T19:30:00.000Z",
+        "author": "Graham Barfield"
+      },
+      {
+        "title": "Heath's Favorite 2026 Best Ball Values",
+        "url": "https://www.fantasypoints.com/nfl/articles/heaths-favorite-best-ball-values",
+        "date": "2026-05-26T14:30:00.000Z",
+        "author": "Ryan Heath"
+      },
+      {
+        "title": "Brain Trust: 2026 Darkhorse #1 Position Finish",
+        "url": "https://www.fantasypoints.com/nfl/articles/brain-trust-darkhorse-1-position-finish",
+        "date": "2026-05-19T16:00:00.000Z",
+        "author": "FPTS Staff"
+      }
+    ],
+    "Jaxson Dart": [
+      {
+        "title": "2026 Fantasy Football QB Stats: What Matters",
+        "url": "https://www.fantasypoints.com/nfl/articles/fantasy-football-qb-stats-what-matters",
+        "date": "2026-06-09T20:00:00.000Z",
+        "author": "Ryan Heath"
+      },
+      {
+        "title": "2026 NFL Player Props: Passing Yards",
+        "url": "https://www.fantasypoints.com/nfl/articles/nfl-player-props-passing-yards",
+        "date": "2026-06-03T22:00:00.000Z",
+        "author": "Tom Brolley"
+      },
+      {
+        "title": "Heath's Favorite 2026 Best Ball Values",
+        "url": "https://www.fantasypoints.com/nfl/articles/heaths-favorite-best-ball-values",
+        "date": "2026-05-26T14:30:00.000Z",
+        "author": "Ryan Heath"
+      }
+    ],
+    "Sam Darnold": [
+      {
+        "title": "2026 Fantasy Football QB Stats: What Matters",
+        "url": "https://www.fantasypoints.com/nfl/articles/fantasy-football-qb-stats-what-matters",
+        "date": "2026-06-09T20:00:00.000Z",
+        "author": "Ryan Heath"
+      }
+    ],
+    "Drake Maye": [
+      {
+        "title": "2026 Fantasy Football QB Stats: What Matters",
+        "url": "https://www.fantasypoints.com/nfl/articles/fantasy-football-qb-stats-what-matters",
+        "date": "2026-06-09T20:00:00.000Z",
+        "author": "Ryan Heath"
+      },
+      {
+        "title": "Heath's Favorite 2026 Best Ball Values",
+        "url": "https://www.fantasypoints.com/nfl/articles/heaths-favorite-best-ball-values",
+        "date": "2026-05-26T14:30:00.000Z",
+        "author": "Ryan Heath"
+      }
+    ],
+    "Josh Allen": [
+      {
+        "title": "2026 Fantasy Football QB Stats: What Matters",
+        "url": "https://www.fantasypoints.com/nfl/articles/fantasy-football-qb-stats-what-matters",
+        "date": "2026-06-09T20:00:00.000Z",
+        "author": "Ryan Heath"
+      },
+      {
+        "title": "Heath's Favorite 2026 Best Ball Values",
+        "url": "https://www.fantasypoints.com/nfl/articles/heaths-favorite-best-ball-values",
+        "date": "2026-05-26T14:30:00.000Z",
+        "author": "Ryan Heath"
+      }
+    ],
+    "Bo Nix": [
+      {
+        "title": "2026 Fantasy Football QB Stats: What Matters",
+        "url": "https://www.fantasypoints.com/nfl/articles/fantasy-football-qb-stats-what-matters",
+        "date": "2026-06-09T20:00:00.000Z",
+        "author": "Ryan Heath"
+      }
+    ],
+    "Fernando Mendoza": [
+      {
+        "title": "2026 NFL Player Props: Passing Yards",
+        "url": "https://www.fantasypoints.com/nfl/articles/nfl-player-props-passing-yards",
+        "date": "2026-06-03T22:00:00.000Z",
+        "author": "Tom Brolley"
+      }
+    ],
+    "Isaiah Likely": [
+      {
+        "title": "2026 NFL Player Props: Passing Yards",
+        "url": "https://www.fantasypoints.com/nfl/articles/nfl-player-props-passing-yards",
+        "date": "2026-06-03T22:00:00.000Z",
+        "author": "Tom Brolley"
+      },
+      {
+        "title": "2026 NFL Power Rankings: Post Draft",
+        "url": "https://www.fantasypoints.com/nfl/articles/nfl-power-rankings-post-draft",
+        "date": "2026-05-05T14:00:00.000Z",
+        "author": "Tom Brolley"
+      }
+    ],
+    "Kirk Cousins": [
+      {
+        "title": "2026 NFL Player Props: Passing Yards",
+        "url": "https://www.fantasypoints.com/nfl/articles/nfl-player-props-passing-yards",
+        "date": "2026-06-03T22:00:00.000Z",
+        "author": "Tom Brolley"
+      },
+      {
+        "title": "2026 NFL Power Rankings: Post Draft",
+        "url": "https://www.fantasypoints.com/nfl/articles/nfl-power-rankings-post-draft",
+        "date": "2026-05-05T14:00:00.000Z",
+        "author": "Tom Brolley"
+      }
+    ],
+    "Matthew Stafford": [
+      {
+        "title": "2026 NFL Player Props: Passing Touchdowns",
+        "url": "https://www.fantasypoints.com/nfl/articles/nfl-player-props-passing-touchdowns",
+        "date": "2026-06-05T21:00:00.000Z",
+        "author": "Tom Brolley"
+      },
+      {
+        "title": "Heath's Favorite 2026 Best Ball Values",
+        "url": "https://www.fantasypoints.com/nfl/articles/heaths-favorite-best-ball-values",
+        "date": "2026-05-26T14:30:00.000Z",
+        "author": "Ryan Heath"
+      }
+    ],
+    "Aaron Rodgers": [
+      {
+        "title": "2026 NFL Player Props: Passing Touchdowns",
+        "url": "https://www.fantasypoints.com/nfl/articles/nfl-player-props-passing-touchdowns",
+        "date": "2026-06-05T21:00:00.000Z",
+        "author": "Tom Brolley"
+      }
+    ],
+    "Dak Prescott": [
+      {
+        "title": "2026 NFL Player Props: Passing Touchdowns",
+        "url": "https://www.fantasypoints.com/nfl/articles/nfl-player-props-passing-touchdowns",
+        "date": "2026-06-05T21:00:00.000Z",
+        "author": "Tom Brolley"
+      }
+    ],
+    "Bryce Young": [
+      {
+        "title": "2026 NFL Player Props: Passing Touchdowns",
+        "url": "https://www.fantasypoints.com/nfl/articles/nfl-player-props-passing-touchdowns",
+        "date": "2026-06-05T21:00:00.000Z",
+        "author": "Tom Brolley"
+      }
+    ],
+    "Cam Ward": [
+      {
+        "title": "2026 NFL Player Props: Passing Touchdowns",
+        "url": "https://www.fantasypoints.com/nfl/articles/nfl-player-props-passing-touchdowns",
+        "date": "2026-06-05T21:00:00.000Z",
+        "author": "Tom Brolley"
+      }
+    ],
     "Jacory Croskey-Merritt": [
       {
         "title": "Heath's Favorite 2026 Best Ball Values",
@@ -30,20 +476,6 @@
       }
     ],
     "Javonte Williams": [
-      {
-        "title": "Heath's Favorite 2026 Best Ball Values",
-        "url": "https://www.fantasypoints.com/nfl/articles/heaths-favorite-best-ball-values",
-        "date": "2026-05-26T14:30:00.000Z",
-        "author": "Ryan Heath"
-      }
-    ],
-    "Matthew Stafford": [
-      {
-        "title": "2026 NFL Player Props: Passing Touchdowns",
-        "url": "https://www.fantasypoints.com/nfl/articles/nfl-player-props-passing-touchdowns",
-        "date": "2026-06-05T21:00:00.000Z",
-        "author": "Tom Brolley"
-      },
       {
         "title": "Heath's Favorite 2026 Best Ball Values",
         "url": "https://www.fantasypoints.com/nfl/articles/heaths-favorite-best-ball-values",
@@ -111,26 +543,6 @@
         "author": "Ryan Heath"
       }
     ],
-    "Lamar Jackson": [
-      {
-        "title": "2026 Fantasy Football QB Stats: What Matters",
-        "url": "https://www.fantasypoints.com/nfl/articles/fantasy-football-qb-stats-what-matters",
-        "date": "2026-06-09T20:00:00.000Z",
-        "author": "Ryan Heath"
-      },
-      {
-        "title": "2026 NFL Player Props: Passing Yards",
-        "url": "https://www.fantasypoints.com/nfl/articles/nfl-player-props-passing-yards",
-        "date": "2026-06-03T22:00:00.000Z",
-        "author": "Tom Brolley"
-      },
-      {
-        "title": "Heath's Favorite 2026 Best Ball Values",
-        "url": "https://www.fantasypoints.com/nfl/articles/heaths-favorite-best-ball-values",
-        "date": "2026-05-26T14:30:00.000Z",
-        "author": "Ryan Heath"
-      }
-    ],
     "Bucky Irving": [
       {
         "title": "Heath's Favorite 2026 Best Ball Values",
@@ -175,52 +587,6 @@
         "author": "Ryan Heath"
       }
     ],
-    "Jalen Hurts": [
-      {
-        "title": "2026 Fantasy Football QB Stats: What Matters",
-        "url": "https://www.fantasypoints.com/nfl/articles/fantasy-football-qb-stats-what-matters",
-        "date": "2026-06-09T20:00:00.000Z",
-        "author": "Ryan Heath"
-      },
-      {
-        "title": "Fantasy Fallout: AJ Brown Traded to Patriots",
-        "url": "https://www.fantasypoints.com/nfl/articles/fantasy-fallout-aj-brown-traded-to-patriots",
-        "date": "2026-06-03T19:30:00.000Z",
-        "author": "Graham Barfield"
-      },
-      {
-        "title": "Heath's Favorite 2026 Best Ball Values",
-        "url": "https://www.fantasypoints.com/nfl/articles/heaths-favorite-best-ball-values",
-        "date": "2026-05-26T14:30:00.000Z",
-        "author": "Ryan Heath"
-      },
-      {
-        "title": "Brain Trust: 2026 Darkhorse #1 Position Finish",
-        "url": "https://www.fantasypoints.com/nfl/articles/brain-trust-darkhorse-1-position-finish",
-        "date": "2026-05-19T16:00:00.000Z",
-        "author": "FPTS Staff"
-      }
-    ],
-    "Jaxson Dart": [
-      {
-        "title": "2026 Fantasy Football QB Stats: What Matters",
-        "url": "https://www.fantasypoints.com/nfl/articles/fantasy-football-qb-stats-what-matters",
-        "date": "2026-06-09T20:00:00.000Z",
-        "author": "Ryan Heath"
-      },
-      {
-        "title": "2026 NFL Player Props: Passing Yards",
-        "url": "https://www.fantasypoints.com/nfl/articles/nfl-player-props-passing-yards",
-        "date": "2026-06-03T22:00:00.000Z",
-        "author": "Tom Brolley"
-      },
-      {
-        "title": "Heath's Favorite 2026 Best Ball Values",
-        "url": "https://www.fantasypoints.com/nfl/articles/heaths-favorite-best-ball-values",
-        "date": "2026-05-26T14:30:00.000Z",
-        "author": "Ryan Heath"
-      }
-    ],
     "Sean Tucker": [
       {
         "title": "Heath's Favorite 2026 Best Ball Values",
@@ -255,35 +621,7 @@
         "author": "Tom Brolley"
       }
     ],
-    "Drake Maye": [
-      {
-        "title": "2026 Fantasy Football QB Stats: What Matters",
-        "url": "https://www.fantasypoints.com/nfl/articles/fantasy-football-qb-stats-what-matters",
-        "date": "2026-06-09T20:00:00.000Z",
-        "author": "Ryan Heath"
-      },
-      {
-        "title": "Heath's Favorite 2026 Best Ball Values",
-        "url": "https://www.fantasypoints.com/nfl/articles/heaths-favorite-best-ball-values",
-        "date": "2026-05-26T14:30:00.000Z",
-        "author": "Ryan Heath"
-      }
-    ],
     "Joe Burrow": [
-      {
-        "title": "Heath's Favorite 2026 Best Ball Values",
-        "url": "https://www.fantasypoints.com/nfl/articles/heaths-favorite-best-ball-values",
-        "date": "2026-05-26T14:30:00.000Z",
-        "author": "Ryan Heath"
-      }
-    ],
-    "Josh Allen": [
-      {
-        "title": "2026 Fantasy Football QB Stats: What Matters",
-        "url": "https://www.fantasypoints.com/nfl/articles/fantasy-football-qb-stats-what-matters",
-        "date": "2026-06-09T20:00:00.000Z",
-        "author": "Ryan Heath"
-      },
       {
         "title": "Heath's Favorite 2026 Best Ball Values",
         "url": "https://www.fantasypoints.com/nfl/articles/heaths-favorite-best-ball-values",
@@ -303,252 +641,6 @@
         "url": "https://www.fantasypoints.com/nfl/articles/finding-the-next-jaxon-smith-njigba-playcaller-tendencies",
         "date": "2026-05-14T15:00:00.000Z",
         "author": "Ryan Heath"
-      }
-    ],
-    "Patrick Mahomes": [
-      {
-        "title": "2026 Fantasy Football QB Stats: What Matters",
-        "url": "https://www.fantasypoints.com/nfl/articles/fantasy-football-qb-stats-what-matters",
-        "date": "2026-06-09T20:00:00.000Z",
-        "author": "Ryan Heath"
-      }
-    ],
-    "Caleb Williams": [
-      {
-        "title": "2026 Fantasy Football QB Stats: What Matters",
-        "url": "https://www.fantasypoints.com/nfl/articles/fantasy-football-qb-stats-what-matters",
-        "date": "2026-06-09T20:00:00.000Z",
-        "author": "Ryan Heath"
-      }
-    ],
-    "Deshaun Watson": [
-      {
-        "title": "2026 Fantasy Football QB Stats: What Matters",
-        "url": "https://www.fantasypoints.com/nfl/articles/fantasy-football-qb-stats-what-matters",
-        "date": "2026-06-09T20:00:00.000Z",
-        "author": "Ryan Heath"
-      }
-    ],
-    "Jayden Daniels": [
-      {
-        "title": "2026 Fantasy Football QB Stats: What Matters",
-        "url": "https://www.fantasypoints.com/nfl/articles/fantasy-football-qb-stats-what-matters",
-        "date": "2026-06-09T20:00:00.000Z",
-        "author": "Ryan Heath"
-      },
-      {
-        "title": "2026 NFL Player Props: Passing Yards",
-        "url": "https://www.fantasypoints.com/nfl/articles/nfl-player-props-passing-yards",
-        "date": "2026-06-03T22:00:00.000Z",
-        "author": "Tom Brolley"
-      }
-    ],
-    "Justin Herbert": [
-      {
-        "title": "2026 Fantasy Football QB Stats: What Matters",
-        "url": "https://www.fantasypoints.com/nfl/articles/fantasy-football-qb-stats-what-matters",
-        "date": "2026-06-09T20:00:00.000Z",
-        "author": "Ryan Heath"
-      },
-      {
-        "title": "2026 NFL Player Props: Passing Yards",
-        "url": "https://www.fantasypoints.com/nfl/articles/nfl-player-props-passing-yards",
-        "date": "2026-06-03T22:00:00.000Z",
-        "author": "Tom Brolley"
-      }
-    ],
-    "Carson Wentz": [
-      {
-        "title": "2026 Fantasy Football QB Stats: What Matters",
-        "url": "https://www.fantasypoints.com/nfl/articles/fantasy-football-qb-stats-what-matters",
-        "date": "2026-06-09T20:00:00.000Z",
-        "author": "Ryan Heath"
-      }
-    ],
-    "Kyler Murray": [
-      {
-        "title": "2026 Fantasy Football QB Stats: What Matters",
-        "url": "https://www.fantasypoints.com/nfl/articles/fantasy-football-qb-stats-what-matters",
-        "date": "2026-06-09T20:00:00.000Z",
-        "author": "Ryan Heath"
-      },
-      {
-        "title": "2026 NFL Power Rankings: Post Draft",
-        "url": "https://www.fantasypoints.com/nfl/articles/nfl-power-rankings-post-draft",
-        "date": "2026-05-05T14:00:00.000Z",
-        "author": "Tom Brolley"
-      }
-    ],
-    "Malik Willis": [
-      {
-        "title": "2026 Fantasy Football QB Stats: What Matters",
-        "url": "https://www.fantasypoints.com/nfl/articles/fantasy-football-qb-stats-what-matters",
-        "date": "2026-06-09T20:00:00.000Z",
-        "author": "Ryan Heath"
-      },
-      {
-        "title": "2026 NFL Power Rankings: Post Draft",
-        "url": "https://www.fantasypoints.com/nfl/articles/nfl-power-rankings-post-draft",
-        "date": "2026-05-05T14:00:00.000Z",
-        "author": "Tom Brolley"
-      }
-    ],
-    "Nick Mullens": [
-      {
-        "title": "2026 Fantasy Football QB Stats: What Matters",
-        "url": "https://www.fantasypoints.com/nfl/articles/fantasy-football-qb-stats-what-matters",
-        "date": "2026-06-09T20:00:00.000Z",
-        "author": "Ryan Heath"
-      }
-    ],
-    "Brock Purdy": [
-      {
-        "title": "2026 Fantasy Football QB Stats: What Matters",
-        "url": "https://www.fantasypoints.com/nfl/articles/fantasy-football-qb-stats-what-matters",
-        "date": "2026-06-09T20:00:00.000Z",
-        "author": "Ryan Heath"
-      }
-    ],
-    "Sam Darnold": [
-      {
-        "title": "2026 Fantasy Football QB Stats: What Matters",
-        "url": "https://www.fantasypoints.com/nfl/articles/fantasy-football-qb-stats-what-matters",
-        "date": "2026-06-09T20:00:00.000Z",
-        "author": "Ryan Heath"
-      }
-    ],
-    "Bo Nix": [
-      {
-        "title": "2026 Fantasy Football QB Stats: What Matters",
-        "url": "https://www.fantasypoints.com/nfl/articles/fantasy-football-qb-stats-what-matters",
-        "date": "2026-06-09T20:00:00.000Z",
-        "author": "Ryan Heath"
-      }
-    ],
-    "Fernando Mendoza": [
-      {
-        "title": "2026 NFL Player Props: Passing Yards",
-        "url": "https://www.fantasypoints.com/nfl/articles/nfl-player-props-passing-yards",
-        "date": "2026-06-03T22:00:00.000Z",
-        "author": "Tom Brolley"
-      }
-    ],
-    "Isaiah Likely": [
-      {
-        "title": "2026 NFL Player Props: Passing Yards",
-        "url": "https://www.fantasypoints.com/nfl/articles/nfl-player-props-passing-yards",
-        "date": "2026-06-03T22:00:00.000Z",
-        "author": "Tom Brolley"
-      },
-      {
-        "title": "2026 NFL Power Rankings: Post Draft",
-        "url": "https://www.fantasypoints.com/nfl/articles/nfl-power-rankings-post-draft",
-        "date": "2026-05-05T14:00:00.000Z",
-        "author": "Tom Brolley"
-      }
-    ],
-    "Kirk Cousins": [
-      {
-        "title": "2026 NFL Player Props: Passing Yards",
-        "url": "https://www.fantasypoints.com/nfl/articles/nfl-player-props-passing-yards",
-        "date": "2026-06-03T22:00:00.000Z",
-        "author": "Tom Brolley"
-      },
-      {
-        "title": "2026 NFL Power Rankings: Post Draft",
-        "url": "https://www.fantasypoints.com/nfl/articles/nfl-power-rankings-post-draft",
-        "date": "2026-05-05T14:00:00.000Z",
-        "author": "Tom Brolley"
-      }
-    ],
-    "Aaron Rodgers": [
-      {
-        "title": "2026 NFL Player Props: Passing Touchdowns",
-        "url": "https://www.fantasypoints.com/nfl/articles/nfl-player-props-passing-touchdowns",
-        "date": "2026-06-05T21:00:00.000Z",
-        "author": "Tom Brolley"
-      }
-    ],
-    "Dak Prescott": [
-      {
-        "title": "2026 NFL Player Props: Passing Touchdowns",
-        "url": "https://www.fantasypoints.com/nfl/articles/nfl-player-props-passing-touchdowns",
-        "date": "2026-06-05T21:00:00.000Z",
-        "author": "Tom Brolley"
-      }
-    ],
-    "Bryce Young": [
-      {
-        "title": "2026 NFL Player Props: Passing Touchdowns",
-        "url": "https://www.fantasypoints.com/nfl/articles/nfl-player-props-passing-touchdowns",
-        "date": "2026-06-05T21:00:00.000Z",
-        "author": "Tom Brolley"
-      }
-    ],
-    "Cam Ward": [
-      {
-        "title": "2026 NFL Player Props: Passing Touchdowns",
-        "url": "https://www.fantasypoints.com/nfl/articles/nfl-player-props-passing-touchdowns",
-        "date": "2026-06-05T21:00:00.000Z",
-        "author": "Tom Brolley"
-      }
-    ],
-    "Christian McCaffrey": [
-      {
-        "title": "2026 NFL Player Props: Rushing Yards",
-        "url": "https://www.fantasypoints.com/nfl/articles/nfl-player-props-rushing-yards",
-        "date": "2026-06-09T19:30:00.000Z",
-        "author": "Tom Brolley"
-      },
-      {
-        "title": "2026 NFL Offensive Player of the Year",
-        "url": "https://www.fantasypoints.com/nfl/articles/nfl-offensive-player-of-the-year",
-        "date": "2026-05-20T20:30:00.000Z",
-        "author": "Tom Brolley"
-      }
-    ],
-    "David Montgomery": [
-      {
-        "title": "2026 NFL Player Props: Rushing Yards",
-        "url": "https://www.fantasypoints.com/nfl/articles/nfl-player-props-rushing-yards",
-        "date": "2026-06-09T19:30:00.000Z",
-        "author": "Tom Brolley"
-      },
-      {
-        "title": "2026 NFL Power Rankings: Post Draft",
-        "url": "https://www.fantasypoints.com/nfl/articles/nfl-power-rankings-post-draft",
-        "date": "2026-05-05T14:00:00.000Z",
-        "author": "Tom Brolley"
-      }
-    ],
-    "Bijan Robinson": [
-      {
-        "title": "2026 NFL Player Props: Rushing Yards",
-        "url": "https://www.fantasypoints.com/nfl/articles/nfl-player-props-rushing-yards",
-        "date": "2026-06-09T19:30:00.000Z",
-        "author": "Tom Brolley"
-      }
-    ],
-    "Saquon Barkley": [
-      {
-        "title": "2026 NFL Player Props: Rushing Yards",
-        "url": "https://www.fantasypoints.com/nfl/articles/nfl-player-props-rushing-yards",
-        "date": "2026-06-09T19:30:00.000Z",
-        "author": "Tom Brolley"
-      },
-      {
-        "title": "2026 NFL Offensive Player of the Year",
-        "url": "https://www.fantasypoints.com/nfl/articles/nfl-offensive-player-of-the-year",
-        "date": "2026-05-20T20:30:00.000Z",
-        "author": "Tom Brolley"
-      }
-    ],
-    "Ashton Jeanty": [
-      {
-        "title": "2026 NFL Player Props: Rushing Yards",
-        "url": "https://www.fantasypoints.com/nfl/articles/nfl-player-props-rushing-yards",
-        "date": "2026-06-09T19:30:00.000Z",
-        "author": "Tom Brolley"
       }
     ],
     "Amon-Ra St. Brown": [
@@ -1085,14 +1177,6 @@
         "author": "Ryan Heath"
       }
     ],
-    "Colston Loveland": [
-      {
-        "title": "Finding the Next Jaxon Smith-Njigba: Playcaller Tendencies",
-        "url": "https://www.fantasypoints.com/nfl/articles/finding-the-next-jaxon-smith-njigba-playcaller-tendencies",
-        "date": "2026-05-14T15:00:00.000Z",
-        "author": "Ryan Heath"
-      }
-    ],
     "Zachariah Branch": [
       {
         "title": "Finding the Next Jaxon Smith-Njigba: Playcaller Tendencies",
@@ -1172,22 +1256,6 @@
       }
     ],
     "Devaughn Vele": [
-      {
-        "title": "Finding the Next Jaxon Smith-Njigba: Playcaller Tendencies",
-        "url": "https://www.fantasypoints.com/nfl/articles/finding-the-next-jaxon-smith-njigba-playcaller-tendencies",
-        "date": "2026-05-14T15:00:00.000Z",
-        "author": "Ryan Heath"
-      }
-    ],
-    "Harold Fannin": [
-      {
-        "title": "Finding the Next Jaxon Smith-Njigba: Playcaller Tendencies",
-        "url": "https://www.fantasypoints.com/nfl/articles/finding-the-next-jaxon-smith-njigba-playcaller-tendencies",
-        "date": "2026-05-14T15:00:00.000Z",
-        "author": "Ryan Heath"
-      }
-    ],
-    "Luther Burden": [
       {
         "title": "Finding the Next Jaxon Smith-Njigba: Playcaller Tendencies",
         "url": "https://www.fantasypoints.com/nfl/articles/finding-the-next-jaxon-smith-njigba-playcaller-tendencies",
@@ -1327,14 +1395,6 @@
         "author": "Ryan Heath"
       }
     ],
-    "Rome Odunze": [
-      {
-        "title": "Finding the Next Jaxon Smith-Njigba: Playcaller Tendencies",
-        "url": "https://www.fantasypoints.com/nfl/articles/finding-the-next-jaxon-smith-njigba-playcaller-tendencies",
-        "date": "2026-05-14T15:00:00.000Z",
-        "author": "Ryan Heath"
-      }
-    ],
     "Sam LaPorta": [
       {
         "title": "Finding the Next Jaxon Smith-Njigba: Playcaller Tendencies",
@@ -1352,14 +1412,6 @@
       }
     ],
     "DK Metcalf": [
-      {
-        "title": "Finding the Next Jaxon Smith-Njigba: Playcaller Tendencies",
-        "url": "https://www.fantasypoints.com/nfl/articles/finding-the-next-jaxon-smith-njigba-playcaller-tendencies",
-        "date": "2026-05-14T15:00:00.000Z",
-        "author": "Ryan Heath"
-      }
-    ],
-    "Kyle Pitts": [
       {
         "title": "Finding the Next Jaxon Smith-Njigba: Playcaller Tendencies",
         "url": "https://www.fantasypoints.com/nfl/articles/finding-the-next-jaxon-smith-njigba-playcaller-tendencies",
