@@ -341,6 +341,11 @@ body { zoom: 1.25; }
 .nav-right { margin-left:auto; display:flex; align-items:center; gap:16px; }
 .nav-stat { font-family:'Mulish',sans-serif; font-size:11px; color:var(--white); opacity:1; white-space:nowrap; }
 .nav-badge { background:var(--red); color:#111111; font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:11px; padding:3px 10px; letter-spacing:.04em; }
+/* Light/Dark theme toggle — canonical styling shared by every page (pages may
+   override locally). Without this the button falls back to the browser-default
+   pale button, which looks "off" on the dark nav. */
+#theme-toggle { background:none; border:1px solid var(--border2); color:var(--white); font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:11px; padding:5px 12px; cursor:pointer; transition:all .2s; letter-spacing:.04em; display:inline-flex; align-items:center; gap:6px; }
+#theme-toggle:hover { border-color:var(--red); color:var(--red); }
 /* Mobile page-jumper select — desktop hidden, mobile shows as a polished
    button with a chevron. !important on visual props so this rule wins over
    the legacy per-page inline duplicates without having to delete them all. */

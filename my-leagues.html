@@ -6,7 +6,7 @@
 <title>Fantasy Points Front Office — User Importer</title>
 <link href="https://fonts.googleapis.com/css2?family=Kanit:ital,wght@0,400;0,700;1,800&family=Mulish:wght@400;600;700;900&display=swap" rel="stylesheet">
 <!-- Brand-level shared styles (loaded BEFORE inline <style> so page overrides win). -->
-<link rel="stylesheet" href="assets/css/brand.css?v=1787500000">
+<link rel="stylesheet" href="assets/css/brand.css?v=1799300000">
 <!-- iframe scroll fix — only runs when embedded; no-op for direct visitors. -->
 <script src="assets/js/iframe-scroll-fix.js?v=1791700000"></script>
 <!-- OBS zoom controls — only renders when embedded; top-right pill steps body { zoom }. -->
@@ -2628,7 +2628,7 @@
      AFTER data-bootstrap.js (which populates window.FP_VALUES + PICK_VALUES
      it depends on) and BEFORE the inline script block below (whose ml*
      wrappers delegate to window.SLEEPER.*). -->
-<script src="assets/js/sleeper-helpers.js?v=1780800000"></script>
+<script src="assets/js/sleeper-helpers.js?v=1799300000"></script>
 <!-- Shared league value/archetype compute (window.LC) — depends on sleeper-helpers + FP_VALUES. -->
 <script src="assets/js/league-compute.js?v=1797000000"></script>
 <!-- Three-number player valuation core (window.Valuation) — pure math over SLEEPER+LC+FP_VALUES. -->
@@ -2638,7 +2638,7 @@
 <!-- Trade Calculator + Builder (window.TradeCalc) — depends on LC + TradeFinder; init'd by the page. -->
 <script src="assets/js/trade-calc.js?v=1797700000"></script>
 <!-- Cross-league Waiver Wire (window.WaiverWire) — reads ML_ALL_LEAGUE_DATA + FP_VALUES. -->
-<script src="assets/js/waiver-wire.js?v=1799000000"></script>
+<script src="assets/js/waiver-wire.js?v=1799300000"></script>
 <!-- Trade History Search (window.TradeHistory) — reuses the cross-league ML_MY_TRADES pool. -->
 <script src="assets/js/trade-history.js?v=1799300000"></script>
 <!-- Liquidity calibration (window.ValuationCalibrate) — replays the user's trades to fit scarcity→price; reuses TradeHistory + ML_TXN_LOG. -->
@@ -6686,6 +6686,9 @@ function renderWaiversBestAvailable(el, leagueId) {
   const rows = [];
   Object.keys(fp).forEach(name => {
     const k = fp[name];
+    // Skip INCOMING rookies (no current or prior NFL production, young) — in dynasty
+    // they arrive via the rookie draft, not waivers, so they aren't claimable FAs.
+    if (k && !(+k.ppg > 0) && !(+k.ppgPrior > 0) && (k.age == null || +k.age <= 24)) return;
     const sid = k.sleeperId || (window.SLEEPER_IDS || {})[name];
     if (!sid || rostered.has(String(sid))) return;
     const v = mlFpValue(k, leagueId);

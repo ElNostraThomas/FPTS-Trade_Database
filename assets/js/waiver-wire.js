@@ -190,11 +190,22 @@
     ((d && d.rosters) || []).forEach(function (r) { (r.players || []).forEach(function (pid) { s[String(pid)] = 1; }); });
     return s;
   }
+  // An INCOMING rookie hasn't played an NFL down yet (no current AND no prior PPG) —
+  // in dynasty he arrives via the ROOKIE DRAFT, not waivers, so he shouldn't surface
+  // as a claimable free agent before that draft. The flag clears automatically once
+  // he plays (ppg populates). Age guard avoids mis-flagging a vet with missing stats.
+  function _isIncomingRookie(k) {
+    if (!k) return false;
+    var noProd = !(+k.ppg > 0) && !(+k.ppgPrior > 0);
+    var young = (k.age == null) || (+k.age <= 24);
+    return noProd && young;
+  }
   // Highest-value players NOT rostered in this league (best free agents by value).
   function _bestAvailable(leagueId) {
     var fp = global.FP_VALUES || {}, rostered = _rosteredSet(leagueId), key = _valueKey(leagueId), out = [];
     Object.keys(fp).forEach(function (name) {
       var k = fp[name]; if (!k) return;
+      if (_isIncomingRookie(k)) return;   // not a waiver claim — comes via the rookie draft
       var sid = k.sleeperId || (global.SLEEPER_IDS || {})[name];
       if (!sid || rostered[String(sid)]) return;
       var v = k[key] || k.value || 0; if (v <= 0) return;

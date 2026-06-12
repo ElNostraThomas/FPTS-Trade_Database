@@ -260,11 +260,17 @@
 
     const picked = [];
     const pickedSigs = new Set();
+    // VARIETY: each suggestion should anchor on a DIFFERENT primary (highest-value)
+    // asset where possible — otherwise the list fills with the same anchor and a
+    // swapped 3rd/4th. Track used anchors and prefer fresh ones at every pick.
+    const usedPrimaries = new Set();
+    const primaryId = (c) => { let m = c.assets[0]; for (const a of c.assets) if (a.value > m.value) m = a; return m.id; };
     const pickFrom = (filterFn, label) => {
-      const found = candidates.find(c => !pickedSigs.has(c.sig) && filterFn(c));
+      const found = candidates.find(c => !pickedSigs.has(c.sig) && !usedPrimaries.has(primaryId(c)) && filterFn(c))
+                 || candidates.find(c => !pickedSigs.has(c.sig) && filterFn(c));
       if (found) {
         picked.push(Object.assign({}, found, { label }));
-        pickedSigs.add(found.sig);
+        pickedSigs.add(found.sig); usedPrimaries.add(primaryId(found));
       }
     };
     pickFrom(c => c.kind === '1-asset' && c.ratio >= 0.95 && c.ratio <= 1.05, 'FAIR VALUE — 1 ASSET');
@@ -272,6 +278,14 @@
     pickFrom(c => c.ratio > 1.05 && c.ratio <= 1.15, 'SLIGHT OVERPAY');
     pickFrom(c => c.kind === '3-asset' && c.ratio >= 0.95 && c.ratio <= 1.10, 'VALUE PACKAGE — 3 ASSETS');
     pickFrom(c => c.archFit >= 0.65 && c.ratio >= 0.92 && c.ratio <= 1.15, 'ARCHETYPE-TILTED');
+    // ALTERNATIVE fill — first pass demands a FRESH anchor (variety); second pass
+    // relaxes to anything distinct so we still reach N when the roster is thin.
+    for (const c of candidates) {
+      if (picked.length >= N) break;
+      if (pickedSigs.has(c.sig) || usedPrimaries.has(primaryId(c))) continue;
+      picked.push(Object.assign({}, c, { label: 'ALTERNATIVE' }));
+      pickedSigs.add(c.sig); usedPrimaries.add(primaryId(c));
+    }
     for (const c of candidates) {
       if (picked.length >= N) break;
       if (pickedSigs.has(c.sig)) continue;
