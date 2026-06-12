@@ -44,6 +44,9 @@ const ML_TF_RECIP_CAP  = 0.08;  // fair mode: don't surface offers that lowball 
 const ML_TF_OVERPAY_CAP = 0.15; // never surface offers where YOU overpay past 15%
 const ML_TF_LOWBALL_PICKSHARE = 0.45; // anti-lowball: penalize packages where picks exceed this value share
 const ML_TF_LOWBALL_PENALTY   = 0.5;  // strength of the pick-share-over-cap penalty (sort tie-breaker)
+// A — owner willingness: a manager sells from positional DEPTH. Rank the owner at the target's
+// position (1 = deepest). Top this fraction of the league = likely seller; a "need" there = unlikely.
+const ML_TF_OWNER_SURPLUS_RANK = 0.5; // owner must rank in the top half at the target's pos to read as a seller
 const ML_TF_WANTS = {
   rebuilder:{young:1.0,vet:0.3}, emergency:{young:0.6,vet:0.4},
   tweener:{young:0.5,vet:0.5}, contender:{young:0.3,vet:1.0}, dynasty:{young:0.7,vet:0.7}
@@ -523,6 +526,24 @@ function mlTfShowProposal(rid){
   el.style.display='block'; el.dataset.open='1'; if(go) go.textContent='▾';
 }
 
+// A — owner-willingness banner. sell = { ok, pos, rank, nT } or null (neutral, no banner).
+function mlTfSellHtml(sell, ownerUser){
+  if (!sell) return '';
+  const who = mlTfEsc(ownerUser || 'They');
+  if (sell.ok)  return `<div class="ml-tf-sell ok">✓ ${who} is deep at ${sell.pos} (${sell.rank}/${sell.nT}) — more likely to move him</div>`;
+  return `<div class="ml-tf-sell warn">⚠ ${who} is thin at ${sell.pos} (${sell.rank}/${sell.nT}) — may not want to sell here</div>`;
+}
+
+// A — does the owner have positional surplus at the target's position (likely seller)?
+function mlTfOwnerSell(owner, ownerNeed, tPos, nT){
+  if (!owner || !owner.posRanks || !tPos || !nT) return null;
+  const rank = owner.posRanks[tPos];
+  if (!rank) return null;
+  if (rank <= nT * ML_TF_OWNER_SURPLUS_RANK) return { ok:true,  pos:tPos, rank, nT };
+  if (ownerNeed && ownerNeed[tPos])          return { ok:false, pos:tPos, rank, nT };
+  return null; // middle of the pack — neutral, no banner
+}
+
 function mlTfProposalHtml(reg){
   if (!reg) return `<div class="ml-tf-note">Gone — re-run the search.</div>`;
   const ctx = mlTfLeagueCtx(reg.leagueId); if (!ctx) return `<div class="ml-tf-note">League data unavailable.</div>`;
@@ -541,6 +562,7 @@ function mlTfProposalHtml(reg){
       const offers = mlTfPickOffers(pool, targetVal, owner.archetype, 'for', myNeed, ownerNeed);
       if (!offers.length) return `<div class="ml-tf-note">No realistic value match from your roster here.</div>`;
       const tPos = mlTfPosOf(reg.target);
+      const sellHtml = mlTfSellHtml(mlTfOwnerSell(owner, ownerNeed, tPos, nT), owner.ownerUser);
       const targetSid = ctx.nameToPid[normalizePlayerName(reg.target)];
       const cards = offers.map((o, i) => {
         const need = {
@@ -558,7 +580,7 @@ function mlTfProposalHtml(reg){
         };
         return mlTfCardHtml({ dir:'for', ctx, owner, target:reg.target, anchorVal:targetVal, sugg:o.sugg, mode:o.mode, need, editId });
       }).join('');
-      return mlTfOffersWrap(ctx, offers.length, cards, { dir:'for', leagueId:reg.leagueId, targetSid });
+      return mlTfOffersWrap(ctx, offers.length, sellHtml + cards, { dir:'for', leagueId:reg.leagueId, targetSid });
     } else {
       const playerVal = mlTfPlayerVal(reg.target, reg.leagueId);
       if (!playerVal) return `<div class="ml-tf-note">No value on file for ${mlTfEsc(reg.target)}.</div>`;
