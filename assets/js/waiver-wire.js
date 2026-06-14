@@ -114,7 +114,39 @@
     selectPlayer(name);
   }
 
-  // Render the per-league availability for the picked player.
+  // League-row used by both the search availability panel and the inline board-row expansions.
+  function _lgRow(r, action) {
+    var av = r.avatar
+      ? '<img class="tc-wv-lg-av" src="' + CDN + '/avatars/thumbs/' + r.avatar + '" onerror="this.style.visibility=\'hidden\'">'
+      : '<span class="tc-wv-lg-av"></span>';
+    return '<div class="tc-wv-lg-row">' + av +
+      '<div class="tc-wv-lg-info"><div class="tc-wv-lg-name">' + esc(r.leagueName) + '</div><div class="tc-wv-lg-fmt">' + esc(r.format) + '</div></div>' +
+      action + '</div>';
+  }
+  // Grouped per-league availability (Free / Owned by a manager / On your roster) for a sid.
+  function _availGroupsHtml(sid, name) {
+    var rows = availability(sid);
+    if (!rows.length) return '<div class="tc-wv-empty">No leagues loaded yet.</div>';
+    var free = rows.filter(function (r) { return r.status === 'free'; });
+    var taken = rows.filter(function (r) { return r.status === 'taken'; });
+    var mine = rows.filter(function (r) { return r.status === 'mine'; });
+    var parts = [];
+    if (free.length) {
+      parts.push('<div class="tc-wv-group">Available — Free Agent <span class="tc-wv-group-n">' + free.length + '</span></div>');
+      parts.push(free.map(function (r) { return _lgRow(r, '<a class="tc-wv-claim" href="' + sleeperUrl(r.leagueId) + '" target="_blank" rel="noopener">Claim On Sleeper ↗</a>'); }).join(''));
+    }
+    if (taken.length) {
+      parts.push('<div class="tc-wv-group">Owned by a manager <span class="tc-wv-group-n">' + taken.length + '</span></div>');
+      parts.push(taken.map(function (r) { return _lgRow(r, '<span class="tc-wv-owned">' + esc(r.ownerName) + '</span>'); }).join(''));
+    }
+    if (mine.length) {
+      parts.push('<div class="tc-wv-group">On your roster <span class="tc-wv-group-n">' + mine.length + '</span></div>');
+      parts.push(mine.map(function (r) { return _lgRow(r, '<span class="tc-wv-mine">★ You own</span>'); }).join(''));
+    }
+    return parts.join('');
+  }
+
+  // Render the per-league availability for the picked player (search-box selection).
   function selectPlayer(name) {
     var mount = document.getElementById('tc-wv-avail'); if (!mount) return;
     var _cl = document.getElementById('tc-wv-clear'); if (_cl) _cl.style.display = '';
@@ -123,35 +155,12 @@
     var rows = availability(sid);
     if (!rows.length) { mount.innerHTML = '<div class="tc-wv-empty">No leagues loaded yet.</div>'; return; }
     var free = rows.filter(function (r) { return r.status === 'free'; });
-    var taken = rows.filter(function (r) { return r.status === 'taken'; });
-    var mine = rows.filter(function (r) { return r.status === 'mine'; });
     var fp = (global.FP_VALUES || {})[name] || {};
-
-    var lgRow = function (r, action) {
-      var av = r.avatar
-        ? '<img class="tc-wv-lg-av" src="' + CDN + '/avatars/thumbs/' + r.avatar + '" onerror="this.style.visibility=\'hidden\'">'
-        : '<span class="tc-wv-lg-av"></span>';
-      return '<div class="tc-wv-lg-row">' + av +
-        '<div class="tc-wv-lg-info"><div class="tc-wv-lg-name">' + esc(r.leagueName) + '</div><div class="tc-wv-lg-fmt">' + esc(r.format) + '</div></div>' +
-        action + '</div>';
-    };
-    var parts = ['<div class="tc-wv-avail-head">' + thumbBySid(sid) +
+    mount.innerHTML = '<div class="tc-wv-avail-head">' + thumbBySid(sid) +
       '<span class="tc-wv-avail-name">' + esc(name) + '</span>' + teamLogo(fp.team) +
       (fp.value ? '<span class="tc-wv-avail-val">' + fp.value.toLocaleString() + '</span>' : '<span class="tc-wv-avail-val tc-wv-nr" title="No dynasty value — not ranked">NR</span>') +
-      '<span class="tc-wv-avail-summary">Available in ' + free.length + ' of ' + rows.length + ' leagues</span></div>'];
-    if (free.length) {
-      parts.push('<div class="tc-wv-group">Available — Free Agent <span class="tc-wv-group-n">' + free.length + '</span></div>');
-      parts.push(free.map(function (r) { return lgRow(r, '<a class="tc-wv-claim" href="' + sleeperUrl(r.leagueId) + '" target="_blank" rel="noopener">Claim On Sleeper ↗</a>'); }).join(''));
-    }
-    if (taken.length) {
-      parts.push('<div class="tc-wv-group">Owned by a manager <span class="tc-wv-group-n">' + taken.length + '</span></div>');
-      parts.push(taken.map(function (r) { return lgRow(r, '<span class="tc-wv-owned">' + esc(r.ownerName) + '</span>'); }).join(''));
-    }
-    if (mine.length) {
-      parts.push('<div class="tc-wv-group">On your roster <span class="tc-wv-group-n">' + mine.length + '</span></div>');
-      parts.push(mine.map(function (r) { return lgRow(r, '<span class="tc-wv-mine">★ You own</span>'); }).join(''));
-    }
-    mount.innerHTML = parts.join('');
+      '<span class="tc-wv-avail-summary">Available in ' + free.length + ' of ' + rows.length + ' leagues</span></div>' +
+      _availGroupsHtml(String(sid), name);
   }
 
   // ── trending (global Sleeper, 7-day) ──
@@ -170,8 +179,8 @@
       return { sid: pid, name: name, pos: p.position || '', team: p.team || fp.team || '', value: fp.value || 0, count: t.count || 0, free: freeCount(pid) };
     });
   }
-  // ── league-scoped board: Most Valuable Available + Most Added (available here) ──
-  var _leagueId = null, _trendingLoading = false;
+  // ── cross-league board: Most Valuable Available + Most Added (available in ANY league) ──
+  var _trendingLoading = false;
 
   function _leagues() {
     var all = global.ML_ALL_LEAGUE_DATA || {};
@@ -179,11 +188,6 @@
       var d = all[id], lg = d.league || {};
       return { id: id, name: lg.name || d.leagueName || ('League ' + id) };
     }).sort(function (a, b) { return a.name.localeCompare(b.name); });
-  }
-  function _valueKey(leagueId) {
-    var d = (global.ML_ALL_LEAGUE_DATA || {})[leagueId];
-    var rp = (d && d.league && d.league.roster_positions) || [];
-    return rp.indexOf('SUPER_FLEX') >= 0 ? 'valueSf' : 'value1qb';
   }
   function _rosteredSet(leagueId) {
     var d = (global.ML_ALL_LEAGUE_DATA || {})[leagueId], s = {};
@@ -200,48 +204,73 @@
     var young = (k.age == null) || (+k.age <= 24);
     return noProd && young;
   }
-  // Highest-value players NOT rostered in this league (best free agents by value).
-  function _bestAvailable(leagueId) {
-    var fp = global.FP_VALUES || {}, rostered = _rosteredSet(leagueId), key = _valueKey(leagueId), out = [];
+  // Highest-value players available (a free agent in at least ONE of your leagues),
+  // ranked by canonical dynasty value. `freeN` = how many of your leagues he's free in.
+  function _bestAvailable() {
+    var fp = global.FP_VALUES || {}, ids = global.SLEEPER_IDS || {};
+    var leagues = _leagues(); if (!leagues.length) return [];
+    var sets = leagues.map(function (l) { return _rosteredSet(l.id); }), nLg = leagues.length, out = [];
     Object.keys(fp).forEach(function (name) {
       var k = fp[name]; if (!k) return;
       if (_isIncomingRookie(k)) return;   // not a waiver claim — comes via the rookie draft
-      var sid = k.sleeperId || (global.SLEEPER_IDS || {})[name];
-      if (!sid || rostered[String(sid)]) return;
-      var v = k[key] || k.value || 0; if (v <= 0) return;
-      out.push({ sid: String(sid), name: name, pos: k.pos || (k.posRank || '').replace(/[0-9]+$/, '') || 'WR', team: k.team || '', value: v, posRank: k.posRank || '' });
+      var sid = k.sleeperId || ids[name]; if (!sid) return; sid = String(sid);
+      var v = k.value || 0; if (v <= 0) return;
+      var freeN = 0; for (var i = 0; i < nLg; i++) { if (!sets[i][sid]) freeN++; }
+      if (!freeN) return;                 // rostered in every league → not available anywhere
+      out.push({ sid: sid, name: name, pos: k.pos || (k.posRank || '').replace(/[0-9]+$/, '') || 'WR', team: k.team || '', value: v, posRank: k.posRank || '', freeN: freeN, totalLg: nLg });
     });
     out.sort(function (a, b) { return b.value - a.value; });
     return out.slice(0, 30);
   }
-  // Global trending adds, filtered to players available (not rostered) in this league.
-  function _addedHere(leagueId) {
+  // Global trending adds, filtered to players available (free) in at least one league.
+  function _addedHere() {
     if (!_raw) return null;
-    var rostered = _rosteredSet(leagueId);
-    return _mapTrending(_raw.adds).filter(function (p) { return !rostered[String(p.sid)]; });
+    return _mapTrending(_raw.adds).filter(function (p) { return p.free > 0; });
   }
   function _fmtCount(n) { n = n || 0; return n >= 1000 ? (Math.round(n / 100) / 10) + 'k' : String(n); }
 
+  // A board row collapses an inline expansion (.tc-wv-row-exp) that lists which of your
+  // leagues the player is free/owned/yours in. The caret signals it's tappable.
+  function _freeTag(p) {
+    return p.freeN ? '<span class="tc-wv-tag free" title="Free agent in ' + p.freeN + ' of ' + p.totalLg + ' of your leagues">' + p.freeN + ' lg</span>' : '';
+  }
   function _valueRow(p) {
     var pos = p.pos || 'WR';
-    return '<div class="tc-wv-trend-row" onclick="WaiverWire.pick(\'' + jsq(p.name) + '\')">' +
+    return '<div class="tc-wv-trend-item"><div class="tc-wv-trend-row" data-name="' + esc(p.name) + '" onclick="WaiverWire.toggleRow(this)">' +
       thumbBySid(p.sid) +
       '<span class="ml-calc-asset-pos pos-' + pos.toLowerCase() + '">' + esc(pos) + '</span>' +
       '<span class="tc-wv-trend-id"><span class="tc-wv-trend-name">' + esc(p.name) + '</span>' + teamLogo(p.team, 'tc-wv-team--sm') + '</span>' +
-      (p.posRank ? '<span class="tc-wv-tag none">' + esc(p.posRank) + '</span>' : '') +
-      '<span class="tc-wv-trend-val">' + (p.value || 0).toLocaleString() + '</span></div>';
+      _freeTag(p) +
+      '<span class="tc-wv-trend-val">' + (p.value || 0).toLocaleString() + '</span>' +
+      '<span class="tc-wv-caret">▾</span></div><div class="tc-wv-row-exp" hidden></div></div>';
   }
   function _addedRow(p) {
     var pos = p.pos || 'WR';
     var val = p.value ? '<span class="tc-wv-trend-val">' + p.value.toLocaleString() + '</span>' : '<span class="tc-wv-trend-val tc-wv-nr">NR</span>';
-    return '<div class="tc-wv-trend-row" onclick="WaiverWire.pick(\'' + jsq(p.name) + '\')">' +
+    return '<div class="tc-wv-trend-item"><div class="tc-wv-trend-row" data-name="' + esc(p.name) + '" onclick="WaiverWire.toggleRow(this)">' +
       thumbBySid(p.sid) +
       '<span class="ml-calc-asset-pos pos-' + pos.toLowerCase() + '">' + esc(pos) + '</span>' +
       '<span class="tc-wv-trend-id"><span class="tc-wv-trend-name">' + esc(p.name) + '</span>' + teamLogo(p.team, 'tc-wv-team--sm') + '</span>' +
-      val + '<span class="tc-wv-addcount">🔥 ' + _fmtCount(p.count) + '</span></div>';
+      val + '<span class="tc-wv-addcount">🔥 ' + _fmtCount(p.count) + '</span>' +
+      '<span class="tc-wv-caret">▾</span></div><div class="tc-wv-row-exp" hidden></div></div>';
+  }
+  // Expand/collapse a board row to reveal the per-league availability (lazy, cached once).
+  function toggleRow(rowEl) {
+    var item = rowEl && rowEl.parentNode; if (!item) return;
+    var exp = item.querySelector('.tc-wv-row-exp'); if (!exp) return;
+    var open = item.classList.toggle('open');
+    if (open && !exp.dataset.loaded) {
+      var name = rowEl.getAttribute('data-name');
+      var sid = (global.SLEEPER_IDS || {})[name] || ((global.FP_VALUES || {})[name] || {}).sleeperId;
+      exp.innerHTML = sid ? _availGroupsHtml(String(sid), name) : '<div class="tc-wv-empty">No Sleeper match for ' + esc(name) + '.</div>';
+      exp.dataset.loaded = '1';
+    }
+    exp.hidden = !open;
   }
 
-  function setLeague(id) { _leagueId = id; renderBoard(); }
+  // Kept for backward-compat (My Leagues calls it with its focused league id); the board
+  // is cross-league now, so the id is ignored — just (re)render.
+  function setLeague() { renderBoard(); }
 
   function loadTrending() {
     if (!_raw && !_trendingLoading) {
@@ -255,27 +284,18 @@
   function renderBoard() {
     var valEl = document.getElementById('tc-wv-value');
     var addEl = document.getElementById('tc-wv-added');
-    var sel = document.getElementById('tc-wv-league');
     var leagues = _leagues();
-    // Populate the league picker once the leagues are loaded (and keep it in sync).
-    if (sel && sel.dataset.count !== String(leagues.length)) {
-      sel.innerHTML = leagues.map(function (l) { return '<option value="' + l.id + '">' + esc(l.name) + '</option>'; }).join('');
-      sel.dataset.count = String(leagues.length);
-      if (!_leagueId || !leagues.some(function (l) { return l.id === _leagueId; })) _leagueId = leagues.length ? leagues[0].id : null;
-      if (_leagueId) sel.value = _leagueId;
-    }
     if (!leagues.length || !Object.keys(_playersDict()).length) {
       if (valEl) valEl.innerHTML = '<div class="tc-wv-trend-head">Most Valuable Available</div><div class="tc-wv-empty">Loading your leagues…</div>';
       if (addEl) addEl.innerHTML = '<div class="tc-wv-trend-head">Most Added · 7d</div><div class="tc-wv-empty">Loading your leagues…</div>';
       return;
     }
-    if (!_leagueId) _leagueId = leagues[0].id;
-    var best = _bestAvailable(_leagueId);
+    var best = _bestAvailable();
     if (valEl) valEl.innerHTML = '<div class="tc-wv-trend-head">Most Valuable Available</div>' + (best.map(_valueRow).join('') || '<div class="tc-wv-empty">—</div>');
-    var added = _addedHere(_leagueId);
+    var added = _addedHere();
     if (addEl) addEl.innerHTML = '<div class="tc-wv-trend-head">Most Added · 7d</div>' +
       (added === null ? '<div class="tc-wv-empty">Loading trends…</div>'
-        : (added.length ? added.map(_addedRow).join('') : '<div class="tc-wv-empty">No trending adds available here.</div>'));
+        : (added.length ? added.map(_addedRow).join('') : '<div class="tc-wv-empty">No trending adds available.</div>'));
   }
 
   global.WaiverWire = {
@@ -288,6 +308,7 @@
     selectPlayer: selectPlayer,
     loadTrending: loadTrending,
     setLeague: setLeague,
+    toggleRow: toggleRow,
     renderTrending: renderBoard
   };
 })(window);

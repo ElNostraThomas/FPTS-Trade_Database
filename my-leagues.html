@@ -2617,7 +2617,7 @@
      previously carried a byte-identical inline copy of these 132 rules; both pages now load this
      one file. (.ml-pd-* base + page-unique rules remain inline; only the shared rules moved.) -->
 <link rel="stylesheet" href="assets/css/trade-calc.css?v=1797700000">
-<link rel="stylesheet" href="assets/css/waiver-wire.css?v=1798700000">
+<link rel="stylesheet" href="assets/css/waiver-wire.css?v=1799500000">
 <link rel="stylesheet" href="assets/css/trade-history.css?v=1798500000">
 <script>window.FPTS_CURRENT_PAGE = 'ml';</script>
 <!-- Shared data layer: fetches data/*.json, populates FP_VALUES / PICK_VALUES /
@@ -2638,7 +2638,7 @@
 <!-- Trade Calculator + Builder (window.TradeCalc) — depends on LC + TradeFinder; init'd by the page. -->
 <script src="assets/js/trade-calc.js?v=1797700000"></script>
 <!-- Cross-league Waiver Wire (window.WaiverWire) — reads ML_ALL_LEAGUE_DATA + FP_VALUES. -->
-<script src="assets/js/waiver-wire.js?v=1799300000"></script>
+<script src="assets/js/waiver-wire.js?v=1799500000"></script>
 <!-- Trade History Search (window.TradeHistory) — reuses the cross-league ML_MY_TRADES pool. -->
 <script src="assets/js/trade-history.js?v=1799300000"></script>
 <!-- Liquidity calibration (window.ValuationCalibrate) — replays the user's trades to fit scarcity→price; reuses TradeHistory + ML_TXN_LOG. -->
@@ -3081,8 +3081,8 @@
               <div id="tc-wv-avail" class="tc-wv-avail"></div>
               <!-- "Most Valuable Available" lives per-league now (each league's Waivers → Best Available sub-tab),
                    so the sidebar board keeps only the unique 7-day trending. (#tc-wv-value omitted → renderBoard's
-                   `if (valEl)` guard skips it; the standalone Roster Moves page still renders both columns.) -->
-              <div class="tc-wv-league"><label class="tc-wv-league-lbl">League</label><select id="tc-wv-league" onchange="WaiverWire.setLeague(this.value)"></select></div>
+                   `if (valEl)` guard skips it; the standalone Roster Moves page still renders both columns.)
+                   The board is cross-league — tap a row to see which of your leagues the player is free in. -->
               <div class="tc-wv-trending">
                 <div id="tc-wv-added"></div>
               </div>
