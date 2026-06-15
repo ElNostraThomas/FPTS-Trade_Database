@@ -55,7 +55,7 @@ const ML_TF_WANTS = {
   rebuilder:{young:1.0,vet:0.3}, emergency:{young:0.6,vet:0.4},
   tweener:{young:0.5,vet:0.5}, contender:{young:0.3,vet:1.0}, dynasty:{young:0.7,vet:0.7}
 };
-let mlTfState = { targets:[], managers:[], archetypes:[], dir:'for' };
+let mlTfState = { targets:[], managers:[], archetypes:[], dir:'for', assetPos:[], assetPickYears:[] };
 let mlTfCtxCache = {};
 let mlTfRegistry = {};
 let mlTfEditRegistry = {};
@@ -354,6 +354,61 @@ function mlTfSyncArchBtns(){
   });
 }
 
+// Asset-type filter — narrow the SUGGESTED PACKAGE to only these asset types (the
+// non-anchor side: assets you'd send in FOR, assets you'd get back in AWAY). Positions
+// (QB/RB/WR/TE) + draft picks broken out per year. STRICT: when anything is selected,
+// only those exact types appear (e.g. WR-only = no picks, no other positions). Nothing
+// selected = every asset eligible (the original behavior).
+function mlTfAssetAllowed(a){
+  const posSel = mlTfState.assetPos || [], yearSel = mlTfState.assetPickYears || [];
+  if (!posSel.length && !yearSel.length) return true;            // none selected → all eligible
+  if (a.type === 'pick') return yearSel.indexOf(String(a.season)) >= 0;
+  return posSel.indexOf(String(a.pos||'').toUpperCase()) >= 0;
+}
+// True when the user has narrowed the asset-type filter (used for the empty-state hint).
+function mlTfHasAssetFilter(){ return !!((mlTfState.assetPos||[]).length || (mlTfState.assetPickYears||[]).length); }
+function mlTfFilterHint(){ return mlTfHasAssetFilter() ? ' Try widening your asset-type filter.' : ''; }
+// Distinct pick years held across YOUR rosters, ascending — drives the per-year buttons.
+function mlTfAllPickYears(){
+  const set = {};
+  Object.keys(window.ML_ALL_LEAGUE_DATA || {}).forEach(leagueId => {
+    const ctx = mlTfLeagueCtx(leagueId);
+    if (!ctx || ctx.myRosterId == null) return;
+    let pool; try { pool = mlBuildAssetPool(leagueId, ctx.myRosterId); } catch(e){ return; }
+    (pool || []).forEach(a => { if (a.type === 'pick' && a.season) set[String(a.season)] = 1; });
+  });
+  return Object.keys(set).sort();
+}
+function mlTfTogglePos(p){
+  const i = mlTfState.assetPos.indexOf(p);
+  if (i >= 0) mlTfState.assetPos.splice(i, 1); else mlTfState.assetPos.push(p);
+  mlTfSyncAssetBtns();
+  mlTfRender();
+}
+function mlTfTogglePickYear(y){
+  y = String(y);
+  const i = mlTfState.assetPickYears.indexOf(y);
+  if (i >= 0) mlTfState.assetPickYears.splice(i, 1); else mlTfState.assetPickYears.push(y);
+  mlTfSyncAssetBtns();
+  mlTfRender();
+}
+function mlTfSyncAssetBtns(){
+  const pw = document.getElementById('ml-tf-pos-filter');
+  if (pw) pw.querySelectorAll('.ml-tf-archbtn').forEach(b =>
+    b.classList.toggle('active', mlTfState.assetPos.indexOf(b.dataset.pos) >= 0));
+  const yw = document.getElementById('ml-tf-pickyear-filter');
+  if (yw){
+    const years = mlTfAllPickYears();
+    yw.innerHTML = years.map(y =>
+      `<button class="ml-tf-archbtn" data-year="${y}" onclick="mlTfTogglePickYear('${y}')">${y} Pick</button>`
+    ).join('');
+    // drop any selected year that's no longer in the data, then mark active
+    mlTfState.assetPickYears = mlTfState.assetPickYears.filter(y => years.indexOf(y) >= 0);
+    yw.querySelectorAll('.ml-tf-archbtn').forEach(b =>
+      b.classList.toggle('active', mlTfState.assetPickYears.indexOf(b.dataset.year) >= 0));
+  }
+}
+
 // FOR render: for each league where another manager rosters the player you want,
 // list that owner, each expandable to up to 3 trade offers from your roster.
 function mlTfRenderFor(out){
@@ -640,7 +695,7 @@ function mlTfProposalHtml(reg){
       if (!pool.length) return `<div class="ml-tf-note">You have no tradeable assets in this league.</div>`;
       const ownerNeed = mlTfNeedSet(owner, nT);
       const offers = mlTfPickOffers(pool, targetVal, owner.archetype, 'for', myNeed, ownerNeed, mlTfStartThresholds(owner, ctx));
-      if (!offers.length) return `<div class="ml-tf-note">No realistic value match from your roster here.</div>`;
+      if (!offers.length) return `<div class="ml-tf-note">No realistic value match from your roster here.${mlTfFilterHint()}</div>`;
       // value-to-YOUR-team lens: you GET the target, you SEND the package. Demote
       // offers that downgrade your starting lineup (give up your stud for a lesser fit).
       offers.forEach(o => { o._fit = mlTfLineupFit(ctx, [reg.target], (o.sugg.sending||[]).map(a=>a.name)); });
@@ -673,7 +728,7 @@ function mlTfProposalHtml(reg){
       if (!theirPool.length) return `<div class="ml-tf-note">${mlTfEsc(owner.ownerUser)} has no tradeable assets here.</div>`;
       const myArch = (ctx.myTeam && ctx.myTeam.archetype) || 'tweener';
       const offers = mlTfPickOffers(theirPool, playerVal, myArch, 'away', myNeed, null, mlTfStartThresholds(ctx.myTeam, ctx));
-      if (!offers.length) return `<div class="ml-tf-note">No fair return from ${mlTfEsc(owner.ownerUser)} here.</div>`;
+      if (!offers.length) return `<div class="ml-tf-note">No fair return from ${mlTfEsc(owner.ownerUser)} here.${mlTfFilterHint()}</div>`;
       // value-to-YOUR-team lens: you SEND the target, you GET the return package.
       offers.forEach(o => { o._fit = mlTfLineupFit(ctx, (o.sugg.sending||[]).map(a=>a.name), [reg.target]); });
       const ranked = mlTfRankByFit(offers);
@@ -693,6 +748,10 @@ function mlTfProposalHtml(reg){
 // thin), dedupe by package, order by favor, then spread the picks across the
 // range so you see a high / mid / fair option — not three near-identical packages.
 function mlTfPickOffers(pool, anchorVal, archetype, dir, myNeed, ownerNeed, startThresh){
+  // Asset-type filter: restrict the package to the user's selected types (strict; the
+  // single chokepoint both FOR and AWAY route through, so one filter covers both).
+  pool = (pool || []).filter(mlTfAssetAllowed);
+  if (!pool.length) return [];
   const isFor = dir === 'for';
   const bias  = ML_TF_FAIR_MODE ? ML_TF_FAIR_BIAS : ML_TF_WIN_BIAS;
   const target = isFor ? anchorVal * bias : anchorVal / bias;
@@ -941,6 +1000,7 @@ function mlEnsureFinder(){
   mlTfRenderTargetChips();
   mlTfRenderMgrChips();
   mlTfSyncArchBtns();
+  mlTfSyncAssetBtns();
   mlTfRender();
 }
 
@@ -956,6 +1016,8 @@ function mlEnsureFinder(){
   global.mlTfSetDir = mlTfSetDir;
   global.mlTfSetMode = mlTfSetMode;
   global.mlTfToggleArch = mlTfToggleArch;
+  global.mlTfTogglePos = mlTfTogglePos;
+  global.mlTfTogglePickYear = mlTfTogglePickYear;
   global.mlTfEditCard = mlTfEditCard;
   global.mlTfGoToLeague = mlTfGoToLeague;
   global.mlTfEditOnSleeper = mlTfEditOnSleeper;
@@ -975,6 +1037,6 @@ function mlEnsureFinder(){
     needSet: mlTfNeedSet,
     posOf: mlTfPosOf,
     resetCache: function () { mlTfCtxCache = {}; },
-    reset: function () { mlTfState = { targets:[], managers:[], archetypes:[], dir:'for' }; mlTfCtxCache = {}; mlTfRegistry = {}; mlTfEditRegistry = {}; }
+    reset: function () { mlTfState = { targets:[], managers:[], archetypes:[], dir:'for', assetPos:[], assetPickYears:[] }; mlTfCtxCache = {}; mlTfRegistry = {}; mlTfEditRegistry = {}; }
   };
 })(window);

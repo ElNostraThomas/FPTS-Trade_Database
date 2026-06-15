@@ -37,6 +37,7 @@
 - [WIN_BIAS — offers slightly in your favor](#win_bias--offers-slightly-in-your-favor)
 - [Fair offer selection + anti-lowball (Fair mode)](#fair-offer-selection--anti-lowball-fair-mode--default)
 - [Owner-willingness + startability](#owner-willingness--startability)
+- [Asset-type filter](#asset-type-filter)
 - [Opportunity = owner-archetype-tilted package](#opportunity--owner-archetype-tilted-package)
 
 **Player valuation (three numbers)**
@@ -201,6 +202,22 @@ startBonus = Σ(value * startFit) / Σvalue;       // weight ML_TF_START_WEIGHT 
 ```
 
 A willingness banner shows above the FOR offers (✓ deep / ⚠ thin / neutral); startability nudges lineup-filling packages up. Both only **re-rank / inform** — they never change the displayed MVS value or the edge. **Constants:** `ML_TF_OWNER_SURPLUS_RANK` 0.5 · `ML_TF_BENCH_DISCOUNT` 0.55 · `ML_TF_START_WEIGHT` 0.15. League-specific market calibration (C) was **deferred** — it needs per-league trade data the finder doesn't load.
+
+### Asset-type filter
+`mlTfAssetAllowed` — filters the pool inside `mlTfPickOffers`, `assets/js/trade-finder.js` (S31, 2026-06-15).
+
+```js
+// The user toggles QB/RB/WR/TE and per-year pick buttons. Before the engine enumerates
+// 1/2/3-asset packages, drop the asset types they excluded (STRICT — only selected types):
+allowed(a) =
+  (noPosSelected && noYearSelected) ? true                  // nothing picked → all eligible
+  : a.type === 'pick'               ? selectedYears.has(a.season)
+  : /* player */                      selectedPos.has(a.pos);
+pool = pool.filter(allowed);          // e.g. WR-only ⇒ no picks, no other positions
+// …then the unchanged fair / edge / startability logic runs on the narrower pool.
+```
+
+A **user-controlled** pre-filter on the candidate pool — no value math, no new constants. It sits at the single chokepoint both directions route through (`mlTfPickOffers`), so it covers FOR (assets you send) and AWAY (assets you get back) with one predicate, and it never touches the startability pool (`mlTfStartThresholds` still sees the full roster). The per-year pick buttons are populated from the pick years actually held across your leagues (`mlTfAllPickYears`). A too-narrow selection shows the normal empty note plus "Try widening your asset-type filter." Empty selection = the original behavior.
 
 ---
 

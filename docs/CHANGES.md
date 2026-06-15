@@ -6,6 +6,26 @@ the operator manual see [`WORKFLOW.md`](WORKFLOW.md).
 
 ---
 
+## 2026-06-15 — Trade Finder asset-type filter (uncommitted)
+
+User asked to give the Trade Finder more options / less randomness: let each user choose **which asset types** go into the suggested packages.
+
+### `assets/js/trade-finder.js`
+- New `mlTfState.assetPos[]` (QB/RB/WR/TE) + `assetPickYears[]` (per-year picks), cleared by `reset()`.
+- Predicate **`mlTfAssetAllowed(a)`** — STRICT: when anything is selected, only those exact types appear (a pick passes only if its `season` is a selected year; a player only if its `pos` is selected); nothing selected = all eligible (unchanged).
+- Applied once at the top of **`mlTfPickOffers`** (`pool = pool.filter(mlTfAssetAllowed)`) — the single chokepoint both FOR (assets you send) and AWAY (assets you get back) route through; the startability pool (`mlTfStartThresholds`) is untouched.
+- Togglers `mlTfTogglePos` / `mlTfTogglePickYear` → `mlTfSyncAssetBtns` + `mlTfRender` (mirror `mlTfToggleArch`); per-year buttons populated from `mlTfAllPickYears()` (distinct pick `season`s across your rosters, stale years pruned). Empty-offer notes append "Try widening your asset-type filter." via `mlTfFilterHint()`. Inline handlers exposed on `global`.
+
+### UI / CSS
+- Byte-identical markup after the archetype filter on `my-leagues.html` + `trade-calculator.html`: `#ml-tf-pos-filter` (QB/RB/WR/TE) + JS-filled `#ml-tf-pickyear-filter`. Reuses `.ml-tf-arch-filter` / `.ml-tf-archbtn` + one new scoped `.active` fill in `trade-finder.css`.
+- Tokens: `trade-finder.js` / `.css` → 1799600000 (both pages).
+
+### Docs
+- Legend "Smarter Suggestions" item; FORMULAS.md "Asset-type filter" section + TOC; `formulas-content.js` entry `tf-asset-filter` (trade-finder domain, entry 5) + entrySessions → s31 + new timeline node **S31** (public → What's New). `legend-content.js` → 1799600000 (10 consumers); `formulas-content.js` → 1799600000 (formulas.html + whats-new.html).
+- `check-colors` CLEAN (47); trade-finder.js delimiter-balanced (verified vs the shipped original). **Not browser-verified** (CORS + Sleeper login = user's job) and **not committed** (user reserves pushes).
+
+---
+
 ## 2026-06-14 — Cross-league Waiver board + tappable rows (`451a2a6`)
 
 Tester feedback on the Waiver Wire board (Roster Moves standalone + My Leagues sidebar): the per-league picker looked off-brand and there was no signal the rows were interactive. Reframed the board **cross-league** and removed the picker.

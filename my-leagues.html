@@ -2608,10 +2608,10 @@
 <link rel="stylesheet" href="assets/css/heatmap.css?v=1782600000">
 <script src="assets/js/heatmap.js?v=1778670000"></script>
 <link rel="stylesheet" href="assets/css/legend.css?v=1796300000">
-<script src="assets/js/legend-content.js?v=1799300000"></script>
+<script src="assets/js/legend-content.js?v=1799600000"></script>
 <script src="assets/js/legend.js?v=1778949514"></script>
 <link rel="stylesheet" href="assets/css/player-panel.css?v=1791900000">
-<link rel="stylesheet" href="assets/css/trade-finder.css?v=1799300000">
+<link rel="stylesheet" href="assets/css/trade-finder.css?v=1799600000">
 <!-- Editable Trade Calculator + builder + modal/player-detail/core mobile CSS — shared with the
      standalone Roster Moves page. De-duped from the inline <style> above 2026-06-11: my-leagues
      previously carried a byte-identical inline copy of these 132 rules; both pages now load this
@@ -2634,7 +2634,7 @@
 <!-- Three-number player valuation core (window.Valuation) — pure math over SLEEPER+LC+FP_VALUES. -->
 <script src="assets/js/valuation-core.js?v=1799300000"></script>
 <!-- Cross-league Trade Finder (window.TradeFinder) — depends on LC + sleeper-helpers; init'd by the page. -->
-<script src="assets/js/trade-finder.js?v=1799300000"></script>
+<script src="assets/js/trade-finder.js?v=1799600000"></script>
 <!-- Trade Calculator + Builder (window.TradeCalc) — depends on LC + TradeFinder; init'd by the page. -->
 <script src="assets/js/trade-calc.js?v=1797700000"></script>
 <!-- Cross-league Waiver Wire (window.WaiverWire) — reads ML_ALL_LEAGUE_DATA + FP_VALUES. -->
@@ -3065,6 +3065,14 @@
               <button class="ml-tf-archbtn" data-arch="rebuilder"  onclick="mlTfToggleArch('rebuilder')">Rebuilder</button>
               <button class="ml-tf-archbtn" data-arch="emergency"  onclick="mlTfToggleArch('emergency')">Emergency</button>
             </div>
+            <div class="ml-tf-label">Asset types in package <span class="ml-tf-hint">(optional — only these in suggestions)</span></div>
+            <div class="ml-tf-arch-filter" id="ml-tf-pos-filter">
+              <button class="ml-tf-archbtn" data-pos="QB" onclick="mlTfTogglePos('QB')">QB</button>
+              <button class="ml-tf-archbtn" data-pos="RB" onclick="mlTfTogglePos('RB')">RB</button>
+              <button class="ml-tf-archbtn" data-pos="WR" onclick="mlTfTogglePos('WR')">WR</button>
+              <button class="ml-tf-archbtn" data-pos="TE" onclick="mlTfTogglePos('TE')">TE</button>
+            </div>
+            <div class="ml-tf-arch-filter" id="ml-tf-pickyear-filter"><!-- JS-populated per-year pick buttons --></div>
             <div id="ml-tf-results" class="ml-tf-out"></div>
           </div><!-- /ml-finder-panel -->
 

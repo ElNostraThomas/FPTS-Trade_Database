@@ -45,6 +45,7 @@ window.FormulasContent = {
   // entrySessions below); the rest render as description-only update nodes so
   // the timeline is a complete record of what shipped.
   sessions: [
+    { id: 's31', public: true,        date: '2026-06-15', dateLabel: 'Jun 15, 2026', tag: 'S31',  title: 'Trade Finder asset-type filter', blurb: 'The Trade Finder lets you choose which asset types go into the suggested packages: tap QB, RB, WR, TE, and draft picks broken out per year (2026, 2027 …). Pick a subset and the suggestions are built using only those types — WR-only means WR-only, no picks or other positions — so you get less randomness and more control over what it offers. Leave it untouched and it considers everything, exactly as before. Works in both Trade FOR and Trade AWAY, on the Roster Moves hub and the My Leagues Trade Finder tab.' },
     { id: 's30', public: true,        date: '2026-06-14', dateLabel: 'Jun 14, 2026', tag: 'S30',  title: 'Cross-league Waiver board', blurb: 'The Waiver Wire board is now cross-league instead of scoped to one picked league. MOST VALUABLE AVAILABLE lists the highest-value players who are a free agent in ANY of your leagues (with a small "N lg" tag for how many), and MOST ADDED shows Sleeper\'s 7-day trending adds that are available somewhere in your leagues. The league picker is gone — and every board row now expands on tap: a small caret reveals which of your leagues the player is free, owned by a manager, or already on your roster, with a "Claim On Sleeper" link where he is open.' },
     { id: 's29', public: true,        date: '2026-06-12', dateLabel: 'Jun 12, 2026', tag: 'S29',  title: 'Three-number player valuation', blurb: 'Every public calculator gives one value per player — the average price across thousands of leagues. This adds two context-aware numbers beside it: VALUE TO THIS TEAM (the startable-lineup value a player adds to a specific roster, scaled against a typical team and floored so a 3rd stud QB still has trade value) and VALUE IN THIS LEAGUE (market adjusted for how tightly the position is held across these rosters). The league multiplier is calibrated from your OWN real trades — replaying each league\'s transaction log to reconstruct who rostered what when, measuring how much buyers overpaid, and fitting the scarcity→price slope no market-average tool can. Shown per league on the My Leagues player panel.' },
     { id: 's28', public: true,        date: '2026-06-11', dateLabel: 'Jun 11, 2026', tag: 'S28',  title: 'Smarter Trade Finder suggestions', blurb: 'The Trade Finder now proposes trades the other manager would actually take. Offers default to FAIR (built to land near-even, not tilted to you) and surface the three fairest packages, with a Fair/Aggressive toggle if you want to push your edge. It demotes "rookie flier + a pick for my real player" lowballs, tells you whether the owner is deep at the target\'s position (likely to sell) or thin (probably won\'t), and weights the players you send by whether they\'d actually start for the other team — so a package that fills their lineup ranks above bench filler of the same raw value.' },
@@ -109,6 +110,7 @@ window.FormulasContent = {
     'calc-gap-targeting': 's22',   // gap-targeted Add-player suggestions
     'tf-fair-offers':     's28',   // fair-by-default + anti-lowball
     'tf-realism-signals': 's28',   // owner-willingness + startability
+    'tf-asset-filter':    's31',   // user-selectable asset types in the package
   },
 
   domains: [
@@ -195,6 +197,24 @@ startBonus = Σ(value * startFit) / Σvalue;       // folded into quality at wei
           example: `Owner is 2nd of 12 at RB (deep) → "✓ deep at RB — more likely to move him". A WR you send who'd be the owner's WR5 (below their worst starter) counts 0.55 in the desirability score.`,
           notes: 'Signals only re-rank / inform — they never change the displayed MVS value or the edge. Constants: ML_TF_OWNER_SURPLUS_RANK 0.5, ML_TF_BENCH_DISCOUNT 0.55, ML_TF_START_WEIGHT 0.15. League-specific market calibration was deferred — it needs per-league trade data the finder doesn\'t load.',
           related: ['tf-fair-offers', 'win-bias']
+        },
+        {
+          id: 'tf-asset-filter',
+          label: '5. Asset-type filter — you choose what goes in the package',
+          location: 'trade-finder.js: mlTfAssetAllowed (filters the pool inside mlTfPickOffers)',
+          provenance: { kind: 'derived-from-data', detail: 'A user-controlled pre-filter on the candidate pool — no value math, no new constants. Added 2026-06-15 so suggestions feel deliberate, not random.' },
+          inputs: 'The user\'s selected positions (QB/RB/WR/TE buttons) and per-year pick selections, plus the package-side asset pool (your roster in FOR, the owner\'s in AWAY). The per-year pick buttons are populated from the actual pick years held across your leagues (mlTfAllPickYears).',
+          math: `// before the engine enumerates 1/2/3-asset packages, drop assets the user excluded:
+allowed(a) =
+  (noPosSelected && noYearSelected) ? true                    // nothing picked → all eligible
+  : a.type === 'pick'               ? selectedYears.has(a.season)
+  : /* player */                      selectedPos.has(a.pos);
+pool = pool.filter(allowed);            // STRICT: WR-only ⇒ no picks, no other positions
+// …then mlTfPickOffers runs the unchanged fair/edge/startability logic on the narrower pool.`,
+          output: 'Suggestions built only from the chosen asset types. Empty selection = unchanged behavior; a too-narrow selection shows the normal empty note plus "Try widening your asset-type filter."',
+          example: `Want a RB and only want to give up WRs and a 2027 pick → toggle WR + 2027 Pick → every proposed package contains only your WRs and 2027 picks. Toggle nothing → it considers your whole roster as before.`,
+          notes: 'Strict by design (only the selected types appear) — that\'s what removes the perceived randomness. The filter sits at the single chokepoint both directions route through (mlTfPickOffers), so it covers FOR and AWAY with one predicate, and it never touches the startability pool (mlTfStartThresholds still sees the full roster). No tunable constants.',
+          related: ['tf-fair-offers', 'tf-opportunity']
         },
       ],
     },

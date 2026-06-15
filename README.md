@@ -14,6 +14,18 @@ This file is the **resume-where-we-left-off** doc.
 
 ---
 
+## Where we are (2026-06-15 — twenty-eighth session) — Trade Finder asset-type filter
+
+New user control on the cross-league **Trade Finder** (shared by the public **Roster Moves** page and the **My Leagues** Trade Finder tab): the user picks **which asset types** the suggested packages may use, removing the perceived randomness.
+
+- **New filter row** below the existing archetype filter (byte-identical markup on `my-leagues.html` + `trade-calculator.html`): position toggles **QB / RB / WR / TE** (`#ml-tf-pos-filter`) + a **per-year draft-pick** row (`#ml-tf-pickyear-filter`, JS-populated from the pick years actually held across your leagues via `mlTfAllPickYears`). Reuses `.ml-tf-arch-filter` / `.ml-tf-archbtn`; one new scoped `.active` fill rule in `trade-finder.css`.
+- **Strict semantics.** When anything is selected, only those exact types appear (WR-only ⇒ no picks, no other positions); nothing selected = every asset eligible (unchanged). Confirmed product decision: strict + per-year-only (no "Any pick" master toggle).
+- **Engine:** `mlTfState.assetPos` / `assetPickYears`; predicate `mlTfAssetAllowed`; the filter is applied at the single chokepoint `mlTfPickOffers` (`pool = pool.filter(mlTfAssetAllowed)`), so it covers FOR (assets you send) and AWAY (assets you get back) with one edit and never touches the startability pool. Togglers `mlTfTogglePos` / `mlTfTogglePickYear` → `mlTfSyncAssetBtns` + `mlTfRender` (mirrors `mlTfToggleArch`). Empty-result notes append "Try widening your asset-type filter."
+- **Files:** `assets/js/trade-finder.js`, `assets/css/trade-finder.css`, `my-leagues.html`, `trade-calculator.html`. Tokens `trade-finder.js`/`.css` → **1799600000** (4 occurrences, both pages). Docs: Legend "Smarter Suggestions" item + Formulas §5 (trade-finder) + `formulas-content.js` **S31** (public → What's New) + this README.
+- **NOT browser-verified** (CORS + Sleeper login — user's job via `start.bat`): on both surfaces, FOR + AWAY, toggle WR-only → WR-only packages; toggle a pick year → only that year's picks; narrow-to-empty → "widen your filter" hint; clear all → baseline. Clean revert if off (changes are isolated to the four files).
+
+---
+
 ## Where we are (2026-06-14 — twenty-seventh session) — Cross-league Waiver board
 
 Committed `451a2a6` (**ahead 1, not pushed** — user reserves pushes; tree clean, ready for `push.bat`). One tester-driven UX change to the **Waiver Wire** board, shared by the public **Roster Moves** page and the **My Leagues** sidebar Waivers tab.

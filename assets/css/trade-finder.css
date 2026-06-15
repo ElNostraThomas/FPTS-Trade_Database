@@ -50,6 +50,10 @@
 .ml-tf-archbtn { font-family:'Kanit',sans-serif; font-weight:800; font-style:italic; font-size:9px; text-transform:uppercase; letter-spacing:.04em; padding:3px 9px; border:1px solid var(--border); background:transparent; color:var(--white); border-radius:4px; cursor:pointer; opacity:.6; }
 .ml-tf-archbtn:hover { opacity:1; }
 .ml-tf-archbtn.active { opacity:1; }
+/* Asset-type filter (positions + per-year picks) reuse .ml-tf-archbtn; give them a solid
+   "on" fill since they don't carry the archetype-specific inline coloring. */
+#ml-tf-pos-filter .ml-tf-archbtn.active,
+#ml-tf-pickyear-filter .ml-tf-archbtn.active { background:var(--red); border-color:var(--red); color:#111111; }
 .ml-tf-mgr-body { padding:4px 8px 6px; }
 .ml-tf-player { padding:2px 0; }
 .ml-tf-player:not(:last-child) { border-bottom:1px solid var(--border); margin-bottom:3px; padding-bottom:5px; }

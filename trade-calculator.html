@@ -9,7 +9,7 @@
 <!-- Brand chrome -->
 <link rel="stylesheet" href="assets/css/brand.css?v=1799300000">
 <!-- Shared Trade Finder + Calculator styles -->
-<link rel="stylesheet" href="assets/css/trade-finder.css?v=1799300000">
+<link rel="stylesheet" href="assets/css/trade-finder.css?v=1799600000">
 <link rel="stylesheet" href="assets/css/trade-calc.css?v=1797700000">
 <link rel="stylesheet" href="assets/css/waiver-wire.css?v=1799500000">
 <link rel="stylesheet" href="assets/css/trade-history.css?v=1798500000">
@@ -27,7 +27,7 @@
 <script src="assets/js/sleeper-session.js?v=1797000000"></script>
 <script src="assets/js/league-compute.js?v=1797000000"></script>
 <script src="assets/js/valuation-core.js?v=1799300000"></script>
-<script src="assets/js/trade-finder.js?v=1799300000"></script>
+<script src="assets/js/trade-finder.js?v=1799600000"></script>
 <script src="assets/js/trade-calc.js?v=1797700000"></script>
 <script src="assets/js/waiver-wire.js?v=1799500000"></script>
 <script src="assets/js/trade-history.js?v=1799300000"></script>
@@ -223,6 +223,14 @@
           <button class="ml-tf-archbtn" data-arch="rebuilder"  onclick="mlTfToggleArch('rebuilder')">Rebuilder</button>
           <button class="ml-tf-archbtn" data-arch="emergency"  onclick="mlTfToggleArch('emergency')">Emergency</button>
         </div>
+        <div class="ml-tf-label">Asset types in package <span class="ml-tf-hint">(optional — only these in suggestions)</span></div>
+        <div class="ml-tf-arch-filter" id="ml-tf-pos-filter">
+          <button class="ml-tf-archbtn" data-pos="QB" onclick="mlTfTogglePos('QB')">QB</button>
+          <button class="ml-tf-archbtn" data-pos="RB" onclick="mlTfTogglePos('RB')">RB</button>
+          <button class="ml-tf-archbtn" data-pos="WR" onclick="mlTfTogglePos('WR')">WR</button>
+          <button class="ml-tf-archbtn" data-pos="TE" onclick="mlTfTogglePos('TE')">TE</button>
+        </div>
+        <div class="ml-tf-arch-filter" id="ml-tf-pickyear-filter"><!-- JS-populated per-year pick buttons --></div>
         <div id="ml-tf-results" class="ml-tf-out"></div>
       </div>
     </div>
