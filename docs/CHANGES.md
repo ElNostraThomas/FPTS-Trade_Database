@@ -6,6 +6,22 @@ the operator manual see [`WORKFLOW.md`](WORKFLOW.md).
 
 ---
 
+## 2026-06-14 — Cross-league Waiver board + tappable rows (`451a2a6`)
+
+Tester feedback on the Waiver Wire board (Roster Moves standalone + My Leagues sidebar): the per-league picker looked off-brand and there was no signal the rows were interactive. Reframed the board **cross-league** and removed the picker.
+
+### `assets/js/waiver-wire.js`, `assets/css/waiver-wire.css`
+- **Removed the league picker** (`#tc-wv-league` + `.tc-wv-league*` markup/CSS) from both pages.
+- **`_bestAvailable()` is now cross-league** — highest-value players who are a free agent in **any** of your leagues (ranked by canonical `value`), each row tagged "**N lg**" (how many of your leagues he's free in). **`_addedHere()`** filters the 7-day trending adds to players free in at least one league.
+- **Tappable rows** — every board row gets a ▾ **caret** and toggles an **inline expansion** (`.tc-wv-row-exp`) showing the per-league Free / Owned-by-a-manager / On-your-roster breakdown (lazy-rendered, cached once). Extracted `_lgRow` + `_availGroupsHtml` (shared with the search panel) and added `toggleRow`.
+- `setLeague()` kept as a backward-compat render shim (My Leagues still calls it; the id is ignored now).
+- Tokens: `waiver-wire.js` / `.css` → 1799500000 (both pages). `check-colors` CLEAN (47); JS delimiter-balanced.
+
+### Updates timeline
+Added **S30** "Cross-league Waiver board" to `formulas-content.js` `sessions[]` (public → also on What's New); token → 1799500000 (formulas.html + whats-new.html). Supersedes S26 ("League-scoped Waiver Wire").
+
+---
+
 ## 2026-06-11 (follow-on) — Headshot placeholder fix + sidebar Waiver slim + calculator formula docs + trade-calc.css de-dupe
 
 All pushed; `check-colors.py` CLEAN (44 files).

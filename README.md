@@ -14,6 +14,18 @@ This file is the **resume-where-we-left-off** doc.
 
 ---
 
+## Where we are (2026-06-14 — twenty-seventh session) — Cross-league Waiver board
+
+Committed `451a2a6` (**ahead 1, not pushed** — user reserves pushes; tree clean, ready for `push.bat`). One tester-driven UX change to the **Waiver Wire** board, shared by the public **Roster Moves** page and the **My Leagues** sidebar Waivers tab.
+
+- **Removed the off-brand league picker** (the circled `LEAGUE [12 Random Friend PT.2]` dropdown). The board no longer scopes to one league.
+- **Board is now cross-league.** `_bestAvailable()` → highest-value players who are a free agent in **any** of your leagues (ranked by canonical `value`), each row tagged "**N lg**" for how many. `_addedHere()` → 7-day trending adds available somewhere in your leagues. (My Leagues sidebar shows only the trending column, as before; the standalone shows both.)
+- **Rows are tappable.** Every board row gets a ▾ caret and expands an **inline** panel showing which of your leagues the player is Free / Owned-by-a-manager / On-your-roster (with a "Claim On Sleeper" link where open). Lazy + cached. Refactored `_lgRow` + `_availGroupsHtml` out of `selectPlayer` for reuse; added `toggleRow`. `setLeague()` kept as a no-op render shim for My Leagues' call.
+- **Files:** `assets/js/waiver-wire.js`, `assets/css/waiver-wire.css` (dead `.tc-wv-league*` rules dropped), `my-leagues.html`, `trade-calculator.html`. Tokens `waiver-wire.js`/`.css` → **1799500000** (both pages). Docs: **S30** in the Updates timeline (`formulas-content.js`, public → What's New; token → 1799500000) + `docs/CHANGES.md`. `check-colors` CLEAN (47); JS delimiter-balanced (regex-aware).
+- **NOT browser-verified** (CORS + Sleeper login) — needs a `start.bat` pass on both surfaces: picker gone, both columns cross-league, tap a row → per-league dropdown. Clean one-commit revert if off (`git reset --hard HEAD~1` before push).
+
+---
+
 ## Where we are (2026-06-12 — twenty-sixth session) — Three-number player valuation (Market / To-Team / In-League)
 
 **Public "What's New" page (`whats-new.html`):** a non-technical, **ungated** update feed linked in the top nav of every page (after Rankings, before the admin-only "Updates"). It renders the same session blurbs as the admin Updates/Formulas page **minus the formula cards**, filtered to user-facing items via a new `public: true` flag on `formulas-content.js` `sessions[]` (24 flagged; internal/dev items like admin-scratchpad, OBS, CSS refactors stay admin-only). One source of truth — adding a `public`-flagged session shows it on both pages. Tiny inline renderer in the page (`.wn-*`); `formulas-content.js` token → 1799400000.
