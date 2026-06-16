@@ -1,0 +1,147 @@
+/* ════════════════════════════════════════════════════════════════════════════
+   trend-chart.css — styles for window.TrendChart (assets/js/trend-chart.js).
+   Ported from compare.html's .pc-chart* rules, namespaced .tc-trend-* so the
+   shared chart renders identically wherever the player panel opens it. NOT
+   scoped to a page body, so it works on every panel surface.
+   ════════════════════════════════════════════════════════════════════════════ */
+
+.tc-trend {
+  background:
+    radial-gradient(circle at top right, rgba(255,255,255,0.025) 0%, transparent 60%),
+    var(--surface2);
+  border: 1px solid var(--border2); border-radius: 6px;
+  padding: 22px 24px 20px 22px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+}
+.tc-trend-legend {
+  display: flex; align-items: center; gap: 8px;
+  font-family: 'Mulish', sans-serif; font-size: 10px;
+  color: var(--muted); text-transform: uppercase; letter-spacing: .1em;
+  margin-bottom: 14px; opacity: .75;
+}
+.tc-trend-legend-dot {
+  width: 10px; height: 10px; border-radius: 50%;
+  background: var(--legend-color, var(--red));
+  box-shadow: 0 0 0 2px var(--surface2), 0 0 0 3px var(--legend-color, var(--red));
+  opacity: .8;
+}
+.tc-trend-body {
+  display: flex; gap: 14px; align-items: stretch; min-height: 280px;
+}
+.tc-trend-yaxis {
+  flex: 0 0 64px;
+  display: flex; flex-direction: column; justify-content: space-between;
+  padding: 8px 0 32px 0;
+}
+.tc-trend-yaxis-label {
+  font-family: 'Mulish', sans-serif; font-weight: 700; font-size: 11px;
+  color: var(--muted);
+  text-align: right; padding-right: 10px; opacity: .55;
+  line-height: 1;
+}
+.tc-trend-svg-col {
+  flex: 1; min-width: 0; display: flex; flex-direction: column;
+  position: relative;
+}
+.tc-trend-svg-wrap {
+  flex: 1; position: relative;
+}
+.tc-trend-svg {
+  display: block; width: 100%; height: 100%; min-height: 240px;
+}
+.tc-trend-overlay {
+  position: absolute; inset: 0;
+  pointer-events: none;
+}
+.tc-trend-data-label {
+  position: absolute; transform: translate(-50%, -120%);
+  font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+  font-size: 11px; color: var(--white);
+  background: var(--surface); padding: 2px 6px; border-radius: 2px;
+  white-space: nowrap; line-height: 1;
+  border: 1px solid var(--border2);
+}
+.tc-trend-gridline {
+  stroke: var(--white); stroke-width: 1; stroke-dasharray: 2 5; opacity: .08;
+}
+.tc-trend-baseline {
+  stroke: var(--border2); stroke-width: 1; opacity: .5;
+}
+.tc-trend-line {
+  stroke-width: 2.5; fill: none; stroke-linejoin: round; stroke-linecap: round;
+}
+.tc-trend-dot {
+  transition: r .15s ease-out;
+}
+.tc-trend-dot:hover { r: 7; }
+.tc-trend-xaxis {
+  display: grid; gap: 0;
+  margin-top: 10px; padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+.tc-trend-xaxis-label {
+  font-family: 'Mulish', sans-serif; font-size: 10px;
+  color: var(--muted); opacity: .65;
+  text-transform: uppercase; letter-spacing: .08em;
+  text-align: center;
+}
+.tc-trend-empty {
+  text-align: center; padding: 60px 14px;
+  background: var(--surface2); border: 1px dashed var(--border2); border-radius: 6px;
+  font-family: 'Mulish', sans-serif; font-size: 12px;
+  color: var(--muted); opacity: .55; font-style: italic;
+}
+
+/* In-tab toggle pills (Month/Year + SF/1QB) */
+.tc-trend-controls {
+  display: flex; flex-wrap: wrap; gap: 14px; margin-bottom: 14px;
+}
+.tc-trend-toggle { display: flex; gap: 6px; }
+.tc-trend-tbtn {
+  font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+  font-size: 11px; text-transform: uppercase; letter-spacing: .05em;
+  padding: 6px 12px; border: 1px solid var(--border); background: transparent;
+  color: var(--white); cursor: pointer; border-radius: 4px; opacity: .65;
+}
+.tc-trend-tbtn:hover { opacity: 1; }
+.tc-trend-tbtn.active { opacity: 1; background: var(--red); border-color: var(--red); color: #111111; }
+
+/* Summary stats row below chart — PEAK / LOW / AVG / CURRENT */
+.tc-trend-stats {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;
+  margin-top: 18px;
+}
+.tc-trend-stat {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-top: 2px solid var(--stat-color, var(--muted));
+  padding: 10px 12px 12px;
+  border-radius: 3px;
+}
+.tc-trend-stat-label {
+  font-family: 'Mulish', sans-serif; font-size: 9px; font-weight: 700;
+  color: var(--stat-color, var(--muted));
+  text-transform: uppercase; letter-spacing: .12em;
+  opacity: .9; margin-bottom: 4px;
+}
+.tc-trend-stat-value {
+  font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+  font-size: 22px; color: var(--white); line-height: 1.05;
+}
+.tc-trend-stat-meta {
+  font-family: 'Mulish', sans-serif; font-size: 9px;
+  color: var(--muted); margin-top: 3px; opacity: .55;
+  text-transform: uppercase; letter-spacing: .06em;
+}
+
+@media (max-width: 600px) {
+  .tc-trend { padding: 16px 14px 14px 14px; }
+  .tc-trend-body { min-height: 200px; gap: 8px; }
+  .tc-trend-yaxis { flex: 0 0 44px; }
+  .tc-trend-yaxis-label { font-size: 10px; padding-right: 6px; }
+  .tc-trend-svg { min-height: 170px; }
+  .tc-trend-data-label { font-size: 10px; padding: 1px 4px; }
+  .tc-trend-xaxis-label { font-size: 9px; }
+  .tc-trend-stats { grid-template-columns: repeat(2, 1fr); gap: 6px; }
+  .tc-trend-stat-value { font-size: 18px; }
+}

@@ -603,7 +603,7 @@
 <link rel="stylesheet" href="assets/css/heatmap.css?v=1782600000">
 <script src="assets/js/heatmap.js?v=1778670000"></script>
 <link rel="stylesheet" href="assets/css/legend.css?v=1796300000">
-<script src="assets/js/legend-content.js?v=1799600000"></script>
+<script src="assets/js/legend-content.js?v=1799700000"></script>
 <script src="assets/js/legend.js?v=1778949514"></script>
 <script>document.addEventListener('DOMContentLoaded', function(){ if (window.Legend) Legend.init('adp-tool'); });</script>
 <!-- Shared player panel — DB's slide-in drawer, used identically on every page -->
@@ -618,10 +618,12 @@
      PPR / TEP / PPC / pass-TD overlay to data-suite stat lines). -->
 <script src="assets/js/sleeper-helpers.js?v=1799300000"></script>
 <link rel="stylesheet" href="assets/css/player-panel.css?v=1791900000">
+<link rel="stylesheet" href="assets/css/trend-chart.css?v=1799700000">
 <!-- Team logo helpers — must load BEFORE player-panel.js so the modal-hero
      badge wiring finds window.TeamHelpers. -->
 <script src="assets/js/team-helpers.js?v=1778680002"></script>
-<script src="assets/js/player-panel.js?v=1799000000" defer></script>
+<script src="assets/js/trend-chart.js?v=1799700000" defer></script>
+<script src="assets/js/player-panel.js?v=1799700000" defer></script>
 <style>
   /* Hide the legacy in-page modal — openModal now routes to the shared panel. */
   #modal-backdrop { display: none !important; }
@@ -852,6 +854,7 @@
       <button class="pp-tab" type="button" onclick="_adpShowTab('curve')">Age Curve</button>
       <button class="pp-tab" type="button" onclick="_adpShowTab('finder')">Trade Finder</button>
       <button class="pp-tab" type="button" onclick="_adpShowTab('heatmap')">ADP Heatmap</button>
+      <button class="pp-tab" type="button" onclick="_adpShowTab('adp-trend')">ADP Trend</button>
     </div>
 
     <!-- Tab content -->
@@ -878,6 +881,8 @@
         <div class="hm-grid" id="hm-grid"></div>
       </div>
     </div>
+    <!-- ADP-over-time line chart (shared renderAdpTrend + window.TrendChart). -->
+    <div id="adp-pp-adp-trend-tab" style="display:none"></div>
   </div>
 </div>
 
@@ -2402,6 +2407,7 @@ function _adpShowTab(name) {
     curve:   'adp-pp-curve-tab',
     finder:  'adp-pp-finder-tab',
     heatmap: 'adp-pp-heatmap-tab',
+    'adp-trend': 'adp-pp-adp-trend-tab',
   };
   Object.entries(tabs).forEach(([k, id]) => {
     const el = document.getElementById(id);
@@ -2421,6 +2427,10 @@ function _adpShowTab(name) {
   } else if (name === 'curve') {
     const el = document.getElementById('adp-pp-curve-tab');
     if (el) el.innerHTML = _adpRenderAgeCurveTab(p);
+  } else if (name === 'adp-trend') {
+    if (typeof window.renderAdpTrend === 'function') {
+      try { window.renderAdpTrend('adp-pp-adp-trend-tab', { label: p.name, posKey: p.pos }); } catch (e) {}
+    }
   } else if (name === 'stats' || name === 'finder') {
     const el = document.getElementById(tabs[name]);
     if (el) el.innerHTML = _adpRenderDbCtaTab(name, p.name);

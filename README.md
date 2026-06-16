@@ -14,6 +14,19 @@ This file is the **resume-where-we-left-off** doc.
 
 ---
 
+## Where we are (2026-06-15 — twenty-ninth session) — "ADP Trend" tab on the player card
+
+New tab on the shared player card that **charts a player's startup ADP over time** (avg draft slot — lower = drafted earlier). Reuses the Compare page's proven SVG chart, surfaced everywhere a player card opens.
+
+- **New shared chart module** `assets/js/trend-chart.js` (`window.TrendChart.line/stats`) + `assets/css/trend-chart.css` — lifted from `compare.html`'s `_pcChart`/`_pcChartStats`, classes namespaced `.tc-trend-*` so it's self-contained (Compare untouched; de-dupe is punch-listed).
+- **`assets/js/player-panel.js`** — added the **ADP Trend** tab (button + `#pp-adp-trend-tab` mount + `ppShowTab` wiring). New `renderAdpTrend(containerId, player)`: in-tab **By Month / By Year** + **SF / 1QB** toggles (`ppAdpTrendSet`), Peak/Lowest/Avg/Current stats row. **Month** series reads the already-global `window.ADP_PAYLOAD.byMonth[YYYY-MM][startup_sf|1qb]` (current season, instant — no fetch); **Year** series lazy-fetches per-season `data/adp-YYYY.json` (years from `ADP_PAYLOAD.availableYears`) into `window.ADP_BY_YEAR`. Player matched by sleeperId then normalized name; empty-state for players outside ~top-300 coverage.
+- **`adp-tool.html`** — its inline modal (`_adpShowTab`) gets the same tab (calls the shared `renderAdpTrend`). My Leagues / Tiers / Rankings / DB use the shared panel → the tab appears automatically.
+- **Data decision:** Month + Year only — **weekly ADP isn't persisted** (only monthly buckets + daily rank); a true Week view is punch-listed (pipeline change). Y-axis plots the **ADP pick number**.
+- **Loaded** `trend-chart.js`/`.css` on all 9 panel consumers (+ template); tokens `trend-chart.* = 1799700000`, `player-panel.js = 1799700000` (9 consumers). Docs: Legend "ADP Trend" tab item + Updates **S32** (public → What's New). `legend-content.js`/`formulas-content.js` tokens → 1799700000. `check-colors` CLEAN (49); `player-panel.js` + `trend-chart.js` delimiter-balanced.
+- **NOT browser-verified** (CORS/login = user's job via `start.bat` or live): open a covered player (e.g. Bijan) on DB/ADP/My Leagues/Tiers/Rankings → **ADP Trend** → Month line renders; **By Year** lazy-loads + renders; **SF/1QB** flips; stats row reads; uncovered player shows the empty note.
+
+---
+
 ## Where we are (2026-06-15 — twenty-eighth session) — Trade Finder asset-type filter
 
 New user control on the cross-league **Trade Finder** (shared by the public **Roster Moves** page and the **My Leagues** Trade Finder tab): the user picks **which asset types** the suggested packages may use, removing the perceived randomness.

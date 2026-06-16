@@ -6,7 +6,28 @@ the operator manual see [`WORKFLOW.md`](WORKFLOW.md).
 
 ---
 
-## 2026-06-15 — Trade Finder asset-type filter (uncommitted)
+## 2026-06-15 — "ADP Trend" tab on the player card
+
+Charts a player's startup ADP over time (avg draft slot, lower = drafted earlier) as a new tab on the shared player card.
+
+### New shared module
+- `assets/js/trend-chart.js` (`window.TrendChart.line/stats`) + `assets/css/trend-chart.css` — lifted from `compare.html`'s `_pcChart`/`_pcChartStats`, classes namespaced `.tc-trend-*` (self-contained; Compare untouched).
+
+### `assets/js/player-panel.js`
+- New **ADP Trend** tab: button + `#pp-adp-trend-tab` mount + `ppShowTab` tabMap/loop/lazy-render hook.
+- `renderAdpTrend(containerId, player)` — **By Month / By Year** + **SF / 1QB** toggles (`ppAdpTrendSet`); Month from the already-global `window.ADP_PAYLOAD.byMonth`, Year lazy-fetched from per-season `adp-YYYY.json` → `window.ADP_BY_YEAR`. Plots the ADP pick number (yInvert), Peak/Lowest/Avg/Current stats, empty-state for uncovered players.
+
+### `adp-tool.html`
+- Inline modal (`_adpShowTab`) gets the matching tab, delegating to the shared `renderAdpTrend`.
+
+### Loading + tokens
+- `trend-chart.js`/`.css` added to all 9 panel consumers (+ template); `player-panel.js` token → 1799700000, `trend-chart.* = 1799700000`.
+- Docs: Legend "ADP Trend" item; Updates **S32** (public → What's New). `legend-content.js`/`formulas-content.js` → 1799700000.
+- `check-colors` CLEAN (49); `player-panel.js` + `trend-chart.js` delimiter-balanced. **Weekly ADP deferred** (only monthly buckets persisted). Not browser-verified (CORS/login).
+
+---
+
+## 2026-06-15 — Trade Finder asset-type filter
 
 User asked to give the Trade Finder more options / less randomness: let each user choose **which asset types** go into the suggested packages.
 

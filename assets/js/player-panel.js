@@ -121,7 +121,7 @@
     <!-- MVS extras: OTC + Baseline + Trade Volume (7d) + Contributor Rankings. -->
     <div id="pp-mvs-extras"></div>
 
-    <!-- SYNC-RULE: this 5-tab strip must stay aligned across every player
+    <!-- SYNC-RULE: this tab strip must stay aligned across every player
          modal on the site (DB / Calc / My-Leagues / ADP-tool / Tiers). -->
     <div class="pp-tabs">
       <button class="pp-tab active" onclick="ppShowTab('trades')">Trades</button>
@@ -129,6 +129,7 @@
       <button class="pp-tab" onclick="ppShowTab('curve')">Age Curve</button>
       <button class="pp-tab" onclick="ppShowTab('finder')">Trade Finder</button>
       <button class="pp-tab" onclick="ppShowTab('heatmap')">ADP Heatmap</button>
+      <button class="pp-tab" onclick="ppShowTab('adp-trend')">ADP Trend</button>
     </div>
     <div class="pp-scroll">
       <div id="pp-age-curve-tab" style="display:none"></div>
@@ -139,6 +140,8 @@
       <!-- Pick-availability heatmap as a tab so the inline layout stays
            consistent across every player regardless of heatmap coverage. -->
       <div id="pp-heatmap-tab" style="display:none"></div>
+      <!-- ADP-over-time line chart (Month within season / Year across seasons). -->
+      <div id="pp-adp-trend-tab" style="display:none"></div>
     </div>
     <!-- Page-specific "league context" slot. DB / Calc / ADP / Tiers leave
          it empty. My-Leagues populates it after openPanel() with the
@@ -1771,11 +1774,154 @@
     } catch (e) {}
   }
 
+  // ────────────────────────────────────────────────────────────────────────
+  // renderAdpTrend — ADP-over-time line chart for the "ADP Trend" tab.
+  // Month view (per-month within the current season, from the already-loaded
+  // window.ADP_PAYLOAD.byMonth) + Year view (across seasons, lazily fetched
+  // per-season adp-YYYY.json). Plots the ADP pick number; lower = drafted
+  // earlier. Renders via the shared window.TrendChart module.
+  // ────────────────────────────────────────────────────────────────────────
+  let ppAdpTrendState = { view: 'month', fmt: null, containerId: 'pp-adp-trend-tab', player: null };
+
+  function _ppAdpView(fmt) { return fmt === '1qb' ? 'startup_1qb' : 'startup_sf'; }
+  function _ppAdpDefaultFmt() {
+    try { const v = localStorage.getItem('fpts-adp-format'); if (v === '1qb' || v === 'sf') return v; } catch (e) {}
+    return 'sf';
+  }
+  function _ppMonthLabel(key) {
+    // key 'YYYY-MM' -> "MMM" (e.g. 2026-03 -> Mar); prefix Dec/Jan with 'YY for clarity.
+    const m = /^(\d{4})-(\d{2})$/.exec(key); if (!m) return key;
+    const d = new Date(Number(m[1]), Number(m[2]) - 1, 1);
+    const mon = d.toLocaleString('en-US', { month: 'short' });
+    return (m[2] === '01' || m[2] === '12') ? `${mon} ’${m[1].slice(2)}` : mon;
+  }
+  // Find a player's record inside one byMonth view array, by sleeperId then name.
+  function _ppFindAdpRec(arr, sid, normName) {
+    if (!Array.isArray(arr)) return null;
+    if (sid) { const bySid = arr.find(p => p && String(p.sleeperId) === sid); if (bySid) return bySid; }
+    if (normName && global.normalizePlayerName) {
+      return arr.find(p => p && p.name && global.normalizePlayerName(p.name) === normName) || null;
+    }
+    return null;
+  }
+  // Lazy-load the per-season adp-YYYY.json files into window.ADP_BY_YEAR.
+  function _ppEnsureYearAdp() {
+    if (global.ADP_BY_YEAR) return Promise.resolve(global.ADP_BY_YEAR);
+    if (global.ADP_BY_YEAR_LOADING) return global.ADP_BY_YEAR_LOADING;
+    const payload = global.ADP_PAYLOAD || {};
+    const years = Array.isArray(payload.availableYears) && payload.availableYears.length
+      ? payload.availableYears.slice() : [];
+    const v = '?v=' + (global.__DATA_VERSION || Date.now());
+    global.ADP_BY_YEAR_LOADING = Promise.all(
+      years.map(y => fetch(`data/adp-${y}.json` + v).then(r => r.ok ? r.json() : null).catch(() => null).then(j => [y, j]))
+    ).then(pairs => {
+      const map = {};
+      pairs.forEach(([y, j]) => { if (j) map[String(y)] = j; });
+      global.ADP_BY_YEAR = map;
+      return map;
+    });
+    return global.ADP_BY_YEAR_LOADING;
+  }
+  // Pull {adp,rank,posRank} for a player from a byMonth-shaped file at a bucket.
+  function _ppAdpAtBucket(file, bucket, view, sid, normName) {
+    if (!file || !file.byMonth) return null;
+    const arr = (file.byMonth[bucket] || {})[view] || [];
+    const rec = _ppFindAdpRec(arr, sid, normName);
+    return rec ? { adp: rec.adp, rank: rec.rank, posRank: rec.posRank } : null;
+  }
+
+  function renderAdpTrend(containerId, player) {
+    const el = document.getElementById(containerId);
+    if (!el || !player) return;
+    if (ppAdpTrendState.fmt == null) ppAdpTrendState.fmt = _ppAdpDefaultFmt();
+    ppAdpTrendState.containerId = containerId;
+    ppAdpTrendState.player = player;
+
+    const TC = global.TrendChart;
+    const payload = global.ADP_PAYLOAD || null;
+    const name = player.label;
+    const sid = global._ppActiveSleeperId ? String(global._ppActiveSleeperId) : null;
+    const normName = global.normalizePlayerName ? global.normalizePlayerName(name) : null;
+    const fmt = ppAdpTrendState.fmt;
+    const view = _ppAdpView(fmt);
+    const isYear = ppAdpTrendState.view === 'year';
+
+    const controls = `
+      <div class="tc-trend-controls">
+        <div class="tc-trend-toggle">
+          <button class="tc-trend-tbtn ${!isYear ? 'active' : ''}" onclick="ppAdpTrendSet('view','month')">By Month</button>
+          <button class="tc-trend-tbtn ${isYear ? 'active' : ''}" onclick="ppAdpTrendSet('view','year')">By Year</button>
+        </div>
+        <div class="tc-trend-toggle">
+          <button class="tc-trend-tbtn ${fmt === 'sf' ? 'active' : ''}" onclick="ppAdpTrendSet('fmt','sf')">SF</button>
+          <button class="tc-trend-tbtn ${fmt === '1qb' ? 'active' : ''}" onclick="ppAdpTrendSet('fmt','1qb')">1QB</button>
+        </div>
+      </div>`;
+
+    const empty = (msg) => `<div style="padding:12px 2px 18px">${controls}<div class="tc-trend"><div class="tc-trend-empty">${msg}</div></div></div>`;
+    if (!TC || !payload || !payload.byMonth) { el.innerHTML = empty('ADP trend data is still loading…'); return; }
+
+    const ptLabel = (xl, rec) => `${xl}: ${Number(rec.adp).toFixed(1)} (#${rec.rank}${rec.posRank ? ' ' + rec.posRank : ''})`;
+
+    function chartHtml(points, xLabels, legend) {
+      const valid = points.filter(p => p && p.value != null).length;
+      if (!valid) return empty('ADP isn’t tracked for this player — startup ADP covers roughly the top ~300.');
+      return `<div style="padding:12px 2px 18px">
+        ${controls}
+        <div class="tc-trend">
+          ${TC.line(points, { color: 'var(--green)', yInvert: true, xLabels: xLabels, gradientId: 'tc-grad-adp', valueFmt: v => v.toFixed(1), pointLabelFmt: v => v.toFixed(1), legend: legend })}
+          ${TC.stats(points, { yInvert: true, valueFmt: v => v.toFixed(1) })}
+        </div>
+      </div>`;
+    }
+
+    if (!isYear) {
+      // MONTH view — already-loaded ADP_PAYLOAD.byMonth, current season, skip the ALL bucket.
+      const months = Object.keys(payload.byMonth).filter(k => k !== 'ALL').sort();
+      const xLabels = months.map(_ppMonthLabel);
+      const points = months.map(mk => {
+        const rec = _ppAdpAtBucket(payload, mk, view, sid, normName);
+        return rec && rec.adp != null ? { value: rec.adp, label: ptLabel(_ppMonthLabel(mk), rec) } : { value: null, label: `${_ppMonthLabel(mk)}: —` };
+      });
+      el.innerHTML = chartHtml(points, xLabels, `Startup ADP by month · ${fmt.toUpperCase()} (avg pick — lower = drafted earlier)`);
+      return;
+    }
+
+    // YEAR view — lazy-load per-season files, then re-render this same tab.
+    el.innerHTML = `<div style="padding:12px 2px 18px">${controls}<div class="tc-trend"><div class="tc-trend-empty">Loading season history…</div></div></div>`;
+    _ppEnsureYearAdp().then(map => {
+      // Guard: the user may have switched tabs/players while loading.
+      if (ppAdpTrendState.containerId !== containerId || ppAdpTrendState.player !== player || ppAdpTrendState.view !== 'year') return;
+      const years = Object.keys(map).sort();
+      const xLabels = years.slice();
+      const points = years.map(y => {
+        const file = map[y];
+        const bucket = (file && file.byMonth && file.byMonth.ALL) ? 'ALL'
+          : (file && file.byMonth ? Object.keys(file.byMonth).sort().slice(-1)[0] : null);
+        const rec = bucket ? _ppAdpAtBucket(file, bucket, view, sid, normName) : null;
+        return rec && rec.adp != null ? { value: rec.adp, label: ptLabel(y, rec) } : { value: null, label: `${y}: —` };
+      });
+      el.innerHTML = chartHtml(points, xLabels, `Startup ADP by year · ${fmt.toUpperCase()} (avg pick — lower = drafted earlier)`);
+    }).catch(() => {
+      if (ppAdpTrendState.containerId === containerId) el.innerHTML = empty('Couldn’t load season ADP history.');
+    });
+  }
+
+  // Toggle handler for the in-tab Month/Year + SF/1QB pills (inline onclick).
+  function ppAdpTrendSet(kind, val) {
+    if (kind === 'view') ppAdpTrendState.view = val;
+    else if (kind === 'fmt') {
+      ppAdpTrendState.fmt = val;
+      try { localStorage.setItem('fpts-adp-format', val); } catch (e) {}
+    }
+    if (ppAdpTrendState.player) renderAdpTrend(ppAdpTrendState.containerId, ppAdpTrendState.player);
+  }
+
   function ppShowTab(tabName) {
-    const tabMap = { 'trades': 'trades', 'stats': 'stats', 'curve': 'age-curve', 'age-curve': 'age-curve', 'finder': 'finder', 'heatmap': 'heatmap' };
+    const tabMap = { 'trades': 'trades', 'stats': 'stats', 'curve': 'age-curve', 'age-curve': 'age-curve', 'finder': 'finder', 'heatmap': 'heatmap', 'adp-trend': 'adp-trend' };
     const resolved = tabMap[tabName] || tabName;
     ppLastTab = resolved;
-    ['trades', 'stats', 'age-curve', 'finder', 'heatmap'].forEach(t => {
+    ['trades', 'stats', 'age-curve', 'finder', 'heatmap', 'adp-trend'].forEach(t => {
       const el = document.getElementById('pp-' + t + '-tab');
       if (el) el.style.display = (t === resolved) ? 'block' : 'none';
     });
@@ -1807,6 +1953,10 @@
     if (resolved === 'finder' && currentPanelPlayer) {
       const renderer = (typeof global.renderTradeFinder === 'function') ? global.renderTradeFinder : renderTradeFinder;
       try { renderer('pp-finder-tab', currentPanelPlayer); } catch (e) {}
+    }
+    if (resolved === 'adp-trend' && currentPanelPlayer) {
+      const renderer = (typeof global.renderAdpTrend === 'function') ? global.renderAdpTrend : renderAdpTrend;
+      try { renderer('pp-adp-trend-tab', currentPanelPlayer); } catch (e) {}
     }
   }
 
@@ -1948,6 +2098,8 @@
   if (typeof global.renderPlayerStats  !== 'function') global.renderPlayerStats  = renderPlayerStats;
   if (typeof global.renderAgeCurve     !== 'function') global.renderAgeCurve     = renderAgeCurve;
   if (typeof global.renderTradeFinder  !== 'function') global.renderTradeFinder  = renderTradeFinder;
+  if (typeof global.renderAdpTrend     !== 'function') global.renderAdpTrend     = renderAdpTrend;
+  global.ppAdpTrendSet = ppAdpTrendSet;
   if (typeof global.openPickPage       !== 'function') global.openPickPage       = openPickPage;
   if (typeof global.pkpShowTab         !== 'function') global.pkpShowTab         = pkpShowTab;
   if (typeof global.getAllAssets       !== 'function') global.getAllAssets       = getAllAssets;
