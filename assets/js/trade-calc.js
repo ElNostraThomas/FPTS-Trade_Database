@@ -584,6 +584,15 @@ function renderCalcModal() {
   `;
 }
 
+// Human-readable label for a PICK_VALUES key ("2026-1.02" → "2026 Pick 1.02",
+// "2027-1" → "2027 Round 1"). Picks ship without a .label field, so the
+// unscoped search builds one for display / search matching.
+function _mlCalcPickLabel(key) {
+  const m = String(key || '').match(/^(\d{4})-(\d+)(?:\.(\d+))?$/);
+  if (!m) return String(key || '');
+  return m[3] ? `${m[1]} Pick ${m[2]}.${m[3]}` : `${m[1]} Round ${m[2]}`;
+}
+
 function mlCalcSearch(sideId, query) {
   clearTimeout(MLCALC.searchTimer);
   MLCALC.searchTimer = setTimeout(() => {
@@ -639,9 +648,17 @@ function mlCalcSearch(sideId, query) {
         .filter(a => !taken.has(a.name))
         .sort(_cmp);
     } else {
-      // All FP-tracked players + picks
-      assets = Object.entries(window.FP_VALUES)
-        .map(([name, d]) => ({ name, value: d.value, pos: d.posRank ? d.posRank.replace(/\d+/g,'') : 'WR', type: 'player' }))
+      // All FP-tracked players + picks. Picks live in window.PICK_VALUES — a
+      // SEPARATE dict from FP_VALUES, keyed "YYYY-R.SS" / "YYYY-R" — so they must
+      // be merged in explicitly or the search can only ever surface players
+      // (the bug: "Add player or pick" couldn't add picks). Value each pick with
+      // rec.value, the same default-format basis the players above use, so the
+      // Net stays apples-to-apples within this unscoped view.
+      const players = Object.entries(window.FP_VALUES)
+        .map(([name, d]) => ({ name, value: d.value, pos: d.posRank ? d.posRank.replace(/\d+/g,'') : 'WR', type: 'player' }));
+      const picks = Object.entries(window.PICK_VALUES || {})
+        .map(([key, rec]) => ({ name: (rec && rec.label) || _mlCalcPickLabel(key), value: (rec && rec.value) || 0, pos: 'PICK', type: 'pick' }));
+      assets = players.concat(picks)
         .filter(a => !taken.has(a.name))
         .filter(a => !q || a.name.toLowerCase().includes(q))
         .sort(_cmp)
