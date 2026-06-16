@@ -412,10 +412,10 @@ window.LegendContent = {
           },
           {
             label: 'Tab: ADP Trend (#pp-adp-trend-tab)',
-            what: 'Line chart of the player\'s startup ADP (average draft slot) over time — lower = drafted earlier. In-tab toggles: By Month (per-month within the current season) / By Year (across seasons), and SF / 1QB. A Peak / Lowest / Avg / Current stats row sits below the chart.',
+            what: 'Line chart of the player\'s startup ADP (average draft slot) over time — lower = drafted earlier. In-tab toggles: By Week / By Month / By Year, and SF / 1QB. A Peak / Lowest / Avg / Current stats row sits below the chart.',
             source: 'renderAdpTrend() in assets/js/player-panel.js, drawn by the shared window.TrendChart module (assets/js/trend-chart.js + trend-chart.css).',
-            values: 'Month series: window.ADP_PAYLOAD.byMonth[YYYY-MM][startup_sf|startup_1qb] (already loaded on every panel page) — each entry { adp, rank, posRank }. Year series: lazily-fetched per-season data/adp-YYYY.json (years from ADP_PAYLOAD.availableYears), cached at window.ADP_BY_YEAR, using each file\'s ALL bucket.',
-            notes: 'Player matched by sleeperId (window._ppActiveSleeperId) then normalized name. A player outside startup ADP coverage (~top 300) shows an empty-state note. No new math — it visualizes the existing ADP snapshot. adp-tool.html mounts the same tab inline via _adpShowTab(\'adp-trend\'). Weekly granularity is deferred (only monthly ADP buckets are persisted today). See Updates S32.'
+            values: 'Week series: window.ADP_PAYLOAD.byWeek[YYYY-Www][startup_sf] — current season only, SF-only, slim { sleeperId, name, adp, rank, posRank } records (top ~300/week). Month series: window.ADP_PAYLOAD.byMonth[YYYY-MM][startup_sf|startup_1qb] (already loaded on every panel page). Year series: lazily-fetched per-season data/adp-YYYY.json (years from ADP_PAYLOAD.availableYears), cached at window.ADP_BY_YEAR, using each file\'s ALL bucket.',
+            notes: 'Player matched by sleeperId (window._ppActiveSleeperId) then normalized name. A player outside startup ADP coverage (~top 300) shows an empty-state note. No new math — it visualizes the existing ADP snapshot. adp-tool.html mounts the same tab inline via _adpShowTab(\'adp-trend\'). The By Week series is built in sync-adp.py (build_week_adp) from raw picks + draft_catalog start_dt, ISO-week bucketed; it\'s Superflex-only because ~99% of dynasty startups are SF so the 1QB per-week sample never clears the draft threshold (1QB users see a note steering to By Month). See Updates S32–S33.'
           },
         ],
       },

@@ -6,6 +6,24 @@ the operator manual see [`WORKFLOW.md`](WORKFLOW.md).
 
 ---
 
+## 2026-06-16 — ADP Trend: "By Week" view (punch-list #1)
+
+Adds a **By Week** toggle to the player-card ADP Trend tab, alongside By Month / By Year — weekly startup ADP through the current season. Built entirely in `sync-adp.py` from local data (no factory re-scrape).
+
+### `sync-adp.py` (local-only / gitignored — re-apply if cloned)
+- New `build_week_adp(picks_df, catalog_df, plookup, team_count, min_drafts)`: joins the raw per-season picks parquet to `draft_catalog.start_dt`, ISO-week buckets (`YYYY-Www`) startup drafts, ranks within `(week, view_key)`, caps to `WEEK_ADP_TOP_N = 300`, emits **slim** `{ sleeperId, name, adp, rank, posRank }` records. Offense-filtered inline (slim records carry no `position`).
+- **Superflex-only**: of 1,352 startup 12-team drafts in 2026 only 12 are 1QB, so `startup_1qb` never clears `min_drafts=5` per week and is omitted.
+- Wired into `_build_one_season` for the **current season only**; `byWeek` injected into the canonical `adp.json` (not year-stamped files). Regenerated `adp.json` → 22 weeks (2025-W51…2026-W20), +~0.6 MB.
+
+### `assets/js/player-panel.js`
+- `renderAdpTrend`: third **By Week** toggle + week branch reading `ADP_PAYLOAD.byWeek`; `_ppWeekLabel` (ISO-week → "MMM D"), `_ppAdpAtBucket` generalized with a `seriesKey` arg. Thinned x-axis (~8 labels) + `showPointLabels:false` for the 22-point series; 1QB shows a "use By Month" note. `adp-tool.html` inherits via the shared `renderAdpTrend`.
+
+### Docs + tokens
+- Legend "ADP Trend" item + `FORMULAS.md` entry 52 (weekly variant) + Updates **S33** (public → What's New).
+- `player-panel.js` → 1799900000 (9 consumers + template); `legend-content.js` → 1799900000 (10); `formulas-content.js` → 1799900000 (formulas + whats-new).
+
+---
+
 ## 2026-06-15 — "ADP Trend" tab on the player card
 
 Charts a player's startup ADP over time (avg draft slot, lower = drafted earlier) as a new tab on the shared player card.

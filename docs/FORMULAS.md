@@ -1445,6 +1445,21 @@ aggregated   = sum(weighted_adp) / sum(picks)
 
 **Top-N filter** `top_n = 300` most-drafted players. `min_drafts = 5` per player.
 
+**Weekly variant** `build_week_adp` — feeds the player-card ADP Trend tab's **By Week**
+view. Unlike `build_adp` (which reads the month-PRE-aggregated `adp_time_series`), the
+weekly series is derived from the **raw per-season picks parquet joined to
+`draft_catalog.start_dt`**, bucketed by ISO week (`YYYY-Www`):
+```python
+adp_week = mean(pick_no)                      # per (ISO week, view_key, player)
+# startup, completed, st_teams == team_count, start_dt not null
+# rank within (week, view_key); keep rank <= WEEK_ADP_TOP_N (300)
+```
+Emitted into the **current-season** `adp.json` only, under `byWeek[YYYY-Www][startup_sf]`,
+as slim `{ sleeperId, name, adp, rank, posRank }` records. **Superflex-only**: ~99% of
+dynasty startups are SF, so `startup_1qb` never clears `min_drafts` per week and is
+omitted (the frontend shows a "use By Month for 1QB" note). Sample differs slightly from
+`byMonth` — only ~70% of raw picks carry a catalog `start_dt`, so undated drafts drop out.
+
 ---
 
 ### 53. `sync-adp.py` — availability matrix

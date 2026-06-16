@@ -1795,6 +1795,18 @@
     const mon = d.toLocaleString('en-US', { month: 'short' });
     return (m[2] === '01' || m[2] === '12') ? `${mon} ’${m[1].slice(2)}` : mon;
   }
+  function _ppWeekLabel(key) {
+    // key 'YYYY-Www' -> "MMM D" (Monday of that ISO week). ISO rule: Jan 4 is
+    // always in week 1, and weeks start Monday.
+    const m = /^(\d{4})-W(\d{2})$/.exec(key); if (!m) return key;
+    const y = Number(m[1]), w = Number(m[2]);
+    const jan4 = new Date(Date.UTC(y, 0, 4));
+    const dow = jan4.getUTCDay() || 7;           // Sun=0 -> 7
+    const monday = new Date(jan4);
+    monday.setUTCDate(jan4.getUTCDate() - dow + 1 + (w - 1) * 7);
+    const mon = monday.toLocaleString('en-US', { month: 'short', timeZone: 'UTC' });
+    return `${mon} ${monday.getUTCDate()}`;
+  }
   // Find a player's record inside one byMonth view array, by sleeperId then name.
   function _ppFindAdpRec(arr, sid, normName) {
     if (!Array.isArray(arr)) return null;
@@ -1822,10 +1834,12 @@
     });
     return global.ADP_BY_YEAR_LOADING;
   }
-  // Pull {adp,rank,posRank} for a player from a byMonth-shaped file at a bucket.
-  function _ppAdpAtBucket(file, bucket, view, sid, normName) {
-    if (!file || !file.byMonth) return null;
-    const arr = (file.byMonth[bucket] || {})[view] || [];
+  // Pull {adp,rank,posRank} for a player from a byMonth/byWeek-shaped series at
+  // a bucket. seriesKey defaults to 'byMonth' (also used for byWeek lookups).
+  function _ppAdpAtBucket(file, bucket, view, sid, normName, seriesKey) {
+    const series = file && file[seriesKey || 'byMonth'];
+    if (!series) return null;
+    const arr = (series[bucket] || {})[view] || [];
     const rec = _ppFindAdpRec(arr, sid, normName);
     return rec ? { adp: rec.adp, rank: rec.rank, posRank: rec.posRank } : null;
   }
@@ -1844,12 +1858,15 @@
     const normName = global.normalizePlayerName ? global.normalizePlayerName(name) : null;
     const fmt = ppAdpTrendState.fmt;
     const view = _ppAdpView(fmt);
+    const isWeek = ppAdpTrendState.view === 'week';
     const isYear = ppAdpTrendState.view === 'year';
+    const isMonth = !isWeek && !isYear;
 
     const controls = `
       <div class="tc-trend-controls">
         <div class="tc-trend-toggle">
-          <button class="tc-trend-tbtn ${!isYear ? 'active' : ''}" onclick="ppAdpTrendSet('view','month')">By Month</button>
+          <button class="tc-trend-tbtn ${isWeek ? 'active' : ''}" onclick="ppAdpTrendSet('view','week')">By Week</button>
+          <button class="tc-trend-tbtn ${isMonth ? 'active' : ''}" onclick="ppAdpTrendSet('view','month')">By Month</button>
           <button class="tc-trend-tbtn ${isYear ? 'active' : ''}" onclick="ppAdpTrendSet('view','year')">By Year</button>
         </div>
         <div class="tc-trend-toggle">
@@ -1863,16 +1880,44 @@
 
     const ptLabel = (xl, rec) => `${xl}: ${Number(rec.adp).toFixed(1)} (#${rec.rank}${rec.posRank ? ' ' + rec.posRank : ''})`;
 
-    function chartHtml(points, xLabels, legend) {
+    function chartHtml(points, xLabels, legend, extra) {
       const valid = points.filter(p => p && p.value != null).length;
       if (!valid) return empty('ADP isn’t tracked for this player — startup ADP covers roughly the top ~300.');
       return `<div style="padding:12px 2px 18px">
         ${controls}
         <div class="tc-trend">
-          ${TC.line(points, { color: 'var(--green)', yInvert: true, xLabels: xLabels, gradientId: 'tc-grad-adp', valueFmt: v => v.toFixed(1), pointLabelFmt: v => v.toFixed(1), legend: legend })}
+          ${TC.line(points, Object.assign({ color: 'var(--green)', yInvert: true, xLabels: xLabels, gradientId: 'tc-grad-adp', valueFmt: v => v.toFixed(1), pointLabelFmt: v => v.toFixed(1), legend: legend }, extra || {}))}
           ${TC.stats(points, { yInvert: true, valueFmt: v => v.toFixed(1) })}
         </div>
       </div>`;
+    }
+
+    if (isWeek) {
+      // WEEK view — current-season-only ADP_PAYLOAD.byWeek (SF-only; ~99% of
+      // dynasty startups are Superflex so the 1QB per-week sample is too thin).
+      const byWeek = payload.byWeek;
+      if (!byWeek || !Object.keys(byWeek).length) {
+        el.innerHTML = empty('Weekly ADP isn’t available yet — it ships with the next data refresh.');
+        return;
+      }
+      if (fmt === '1qb') {
+        const has1qb = Object.keys(byWeek).some(k => ((byWeek[k] || {}).startup_1qb || []).length);
+        if (!has1qb) {
+          el.innerHTML = empty('Weekly ADP is Superflex-only right now — the 1QB startup sample is too thin per week. Switch to SF, or use By Month for 1QB.');
+          return;
+        }
+      }
+      const weeks = Object.keys(byWeek).filter(k => k !== 'ALL').sort();
+      // Thin the x-axis labels (~8 across) so weekly dates don't overlap; the
+      // line still plots every week and each point keeps its full hover label.
+      const step = Math.max(1, Math.ceil(weeks.length / 8));
+      const xLabels = weeks.map((wk, i) => (i % step === 0 || i === weeks.length - 1) ? _ppWeekLabel(wk) : '');
+      const points = weeks.map(wk => {
+        const rec = _ppAdpAtBucket(payload, wk, view, sid, normName, 'byWeek');
+        return rec && rec.adp != null ? { value: rec.adp, label: ptLabel(_ppWeekLabel(wk), rec) } : { value: null, label: `${_ppWeekLabel(wk)}: —` };
+      });
+      el.innerHTML = chartHtml(points, xLabels, `Startup ADP by week · ${fmt.toUpperCase()} (avg pick — lower = drafted earlier)`, { showPointLabels: false });
+      return;
     }
 
     if (!isYear) {

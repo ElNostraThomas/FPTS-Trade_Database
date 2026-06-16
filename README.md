@@ -14,6 +14,18 @@ This file is the **resume-where-we-left-off** doc.
 
 ---
 
+## Where we are (2026-06-16 — thirtieth session) — ADP Trend "By Week" view (punch-list #1)
+
+Adds a **By Week** toggle to the player-card ADP Trend tab (alongside By Month / By Year). Key discovery: weekly is buildable **entirely in `sync-adp.py`** from local data — no factory re-scrape — because `draft_catalog` already carries per-draft `start_dt`.
+
+- **`sync-adp.py`** (local-only/gitignored — re-apply if cloned, like the `sync-mvs.py` TEP edits) — new `build_week_adp()` joins the raw per-season picks parquet to `draft_catalog.start_dt`, ISO-week buckets (`YYYY-Www`) startup drafts, ranks within `(week, view_key)`, caps to `WEEK_ADP_TOP_N=300`, emits **slim** `{sleeperId,name,adp,rank,posRank}` records. Wired in for the **current season only**; `byWeek` lives in the canonical `adp.json` (not year-stamped files). Regenerated → **22 weeks**, +~0.6 MB.
+- **Superflex-only** (by data reality): of 1,352 startup 12-team 2026 drafts only **12** are 1QB, so weekly 1QB never clears `min_drafts=5`. The 1QB+Week combo shows a "use By Month for 1QB" note.
+- **`assets/js/player-panel.js`** — `renderAdpTrend` gets the third toggle + a week branch (`ADP_PAYLOAD.byWeek`), `_ppWeekLabel`, and `_ppAdpAtBucket(..., seriesKey)`. X-axis thinned to ~8 labels + `showPointLabels:false` (22-point series). `adp-tool.html` inherits via the shared `renderAdpTrend`.
+- **Tokens** `player-panel.js`/`legend-content.js`/`formulas-content.js` → **1799900000**. Docs: Legend item updated, `FORMULAS.md` entry 52 weekly variant, Updates **S33** (public → What's New).
+- **NOT browser-verified** (CORS/login = user's job): open a covered player → ADP Trend → **By Week** (SF) renders the weekly line; switch to **1QB** → SF-only note; By Month / By Year still work; check `adp-tool.html` too.
+
+---
+
 ## Where we are (2026-06-15 — twenty-ninth session) — "ADP Trend" tab on the player card
 
 New tab on the shared player card that **charts a player's startup ADP over time** (avg draft slot — lower = drafted earlier). Reuses the Compare page's proven SVG chart, surfaced everywhere a player card opens.
