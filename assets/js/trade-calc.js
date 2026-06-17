@@ -420,11 +420,14 @@ function openCalcModal(targetName, targetSleeperId, opts) {
   // League context for the Sleeper button (set whenever we know the league)
   MLCALC.leagueId = opts.leagueId || null;
 
-  // Apply scope (used by trade builder ✓ flow to restrict search pools to two specific rosters)
-  if (opts.leagueId && opts.ownerRosterId) {
+  // Apply scope. Three states: null (free calculator), { leagueId, ownerRosterId }
+  // (league + a specific manager — the trade-builder ✓ flow), or { leagueId,
+  // ownerRosterId: null } (league-only — Side A = your roster, Side B = free
+  // search valued in the league format; set by the in-modal league picker).
+  if (opts.leagueId) {
     MLCALC.scope = {
       leagueId: opts.leagueId,
-      ownerRosterId: opts.ownerRosterId,
+      ownerRosterId: opts.ownerRosterId || null,
     };
   } else {
     MLCALC.scope = null;
@@ -457,18 +460,8 @@ function openCalcModal(targetName, targetSleeperId, opts) {
 
   // Close player-detail modal if open
   closePlayerDetail();
-  // Title — include league context if scoped
-  let title;
-  if (MLCALC.scope) {
-    const allLeagues = _allLeagues();
-    const league = allLeagues.find(l => l.league_id === MLCALC.scope.leagueId);
-    const lgName = league ? (league.name || 'league') : 'league';
-    title = `Trade Builder — ${lgName}`;
-  } else {
-    const lgName = window.ML_LEAGUE ? window.ML_LEAGUE.name : 'your league';
-    title = `Trade Builder — ${lgName}`;
-  }
-  document.getElementById('ml-calc-title').textContent = title;
+  // Title — reflects scope (league / league · vs manager / free).
+  document.getElementById('ml-calc-title').textContent = _mlCalcTitle();
   renderCalcModal();
   document.getElementById('ml-calc-backdrop').classList.add('open');
 }
@@ -477,6 +470,50 @@ function closeCalcModal() {
   document.getElementById('ml-calc-backdrop').classList.remove('open');
   // Clear scope on close so next open of calc behaves normally
   MLCALC.scope = null;
+}
+
+// Team/manager display name for a roster in a league's ML_ALL_LEAGUE_DATA entry.
+function _mlCalcTeamName(data, rosterId) {
+  const roster = data && (data.rosters || []).find(r => String(r.roster_id) === String(rosterId));
+  const u = roster && (data.users || []).find(x => x.user_id === roster.owner_id);
+  const nm = (u && u.metadata && u.metadata.team_name) || (u && u.display_name) || ('Team ' + rosterId);
+  return (mlGetHideUsernames() && nm) ? 'League Member' : nm;
+}
+
+// Modal title from the current scope. Shared by openCalcModal + the live
+// league/manager picker handlers so the heading never drifts.
+function _mlCalcTitle() {
+  if (MLCALC.scope) {
+    const league = _getLeague(MLCALC.scope.leagueId);
+    const lgName = (league && league.name) || 'league';
+    if (MLCALC.scope.ownerRosterId) {
+      const data = (window.ML_ALL_LEAGUE_DATA || {})[MLCALC.scope.leagueId];
+      return `Trade Builder — ${lgName} · vs ${_mlCalcTeamName(data, MLCALC.scope.ownerRosterId)}`;
+    }
+    return `Trade Builder — ${lgName}`;
+  }
+  const lgName = window.ML_LEAGUE ? window.ML_LEAGUE.name : 'your league';
+  return `Trade Builder — ${lgName}`;
+}
+
+// In-modal league picker: scope the calc to a league (Side A = your roster,
+// league format). Empty id = "Free calculator" (fully unscoped).
+function mlCalcSetLeague(id) {
+  if (!id) { MLCALC.scope = null; MLCALC.leagueId = null; }
+  else { MLCALC.scope = { leagueId: id, ownerRosterId: null }; MLCALC.leagueId = id; }
+  MLCALC.sides = { A: [], B: [] };  // assets from a prior league/format are stale
+  const t = document.getElementById('ml-calc-title'); if (t) t.textContent = _mlCalcTitle();
+  renderCalcModal();
+}
+
+// In-modal manager picker: restrict "You Receive" to one manager's roster, or
+// '' = "Anyone" (free search valued in the league format). Needs a league first.
+function mlCalcSetOwner(rid) {
+  if (!MLCALC.scope) return;
+  MLCALC.scope.ownerRosterId = rid ? Number(rid) : null;  // roster_id is numeric
+  MLCALC.sides.B = [];  // only the receive pool changed; keep your Side A
+  const t = document.getElementById('ml-calc-title'); if (t) t.textContent = _mlCalcTitle();
+  renderCalcModal();
 }
 
 function mlCalcSideTotal(side) {
@@ -534,8 +571,11 @@ function renderCalcModal() {
     `).join('') : `<div class="ml-calc-empty">Search below to add assets</div>`;
     // Placeholder text varies based on scope mode
     let placeholder;
-    if (MLCALC.scope) {
+    if (MLCALC.scope && MLCALC.scope.ownerRosterId) {
       placeholder = sideId === 'A' ? 'Add from your roster' : "Add from owner's roster";
+    } else if (MLCALC.scope) {
+      // League-only: your roster on the left, any player/pick (league-valued) on the right.
+      placeholder = sideId === 'A' ? 'Add from your roster' : 'Add any player or pick (valued for this league)';
     } else {
       placeholder = sideId === 'A' ? 'Add from your roster, or any player' : 'Add player or pick';
     }
@@ -569,7 +609,48 @@ function renderCalcModal() {
        </div>`
     : '';
 
+  // In-modal league + manager picker. Hidden entirely when no leagues are
+  // loaded (not signed in), so the free calculator stays byte-identical.
+  // Native <select>s — custom-select.js auto-wraps them on insert.
+  function _mlCalcPickerHtml() {
+    const leagues = _allLeagues();
+    if (!leagues.length) return '';
+    const scope = MLCALC.scope;
+    const curLeague = scope ? scope.leagueId : '';
+    const leagueOpts = ['<option value="">Free calculator (no league)</option>']
+      .concat(leagues.map(l => {
+        const id = l.league_id;
+        const nm = l.name || ('League ' + id);
+        return `<option value="${id}"${String(id) === String(curLeague) ? ' selected' : ''}>${nm}</option>`;
+      })).join('');
+    let managerField = '';
+    if (scope && scope.leagueId) {
+      const data = (window.ML_ALL_LEAGUE_DATA || {})[scope.leagueId];
+      const rosters = (data && data.rosters) || [];
+      const myRid = data && data.myRosterId;
+      const opts = ['<option value="">Anyone (free search)</option>']
+        .concat(rosters
+          .filter(r => String(r.roster_id) !== String(myRid))
+          .map(r => `<option value="${r.roster_id}"${String(r.roster_id) === String(scope.ownerRosterId) ? ' selected' : ''}>${_mlCalcTeamName(data, r.roster_id)}</option>`))
+        .join('');
+      managerField = `
+        <label class="ml-calc-picker-field">
+          <span class="ml-calc-picker-label">Manager</span>
+          <select class="ml-calc-picker-select" onchange="mlCalcSetOwner(this.value)">${opts}</select>
+        </label>`;
+    }
+    return `
+      <div class="ml-calc-picker">
+        <label class="ml-calc-picker-field">
+          <span class="ml-calc-picker-label">League</span>
+          <select class="ml-calc-picker-select" onchange="mlCalcSetLeague(this.value)">${leagueOpts}</select>
+        </label>
+        ${managerField}
+      </div>`;
+  }
+
   document.getElementById('ml-calc-body').innerHTML = `
+    ${_mlCalcPickerHtml()}
     <div class="ml-calc-builder">
       ${renderSide('A', MLCALC.sides.A, 'You Send', guruApprove)}
       ${renderSide('B', MLCALC.sides.B, 'You Receive', false)}
@@ -615,13 +696,25 @@ function mlCalcSearch(sideId, query) {
 
     let assets = [];
 
-    // SCOPED MODE: when opened from the trade builder, both sides are restricted to
-    // a specific roster's assets in a specific league.
+    // SCOPED MODE: restricted to specific rosters in a specific league.
     //   - Side A: user's roster + picks in MLCALC.scope.leagueId
-    //   - Side B: owner's roster + picks (MLCALC.scope.ownerRosterId) in MLCALC.scope.leagueId
+    //   - Side B WITH a manager: that owner's roster + picks
+    //   - Side B WITHOUT a manager (league-only): free search of any player/pick,
+    //     valued in THIS league's format (mlFpValue) — the "more of a calc" mode.
     if (MLCALC.scope) {
       const data = (window.ML_ALL_LEAGUE_DATA || {})[MLCALC.scope.leagueId];
-      if (data) {
+      if (sideId === 'B' && !MLCALC.scope.ownerRosterId) {
+        const lid = MLCALC.scope.leagueId;
+        const players = Object.entries(window.FP_VALUES)
+          .map(([name, d]) => ({ name, value: mlFpValue(d, lid), pos: d.posRank ? d.posRank.replace(/\d+/g,'') : 'WR', type: 'player' }));
+        const picks = Object.entries(window.PICK_VALUES || {})
+          .map(([key, rec]) => ({ name: (rec && rec.label) || _mlCalcPickLabel(key), value: mlFpValue(rec, lid), pos: 'PICK', type: 'pick' }));
+        assets = players.concat(picks)
+          .filter(a => !taken.has(a.name))
+          .filter(a => !q || a.name.toLowerCase().includes(q))
+          .sort(_cmp)
+          .slice(0, 60);
+      } else if (data) {
         const rid = sideId === 'A' ? data.myRosterId : MLCALC.scope.ownerRosterId;
         const pool = mlBuildAssetPool(MLCALC.scope.leagueId, rid);
         const isMineFlag = (sideId === 'A');
@@ -735,6 +828,8 @@ function mlCalcRemove(sideId, idx) {
   global.mlCalcHideResults = mlCalcHideResults;
   global.mlCalcAdd = mlCalcAdd;
   global.mlCalcRemove = mlCalcRemove;
+  global.mlCalcSetLeague = mlCalcSetLeague;
+  global.mlCalcSetOwner = mlCalcSetOwner;
   global.mltbReject = mltbReject;
   global.mltbAccept = mltbAccept;
   global.mltbOpenCalculatorBlank = mltbOpenCalculatorBlank;

@@ -186,6 +186,24 @@
     background: var(--archetype-bg, var(--surface2));
     color: var(--archetype-fg, var(--white));
   }
+/* In-modal league / manager picker (Roster Moves: scope the calc to a league). */
+.ml-calc-picker {
+    display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 14px;
+  }
+.ml-calc-picker-field {
+    display: flex; flex-direction: column; gap: 5px; flex: 1 1 200px; min-width: 0;
+  }
+.ml-calc-picker-label {
+    font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+    font-size: 9.5px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted);
+  }
+.ml-calc-picker-select {
+    width: 100%; background: var(--surface); border: 1px solid var(--border2);
+    color: var(--white); font-family: 'Mulish', sans-serif; font-size: 13px;
+    padding: 8px 10px; border-radius: 0;
+  }
+.ml-calc-picker-select:focus { border-color: var(--red); outline: none; }
+
 .ml-calc-builder {
     display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;
   }

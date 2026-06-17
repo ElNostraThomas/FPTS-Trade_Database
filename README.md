@@ -14,6 +14,17 @@ This file is the **resume-where-we-left-off** doc.
 
 ---
 
+## Where we are (2026-06-16 — thirty-first session) — Pick a league inside the Trade Calculator
+
+On Roster Moves, you can now **scope the Trade Calculator to a league directly** (no My Leagues detour). The page already had its own Sleeper login + `CALC_LEAGUE_DATA`/`ML_ALL_LEAGUE_DATA`; this exposes the calc's existing scoped mode via an in-modal picker + adds a league-only variant.
+
+- **`assets/js/trade-calc.js`** — `MLCALC.scope` is now 3-valued: `null` (free calc), `{leagueId, ownerRosterId}` (league + manager), and NEW `{leagueId, ownerRosterId: null}` (league-only). `openCalcModal` scopes when `opts.leagueId` is present (ownerRosterId optional) — backward-compatible. New `_mlCalcPickerHtml()` (League + Manager `<select>`s prepended to `#ml-calc-body`, hidden when no leagues loaded), handlers `mlCalcSetLeague`/`mlCalcSetOwner`, `_mlCalcTitle`/`_mlCalcTeamName`. `mlCalcSearch` league-only Side B = free FP+PICK search valued via `mlFpValue(rec, leagueId)` (format-aware). League change clears both sides; manager change clears only Side B.
+- **Reuse** — `LC.fpValue`/`buildAssetPool` (format-aware), `custom-select.js` (auto-wraps native selects). No new infra.
+- **Tokens** `trade-calc.js`/`trade-calc.css`/`legend-content.js`/`formulas-content.js` → **1800000000**. Docs: Legend "Trade Simulator" item, Updates **S34** (public → What's New), CHANGES.md.
+- **NOT browser-verified** (CORS/login = user's job): Roster Moves → open calc → League picker defaults to "Free calculator"; pick a league → Side A = your roster, Side B free-search valued in that league (SF vs 1QB differ); add a manager → Side B = their roster; switch league clears sides; open from Trade Finder/Builder → both dropdowns pre-selected.
+
+---
+
 ## Where we are (2026-06-16 — thirtieth session) — ADP Trend "By Week" view (punch-list #1)
 
 Adds a **By Week** toggle to the player-card ADP Trend tab (alongside By Month / By Year). Key discovery: weekly is buildable **entirely in `sync-adp.py`** from local data — no factory re-scrape — because `draft_catalog` already carries per-draft `start_dt`.

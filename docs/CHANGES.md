@@ -6,6 +6,23 @@ the operator manual see [`WORKFLOW.md`](WORKFLOW.md).
 
 ---
 
+## 2026-06-16 — Pick a league inside the Trade Calculator
+
+A user who knows which league they want to deal in can now scope the Roster Moves Trade Calculator directly — no My Leagues detour. (Roster Moves already has its own Sleeper login + `CALC_LEAGUE_DATA`/`ML_ALL_LEAGUE_DATA`; this just exposes the calc's existing scoped mode through an in-modal picker, plus a new league-only variant.)
+
+### `assets/js/trade-calc.js`
+- **`MLCALC.scope` is now 3-valued**: `null` (free calculator), `{leagueId, ownerRosterId}` (league + manager — existing), and **NEW** `{leagueId, ownerRosterId: null}` (league-only). `openCalcModal` sets scope whenever `opts.leagueId` is present (ownerRosterId optional) — backward-compatible, since every existing caller passes both.
+- **In-modal picker** `_mlCalcPickerHtml()` prepended to `#ml-calc-body`: a **League** `<select>` (Free calculator + each `cfg.allLeagues()`) and, when a league is chosen, a **Manager** `<select>` (Anyone + each team except yours). Native selects; `custom-select.js` auto-wraps. Hidden entirely when no leagues are loaded → free calculator byte-identical.
+- **Handlers** `mlCalcSetLeague(id)` / `mlCalcSetOwner(rid)` (exposed on `global`): mutate scope + re-render. League change clears both sides; manager change clears only Side B.
+- **`mlCalcSearch`**: league-only Side B = free FP_VALUES + PICK_VALUES search valued via `mlFpValue(rec, leagueId)` (format-aware) instead of raw `.value`; Side A + manager-scoped Side B unchanged (`mlBuildAssetPool`).
+- `_mlCalcTitle()` / `_mlCalcTeamName()` helpers; league-only placeholder on Side B.
+
+### Docs + tokens
+- `.ml-calc-picker*` styles in `trade-calc.css`. Legend "Trade Simulator" item + Updates **S34** (public → What's New).
+- `trade-calc.js`/`trade-calc.css` → 1800000000 (my-leagues + trade-calculator); `legend-content.js`/`formulas-content.js` → 1800000000.
+
+---
+
 ## 2026-06-16 — ADP Trend: "By Week" view (punch-list #1)
 
 Adds a **By Week** toggle to the player-card ADP Trend tab, alongside By Month / By Year — weekly startup ADP through the current season. Built entirely in `sync-adp.py` from local data (no factory re-scrape).

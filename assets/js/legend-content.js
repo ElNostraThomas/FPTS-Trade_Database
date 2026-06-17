@@ -843,6 +843,7 @@ window.LegendContent = {
         items: [
           { label: 'Two Sides + Drag/Drop', what: 'Drag any player or pick from any team onto Side A or Side B to test a trade.', source: 'mlCalcAddAsset; drag/drop event handlers', values: '—', notes: 'Same valuation pipeline as Trade Calculator (FP_VALUES + PICK_VALUES + multipliers).' },
           { label: 'Balance Bar', what: 'Identical to Trade Calculator — visual + verdict + side totals.', source: 'mlCalcTotal()', values: 'Fair / Slight Edge / Big Imbalance', notes: '—' },
+          { label: 'In-modal League / Manager picker', what: 'Calc-modal dropdowns (Roster Moves + My Leagues) to scope the calculator to a league directly — without opening My Leagues first. Pick a League → Side A = your roster, valued in that league\'s SF/1QB format; optionally pick a Manager → Side B = their roster, else "Anyone" = free search of any player/pick valued for that league.', source: 'trade-calc.js — mlCalcSetLeague / mlCalcSetOwner drive a 3-state MLCALC.scope (null = free calculator | {leagueId, ownerRosterId} | {leagueId, ownerRosterId:null}); _mlCalcPickerHtml renders the selects; mlCalcSearch reads scope; values via LC.fpValue (format-aware, works on FP_VALUES + PICK_VALUES).', values: 'League list from cfg.allLeagues(); managers from ML_ALL_LEAGUE_DATA[id].rosters', notes: 'Picker hidden when no leagues are loaded (free calculator unchanged). Changing the league clears both sides; changing the manager clears only Side B. See Updates S34.' },
         ],
       },
       {
