@@ -6,6 +6,33 @@ the operator manual see [`WORKFLOW.md`](WORKFLOW.md).
 
 ---
 
+## 2026-06-29 — Smarter Trade Builder suggestions (calc-side quality port)
+
+The one-at-a-time **Trade Builder** pre-screener (`MLTB`, opened from a player or pick on My Leagues + Roster Moves) now generates its suggested packages through the **same quality pipeline as the sidebar Trade Finder**, instead of the raw value-matched engine output it called before. Closes punch-list item #3 (calc-side suggestion quality port).
+
+- **`assets/js/trade-finder.js`** — additive only, finder behavior unchanged: `mlTfPickOffers` gained an optional `n` (offer count, default 3); exposed `pickOffers`, `startThresholds`, `ownerSell`, `sellHtml`, `lineupFit`, `rankByFit` on `window.TradeFinder` (joining the already-exposed `leagueCtx`/`ensurePosRanks`/`needSet`/`posOf`/`cardHtml`).
+- **`assets/js/trade-calc.js`** — new `mltbBuildOffers()` routes the Builder through those helpers: Fair-mode build target + recip/overpay caps + anti-lowball pick-share penalty + startability discount + positional-need re-rank + the value-to-your-team **lineup-fit lens**, with the **owner-willingness banner** shown above the card. Falls back to the raw engine if a league context is unavailable (never renders fewer cards than before). Also fixed the player target to be valued in the **league format** (`mlFpValue`, was default-format `value`) so the edge math matches the asset-pool basis — the pick variant already did this.
+- No new constants (the Builder reads the finder's existing module-level knobs); no data touched. Docs: Legend "Smarter Suggestions" item, `FORMULAS.md` "Trade Builder reuses the finder pipeline", `formulas-content.js` public timeline node **S35**. Cache tokens → `trade-finder.js`/`trade-calc.js` `1800100000`; `legend-content.js`/`formulas-content.js` `1800100000`.
+- Headless-validated: check-colors CLEAN (49); both edited modules delimiter net-balanced vs HEAD (0,0,0); all 10 consumed `TradeFinder.*` helpers resolve to exposed/defined functions. **Not browser-verified** (CORS + Sleeper login = user's job): open the Trade Builder from a player/pick on a signed-in league → near-fair packages, owner-willingness banner, ✓/⚠ lineup-fit notes, skip/✓-into-calculator flow.
+
+---
+
+## 2026-06-23 — Data refresh: MVS values + full ADP re-scrape (board was frozen at May 15)
+
+Pure data + factory-pipeline session — **no site-code logic change**. Refreshed market values and brought dynasty ADP genuinely current through today.
+
+### MVS / trades (`data/mvs.json`, `data/trades.json`, source CSV)
+- New `player_market_mvs_rows (4).csv` (4,090 rows, 68-col schema, header byte-identical). Ran the documented order: `sync-trades.py` (old CSV) → swap CSV → `sync-trades.py` (archive **22,871 → 29,094**, +6,223 trades) → `sync-mvs.py` (527 players / 60 picks; modeled-TEP basis intact — Metcalf SF 1886 > Pierce SF 1819; QB-SF premium live). Shipped via `push.bat` (`5af399e`).
+
+### ADP — full Sleeper re-scrape + pipeline fix
+- **Root cause found:** the live ADP board had been frozen at **May 15** even though scrapes "succeeded." `02_update_adp_snapshot` writes only the per-season `season=YYYY/` partition, but `sync-adp.py` reads the consolidated `adp_time_series_ALL.parquet` — which **nothing rebuilds** short of a full `01` re-scrape. A June-15 `02` run updated the partition but never the `_ALL`.
+- **Procedure run:** the `02` crawl (fresh `season=2026` = 429,964 rows, hit the 20k-league cap; `CURRENT_SEASON` now auto-detects — no longer hardcoded) → rebuilt `adp_time_series_ALL` + `draft_catalog_ALL` from the on-disk partitions → `sync-adp.py` in both repos.
+- **Regression caught + fixed:** `02`'s slim 15-col catalog names the status column `status`; the `01`-built 31-col catalog names it `draft_status`, and `build_week_adp` filters on `draft_status` — a naive concat left 2026 `draft_status=NaN` → **weekly ADP collapsed 22 → 0** (would break the player-card "By Week" tab). Coalesced `draft_status` from `status` in the `_ALL` rebuild.
+- **Result (main):** `byMonth` gained **2026-06**; `byWeek` back to **28 weeks** (2025-W51 → 2026-W26); heatmaps healthy; June SF board sane (Bijan 2.4 / Allen 2.7 / Bowers TE1 10.2). Shipped via `push.bat` (`7d034a1`). Standalone (Tiers) gained June too (no `byWeek` there by design — its older `sync-adp.py` has no `build_week_adp`); push its own `push.bat` to ship.
+- No Legend/FORMULAS/token changes (data + factory pipeline only). **The real refresh chain is `02` → rebuild `_ALL` (with the `draft_status` coalesce) → `sync-adp`** — running `02` + `sync-adp` alone leaves the monthly board stale. Full gotchas saved in memory `reference-fpts-adp-refresh`.
+
+---
+
 ## 2026-06-16 — Pick a league inside the Trade Calculator
 
 A user who knows which league they want to deal in can now scope the Roster Moves Trade Calculator directly — no My Leagues detour. (Roster Moves already has its own Sleeper login + `CALC_LEAGUE_DATA`/`ML_ALL_LEAGUE_DATA`; this just exposes the calc's existing scoped mode through an in-modal picker, plus a new league-only variant.)

@@ -38,6 +38,7 @@
 - [Fair offer selection + anti-lowball (Fair mode)](#fair-offer-selection--anti-lowball-fair-mode--default)
 - [Owner-willingness + startability](#owner-willingness--startability)
 - [Asset-type filter](#asset-type-filter)
+- [Trade Builder reuses the finder pipeline](#trade-builder-reuses-the-finder-pipeline)
 - [Opportunity = owner-archetype-tilted package](#opportunity--owner-archetype-tilted-package)
 
 **Player valuation (three numbers)**
@@ -218,6 +219,25 @@ pool = pool.filter(allowed);          // e.g. WR-only ⇒ no picks, no other pos
 ```
 
 A **user-controlled** pre-filter on the candidate pool — no value math, no new constants. It sits at the single chokepoint both directions route through (`mlTfPickOffers`), so it covers FOR (assets you send) and AWAY (assets you get back) with one predicate, and it never touches the startability pool (`mlTfStartThresholds` still sees the full roster). The per-year pick buttons are populated from the pick years actually held across your leagues (`mlTfAllPickYears`). A too-narrow selection shows the normal empty note plus "Try widening your asset-type filter." Empty selection = the original behavior.
+
+### Trade Builder reuses the finder pipeline
+
+`mltbBuildOffers` — `assets/js/trade-calc.js` (S35, 2026-06-29). The one-at-a-time Trade Builder pre-screener (`MLTB`, opened from a player or pick) used to call the raw engine directly — `generateTradeSuggestions(myPool, targetValue, ownerArchetype, 5)` — so it skipped every quality layer the sidebar finder gained in S28. It now routes through the finder's own exported helpers instead, producing identically-scored offers:
+
+```js
+// trade-calc.js — mltbBuildOffers(), FOR direction (you GET the target, you SEND the package):
+const TF = window.TradeFinder;
+const ctx = TF.leagueCtx(leagueId); TF.ensurePosRanks(ctx);
+const myNeed    = TF.needSet(ctx.myTeam, ctx.nTeams);
+const ownerNeed = TF.needSet(owner, ctx.nTeams);
+const offers    = TF.pickOffers(myPool, targetVal, ownerArchetype, 'for',
+                                myNeed, ownerNeed, TF.startThresholds(owner, ctx), 6);
+offers.forEach(o => o._fit = TF.lineupFit(ctx, [target], o.sugg.sending.map(a => a.name)));
+const ranked    = TF.rankByFit(offers);                       // demote lineup-downgrades
+const sell      = TF.sellHtml(TF.ownerSell(owner, ownerNeed, TF.posOf(target), ctx.nTeams), ownerName);
+```
+
+So the Builder inherits the Fair-mode build target + recip/overpay caps + anti-lowball pick-share penalty + startability discount + positional-need re-rank (§ Fair offer selection, § Owner-willingness + startability above) **and** the value-to-your-team lineup-fit lens (§ Value to this team below) — with the owner-willingness banner shown once above the card. No constants are duplicated: `pickOffers`/`lineupFit`/etc. read the same module-level knobs in `trade-finder.js`. If the finder context is unavailable (league data missing) it falls back to the raw engine, so it can never render fewer cards than before. The Builder also now values the target with the league-format `mlFpValue` (was the default-format `value`), matching the asset pool's basis so the edge math is consistent — the pick variant already did this via `mlPickValue`.
 
 ---
 

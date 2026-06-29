@@ -1,6 +1,28 @@
 {
-  "version": "2026-06-23T19:40:57.311676+00:00",
+  "version": "2026-06-29T17:47:29.287681+00:00",
   "players": {
+    "J.J. McCarthy": [
+      {
+        "title": "2026 NFL Futures: Best and Worst Record Odds",
+        "url": "https://www.fantasypoints.com/nfl/articles/nfl-futures-best-and-worst-record-odds",
+        "date": "2026-06-25T20:30:00.000Z",
+        "author": "Tom Brolley"
+      }
+    ],
+    "Saquon Barkley": [
+      {
+        "title": "Guru's Best Bets: 2026 NFL Player Futures",
+        "url": "https://www.fantasypoints.com/nfl/articles/gurus-best-bets-nfl-player-futures",
+        "date": "2026-06-18T13:00:00.000Z",
+        "author": "John Hansen"
+      },
+      {
+        "title": "2026 NFL Player Props: Rushing Yards",
+        "url": "https://www.fantasypoints.com/nfl/articles/nfl-player-props-rushing-yards",
+        "date": "2026-06-09T19:30:00.000Z",
+        "author": "Tom Brolley"
+      }
+    ],
     "Christian McCaffrey": [
       {
         "title": "Scott Fish Bowl 16 Scoring and Draft Strategy",
@@ -47,12 +69,6 @@
         "url": "https://www.fantasypoints.com/nfl/articles/nfl-player-props-passing-touchdowns",
         "date": "2026-06-05T21:00:00.000Z",
         "author": "Tom Brolley"
-      },
-      {
-        "title": "Heath's Favorite 2026 Best Ball Values",
-        "url": "https://www.fantasypoints.com/nfl/articles/heaths-favorite-best-ball-values",
-        "date": "2026-05-26T14:30:00.000Z",
-        "author": "Ryan Heath"
       }
     ],
     "Jonathan Taylor": [
@@ -197,12 +213,6 @@
         "url": "https://www.fantasypoints.com/nfl/articles/nfl-player-props-receiving-yards",
         "date": "2026-06-16T21:00:00.000Z",
         "author": "Tom Brolley"
-      },
-      {
-        "title": "Heath's Favorite 2026 Best Ball Values",
-        "url": "https://www.fantasypoints.com/nfl/articles/heaths-favorite-best-ball-values",
-        "date": "2026-05-26T14:30:00.000Z",
-        "author": "Ryan Heath"
       }
     ],
     "Khalil Shakir": [
@@ -251,12 +261,6 @@
         "url": "https://www.fantasypoints.com/nfl/articles/nfl-player-props-receiving-yards",
         "date": "2026-06-16T21:00:00.000Z",
         "author": "Tom Brolley"
-      },
-      {
-        "title": "Heath's Favorite 2026 Best Ball Values",
-        "url": "https://www.fantasypoints.com/nfl/articles/heaths-favorite-best-ball-values",
-        "date": "2026-05-26T14:30:00.000Z",
-        "author": "Ryan Heath"
       }
     ],
     "Puka Nacua": [
@@ -264,26 +268,6 @@
         "title": "2026 NFL Player Props: Receiving Yards",
         "url": "https://www.fantasypoints.com/nfl/articles/nfl-player-props-receiving-yards",
         "date": "2026-06-16T21:00:00.000Z",
-        "author": "Tom Brolley"
-      },
-      {
-        "title": "Heath's Favorite 2026 Best Ball Values",
-        "url": "https://www.fantasypoints.com/nfl/articles/heaths-favorite-best-ball-values",
-        "date": "2026-05-26T14:30:00.000Z",
-        "author": "Ryan Heath"
-      }
-    ],
-    "Saquon Barkley": [
-      {
-        "title": "Guru's Best Bets: 2026 NFL Player Futures",
-        "url": "https://www.fantasypoints.com/nfl/articles/gurus-best-bets-nfl-player-futures",
-        "date": "2026-06-18T13:00:00.000Z",
-        "author": "John Hansen"
-      },
-      {
-        "title": "2026 NFL Player Props: Rushing Yards",
-        "url": "https://www.fantasypoints.com/nfl/articles/nfl-player-props-rushing-yards",
-        "date": "2026-06-09T19:30:00.000Z",
         "author": "Tom Brolley"
       }
     ],
@@ -467,12 +451,6 @@
         "url": "https://www.fantasypoints.com/nfl/articles/nfl-player-props-passing-yards",
         "date": "2026-06-03T22:00:00.000Z",
         "author": "Tom Brolley"
-      },
-      {
-        "title": "Heath's Favorite 2026 Best Ball Values",
-        "url": "https://www.fantasypoints.com/nfl/articles/heaths-favorite-best-ball-values",
-        "date": "2026-05-26T14:30:00.000Z",
-        "author": "Ryan Heath"
       }
     ],
     "Carson Wentz": [
@@ -527,12 +505,6 @@
         "url": "https://www.fantasypoints.com/nfl/articles/fantasy-fallout-aj-brown-traded-to-patriots",
         "date": "2026-06-03T19:30:00.000Z",
         "author": "Graham Barfield"
-      },
-      {
-        "title": "Heath's Favorite 2026 Best Ball Values",
-        "url": "https://www.fantasypoints.com/nfl/articles/heaths-favorite-best-ball-values",
-        "date": "2026-05-26T14:30:00.000Z",
-        "author": "Ryan Heath"
       }
     ],
     "Jaxson Dart": [
@@ -547,12 +519,6 @@
         "url": "https://www.fantasypoints.com/nfl/articles/nfl-player-props-passing-yards",
         "date": "2026-06-03T22:00:00.000Z",
         "author": "Tom Brolley"
-      },
-      {
-        "title": "Heath's Favorite 2026 Best Ball Values",
-        "url": "https://www.fantasypoints.com/nfl/articles/heaths-favorite-best-ball-values",
-        "date": "2026-05-26T14:30:00.000Z",
-        "author": "Ryan Heath"
       }
     ],
     "Sam Darnold": [
@@ -569,12 +535,6 @@
         "url": "https://www.fantasypoints.com/nfl/articles/fantasy-football-qb-stats-what-matters",
         "date": "2026-06-09T20:00:00.000Z",
         "author": "Ryan Heath"
-      },
-      {
-        "title": "Heath's Favorite 2026 Best Ball Values",
-        "url": "https://www.fantasypoints.com/nfl/articles/heaths-favorite-best-ball-values",
-        "date": "2026-05-26T14:30:00.000Z",
-        "author": "Ryan Heath"
       }
     ],
     "Josh Allen": [
@@ -582,12 +542,6 @@
         "title": "2026 Fantasy Football QB Stats: What Matters",
         "url": "https://www.fantasypoints.com/nfl/articles/fantasy-football-qb-stats-what-matters",
         "date": "2026-06-09T20:00:00.000Z",
-        "author": "Ryan Heath"
-      },
-      {
-        "title": "Heath's Favorite 2026 Best Ball Values",
-        "url": "https://www.fantasypoints.com/nfl/articles/heaths-favorite-best-ball-values",
-        "date": "2026-05-26T14:30:00.000Z",
         "author": "Ryan Heath"
       }
     ],
@@ -645,118 +599,6 @@
         "url": "https://www.fantasypoints.com/nfl/articles/nfl-player-props-passing-touchdowns",
         "date": "2026-06-05T21:00:00.000Z",
         "author": "Tom Brolley"
-      }
-    ],
-    "Jacory Croskey-Merritt": [
-      {
-        "title": "Heath's Favorite 2026 Best Ball Values",
-        "url": "https://www.fantasypoints.com/nfl/articles/heaths-favorite-best-ball-values",
-        "date": "2026-05-26T14:30:00.000Z",
-        "author": "Ryan Heath"
-      }
-    ],
-    "Javonte Williams": [
-      {
-        "title": "Heath's Favorite 2026 Best Ball Values",
-        "url": "https://www.fantasypoints.com/nfl/articles/heaths-favorite-best-ball-values",
-        "date": "2026-05-26T14:30:00.000Z",
-        "author": "Ryan Heath"
-      }
-    ],
-    "Quentin Johnston": [
-      {
-        "title": "Heath's Favorite 2026 Best Ball Values",
-        "url": "https://www.fantasypoints.com/nfl/articles/heaths-favorite-best-ball-values",
-        "date": "2026-05-26T14:30:00.000Z",
-        "author": "Ryan Heath"
-      }
-    ],
-    "Chris Rodriguez": [
-      {
-        "title": "Heath's Favorite 2026 Best Ball Values",
-        "url": "https://www.fantasypoints.com/nfl/articles/heaths-favorite-best-ball-values",
-        "date": "2026-05-26T14:30:00.000Z",
-        "author": "Ryan Heath"
-      }
-    ],
-    "Trevor Lawrence": [
-      {
-        "title": "Heath's Favorite 2026 Best Ball Values",
-        "url": "https://www.fantasypoints.com/nfl/articles/heaths-favorite-best-ball-values",
-        "date": "2026-05-26T14:30:00.000Z",
-        "author": "Ryan Heath"
-      }
-    ],
-    "Brian Robinson": [
-      {
-        "title": "Heath's Favorite 2026 Best Ball Values",
-        "url": "https://www.fantasypoints.com/nfl/articles/heaths-favorite-best-ball-values",
-        "date": "2026-05-26T14:30:00.000Z",
-        "author": "Ryan Heath"
-      }
-    ],
-    "Dallas Goedert": [
-      {
-        "title": "Heath's Favorite 2026 Best Ball Values",
-        "url": "https://www.fantasypoints.com/nfl/articles/heaths-favorite-best-ball-values",
-        "date": "2026-05-26T14:30:00.000Z",
-        "author": "Ryan Heath"
-      }
-    ],
-    "Jaylen Warren": [
-      {
-        "title": "Heath's Favorite 2026 Best Ball Values",
-        "url": "https://www.fantasypoints.com/nfl/articles/heaths-favorite-best-ball-values",
-        "date": "2026-05-26T14:30:00.000Z",
-        "author": "Ryan Heath"
-      }
-    ],
-    "Bucky Irving": [
-      {
-        "title": "Heath's Favorite 2026 Best Ball Values",
-        "url": "https://www.fantasypoints.com/nfl/articles/heaths-favorite-best-ball-values",
-        "date": "2026-05-26T14:30:00.000Z",
-        "author": "Ryan Heath"
-      }
-    ],
-    "Tony Pollard": [
-      {
-        "title": "Heath's Favorite 2026 Best Ball Values",
-        "url": "https://www.fantasypoints.com/nfl/articles/heaths-favorite-best-ball-values",
-        "date": "2026-05-26T14:30:00.000Z",
-        "author": "Ryan Heath"
-      }
-    ],
-    "Chris Olave": [
-      {
-        "title": "Heath's Favorite 2026 Best Ball Values",
-        "url": "https://www.fantasypoints.com/nfl/articles/heaths-favorite-best-ball-values",
-        "date": "2026-05-26T14:30:00.000Z",
-        "author": "Ryan Heath"
-      }
-    ],
-    "Eli Stowers": [
-      {
-        "title": "Heath's Favorite 2026 Best Ball Values",
-        "url": "https://www.fantasypoints.com/nfl/articles/heaths-favorite-best-ball-values",
-        "date": "2026-05-26T14:30:00.000Z",
-        "author": "Ryan Heath"
-      }
-    ],
-    "Sean Tucker": [
-      {
-        "title": "Heath's Favorite 2026 Best Ball Values",
-        "url": "https://www.fantasypoints.com/nfl/articles/heaths-favorite-best-ball-values",
-        "date": "2026-05-26T14:30:00.000Z",
-        "author": "Ryan Heath"
-      }
-    ],
-    "Joe Burrow": [
-      {
-        "title": "Heath's Favorite 2026 Best Ball Values",
-        "url": "https://www.fantasypoints.com/nfl/articles/heaths-favorite-best-ball-values",
-        "date": "2026-05-26T14:30:00.000Z",
-        "author": "Ryan Heath"
       }
     ]
   }

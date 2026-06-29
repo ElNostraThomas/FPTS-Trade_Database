@@ -14,6 +14,47 @@ This file is the **resume-where-we-left-off** doc.
 
 ---
 
+## Where we are (2026-06-29 — thirty-third session) — Smarter Trade Builder suggestions (calc-side quality port)
+
+Closed punch-list **#2** (calc-side suggestion quality — the biggest deferred item). The one-at-a-time **Trade Builder** pre-screener (`MLTB`, opened from a player/pick on My Leagues + Roster Moves) now generates suggestions through the **same quality pipeline as the sidebar Trade Finder**, not the raw value-matched engine.
+
+- **`assets/js/trade-finder.js`** (additive, behavior unchanged): `mlTfPickOffers` gained an optional `n`; exposed `pickOffers` / `startThresholds` / `ownerSell` / `sellHtml` / `lineupFit` / `rankByFit` on `window.TradeFinder`.
+- **`assets/js/trade-calc.js`**: new `mltbBuildOffers()` routes the Builder through those helpers — Fair-mode build target + recip/overpay caps + anti-lowball + startability + positional-need + the value-to-your-team **lineup-fit** lens, with the **owner-willingness banner** above the card; raw-engine fallback if league context is missing. Also valued the target in the **league format** (`mlFpValue`) so the edge math matches the asset pool.
+- No new constants (reuses the finder's knobs); no data touched. Docs: Legend "Smarter Suggestions" item, `FORMULAS.md` "Trade Builder reuses the finder pipeline" + TOC, `formulas-content.js` public node **S35**, `docs/CHANGES.md`. Tokens → `trade-finder.js`/`trade-calc.js`/`legend-content.js`/`formulas-content.js` = `1800100000`.
+- Headless-validated: check-colors CLEAN (49); both modules net-balanced vs HEAD (0,0,0); all consumed `TradeFinder.*` helpers resolve. **NOT browser-verified** (CORS + Sleeper login = user's job): open the Trade Builder on a signed-in league → near-fair packages, owner banner, ✓/⚠ lineup notes, skip / ✓-into-calculator flow.
+
+**▶ NEXT SESSION — remaining punch list** (full version in `~/.claude/plans/put-all-of-those-flickering-music.md` Part B). No bug report in hand → ASK the user which to take, don't fabricate:
+1. **De-dupe charts** — `compare.html` `_pcChart`/`_pcChartStats` → shared `window.TrendChart`.
+3. **Finder variety guard** — de-dup by anchor asset in the finder's own ≤3-offer list.
+4. **Label rookies "via rookie draft"** — instead of hiding them from Best Available / waivers. *(quick win)*
+5. **`docs/function-reference.html` pass** — site-map cards + `waiver-wire.js` / `trade-history.js` entries; regen PDF.
+6. **Slim the My Leagues sidebar Waivers tab.** *(quick win)*
+7. **League-market calibration** (Trade Finder "C") — **DATA-BLOCKED**.
+8. **Constant tuning** — `trade-finder.js` / `valuation-core.js` knobs; **reactive** (needs a tester report). *Now that the Builder shares the finder's pipeline, a single tweak to those constants moves both surfaces.*
+
+---
+
+## Where we are (2026-06-23 — thirty-second session) — Data refresh (MVS + full ADP re-scrape) → next: punch list
+
+Pure data / factory-pipeline session, **no site-code change**.
+
+- **MVS:** new market CSV → `sync-trades.py` / `sync-mvs.py` (trades archive **22,871 → 29,094**; 527 players / 60 picks; modeled-TEP intact, Metcalf SF 1886 > Pierce) → shipped `5af399e`.
+- **ADP:** found the live board had been frozen at **May 15** — `02_update_adp_snapshot` writes only the per-season partition, but `sync-adp.py` reads the consolidated `adp_time_series_ALL.parquet`, which only a full `01` re-scrape rebuilds. Ran the `02` crawl (fresh 2026 = 429,964 rows; `CURRENT_SEASON` auto-detects now), rebuilt the `_ALL` files from on-disk partitions, re-synced both repos. Fixed a schema-mismatch regression (`02` ships `status`, `01`/`sync-adp` expect `draft_status` → weekly collapsed **22 → 0**; coalesced it). Main now has **June + 28 weekly buckets** → shipped `7d034a1`. Standalone gained June (push its own `push.bat`). Pipeline gotchas saved in memory `reference-fpts-adp-refresh`; the real refresh chain is **`02` → rebuild `_ALL` (with `draft_status` coalesce) → `sync-adp`**.
+
+**▶ NEXT SESSION — start from the standing punch list** (full version in `~/.claude/plans/put-all-of-those-flickering-music.md` Part B; #1 True Weekly ADP already shipped):
+1. **De-dupe charts** — `compare.html` `_pcChart`/`_pcChartStats` → delegate to shared `window.TrendChart`; move `.pc-chart*` CSS into the shared file.
+2. **Calc-side suggestion quality** — port Fair-mode / startability / owner-willingness from the Trade Finder into `trade-calc.js` `openTradeSuggestModal`. *(biggest win)*
+3. **Finder variety guard** — de-dup by anchor asset in the finder's own ≤3-offer list.
+4. **Label rookies "via rookie draft"** — instead of hiding them from Best Available / waivers. *(quick win)*
+5. **`docs/function-reference.html` pass** — add site-map cards + `waiver-wire.js` / `trade-history.js` entries; regen PDF via `make-pdf.ps1`.
+6. **Slim the My Leagues sidebar Waivers tab** — overlaps each league's Best Available sub-tab. *(quick win)*
+7. **League-market calibration** (Trade Finder "C") — **DATA-BLOCKED** (needs league-wide txns).
+8. **Constant tuning** — `trade-finder.js` / `valuation-core.js` knobs; **reactive** (needs a tester report to aim at).
+
+Suggested lead-offs: **#4** or **#6** (quick, low-risk) or **#2** (the substantive calculator improvement).
+
+---
+
 ## Where we are (2026-06-16 — thirty-first session) — Pick a league inside the Trade Calculator
 
 On Roster Moves, you can now **scope the Trade Calculator to a league directly** (no My Leagues detour). The page already had its own Sleeper login + `CALC_LEAGUE_DATA`/`ML_ALL_LEAGUE_DATA`; this exposes the calc's existing scoped mode via an in-modal picker + adds a league-only variant.

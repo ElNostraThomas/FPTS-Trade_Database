@@ -747,7 +747,8 @@ function mlTfProposalHtml(reg){
 // + neutral "value" candidates (the value fallback fills in when archetype-fit is
 // thin), dedupe by package, order by favor, then spread the picks across the
 // range so you see a high / mid / fair option — not three near-identical packages.
-function mlTfPickOffers(pool, anchorVal, archetype, dir, myNeed, ownerNeed, startThresh){
+function mlTfPickOffers(pool, anchorVal, archetype, dir, myNeed, ownerNeed, startThresh, n){
+  n = n || 3;   // how many distinct offers to surface (finder = 3; the calc Trade Builder asks for more)
   // Asset-type filter: restrict the package to the user's selected types (strict; the
   // single chokepoint both FOR and AWAY route through, so one filter covers both).
   pool = (pool || []).filter(mlTfAssetAllowed);
@@ -815,12 +816,12 @@ function mlTfPickOffers(pool, anchorVal, archetype, dir, myNeed, ownerNeed, star
     if (list.length < 3) list = uniq.filter(c => c.edge <= ML_TF_RECIP_CAP);
     if (!list.length)    list = uniq.slice();   // nothing fair exists → show the least-lopsided
     list.sort((a,b) => (Math.abs(a.edge) - Math.abs(b.edge)) || (b.quality - a.quality));
-    return list.slice(0, 3).map(c => ({ sugg:c, mode:c.mode }));
+    return list.slice(0, n).map(c => ({ sugg:c, mode:c.mode }));
   }
   let list = uniq.filter(c => c.edge >= -0.15);     // aggressive: keep it realistic (no wild overpays)
   if (list.length < 3) list = uniq.slice();
   list.sort((a,b) => (b.edge - a.edge) || (b.quality - a.quality));
-  return mlTfSpread(list, 3).map(c => ({ sugg:c, mode:c.mode }));
+  return mlTfSpread(list, n).map(c => ({ sugg:c, mode:c.mode }));
 }
 
 // Pick up to n items spread across a sorted list so the result spans the range.
@@ -1036,6 +1037,15 @@ function mlEnsureFinder(){
     ensurePosRanks: mlTfEnsurePosRanks,
     needSet: mlTfNeedSet,
     posOf: mlTfPosOf,
+    // suggestion-quality pipeline the Trade Builder reuses so the calc suggests
+    // through the SAME heuristics as the sidebar finder (fair-mode build target +
+    // recip/overpay caps + anti-lowball + startability + need-fit + lineup-fit).
+    pickOffers: mlTfPickOffers,
+    startThresholds: mlTfStartThresholds,
+    ownerSell: mlTfOwnerSell,
+    sellHtml: mlTfSellHtml,
+    lineupFit: mlTfLineupFit,
+    rankByFit: mlTfRankByFit,
     resetCache: function () { mlTfCtxCache = {}; },
     reset: function () { mlTfState = { targets:[], managers:[], archetypes:[], dir:'for', assetPos:[], assetPickYears:[] }; mlTfCtxCache = {}; mlTfRegistry = {}; mlTfEditRegistry = {}; }
   };

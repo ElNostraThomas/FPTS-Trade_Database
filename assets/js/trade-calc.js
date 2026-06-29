@@ -45,6 +45,7 @@ const MLTB = {
   myAssetPool: [],
   ownerAssetPool: [],
   templates: [],
+  sell: '',             // owner-willingness banner HTML (from the finder's ownerSell signal)
   currentIdx: 0,        // index into templates currently being shown
   reviewedAll: false,   // true after user has X'd through everything
 };
@@ -64,7 +65,10 @@ function openTradeSuggestModal(sleeperId, leagueId) {
   const lp = lgPlayers[sid];
   const targetName = lp ? (lp.full_name || `${lp.first_name || ''} ${lp.last_name || ''}`.trim()) : 'Unknown Player';
   const targetKtc = mlGetValueByName(targetName) || {};
-  const targetValue = targetKtc.value || 0;
+  // Value the target in THIS league's format (SF vs 1QB, TEP) so the edge math is on
+  // the same basis as the asset pool (mlBuildAssetPool is league-format). The pick
+  // variant already uses the league-format mlPickValue; this aligns the player path.
+  const targetValue = mlFpValue(targetKtc, leagueId) || 0;
   const targetPos = lp ? lp.position : (targetKtc.posRank ? targetKtc.posRank.replace(/\d+/g, '') : '');
 
   // League name + owner info
@@ -98,9 +102,11 @@ function openTradeSuggestModal(sleeperId, leagueId) {
   MLTB.leagueName = leagueName;
   MLTB.myAssetPool = mlBuildAssetPool(leagueId, myRosterId);
   MLTB.ownerAssetPool = owningRoster ? mlBuildAssetPool(leagueId, owningRoster.roster_id) : [];
-  MLTB.templates = (targetValue && owningRoster && String(owningRoster.roster_id) !== String(myRosterId))
-    ? mlGenerateTradeSuggestions(MLTB.myAssetPool, targetValue, archetype, 5)
-    : [];
+  const _built = (targetValue && owningRoster && String(owningRoster.roster_id) !== String(myRosterId))
+    ? mltbBuildOffers()
+    : { templates: [], sell: '' };
+  MLTB.templates = _built.templates;
+  MLTB.sell = _built.sell;
   MLTB.currentIdx = 0;
   MLTB.reviewedAll = false;
 
@@ -159,15 +165,77 @@ function openTradeSuggestModalForPick(season, round, leagueId, ownerRosterId) {
   MLTB.leagueName = leagueName;
   MLTB.myAssetPool = mlBuildAssetPool(leagueId, myRosterId);
   MLTB.ownerAssetPool = owningRoster ? mlBuildAssetPool(leagueId, owningRoster.roster_id) : [];
-  MLTB.templates = (targetValue && owningRoster && String(owningRoster.roster_id) !== String(myRosterId))
-    ? mlGenerateTradeSuggestions(MLTB.myAssetPool, targetValue, archetype, 5)
-    : [];
+  const _built = (targetValue && owningRoster && String(owningRoster.roster_id) !== String(myRosterId))
+    ? mltbBuildOffers()
+    : { templates: [], sell: '' };
+  MLTB.templates = _built.templates;
+  MLTB.sell = _built.sell;
   MLTB.currentIdx = 0;
   MLTB.reviewedAll = false;
 
   document.getElementById('ml-ts-title').textContent = `Trade Builder — ${targetName}`;
   mltbRender();
   document.getElementById('ml-ts-backdrop').classList.add('open');
+}
+
+// Build the Trade-Builder's suggested packages through the SAME quality pipeline the
+// sidebar Trade Finder uses, instead of the raw value-matched engine output. Layers
+// fair-mode build target + recip/overpay caps + anti-lowball pick-share + startability
+// + positional-need re-rank + the value-to-YOUR-team lineup-fit lens, and surfaces the
+// owner-willingness banner. Reads MLTB state (must be populated first). Falls back to
+// the raw engine whenever the finder context isn't available (e.g. league data missing).
+// Returns { templates, sell } — sell is owner-willingness banner HTML ('' = neutral).
+function mltbBuildOffers() {
+  const tp = MLTB.targetPlayer;
+  const raw = () => ({
+    templates: mlGenerateTradeSuggestions(MLTB.myAssetPool, (tp && tp.value) || 0, MLTB.archetype, 5),
+    sell: ''
+  });
+  if (!tp || !tp.value || MLTB.ownerRosterId == null) return raw();
+  const TF = window.TradeFinder;
+  if (!TF || typeof TF.pickOffers !== 'function') return raw();
+  let ctx = null;
+  try { ctx = TF.leagueCtx(MLTB.leagueId); } catch (e) {}
+  if (!ctx || !ctx.myTeam) return raw();
+  try {
+    TF.ensurePosRanks(ctx);
+    const nT = ctx.nTeams;
+    const owner = ctx.teamById[MLTB.ownerRosterId];
+    const myNeed = TF.needSet(ctx.myTeam, nT);
+    const ownerNeed = owner ? TF.needSet(owner, nT) : null;
+    const startThresh = (owner && TF.startThresholds) ? TF.startThresholds(owner, ctx) : null;
+    const pool = (MLTB.myAssetPool && MLTB.myAssetPool.length)
+      ? MLTB.myAssetPool : mlBuildAssetPool(MLTB.leagueId, MLTB.myRosterId);
+    // FOR direction: you GET the target, you SEND the package (same as the finder's FOR branch).
+    const offers = TF.pickOffers(pool, tp.value, MLTB.archetype, 'for', myNeed, ownerNeed, startThresh, 6);
+    if (!offers.length) return { templates: [], sell: '' };
+    // value-to-YOUR-team lens: demote offers that downgrade your starting lineup.
+    offers.forEach(o => {
+      o._fit = TF.lineupFit ? TF.lineupFit(ctx, [tp.name], (o.sugg.sending || []).map(a => a.name)) : null;
+    });
+    const ranked = TF.rankByFit ? TF.rankByFit(offers) : offers;
+    const tPos = TF.posOf(tp.name);
+    const sell = (owner && TF.sellHtml && TF.ownerSell)
+      ? TF.sellHtml(TF.ownerSell(owner, ownerNeed, tPos, nT), MLTB.ownerName || owner.ownerUser)
+      : '';
+    // Shape into the template objects mltbRender / mltbFinderCard / mltbAccept consume,
+    // carrying the precomputed mode + lineup-fit so the card renders the same signals.
+    const templates = ranked.map(o => {
+      const s = o.sugg;
+      return {
+        label: s.label || (o.mode === 'value' ? 'VALUE MATCH' : 'BEST FIT'),
+        sending: s.sending,
+        totalSent: s.totalSent,
+        edge: s.edge,
+        fitNote: s.fitNote,
+        _mode: o.mode,
+        _fit: o._fit
+      };
+    });
+    return { templates, sell };
+  } catch (e) {
+    return raw();
+  }
 }
 
 // Render the current state of the suggestion pre-screener
@@ -245,7 +313,7 @@ function mltbRender() {
   // Build payload for the ✓ handler (encoded so we can stuff it in onclick)
   const acceptPayload = encodeURIComponent(JSON.stringify({ idx: currentIdx }));
 
-  body.innerHTML = headerStrip + `
+  body.innerHTML = headerStrip + (MLTB.sell || '') + `
     <div class="ml-tb-card">
       <div class="ml-row-between">
         <span class="ml-section-head">Suggestion ${counterPos} — ${t.label}</span>
@@ -291,6 +359,9 @@ function mltbFinderCard(t){
       };
     }
   } catch (e) {}
+  // Carry the precomputed value-to-YOUR-team lineup-fit (set by mltbBuildOffers) so the
+  // card shows the same ✓/⚠ lineup note as the sidebar finder, even if the ctx lookup above failed.
+  if (t._fit) { need = need || {}; need.lineup = t._fit; }
   let fmtLabel = '';
   try {
     const fmtKey = mlValueKey(MLTB.leagueId);
@@ -305,7 +376,7 @@ function mltbFinderCard(t){
     target: tp.name,
     anchorVal: tv,
     sugg: { sending: t.sending, edge },
-    mode: 'fit',
+    mode: t._mode || 'fit',
     need
   });
 }
