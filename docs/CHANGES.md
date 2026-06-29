@@ -6,6 +6,16 @@ the operator manual see [`WORKFLOW.md`](WORKFLOW.md).
 
 ---
 
+## 2026-06-29 — Rookies labeled "via rookie draft" (instead of hidden)
+
+Punch-list item #4. Incoming rookies (no current and no prior NFL production, age ≤ 24) were **hidden** from the Waiver Wire "Most Valuable Available" board (`assets/js/waiver-wire.js` `_bestAvailable`) and each league's Best Available sub-tab (`my-leagues.html` `renderWaiversBestAvailable`), since they can't be waiver-claimed. They're now **shown but tagged "via rookie draft"** — a valuable incoming rookie appears where you'd expect, with a one-glance reminder he arrives through the rookie draft, not waivers. Self-clears once he plays (the `ppg`/`ppgPrior`/age signal flips).
+
+- `waiver-wire.js`: `_bestAvailable` keeps the rookie (sets `rookie` flag) instead of `return`-ing; new `_rookieTag()` renders in place of the free-count tag. New `.tc-wv-tag.rookie` (`assets/css/waiver-wire.css`, `var(--pos-pick)` — the draft-pick color).
+- `my-leagues.html`: same flag in `renderWaiversBestAvailable`; the label nests **inside** the name cell (`.mlr-rookie-tag`) so it never adds a 6th grid column (the `.ml-team-roster-row` grid is fixed at 5 — same lesson as the headshot scramble fix).
+- Tokens → `waiver-wire.js`/`waiver-wire.css` `1800200000`. Public timeline node **S36**; `formulas-content.js` → `1800200000`. Label change (no scoring) ⇒ no Legend/FORMULAS card, consistent with the other waiver-board UX nodes. check-colors CLEAN (49); balance OK. **Not browser-verified** (CORS + login = user): open the Waiver board / a league's Best Available → top incoming rookies show with the "via rookie draft" tag; a played player is untagged.
+
+---
+
 ## 2026-06-29 — Smarter Trade Builder suggestions (calc-side quality port)
 
 The one-at-a-time **Trade Builder** pre-screener (`MLTB`, opened from a player or pick on My Leagues + Roster Moves) now generates its suggested packages through the **same quality pipeline as the sidebar Trade Finder**, instead of the raw value-matched engine output it called before. Closes punch-list item #3 (calc-side suggestion quality port).

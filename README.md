@@ -23,10 +23,11 @@ Closed punch-list **#2** (calc-side suggestion quality — the biggest deferred 
 - No new constants (reuses the finder's knobs); no data touched. Docs: Legend "Smarter Suggestions" item, `FORMULAS.md` "Trade Builder reuses the finder pipeline" + TOC, `formulas-content.js` public node **S35**, `docs/CHANGES.md`. Tokens → `trade-finder.js`/`trade-calc.js`/`legend-content.js`/`formulas-content.js` = `1800100000`.
 - Headless-validated: check-colors CLEAN (49); both modules net-balanced vs HEAD (0,0,0); all consumed `TradeFinder.*` helpers resolve. **NOT browser-verified** (CORS + Sleeper login = user's job): open the Trade Builder on a signed-in league → near-fair packages, owner banner, ✓/⚠ lineup notes, skip / ✓-into-calculator flow.
 
+Also closed **#4 (label rookies "via rookie draft")** this session: incoming rookies are no longer hidden from the Waiver "Most Valuable Available" board (`waiver-wire.js` `_bestAvailable`) + each league's Best Available (`renderWaiversBestAvailable`) — they show with a `var(--pos-pick)` "via rookie draft" tag (nested inside the name cell on the fixed 5-col roster grid). Tokens `waiver-wire.js`/`.css` = `1800200000`; public node **S36**; `formulas-content.js` = `1800200000`. Label-only ⇒ no Legend/FORMULAS card (matches the other waiver UX nodes).
+
 **▶ NEXT SESSION — remaining punch list** (full version in `~/.claude/plans/put-all-of-those-flickering-music.md` Part B). No bug report in hand → ASK the user which to take, don't fabricate:
 1. **De-dupe charts** — `compare.html` `_pcChart`/`_pcChartStats` → shared `window.TrendChart`.
 3. **Finder variety guard** — de-dup by anchor asset in the finder's own ≤3-offer list.
-4. **Label rookies "via rookie draft"** — instead of hiding them from Best Available / waivers. *(quick win)*
 5. **`docs/function-reference.html` pass** — site-map cards + `waiver-wire.js` / `trade-history.js` entries; regen PDF.
 6. **Slim the My Leagues sidebar Waivers tab.** *(quick win)*
 7. **League-market calibration** (Trade Finder "C") — **DATA-BLOCKED**.

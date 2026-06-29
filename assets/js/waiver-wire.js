@@ -212,12 +212,12 @@
     var sets = leagues.map(function (l) { return _rosteredSet(l.id); }), nLg = leagues.length, out = [];
     Object.keys(fp).forEach(function (name) {
       var k = fp[name]; if (!k) return;
-      if (_isIncomingRookie(k)) return;   // not a waiver claim — comes via the rookie draft
+      var rookie = _isIncomingRookie(k);  // not a waiver claim — comes via the rookie draft; LABELED below, not hidden
       var sid = k.sleeperId || ids[name]; if (!sid) return; sid = String(sid);
       var v = k.value || 0; if (v <= 0) return;
       var freeN = 0; for (var i = 0; i < nLg; i++) { if (!sets[i][sid]) freeN++; }
       if (!freeN) return;                 // rostered in every league → not available anywhere
-      out.push({ sid: sid, name: name, pos: k.pos || (k.posRank || '').replace(/[0-9]+$/, '') || 'WR', team: k.team || '', value: v, posRank: k.posRank || '', freeN: freeN, totalLg: nLg });
+      out.push({ sid: sid, name: name, pos: k.pos || (k.posRank || '').replace(/[0-9]+$/, '') || 'WR', team: k.team || '', value: v, posRank: k.posRank || '', freeN: freeN, totalLg: nLg, rookie: rookie });
     });
     out.sort(function (a, b) { return b.value - a.value; });
     return out.slice(0, 30);
@@ -234,13 +234,18 @@
   function _freeTag(p) {
     return p.freeN ? '<span class="tc-wv-tag free" title="Free agent in ' + p.freeN + ' of ' + p.totalLg + ' of your leagues">' + p.freeN + ' lg</span>' : '';
   }
+  // An incoming rookie shows up "free" everywhere, but you can't waiver-claim him — he's
+  // acquired through the league's rookie draft. Label it instead of the free-count tag.
+  function _rookieTag() {
+    return '<span class="tc-wv-tag rookie" title="Not a waiver claim — this rookie is acquired through your league\'s rookie draft">rookie draft</span>';
+  }
   function _valueRow(p) {
     var pos = p.pos || 'WR';
     return '<div class="tc-wv-trend-item"><div class="tc-wv-trend-row" data-name="' + esc(p.name) + '" onclick="WaiverWire.toggleRow(this)">' +
       thumbBySid(p.sid) +
       '<span class="ml-calc-asset-pos pos-' + pos.toLowerCase() + '">' + esc(pos) + '</span>' +
       '<span class="tc-wv-trend-id"><span class="tc-wv-trend-name">' + esc(p.name) + '</span>' + teamLogo(p.team, 'tc-wv-team--sm') + '</span>' +
-      _freeTag(p) +
+      (p.rookie ? _rookieTag() : _freeTag(p)) +
       '<span class="tc-wv-trend-val">' + (p.value || 0).toLocaleString() + '</span>' +
       '<span class="tc-wv-caret">▾</span></div><div class="tc-wv-row-exp" hidden></div></div>';
   }

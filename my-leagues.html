@@ -2557,6 +2557,7 @@
   .ml-team-roster-row .mlr-name-wrap { min-width:0; }
   .ml-team-roster-row .ml-team-roster-name { display:flex; align-items:center; gap:6px; font-family:'Mulish',sans-serif; font-size:12px; color:var(--white); font-weight:700; }
   .ml-team-roster-row .mlr-name { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; }
+  .ml-team-roster-row .mlr-rookie-tag { font-family:'Mulish',sans-serif; font-size:9px; font-style:italic; color:var(--pos-pick); margin-top:1px; }
   .ml-team-roster-row .mlr-team { font-family:'Mulish',sans-serif; font-size:9px; color:var(--muted); font-weight:700; }
   .ml-team-roster-row .mlr-age, .ml-team-roster-row .mlr-posr { font-family:'Mulish',sans-serif; font-size:10px; color:var(--muted); text-align:center; }
   .ml-team-roster-row .mlr-val { font-family:'Mulish',sans-serif; font-size:11px; color:var(--white); font-weight:700; text-align:right; }
@@ -2618,7 +2619,7 @@
      previously carried a byte-identical inline copy of these 132 rules; both pages now load this
      one file. (.ml-pd-* base + page-unique rules remain inline; only the shared rules moved.) -->
 <link rel="stylesheet" href="assets/css/trade-calc.css?v=1800000000">
-<link rel="stylesheet" href="assets/css/waiver-wire.css?v=1799500000">
+<link rel="stylesheet" href="assets/css/waiver-wire.css?v=1800200000">
 <link rel="stylesheet" href="assets/css/trade-history.css?v=1798500000">
 <script>window.FPTS_CURRENT_PAGE = 'ml';</script>
 <!-- Shared data layer: fetches data/*.json, populates FP_VALUES / PICK_VALUES /
@@ -2639,7 +2640,7 @@
 <!-- Trade Calculator + Builder (window.TradeCalc) — depends on LC + TradeFinder; init'd by the page. -->
 <script src="assets/js/trade-calc.js?v=1800100000"></script>
 <!-- Cross-league Waiver Wire (window.WaiverWire) — reads ML_ALL_LEAGUE_DATA + FP_VALUES. -->
-<script src="assets/js/waiver-wire.js?v=1799500000"></script>
+<script src="assets/js/waiver-wire.js?v=1800200000"></script>
 <!-- Trade History Search (window.TradeHistory) — reuses the cross-league ML_MY_TRADES pool. -->
 <script src="assets/js/trade-history.js?v=1799300000"></script>
 <!-- Liquidity calibration (window.ValuationCalibrate) — replays the user's trades to fit scarcity→price; reuses TradeHistory + ML_TXN_LOG. -->
@@ -6698,15 +6699,16 @@ function renderWaiversBestAvailable(el, leagueId) {
   const rows = [];
   Object.keys(fp).forEach(name => {
     const k = fp[name];
-    // Skip INCOMING rookies (no current or prior NFL production, young) — in dynasty
-    // they arrive via the rookie draft, not waivers, so they aren't claimable FAs.
-    if (k && !(+k.ppg > 0) && !(+k.ppgPrior > 0) && (k.age == null || +k.age <= 24)) return;
+    if (!k) return;
+    // INCOMING rookies (no current or prior NFL production, young) arrive via the rookie
+    // draft, not waivers — LABEL them "via rookie draft" rather than hiding them.
+    const rookie = !(+k.ppg > 0) && !(+k.ppgPrior > 0) && (k.age == null || +k.age <= 24);
     const sid = k.sleeperId || (window.SLEEPER_IDS || {})[name];
     if (!sid || rostered.has(String(sid))) return;
     const v = mlFpValue(k, leagueId);
     if (!v || v <= 0) return;
     rows.push({ sid: String(sid), name, pos: k.pos || (k.posRank || '').replace(/[0-9]+$/, '') || 'WR',
-      posRank: k.posRank || '', age: k.age || null, value: v });
+      posRank: k.posRank || '', age: k.age || null, value: v, rookie });
   });
   rows.sort((a, b) => b.value - a.value);
   const top = rows.slice(0, 50);
@@ -6715,7 +6717,7 @@ function renderWaiversBestAvailable(el, leagueId) {
     + `<div>` + top.map(p =>
         `<div onclick="openPlayerDetail('${p.sid}')" class="ml-team-roster-row pos-${p.pos}">`
         + `${playerThumb(p.sid)}`
-        + `<div class="mlr-name-wrap"><div class="ml-team-roster-name">${posBadge(p.pos)}<span class="mlr-name">${p.name}</span></div></div>`
+        + `<div class="mlr-name-wrap"><div class="ml-team-roster-name">${posBadge(p.pos)}<span class="mlr-name">${p.name}</span></div>${p.rookie ? '<div class="mlr-rookie-tag">via rookie draft</div>' : ''}</div>`
         + `<span class="mlr-age">${p.age ? Math.round(p.age) + 'y' : ''}</span>`
         + `<span class="mlr-posr">${p.posRank}</span>`
         + `<span class="mlr-val">${p.value.toLocaleString()}</span>`

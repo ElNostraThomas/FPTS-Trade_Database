@@ -59,6 +59,7 @@
 .tc-wv-trend-val { font-family: 'Kanit', sans-serif; font-weight: 700; font-style: italic; font-size: 11px; opacity: .8; flex: none; width: 46px; text-align: right; }
 .tc-wv-tag { flex: none; font-size: 9px; font-style: italic; padding: 2px 6px; border-radius: 3px; white-space: nowrap; }
 .tc-wv-tag.free { color: var(--green); border: 1px solid var(--green); }
+.tc-wv-tag.rookie { color: var(--pos-pick); border: 1px solid var(--pos-pick); }
 .tc-wv-tag.none { color: var(--muted); opacity: .5; }
 
 @media (max-width: 680px) { .tc-wv-trending { grid-template-columns: 1fr; } }
