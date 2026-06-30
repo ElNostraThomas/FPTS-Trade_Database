@@ -1077,9 +1077,6 @@
 
   /* Sidebar Exposure | My Trades tab strip + panels */
   .ml-exposure-tabs { margin:0; padding:0 8px; border-bottom:1px solid var(--border); flex-shrink:0; flex-wrap:wrap; }
-  /* Waiver Wire in the narrow sidebar: full width + stack the trending columns. */
-  #ml-waiver-panel .tc-wv { max-width:none; }
-  #ml-waiver-panel .tc-wv-trending { grid-template-columns:1fr; }
   .ml-exposure-tabs .ml-section-toggle-btn { font-size:12px; padding:8px 12px 9px; }
   .ml-exposure-panel { display:flex; flex-direction:column; flex:1; min-height:0; overflow:hidden; }
   .ml-mytrades-year-tabs { display:flex; gap:6px; flex-wrap:wrap; padding:12px 14px 10px; margin:0; flex-shrink:0; }
@@ -2619,7 +2616,6 @@
      previously carried a byte-identical inline copy of these 132 rules; both pages now load this
      one file. (.ml-pd-* base + page-unique rules remain inline; only the shared rules moved.) -->
 <link rel="stylesheet" href="assets/css/trade-calc.css?v=1800000000">
-<link rel="stylesheet" href="assets/css/waiver-wire.css?v=1800200000">
 <link rel="stylesheet" href="assets/css/trade-history.css?v=1798500000">
 <script>window.FPTS_CURRENT_PAGE = 'ml';</script>
 <!-- Shared data layer: fetches data/*.json, populates FP_VALUES / PICK_VALUES /
@@ -2639,8 +2635,6 @@
 <script src="assets/js/trade-finder.js?v=1800100000"></script>
 <!-- Trade Calculator + Builder (window.TradeCalc) — depends on LC + TradeFinder; init'd by the page. -->
 <script src="assets/js/trade-calc.js?v=1800100000"></script>
-<!-- Cross-league Waiver Wire (window.WaiverWire) — reads ML_ALL_LEAGUE_DATA + FP_VALUES. -->
-<script src="assets/js/waiver-wire.js?v=1800200000"></script>
 <!-- Trade History Search (window.TradeHistory) — reuses the cross-league ML_MY_TRADES pool. -->
 <script src="assets/js/trade-history.js?v=1799300000"></script>
 <!-- Liquidity calibration (window.ValuationCalibrate) — replays the user's trades to fit scarcity→price; reuses TradeHistory + ML_TXN_LOG. -->
@@ -2991,7 +2985,6 @@
             <button class="ml-section-toggle-btn active" data-tab="exposure" onclick="mlExposureSetTab('exposure')">Exposure</button>
             <button class="ml-section-toggle-btn" data-tab="trades" onclick="mlExposureSetTab('trades')">My Trades</button>
             <button class="ml-section-toggle-btn" data-tab="finder" id="ml-tf-tab-btn" onclick="mlExposureSetTab('finder')">Trade Finder</button>
-            <button class="ml-section-toggle-btn" data-tab="waivers" onclick="mlExposureSetTab('waivers')">Waivers</button>
           </div>
 
           <!-- PANEL 1: player exposure -->
@@ -3078,27 +3071,6 @@
             <div class="ml-tf-arch-filter" id="ml-tf-pickyear-filter"><!-- JS-populated per-year pick buttons --></div>
             <div id="ml-tf-results" class="ml-tf-out"></div>
           </div><!-- /ml-finder-panel -->
-
-          <!-- PANEL 4: cross-league Waiver Wire (window.WaiverWire — search availability + 7d trends) -->
-          <div class="ml-exposure-panel" id="ml-waiver-panel" style="display:none">
-            <div class="tc-wv">
-              <div class="tc-wv-searchwrap">
-                <input id="tc-wv-search" class="tc-wv-search" type="text" autocomplete="off"
-                  placeholder="Search a player to check availability…"
-                  oninput="WaiverWire.search(this.value)" onblur="WaiverWire.hideResultsSoon()">
-                <button type="button" id="tc-wv-clear" class="tc-wv-clear" onclick="WaiverWire.clearSearch()" style="display:none" aria-label="Clear search">✕</button>
-                <div id="tc-wv-results" class="tc-wv-results" style="display:none"></div>
-              </div>
-              <div id="tc-wv-avail" class="tc-wv-avail"></div>
-              <!-- "Most Valuable Available" lives per-league now (each league's Waivers → Best Available sub-tab),
-                   so the sidebar board keeps only the unique 7-day trending. (#tc-wv-value omitted → renderBoard's
-                   `if (valEl)` guard skips it; the standalone Roster Moves page still renders both columns.)
-                   The board is cross-league — tap a row to see which of your leagues the player is free in. -->
-              <div class="tc-wv-trending">
-                <div id="tc-wv-added"></div>
-              </div>
-            </div>
-          </div><!-- /ml-waiver-panel -->
 
         </div><!-- /ml-exposure-body -->
       </aside>
@@ -7260,44 +7232,20 @@ function mlExposureSetTab(tab) {
   const expPanel = document.getElementById('ml-exposure-panel');
   const trPanel  = document.getElementById('ml-mytrades-panel');
   const fnPanel  = document.getElementById('ml-finder-panel');
-  const waPanel  = document.getElementById('ml-waiver-panel');
   const titleEl  = document.querySelector('.ml-exposure-title');
   if (expPanel) expPanel.style.display = (tab === 'exposure') ? '' : 'none';
   if (trPanel)  trPanel.style.display  = (tab === 'trades')   ? '' : 'none';
   if (fnPanel)  fnPanel.style.display  = (tab === 'finder')   ? '' : 'none';
-  if (waPanel)  waPanel.style.display  = (tab === 'waivers')  ? '' : 'none';
   if (tab === 'trades') {
     if (titleEl) titleEl.textContent = 'My Trades';
     mlEnsureMyTrades();
   } else if (tab === 'finder') {
     if (titleEl) titleEl.textContent = 'Trade Finder';
     TradeFinder.ensure();
-  } else if (tab === 'waivers') {
-    if (titleEl) titleEl.textContent = 'Waivers';
-    mlEnsureWaiverPanel();
   } else {
     if (titleEl) titleEl.textContent = 'Player Exposure';
     renderExposureList(); // restores the count badge for the exposure view
   }
-}
-
-// Mount the shared Waiver Wire (window.WaiverWire) into the sidebar panel. My Leagues
-// stores leagueName (not the full league object) on ML_ALL_LEAGUE_DATA, so enrich each
-// entry with the league object from ML.leagues first (WaiverWire needs roster_positions/
-// scoring/avatar for the format + league chip).
-function mlEnsureWaiverPanel() {
-  if (!window.WaiverWire) return;
-  try {
-    const leagues = (typeof ML !== 'undefined' && ML.leagues && ML.leagues[ML.selectedSeason]) || [];
-    const byId = {};
-    leagues.forEach(l => { byId[l.league_id] = l; });
-    const all = window.ML_ALL_LEAGUE_DATA || {};
-    Object.keys(all).forEach(lid => { if (all[lid] && !all[lid].league) all[lid].league = byId[lid] || {}; });
-  } catch (e) {}
-  if (!window._mlWaiverInited) { window._mlWaiverInited = true; WaiverWire.init({}); }
-  WaiverWire.loadTrending();
-  // Default the league board to the league the user is focused on (the expanded one).
-  if (ML.selectedLeagueId && window.ML_ALL_LEAGUE_DATA && window.ML_ALL_LEAGUE_DATA[ML.selectedLeagueId]) WaiverWire.setLeague(ML.selectedLeagueId);
 }
 
 // Trade Finder lives in assets/js/trade-finder.js (window.TradeFinder).

@@ -25,11 +25,12 @@ Closed punch-list **#2** (calc-side suggestion quality — the biggest deferred 
 
 Also closed **#4 (label rookies "via rookie draft")** this session: incoming rookies are no longer hidden from the Waiver "Most Valuable Available" board (`waiver-wire.js` `_bestAvailable`) + each league's Best Available (`renderWaiversBestAvailable`) — they show with a `var(--pos-pick)` "via rookie draft" tag (nested inside the name cell on the fixed 5-col roster grid). Tokens `waiver-wire.js`/`.css` = `1800200000`; public node **S36**; `formulas-content.js` = `1800200000`. Label-only ⇒ no Legend/FORMULAS card (matches the other waiver UX nodes).
 
+And closed **#6 (slim the My Leagues sidebar Waivers tab)**: the value-column overlap was already gone (`a2f0e9b`), so per the user's call this **removed the whole sidebar Waivers tab** — its pieces are covered by each league's Best Available sub-tab + the standalone Roster Moves Waiver Wire. Deleted the tab button, `#ml-waiver-panel`, the `mlExposureSetTab` waivers branch, dead `mlEnsureWaiverPanel()`, the `#ml-waiver-panel` CSS, and the now-unused `waiver-wire.js`/`.css` includes on this page (shared module untouched; Roster Moves still uses it). The **per-league** Waivers sub-mode is a separate feature, unchanged. Public node **S37**; `formulas-content.js` = `1800300000`. No dangling `WaiverWire`/`tc-wv` refs; `<div>` balance 333/333.
+
 **▶ NEXT SESSION — remaining punch list** (full version in `~/.claude/plans/put-all-of-those-flickering-music.md` Part B). No bug report in hand → ASK the user which to take, don't fabricate:
 1. **De-dupe charts** — `compare.html` `_pcChart`/`_pcChartStats` → shared `window.TrendChart`.
 3. **Finder variety guard** — de-dup by anchor asset in the finder's own ≤3-offer list.
 5. **`docs/function-reference.html` pass** — site-map cards + `waiver-wire.js` / `trade-history.js` entries; regen PDF.
-6. **Slim the My Leagues sidebar Waivers tab.** *(quick win)*
 7. **League-market calibration** (Trade Finder "C") — **DATA-BLOCKED**.
 8. **Constant tuning** — `trade-finder.js` / `valuation-core.js` knobs; **reactive** (needs a tester report). *Now that the Builder shares the finder's pipeline, a single tweak to those constants moves both surfaces.*
 

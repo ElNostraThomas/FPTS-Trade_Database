@@ -6,6 +6,16 @@ the operator manual see [`WORKFLOW.md`](WORKFLOW.md).
 
 ---
 
+## 2026-06-29 — Removed the redundant My Leagues sidebar Waivers tab
+
+Punch-list item (slim sidebar Waivers). The top-level **Waivers** tab in the My Leagues sidebar (Exposure · My Trades · Trade Finder · ~~Waivers~~) was a convenience subset of surfaces that already exist: each league's own **Waivers → Best Available** sub-tab covers per-league free agents, and the full cross-league Waiver Wire (player-availability search + 7-day trending) lives on the **Roster Moves** page. Its "Most Valuable Available" value column had already been dropped earlier (`a2f0e9b`); this removes the whole tab.
+
+- `my-leagues.html`: deleted the `data-tab="waivers"` button, the `#ml-waiver-panel` markup, the `tab === 'waivers'` branch + `waPanel` wiring in `mlExposureSetTab`, the now-dead `mlEnsureWaiverPanel()`, and the two `#ml-waiver-panel` CSS rules. Dropped the now-unused `waiver-wire.js` / `waiver-wire.css` includes from this page (the shared module is untouched and still powers the Roster Moves page).
+- The **per-league** Waivers sub-mode (`mlHistorySetMode(...,'waivers')` / `mlWaiversSetSubtab` / `renderWaiversBestAvailable`) is a separate feature and is **unchanged**.
+- Public timeline node **S37**; `formulas-content.js` → `1800300000`. UI removal (no scoring) ⇒ no Legend/FORMULAS card. check-colors CLEAN (49); my-leagues structural balance unchanged vs HEAD (`<div>` 333/333); no dangling `WaiverWire`/`tc-wv`/`ml-waiver` refs remain. **Not browser-verified** (CORS + login = user): the My Leagues sidebar now shows three tabs; per-league Best Available + Roster Moves Waiver Wire still work.
+
+---
+
 ## 2026-06-29 — Rookies labeled "via rookie draft" (instead of hidden)
 
 Punch-list item #4. Incoming rookies (no current and no prior NFL production, age ≤ 24) were **hidden** from the Waiver Wire "Most Valuable Available" board (`assets/js/waiver-wire.js` `_bestAvailable`) and each league's Best Available sub-tab (`my-leagues.html` `renderWaiversBestAvailable`), since they can't be waiver-claimed. They're now **shown but tagged "via rookie draft"** — a valuable incoming rookie appears where you'd expect, with a one-glance reminder he arrives through the rookie draft, not waivers. Self-clears once he plays (the `ppg`/`ppgPrior`/age signal flips).
