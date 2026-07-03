@@ -186,6 +186,17 @@ quality   = needAdj - lowball + (startBonus - 1) * ML_TF_START_WEIGHT;
 
 **Constants** (tunable): `ML_TF_FAIR_BIAS` 0.99 · `ML_TF_WIN_BIAS` 0.93 · `ML_TF_RECIP_CAP` 0.08 · `ML_TF_OVERPAY_CAP` 0.15 · `ML_TF_LOWBALL_PICKSHARE` 0.45 · `ML_TF_LOWBALL_PENALTY` 0.5.
 
+**Variety guard** (`mlTfPickVariety`, added 2026-06-29). `mlTfPickOffers` merges two engine passes — archetype-`fit` + neutral-`value` — then dedupes by *full* package signature. That leaves a gap: two offers sharing the same **primary** (highest-value) anchor but differing only by a swapped 3rd/4th piece both survive, so the short list reads as the same trade twice. The final pick now prefers offers with **distinct primary anchors**, only repeating an anchor when there aren't enough distinct ones to fill `n`:
+
+```js
+primary(c) = the highest-value asset in c.sending;
+// walk the priority-sorted list; first offer per fresh primary → fresh[], the rest → rest[]
+pool = fresh.length >= n ? fresh : fresh.concat(rest);
+return fairMode ? pool.slice(0, n) : spread(pool, n);   // fair = fairest-first; aggressive = range-spread
+```
+
+Mirrors the engine's own `usedPrimaries` guard, applies to both modes, and (since the calc Trade Builder calls `mlTfPickOffers`) diversifies the calculator's suggestions too.
+
 ---
 
 ### Owner-willingness + startability

@@ -6,6 +6,16 @@ the operator manual see [`WORKFLOW.md`](WORKFLOW.md).
 
 ---
 
+## 2026-06-29 — Trade-suggestion variety guard (distinct anchors)
+
+Punch-list item #3. `mlTfPickOffers` (`assets/js/trade-finder.js`) merges two engine passes — archetype-`fit` + neutral-`value` — then dedupes by *full* package signature, which let two offers sharing the same **primary** (highest-value) anchor but differing only by a swapped 3rd/4th piece both survive → the short list read as the same trade twice.
+
+- New `mlTfPrimaryKey(c)` (the package's highest-value asset) + `mlTfPickVariety(list, n, useSpread)`: walks the priority-sorted list taking the first offer per fresh primary, only repeating an anchor when there aren't enough distinct ones to fill `n`; then `slice` (Fair = fairest-first) or `spread` (Aggressive = range). Mirrors the engine's own `usedPrimaries` guard. Both Fair and Aggressive returns now route through it.
+- Because the calc **Trade Builder** calls `mlTfPickOffers` (S35), its suggestions get the same variety for free. Tunable-free (pure ordering). Token `trade-finder.js` → `1800400000`.
+- Docs: Legend "Suggestion variety" item; `FORMULAS.md` Fair-offer section "Variety guard" block; public timeline node **S38** (`legend-content.js`/`formulas-content.js` → `1800400000`). Validated headlessly: Python port confirms clustering broken (3 distinct anchors where it was the same stud twice), graceful same-anchor fallback when distinct anchors run short, all-distinct order preserved; check-colors CLEAN (49); `trade-finder.js` balance OK vs HEAD. **Not browser-verified** (CORS + login = user): open a finder/Trade-Builder proposal with a deep roster → the offers lead with different headline players.
+
+---
+
 ## 2026-06-29 — Removed the redundant My Leagues sidebar Waivers tab
 
 Punch-list item (slim sidebar Waivers). The top-level **Waivers** tab in the My Leagues sidebar (Exposure · My Trades · Trade Finder · ~~Waivers~~) was a convenience subset of surfaces that already exist: each league's own **Waivers → Best Available** sub-tab covers per-league free agents, and the full cross-league Waiver Wire (player-availability search + 7-day trending) lives on the **Roster Moves** page. Its "Most Valuable Available" value column had already been dropped earlier (`a2f0e9b`); this removes the whole tab.

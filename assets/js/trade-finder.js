@@ -805,8 +805,8 @@ function mlTfPickOffers(pool, anchorVal, archetype, dir, myNeed, ownerNeed, star
   if (!uniq.length) return [];
   // D — fairness: in fair mode keep offers inside [−overpay cap, +recipient cap] of YOUR edge — so we
   // never surface offers that lowball the counterparty past the cap (or that wildly overpay) — and
-  // show the THREE FAIREST distinct packages (closest to even first). Aggressive mode keeps the old
-  // wide band + spread across the edge range.
+  // show the n FAIREST packages (closest to even first), with DISTINCT anchors (mlTfPickVariety).
+  // Aggressive mode keeps the wide band + spread across the edge range, also anchor-distinct.
   if (ML_TF_FAIR_MODE) {
     // Fair mode must NEVER surface a recipient lowball (edge above the recip cap) — better to
     // show 1-2 genuinely fair offers than to pad the list with a lopsided single-player steal.
@@ -816,12 +816,12 @@ function mlTfPickOffers(pool, anchorVal, archetype, dir, myNeed, ownerNeed, star
     if (list.length < 3) list = uniq.filter(c => c.edge <= ML_TF_RECIP_CAP);
     if (!list.length)    list = uniq.slice();   // nothing fair exists → show the least-lopsided
     list.sort((a,b) => (Math.abs(a.edge) - Math.abs(b.edge)) || (b.quality - a.quality));
-    return list.slice(0, n).map(c => ({ sugg:c, mode:c.mode }));
+    return mlTfPickVariety(list, n, false).map(c => ({ sugg:c, mode:c.mode }));
   }
   let list = uniq.filter(c => c.edge >= -0.15);     // aggressive: keep it realistic (no wild overpays)
   if (list.length < 3) list = uniq.slice();
   list.sort((a,b) => (b.edge - a.edge) || (b.quality - a.quality));
-  return mlTfSpread(list, n).map(c => ({ sugg:c, mode:c.mode }));
+  return mlTfPickVariety(list, n, true).map(c => ({ sugg:c, mode:c.mode }));
 }
 
 // Pick up to n items spread across a sorted list so the result spans the range.
@@ -836,6 +836,29 @@ function mlTfSpread(list, n){
     used.add(idx); picks.push(list[idx]);
   }
   return picks;
+}
+
+// The PRIMARY (anchor) of a package = its highest-value asset. Two offers that share a
+// primary but differ only by a swapped 3rd/4th piece read as "the same trade twice".
+function mlTfPrimaryKey(c){
+  const s = (c && c.sending) || []; if (!s.length) return '';
+  let m = s[0]; for (let i = 1; i < s.length; i++) if ((s[i].value||0) > (m.value||0)) m = s[i];
+  return (m && m.name) || '';
+}
+// Variety guard: prefer offers with DISTINCT primary anchors so the ≤n list isn't the same
+// anchor with a swapped minor piece (mlTfPickOffers merges two engine passes — fit + value —
+// each of which can return the same anchor, surviving the full-package dedupe). Walks `list`
+// in its given priority order, taking the first offer per fresh primary; only if that yields
+// fewer than n does it fall back to the same-primary remainder. Mirrors the engine's
+// usedPrimaries guard. Then slice (fair = fairest-first) or spread (aggressive = range).
+function mlTfPickVariety(list, n, useSpread){
+  const fresh = [], rest = [], used = {};
+  (list || []).forEach(function (c) {
+    const k = mlTfPrimaryKey(c);
+    if (k && !used[k]) { used[k] = 1; fresh.push(c); } else rest.push(c);
+  });
+  const pool = (fresh.length >= n) ? fresh : fresh.concat(rest);
+  return useSpread ? mlTfSpread(pool, n) : pool.slice(0, n);
 }
 
 function mlTfOffersWrap(ctx, count, cardsHtml, opts){
