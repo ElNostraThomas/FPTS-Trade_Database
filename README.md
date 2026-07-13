@@ -14,6 +14,18 @@ This file is the **resume-where-we-left-off** doc.
 
 ---
 
+## Where we are (2026-07-03 — thirty-fourth session) — De-duped compare charts + MVS refresh + push.bat fix
+
+Closed punch-list **#1 (de-dupe charts)**. `compare.html` kept private `_pcChart` / `_pcChartStats` copies of the chart logic that `assets/js/trend-chart.js` (`window.TrendChart`) was extracted from (S29) — ~200 lines maintained in two places.
+
+- **`trend-chart.js`** gained an optional `classPrefix` (default `tc-trend`) + optional `peakLabel` / `lowLabel` on `stats()` — pure additions; with the defaults the emitted markup is byte-identical, so player-panel / adp-tool consumers are unchanged (verified via `git diff`: the only edits are the parameterization, no geometry/math).
+- **`compare.html`** now calls `TrendChart.line` / `TrendChart.stats` with `classPrefix:'pc-chart'` (+ `PEAK RANK` / `LOWEST RANK` labels on the ADP chart), so its markup keeps this page's own scoped `.pc-chart-*` CSS — **zero rendering change, no CSS moved** (kept page-scoped by design; migrating it under `.tc-trend-*` would drop compare's responsive overrides and can't be browser-verified here). Deleted the two private fns + doc block (`_escAttr` kept, used ~15× elsewhere). Net **−185 lines**.
+- Refactor only (no scoring / no user-visible change) ⇒ no Legend/FORMULAS card, no timeline node. Token `trend-chart.js` → `1800500000` across its **9** consumers (`trend-chart.css` unchanged). check-colors CLEAN (49); compare.html delimiters balanced (deltas equal-and-opposite vs HEAD); no stale `_pcChart` refs. `docs/CHANGES.md` updated. **NOT browser-verified** (CORS + login = user): compare Value tab → all three charts render as before.
+
+Earlier this session (already **shipped `55d9d6a`**): **MVS data refresh** from `player_market_mvs_rows (6).csv` (trades archive **29,094 → 34,403**; 527 players / 60 picks; modeled-TEP intact; QB-SF premium live; the old Metcalf > Alec Pierce SF canary flipped = genuine WR market movement, both non-TE). And **fixed `push.bat`** (gitignored/local): bare `python` now resolves to the Microsoft Store stub — switched all 6 script calls to the `py` launcher (3.14.3, has pandas + pyarrow).
+
+---
+
 ## Where we are (2026-06-29 — thirty-third session) — Smarter Trade Builder suggestions (calc-side quality port)
 
 Closed punch-list **#2** (calc-side suggestion quality — the biggest deferred item). The one-at-a-time **Trade Builder** pre-screener (`MLTB`, opened from a player/pick on My Leagues + Roster Moves) now generates suggestions through the **same quality pipeline as the sidebar Trade Finder**, not the raw value-matched engine.
@@ -30,7 +42,7 @@ And closed **#6 (slim the My Leagues sidebar Waivers tab)**: the value-column ov
 And closed **#3 (finder variety guard)**: `mlTfPickOffers` merged two engine passes (fit + value) and deduped only by full package signature, so two offers sharing the same primary anchor with a swapped 3rd/4th piece both survived. New `mlTfPrimaryKey` + `mlTfPickVariety` prefer distinct primary anchors (fall back to same-anchor only when distinct ones run short), wired into both Fair (`slice`) and Aggressive (`spread`) returns. The calc Trade Builder inherits it (calls `mlTfPickOffers`). Token `trade-finder.js` → `1800400000`; Legend "Suggestion variety" + `FORMULAS.md` variety block + public node **S38** (`legend-content.js`/`formulas-content.js` → `1800400000`). Python-port-validated (clustering broken, graceful fallback); check-colors CLEAN; balance OK.
 
 **▶ NEXT SESSION — remaining punch list** (full version in `~/.claude/plans/put-all-of-those-flickering-music.md` Part B). No bug report in hand → ASK the user which to take, don't fabricate:
-1. **De-dupe charts** — `compare.html` `_pcChart`/`_pcChartStats` → shared `window.TrendChart`.
+1. ~~**De-dupe charts**~~ — ✅ done 2026-07-03 (`compare.html` delegates to `window.TrendChart` via `classPrefix`).
 5. **`docs/function-reference.html` pass** — site-map cards + `waiver-wire.js` / `trade-history.js` entries; regen PDF.
 7. **League-market calibration** (Trade Finder "C") — **DATA-BLOCKED**.
 8. **Constant tuning** — `trade-finder.js` / `valuation-core.js` knobs; **reactive** (needs a tester report). *Now that the Builder shares the finder's pipeline, a single tweak to those constants moves both surfaces.*

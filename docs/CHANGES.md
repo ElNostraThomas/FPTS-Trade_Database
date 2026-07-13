@@ -6,6 +6,16 @@ the operator manual see [`WORKFLOW.md`](WORKFLOW.md).
 
 ---
 
+## 2026-07-03 — De-duped compare.html charts onto the shared TrendChart module
+
+Punch-list item #1. When `assets/js/trend-chart.js` (`window.TrendChart`) was extracted for the player-card ADP Trend tab (S29), it was lifted *from* compare.html's private `_pcChart` / `_pcChartStats` renderers but compare kept its own copies — ~200 lines of duplicated SVG-chart logic that had to be maintained in two places.
+
+- `trend-chart.js` gained an optional `classPrefix` (default `tc-trend`) so a caller can emit its own CSS namespace, plus optional `peakLabel` / `lowLabel` overrides on `stats()`. Pure additions — with the defaults the emitted markup is byte-identical to before, so the player-panel / adp-tool consumers are unchanged.
+- `compare.html` now calls `TrendChart.line` / `TrendChart.stats` with `classPrefix:'pc-chart'` (and `peakLabel:'PEAK RANK'` / `lowLabel:'LOWEST RANK'` on the yInvert ADP chart) so its markup keeps this page's own scoped `.pc-chart-*` CSS untouched — zero rendering change. The private `_pcChart` / `_pcChartStats` (and their doc block) were deleted (`_escAttr`, still used ~15× elsewhere, was kept). Net −185 lines.
+- Refactor only (no new scoring / no user-visible change) ⇒ no Legend/FORMULAS card, no public timeline node. Token `trend-chart.js` → `1800500000` across its 9 consumers (`trend-chart.css` unchanged). Validated headlessly: `git diff` shows the module's only changes are the `classPrefix`/label parameterization (no geometry/math edits); compare.html `{}()[]` + backticks all balanced, deltas equal-and-opposite vs HEAD; no stale `_pcChart` refs; `.pc-chart-*` CSS + `player-panel.js` (shared drawer, still uses default-prefix charts) both retained; check-colors CLEAN (49). **Not browser-verified** (CORS + login = user): compare.html Value tab → ADP-year chart, FP-value chart, and daily-rank chart render as before.
+
+---
+
 ## 2026-06-29 — Trade-suggestion variety guard (distinct anchors)
 
 Punch-list item #3. `mlTfPickOffers` (`assets/js/trade-finder.js`) merges two engine passes — archetype-`fit` + neutral-`value` — then dedupes by *full* package signature, which let two offers sharing the same **primary** (highest-value) anchor but differing only by a swapped 3rd/4th piece both survive → the short list read as the same trade twice.
