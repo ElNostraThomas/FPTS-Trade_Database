@@ -4,10 +4,21 @@
 <meta charset="utf-8">
 <title>Fantasy Points Front Office — Function &amp; Process Reference</title>
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Kanit:ital,wght@1,800&family=Mulish:ital,wght@0,400;0,600;0,700;0,800;1,400;1,700&display=swap" rel="stylesheet">
 <style>
+  /* Self-hosted brand fonts — same files the rest of the site ships (assets/css/brand.css).
+     Drops the Google Fonts CDN so the doc always renders in Kanit + Mulish with no network
+     dependency (a slow/blocked CDN was the one thing that could silently drop the body to a
+     worse system fallback and make the page look cheap). */
+  @font-face{
+    font-family:'Kanit';
+    src:url('../assets/fonts/Kanit-ExtraBoldItalic.ttf') format('truetype');
+    font-weight:800; font-style:italic; font-display:swap;
+  }
+  @font-face{
+    font-family:'Mulish';
+    src:url('../assets/fonts/Mulish-VariableFont_wght.ttf') format('truetype');
+    font-weight:100 1000; font-style:normal; font-display:swap;
+  }
   :root{
     --red:#ED810C;
     --black:#111111;
@@ -332,12 +343,12 @@
   .sitemap{
     display:grid;
     grid-template-columns:repeat(4,1fr);
-    gap:10pt;
-    margin:6pt 0 14pt;
+    gap:8pt;
+    margin:6pt 0 10pt;
   }
   .sm-card{
     border:1.5px solid var(--ink);
-    padding:10pt;
+    padding:7pt 8pt;
     background:#fff;
     page-break-inside:avoid;
   }
@@ -347,22 +358,22 @@
     font-weight:800;
     font-style:italic;
     text-transform:uppercase;
-    font-size:13pt;
+    font-size:11.5pt;
     line-height:1;
-    margin:0 0 6pt;
+    margin:0 0 3pt;
   }
   .sm-name .accent{color:var(--red)}
   .sm-tag{
     font-family:'Mulish',sans-serif;
     font-weight:700;
-    font-size:8pt;
+    font-size:7.5pt;
     text-transform:uppercase;
-    letter-spacing:.12em;
+    letter-spacing:.1em;
     color:var(--red);
-    margin:0 0 4pt;
+    margin:0 0 3pt;
   }
   .sm-card.primary .sm-tag{color:var(--red)}
-  .sm-desc{font-size:9pt;line-height:1.45;margin:0}
+  .sm-desc{font-size:8pt;line-height:1.34;margin:0}
 
   .legend-row{
     display:flex;gap:14pt;flex-wrap:wrap;
@@ -406,6 +417,36 @@
     background:rgba(17,17,17,.08);
     padding:1pt 5pt;
     letter-spacing:.04em;
+  }
+
+  /* ───── PAGE 24 DENSITY (Roster Moves tabs — 4 cards + helper grid on one sheet) ───── */
+  .rm-tabs .fn-card{padding:4pt 9pt 4pt;margin-bottom:2pt}
+  .rm-tabs .fn-desc{line-height:1.35}
+  .rm-tabs .fn-section-head{margin:4pt 0 3pt}
+  .rm-tabs .fn-sig{margin:1pt 0 3pt}
+  .rm-tabs .helper-col{padding:5pt 9pt}
+  .rm-tabs .helper-row{line-height:1.28}
+
+  /* ───── ON-SCREEN CRISPNESS (screen only — the printed PDF is untouched) ───── */
+  @media screen{
+    html{
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      text-rendering:optimizeLegibility;
+    }
+    body{ background:#c9c9cc; }               /* deeper, cooler surround so the sheets pop */
+    :root{
+      --ink:#121212;                           /* darker body ink for punch */
+      --muted:#464646;                         /* more legible secondary text */
+      --hairline:rgba(17,17,17,.26);           /* crisper dividers + card borders */
+      --hairline-strong:rgba(17,17,17,.44);
+    }
+    .page{
+      background:#ffffff;                       /* pure white reads sharper than #F0F0F0 on screen */
+      box-shadow:0 1px 2px rgba(0,0,0,.18), 0 10px 30px rgba(0,0,0,.10);
+      border:1px solid rgba(0,0,0,.06);
+    }
+    .footer-strip{ background:#ffffff; }        /* match the whiter page */
   }
 
   /* ───── PRINT ───── */
@@ -469,7 +510,7 @@
 <section class="page">
   <div class="page-num">01</div>
   <h2 class="page-title">PROJECT<br>OVERVIEW</h2>
-  <p class="page-tagline">Seven HTML pages. One brand system. Zero build step. A complete dynasty fantasy-football trade toolkit served straight from GitHub Pages.</p>
+  <p class="page-tagline">Eleven HTML pages. One brand system. Zero build step. A complete dynasty fantasy-football trade toolkit served straight from GitHub Pages.</p>
   <div class="red-bar"></div>
 
   <div class="feature-block">
@@ -479,7 +520,7 @@
 
   <div class="feature-block">
     <h3 class="feature-title"><span class="num">B</span>Architecture</h3>
-    <p class="feature-body">Seven standalone HTML files plus a shared <span class="kbd">assets/</span> tree of CSS / JS modules consumed by each page. No build pipeline, no bundler, no server-side code. Cross-page state passes through a small <b>session-storage handoff</b> envelope so a trade started on one page can be opened on another. A <span class="kbd">data-bootstrap.js</span> module fetches every <span class="kbd">data/*.json</span> file in parallel and fires <span class="kbd">fpts:data-ready</span> when populated.</p>
+    <p class="feature-body">Eleven standalone HTML files plus a shared <span class="kbd">assets/</span> tree of CSS / JS modules consumed by each page. No build pipeline, no bundler, no server-side code. Cross-page state passes through a small <b>session-storage handoff</b> envelope so a trade started on one page can be opened on another. A <span class="kbd">data-bootstrap.js</span> module fetches every <span class="kbd">data/*.json</span> file in parallel and fires <span class="kbd">fpts:data-ready</span> when populated.</p>
   </div>
 
   <div class="feature-block">
@@ -501,7 +542,7 @@
 <section class="page">
   <div class="page-num">02</div>
   <h2 class="page-title">SITE<br>MAP</h2>
-  <p class="page-tagline">Seven pages, two directions of traffic. Every page can hand off a player, a pick, or an in-progress trade to any other page through a session-storage envelope read on load.</p>
+  <p class="page-tagline">Eleven pages, two directions of traffic. Every page can hand off a player, a pick, or an in-progress trade to any other page through a session-storage envelope read on load.</p>
   <div class="red-bar"></div>
 
   <div class="sitemap">
@@ -513,12 +554,12 @@
     <div class="sm-card">
       <div class="sm-tag">Tool</div>
       <h3 class="sm-name">ROSTER<br>MOVES<span class="accent">.HTML</span></h3>
-      <p class="sm-desc">Roster Moves hub (trade-calculator.html). Sleeper login → four tabs: <b>Trade Finder</b> (scan all your leagues for who rosters a player + suggest a package), <b>Trade Calculator</b> (roster-style add-player dropdowns, balance verdict, Guru-Approved seal), <b>Waiver Wire</b> (a player-availability search + a per-league board of best-available-by-value and most-added), and <b>Trade History</b> (search a player → your trades for him + who proposed each). Built from shared modules (league-compute / trade-finder / trade-calc / waiver-wire / trade-history).</p>
+      <p class="sm-desc">Roster Moves hub (trade-calculator.html). Sleeper login → four tabs: <b>Trade Finder</b>, <b>Trade Calculator</b>, <b>Waiver Wire</b>, and <b>Trade History</b>. Built from the shared league-compute / trade-finder / trade-calc / waiver-wire / trade-history modules.</p>
     </div>
     <div class="sm-card">
       <div class="sm-tag">Importer</div>
       <h3 class="sm-name">MY-LEAGUES<span class="accent">.HTML</span></h3>
-      <p class="sm-desc">Sleeper league importer. Auth, roster ingest, waiver analytics, archetype detection, trade suggestions, exposure rollups, plus a <b>Waivers</b> sidebar tab (cross-league availability + 7-day trends, same engine as Roster Moves).</p>
+      <p class="sm-desc">Sleeper league importer. Auth, roster ingest, waiver analytics, archetype detection, trade suggestions, and cross-league exposure rollups.</p>
     </div>
     <div class="sm-card">
       <div class="sm-tag">Tiers</div>
@@ -528,35 +569,43 @@
     <div class="sm-card">
       <div class="sm-tag">ADP</div>
       <h3 class="sm-name">ADP-TOOL<span class="accent">.HTML</span></h3>
-      <p class="sm-desc">Sleeper-derived dynasty ADP across years (2022-2026) with Box / List / Heatmap views. Dynasty Startup + Rookie source tabs; format-bucket toggles (picks / simple / rookies).</p>
+      <p class="sm-desc">Sleeper-derived dynasty ADP across years (2022–2026) with Box / List / Heatmap views, Startup + Rookie source tabs, and format toggles.</p>
     </div>
     <div class="sm-card">
       <div class="sm-tag">Rankings</div>
       <h3 class="sm-name">RANKINGS<span class="accent">.HTML</span></h3>
-      <p class="sm-desc">Two modes — Consensus (multi-analyst average with ADP overlays per format) and By Analyst (5-analyst side-by-side comparison per position with bipolar heat tints).</p>
+      <p class="sm-desc">Two modes — Consensus (multi-analyst average with ADP overlays) and By Analyst (5-analyst side-by-side per position with heat tints).</p>
     </div>
     <div class="sm-card">
       <div class="sm-tag">Reference</div>
       <h3 class="sm-name">FORMULAS<span class="accent">.HTML</span></h3>
-      <p class="sm-desc">Site-wide formula + calculation catalog. 56 entries × 14 sections with provenance / examples / cross-links / "why this number" callouts. Built for analyst hand-off and developer reference.</p>
+      <p class="sm-desc">Site-wide formula + calculation catalog — 56 entries × 14 sections with provenance, examples, and cross-links. Built for analyst hand-off.</p>
+    </div>
+    <div class="sm-card">
+      <div class="sm-tag">Compare</div>
+      <h3 class="sm-name">COMPARE<span class="accent">.HTML</span></h3>
+      <p class="sm-desc">Player Comparison. Side-by-side dynasty analysis of 2–4 players — profile cards plus aligned stat tables, ADP, and value.</p>
+    </div>
+    <div class="sm-card">
+      <div class="sm-tag">Draft · Live</div>
+      <h3 class="sm-name">LIVE-DRAFT<span class="accent">.HTML</span></h3>
+      <p class="sm-desc">Follow a Sleeper draft in real time — picks, values, and best-available as they come off the board.</p>
+    </div>
+    <div class="sm-card">
+      <div class="sm-tag">Draft · Mock</div>
+      <h3 class="sm-name">MOCK-DRAFT<span class="accent">.HTML</span></h3>
+      <p class="sm-desc">Practice-draft against AI opponents. Pick a slot, choose a format, and draft a full roster to rehearse a strategy.</p>
+    </div>
+    <div class="sm-card">
+      <div class="sm-tag">Changelog</div>
+      <h3 class="sm-name">WHATS-NEW<span class="accent">.HTML</span></h3>
+      <p class="sm-desc">Public changelog — the latest shipped features and improvements across the Front Office, mirroring the Updates timeline.</p>
     </div>
   </div>
 
   <div class="feature-block">
     <h3 class="feature-title"><span class="num">A</span>Cross-page handoff</h3>
     <p class="feature-body">A pair of helpers — <span class="kbd">_fptsWriteHandoff(obj, targetPage)</span> on the sending side and <span class="kbd">_fptsReadHandoff()</span> on the receiving side — serialize an envelope into <span class="kbd">sessionStorage</span>, open the target page in a new tab, and let the receiver hydrate its UI from the same data. Every page exposes named entry points (the <span class="kbd">_fptsXpage*</span> family) so the hand-off origin is auditable.</p>
-  </div>
-
-  <div class="feature-block">
-    <h3 class="feature-title"><span class="num">B</span>Data sources</h3>
-    <div class="feature-row">
-      <div>
-        <p class="feature-body"><b>Embedded</b> — <span class="kbd">KTC_DATA</span> (KeepTradeCut values, position rank, age, ADP), <span class="kbd">ADP_DATA</span>, <span class="kbd">SLEEPER_IDS</span> (name → Sleeper player ID), <span class="kbd">TRADES</span> (recent trade corpus), <span class="kbd">TIER_PLAYERS</span> (ranked tier list).</p>
-      </div>
-      <div>
-        <p class="feature-body"><b>Live</b> — Sleeper public API for users, leagues, rosters, projections, transactions, drafts, traded picks, and league-history chain.</p>
-      </div>
-    </div>
   </div>
 
   <div class="footer-strip"><span>FPTS · FUNCTION REFERENCE</span><span class="accent">02 · SITE MAP</span></div>
@@ -790,7 +839,7 @@
 
   <div class="feature-block" style="border-color:rgba(240,240,240,.2)">
     <h3 class="feature-title" style="color:var(--offwhite)"><span class="num">B</span>Section order</h3>
-    <p class="feature-body" style="color:#ddd">09 — index.html (Trade Database) · 10–12 — my-leagues.html (League Importer) · 13 — tiers.html · 14 — trade-calculator.html.</p>
+    <p class="feature-body" style="color:#ddd">09–12 — index.html (Trade Database) · 13–20 — my-leagues.html (League Importer) · 21 — tiers.html · 22–24 — trade-calculator.html (Roster Moves: builder, waiver wire, trade history).</p>
   </div>
 
   <div class="feature-block" style="border-color:rgba(240,240,240,.2)">
@@ -1554,10 +1603,72 @@
 </section>
 
 <!-- ════════════════════════════════════════════════════════════════════
-     24 — DATA PIPELINE & MVS OVERLAY
+     24 — ROSTER MOVES — WAIVER WIRE & TRADE HISTORY
+══════════════════════════════════════════════════════════════════════ -->
+<section class="page rm-tabs">
+  <div class="page-num">24</div>
+  <h2 class="page-title small">ROSTER MOVES · WAIVER<br>WIRE &amp; TRADE HISTORY</h2>
+  <p class="page-tagline">The two cross-league research tabs on the Roster Moves page, each a self-contained shared module. Waiver Wire answers "who can I still add?"; Trade History answers "who have I traded him for — and who proposed it?"</p>
+  <div class="red-bar"></div>
+
+  <h3 class="fn-section-head">Waiver Wire · window.WaiverWire (assets/js/waiver-wire.js)</h3>
+
+  <div class="fn-card">
+    <div class="fn-head"><span class="fn-name">init · loadTrending · renderTrending</span><span class="fn-tag">Board</span></div>
+    <code class="fn-sig">init(cfg) · loadTrending() · renderTrending()</code>
+    <p class="fn-desc"><span class="kbd">init</span> stores config. <span class="kbd">loadTrending</span> fetches Sleeper's global 7-day trending-adds once (cached per session), then paints the board; <span class="kbd">renderTrending</span> (internally <span class="kbd">renderBoard</span>) redraws its two columns — <b>Most Valuable Available</b> and <b>Most Added · 7d</b> — from <span class="kbd">_bestAvailable()</span> (top-30 players free in ≥1 league) and <span class="kbd">_addedHere()</span> (trending adds filtered to free-in-a-league).</p>
+  </div>
+
+  <div class="fn-card">
+    <div class="fn-head"><span class="fn-name">availability · toggleRow · setLeague</span><span class="fn-tag">Logic</span></div>
+    <code class="fn-sig">availability(sleeperId) → [{ leagueId, leagueName, format, status }] · toggleRow(rowEl)</code>
+    <p class="fn-desc"><span class="kbd">availability</span> walks every loaded league in <span class="kbd">ML_ALL_LEAGUE_DATA</span> and classifies the player as <b>free</b> / <b>mine</b> / <b>taken</b> (with owner name) in each. <span class="kbd">toggleRow</span> lazily expands a board row to reveal those per-league groups. Incoming rookies (via <span class="kbd">_isIncomingRookie</span>) are labeled "rookie draft" rather than shown as claimable. <span class="kbd">setLeague</span> is a back-compat no-op — the board is cross-league.</p>
+    <p class="fn-meta">class-prefix <b>tc-wv-*</b> · reads <b>ML_ALL_LEAGUE_DATA / FP_VALUES / SLEEPER_IDS</b> · no Sleeper writes</p>
+  </div>
+
+  <h3 class="fn-section-head">Trade History · window.TradeHistory (assets/js/trade-history.js)</h3>
+
+  <div class="fn-card">
+    <div class="fn-head"><span class="fn-name">init · ensure</span><span class="fn-tag">Ingest</span></div>
+    <code class="fn-sig">init(cfg) · async ensure() → Promise&lt;ML_MY_TRADES&gt;</code>
+    <p class="fn-desc">Builds (or reuses) <span class="kbd">window.ML_MY_TRADES = { years, byYear }</span> — the cross-league trade pool shared with My Leagues' "My Trades" tab. Walks each loaded league plus its <span class="kbd">previous_league_id</span> chain back to 2017, pulls all 18 weeks of transactions per node, and keeps only <b>completed</b> trades the user was a side of. Also stashes each node's transaction log into <span class="kbd">ML_TXN_LOG</span> for the valuation calibrator. <span class="kbd">cfg</span> supplies <span class="kbd">userId</span> + <span class="kbd">getLeagues</span>.</p>
+  </div>
+
+  <div class="fn-card">
+    <div class="fn-head"><span class="fn-name">tradesForSid · cardHtml</span><span class="fn-tag">Render</span></div>
+    <code class="fn-sig">tradesForSid(sleeperId) → [{ t, ctx }] · cardHtml(trade, ctx, { highlightSid })</code>
+    <p class="fn-desc"><span class="kbd">tradesForSid</span> filters the pool to trades where the player is on either side, newest-first. <span class="kbd">cardHtml</span> renders one self-contained trade card: both sides' assets (players with format-aware value + picks + FAAB), a <b>YOU / THEM</b> initiator badge (Sleeper <span class="kbd">creator</span> vs the logged-in user), and a highlight on the searched player.</p>
+    <p class="fn-meta">class-prefix <b>th-*</b> · pool <b>ML_MY_TRADES</b> · endpoints <b>/transactions/{week}</b> + <b>/league/{id}</b> only</p>
+  </div>
+
+  <h3 class="fn-section-head">Search &amp; autocomplete glue (both modules)</h3>
+
+  <div class="helper-grid">
+    <div class="helper-col">
+      <p class="helper-head">WaiverWire</p>
+      <div class="helper-row"><code>search(query)</code> · <span class="h-desc">autocomplete over FP_VALUES</span></div>
+      <div class="helper-row"><code>pick(name)</code> · <span class="h-desc">fill input → selectPlayer</span></div>
+      <div class="helper-row"><code>selectPlayer(name)</code> · <span class="h-desc">render availability panel</span></div>
+      <div class="helper-row"><code>clearSearch()</code> · <span class="h-desc">reset back to the board</span></div>
+      <div class="helper-row"><code>hideResultsSoon()</code></div>
+    </div>
+    <div class="helper-col">
+      <p class="helper-head">TradeHistory</p>
+      <div class="helper-row"><code>suggest(query)</code> · <span class="h-desc">autocomplete over FP_VALUES</span></div>
+      <div class="helper-row"><code>pick(name)</code> · <span class="h-desc">fill input → showTradesFor</span></div>
+      <div class="helper-row"><code>showTradesFor(name)</code> · <span class="h-desc">await ensure, render cards</span></div>
+      <div class="helper-row"><code>hideResultsSoon()</code></div>
+    </div>
+  </div>
+
+  <div class="footer-strip"><span>FPTS · FUNCTION REFERENCE</span><span class="accent">24 · ROSTER MOVES · TABS</span></div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════════════════
+     25 — DATA PIPELINE & MVS OVERLAY
 ══════════════════════════════════════════════════════════════════════ -->
 <section class="page">
-  <div class="page-num">24</div>
+  <div class="page-num">25</div>
   <h2 class="page-title">DATA<br>PIPELINE</h2>
   <p class="page-tagline">How player data flows from source CSVs and APIs into every page's UI — layer by layer, with MVS as the canonical value source.</p>
   <div class="red-bar"></div>
@@ -1611,14 +1722,14 @@
     <p class="feature-body">A new MVS CSV drop replaces <span class="kbd">data/source/player_market_mvs.csv</span> — push.bat step [3b/5] runs <span class="kbd">sync-mvs.py</span> which regenerates <span class="kbd">data/mvs.json</span>, then commits and pushes. History per player trims to last 14 days, recent trades to last 3, keeping the JSON ~2.8 MB.</p>
   </div>
 
-  <div class="footer-strip"><span>FPTS · FUNCTION REFERENCE</span><span class="accent">24 · DATA PIPELINE</span></div>
+  <div class="footer-strip"><span>FPTS · FUNCTION REFERENCE</span><span class="accent">25 · DATA PIPELINE</span></div>
 </section>
 
 <!-- ════════════════════════════════════════════════════════════════════
-     25 — LEGEND SYSTEM
+     26 — LEGEND SYSTEM
 ══════════════════════════════════════════════════════════════════════ -->
 <section class="page">
-  <div class="page-num">25</div>
+  <div class="page-num">26</div>
   <h2 class="page-title">LEGEND<br>SYSTEM</h2>
   <p class="page-tagline">Per-page expandable documentation drawer — keeps developers and curious users oriented as the site grows.</p>
   <div class="red-bar"></div>
@@ -1643,14 +1754,14 @@
     <p class="feature-body">~195 items across 41 sections, 5 pages. Trade Database is the deepest (~75 items including a new "Data Pipeline" section that documents the MVS overlay precedence). Six dev-grade algorithm entries use the full schema: Archetype Scoring (my-leagues), Picks-as-Assets Relabeling (adp-tool), Trade Finder (index), Sleeper API Coupling (my-leagues), MVS Overlay Precedence (index), and Cross-Page Handoff (index). Each page ends with an <b>"Interactions & Conventions"</b> quick-reference section covering position colors, brand red, keyboard shortcuts, mobile widths, localStorage keys, and numeric thresholds.</p>
   </div>
 
-  <div class="footer-strip"><span>FPTS · FUNCTION REFERENCE</span><span class="accent">25 · LEGEND</span></div>
+  <div class="footer-strip"><span>FPTS · FUNCTION REFERENCE</span><span class="accent">26 · LEGEND</span></div>
 </section>
 
 <!-- ════════════════════════════════════════════════════════════════════
-     26 — SHARED MODULES & PERSISTENCE
+     27 — SHARED MODULES & PERSISTENCE
 ══════════════════════════════════════════════════════════════════════ -->
 <section class="page">
-  <div class="page-num">26</div>
+  <div class="page-num">27</div>
   <h2 class="page-title">SHARED MODULES<br>& PERSISTENCE</h2>
   <p class="page-tagline">Two patterns that keep the site coherent: shared JS modules in <span class="kbd">assets/js/</span>, and localStorage keys that cross page boundaries.</p>
   <div class="red-bar"></div>
@@ -1705,14 +1816,14 @@
     <p class="feature-body">When adding or changing UI features, also update <span class="kbd">assets/js/legend-content.js</span> for the affected page slug. <span class="kbd">push.bat</span> warns (non-blocking) if HTML/JS changes were staged without a corresponding legend-content edit. Regenerate this PDF via <span class="kbd">make-pdf.ps1</span> — runs automatically as push.bat step [4/5].</p>
   </div>
 
-  <div class="footer-strip"><span>FPTS · FUNCTION REFERENCE</span><span class="accent">26 · SHARED + PERSIST</span></div>
+  <div class="footer-strip"><span>FPTS · FUNCTION REFERENCE</span><span class="accent">27 · SHARED + PERSIST</span></div>
 </section>
 
 <!-- ════════════════════════════════════════════════════════════════════
-     27 — DOS & DONTS / WORKING WITH THIS DOC
+     28 — DOS & DONTS / WORKING WITH THIS DOC
 ══════════════════════════════════════════════════════════════════════ -->
 <section class="page">
-  <div class="page-num">27</div>
+  <div class="page-num">28</div>
   <h2 class="page-title">CLOSING<br>NOTES</h2>
   <p class="page-tagline">A presentation reminder, plus the working conventions that will keep this codebase coherent as it grows.</p>
   <div class="red-bar"></div>
@@ -1814,7 +1925,7 @@
 
   <p class="feature-body">The Picks bucket on the ADP Tool renders real players (Bijan, Jefferson, etc.) intermixed with <span class="kbd">ROOKIE_PICK_X.YY</span> placeholders representing rookie picks that were drafted as kickers in dynasty startups. Built by <span class="kbd">sync-adp.py</span>'s <span class="kbd">relabel_picks_K_to_rdp</span> helper inside <span class="kbd">build_format_adp</span> — K player_ids in qualifying picks-as-K startups (K in rounds 1..4) get rewritten to <span class="kbd">ROOKIE_PICK_X.YY</span> before aggregation. The same synthetic ids flow through <span class="kbd">SLEEPER_IDS</span>, the player drawer (flame avatar + "RDP" pos chip), and <span class="kbd">pick-availability.json</span> — where <span class="kbd">build_rdp_pick_availability</span> produces availability matrices for each rookie-pick slot. The frontend <span class="kbd">Heatmap.render</span> is entity-agnostic and just looks them up by id.</p>
 
-  <div class="footer-strip"><span>FPTS · FUNCTION REFERENCE</span><span class="accent">27 · CLOSING · END</span></div>
+  <div class="footer-strip"><span>FPTS · FUNCTION REFERENCE</span><span class="accent">28 · CLOSING · END</span></div>
 </section>
 
 </body>

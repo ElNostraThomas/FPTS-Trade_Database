@@ -6,6 +6,17 @@ the operator manual see [`WORKFLOW.md`](WORKFLOW.md).
 
 ---
 
+## 2026-07-15 — Function-reference pass: site-map cards for all 11 pages + the two shared Roster Moves tab modules
+
+Punch-list item #5. `docs/function-reference.html` had fallen behind the site: its SITE MAP page listed only the original 7 pages, and the two shared modules behind the Roster Moves **Waiver Wire** and **Trade History** tabs (`assets/js/waiver-wire.js` / `assets/js/trade-history.js`) had no function-index entries. Docs-only — no site code touched.
+
+- **Site map (page 02):** added cards for `compare.html`, `live-draft.html`, `mock-draft.html`, and `whats-new.html` (map now covers all 11 live pages). Compressed `.sm-card` sizing + trimmed the longer descriptions so 11 cards fit one sheet, removed the "Data sources" block (fully documented on the Data Pipeline page), and corrected a stale card line that still described a My Leagues "Waivers sidebar tab" (removed in #6). Also bumped the "Seven HTML pages" counts on the Overview page to "Eleven".
+- **New page 24 — Roster Moves · Waiver Wire & Trade History:** function-index entries drawn from the actual source — `window.WaiverWire` (`init`/`loadTrending`/`renderTrending`, `search`/`pick`/`selectPlayer`/`clearSearch`, `availability`/`toggleRow`/`setLeague`) and `window.TradeHistory` (`init`/`ensure` pool-build over the `previous_league_id` chain, `suggest`/`showTradesFor`, `tradesForSid`/`cardHtml`), with a shared search-glue helper grid. Following pages renumbered **24→25 … 27→28** (page-nums, footer labels, and the page-08 section-order line); a page-local `.rm-tabs` density rule keeps the new page to one sheet.
+- **Regenerated** `docs/function-reference.pdf` (29 pages) via headless Chrome (same flags as `make-pdf.ps1`). Verified inside the generated PDF (PyMuPDF text extraction) that all 11 site-map card names and the full page-24 API survive within the print box — no clipping — and that page numbering is sequential 01→28. Docs-only ⇒ no Legend/FORMULAS card, no public timeline node. **Not browser-eyeballed by the user** (headless render + layout metrics only).
+- **On-screen render polish** (follow-on, same file): the doc now **self-hosts** Kanit + Mulish from `assets/fonts/` instead of the Google Fonts CDN — no network dependency, so the body never silently falls back to a system font. Added an `@media screen` crispness block (pure-white pages, tighter drop-shadow + hairline edge, darker ink `#121212`, more-legible muted `#464646`, crisper dividers, `font-smoothing:antialiased` + `optimizeLegibility`). All screen-only — verified the print PDF is byte-unchanged in appearance (page background still off-white `#F0F0F0`, not the on-screen white; the dark reference page 08 stays black). Note: the PDF body still prints in the system fallback because headless Chrome won't embed the *variable* Mulish (a static instance would be needed) — unchanged and per the user's "leave the PDF as-is" call.
+
+---
+
 ## 2026-07-03 — De-duped compare.html charts onto the shared TrendChart module
 
 Punch-list item #1. When `assets/js/trend-chart.js` (`window.TrendChart`) was extracted for the player-card ADP Trend tab (S29), it was lifted *from* compare.html's private `_pcChart` / `_pcChartStats` renderers but compare kept its own copies — ~200 lines of duplicated SVG-chart logic that had to be maintained in two places.

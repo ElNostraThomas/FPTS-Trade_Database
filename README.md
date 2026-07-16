@@ -1,16 +1,27 @@
 # Fantasy Points Front Office — Session Handoff
 
 A static fantasy-football site deployed via GitHub Pages from `main`.
-**Ten HTML pages, all live and shipping:** `index.html` (trade DB),
-`trade-calculator.html` (public **Roster Moves** — Trade Finder + Calculator + Waiver Wire, built from shared modules),
+**Eleven HTML pages, all live and shipping:** `index.html` (trade DB),
+`trade-calculator.html` (public **Roster Moves** — Trade Finder + Calculator + Waiver Wire + Trade History, built from shared modules),
 `compare.html` (player comparison),
 `my-leagues.html`, `live-draft.html`, `mock-draft.html` (AI-personality
 mock drafts), `tiers.html`, `adp-tool.html`, `rankings.html`,
-`formulas.html`.
+`formulas.html`, `whats-new.html` (public changelog).
 
 Full operator manual: [`docs/WORKFLOW.md`](docs/WORKFLOW.md).
 Session-by-session changelog: [`docs/CHANGES.md`](docs/CHANGES.md).
 This file is the **resume-where-we-left-off** doc.
+
+---
+
+## Where we are (2026-07-15) — Function-reference documentation pass (punch-list #5)
+
+Closed punch-list **#5** (`docs/function-reference.html` pass). Docs-only, no site code touched. The printable reference was missing the four newest pages and had no entries for the two shared Roster Moves tab modules.
+
+- **Site map (page 02):** added cards for `compare.html`, `live-draft.html`, `mock-draft.html`, `whats-new.html` — the map now shows all **11** pages. Tightened `.sm-card` sizing + trimmed descriptions so 11 fit one sheet, dropped the redundant "Data sources" block (fully covered on the Data Pipeline page), and fixed a **stale** line still claiming My Leagues has a Waivers sidebar tab (removed in #6).
+- **New page 24 — Roster Moves · Waiver Wire & Trade History:** function-index entries for `window.WaiverWire` (`waiver-wire.js`) and `window.TradeHistory` (`trade-history.js`) — board/search/availability + pool-build/search/card-render, written from the actual source. Following pages renumbered **24→25 … 27→28** (page-nums, footers, and the page-08 section-order line).
+- **Regenerated** `docs/function-reference.pdf` (29 pages, headless Chrome). Verified inside the PDF that all 11 site-map cards + the full page-24 API render within the print box (no clipping); numbering is sequential 01→28. Docs-only ⇒ no Legend/FORMULAS/timeline node. `docs/CHANGES.md` updated. **NOT browser-eyeballed by the user** (headless-verified only).
+- **On-screen render polish** (follow-on, same file): now **self-hosts** Kanit + Mulish (`assets/fonts/`) instead of the Google Fonts CDN, plus an `@media screen` crispness block — pure-white pages, tighter shadow, darker ink, crisper dividers, `font-smoothing:antialiased`. Screen-only: the print PDF is visually unchanged (verified page background still `#F0F0F0`, dark page 08 still black). PDF body still prints in a system fallback (headless Chrome won't embed the variable Mulish) — unchanged, per the "leave the PDF as-is" call. (Root cause of the perceived HTML blur is almost certainly browser zoom ≠ 100% / Windows display scaling, not the file.)
 
 ---
 
@@ -43,7 +54,7 @@ And closed **#3 (finder variety guard)**: `mlTfPickOffers` merged two engine pas
 
 **▶ NEXT SESSION — remaining punch list** (full version in `~/.claude/plans/put-all-of-those-flickering-music.md` Part B). No bug report in hand → ASK the user which to take, don't fabricate:
 1. ~~**De-dupe charts**~~ — ✅ done 2026-07-03 (`compare.html` delegates to `window.TrendChart` via `classPrefix`).
-5. **`docs/function-reference.html` pass** — site-map cards + `waiver-wire.js` / `trade-history.js` entries; regen PDF.
+5. ~~**`docs/function-reference.html` pass**~~ — ✅ done 2026-07-15 (site-map cards for all 11 pages + `waiver-wire.js` / `trade-history.js` entries on new page 24; PDF regenerated).
 7. **League-market calibration** (Trade Finder "C") — **DATA-BLOCKED**.
 8. **Constant tuning** — `trade-finder.js` / `valuation-core.js` knobs; **reactive** (needs a tester report). *Now that the Builder shares the finder's pipeline, a single tweak to those constants moves both surfaces.*
 
@@ -61,7 +72,7 @@ Pure data / factory-pipeline session, **no site-code change**.
 2. **Calc-side suggestion quality** — port Fair-mode / startability / owner-willingness from the Trade Finder into `trade-calc.js` `openTradeSuggestModal`. *(biggest win)*
 3. **Finder variety guard** — de-dup by anchor asset in the finder's own ≤3-offer list.
 4. **Label rookies "via rookie draft"** — instead of hiding them from Best Available / waivers. *(quick win)*
-5. **`docs/function-reference.html` pass** — add site-map cards + `waiver-wire.js` / `trade-history.js` entries; regen PDF via `make-pdf.ps1`.
+5. ~~**`docs/function-reference.html` pass**~~ — ✅ done 2026-07-15 (site-map cards for all 11 pages + `waiver-wire.js` / `trade-history.js` entries on new page 24; PDF regenerated).
 6. **Slim the My Leagues sidebar Waivers tab** — overlaps each league's Best Available sub-tab. *(quick win)*
 7. **League-market calibration** (Trade Finder "C") — **DATA-BLOCKED** (needs league-wide txns).
 8. **Constant tuning** — `trade-finder.js` / `valuation-core.js` knobs; **reactive** (needs a tester report to aim at).

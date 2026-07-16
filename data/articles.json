@@ -1,6 +1,204 @@
 {
-  "version": "2026-07-13T23:14:00.065216+00:00",
+  "version": "2026-07-16T04:00:29.100063+00:00",
   "players": {
+    "Matthew Stafford": [
+      {
+        "title": "2026 NFL Player Props: Passing Yards Leader",
+        "url": "https://www.fantasypoints.com/nfl/articles/nfl-player-props-passing-yards-leader",
+        "date": "2026-07-15T14:00:00.000Z",
+        "author": "Tom Brolley"
+      },
+      {
+        "title": "2026 New Playcallers: Fantasy Football Impact",
+        "url": "https://www.fantasypoints.com/nfl/articles/new-playcallers-fantasy-football-impact",
+        "date": "2026-07-09T12:46:33.127Z",
+        "author": "Ryan Heath"
+      },
+      {
+        "title": "Scott Fish Bowl 16 Scoring and Draft Strategy",
+        "url": "https://www.fantasypoints.com/nfl/articles/scott-fish-bowl-16-scoring-and-draft-strategy",
+        "date": "2026-06-22T19:00:00.000Z",
+        "author": "Zach Swails"
+      },
+      {
+        "title": "2026 NFL Player Props: Passing Touchdowns",
+        "url": "https://www.fantasypoints.com/nfl/articles/nfl-player-props-passing-touchdowns",
+        "date": "2026-06-05T21:00:00.000Z",
+        "author": "Tom Brolley"
+      }
+    ],
+    "Aaron Rodgers": [
+      {
+        "title": "2026 NFL Player Props: Passing Touchdowns",
+        "url": "https://www.fantasypoints.com/nfl/articles/nfl-player-props-passing-touchdowns",
+        "date": "2026-06-05T21:00:00.000Z",
+        "author": "Tom Brolley"
+      }
+    ],
+    "Dak Prescott": [
+      {
+        "title": "Scott Fish Bowl 16 Scoring and Draft Strategy",
+        "url": "https://www.fantasypoints.com/nfl/articles/scott-fish-bowl-16-scoring-and-draft-strategy",
+        "date": "2026-06-22T19:00:00.000Z",
+        "author": "Zach Swails"
+      },
+      {
+        "title": "2026 NFL Player Props: Passing Touchdowns",
+        "url": "https://www.fantasypoints.com/nfl/articles/nfl-player-props-passing-touchdowns",
+        "date": "2026-06-05T21:00:00.000Z",
+        "author": "Tom Brolley"
+      }
+    ],
+    "Bryce Young": [
+      {
+        "title": "2026 NFL Player Props: Passing Touchdowns",
+        "url": "https://www.fantasypoints.com/nfl/articles/nfl-player-props-passing-touchdowns",
+        "date": "2026-06-05T21:00:00.000Z",
+        "author": "Tom Brolley"
+      }
+    ],
+    "Cam Ward": [
+      {
+        "title": "2026 NFL Player Props: Passing Touchdowns",
+        "url": "https://www.fantasypoints.com/nfl/articles/nfl-player-props-passing-touchdowns",
+        "date": "2026-06-05T21:00:00.000Z",
+        "author": "Tom Brolley"
+      }
+    ],
+    "Kenneth Walker": [
+      {
+        "title": "Brolley's Best Bets: 2026 NFL Futures",
+        "url": "https://www.fantasypoints.com/nfl/articles/brolleys-best-bets-nfl-futures",
+        "date": "2026-07-15T14:00:00.000Z",
+        "author": "Tom Brolley"
+      },
+      {
+        "title": "Fantasy Factors: 2026 NFL OTA Takeaways",
+        "url": "https://www.fantasypoints.com/nfl/articles/fantasy-factors-nfl-ota-takeaways",
+        "date": "2026-07-13T16:00:00.000Z",
+        "author": "Zain Dhanani"
+      },
+      {
+        "title": "2026 NFL Player Props: Rushing Touchdowns Leader",
+        "url": "https://www.fantasypoints.com/nfl/articles/nfl-player-props-rushing-touchdowns-leader",
+        "date": "2026-07-10T20:00:00.000Z",
+        "author": "Tom Brolley"
+      },
+      {
+        "title": "2026 NFL Player Props: Rushing Yards Leader",
+        "url": "https://www.fantasypoints.com/nfl/articles/nfl-player-props-rushing-yards-leader",
+        "date": "2026-07-08T18:30:00.000Z",
+        "author": "Tom Brolley"
+      },
+      {
+        "title": "2026 NFL Player Props: Rushing Touchdowns",
+        "url": "https://www.fantasypoints.com/nfl/articles/nfl-player-props-rushing-touchdowns",
+        "date": "2026-06-12T19:30:00.000Z",
+        "author": "Tom Brolley"
+      },
+      {
+        "title": "Brain Trust: 2026 Favorite Rookie Landing Spots",
+        "url": "https://www.fantasypoints.com/nfl/articles/brain-trust-favorite-rookie-landing-spots",
+        "date": "2026-05-12T19:32:18.886Z",
+        "author": "FPTS Staff"
+      }
+    ],
+    "Mike Evans": [
+      {
+        "title": "Brolley's Best Bets: 2026 NFL Futures",
+        "url": "https://www.fantasypoints.com/nfl/articles/brolleys-best-bets-nfl-futures",
+        "date": "2026-07-15T14:00:00.000Z",
+        "author": "Tom Brolley"
+      },
+      {
+        "title": "2026 NFL Player Props: Receiving Touchdowns Leader",
+        "url": "https://www.fantasypoints.com/nfl/articles/nfl-player-props-receiving-touchdowns-leader",
+        "date": "2026-07-03T14:00:00.000Z",
+        "author": "Tom Brolley"
+      },
+      {
+        "title": "Brain Trust: 2026 Favorite Best Ball Pick",
+        "url": "https://www.fantasypoints.com/nfl/articles/brain-trust-favorite-best-ball-pick",
+        "date": "2026-07-01T12:30:00.000Z",
+        "author": "FPTS Staff"
+      },
+      {
+        "title": "2026 NFL Player Props: Receiving Touchdowns",
+        "url": "https://www.fantasypoints.com/nfl/articles/nfl-player-props-receiving-touchdowns",
+        "date": "2026-06-19T12:30:00.000Z",
+        "author": "Tom Brolley"
+      }
+    ],
+    "Josh Allen": [
+      {
+        "title": "2026 Auction/Salary Cap Draft Plan",
+        "url": "https://www.fantasypoints.com/nfl/articles/auctionsalary-cap-draft-plan",
+        "date": "2026-07-14T22:00:00.000Z",
+        "author": "Joe Dolan"
+      },
+      {
+        "title": "2026 New Playcallers: Fantasy Football Impact",
+        "url": "https://www.fantasypoints.com/nfl/articles/new-playcallers-fantasy-football-impact",
+        "date": "2026-07-09T12:46:33.127Z",
+        "author": "Ryan Heath"
+      },
+      {
+        "title": "Brain Trust: 2026 Favorite Best Ball Pick",
+        "url": "https://www.fantasypoints.com/nfl/articles/brain-trust-favorite-best-ball-pick",
+        "date": "2026-07-01T12:30:00.000Z",
+        "author": "FPTS Staff"
+      }
+    ],
+    "Terrance Ferguson": [
+      {
+        "title": "Brain Trust: 2026 Favorite Sleeper Tight End",
+        "url": "https://www.fantasypoints.com/nfl/articles/brain-trust-favorite-sleeper-tight-end",
+        "date": "2026-07-10T19:30:00.000Z",
+        "author": "FPTS Staff"
+      }
+    ],
+    "Colston Loveland": [
+      {
+        "title": "Brain Trust: 2026 Favorite Sleeper Tight End",
+        "url": "https://www.fantasypoints.com/nfl/articles/brain-trust-favorite-sleeper-tight-end",
+        "date": "2026-07-10T19:30:00.000Z",
+        "author": "FPTS Staff"
+      },
+      {
+        "title": "2026 NFL Player Props: Receiving Touchdowns",
+        "url": "https://www.fantasypoints.com/nfl/articles/nfl-player-props-receiving-touchdowns",
+        "date": "2026-06-19T12:30:00.000Z",
+        "author": "Tom Brolley"
+      }
+    ],
+    "Elijah Arroyo": [
+      {
+        "title": "Brain Trust: 2026 Favorite Sleeper Tight End",
+        "url": "https://www.fantasypoints.com/nfl/articles/brain-trust-favorite-sleeper-tight-end",
+        "date": "2026-07-10T19:30:00.000Z",
+        "author": "FPTS Staff"
+      }
+    ],
+    "Tyler Warren": [
+      {
+        "title": "Brain Trust: 2026 Favorite Sleeper Tight End",
+        "url": "https://www.fantasypoints.com/nfl/articles/brain-trust-favorite-sleeper-tight-end",
+        "date": "2026-07-10T19:30:00.000Z",
+        "author": "FPTS Staff"
+      },
+      {
+        "title": "Brain Trust: 2026 Favorite Best Ball Pick",
+        "url": "https://www.fantasypoints.com/nfl/articles/brain-trust-favorite-best-ball-pick",
+        "date": "2026-07-01T12:30:00.000Z",
+        "author": "FPTS Staff"
+      },
+      {
+        "title": "Scott Fish Bowl 16 Scoring and Draft Strategy",
+        "url": "https://www.fantasypoints.com/nfl/articles/scott-fish-bowl-16-scoring-and-draft-strategy",
+        "date": "2026-06-22T19:00:00.000Z",
+        "author": "Zach Swails"
+      }
+    ],
     "David Montgomery": [
       {
         "title": "Fantasy Factors: 2026 NFL OTA Takeaways",
@@ -24,144 +222,6 @@
         "title": "2026 NFL Player Props: Rushing Yards",
         "url": "https://www.fantasypoints.com/nfl/articles/nfl-player-props-rushing-yards",
         "date": "2026-06-09T19:30:00.000Z",
-        "author": "Tom Brolley"
-      }
-    ],
-    "Jonathan Taylor": [
-      {
-        "title": "2026 NFL Player Props: Rushing Touchdowns Leader",
-        "url": "https://www.fantasypoints.com/nfl/articles/nfl-player-props-rushing-touchdowns-leader",
-        "date": "2026-07-10T20:00:00.000Z",
-        "author": "Tom Brolley"
-      },
-      {
-        "title": "2026 NFL Player Props: Rushing Yards Leader",
-        "url": "https://www.fantasypoints.com/nfl/articles/nfl-player-props-rushing-yards-leader",
-        "date": "2026-07-08T18:30:00.000Z",
-        "author": "Tom Brolley"
-      },
-      {
-        "title": "Scott Fish Bowl 16 Scoring and Draft Strategy",
-        "url": "https://www.fantasypoints.com/nfl/articles/scott-fish-bowl-16-scoring-and-draft-strategy",
-        "date": "2026-06-22T19:00:00.000Z",
-        "author": "Zach Swails"
-      },
-      {
-        "title": "2026 NFL Player Props: Rushing Touchdowns",
-        "url": "https://www.fantasypoints.com/nfl/articles/nfl-player-props-rushing-touchdowns",
-        "date": "2026-06-12T19:30:00.000Z",
-        "author": "Tom Brolley"
-      }
-    ],
-    "Kenneth Walker": [
-      {
-        "title": "Fantasy Factors: 2026 NFL OTA Takeaways",
-        "url": "https://www.fantasypoints.com/nfl/articles/fantasy-factors-nfl-ota-takeaways",
-        "date": "2026-07-13T16:00:00.000Z",
-        "author": "Zain Dhanani"
-      },
-      {
-        "title": "2026 NFL Player Props: Rushing Touchdowns Leader",
-        "url": "https://www.fantasypoints.com/nfl/articles/nfl-player-props-rushing-touchdowns-leader",
-        "date": "2026-07-10T20:00:00.000Z",
-        "author": "Tom Brolley"
-      },
-      {
-        "title": "Brolley's Best Bets: 2026 NFL Futures",
-        "url": "https://www.fantasypoints.com/nfl/articles/brolleys-best-bets-nfl-futures",
-        "date": "2026-07-10T19:00:00.000Z",
-        "author": "Tom Brolley"
-      },
-      {
-        "title": "2026 NFL Player Props: Rushing Yards Leader",
-        "url": "https://www.fantasypoints.com/nfl/articles/nfl-player-props-rushing-yards-leader",
-        "date": "2026-07-08T18:30:00.000Z",
-        "author": "Tom Brolley"
-      },
-      {
-        "title": "2026 NFL Player Props: Rushing Touchdowns",
-        "url": "https://www.fantasypoints.com/nfl/articles/nfl-player-props-rushing-touchdowns",
-        "date": "2026-06-12T19:30:00.000Z",
-        "author": "Tom Brolley"
-      },
-      {
-        "title": "Brain Trust: 2026 Favorite Rookie Landing Spots",
-        "url": "https://www.fantasypoints.com/nfl/articles/brain-trust-favorite-rookie-landing-spots",
-        "date": "2026-05-12T19:32:18.886Z",
-        "author": "FPTS Staff"
-      }
-    ],
-    "Chuba Hubbard": [
-      {
-        "title": "2026 NFL Player Props: Rushing Touchdowns",
-        "url": "https://www.fantasypoints.com/nfl/articles/nfl-player-props-rushing-touchdowns",
-        "date": "2026-06-12T19:30:00.000Z",
-        "author": "Tom Brolley"
-      }
-    ],
-    "Derrick Henry": [
-      {
-        "title": "2026 NFL Player Props: Rushing Touchdowns Leader",
-        "url": "https://www.fantasypoints.com/nfl/articles/nfl-player-props-rushing-touchdowns-leader",
-        "date": "2026-07-10T20:00:00.000Z",
-        "author": "Tom Brolley"
-      },
-      {
-        "title": "2026 New Playcallers: Fantasy Football Impact",
-        "url": "https://www.fantasypoints.com/nfl/articles/new-playcallers-fantasy-football-impact",
-        "date": "2026-07-09T12:46:33.127Z",
-        "author": "Ryan Heath"
-      },
-      {
-        "title": "2026 NFL Player Props: Rushing Yards Leader",
-        "url": "https://www.fantasypoints.com/nfl/articles/nfl-player-props-rushing-yards-leader",
-        "date": "2026-07-08T18:30:00.000Z",
-        "author": "Tom Brolley"
-      },
-      {
-        "title": "2026 NFL Player Props: Rushing Touchdowns",
-        "url": "https://www.fantasypoints.com/nfl/articles/nfl-player-props-rushing-touchdowns",
-        "date": "2026-06-12T19:30:00.000Z",
-        "author": "Tom Brolley"
-      }
-    ],
-    "Isiah Pacheco": [
-      {
-        "title": "2026 NFL Player Props: Rushing Touchdowns",
-        "url": "https://www.fantasypoints.com/nfl/articles/nfl-player-props-rushing-touchdowns",
-        "date": "2026-06-12T19:30:00.000Z",
-        "author": "Tom Brolley"
-      }
-    ],
-    "Jahmyr Gibbs": [
-      {
-        "title": "Fantasy Factors: 2026 NFL OTA Takeaways",
-        "url": "https://www.fantasypoints.com/nfl/articles/fantasy-factors-nfl-ota-takeaways",
-        "date": "2026-07-13T16:00:00.000Z",
-        "author": "Zain Dhanani"
-      },
-      {
-        "title": "2026 NFL Player Props: Rushing Touchdowns Leader",
-        "url": "https://www.fantasypoints.com/nfl/articles/nfl-player-props-rushing-touchdowns-leader",
-        "date": "2026-07-10T20:00:00.000Z",
-        "author": "Tom Brolley"
-      },
-      {
-        "title": "2026 New Playcallers: Fantasy Football Impact",
-        "url": "https://www.fantasypoints.com/nfl/articles/new-playcallers-fantasy-football-impact",
-        "date": "2026-07-09T12:46:33.127Z",
-        "author": "Ryan Heath"
-      },
-      {
-        "title": "2026 NFL Player Props: Rushing Yards Leader",
-        "url": "https://www.fantasypoints.com/nfl/articles/nfl-player-props-rushing-yards-leader",
-        "date": "2026-07-08T18:30:00.000Z",
-        "author": "Tom Brolley"
-      },
-      {
-        "title": "2026 NFL Player Props: Rushing Touchdowns",
-        "url": "https://www.fantasypoints.com/nfl/articles/nfl-player-props-rushing-touchdowns",
-        "date": "2026-06-12T19:30:00.000Z",
         "author": "Tom Brolley"
       }
     ],
@@ -337,6 +397,38 @@
         "url": "https://www.fantasypoints.com/nfl/articles/fantasy-factors-nfl-ota-takeaways",
         "date": "2026-07-13T16:00:00.000Z",
         "author": "Zain Dhanani"
+      }
+    ],
+    "Jahmyr Gibbs": [
+      {
+        "title": "Fantasy Factors: 2026 NFL OTA Takeaways",
+        "url": "https://www.fantasypoints.com/nfl/articles/fantasy-factors-nfl-ota-takeaways",
+        "date": "2026-07-13T16:00:00.000Z",
+        "author": "Zain Dhanani"
+      },
+      {
+        "title": "2026 NFL Player Props: Rushing Touchdowns Leader",
+        "url": "https://www.fantasypoints.com/nfl/articles/nfl-player-props-rushing-touchdowns-leader",
+        "date": "2026-07-10T20:00:00.000Z",
+        "author": "Tom Brolley"
+      },
+      {
+        "title": "2026 New Playcallers: Fantasy Football Impact",
+        "url": "https://www.fantasypoints.com/nfl/articles/new-playcallers-fantasy-football-impact",
+        "date": "2026-07-09T12:46:33.127Z",
+        "author": "Ryan Heath"
+      },
+      {
+        "title": "2026 NFL Player Props: Rushing Yards Leader",
+        "url": "https://www.fantasypoints.com/nfl/articles/nfl-player-props-rushing-yards-leader",
+        "date": "2026-07-08T18:30:00.000Z",
+        "author": "Tom Brolley"
+      },
+      {
+        "title": "2026 NFL Player Props: Rushing Touchdowns",
+        "url": "https://www.fantasypoints.com/nfl/articles/nfl-player-props-rushing-touchdowns",
+        "date": "2026-06-12T19:30:00.000Z",
+        "author": "Tom Brolley"
       }
     ],
     "Jordan Mason": [
@@ -575,26 +667,6 @@
         "author": "Zain Dhanani"
       }
     ],
-    "Matthew Stafford": [
-      {
-        "title": "2026 New Playcallers: Fantasy Football Impact",
-        "url": "https://www.fantasypoints.com/nfl/articles/new-playcallers-fantasy-football-impact",
-        "date": "2026-07-09T12:46:33.127Z",
-        "author": "Ryan Heath"
-      },
-      {
-        "title": "Scott Fish Bowl 16 Scoring and Draft Strategy",
-        "url": "https://www.fantasypoints.com/nfl/articles/scott-fish-bowl-16-scoring-and-draft-strategy",
-        "date": "2026-06-22T19:00:00.000Z",
-        "author": "Zach Swails"
-      },
-      {
-        "title": "2026 NFL Player Props: Passing Touchdowns",
-        "url": "https://www.fantasypoints.com/nfl/articles/nfl-player-props-passing-touchdowns",
-        "date": "2026-06-05T21:00:00.000Z",
-        "author": "Tom Brolley"
-      }
-    ],
     "Quinshon Judkins": [
       {
         "title": "2026 New Playcallers: Fantasy Football Impact",
@@ -604,6 +676,12 @@
       }
     ],
     "Patrick Mahomes": [
+      {
+        "title": "2026 NFL Player Props: Passing Yards Leader",
+        "url": "https://www.fantasypoints.com/nfl/articles/nfl-player-props-passing-yards-leader",
+        "date": "2026-07-15T14:00:00.000Z",
+        "author": "Tom Brolley"
+      },
       {
         "title": "2026 New Playcallers: Fantasy Football Impact",
         "url": "https://www.fantasypoints.com/nfl/articles/new-playcallers-fantasy-football-impact",
@@ -743,6 +821,32 @@
         "author": "Tom Brolley"
       }
     ],
+    "Derrick Henry": [
+      {
+        "title": "2026 NFL Player Props: Rushing Touchdowns Leader",
+        "url": "https://www.fantasypoints.com/nfl/articles/nfl-player-props-rushing-touchdowns-leader",
+        "date": "2026-07-10T20:00:00.000Z",
+        "author": "Tom Brolley"
+      },
+      {
+        "title": "2026 New Playcallers: Fantasy Football Impact",
+        "url": "https://www.fantasypoints.com/nfl/articles/new-playcallers-fantasy-football-impact",
+        "date": "2026-07-09T12:46:33.127Z",
+        "author": "Ryan Heath"
+      },
+      {
+        "title": "2026 NFL Player Props: Rushing Yards Leader",
+        "url": "https://www.fantasypoints.com/nfl/articles/nfl-player-props-rushing-yards-leader",
+        "date": "2026-07-08T18:30:00.000Z",
+        "author": "Tom Brolley"
+      },
+      {
+        "title": "2026 NFL Player Props: Rushing Touchdowns",
+        "url": "https://www.fantasypoints.com/nfl/articles/nfl-player-props-rushing-touchdowns",
+        "date": "2026-06-12T19:30:00.000Z",
+        "author": "Tom Brolley"
+      }
+    ],
     "Harold Fannin": [
       {
         "title": "2026 New Playcallers: Fantasy Football Impact",
@@ -870,6 +974,12 @@
       }
     ],
     "Kyler Murray": [
+      {
+        "title": "2026 NFL Player Props: Passing Yards Leader",
+        "url": "https://www.fantasypoints.com/nfl/articles/nfl-player-props-passing-yards-leader",
+        "date": "2026-07-15T14:00:00.000Z",
+        "author": "Tom Brolley"
+      },
       {
         "title": "2026 New Playcallers: Fantasy Football Impact",
         "url": "https://www.fantasypoints.com/nfl/articles/new-playcallers-fantasy-football-impact",
@@ -1021,6 +1131,12 @@
     ],
     "Sam Darnold": [
       {
+        "title": "2026 NFL Player Props: Passing Yards Leader",
+        "url": "https://www.fantasypoints.com/nfl/articles/nfl-player-props-passing-yards-leader",
+        "date": "2026-07-15T14:00:00.000Z",
+        "author": "Tom Brolley"
+      },
+      {
         "title": "2026 New Playcallers: Fantasy Football Impact",
         "url": "https://www.fantasypoints.com/nfl/articles/new-playcallers-fantasy-football-impact",
         "date": "2026-07-09T12:46:33.127Z",
@@ -1085,6 +1201,12 @@
     ],
     "Drake Maye": [
       {
+        "title": "2026 NFL Player Props: Passing Yards Leader",
+        "url": "https://www.fantasypoints.com/nfl/articles/nfl-player-props-passing-yards-leader",
+        "date": "2026-07-15T14:00:00.000Z",
+        "author": "Tom Brolley"
+      },
+      {
         "title": "2026 New Playcallers: Fantasy Football Impact",
         "url": "https://www.fantasypoints.com/nfl/articles/new-playcallers-fantasy-football-impact",
         "date": "2026-07-09T12:46:33.127Z",
@@ -1092,6 +1214,12 @@
       }
     ],
     "Jared Goff": [
+      {
+        "title": "2026 NFL Player Props: Passing Yards Leader",
+        "url": "https://www.fantasypoints.com/nfl/articles/nfl-player-props-passing-yards-leader",
+        "date": "2026-07-15T14:00:00.000Z",
+        "author": "Tom Brolley"
+      },
       {
         "title": "2026 New Playcallers: Fantasy Football Impact",
         "url": "https://www.fantasypoints.com/nfl/articles/new-playcallers-fantasy-football-impact",
@@ -1101,24 +1229,16 @@
     ],
     "Joe Burrow": [
       {
-        "title": "2026 New Playcallers: Fantasy Football Impact",
-        "url": "https://www.fantasypoints.com/nfl/articles/new-playcallers-fantasy-football-impact",
-        "date": "2026-07-09T12:46:33.127Z",
-        "author": "Ryan Heath"
-      }
-    ],
-    "Josh Allen": [
-      {
-        "title": "2026 New Playcallers: Fantasy Football Impact",
-        "url": "https://www.fantasypoints.com/nfl/articles/new-playcallers-fantasy-football-impact",
-        "date": "2026-07-09T12:46:33.127Z",
-        "author": "Ryan Heath"
+        "title": "2026 NFL Player Props: Passing Yards Leader",
+        "url": "https://www.fantasypoints.com/nfl/articles/nfl-player-props-passing-yards-leader",
+        "date": "2026-07-15T14:00:00.000Z",
+        "author": "Tom Brolley"
       },
       {
-        "title": "Brain Trust: 2026 Favorite Best Ball Pick",
-        "url": "https://www.fantasypoints.com/nfl/articles/brain-trust-favorite-best-ball-pick",
-        "date": "2026-07-01T12:30:00.000Z",
-        "author": "FPTS Staff"
+        "title": "2026 New Playcallers: Fantasy Football Impact",
+        "url": "https://www.fantasypoints.com/nfl/articles/new-playcallers-fantasy-football-impact",
+        "date": "2026-07-09T12:46:33.127Z",
+        "author": "Ryan Heath"
       }
     ],
     "Puka Nacua": [
@@ -1205,6 +1325,32 @@
         "author": "Tom Brolley"
       }
     ],
+    "Jonathan Taylor": [
+      {
+        "title": "2026 NFL Player Props: Rushing Touchdowns Leader",
+        "url": "https://www.fantasypoints.com/nfl/articles/nfl-player-props-rushing-touchdowns-leader",
+        "date": "2026-07-10T20:00:00.000Z",
+        "author": "Tom Brolley"
+      },
+      {
+        "title": "2026 NFL Player Props: Rushing Yards Leader",
+        "url": "https://www.fantasypoints.com/nfl/articles/nfl-player-props-rushing-yards-leader",
+        "date": "2026-07-08T18:30:00.000Z",
+        "author": "Tom Brolley"
+      },
+      {
+        "title": "Scott Fish Bowl 16 Scoring and Draft Strategy",
+        "url": "https://www.fantasypoints.com/nfl/articles/scott-fish-bowl-16-scoring-and-draft-strategy",
+        "date": "2026-06-22T19:00:00.000Z",
+        "author": "Zach Swails"
+      },
+      {
+        "title": "2026 NFL Player Props: Rushing Touchdowns",
+        "url": "https://www.fantasypoints.com/nfl/articles/nfl-player-props-rushing-touchdowns",
+        "date": "2026-06-12T19:30:00.000Z",
+        "author": "Tom Brolley"
+      }
+    ],
     "Omarion Hampton": [
       {
         "title": "2026 NFL Player Props: Rushing Yards Leader",
@@ -1237,38 +1383,46 @@
         "author": "Tom Brolley"
       }
     ],
-    "Mike Evans": [
-      {
-        "title": "Brolley's Best Bets: 2026 NFL Futures",
-        "url": "https://www.fantasypoints.com/nfl/articles/brolleys-best-bets-nfl-futures",
-        "date": "2026-07-10T19:00:00.000Z",
-        "author": "Tom Brolley"
-      },
-      {
-        "title": "2026 NFL Player Props: Receiving Touchdowns Leader",
-        "url": "https://www.fantasypoints.com/nfl/articles/nfl-player-props-receiving-touchdowns-leader",
-        "date": "2026-07-03T14:00:00.000Z",
-        "author": "Tom Brolley"
-      },
-      {
-        "title": "Brain Trust: 2026 Favorite Best Ball Pick",
-        "url": "https://www.fantasypoints.com/nfl/articles/brain-trust-favorite-best-ball-pick",
-        "date": "2026-07-01T12:30:00.000Z",
-        "author": "FPTS Staff"
-      },
-      {
-        "title": "2026 NFL Player Props: Receiving Touchdowns",
-        "url": "https://www.fantasypoints.com/nfl/articles/nfl-player-props-receiving-touchdowns",
-        "date": "2026-06-19T12:30:00.000Z",
-        "author": "Tom Brolley"
-      }
-    ],
     "Tyler Shough": [
+      {
+        "title": "2026 NFL Player Props: Passing Yards Leader",
+        "url": "https://www.fantasypoints.com/nfl/articles/nfl-player-props-passing-yards-leader",
+        "date": "2026-07-15T14:00:00.000Z",
+        "author": "Tom Brolley"
+      },
       {
         "title": "2026 NFL Division Odds",
         "url": "https://www.fantasypoints.com/nfl/articles/nfl-division-odds",
         "date": "2026-05-13T19:30:00.000Z",
         "author": "Tom Brolley"
+      }
+    ],
+    "Justin Herbert": [
+      {
+        "title": "2026 NFL Player Props: Passing Yards Leader",
+        "url": "https://www.fantasypoints.com/nfl/articles/nfl-player-props-passing-yards-leader",
+        "date": "2026-07-15T14:00:00.000Z",
+        "author": "Tom Brolley"
+      },
+      {
+        "title": "2026 NFL Player Props: Passing Yards",
+        "url": "https://www.fantasypoints.com/nfl/articles/nfl-player-props-passing-yards",
+        "date": "2026-06-03T22:00:00.000Z",
+        "author": "Tom Brolley"
+      }
+    ],
+    "Tua Tagovailoa": [
+      {
+        "title": "2026 NFL Player Props: Passing Yards Leader",
+        "url": "https://www.fantasypoints.com/nfl/articles/nfl-player-props-passing-yards-leader",
+        "date": "2026-07-15T14:00:00.000Z",
+        "author": "Tom Brolley"
+      },
+      {
+        "title": "Brain Trust: 2026 Favorite Rookie Landing Spots",
+        "url": "https://www.fantasypoints.com/nfl/articles/brain-trust-favorite-rookie-landing-spots",
+        "date": "2026-05-12T19:32:18.886Z",
+        "author": "FPTS Staff"
       }
     ],
     "Fernando Mendoza": [
@@ -1287,14 +1441,6 @@
         "author": "Tom Brolley"
       }
     ],
-    "Justin Herbert": [
-      {
-        "title": "2026 NFL Player Props: Passing Yards",
-        "url": "https://www.fantasypoints.com/nfl/articles/nfl-player-props-passing-yards",
-        "date": "2026-06-03T22:00:00.000Z",
-        "author": "Tom Brolley"
-      }
-    ],
     "Isaiah Likely": [
       {
         "title": "2026 NFL Player Props: Passing Yards",
@@ -1303,91 +1449,19 @@
         "author": "Tom Brolley"
       }
     ],
-    "Terrance Ferguson": [
+    "Chuba Hubbard": [
       {
-        "title": "Brain Trust: 2026 Favorite Sleeper Tight End",
-        "url": "https://www.fantasypoints.com/nfl/articles/brain-trust-favorite-sleeper-tight-end",
-        "date": "2026-07-10T19:30:00.000Z",
-        "author": "FPTS Staff"
-      }
-    ],
-    "Colston Loveland": [
-      {
-        "title": "Brain Trust: 2026 Favorite Sleeper Tight End",
-        "url": "https://www.fantasypoints.com/nfl/articles/brain-trust-favorite-sleeper-tight-end",
-        "date": "2026-07-10T19:30:00.000Z",
-        "author": "FPTS Staff"
-      },
-      {
-        "title": "2026 NFL Player Props: Receiving Touchdowns",
-        "url": "https://www.fantasypoints.com/nfl/articles/nfl-player-props-receiving-touchdowns",
-        "date": "2026-06-19T12:30:00.000Z",
+        "title": "2026 NFL Player Props: Rushing Touchdowns",
+        "url": "https://www.fantasypoints.com/nfl/articles/nfl-player-props-rushing-touchdowns",
+        "date": "2026-06-12T19:30:00.000Z",
         "author": "Tom Brolley"
       }
     ],
-    "Elijah Arroyo": [
+    "Isiah Pacheco": [
       {
-        "title": "Brain Trust: 2026 Favorite Sleeper Tight End",
-        "url": "https://www.fantasypoints.com/nfl/articles/brain-trust-favorite-sleeper-tight-end",
-        "date": "2026-07-10T19:30:00.000Z",
-        "author": "FPTS Staff"
-      }
-    ],
-    "Tyler Warren": [
-      {
-        "title": "Brain Trust: 2026 Favorite Sleeper Tight End",
-        "url": "https://www.fantasypoints.com/nfl/articles/brain-trust-favorite-sleeper-tight-end",
-        "date": "2026-07-10T19:30:00.000Z",
-        "author": "FPTS Staff"
-      },
-      {
-        "title": "Brain Trust: 2026 Favorite Best Ball Pick",
-        "url": "https://www.fantasypoints.com/nfl/articles/brain-trust-favorite-best-ball-pick",
-        "date": "2026-07-01T12:30:00.000Z",
-        "author": "FPTS Staff"
-      },
-      {
-        "title": "Scott Fish Bowl 16 Scoring and Draft Strategy",
-        "url": "https://www.fantasypoints.com/nfl/articles/scott-fish-bowl-16-scoring-and-draft-strategy",
-        "date": "2026-06-22T19:00:00.000Z",
-        "author": "Zach Swails"
-      }
-    ],
-    "Aaron Rodgers": [
-      {
-        "title": "2026 NFL Player Props: Passing Touchdowns",
-        "url": "https://www.fantasypoints.com/nfl/articles/nfl-player-props-passing-touchdowns",
-        "date": "2026-06-05T21:00:00.000Z",
-        "author": "Tom Brolley"
-      }
-    ],
-    "Dak Prescott": [
-      {
-        "title": "Scott Fish Bowl 16 Scoring and Draft Strategy",
-        "url": "https://www.fantasypoints.com/nfl/articles/scott-fish-bowl-16-scoring-and-draft-strategy",
-        "date": "2026-06-22T19:00:00.000Z",
-        "author": "Zach Swails"
-      },
-      {
-        "title": "2026 NFL Player Props: Passing Touchdowns",
-        "url": "https://www.fantasypoints.com/nfl/articles/nfl-player-props-passing-touchdowns",
-        "date": "2026-06-05T21:00:00.000Z",
-        "author": "Tom Brolley"
-      }
-    ],
-    "Bryce Young": [
-      {
-        "title": "2026 NFL Player Props: Passing Touchdowns",
-        "url": "https://www.fantasypoints.com/nfl/articles/nfl-player-props-passing-touchdowns",
-        "date": "2026-06-05T21:00:00.000Z",
-        "author": "Tom Brolley"
-      }
-    ],
-    "Cam Ward": [
-      {
-        "title": "2026 NFL Player Props: Passing Touchdowns",
-        "url": "https://www.fantasypoints.com/nfl/articles/nfl-player-props-passing-touchdowns",
-        "date": "2026-06-05T21:00:00.000Z",
+        "title": "2026 NFL Player Props: Rushing Touchdowns",
+        "url": "https://www.fantasypoints.com/nfl/articles/nfl-player-props-rushing-touchdowns",
+        "date": "2026-06-12T19:30:00.000Z",
         "author": "Tom Brolley"
       }
     ],
@@ -1524,14 +1598,6 @@
       }
     ],
     "Emanuel Wilson": [
-      {
-        "title": "Brain Trust: 2026 Favorite Rookie Landing Spots",
-        "url": "https://www.fantasypoints.com/nfl/articles/brain-trust-favorite-rookie-landing-spots",
-        "date": "2026-05-12T19:32:18.886Z",
-        "author": "FPTS Staff"
-      }
-    ],
-    "Tua Tagovailoa": [
       {
         "title": "Brain Trust: 2026 Favorite Rookie Landing Spots",
         "url": "https://www.fantasypoints.com/nfl/articles/brain-trust-favorite-rookie-landing-spots",
