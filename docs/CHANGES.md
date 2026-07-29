@@ -6,6 +6,19 @@ the operator manual see [`WORKFLOW.md`](WORKFLOW.md).
 
 ---
 
+## 2026-07-29 — MVS + trade-archive refresh (export now carries REDRAFT columns)
+
+Pure data refresh from a new market export (`player_market_mvs_rows (11).csv`) — no site code touched.
+
+- **Trades:** archive **40,386 → 56,165** (+15,779 unioned by `transaction_id`) — the largest single increment so far. The export's rolling `recent_trades` window itself roughly doubled (20,559 unique this run vs 10,405 in the previous CSV), so the jump is window growth plus two weeks of new deals, not a format change. Archive spans **2026-01-01 → 2026-07-29**; 0 one-sided rows, 0 missing `transaction_id`, all 8 format tags present (`sf_tep` 25,143 still the plurality). `data/trades.json` is now **22.89 MB raw / 3.10 MB gzipped** (from 16.56 MB) — the trade-DB page's first-load payload; it paginates at `RECENT_PAGE_SIZE = 60` so render cost stays flat, but this is the growth curve to watch.
+- **Values:** `data/mvs.json` regenerated — **527 players / 60 picks**, identical key sets to the previous build (no adds, no drops). Modeled TEP verified intact against the raw CSV (TE median ratio exactly **1.1200**, QB/RB/WR exactly **1.0000**); no zero/null `valueSf`, no missing `sleeperId`. 124 of 527 SF values unchanged, but those are the deep tail (max value 1,148, median 61, only 2 inside the top 200) — inactive depth, not a stale-data symptom.
+- **Market movement is real:** Jahmyr Gibbs takes SF #1 (9,229 → 10,033), displacing Josh Allen (now #2). Risers: Kenneth Walker +648, Jake Ferguson +640, Quinshon Judkins +635, De'Von Achane +528. Fallers: Jacory Croskey-Merritt −716, TreVeyon Henderson −676, Patrick Mahomes −643, Tetairoa McMillan −589. Picks moved too (2026 1st-late +298, 2027 1st −225).
+- **⚠ SCHEMA CHANGE — the export grew 68 → 83 columns.** New: a complete **redraft** value family (`mvs_redraft_sf` / `mvs_redraft_1qb` plus matching `baseline_`/`history_`/`mvs_change_`/`mvs_last_week_`/`trades_last_run_`/`trades_last_week_`) and `recent_trades_redraft`. **Nothing broke** — `sync-mvs.py` and `sync-trades.py` read named dynasty columns via `csv.DictReader`, so unknown columns are ignored — and **the site does not surface redraft values anywhere**. Logged here as available-but-unused data; a redraft mode alongside the SF/1QB toggle is a future option (it would need a value-basis decision in `sync-mvs.py` and a third format key threaded through `FP_VALUES`/`mlFpValue`). Note `recent_trades_redraft` is likewise **not** folded into the archive — `sync-trades.py` reads only `recent_trades`, keeping the trade DB dynasty-only.
+- **Repo hygiene:** `.gitignore` now root-anchors `/*.csv` + `/*.txt`. Two stray May-21 files (a TAT rankings export and a box-drawing-named notes file) were sitting untracked in the repo root, and `push.bat` runs `git add -A` — they would have shipped to the public repo. Every real data source lives under `data/source/` (still tracked); nothing at the root should be committed. The files themselves were left on disk.
+- Data-only ⇒ no Legend/FORMULAS card, no public timeline node, no cache-token bumps. `check-colors` CLEAN (49). **Not browser-verified** (CORS + login = user): the re-priced board is worth eyeballing on the DB / Rankings pages, since this re-prices every value site-wide.
+
+---
+
 ## 2026-07-15 — Function-reference pass: site-map cards for all 11 pages + the two shared Roster Moves tab modules
 
 Punch-list item #5. `docs/function-reference.html` had fallen behind the site: its SITE MAP page listed only the original 7 pages, and the two shared modules behind the Roster Moves **Waiver Wire** and **Trade History** tabs (`assets/js/waiver-wire.js` / `assets/js/trade-history.js`) had no function-index entries. Docs-only — no site code touched.

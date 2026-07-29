@@ -14,9 +14,21 @@ This file is the **resume-where-we-left-off** doc.
 
 ---
 
+## Where we are (2026-07-29) — MVS + trade-archive refresh; export now ships REDRAFT columns
+
+Pure data refresh from a new market export (`player_market_mvs_rows (11).csv`), **no site code touched**. Ran the documented 4-step chain (`sync-trades` against the OLD CSV first → swap the CSV → `sync-trades` again → `sync-mvs`).
+
+- **Trades: 40,386 → 56,165** (+15,779) — the biggest single increment yet. The export's rolling `recent_trades` window itself roughly doubled (20,559 unique vs 10,405), so it's window growth plus two weeks of deals. Archive now spans **2026-01-01 → 2026-07-29**; 0 one-sided rows, 0 missing ids, all 8 format tags intact. `data/trades.json` **16.56 → 22.89 MB raw (3.10 MB gzipped)** — the trade-DB first-load payload; the page still paginates at 60, but watch this curve.
+- **Values: 527 players / 60 picks**, identical key sets (no adds/drops). **Modeled TEP verified intact** (TE ratio exactly 1.1200, QB/RB/WR 1.0000 vs the raw CSV); no zero/null values. The 124 unchanged SF values are all deep tail (max 1,148, median 61, only 2 in the top 200). **Jahmyr Gibbs is now SF #1** (9,229 → 10,033), pushing Josh Allen to #2 — genuine movement, same canary logic as prior refreshes.
+- **⚠ The export grew 68 → 83 columns:** a full **redraft** value family (`mvs_redraft_sf`/`_1qb` + baseline/history/change/last-week/trade-count siblings) plus `recent_trades_redraft`. **Nothing broke** (both sync scripts use `csv.DictReader` on named dynasty columns), and **the site surfaces none of it**. Noted as available-but-unused — a redraft mode would need a value-basis call in `sync-mvs.py` + a third format key threaded through `FP_VALUES`/`mlFpValue`. The archive stays dynasty-only.
+- **`.gitignore` hardened:** root-anchored `/*.csv` + `/*.txt`. Two stray May-21 files were sitting untracked in the repo root and `push.bat` runs `git add -A` — they would have shipped publicly. Files left on disk.
+- Data-only ⇒ no Legend/FORMULAS card, no timeline node, no token bumps. `check-colors` CLEAN (49). **NOT browser-verified** — this re-prices every value site-wide, so eyeball the DB / Rankings board.
+
+---
+
 ## Where we are (2026-07-15) — Function-reference documentation pass (punch-list #5)
 
-Closed punch-list **#5** (`docs/function-reference.html` pass). Docs-only, no site code touched. The printable reference was missing the four newest pages and had no entries for the two shared Roster Moves tab modules.
+Closed punch-list **#5** (`docs/function-reference.html` pass) — **shipped & live as `df985ae`** ("Update site + refresh data"; `main` in sync with `origin/main`, clean tree; push.bat also bundled the weekly data-sync churn). Docs-only, no site code touched. The printable reference was missing the four newest pages and had no entries for the two shared Roster Moves tab modules.
 
 - **Site map (page 02):** added cards for `compare.html`, `live-draft.html`, `mock-draft.html`, `whats-new.html` — the map now shows all **11** pages. Tightened `.sm-card` sizing + trimmed descriptions so 11 fit one sheet, dropped the redundant "Data sources" block (fully covered on the Data Pipeline page), and fixed a **stale** line still claiming My Leagues has a Waivers sidebar tab (removed in #6).
 - **New page 24 — Roster Moves · Waiver Wire & Trade History:** function-index entries for `window.WaiverWire` (`waiver-wire.js`) and `window.TradeHistory` (`trade-history.js`) — board/search/availability + pool-build/search/card-render, written from the actual source. Following pages renumbered **24→25 … 27→28** (page-nums, footers, and the page-08 section-order line).
@@ -52,11 +64,15 @@ And closed **#6 (slim the My Leagues sidebar Waivers tab)**: the value-column ov
 
 And closed **#3 (finder variety guard)**: `mlTfPickOffers` merged two engine passes (fit + value) and deduped only by full package signature, so two offers sharing the same primary anchor with a swapped 3rd/4th piece both survived. New `mlTfPrimaryKey` + `mlTfPickVariety` prefer distinct primary anchors (fall back to same-anchor only when distinct ones run short), wired into both Fair (`slice`) and Aggressive (`spread`) returns. The calc Trade Builder inherits it (calls `mlTfPickOffers`). Token `trade-finder.js` → `1800400000`; Legend "Suggestion variety" + `FORMULAS.md` variety block + public node **S38** (`legend-content.js`/`formulas-content.js` → `1800400000`). Python-port-validated (clustering broken, graceful fallback); check-colors CLEAN; balance OK.
 
-**▶ NEXT SESSION — remaining punch list** (full version in `~/.claude/plans/put-all-of-those-flickering-music.md` Part B). No bug report in hand → ASK the user which to take, don't fabricate:
+**▶ NEXT SESSION — punch list is drained of actionable items.** With #5 shipped (2026-07-15), everything build-able (#1–#6) is done; the only two left are both **non-actionable on their own** — #7 is data-blocked and #8 is reactive. So there is **nothing to proactively pick up** — **ASK the user** what they want (a new feature, a data refresh, or a tester bug report); don't fabricate work. Full history in `~/.claude/plans/put-all-of-those-flickering-music.md` Part B.
 1. ~~**De-dupe charts**~~ — ✅ done 2026-07-03 (`compare.html` delegates to `window.TrendChart` via `classPrefix`).
-5. ~~**`docs/function-reference.html` pass**~~ — ✅ done 2026-07-15 (site-map cards for all 11 pages + `waiver-wire.js` / `trade-history.js` entries on new page 24; PDF regenerated).
-7. **League-market calibration** (Trade Finder "C") — **DATA-BLOCKED**.
-8. **Constant tuning** — `trade-finder.js` / `valuation-core.js` knobs; **reactive** (needs a tester report). *Now that the Builder shares the finder's pipeline, a single tweak to those constants moves both surfaces.*
+2. ~~**Calc-side suggestion quality**~~ — ✅ done 2026-06-29 (`6483d6f`).
+3. ~~**Finder variety guard**~~ — ✅ done (`55d9d6a`).
+4. ~~**Label rookies "via rookie draft"**~~ — ✅ done (`20e73db`).
+5. ~~**`docs/function-reference.html` pass**~~ — ✅ done 2026-07-15, shipped `df985ae` (site-map cards for all 11 pages + `waiver-wire.js` / `trade-history.js` entries on new page 24; PDF regenerated; + on-screen font self-host & contrast polish).
+6. ~~**Slim the My Leagues sidebar Waivers tab**~~ — ✅ done (`4066b8a`).
+7. **League-market calibration** (Trade Finder "C") — **DATA-BLOCKED** (needs league-wide txns).
+8. **Constant tuning** — `trade-finder.js` / `valuation-core.js` knobs; **reactive** (needs a tester report). *The Builder shares the finder's pipeline, so a single tweak to those constants moves both surfaces.*
 
 ---
 

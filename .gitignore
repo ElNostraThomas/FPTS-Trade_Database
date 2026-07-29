@@ -41,6 +41,15 @@ sync-stats.config.json
 # tracked (see data/source/tiers/README.md for the workflow).
 /tiers.csv
 
+# Stray root-level exports / scratch notes. Every real data source lives
+# under data/source/ (and IS tracked); nothing at the repo ROOT should ever
+# ship. Without this, push.bat's `git add -A` silently commits whatever
+# spreadsheet or notes file happens to be sitting here (e.g. the May-21
+# "TAT 2026 Dynasty Rankings ... .csv" drop). Root-anchored so data/**.csv
+# is unaffected.
+/*.csv
+/*.txt
+
 # OS / IDE noise
 .DS_Store
 Thumbs.db
