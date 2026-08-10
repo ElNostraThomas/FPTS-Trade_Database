@@ -664,3 +664,14 @@
   .fmt-chip { font-size: 10px; padding: 2px 6px; }
   .faab-badge { font-size: 10px; padding: 2px 5px; }
 }
+
+/* "Full profile ↗" deep-link in the panel header — opens the Savant-style
+   player-profile.html for whoever the drawer is currently showing. */
+.pp-full-profile {
+  display: inline-block; margin-top: 8px;
+  font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+  font-size: 11px; letter-spacing: .04em; text-transform: uppercase;
+  color: var(--red); text-decoration: none;
+  border-bottom: 1px solid transparent; transition: border-color .15s;
+}
+.pp-full-profile:hover { border-bottom-color: var(--red); }

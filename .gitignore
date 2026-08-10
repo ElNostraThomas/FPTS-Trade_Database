@@ -12,6 +12,7 @@ sync-trades.py
 sync-rankings.py
 sync-analysts.py
 sync-stats.py
+sync-profile.py
 
 # Local logs (weekly scrape output)
 logs/

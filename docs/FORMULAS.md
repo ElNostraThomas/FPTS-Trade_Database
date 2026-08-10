@@ -2101,3 +2101,113 @@ selected = weightedRandomSample(top, probs);
 - Compile / regenerate after any change to a formula, threshold, or sync-script constant.
 - Pair with `assets/js/legend-content.js` (in-app developer legend) when those entries also drift.
 - Surface this as a user-facing **Legend** page (in plan, not yet built).
+
+---
+
+## Player Profile — positional percentiles
+
+**Files:** `sync-profile.py` (all math), `assets/js/player-profile.js` (render only),
+`data/profile.json` (output). Added 2026-08-10.
+
+Powers `player-profile.html`. All distribution math runs in the sync script; the page
+renders precomputed numbers, so there is no in-browser pass over ~1,100 players.
+
+### Season aggregation (from weekly data-suite rows)
+
+The source CSVs are **per player-week**, not season totals. Three rules:
+
+| Stat kind | Rule |
+| --- | --- |
+| Counting (targets, yards, TD) | Summed |
+| Rate (catch %, YPC, ANY/A) | **Recomputed from the summed components** |
+| Share (target share, team yds %) | Summed volume ÷ summed team total |
+
+Rate stats are never averaged across weeks — a weekly mean weights a 2-target game the
+same as a 12-target game. Explosive-run buckets (`5+ %`, `10+ %`) are the one place a
+weekly percentage is reused, weighted by that week's carries:
+
+```
+seasonRate = Σ(weeklyPct × weeklyAtt) / Σ(weeklyAtt)
+```
+
+which is exact, not an approximation, because the provider's weekly pct is `count/att`.
+
+### Team-total back-out
+
+Team denominators are **recovered from the provider's own share column** rather than
+summed from our player set (which covers only fantasy-relevant players and would
+under-count by up to ~25%):
+
+```
+teamTotal(team, week) = median over that team-week's players of  volume / (share / 100)
+playerSeasonShare     = Σ player volume / Σ teamTotal over the weeks he played
+```
+
+The median absorbs per-row rounding. Verified: this recovers **544 = 32 teams × 17 weeks**
+of denominators for every share metric, i.e. full coverage.
+
+### Percentile rank
+
+Mid-rank percentile within `(season, position)` over the qualified pool:
+
+```
+pct = round(100 × (countBelow + countEqual / 2) / n)
+if metric.invert: pct = 100 - pct
+```
+
+Ties share a position rather than being ordered arbitrarily. `invert` is set for metrics
+where lower is better (`INT %`, `Sack %`, `Fumbles`), so a longer bar always means better.
+
+### Qualifiers
+
+| Pos | Min games | Min volume |
+| --- | --- | --- |
+| QB | 6 | 150 dropbacks |
+| RB | 6 | 60 touches |
+| WR | 6 | 30 targets |
+| TE | 6 | 25 targets |
+
+**Why:** without a floor, one 2-target afternoon yields a 100% catch rate and poisons every
+other player's percentile. Mirrors Savant's "min PA" gate. Players below the floor keep
+their raw values and render an explanatory note instead of bars. 2025 pool sizes:
+QB 40 / RB 67 / WR 110 / TE 54 — all *tunable at the top of `sync-profile.py`*.
+
+### Bar color (diverging)
+
+`var(--pos-wr-bg)` blue at 0 → neutral gray at 50 → `var(--red)` orange at 100, mixed in
+OKLab. Validated for color-vision deficiency rather than eyeballed: worst-pair OKLab ΔE
+23.0 protan / 26.1 deutan / 30.1 tritan against an 8.0 target. Because both tokens fall
+under 3.0 contrast on the light surface, nothing is encoded by color alone — every bar
+prints its percentile in the bubble and its raw value beside the track.
+
+Season-table cells tint only at **pct ≥ 90 or ≤ 10**. A ±25 threshold tinted an elite
+player's row almost end-to-end, which reads as a heatmap rather than a stat table.
+
+### Consistency block (boom / bust / volatility)
+
+**File:** `assets/js/player-profile.js` — `renderConsistency()`. Fills the Usage column.
+
+```
+avg      = mean(weekly fantasy points, regular season)
+boomLine = avg × BOOM_MULT     (BOOM_MULT = 1.5)
+bustLine = avg × BUST_MULT     (BUST_MULT = 0.5)
+booms    = count(week >= boomLine)
+busts    = count(week <= bustLine)
+volatility = ( stdev(weekly points) / avg ) × 100      // coefficient of variation
+```
+
+**Why relative, not a flat line.** A fixed 20-point boom / 10-point bust threshold is a
+PPR-flavoured convention that silently means different things per position — 20 is a good
+week for a TE and a mediocre one for a QB. Anchoring to the player's own average makes one
+definition valid across all four positions with no position table to maintain.
+`BOOM_MULT` / `BUST_MULT` are hoisted at the top of the consistency section and tunable.
+
+**Volatility** is the coefficient of variation rather than raw standard deviation so it is
+comparable between a 22-ppg RB and an 8-ppg TE. Lower = steadier.
+
+### Dynasty Market block
+
+**File:** `assets/js/player-profile.js` — `renderMarket()`. Fills the identity column under
+the seasonal table. Pure passthrough of `MVS_PAYLOAD` fields (`trend`, `tradesLastWeek`,
+`otcValue`, `otcDiff`) — no new math. Season-independent, so it renders once per player
+rather than on every season-tab change.

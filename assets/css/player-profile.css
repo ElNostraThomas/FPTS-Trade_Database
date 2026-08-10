@@ -1,0 +1,269 @@
+/* ════════════════════════════════════════════════════════════════════════
+   player-profile.css — the Baseball-Savant-style player profile page.
+
+   The signature element is the PERCENTILE BAR: a POOR→GREAT track with a
+   filled portion, a bubble carrying the percentile, and the raw value at
+   the right. Color is a DIVERGING encoding (two hues + a neutral gray
+   midpoint, per the house data-viz rules):
+
+       poor  ← var(--pos-wr-bg) #5b9bd5 · blue
+       avg   ← rgba(128,128,128,1)      · neutral (allow-listed gray)
+       great ← var(--red)       #ED810C · brand orange
+
+   That pair was validated for color-vision deficiency rather than eyeballed
+   — worst-pair OKLab ΔE is 23.0 (protan) / 26.1 (deutan) / 30.1 (tritan)
+   against an 8.0 target. Both tokens sit slightly above the dark-mode
+   lightness band, which is intentional: they're locked brand values and the
+   house doctrine is "vibrant by default". Their contrast against the LIGHT
+   surface is below 3.0, so per the same rules nothing here is encoded by
+   color alone — every bar prints its percentile inside the bubble and its
+   raw value beside the track.
+
+   Branding: the bubble and the group chips are bright fills, so their text
+   is #111111 (hard rule #1). Muted text uses rgba alpha on `color`, never
+   `opacity` on a parent (hard rule #2).
+   ════════════════════════════════════════════════════════════════════════ */
+
+:root {
+  --pf-poor:  var(--pos-wr-bg);
+  --pf-great: var(--red);
+  --pf-mid:   rgba(128,128,128,1);
+  --pf-track: rgba(128,128,128,.22);
+}
+
+/* ── search ───────────────────────────────────────────────────────────── */
+.pf-search-wrap { position: relative; min-width: 280px; }
+.pf-search {
+  width: 100%; background: var(--surface); border: 1px solid var(--border2);
+  color: var(--white); font-family: 'Mulish', sans-serif; font-weight: 700;
+  font-size: 14px; padding: 10px 14px; outline: none; transition: border-color .2s;
+}
+.pf-search:focus { border-color: var(--red); }
+.pf-search::placeholder { color: rgba(128,128,128,1); }
+.pf-search-results {
+  position: absolute; top: calc(100% + 4px); left: 0; right: 0; z-index: 60;
+  background: var(--surface2); border: 1px solid var(--border2);
+  max-height: 340px; overflow-y: auto;
+}
+.pf-search-row {
+  display: flex; align-items: center; gap: 8px; padding: 8px 12px;
+  cursor: pointer; border-bottom: 1px solid var(--border);
+}
+.pf-search-row:last-child { border-bottom: none; }
+.pf-search-row:hover { background: var(--red-bg); }
+.pf-search-name { color: var(--white); font-weight: 700; font-size: 13px; }
+.pf-search-meta { color: rgba(128,128,128,1); font-size: 11px; margin-left: auto; }
+
+/* ── layout ───────────────────────────────────────────────────────────── */
+.pf-empty { padding: 60px 20px; text-align: center; color: rgba(128,128,128,1); }
+.pf-grid {
+  display: grid; gap: 14px; align-items: start;
+  grid-template-columns: minmax(300px, 1fr) minmax(420px, 1.5fr) minmax(300px, 1fr);
+}
+.pf-card {
+  background: var(--surface); border: 1px solid var(--border);
+  padding: 16px 18px; margin-bottom: 14px;
+}
+.pf-card-head {
+  display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap;
+  border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 14px;
+}
+.pf-card-title {
+  font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+  font-size: 16px; text-transform: uppercase; letter-spacing: .03em;
+  color: var(--white); margin: 0;
+}
+.pf-card-title span { color: var(--red); }
+.pf-note { color: rgba(128,128,128,1); font-size: 11px; margin-left: auto; }
+
+/* ── identity ─────────────────────────────────────────────────────────── */
+.pf-id-name {
+  font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+  font-size: 26px; line-height: 1.1; color: var(--white); text-transform: uppercase;
+}
+.pf-id-sub { display: flex; align-items: center; gap: 8px; margin: 8px 0 14px; flex-wrap: wrap; }
+.pf-id-team { color: rgba(128,128,128,1); font-size: 12px; font-weight: 700; }
+.pf-id-logo { width: 22px; height: 22px; object-fit: contain; }
+
+.pf-kpis { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 16px; }
+.pf-kpi { background: var(--surface2); border: 1px solid var(--border); padding: 8px 10px; }
+.pf-kpi-label {
+  color: rgba(128,128,128,1); font-size: 9px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .06em;
+}
+.pf-kpi-val {
+  color: var(--white); font-family: 'Kanit', sans-serif; font-weight: 800;
+  font-style: italic; font-size: 20px; font-variant-numeric: tabular-nums;
+}
+.pf-kpi-val.pf-accent { color: var(--red); }
+
+/* ── percentile bars ──────────────────────────────────────────────────── */
+.pf-group { margin-bottom: 18px; }
+.pf-group-title {
+  display: inline-block; background: var(--red); color: #111111;
+  font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+  font-size: 11px; text-transform: uppercase; letter-spacing: .05em;
+  padding: 3px 10px; margin-bottom: 10px;
+}
+.pf-scale {
+  display: grid; grid-template-columns: var(--pf-label-w, 130px) 1fr 52px;
+  gap: 10px; align-items: center; margin-bottom: 6px;
+}
+.pf-scale-track {
+  display: flex; justify-content: space-between;
+  font-size: 9px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+}
+.pf-scale-poor  { color: var(--pf-poor); }
+.pf-scale-avg   { color: rgba(128,128,128,1); }
+.pf-scale-great { color: var(--pf-great); }
+
+.pf-bar-row {
+  display: grid; grid-template-columns: var(--pf-label-w, 130px) 1fr 52px;
+  gap: 10px; align-items: center; margin-bottom: 7px;
+}
+.pf-bar-label {
+  text-align: right; font-size: 11px; font-weight: 700; color: var(--white);
+  line-height: 1.2;
+}
+.pf-bar-track {
+  position: relative; height: 14px; background: var(--pf-track);
+  border-radius: 7px;
+}
+.pf-bar-fill {
+  position: absolute; left: 0; top: 0; bottom: 0;
+  border-radius: 7px; min-width: 14px;
+}
+.pf-bubble {
+  position: absolute; top: 50%; transform: translate(-50%, -50%);
+  width: 24px; height: 24px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Mulish', sans-serif; font-weight: 900; font-size: 10px;
+  color: #111111; font-variant-numeric: tabular-nums;
+  border: 2px solid var(--surface);
+}
+.pf-bar-val {
+  text-align: right; font-size: 11px; font-weight: 700; color: var(--white);
+  font-variant-numeric: tabular-nums;
+}
+.pf-bar-row.pf-unranked .pf-bar-track { background: rgba(128,128,128,.10); }
+.pf-bar-row.pf-unranked .pf-bar-label { color: rgba(128,128,128,1); }
+
+.pf-qual-note {
+  color: rgba(128,128,128,1); font-size: 11px; line-height: 1.5;
+  border-left: 2px solid var(--border2); padding-left: 10px; margin-top: 14px;
+}
+
+/* ── season tabs ──────────────────────────────────────────────────────── */
+.pf-season-tabs { display: flex; gap: 4px; margin-left: auto; flex-wrap: wrap; }
+.pf-season-tab {
+  background: var(--surface2); border: 1px solid var(--border2); color: var(--white);
+  font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+  font-size: 11px; padding: 4px 10px; cursor: pointer; transition: all .15s;
+}
+.pf-season-tab:hover { border-color: var(--red); color: var(--red); }
+.pf-season-tab.active { background: var(--red); color: #111111; border-color: var(--red); }
+
+/* ── usage share ──────────────────────────────────────────────────────── */
+.pf-donut-wrap { display: flex; align-items: center; gap: 16px; margin-bottom: 16px; }
+.pf-donut { flex: 0 0 auto; }
+.pf-legend { display: flex; flex-direction: column; gap: 8px; }
+.pf-legend-item { display: flex; align-items: center; gap: 7px; font-size: 11px; color: var(--white); }
+.pf-swatch { width: 11px; height: 11px; flex: 0 0 auto; border-radius: 2px; }
+.pf-legend-val { color: rgba(128,128,128,1); font-variant-numeric: tabular-nums; }
+
+.pf-share-row { margin-bottom: 10px; }
+.pf-share-head {
+  display: flex; justify-content: space-between; font-size: 11px;
+  color: var(--white); font-weight: 700; margin-bottom: 4px;
+}
+.pf-share-head span { font-variant-numeric: tabular-nums; }
+.pf-share-track { height: 10px; background: var(--pf-track); border-radius: 5px; }
+.pf-share-fill { height: 100%; border-radius: 5px; background: var(--red); min-width: 3px; }
+
+/* ── season table ─────────────────────────────────────────────────────── */
+.pf-table-scroll { overflow-x: auto; }
+.pf-table { width: 100%; border-collapse: collapse; min-width: 720px; }
+.pf-table thead th {
+  /* The house table recipe specifies rgba(255,255,255,.45) for header ink,
+     but that is dark-mode-only — it vanishes against the light-theme
+     surface. color-mix keeps the same muted weight while following the
+     theme-aware --white token, and avoids `opacity` (hard rule #2). */
+  background: var(--surface2); color: color-mix(in srgb, var(--white) 55%, transparent);
+  font-family: 'Mulish', sans-serif; font-weight: 700; font-size: 10px;
+  text-transform: uppercase; letter-spacing: .06em;
+  padding: 10px 8px; text-align: center; border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+.pf-table td {
+  padding: 8px; border-bottom: 1px solid var(--border);
+  color: var(--white); text-align: center; font-variant-numeric: tabular-nums;
+  font-size: 12px;
+}
+.pf-table th[data-col="season"], .pf-table td.pf-col-season { text-align: left; }
+.pf-table td.pf-tint { color: #111111; font-weight: 700; }
+
+/* ── mobile ───────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .pf-grid { grid-template-columns: 1fr; gap: 12px; }
+  .pf-card { padding: 14px; }
+  .pf-search-wrap { min-width: 0; width: 100%; margin-top: 10px; }
+  .pf-search { font-size: 16px; }          /* 16px = no iOS focus-zoom */
+  .pf-bar-row, .pf-scale { grid-template-columns: 96px 1fr 44px; gap: 7px; }
+  .pf-bar-label { font-size: 10px; }
+  .pf-id-name { font-size: 22px; }
+  .pf-kpis { grid-template-columns: repeat(2, 1fr); }
+  .pf-season-tab { min-height: 44px; display: inline-flex; align-items: center; }
+  .pf-donut-wrap { flex-direction: column; align-items: flex-start; }
+}
+
+/* ── column blocks (Dynasty Market under the seasonal table, Consistency
+      under Usage Share) — these fill the side columns, which otherwise
+      dead-end well above the taller percentile card. ─────────────────── */
+.pf-block-title {
+  font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+  font-size: 12px; text-transform: uppercase; letter-spacing: .04em;
+  color: var(--white); margin: 18px 0 10px;
+  border-top: 1px solid var(--border); padding-top: 14px;
+}
+
+/* Weekly boom/bust strip — one bar per game, height by fantasy points. */
+.pf-wk-strip {
+  display: flex; align-items: flex-end; gap: 3px;
+  height: 84px; margin-top: 4px;
+}
+.pf-wk {
+  flex: 1 1 0; min-width: 0; height: 100%;
+  display: flex; flex-direction: column; justify-content: flex-end;
+}
+.pf-wk-bar {
+  background: var(--pf-mid); border-radius: 2px 2px 0 0; min-height: 4px;
+}
+.pf-wk.pf-wk-boom .pf-wk-bar { background: var(--red); }
+.pf-wk.pf-wk-bust .pf-wk-bar { background: var(--pf-poor); }
+.pf-wk-num {
+  font-size: 8px; text-align: center; margin-top: 3px;
+  color: rgba(128,128,128,1); font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 768px) {
+  .pf-wk-strip { height: 70px; }
+  .pf-wk-num { font-size: 7px; }
+}
+
+/* ── placeholder block (Redraft Market) ───────────────────────────────
+   A reserved slot for data that is NOT wired yet. The dashed border and
+   flattened KPI values are deliberate: an empty-but-styled panel reads as
+   "coming", whereas zeros in the normal card treatment would read as a
+   real valuation of zero. */
+.pf-placeholder {
+  border: 1px dashed var(--border2); padding: 12px; border-radius: 2px;
+}
+.pf-placeholder .pf-kpi { background: transparent; }
+.pf-placeholder .pf-kpi-val { color: rgba(128,128,128,1); }
+.pf-placeholder-note {
+  color: rgba(128,128,128,1); font-size: 11px; line-height: 1.55;
+}
+.pf-placeholder-note code {
+  font-size: 10px; background: var(--surface2); padding: 1px 4px;
+  border-radius: 2px; color: var(--white);
+}

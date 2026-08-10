@@ -6,6 +6,43 @@ the operator manual see [`WORKFLOW.md`](WORKFLOW.md).
 
 ---
 
+## 2026-08-10 — Player Profile page (Savant-style positional percentiles)
+
+**New 12th page `player-profile.html`** + new local-only pipeline `sync-profile.py` ->
+`data/profile.json` (1,076 players, 2021-2025, 1.98 MB).
+
+- `sync-profile.py` reads the same weekly data-suite CSVs as `sync-stats.py` but keeps the
+  rate/share columns it drops, aggregates to season level (counting stats sum; rate stats
+  recomputed from summed components, never week-averaged), and precomputes percentiles
+  within `(season, position)` over a qualified pool.
+- Team-share denominators are backed out of the provider's share column
+  (`teamTGT = TGT / TGT%`, median per team-week) — summing teammates from `stats.json`
+  under-counts, since it holds only fantasy-relevant players. Recovers all 544 team-weeks.
+- Team codes normalized at the data layer: `ARZ->ARI, BLT->BAL, CLV->CLE, HST->HOU, LA->LAR`.
+- New `assets/css/player-profile.css` + `assets/js/player-profile.js`. Weekly chart reuses
+  `window.TrendChart` (no new chart code). Diverging bar scale CVD-validated
+  (worst ΔE 23.0 protan / 26.1 deutan / 30.1 tritan vs an 8.0 target).
+- `player-panel.js` gained a "Full profile ↗" deep-link; nav link + mobile option added to
+  all 12 pages and `templates/page-template.html`.
+- Tokens -> `1800600000`: `player-profile.js/.css`, `player-panel.js/.css`,
+  `legend-content.js`, `formulas-content.js`.
+- Docs: Legend "Player Profile" item, `FORMULAS.md` section, public node S39, README.
+- `check-colors` CLEAN (52). Browser-verified in both themes.
+- Known gap: incoming rookies have no stat rows, so they have no profile.
+- Follow-up same session: the side columns dead-ended ~250px above the percentile
+  card, so they gained a **Dynasty Market** block (MVS trend / trades 7d / OTC +
+  diff) under the seasonal table and a **Consistency** block (boom/bust at 1.5x and
+  0.5x the player's own weekly average, volatility as coefficient of variation, plus
+  a per-week bar strip) under Usage Share. Column heights now sit within ~100px of
+  each other across WR/QB/RB. A contributor-valuations block was built then removed
+  per user request.
+- Added a **Redraft Market** placeholder block under Dynasty Market: four reserved
+  slots (SF / 1QB / trend / 7d trades) rendered empty behind a dashed frame, with a
+  note that the export already ships the redraft column family and that surfacing it
+  needs a value-basis call in `sync-mvs.py` plus a third format key through
+  `FP_VALUES`. Deliberately renders em-dashes rather than zeros so it can't be
+  mistaken for a real valuation.
+
 ## 2026-07-29 — MVS + trade-archive refresh (export now carries REDRAFT columns)
 
 Pure data refresh from a new market export (`player_market_mvs_rows (11).csv`) — no site code touched.

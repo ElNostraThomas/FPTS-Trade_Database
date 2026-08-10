@@ -1,9 +1,10 @@
 # Fantasy Points Front Office — Session Handoff
 
 A static fantasy-football site deployed via GitHub Pages from `main`.
-**Eleven HTML pages, all live and shipping:** `index.html` (trade DB),
+**Twelve HTML pages, all live and shipping:** `index.html` (trade DB),
 `trade-calculator.html` (public **Roster Moves** — Trade Finder + Calculator + Waiver Wire + Trade History, built from shared modules),
 `compare.html` (player comparison),
+`player-profile.html` (Savant-style positional percentiles),
 `my-leagues.html`, `live-draft.html`, `mock-draft.html` (AI-personality
 mock drafts), `tiers.html`, `adp-tool.html`, `rankings.html`,
 `formulas.html`, `whats-new.html` (public changelog).
@@ -11,6 +12,82 @@ mock drafts), `tiers.html`, `adp-tool.html`, `rankings.html`,
 Full operator manual: [`docs/WORKFLOW.md`](docs/WORKFLOW.md).
 Session-by-session changelog: [`docs/CHANGES.md`](docs/CHANGES.md).
 This file is the **resume-where-we-left-off** doc.
+
+---
+
+## ⚠ ADP factory: the 2026 partition must be UNIONED, never overwritten
+
+`02_update_adp_snapshot.ipynb` is a **seeded discovery crawl, not a census** — it walks
+out from 5 seed users with step/league caps, so each run finds a DIFFERENT slice of the
+league universe. It then **overwrites** `picks_2026.parquet` and
+`draft_catalog/season=2026`, which silently discards everything the previous run found.
+
+Measured 2026-08-10: the 8/10 run and the 7/29 run shared only **22,865 of 53,745**
+drafts. The fresh run ALONE had FEWER qualifying startup drafts (2,966) than the run it
+replaced (3,114) — i.e. a straight re-crawl is a *regression* in historical depth even
+though it adds current-market data.
+
+**So the refresh chain is:**
+
+1. Back up `picks_{season}.parquet` + `draft_catalog/season={season}` first.
+2. Run `02_update_adp_snapshot`.
+3. **UNION** the new partition with the backup — picks unique on `(draft_id, pick_no)`,
+   catalog unique on `draft_id` with the FRESH row winning (a draft that was `drafting`
+   last time may be `complete` now). `adp_time_series` is an aggregate
+   (`drafts=nunique`, `adp=mean`) and must be **RECOMPUTED** from the unioned picks +
+   catalog, never merged.
+4. Rebuild the `_ALL` files from the per-season partitions, coalescing the notebook's
+   `status` column into `draft_status` (the notebook ships 15 cols with `status`;
+   `01`/`sync-adp` expect `draft_status`, and sync-adp filters on it).
+5. `sync-adp.py` in BOTH repos.
+
+Result of doing this on 2026-08-10: qualifying startup drafts **2,966 → 4,002**, and every
+month bucket improved over what was live (ALL 3,040 → 3,910 drafts, 971 → 1,018 players).
+
+---
+
+## Where we are (2026-08-10) — NEW Player Profile page (Savant-style percentiles)
+
+New **twelfth page** `player-profile.html`: ranks a player against his positional peers
+0-100 per metric, modelled on Baseball Savant's percentile card. Also shipped the pending
+2026-07-29 ADP refresh in both repos (`b362aef` / standalone `8cfcb4f`).
+
+- **New pipeline `sync-profile.py` -> `data/profile.json`** (1,076 players, 2021-2025,
+  1.98 MB; local-only script, gitignored like the other syncs). Reads the SAME weekly
+  data-suite CSVs as `sync-stats.py` but keeps the **rate + share** columns that script
+  drops, aggregates them to season level, and **precomputes percentiles** within
+  `(season, position)` so the browser does no distribution math.
+- **The load-bearing data trick:** team totals are backed out of the provider's own share
+  column (`teamTGT = TGT / TGT%`, median across the team-week) instead of summed from our
+  player set. Summing teammates was wrong -- `stats.json` covers only fantasy-relevant
+  players, so CIN 2025 came out 594 targets vs 800 pass attempts and CLV came out with MORE
+  targets than attempts. The back-out recovers **544 = 32x17** team-weeks, full coverage.
+- **Qualifiers** (QB 6g/150 dropbacks, RB 6g/60 touches, WR 6g/30 tgt, TE 6g/25 tgt) gate
+  the percentile pool so a 2-target game can't post a 100th-percentile catch rate.
+  Unqualified players show raw values + a note. Constants at the top of `sync-profile.py`.
+- **The page:** identity + career card, the percentile bars (Production / Volume /
+  Efficiency / Opportunity), usage-share donut + share bars, a weekly fantasy-points line
+  (reuses `window.TrendChart`, no new chart code), and a season table tinted only at
+  pct >= 90 / <= 10. Season tabs 2021-2025. Deep-linkable via `?player=` / `?id=`.
+- **Wiring:** "Profile" nav link + mobile option on all 12 pages and the template;
+  a "Full profile" link added to the shared player drawer (`player-panel.js`), so it is
+  reachable from every surface. Tokens -> `1800600000` for `player-profile.*`,
+  `player-panel.js/.css`, `legend-content.js`, `formulas-content.js`.
+- **Team codes normalized** at the data layer (`ARZ->ARI, BLT->BAL, CLV->CLE, HST->HOU,
+  LA->LAR`) -- the data suite's codes broke Sleeper CDN logo URLs.
+- Docs: Legend "Player Profile" item, `FORMULAS.md` "Player Profile -- positional
+  percentiles", public node **S39**, `docs/CHANGES.md`. `check-colors` CLEAN (52).
+- **BROWSER-VERIFIED** (no login needed on this page): WR/RB/QB/TE profiles, the unqualified
+  path, light + dark themes, the drawer deep-link. Three defects found and fixed in the
+  browser: percentile-100 bubble overflowing its track, the season table over-tinting, and
+  a dark-mode-only `rgba(255,255,255,.45)` table header that vanished in light mode.
+- **Redraft Market is a PLACEHOLDER** on the profile page — reserved slots, no data. The
+  export's 15 redraft columns are still unused site-wide; wiring them needs a value-basis
+  decision in `sync-mvs.py` (does redraft carry a modeled TEP premium?) + a third format
+  key through `FP_VALUES` / `mlFpValue`.
+- **Known gap:** `profile.json` only contains players with NFL stats, so **incoming rookies
+  have no profile at all** (they're in `mvs.json` but have no stat rows). A market-only
+  fallback for them is the obvious next step.
 
 ---
 

@@ -108,6 +108,9 @@
         <div class="pp-pos-team"><span id="pp-pos-badge"></span><span class="pp-team-name" id="pp-nfl-team">—</span></div>
         <div class="pp-name" id="pp-player-name" style="font-size:32px">—</div>
         <div class="pp-meta" id="pp-meta-row"></div>
+        <!-- Deep-link to the full Savant-style profile page. href is set per
+             player in openPanelContent; hidden until then. -->
+        <a class="pp-full-profile" id="pp-full-profile" href="player-profile.html" hidden>Full profile ↗</a>
         <!-- ARTICLES SECTION (built by mountPlayerArticles in JS, lives in profile row's empty space) -->
         <div id="pp-articles-mount" style="margin-top:10px"></div>
       </div>
@@ -671,6 +674,14 @@
     const ktcVal = ktc.value || 0;
     currentPanelPlayer = { label: playerName, value: ktcVal, posKey: pos, type: 'player' };
     global._currentPanelPlayer = currentPanelPlayer;
+
+    // "Full profile ↗" deep-link. Synchronous (reads only playerName), so it
+    // needs no player-switch guard.
+    const fpLink = document.getElementById('pp-full-profile');
+    if (fpLink) {
+      fpLink.href = 'player-profile.html?player=' + encodeURIComponent(playerName);
+      fpLink.hidden = false;
+    }
     // Restore the user's last-used tab so switching players keeps view.
     ppShowTab(ppLastTab || 'trades');
   }

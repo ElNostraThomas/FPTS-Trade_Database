@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+
+<title>Fantasy Points Front Office — Player Profile</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Kanit:ital,wght@0,400;0,700;1,800&family=Mulish:wght@400;700;900&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="assets/css/brand.css?v=1799300000">
+<script src="assets/js/iframe-scroll-fix.js?v=1791700000"></script>
+<script src="assets/js/obs-zoom-controls.js?v=1791800000"></script>
+<script src="assets/js/back-to-top.js?v=1782200000" defer></script>
+<script src="assets/js/custom-select.js?v=1782700000" defer></script>
+
+<link rel="stylesheet" href="assets/css/mvs-extras.css?v=1782600000">
+<link rel="stylesheet" href="assets/css/heatmap.css?v=1782600000">
+<link rel="stylesheet" href="assets/css/legend.css?v=1796300000">
+<link rel="stylesheet" href="assets/css/player-panel.css?v=1800600000">
+<link rel="stylesheet" href="assets/css/trend-chart.css?v=1800500000">
+<link rel="stylesheet" href="assets/css/player-profile.css?v=1800600000">
+
+<script>
+  window.FPTS_CURRENT_PAGE = 'playerprofile';
+</script>
+
+<script src="assets/js/mvs-extras.js?v=1778642255"></script>
+<script src="assets/js/player-articles.js?v=1778680034"></script>
+<script src="assets/js/heatmap.js?v=1778670000"></script>
+<script src="assets/js/legend-content.js?v=1800600000"></script>
+<script src="assets/js/legend.js?v=1778949514"></script>
+<script src="assets/js/team-helpers.js?v=1778680002"></script>
+<script src="assets/js/trend-chart.js?v=1800500000"></script>
+<script src="assets/js/player-panel.js?v=1800600000" defer></script>
+<script src="assets/js/data-bootstrap.js?v=1796100000"></script>
+<script src="assets/js/sleeper-helpers.js?v=1799300000"></script>
+<script src="assets/js/player-profile.js?v=1800600000" defer></script>
+</head>
+
+<body>
+
+<div id="_fp-loading">Loading…</div>
+
+<div style="background:var(--nav-bg);border-bottom:2px solid var(--red);position:sticky;top:0;z-index:100"><nav class="topnav" style="border:none;position:static">
+  <a class="nav-brand" href="index.html">
+    <span class="nav-brand-fp">FANTASY POINTS</span>
+    <span class="nav-brand-fo">FRONT OFFICE</span>
+  </a>
+  <nav class="nav-links">
+    <a class="nav-link" href="index.html">Database</a>
+    <a class="nav-link" href="compare.html">Compare</a>
+    <a class="nav-link active" href="player-profile.html">Profile</a>
+    <a class="nav-link" href="my-leagues.html">My Leagues</a>
+    <a class="nav-link" href="trade-calculator.html">Roster Moves</a>
+    <a class="nav-link" href="live-draft.html">Live Draft</a>
+    <a class="nav-link" href="mock-draft.html">Mock Draft</a>
+    <a class="nav-link" href="tiers.html">Tiers</a>
+    <a class="nav-link" href="adp-tool.html">ADP</a>
+    <a class="nav-link" href="rankings.html">Rankings</a>
+    <a class="nav-link" href="whats-new.html">What's New</a>
+    <a class="nav-link" href="formulas.html">Updates</a>
+  </nav>
+  <div class="nav-right">
+    <select class="mobile-nav-select" onchange="if(this.value)window.location.href=this.value">
+      <option value="">— Pages —</option>
+      <option value="index.html">Database</option>
+      <option value="compare.html">Compare</option>
+      <option value="player-profile.html" selected>Profile</option>
+      <option value="my-leagues.html">My Leagues</option>
+      <option value="trade-calculator.html">Roster Moves</option>
+      <option value="live-draft.html">Live Draft</option>
+      <option value="mock-draft.html">Mock Draft</option>
+      <option value="tiers.html">Tiers</option>
+      <option value="adp-tool.html">ADP</option>
+      <option value="rankings.html">Rankings</option>
+      <option value="whats-new.html">What's New</option>
+      <option value="formulas.html">Updates</option>
+    </select>
+    <span class="nav-badge" id="nav-season-badge">SEASON 2026</span>
+    <button id="theme-toggle" onclick="toggleTheme()"
+      style="background:none;border:1px solid var(--border2);color:var(--white);font-family:'Kanit',sans-serif;font-weight:800;font-style:italic;font-size:11px;padding:5px 12px;cursor:pointer;transition:all .2s;letter-spacing:.04em;display:flex;align-items:center;gap:6px"
+      onmouseover="this.style.borderColor='var(--red)';this.style.color='var(--red)'"
+      onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--white)'">
+      <span id="theme-icon">☀️</span>
+      <span id="theme-label">LIGHT</span>
+    </button>
+  </div>
+</nav></div>
+
+<main id="page-body" class="page">
+
+  <div class="page-header">
+    <div>
+      <div class="page-title">Player <span>Profile</span></div>
+      <div class="page-subtitle">Percentile rankings against positional peers — how a player's production, volume and efficiency stack up.</div>
+    </div>
+    <div class="pf-search-wrap">
+      <input id="pf-search" class="pf-search" type="text" autocomplete="off" spellcheck="false"
+             placeholder="Search a player…" oninput="PlayerProfile.onSearch(this.value)"
+             onfocus="PlayerProfile.onSearch(this.value)">
+      <div id="pf-search-results" class="pf-search-results" hidden></div>
+    </div>
+  </div>
+
+  <div id="pf-empty" class="pf-empty">
+    <p>Search a player above to load their profile.</p>
+  </div>
+
+  <div id="pf-content" hidden>
+
+    <div class="pf-grid">
+      <!-- ── IDENTITY + CAREER ─────────────────────────────────────── -->
+      <section class="pf-card pf-card-identity">
+        <div id="pf-identity"></div>
+        <div id="pf-career"></div>
+        <div id="pf-market"></div>
+        <div id="pf-redraft"></div>
+      </section>
+
+      <!-- ── PERCENTILE RANKINGS (the hero) ────────────────────────── -->
+      <section class="pf-card pf-card-pct">
+        <div class="pf-card-head">
+          <h2 class="pf-card-title"><span id="pf-pct-season">—</span> Positional Percentile Rankings</h2>
+          <div class="pf-season-tabs" id="pf-season-tabs"></div>
+        </div>
+        <div id="pf-pct-body"></div>
+      </section>
+
+      <!-- ── USAGE SHARE + WEEKLY ──────────────────────────────────── -->
+      <section class="pf-card pf-card-usage">
+        <div class="pf-card-head">
+          <h2 class="pf-card-title">Usage Share</h2>
+        </div>
+        <div id="pf-usage"></div>
+        <div id="pf-consistency"></div>
+      </section>
+    </div>
+
+    <section class="pf-card pf-card-weekly">
+      <div class="pf-card-head">
+        <h2 class="pf-card-title">Weekly Fantasy Points — <span id="pf-weekly-season">—</span></h2>
+      </div>
+      <div id="pf-weekly"></div>
+    </section>
+
+    <section class="pf-card">
+      <div class="pf-card-head">
+        <h2 class="pf-card-title">Season Statistics</h2>
+        <div class="pf-note">Cells tinted by percentile within position. Regular season only.</div>
+      </div>
+      <div class="pf-table-scroll"><div id="pf-table"></div></div>
+    </section>
+
+  </div>
+
+</main>
+
+<div id="pp-mvs-extras"></div>
+<div id="pp-articles-mount"></div>
+<div id="pp-league-context"></div>
+
+<script>
+  function toggleTheme() {
+    const cur = document.documentElement.getAttribute('data-theme') || 'dark';
+    const next = cur === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    document.getElementById('theme-icon').textContent = next === 'dark' ? '☀️' : '🌙';
+    document.getElementById('theme-label').textContent = next === 'dark' ? 'LIGHT' : 'DARK';
+    try { localStorage.setItem('fpts-theme', next); } catch (e) {}
+  }
+  (function _initTheme() {
+    try { if (localStorage.getItem('fpts-theme') === 'light') toggleTheme(); } catch (e) {}
+  })();
+
+  document.addEventListener('fpts:data-ready', function () {
+    const overlay = document.getElementById('_fp-loading');
+    if (overlay) overlay.style.display = 'none';
+    if (window.PlayerProfile) window.PlayerProfile.init();
+  });
+</script>
+
+</body>
+</html>

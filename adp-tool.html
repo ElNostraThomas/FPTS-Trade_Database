@@ -603,7 +603,7 @@
 <link rel="stylesheet" href="assets/css/heatmap.css?v=1782600000">
 <script src="assets/js/heatmap.js?v=1778670000"></script>
 <link rel="stylesheet" href="assets/css/legend.css?v=1796300000">
-<script src="assets/js/legend-content.js?v=1800400000"></script>
+<script src="assets/js/legend-content.js?v=1800600000"></script>
 <script src="assets/js/legend.js?v=1778949514"></script>
 <script>document.addEventListener('DOMContentLoaded', function(){ if (window.Legend) Legend.init('adp-tool'); });</script>
 <!-- Shared player panel — DB's slide-in drawer, used identically on every page -->
@@ -617,13 +617,13 @@
      Stats tab fantasyPts column on every page (adjustStatsForLeague applies the
      PPR / TEP / PPC / pass-TD overlay to data-suite stat lines). -->
 <script src="assets/js/sleeper-helpers.js?v=1799300000"></script>
-<link rel="stylesheet" href="assets/css/player-panel.css?v=1791900000">
+<link rel="stylesheet" href="assets/css/player-panel.css?v=1800600000">
 <link rel="stylesheet" href="assets/css/trend-chart.css?v=1799700000">
 <!-- Team logo helpers — must load BEFORE player-panel.js so the modal-hero
      badge wiring finds window.TeamHelpers. -->
 <script src="assets/js/team-helpers.js?v=1778680002"></script>
 <script src="assets/js/trend-chart.js?v=1800500000" defer></script>
-<script src="assets/js/player-panel.js?v=1799900000" defer></script>
+<script src="assets/js/player-panel.js?v=1800600000" defer></script>
 <style>
   /* Hide the legacy in-page modal — openModal now routes to the shared panel. */
   #modal-backdrop { display: none !important; }
@@ -658,6 +658,7 @@
   <nav class="nav-links">
     <a class="nav-link" href="index.html">Database</a>
     <a class="nav-link" href="compare.html">Compare</a>
+    <a class="nav-link" href="player-profile.html">Profile</a>
     <a class="nav-link" href="my-leagues.html">My Leagues</a>
     <a class="nav-link" href="trade-calculator.html">Roster Moves</a>
     <a class="nav-link" href="live-draft.html">Live Draft</a>
@@ -672,6 +673,7 @@
     <select class="mobile-nav-select" onchange="if(this.value)window.location.href=this.value">
       <option value="index.html">Database</option>
       <option value="compare.html">Compare</option>
+      <option value="player-profile.html">Profile</option>
       <option value="my-leagues.html">My Leagues</option>
       <option value="trade-calculator.html">Roster Moves</option>
       <option value="live-draft.html">Live Draft</option>
