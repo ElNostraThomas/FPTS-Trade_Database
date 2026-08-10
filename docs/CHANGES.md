@@ -51,6 +51,10 @@ the operator manual see [`WORKFLOW.md`](WORKFLOW.md).
   (`RATE_FLOORS`), since ungated they let a 2-target receiver post a 100% catch rate
   above Chase — 26 sub-10-target WRs outranked him before the floor. Bubbles now
   carry an ordinal (96th) plus a caption naming the comparison set.
+- Target floors then raised per position — **WR 50, TE 25, RB 10** (TE de-aliased from
+  WR in `RATE_FLOORS`). At the prior flat 10, Savion Williams' 100% catch rate on 10
+  targets topped the WR board. Catch % is now ranked for 76/223 WRs, 54/125 TEs,
+  69/136 RBs; Stefon Diggs (100 tgt, 85%) leads the WRs.
 
 ## 2026-07-29 — MVS + trade-archive refresh (export now carries REDRAFT columns)
 

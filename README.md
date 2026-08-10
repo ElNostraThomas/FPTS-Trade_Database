@@ -69,9 +69,9 @@ New **twelfth page** `player-profile.html`: ranks a player against his positiona
   (81.8). Dropping it also fixed a distortion the other way: Josh Allen's Attempts/G went
   39th -> 62nd once backups entered the pool.
 - **Rate stats carry PER-METRIC denominator floors** (`RATE_FLOORS` at the top of
-  `sync-profile.py`): 10 targets for catch %/yards-per-target, 5 receptions for
-  yards-per-reception, 20 carries for YPC + explosive buckets, 50 attempts/dropbacks for
-  the QB rates. Ungated, 26 sub-10-target WRs outranked Chase in catch rate. The floor
+  `sync-profile.py`), set PER POSITION: catch %/yards-per-target need **50 targets for a
+  WR, 25 for a TE, 10 for an RB**; 5 receptions for yards-per-reception; 20 carries for
+  YPC + explosive buckets; 50 attempts/dropbacks for the QB rates. Ungated, 26 sub-10-target WRs outranked Chase in catch rate. The floor
   skips that ONE metric — the player keeps every other bar and still shows the raw value.
   Catch % ends up ranked for 167 of 223 WRs while Targets/G stays ranked for all 223.
 - **The page:** identity + career card, the percentile bars (Production / Volume /

@@ -2241,11 +2241,18 @@ bar; the rate row shows its raw value with no bubble):
 | QB | FP/Dropback, Sack % | dropbacks | 50 |
 | RB | YPC, 5+ %, 10+ % | carries | 20 |
 | RB | Yards/Target, Catch % | targets | 10 |
-| WR/TE | Yards/Target, Catch % | targets | 10 |
+| WR | Yards/Target, Catch % | targets | **50** |
+| TE | Yards/Target, Catch % | targets | **25** |
 | WR/TE | Yards/Reception | receptions | 5 |
 
-Effect: Catch % is ranked for 167 of 223 WRs, minimum 10 targets among them, while
-Targets/G stays ranked for all 223 — confirming the floor is per-metric, not a pool gate.
+Target floors are deliberately per-position: 50 targets is a rotation WR, but the same
+number would erase most of the TE position and every RB. Each is set to the workload at
+which a receiving rate means something *for that role*. Raised from a flat 10 on
+2026-08-10 — at 10, Savion Williams' 100% catch rate on 10 targets topped the WR board.
+
+Effect at the current floors: Catch % is ranked for 76 of 223 WRs (min 50 targets),
+54 of 125 TEs (min 25) and 69 of 136 RBs (min 10), while Targets/G stays ranked for all
+223 WRs — confirming the floor is per-metric, not a pool gate.
 All floors live in `RATE_FLOORS` at the top of `sync-profile.py`.
 
 **Display.** The bubble carries an ordinal (`96th`), and a caption under the bars names

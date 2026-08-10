@@ -21,7 +21,7 @@
   var CURRENT = null;          // the player record on screen
   var CURRENT_SEASON = null;   // season key (string) the bars are showing
 
-  var PROFILE_URL = 'data/profile.json?v=1800700000';
+  var PROFILE_URL = 'data/profile.json?v=1800800000';
 
   // ── small helpers ────────────────────────────────────────────────────
   function esc(s) {
