@@ -55,6 +55,14 @@ the operator manual see [`WORKFLOW.md`](WORKFLOW.md).
   WR in `RATE_FLOORS`). At the prior flat 10, Savion Williams' 100% catch rate on 10
   targets topped the WR board. Catch % is now ranked for 76/223 WRs, 54/125 TEs,
   69/136 RBs; Stefon Diggs (100 tgt, 85%) leads the WRs.
+- **Metric groups restructured by skill area**: QB now has a full Rushing category
+  (carries/G, rush yds/G, rush TD, YPC — Josh Allen 14 rush TD = 99th), and RB/WR/TE
+  each carry both Receiving and Rushing. WR/TE rushing required a source merge —
+  their `receiving.csv` primary has no rush columns, so `build_season` takes a new
+  `rush_rows` arg reading `rushing.csv`. Receivers with no carries are left null (not
+  zero) so they're unranked rather than tied 141-deep at zero, and the renderer hides
+  an all-null group. 82 WRs / 22 TEs show a Rushing block. Group order now follows
+  each position's own metric list so the primary role leads.
 
 ## 2026-07-29 — MVS + trade-archive refresh (export now carries REDRAFT columns)
 

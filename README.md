@@ -74,8 +74,9 @@ New **twelfth page** `player-profile.html`: ranks a player against his positiona
   YPC + explosive buckets; 50 attempts/dropbacks for the QB rates. Ungated, 26 sub-10-target WRs outranked Chase in catch rate. The floor
   skips that ONE metric — the player keeps every other bar and still shows the raw value.
   Catch % ends up ranked for 167 of 223 WRs while Targets/G stays ranked for all 223.
-- **The page:** identity + career card, the percentile bars (Production / Volume /
-  Efficiency / Opportunity), usage-share donut + share bars, a weekly fantasy-points line
+- **The page:** identity + career card, the percentile bars grouped by SKILL AREA
+  (QB: Production/Passing/Rushing; RB: Production/Rushing/Receiving/Opportunity;
+  WR+TE: Production/Receiving/Rushing/Opportunity, primary role first), usage-share donut + share bars, a weekly fantasy-points line
   (reuses `window.TrendChart`, no new chart code), and a season table tinted only at
   pct >= 90 / <= 10. Season tabs 2021-2025. Deep-linkable via `?player=` / `?id=`.
 - **Wiring:** "Profile" nav link + mobile option on all 12 pages and the template;

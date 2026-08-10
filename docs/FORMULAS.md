@@ -2257,3 +2257,31 @@ All floors live in `RATE_FLOORS` at the top of `sync-profile.py`.
 
 **Display.** The bubble carries an ordinal (`96th`), and a caption under the bars names
 the comparison set and explains why some rate rows have no bubble.
+
+#### Metric groups — restructured by skill area 2026-08-10
+
+Groups were `Production / Volume / Efficiency / Opportunity`; they are now skill-area
+based so every position shows each phase of its game:
+
+| Pos | Groups (in card order) |
+| --- | --- |
+| QB | Production, **Passing**, **Rushing** |
+| RB | Production, **Rushing**, **Receiving**, Opportunity |
+| WR / TE | Production, **Receiving**, **Rushing**, Opportunity |
+
+Order follows each position's own metric list rather than one global sequence, so the
+primary role leads — Passing before Rushing for a QB, Receiving before Rushing for a
+WR, Rushing before Receiving for an RB.
+
+**Source merge.** QB rushing comes from `Total Rushing/*` in `passing.csv`, and RB
+receiving from the receiving block already inside `rushing.csv` — both files carry two
+phases. WR/TE were the gap: their primary source `receiving.csv` has no rushing columns
+at all, so `build_season` now takes an extra `rush_rows` argument and pulls their
+end-arounds and jet sweeps from `rushing.csv`.
+
+**Sparse by design.** 141 of 223 WRs and 103 of 125 TEs never carried the ball in 2025.
+Their rushing metrics are left `None` rather than `0` — so they are UNRANKED instead of
+sharing a 141-deep tie at zero, and the renderer hides a group whose every metric is
+null, rather than printing a wall of dashes. 82 WRs and 22 TEs show a Rushing block.
+
+New rate floors: `ypcRush` needs 20 carries (QB) or 5 (WR/TE); RB keeps `ypc` at 20.

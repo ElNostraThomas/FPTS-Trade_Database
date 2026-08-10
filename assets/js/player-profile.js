@@ -21,7 +21,7 @@
   var CURRENT = null;          // the player record on screen
   var CURRENT_SEASON = null;   // season key (string) the bars are showing
 
-  var PROFILE_URL = 'data/profile.json?v=1800800000';
+  var PROFILE_URL = 'data/profile.json?v=1800900000';
 
   // ── small helpers ────────────────────────────────────────────────────
   function esc(s) {
@@ -366,9 +366,23 @@
     var ranked = Object.keys(pcts).length > 0;
 
     var html = '';
-    (PROFILE.groupOrder || []).forEach(function (group) {
+
+    /* Group order follows each position's own metric list rather than one
+       global order, so the primary role leads: Passing before Rushing for a
+       QB, Receiving before Rushing for a WR, Rushing before Receiving for
+       an RB. */
+    var order = [];
+    specs.forEach(function (sp) {
+      if (order.indexOf(sp.group) === -1) order.push(sp.group);
+    });
+
+    order.forEach(function (group) {
       var rows = specs.filter(function (s) { return s.group === group; });
       if (!rows.length) return;
+      // Hide a group the player has no data for at all — 141 of 223 WRs never
+      // carried the ball, and a wall of dashes reads as broken, not as zero.
+      var hasAny = rows.some(function (s) { return metrics[s.key] != null; });
+      if (!hasAny) return;
 
       html += '<div class="pf-group">';
       html += '<div class="pf-group-title">' + esc(group) + '</div>';
