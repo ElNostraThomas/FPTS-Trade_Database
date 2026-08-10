@@ -21,7 +21,7 @@
   var CURRENT = null;          // the player record on screen
   var CURRENT_SEASON = null;   // season key (string) the bars are showing
 
-  var PROFILE_URL = 'data/profile.json?v=1800600000';
+  var PROFILE_URL = 'data/profile.json?v=1800700000';
 
   // ── small helpers ────────────────────────────────────────────────────
   function esc(s) {
@@ -384,8 +384,10 @@
         var p = pcts[s.key];
         var has = p != null;
         var title = s.label + ': ' + fmt(raw, s.fmt) +
-                    (has ? ' — ' + p + 'th percentile among qualified ' + CURRENT.pos + 's' +
-                           (s.invert ? ' (lower is better)' : '') : ' — not ranked');
+                    (has ? ' — ' + ordinal(p) + ' percentile among ' + CURRENT.pos +
+                           's who scored in ' + CURRENT_SEASON +
+                           (s.invert ? ' (lower is better)' : '')
+                         : ' — not ranked: ' + floorReason(s.key));
 
         html += '<div class="pf-bar-row' + (has ? '' : ' pf-unranked') + '" title="' + esc(title) + '">' +
           '<div class="pf-bar-label">' + esc(s.label) + '</div>' +
@@ -393,8 +395,8 @@
             (has ? '<div class="pf-bar-fill" style="width:' + p + '%;background:' + pctColor(p) + '"></div>' +
                    // Bubble travels between its own half-widths, not 0–100% of
                    // the track, so percentile 0 and 100 stay fully inside.
-                   '<div class="pf-bubble" style="left:calc(12px + (100% - 24px) * ' + p +
-                   ' / 100);background:' + pctColor(p) + '">' + p + '</div>'
+                   '<div class="pf-bubble" style="left:calc(16px + (100% - 32px) * ' + p +
+                   ' / 100);background:' + pctColor(p) + '">' + ordinal(p) + '</div>'
                  : '') +
           '</div>' +
           '<div class="pf-bar-val">' + esc(fmt(raw, s.fmt)) + '</div>' +
@@ -411,7 +413,39 @@
               ' — a small sample turns a rate stat into noise. Raw values are still shown.</div>';
     }
 
+    var poolN = (PROFILE.seasonMeta[CURRENT_SEASON] || {}).pool || {};
+    html += '<div class="pf-pct-caption">Each bubble is a <strong>percentile</strong> — ' +
+            'where he ranks among all <strong>' + (poolN[CURRENT.pos] || '') + ' ' +
+            esc(CURRENT.pos) + 's who scored in ' + esc(CURRENT_SEASON) + '</strong>. ' +
+            '96th = better than 96% of them. The number on the right is the raw stat. ' +
+            'Rate stats (catch %, yards per carry and the like) need a minimum denominator ' +
+            'before they are ranked — without one, two catches on two targets would outrank ' +
+            'a target hog. Those rows show the raw value with no bubble.</div>';
+
     el('pf-pct-body').innerHTML = html;
+  }
+
+  /* 96 -> "96th". The bubble is the one place the number appears without
+     context, so it carries the ordinal rather than a bare integer that could
+     be misread as the stat itself. */
+  function ordinal(n) {
+    var v = n % 100;
+    if (v >= 11 && v <= 13) return n + 'th';
+    return n + ({1: 'st', 2: 'nd', 3: 'rd'}[n % 10] || 'th');
+  }
+
+  /* Why a rate metric shows no bubble. The pool itself is ungated — every
+     player who scored is in it — but a rate stat needs a real denominator
+     before it means anything, so each one carries its own floor. */
+  function floorReason(mkey) {
+    var floors = (PROFILE.rateFloors || {})[CURRENT.pos] || {};
+    var f = floors[mkey];
+    if (!f) return 'no comparable pool for this season';
+    var DEN = { tgt: 'targets', rec: 'receptions', rushAtt: 'carries',
+                att: 'pass attempts', db: 'dropbacks' };
+    return 'needs at least ' + f[1] + ' ' + (DEN[f[0]] || f[0]) +
+           ' for a meaningful rate (he has ' +
+           Math.round((CURRENT.seasons[CURRENT_SEASON].metrics || {})[f[0]] || 0) + ')';
   }
 
   function qualWord(pos) {

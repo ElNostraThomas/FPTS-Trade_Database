@@ -62,9 +62,18 @@ New **twelfth page** `player-profile.html`: ranks a player against his positiona
   player set. Summing teammates was wrong -- `stats.json` covers only fantasy-relevant
   players, so CIN 2025 came out 594 targets vs 800 pass attempts and CLV came out with MORE
   targets than attempts. The back-out recovers **544 = 32x17** team-weeks, full coverage.
-- **Qualifiers** (QB 6g/150 dropbacks, RB 6g/60 touches, WR 6g/30 tgt, TE 6g/25 tgt) gate
-  the percentile pool so a 2-target game can't post a 100th-percentile catch rate.
-  Unqualified players show raw values + a note. Constants at the top of `sync-profile.py`.
+- **Pool = everyone who scored** at that position that season (2025: QB 77 / RB 136 /
+  WR 223 / TE 125). The original volume qualifier was dropped because it gated on VOLUME
+  while the page reads as a fantasy tool — it admitted Dont'e Thornton (23.5 pts) while
+  excluding Isaac TeSlaa (75.9), and Tyrod Taylor (65.4) while excluding Kyler Murray
+  (81.8). Dropping it also fixed a distortion the other way: Josh Allen's Attempts/G went
+  39th -> 62nd once backups entered the pool.
+- **Rate stats carry PER-METRIC denominator floors** (`RATE_FLOORS` at the top of
+  `sync-profile.py`): 10 targets for catch %/yards-per-target, 5 receptions for
+  yards-per-reception, 20 carries for YPC + explosive buckets, 50 attempts/dropbacks for
+  the QB rates. Ungated, 26 sub-10-target WRs outranked Chase in catch rate. The floor
+  skips that ONE metric — the player keeps every other bar and still shows the raw value.
+  Catch % ends up ranked for 167 of 223 WRs while Targets/G stays ranked for all 223.
 - **The page:** identity + career card, the percentile bars (Production / Volume /
   Efficiency / Opportunity), usage-share donut + share bars, a weekly fantasy-points line
   (reuses `window.TrendChart`, no new chart code), and a season table tinted only at

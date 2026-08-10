@@ -2211,3 +2211,42 @@ comparable between a 22-ppg RB and an 8-ppg TE. Lower = steadier.
 the seasonal table. Pure passthrough of `MVS_PAYLOAD` fields (`trend`, `tradesLastWeek`,
 `otcValue`, `otcDiff`) — no new math. Season-independent, so it renders once per player
 rather than on every season-tab change.
+
+#### Pool basis — REVISED 2026-08-10 (supersedes the qualifier table above)
+
+The percentile pool is now **every player who scored at that position that season**
+(2025: QB 77, RB 136, WR 223, TE 125), not the volume-gated subset the table above
+describes.
+
+**Why the gate was dropped.** It gated on VOLUME while the page is read as a fantasy
+tool, and the two disagreed at the edges. In 2025 it admitted Dont'e Thornton (23.5 pts)
+while excluding Isaac TeSlaa (75.9); it admitted Tyrod Taylor (65.4) while excluding
+Kyler Murray (81.8). Every position had players inside the pool who scored less than
+players outside it, so a percentile did not mean "ahead of N% of fantasy-relevant
+players." Removing the gate also fixed a real distortion in the other direction: Josh
+Allen's Attempts/G went 39th → 62nd and Dropbacks/G 51st → 71st once backups were in the
+pool, because comparing him only against other full-time starters made his volume read
+as below average.
+
+**Per-metric denominator floors.** Counting, per-game and share metrics are
+self-limiting, so they are ranked over the full pool. Rate stats are not — 2 targets and
+2 catches is a 100% catch rate. Measured on the ungated pool, 26 WRs with under 10
+targets outranked Ja'Marr Chase in catch rate. So each rate metric carries its own
+floor, applied to THAT METRIC ONLY (the player stays in the pool and keeps every other
+bar; the rate row shows its raw value with no bubble):
+
+| Pos | Metric | Denominator | Min |
+| --- | --- | --- | --- |
+| QB | Cmp %, YPA, ANY/A, Rating, TD %, INT % | pass attempts | 50 |
+| QB | FP/Dropback, Sack % | dropbacks | 50 |
+| RB | YPC, 5+ %, 10+ % | carries | 20 |
+| RB | Yards/Target, Catch % | targets | 10 |
+| WR/TE | Yards/Target, Catch % | targets | 10 |
+| WR/TE | Yards/Reception | receptions | 5 |
+
+Effect: Catch % is ranked for 167 of 223 WRs, minimum 10 targets among them, while
+Targets/G stays ranked for all 223 — confirming the floor is per-metric, not a pool gate.
+All floors live in `RATE_FLOORS` at the top of `sync-profile.py`.
+
+**Display.** The bubble carries an ordinal (`96th`), and a caption under the bars names
+the comparison set and explains why some rate rows have no bubble.

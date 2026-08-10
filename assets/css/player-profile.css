@@ -135,10 +135,10 @@
 }
 .pf-bubble {
   position: absolute; top: 50%; transform: translate(-50%, -50%);
-  width: 24px; height: 24px; border-radius: 50%;
+  width: 32px; height: 22px; border-radius: 11px;
   display: flex; align-items: center; justify-content: center;
-  font-family: 'Mulish', sans-serif; font-weight: 900; font-size: 10px;
-  color: #111111; font-variant-numeric: tabular-nums;
+  font-family: 'Mulish', sans-serif; font-weight: 900; font-size: 9px;
+  color: #111111; font-variant-numeric: tabular-nums; letter-spacing: -.02em;
   border: 2px solid var(--surface);
 }
 .pf-bar-val {
@@ -232,7 +232,9 @@
   height: 84px; margin-top: 4px;
 }
 .pf-wk {
-  flex: 1 1 0; min-width: 0; height: 100%;
+  /* max-width keeps a 2-game player's strip reading as bars rather than two
+     giant blocks filling half the card each. */
+  flex: 1 1 0; min-width: 0; max-width: 34px; height: 100%;
   display: flex; flex-direction: column; justify-content: flex-end;
 }
 .pf-wk-bar {
@@ -267,3 +269,11 @@
   font-size: 10px; background: var(--surface2); padding: 1px 4px;
   border-radius: 2px; color: var(--white);
 }
+
+/* Caption under the percentile bars — names the comparison set, so "96th"
+   can't be read as the stat value. */
+.pf-pct-caption {
+  color: rgba(128,128,128,1); font-size: 11px; line-height: 1.55;
+  border-top: 1px solid var(--border); padding-top: 10px; margin-top: 4px;
+}
+.pf-pct-caption strong { color: var(--white); font-weight: 700; }

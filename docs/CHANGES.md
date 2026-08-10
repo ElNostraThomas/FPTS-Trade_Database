@@ -42,6 +42,15 @@ the operator manual see [`WORKFLOW.md`](WORKFLOW.md).
   needs a value-basis call in `sync-mvs.py` plus a third format key through
   `FP_VALUES`. Deliberately renders em-dashes rather than zeros so it can't be
   mistaken for a real valuation.
+- **Percentile basis revised** (same day, after review): the volume qualifier was
+  dropped — it gated on volume while the page reads as a fantasy tool, and admitted
+  players who scored LESS than ones it excluded (WR: Thornton 23.5 in, TeSlaa 75.9
+  out; QB: Tyrod 65.4 in, Kyler 81.8 out). Pool is now everyone who scored. That
+  also fixed a real distortion: Josh Allen's Attempts/G went 39th -> 62nd once
+  backups entered the pool. Rate stats gained PER-METRIC denominator floors instead
+  (`RATE_FLOORS`), since ungated they let a 2-target receiver post a 100% catch rate
+  above Chase — 26 sub-10-target WRs outranked him before the floor. Bubbles now
+  carry an ordinal (96th) plus a caption naming the comparison set.
 
 ## 2026-07-29 — MVS + trade-archive refresh (export now carries REDRAFT columns)
 
