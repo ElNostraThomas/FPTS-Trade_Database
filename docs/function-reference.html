@@ -1893,7 +1893,7 @@
 &lt;link rel="stylesheet" href="assets/css/mvs-extras.css?v=..."&gt;
 &lt;link rel="stylesheet" href="assets/css/heatmap.css?v=..."&gt;
 &lt;link rel="stylesheet" href="assets/css/legend.css?v=..."&gt;
-&lt;link rel="stylesheet" href="assets/css/player-panel.css?v=..."&gt;
+&lt;link rel="stylesheet" href="assets/css/player-panel.css?v=1801200000..."&gt;
 
 &lt;script&gt;
   window.FPTS_CURRENT_PAGE = 'newpage';
@@ -1902,9 +1902,9 @@
 &lt;script src="assets/js/mvs-extras.js?v=..."&gt;&lt;/script&gt;
 &lt;script src="assets/js/player-articles.js?v=..."&gt;&lt;/script&gt;
 &lt;script src="assets/js/heatmap.js?v=..."&gt;&lt;/script&gt;
-&lt;script src="assets/js/legend-content.js?v=1801100000..."&gt;&lt;/script&gt;
+&lt;script src="assets/js/legend-content.js?v=1801200000..."&gt;&lt;/script&gt;
 &lt;script src="assets/js/legend.js?v=..."&gt;&lt;/script&gt;
-&lt;script src="assets/js/player-panel.js?v=1801000000..." defer&gt;&lt;/script&gt;
+&lt;script src="assets/js/player-panel.js?v=1801200000..." defer&gt;&lt;/script&gt;
 &lt;script src="assets/js/data-bootstrap.js?v=..."&gt;&lt;/script&gt;</pre>
 
   <p class="feature-body"><b>data-bootstrap.js</b> fetches all 7 <span class="kbd">data/*.json</span> files in one <span class="kbd">Promise.all</span>, populates <span class="kbd">window.FP_VALUES / PICK_VALUES / SLEEPER_IDS / ADP_PAYLOAD / AUCTION_PAYLOAD / MVS_PAYLOAD / PLAYER_ARTICLES / PICK_AVAILABILITY / PICK_AVAILABILITY_META</span>, runs the canonical <span class="kbd">_applyAdpPayload</span> / <span class="kbd">_applyAuctionPayload</span> / <span class="kbd">_applyMvsPayload</span> helpers, then fires <span class="kbd">fpts:data-ready</span>. Adp.json + auction.json + pick-availability.json all carry the same <span class="kbd">version</span> timestamp (single <span class="kbd">now</span> in sync-adp.py main), so the heatmap "Data refreshed" stamp always matches the ADP refresh date.</p>

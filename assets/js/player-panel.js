@@ -115,6 +115,9 @@
              actually HAVE a prospect card (WR/RB/TE in the model corpus);
              see _prospectIndex below. -->
         <a class="pp-full-profile" id="pp-prospect-link" href="prospect-model.html" hidden>Prospect model ↗</a>
+        <!-- Prospect grade, shown inline next to the link. Populated from the
+             same lazy index, so it costs no extra request. -->
+        <span class="pp-prospect-grade" id="pp-prospect-grade" hidden></span>
         <!-- ARTICLES SECTION (built by mountPlayerArticles in JS, lives in profile row's empty space) -->
         <div id="pp-articles-mount" style="margin-top:10px"></div>
       </div>
@@ -691,17 +694,40 @@
       fpLink.href = 'player-profile.html?player=' + encodeURIComponent(playerName);
       fpLink.hidden = false;
     }
-    // "Prospect model ↗". Async — the index is fetched lazily — so it MUST
-    // re-check the player before revealing itself, or a fast switch between two
-    // players can leave the previous player's link on the new drawer.
+    // "Prospect model ↗" + the grade itself. Async — the index is fetched
+    // lazily — so it MUST re-check the player before revealing itself, or a fast
+    // switch between two players can leave the previous player's grade on the
+    // new drawer.
     _prospectIndex().then(function (idx) {
       const link = document.getElementById('pp-prospect-link');
+      const chip = document.getElementById('pp-prospect-grade');
       if (!link) return;
       if (!currentPanelPlayer || currentPanelPlayer.label !== playerName) return;
-      const key = idx && idx[_prospectKey(playerName)];
-      if (!key) { link.hidden = true; return; }
+
+      const row = idx && idx[_prospectKey(playerName)];
+      if (!row) {
+        link.hidden = true;
+        if (chip) chip.hidden = true;
+        return;
+      }
       link.href = 'prospect-model.html?player=' + encodeURIComponent(playerName);
       link.hidden = false;
+
+      // row is [pos, class, grade, pct] on the compact index, or a full player
+      // record when the prospect page itself is the host (see _prospectIndex).
+      const cls   = Array.isArray(row) ? row[1] : row['class'];
+      const grade = Array.isArray(row) ? row[2] : null;
+      const pct   = Array.isArray(row) ? row[3] : null;
+
+      if (chip && grade != null) {
+        chip.innerHTML =
+          '<span class="pp-pg-label">' + cls + ' prospect grade</span>' +
+          '<span class="pp-pg-val">' + Math.round(grade) + '</span>' +
+          (pct != null ? '<span class="pp-pg-pct">' + _ordinal(pct) + '</span>' : '');
+        chip.hidden = false;
+      } else if (chip) {
+        chip.hidden = true;
+      }
     });
     // Restore the user's last-used tab so switching players keeps view.
     ppShowTab(ppLastTab || 'trades');
@@ -726,6 +752,12 @@
     return String(name || '').toLowerCase()
       .replace(/\b(jr|sr|ii|iii|iv|v)\b/g, '')
       .replace(/[^a-z0-9]/g, '');
+  }
+
+  function _ordinal(n) {
+    const v = n % 100;
+    if (v >= 11 && v <= 13) return n + 'th';
+    return n + ({ 1: 'st', 2: 'nd', 3: 'rd' }[n % 10] || 'th');
   }
 
   function _prospectIndex() {

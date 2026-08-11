@@ -2585,7 +2585,60 @@ raw != null, pct null  -> row IS drawn, value shown, no bubble (unranked)`,
           output: 'A card that is short some bars, with a caption saying how many and why.',
           whyThisNumber: 'Measured 2026-08-11: the WR workbook has height/weight/BMI for all ten prior classes and NONE of the 2026 class; the TE workbook likewise has weight and age for every prior class and none of 2026. Keeping those rows turned a current WR\'s Athleticism card into a wall of dashes, which reads as broken rather than as absent.',
           notes: 'These are SOURCE-DATA conditions, not script errors — sync-prospects.py warns loudly about each one on every run, and one 2026 RB (Kaelon Black) is graded off just 2 of 14 input metrics. Filling them in is a workbook edit; a re-run picks them up with no code change.',
-          related: ['pm-percentile', 'pm-comps']
+          related: ['pm-percentile', 'pm-comps', 'pm-zero-missing']
+        },
+        {
+          id: 'pm-zero-missing',
+          label: '62. Zero-as-missing (ZERO_IS_MISSING)',
+          location: 'sync-prospects.py: ZERO_IS_MISSING, applied during extract_models()',
+          provenance: { kind: 'derived', detail: 'Forced by the workbooks disagreeing about how to write "no value yet" — the same trap as the target column, one layer down.' },
+          inputs: 'Physical measurables: height, weight, BMI, 40 time, SPORQ.',
+          math: `# The TE sheet writes 0 for an unmeasured height; the WR sheet leaves it blank.
+# Measured 2026-08-11: ALL 27 TEs in the 2026 class carry height == 0,
+# every prior class carries real heights, and the WR sheet has 0 such rows.
+if value == 0 and metric in ZERO_IS_MISSING[pos]: value = None
+
+ZERO_IS_MISSING = {
+  "WR": {height, weight, bmi, forty},
+  "RB": set(),                       # nothing physically impossible at 0
+  "TE": {height, weight, sporq},
+}`,
+          output: 'The metric is absent rather than zero — it leaves the distribution and draws no bar.',
+          whyThisNumber: 'Left alone those zeros ranked all 27 current TEs at the BOTTOM of the height distribution and drew a real-looking 8th-percentile bar against a raw value of 0 — worse than drawing nothing, because it looks like information. Counting stats (routes, targets, missed tackles) are deliberately NOT in the set: a zero there is a true zero.',
+          notes: 'This also un-blinded audit_coverage(), which previously reported TE height as fully populated for the 2026 class because 0 is a number. Found in the browser, not in the data.',
+          related: ['pm-source-gaps', 'pm-comps']
+        },
+        {
+          id: 'pm-delta',
+          label: '63. Model-vs-NFL disagreement (deltaFor)',
+          location: 'prospect-model.js: deltaFor(); the class board\'s "vs NFL" column and its Model likes / NFL likes sorts',
+          provenance: { kind: 'derived', detail: 'Computed from our own recomputed percentiles rather than read from the workbooks\' Delta columns — see whyThisNumber.' },
+          inputs: 'pctAll["model:" + variant] and splits.dcPct, both already in prospects.json.',
+          math: `delta = modelPercentile(variant) - draftCapitalPercentile
+# positive -> the model likes him MORE than his draft slot does
+# negative -> the NFL liked him more than the production does`,
+          output: 'A signed percentile-point gap per prospect, plus two board sorts.',
+          example: '2026 class, final variants — model side: Eli Heidenreich (RB) +40, Eric McAlister (WR) +36, Tanner Koziol (TE) +34. NFL side: Kaden Wetjen (WR) −37, Zavion Thomas (WR) −36.',
+          whyThisNumber: 'NOT read from the sheets. WR and TE compute Delta against their FINAL model percentile — verified exact on 346/346 and 163/163 rows — but RB computes DC Delta against the WITHOUT-BEST-SEASON percentile (233/233 rows), which is not the variant the card leads with. Shipping the raw columns would silently mean different things per position. Computing it here also makes it follow the variant switcher, which is the point of having one.',
+          notes: 'A prospect with no draft capital on file has no delta and sorts LAST in both directions — "no opinion" is not "agrees". The sign is always printed so color is reinforcement, never the only cue.',
+          related: ['pm-splits', 'pm-cross-position', 'pm-variants']
+        },
+        {
+          id: 'pm-drawer-grade',
+          label: '64. Prospect grade in the shared player drawer',
+          location: 'player-panel.js: _prospectIndex() + the pp-prospect-grade chip; data/prospect-index.json from sync-prospects.py',
+          provenance: { kind: 'derived', detail: 'A deliberate scope decision about WHERE prospect data belongs site-wide, driven by measured coverage.' },
+          inputs: 'data/prospect-index.json — key -> [pos, class, grade, pct]. 26 KB, fetched once on first drawer open, never on page load.',
+          math: `# Coverage, measured 2026-08-11 — WR/RB/TE only:
+#   mvs.json  (tradeable universe) .... 79%
+#   ADP startup board ................ 61%
+#   values.json (full dictionary) .... 53%
+#   rookie_draft_sf .................. 49%
+#   QB anywhere ....................... 0%`,
+          output: 'A quiet grade chip beside the "Prospect model" link, on all 13 pages from one edit.',
+          whyThisNumber: 'A chip, not a table column. The model is a CURATED prospect list with an inclusion threshold, not a census — 33 of the 92 missing tradeable skill players are under 26 (Jaleel McLaughlin, Isaiah Davis, Jalen Coker), so a column would be blank a fifth of the time at best and half at worst, plus every quarterback. A chip that does not appear costs nothing; a blank column is a hole. It is also styled quiet on purpose: a college grade is history for a player with several NFL seasons, so only the value sits at full contrast.',
+          notes: 'The grade shown is the position\'s DEFAULT variant, because the drawer has no variant switcher and must match what the card leads with. The reveal is async, so it re-checks the current player before showing itself — a fast switch between two players must not leave the previous grade on the new drawer.',
+          related: ['pm-variants', 'pm-delta']
         }
       ]
     }

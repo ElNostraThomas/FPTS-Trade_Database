@@ -42,6 +42,7 @@
   var POOL = 'all';          // 'all' (DEFAULT) | 'class' (second option)
   var BOARD_POS = 'ALL';
   var BOARD_CLASS = null;
+  var BOARD_SORT = 'rank';   // 'rank' | 'model' | 'nfl'
 
   var DATA_URL = 'data/prospects.json?v=1801100000';
 
@@ -230,6 +231,11 @@
           esc(rec['class']) + ' class' +
           (rec.college ? ' · ' + esc(rec.college) : '') +
           (mk.team ? ' · ' + esc(mk.team) : '') +
+          // The site's own dynasty standing, joined but previously unshown —
+          // it anchors the model grade to the ranking system the rest of the
+          // site already speaks in.
+          (mk.posRank ? ' · ' + esc(mk.posRank) : '') +
+          (mk.tier != null ? ' · Tier ' + esc(mk.tier) : '') +
           (rec.power === false ? ' · Non-Power' : '') +
         '</span>' +
       '</div>';
@@ -561,6 +567,11 @@
         { label: 'Carries', value: s.att || 0, color: 'var(--red)' },
         { label: 'Receptions', value: s.rec || 0, color: 'var(--pos-wr-bg)' }
       ], 'Touch mix');
+      // Scheme fit is exactly two categories, so it stays a donut.
+      html += donut([
+        { label: 'Zone', value: s.zoneAtt || 0, color: 'var(--red)' },
+        { label: 'Gap', value: s.gapAtt || 0, color: 'var(--pos-wr-bg)' }
+      ], 'Run scheme');
       html += shareBar('Breakaway rate', s.brkPct);
       html += shareBar('Yards after contact per carry', s.ycoAtt, '');
       html += shareBar('PFF rushing grade', s.runGr, '');
@@ -570,6 +581,15 @@
         { label: 'Downfield', value: Math.max(0, tgt - screen), color: 'var(--red)' },
         { label: 'Screens', value: screen, color: 'rgba(128,128,128,.35)' }
       ], 'Target mix');
+      // Alignment is THREE categories, and the donut recipe this page inherits
+      // is documented "two categories only — beyond that this becomes a stacked
+      // bar, which is easier to read". Following that rule rather than breaking
+      // it: alignment gets a stacked bar.
+      html += stackedBar('Alignment', [
+        { label: 'Wide',   value: s.wideRate,   color: 'var(--red)' },
+        { label: 'Slot',   value: s.slotRate,   color: 'var(--pos-wr-bg)' },
+        { label: 'Inline', value: s.inlineRate, color: 'rgba(128,128,128,.45)' }
+      ]);
       html += shareBar('Catch rate', s.catchPct);
       html += shareBar('Contested catch rate', s.contPct);
       html += shareBar('Drop rate (lower is better)', s.dropRate);
@@ -611,6 +631,39 @@
         'aria-label="' + esc(caption) + '">' + arcs + '</svg>' +
       '<div class="pf-legend"><div class="pf-kpi-label">' + esc(caption) + '</div>' +
         legend + '</div>' +
+    '</div>';
+  }
+
+  /* Stacked composition bar — the >2-category counterpart to donut().
+     Used for receiver alignment (wide / slot / inline), which is three parts of
+     one whole and would be a rainbow as a donut.
+
+     The parts rarely sum to exactly 100: PFF's rates are rounded per season and
+     a few snaps go unclassified (Kenyon Sadiq 2025 sums to 96.9). So the bar is
+     drawn on the ACTUAL total rather than assumed to fill, and any remainder is
+     simply left as empty track rather than silently inflating the slices. */
+  function stackedBar(caption, parts) {
+    var live = parts.filter(function (p) { return p.value != null && p.value > 0; });
+    if (!live.length) return '';
+    var total = live.reduce(function (a, p) { return a + p.value; }, 0);
+    if (total <= 0) return '';
+
+    var segs = live.map(function (p) {
+      return '<div style="width:' + (Math.min(100, p.value)) + '%;background:' + p.color +
+        '" title="' + esc(p.label + ': ' + p.value.toFixed(1) + '%') + '"></div>';
+    }).join('');
+
+    var legend = live.map(function (p) {
+      return '<div class="pf-legend-item"><span class="pf-swatch" style="background:' +
+             p.color + '"></span>' + esc(p.label) +
+             ' <span class="pf-legend-val">' + p.value.toFixed(0) + '%</span></div>';
+    }).join('');
+
+    return '<div class="pf-share-row">' +
+      '<div class="pf-share-head"><span>' + esc(caption) + '</span>' +
+      '<span>' + total.toFixed(0) + '% classified</span></div>' +
+      '<div class="pf-share-track pm-stack">' + segs + '</div>' +
+      '<div class="pm-stack-legend">' + legend + '</div>' +
     '</div>';
   }
 
@@ -779,9 +832,45 @@
       'a bar above.</div>';
   }
 
+  /* ── model-vs-NFL disagreement ────────────────────────────────────────
+     How far the model's opinion of a prospect sits from the NFL's, in
+     percentile points: positive = the model likes him MORE than his draft slot
+     says, negative = the NFL liked him more than the numbers do.
+
+     Computed here from OUR percentiles rather than read from the workbooks'
+     own Delta column, for two reasons:
+
+       1. Consistency. The WR and TE sheets compute Delta against their FINAL
+          model percentile (verified exact on 346/346 and 163/163 rows), but the
+          RB sheet computes DC Delta against the WITHOUT-BEST-SEASON percentile
+          (233/233 rows) — which is not the variant the card leads with. Shipping
+          the raw columns would silently mean different things per position.
+       2. It follows the variant switcher. Flip to "Without Best Season" and the
+          disagreement recomputes for that variant, which is the whole point of
+          having the switcher.
+
+     Both inputs are already in the payload, so this costs no extra data. */
+  /* Signed delta cell. The sign carries the meaning, so it is always printed —
+     the color is reinforcement, never the only cue. Uses the same two hues as
+     the percentile bars so "orange = model is high" reads consistently. */
+  function deltaCell(d) {
+    if (d == null) return '<span class="pf-legend-val">—</span>';
+    if (d === 0) return '<span class="pf-legend-val">0</span>';
+    var col = d > 0 ? 'var(--pf-great)' : 'var(--pf-poor)';
+    return '<span style="color:' + col + '">' + (d > 0 ? '+' : '') + d + '</span>';
+  }
+
+  function deltaFor(rec, variant) {
+    var pct = (rec.pctAll || {})['model:' + (variant || defaultVariant(rec.pos))];
+    var dc = (rec.splits || {}).dcPct;
+    if (pct == null || dc == null) return null;
+    return Math.round(pct - dc);
+  }
+
   // ── the class board (landing state) ──────────────────────────────────
   function setBoardPos(pos) { BOARD_POS = pos; renderBoard(); }
   function setBoardClass(c) { BOARD_CLASS = Number(c); renderBoard(); }
+  function setBoardSort(s) { BOARD_SORT = s; renderBoard(); }
 
   function renderBoard() {
     var cls = BOARD_CLASS != null ? BOARD_CLASS : DATA.currentClass;
@@ -796,9 +885,23 @@
         return {
           key: o.key, rec: o.rec,
           grade: (o.rec.models || {})[v],
-          pct: (o.rec.pctAll || {})['model:' + v]
+          pct: (o.rec.pctAll || {})['model:' + v],
+          delta: deltaFor(o.rec, v)
         };
       });
+
+    /* The disagreement sorts. Prospects with no draft-capital percentile have no
+       delta and are pushed to the bottom rather than treated as zero — "no
+       opinion" is not the same as "agrees". */
+    if (BOARD_SORT === 'model' || BOARD_SORT === 'nfl') {
+      var sign = BOARD_SORT === 'model' ? -1 : 1;
+      rows.sort(function (a, b) {
+        if (a.delta == null && b.delta == null) return 0;
+        if (a.delta == null) return 1;
+        if (b.delta == null) return -1;
+        return sign * (a.delta - b.delta);
+      });
+    }
 
     el('pm-board-class').innerHTML = (DATA.classes || []).slice().reverse()
       .map(function (c) {
@@ -809,7 +912,16 @@
     el('pm-board-pos').innerHTML = ['ALL', 'WR', 'RB', 'TE'].map(function (p) {
       return '<button class="pf-season-tab' + (p === BOARD_POS ? ' active' : '') +
         '" onclick="ProspectModel.setBoardPos(\'' + p + '\')">' + p + '</button>';
-    }).join('');
+    }).join('') +
+      '<span class="pm-sort-sep"></span>' +
+      [['rank', 'Overall', 'Ranked by model percentile, position-normalized.'],
+       ['model', 'Model likes', 'Where the model is highest above the NFL\'s draft slot.'],
+       ['nfl', 'NFL likes', 'Where the NFL drafted him well above what the numbers support.']]
+        .map(function (s) {
+          return '<button class="pf-season-tab' + (s[0] === BOARD_SORT ? ' active' : '') +
+            '" title="' + esc(s[2]) + '" onclick="ProspectModel.setBoardSort(\'' +
+            s[0] + '\')">' + esc(s[1]) + '</button>';
+        }).join('');
 
     if (!rows.length) {
       el('pm-board-body').innerHTML =
@@ -820,6 +932,8 @@
     var isCurrent = cls === DATA.currentClass;
     var head = '<tr><th></th><th data-col="season">Prospect</th><th>Pos</th>' +
       '<th>College</th><th>Grade</th><th>%ile</th>' +
+      '<th title="Model percentile minus draft-capital percentile. Positive = the ' +
+        'model likes him more than his draft slot does.">vs NFL</th>' +
       '<th>Rookie ADP</th><th>Dynasty Value</th>' +
       (isCurrent ? '' : '<th>NFL Outcome</th>') + '</tr>';
 
@@ -835,6 +949,7 @@
         '<td>' + (r.pct == null ? '—' :
           '<span class="pm-pct-chip" style="background:' + pctColor(r.pct) + '">' +
           esc(ordinal(r.pct)) + '</span>') + '</td>' +
+        '<td class="pm-delta">' + deltaCell(r.delta) + '</td>' +
         '<td>' + (mk.rookieAdpSf != null ? esc(mk.rookieAdpSf.toFixed(1)) : '—') + '</td>' +
         '<td>' + (sf != null ? esc(Number(sf).toLocaleString()) : '—') + '</td>' +
         (isCurrent ? '' : '<td>' +
@@ -842,13 +957,25 @@
       '</tr>';
     }).join('');
 
+    var sortNote = BOARD_SORT === 'model'
+      ? 'Sorted by <strong>where the model is highest above the NFL</strong> — the top of ' +
+        'this list is where the college production says more than the draft slot did.'
+      : BOARD_SORT === 'nfl'
+      ? 'Sorted by <strong>where the NFL is highest above the model</strong> — players ' +
+        'drafted well above what their production supports.'
+      : 'Ranked by <strong>all-classes percentile</strong>, not raw grade — the three ' +
+        'position models are fit separately, so their raw numbers are not comparable to ' +
+        'each other. The percentile is, which makes this a cross-position board.';
+
     el('pm-board-body').innerHTML =
       '<div class="pf-table-scroll"><table class="pf-table">' +
       '<thead>' + head + '</thead><tbody>' + body + '</tbody></table></div>' +
-      '<div class="pf-pct-caption">Ranked by <strong>all-classes percentile</strong>, not ' +
-      'raw grade — the three position models are fit separately, so their raw numbers are ' +
-      'not comparable to each other. The percentile is, which makes this a cross-position ' +
-      'board. Click any row for the full card.' +
+      '<div class="pf-pct-caption">' + sortNote + ' ' +
+      '<strong>vs NFL</strong> is the model percentile minus the draft-capital percentile, ' +
+      'in percentile points: <strong>+</strong> means the model likes him more than his ' +
+      'draft slot does, <strong>−</strong> means the NFL did. A prospect with no draft ' +
+      'capital on file has no delta and sorts last — no opinion is not the same as ' +
+      'agreement. Click any row for the full card.' +
       (isCurrent ? ' The ' + esc(cls) + ' class has no NFL outcome column: it has not ' +
                    'played a down.' : '') +
       '</div>';
@@ -907,6 +1034,7 @@
     setPool: setPool,
     setBoardPos: setBoardPos,
     setBoardClass: setBoardClass,
+    setBoardSort: setBoardSort,
     backToBoard: backToBoard
   };
 })(window);

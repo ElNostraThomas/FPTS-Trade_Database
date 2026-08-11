@@ -90,7 +90,7 @@ card at all.
   cannot be told apart by value — only by class. `target` is therefore dropped for the current
   class outright, or 22 phantom busts would poison every historical comp pool.
 - **⚠ SOURCE GAPS IN THE 2026 CLASS** — the WR workbook has height/weight/BMI for all ten
-  prior classes and **0 of 45** current; the TE workbook has weight and age for every prior
+  prior classes and **0 of 45** current; the TE workbook has height, weight and age for every prior
   class and **0 of 27** current; one RB (Kaelon Black) is graded off **2 of 14** inputs.
   `audit_coverage()` warns loudly about each on every run. A metric with no raw value is not
   drawn at all and the caption counts it — distinct from an *unranked* row, which has a value
@@ -128,6 +128,58 @@ card at all.
   hidden for a non-prospect, light + dark themes, deep links, console clean. Three defects
   found and fixed in the browser: empty Athleticism rows for the current class, board/card
   rank disagreement, and inconsistent college-name casing across the three sources.
+
+### Follow-up same day — prospect data reach (four additions)
+
+Audited what model data was NOT reaching the page, and whether prospect data belongs on
+other pages. Almost nothing from the workbooks was unused (WR 6 of 91 columns, RB 4 of 54,
+TE 11 of 60 — nearly all of it duplicate `2nd-best (blank)` / `(50% penalty)` constructions
+of the same input; RB's `Yards After Season` and `Yards After/G Season` are byte-identical
+across all 231 rows, a duplicate rather than a missed per-game variant). The real unused
+surface was the **college databases**: receiving 43 of 133 columns, rushing 53 of 142.
+
+- **Prospect grade in the shared player drawer — one edit, all 13 pages.** The grade now sits
+  next to the existing "Prospect model ↗" link, from the same lazy index (now
+  `key -> [pos, class, grade, pct]`, 19 → 26 KB). **A chip, not a table column**, and that is
+  the whole call: coverage is **79%** of the tradeable universe at WR/RB/TE but **53%** of the
+  full player dictionary and **0%** of QBs — 33 of the 92 missing tradeable skill players are
+  under 26, because the model is a curated list with an inclusion threshold, not a census. A
+  column would be blank a fifth to a half of the time; a chip that doesn't appear costs
+  nothing. Styled quiet on purpose: a college grade is history for a player with several NFL
+  seasons.
+- **Alignment + run scheme.** `slot_rate`/`wide_rate`/`inline_rate` for receivers as a
+  **stacked bar** — three categories, and the inherited donut recipe is documented "two
+  categories only", so the rule is followed rather than broken. `zone_attempts`/`gap_attempts`
+  for backs as a second donut. Alignment rarely sums to 100, so the bar prints
+  "N% classified" instead of inflating slices. **Sadiq at 59% slot / 28% inline reads as a
+  move TE at a glance** — a distinction no percentile bar on the card could make.
+- **Model-vs-NFL disagreement board.** A `vs NFL` column plus Model-likes / NFL-likes sorts.
+  Computed from our own percentiles, **not** the workbooks' Delta columns: WR/TE compute
+  Delta against their final model percentile (346/346 and 163/163 exact) but **RB computes
+  DC Delta against the WITHOUT-BEST-SEASON percentile** (233/233), so the raw columns would
+  mean different things per position. Computing it here also makes it follow the variant
+  switcher. No-draft-capital prospects sort last both ways — no opinion is not agreement.
+  2026 extremes: Heidenreich +40 / McAlister +36 / Koziol +34 on the model side, Wetjen −37
+  / Thomas −36 on the NFL side.
+- **Tier / posRank on the card** — already joined, previously never shown.
+
+### ⚠ SECOND source-data trap found — `ZERO_IS_MISSING`
+
+Same shape as the RB target column, one layer down. **The TE sheet writes a literal `0` for
+an unmeasured height** where the WR sheet leaves the cell blank: all **27 TEs in the 2026
+class carry `height == 0`**, and every prior class carries real heights. Those zeros were
+entering the distribution, ranking all 27 current TEs at the bottom of it and drawing a
+real-looking **8th-percentile bar against a raw value of 0** — worse than drawing nothing,
+because it looks like information. Caught in the browser, not in the data.
+
+Zeros are now nulled for metrics where zero is physically impossible (WR height/weight/BMI/
+40 time; TE height/weight/SPORQ). Counting stats are deliberately excluded — a zero in routes
+or targets is a true zero. This also **un-blinded `audit_coverage()`**, which had been
+reporting TE height as fully populated because `0` is a number.
+
+⚠ **Correction:** the note above originally said the TE gap was "weight and age". It is
+**height, weight and age** — the height hole was masked by exactly this bug. Corrected here,
+in `FORMULAS.md`, `CHANGES.md` and the Legend.
 
 ### ⚠ Three PRE-EXISTING defects found while building this (two fixed, one open)
 

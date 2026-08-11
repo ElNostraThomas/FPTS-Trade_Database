@@ -6,6 +6,60 @@ the operator manual see [`WORKFLOW.md`](WORKFLOW.md).
 
 ---
 
+## 2026-08-11 (2) — Prospect data reach: drawer grade, alignment, disagreement board
+
+Follow-up to the Prospect Model ship, from an audit of what model data was NOT reaching the
+page and whether prospect data belongs on other pages.
+
+**Audit findings.** Almost nothing from the model workbooks was unused — WR 6 of 91 columns,
+RB 4 of 54, TE 11 of 60, and nearly all of it the `2nd-best X (blank)` vs `2nd-best X (50%
+penalty)` pairs, which are alternative constructions of the same input. Verified the one
+that looked like a bug: RB's `Yards After Season` and `Yards After/G Season` columns are
+identical across all 231 rows — a duplicate, not a missed per-game variant. The real unused
+surface was the college databases (receiving 43 of 133 columns, rushing 53 of 142).
+
+**Four additions:**
+
+- **Prospect grade in the shared player drawer** — one edit, all 13 pages. `player-panel.js`
+  now shows the grade next to its "Prospect model ↗" link, from the same lazily-fetched
+  index (now `key -> [pos, class, grade, pct]`, 19 → 26 KB). A chip rather than a column
+  because coverage is 79% of the tradeable universe at WR/RB/TE but 53% of the full player
+  dictionary and 0% of QBs — a column would be blank a fifth to a half of the time.
+- **Alignment + run scheme** — `slot_rate` / `wide_rate` / `inline_rate` for receivers as a
+  STACKED BAR (three categories; the inherited donut recipe is documented "two categories
+  only"), `zone_attempts` / `gap_attempts` for backs as a second donut. Alignment rates
+  rarely sum to 100, so the bar prints "N% classified" rather than inflating slices. Sadiq
+  at 59% slot / 28% inline reads as a move TE at a glance — a distinction no percentile bar
+  on the card could make.
+- **Model-vs-NFL disagreement** — a `vs NFL` column plus Model-likes / NFL-likes sorts on the
+  class board. Computed from our own percentiles, NOT the workbooks' Delta columns: WR and
+  TE compute Delta against their final model percentile (346/346 and 163/163 exact) but RB
+  computes DC Delta against the WITHOUT-BEST-SEASON percentile (233/233), so the raw columns
+  would mean different things per position. Computing it here also makes it follow the
+  variant switcher. No-draft-capital prospects sort last in both directions.
+- **Tier / posRank on the prospect card** — already joined into `prospects.json`, previously
+  never displayed.
+
+**⚠ New source-data trap found and fixed — `ZERO_IS_MISSING`.** The TE sheet writes a literal
+`0` for an unmeasured height where the WR sheet leaves the cell blank: **all 27 TEs in the
+2026 class carry `height == 0`**, every prior class carries real heights. Those zeros were
+entering the distribution, ranking all 27 current TEs at the bottom of it and drawing a
+real-looking 8th-percentile bar against a raw value of 0. Zeros are now nulled for metrics
+where zero is physically impossible (WR height/weight/BMI/40; TE height/weight/SPORQ);
+counting stats are deliberately excluded, since a zero there is a true zero. This also
+un-blinded `audit_coverage()`, which had reported TE height as fully populated because `0`
+is a number — **the earlier "TE weight/age 0/27" note is corrected to "height/weight/age"**
+in README, FORMULAS.md, CHANGES and the Legend.
+
+- Tokens -> `1801200000`: `prospect-model.js/.css`, `player-panel.js/.css`,
+  `legend-content.js`, `formulas-content.js`.
+- Docs: Legend gained 3 items, `FORMULAS.md` gained 4 sections, formulas cards **62-64**.
+- `check-colors` CLEAN (55). Browser-verified: drawer chip shown for Tate / Chase / Bowers
+  and hidden for Josh Allen, all three board sorts, the alignment bar, the corrected TE
+  Athleticism group, both themes.
+
+---
+
 ## 2026-08-11 — Prospect Model page (rookie grades from the WR/RB/TE models)
 
 **New 13th page `prospect-model.html`** + new local-only pipeline `sync-prospects.py` ->
@@ -35,7 +89,7 @@ the operator manual see [`WORKFLOW.md`](WORKFLOW.md).
   blank, and a real 0 is a legitimate historical value — so `target` is dropped for the
   current class outright rather than seeding 22 phantom busts into the comp pools.
 - **`audit_coverage()`** reports current-class source holes on every run: WR height/weight/BMI
-  0/45, TE weight/age 0/27, one RB graded off 2 of 14 inputs. Missing-raw metrics are not
+  0/45, TE height/weight/age 0/27, one RB graded off 2 of 14 inputs. Missing-raw metrics are not
   drawn and the caption counts them; unranked-but-present metrics still render.
 - College lines joined on PFF `player_id`: WR 346/346, TE 163/163, RB 230/231. College name
   casing normalized across the three sources (`title_college` + an explicit acronym set).

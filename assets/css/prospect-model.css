@@ -34,6 +34,17 @@
   font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
   font-size: 14px;
 }
+/* Model-vs-NFL delta. The sign is always printed, so color is reinforcement
+   rather than the sole cue. */
+.pf-table td.pm-delta {
+  font-family: 'Mulish', sans-serif; font-weight: 900; font-size: 12px;
+}
+/* Divider between the position filter and the sort control — they are two
+   different questions and shouldn't read as one strip of tabs. */
+.pm-sort-sep {
+  display: inline-block; width: 1px; height: 20px;
+  background: var(--border2); margin: 0 10px; vertical-align: middle;
+}
 
 /* Percentile chip — a bright fill, so #111111 ink per hard rule #1. The
    background color is set inline from the same pctColor() the bars use. */
@@ -71,6 +82,18 @@
 .pm-comp-val {
   font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
   font-size: 17px; color: var(--white); font-variant-numeric: tabular-nums;
+}
+
+/* ── stacked composition bar ──────────────────────────────────────────
+   The >2-category counterpart to the donut, used for receiver alignment.
+   Reuses .pf-share-track for the rail so it lines up with the share bars
+   above and below it; this only turns the rail into a flex row of segments. */
+.pf-share-track.pm-stack {
+  display: flex; overflow: hidden;
+}
+.pf-share-track.pm-stack > div { height: 100%; }
+.pm-stack-legend {
+  display: flex; gap: 12px; flex-wrap: wrap; margin-top: 6px;
 }
 
 /* ── final-season tag in the college table ────────────────────────────── */

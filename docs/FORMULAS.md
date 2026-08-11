@@ -2519,6 +2519,114 @@ the room by N spots"), which is the reach/value read and is meaningless once a c
 played. Older classes drop out of the market as players leave the league; that is expected
 rather than a join failure.
 
+### ⚠ Zero-as-missing (`ZERO_IS_MISSING`)
+
+A second instance of the same trap as the target column: the workbooks disagree about how
+to write "no value yet", and for PHYSICAL MEASURABLES the TE sheet writes **`0`** where the
+WR sheet leaves the cell **blank**.
+
+Measured 2026-08-11: **all 27 TEs in the 2026 class carry `height == 0`**, and every prior
+class carries real heights. The WR sheet has zero such rows.
+
+Left alone, those zeros entered the height distribution, ranked all 27 current TEs at the
+bottom of it, and drew a real-looking **8th-percentile bar against a raw value of 0** —
+worse than drawing nothing, because it looks like information.
+
+`ZERO_IS_MISSING` nulls a zero for metrics where zero is **physically impossible**:
+
+| Pos | Metrics |
+| --- | --- |
+| WR | height, weight, bmi, forty |
+| RB | *(none)* |
+| TE | height, weight, sporq |
+
+Counting stats are deliberately **not** listed — a zero in routes, targets or missed tackles
+is a true zero. This also un-blinded `audit_coverage()`, which previously reported TE height
+as fully populated for 2026 because `0` is a number.
+
+### Model-vs-NFL disagreement (`deltaFor` / the class board sorts)
+
+How far the model's opinion sits from the NFL's, in percentile points:
+
+```
+delta = modelPercentile(variant) − draftCapitalPercentile
+# positive → the model likes him MORE than his draft slot does
+# negative → the NFL liked him more than the production does
+```
+
+Computed from **our** recomputed percentiles rather than read from the workbooks' own
+`Delta` column, for two reasons:
+
+1. **Consistency.** WR and TE compute `Delta` against their FINAL model percentile —
+   verified exact on 346/346 and 163/163 rows. But RB computes `DC Delta` against the
+   **without-best-season** percentile (233/233 rows), which is *not* the variant the card
+   leads with. Shipping the raw columns would silently mean different things per position.
+2. **It follows the variant switcher.** Flip to "Without Best Season" and the disagreement
+   recomputes for that variant, which is the point of having the switcher.
+
+Both inputs are already in the payload, so this costs no new data.
+
+The class board exposes it as a **`vs NFL` column plus three sorts** — Overall (the default
+position-normalized ranking), Model likes (delta descending), NFL likes (delta ascending).
+A prospect with no draft capital on file has no delta and sorts **last** in both directions:
+no opinion is not the same as agreement. The sign is always printed, so color is
+reinforcement rather than the only cue.
+
+2026 class extremes, final variants: Eli Heidenreich (RB) **+40**, Eric McAlister (WR)
+**+36**, Tanner Koziol (TE) **+34** on the model side; Kaden Wetjen (WR) **−37**,
+Zavion Thomas (WR) **−36** on the NFL side.
+
+### Alignment and run scheme
+
+Two more usage cuts from the college databases, both answering questions no percentile bar
+can:
+
+| Pos | Visual | Data |
+| --- | --- | --- |
+| WR / TE | **Stacked bar** — wide / slot / inline | `wide_rate`, `slot_rate`, `inline_rate` |
+| RB | **Donut** — zone vs gap | `zone_attempts`, `gap_attempts` |
+
+Alignment is a stacked bar rather than a donut on purpose: the donut recipe this page
+inherits from `player-profile.js` is documented "two categories only — beyond that this
+becomes a stacked bar, which is easier to read", and alignment is three. Run scheme is
+exactly two, so it stays a donut.
+
+The alignment parts **rarely sum to 100** — PFF's rates are rounded per season and some
+snaps go unclassified (Kenyon Sadiq 2025 sums to 96.9). The bar is drawn on the actual
+total and prints "N% classified"; the remainder is left as empty track rather than silently
+inflating the slices.
+
+For a tight end this is arguably the most important single readout on the card: Sadiq at
+59% slot / 28% inline is a move TE, which two prospects with identical YPRR would not
+otherwise be distinguishable on.
+
+### Prospect grade in the shared player drawer
+
+`player-panel.js` renders the grade next to its "Prospect model ↗" link, so the number is
+readable without leaving whatever page you are on. It reads the same lazily-fetched
+`data/prospect-index.json` the link already used — now `key -> [pos, class, grade, pct]`,
+26 KB, fetched once on first drawer open and never on page load.
+
+The grade shown is the position's **default variant**, because the drawer has no variant
+switcher and must show the number the card leads with.
+
+**Why a drawer chip and not a table column**, measured 2026-08-11:
+
+| Surface | WR/RB/TE with a grade |
+| --- | --- |
+| `mvs.json` — the tradeable universe | **79%** |
+| ADP startup board | 61% |
+| `values.json` — full dictionary | 53% |
+| `rookie_draft_sf` | 49% |
+| QB, anywhere | **0%** |
+
+The model is a curated prospect list with an inclusion threshold, not a census — 33 of the
+92 missing tradeable skill players are under 26 (Jaleel McLaughlin, Isaiah Davis, Jalen
+Coker). A column would be blank on a fifth of rows at best and half at worst, plus every
+quarterback. A drawer chip simply does not appear, which costs nothing. It is also styled
+quiet on purpose: a college grade is history for a player with several NFL seasons, so only
+the value sits at full contrast.
+
 ### ⚠ Source gaps in the current class
 
 Measured 2026-08-11, and re-checked loudly by `audit_coverage()` on every sync run:
@@ -2526,7 +2634,7 @@ Measured 2026-08-11, and re-checked loudly by `audit_coverage()` on every sync r
 | Workbook | Metric | Past classes | 2026 class |
 | --- | --- | --- | --- |
 | WR | Height, Weight, BMI | 100% | **0 / 45** |
-| TE | Weight, Age | 100% | **0 / 27** |
+| TE | **Height**, Weight, Age | 100% | **0 / 27** |
 | TE | SPORQ | ~70% | 19 / 27 |
 | RB | *Kaelon Black* | — | graded off **2 of 14** input metrics |
 

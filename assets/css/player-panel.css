@@ -675,3 +675,35 @@
   border-bottom: 1px solid transparent; transition: border-color .15s;
 }
 .pp-full-profile:hover { border-bottom-color: var(--red); }
+
+/* ── prospect grade chip ───────────────────────────────────────────────
+   Sits beside the "Prospect model ↗" link so the grade is readable without
+   leaving the page you are on. Only rendered for players the model actually
+   covers (WR/RB/TE in the corpus — 79% of the tradeable universe, 0% of QBs),
+   which is exactly why it is a chip that appears rather than a table column
+   that would be blank a fifth of the time.
+
+   Deliberately quiet: this is a COLLEGE grade, and for a player with several
+   NFL seasons it is history rather than the headline. Only the value sits at
+   full contrast; the label is muted and the percentile is the accent. */
+.pp-prospect-grade {
+  display: inline-flex; align-items: baseline; gap: 6px;
+  margin: 8px 0 0 12px; vertical-align: baseline;
+}
+.pp-pg-label {
+  color: rgba(128,128,128,1); font-family: 'Mulish', sans-serif;
+  font-weight: 700; font-size: 9px; text-transform: uppercase;
+  letter-spacing: .06em;
+}
+.pp-pg-val {
+  color: var(--white); font-family: 'Kanit', sans-serif; font-weight: 800;
+  font-style: italic; font-size: 15px; font-variant-numeric: tabular-nums;
+}
+.pp-pg-pct {
+  color: var(--red); font-family: 'Mulish', sans-serif; font-weight: 900;
+  font-size: 10px; font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 768px) {
+  .pp-prospect-grade { margin-left: 0; display: flex; }
+}
