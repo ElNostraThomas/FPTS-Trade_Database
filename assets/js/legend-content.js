@@ -315,9 +315,69 @@
 window.LegendContent = {
 
   // ════════════════════════════════════════════════════════════════════════
-  'index': {
+  // NOTE: this entry used to be authored as a second `title`/`blurb` pair
+  // INSIDE the 'index' object. A duplicate key silently wins in JS, so the
+  // Player Profile text was shadowed by the Trade Database text and never
+  // rendered — and player-profile.html never called Legend.init() either.
+  // Both were fixed 2026-08-11 when the prospect-model entry was added.
+  'playerprofile': {
     title: 'Player Profile',
     blurb: 'player-profile.html ranks a player against his positional peers 0-100 per metric, Baseball-Savant style. Percentiles are precomputed by sync-profile.py into data/profile.json over EVERYONE WHO SCORED at that position that season (2025: QB 77 / RB 136 / WR 223 / TE 125), using a mid-rank percentile so ties share a position. Rate stats additionally carry a PER-METRIC denominator floor, set per position to the workload that makes a rate meaningful for that role (catch % and yards/target need 50 targets for a WR, 25 for a TE, 10 for an RB; 5 receptions for yards/reception; 20 carries for YPC and the explosive buckets; 50 attempts or dropbacks for the QB rates) — without one, two catches on two targets outranks a target hog. The floor skips that ONE metric; the player keeps every other bar and still shows the raw value. Metrics are grouped by SKILL AREA so each position shows every phase of its game — QB: Production / Passing / Rushing; RB: Production / Rushing / Receiving / Opportunity; WR+TE: Production / Receiving / Rushing / Opportunity, with the primary role listed first. WR/TE rushing is merged in from rushing.csv (their receiving.csv source carries no rush columns); receivers who never carried are left unranked rather than tied at zero, and the Rushing block hides itself on their card. Bars use a diverging scale — var(--pos-wr-bg) blue at 0, neutral grey at 50, var(--red) orange at 100 — and inverted metrics (INT %, Sack %, Fumbles) are flipped so a longer bar always means better. Season metrics aggregate the weekly data-suite rows: counting stats sum, rate stats are recomputed from the summed components (never averaged across weeks), and share stats divide by team totals backed out of the provider’s own share column (teamTGT = TGT / TGT%). The side columns carry a Dynasty Market block (MVS trend / 7-day trade volume / OTC value + diff, season-independent) and a Consistency block whose boom and bust lines are 1.5x and 0.5x the player’s OWN weekly average — relative rather than a flat 20/10-point line, so one definition works for a QB and a TE alike. Volatility is the coefficient of variation (stdev / mean), comparable across scoring levels; lower is steadier.',
+    sections: [
+      {
+        name: 'Reading the card',
+        items: [
+          { label: 'Percentile bar', what: 'One bar per metric. The bubble carries the percentile, the number on the right is the raw stat.', source: 'data/profile.json players[key].seasons[year].pct, precomputed by sync-profile.py', values: 'Diverging scale: var(--pos-wr-bg) blue at 0, neutral grey at 50, var(--red) orange at 100.', notes: 'Nothing is encoded by color alone — every bar prints its own percentile and raw value.' },
+          { label: 'Unranked row', what: 'A rate stat whose denominator is below its per-position floor shows the raw value with no bubble.', source: 'RATE_FLOORS in sync-profile.py', values: 'Catch % / yards-per-target: 50 targets WR, 25 TE, 10 RB. 5 receptions for Y/R. 20 carries for YPC. 50 att/dropbacks for the QB rates.', notes: 'The floor skips that ONE metric; every other bar is unaffected.' },
+          { label: 'Pool', what: 'Everyone who scored at that position that season — not a volume-qualified subset.', source: 'seasonMeta[season].pool in profile.json', values: '2025: QB 77 / RB 136 / WR 223 / TE 125.', notes: 'The earlier volume gate was dropped because it gated on volume while the page reads as a fantasy tool.' }
+        ]
+      },
+      {
+        name: 'Known gaps',
+        items: [
+          { label: 'Rookies have no profile', what: 'profile.json is built from NFL stat rows, so an incoming rookie has no card here at all.', source: 'sync-profile.py reads data/source/stats/<season>/*.csv', values: 'n/a', notes: 'Use the Prospect Model page for the incoming class — it covers WR/RB/TE prospects from their college production.' },
+          { label: 'Redraft Market', what: 'Reserved placeholder block, not wired to data.', source: 'renderRedraft() in player-profile.js', values: 'n/a', notes: 'Needs a value-basis decision in sync-mvs.py plus a third format key through FP_VALUES / mlFpValue.' }
+        ]
+      }
+    ]
+  },
+
+  // ════════════════════════════════════════════════════════════════════════
+  'prospectmodel': {
+    title: 'Prospect Model',
+    blurb: 'VISUAL CONTRACT: this page is the rookie-side twin of player-profile.html and is built ON that page\'s stylesheet rather than beside it — it loads player-profile.css and emits the same pf-* classes (pf-grid, pf-card, pf-kpi, pf-group, pf-bar-row, pf-bubble, pf-donut, pf-share-row, pf-table, pf-season-tab), so the two pages stay visually identical and restyling one restyles both. prospect-model.css adds ONLY the class board and the comp cards, which have no counterpart there. ' +
+      'prospect-model.html grades incoming rookies from the WR, RB and TE prospect models and ranks each one against his positional peers, the same way player-profile.html ranks an NFL season. Data is built by sync-prospects.py into data/prospects.json from three model workbooks (WR / RB / TE "Player Model" sheets) plus the two Combined PFF college databases, and covers 741 prospects across the 2015-2026 classes — 94 of them in the current class. There is NO QB model, by scope decision rather than as a pending gap. Every percentile is precomputed over BOTH pools (all classes, and the prospect\'s own class) using the same mid-rank definition as the profile page, so the browser does no distribution math and a bar means the same thing on both pages. Each position ships more than one grade and the card shows all of them: WR base / fast-40 dock / final (the sheet labels the competition-penalty column the final model), RB with and without his best season, TE pre-combine and SPORQ-bonused. The 40 time and the age columns are INVERTED — lower is better — so a fast, young prospect shows a long bar; those rows are marked with a down arrow. Because the three position models are fit separately their raw grades are not comparable to each other (a class-leading RB grade is 364, a class-leading WR grade is 214), so the class board and the "Nth in the class" line both order prospects by fractional standing inside their own position pool rather than by raw grade.',
+    sections: [
+      {
+        name: 'The grade',
+        items: [
+          { label: 'Model variant switcher', what: 'Every grade the position\'s workbook produces, with the adjustment each one applies spelled out. Switching re-renders the whole card, including the percentile bars and the historical comps.', source: 'MODELS in sync-prospects.py → prospects.json models[pos]; setVariant() in prospect-model.js', values: 'WR: Base Model / Fast-40 Dock (sub-4.33 forty discounts draft capital 40%) / Final Model (adds a 20% penalty for non-Power or sub-.55 SOS inside the first two rounds). RB: Model Result / Without Best Season. TE: With SPORQ Bonus / Pre-Combine.', notes: 'The default is the variant the sheet itself treats as final. Identical numbers across variants mean no adjustment applied to that prospect — e.g. a Power-conference WR with a 4.53 forty.' },
+          { label: 'Ranked vs (pool toggle)', what: 'Switches every bar between the all-classes pool and the prospect\'s own draft class.', source: 'pctAll / pctClass in prospects.json; setPool() in prospect-model.js', values: 'All Classes = a grade means the same thing every year. His Class = who is the best available this year.', notes: 'A class with fewer than minClassPool (5) prospects at a position gets no within-class bars and falls back to all-classes, with a note saying so. No class in the current corpus is that small — the smallest is TE 2016 at 7 — so this path is defensive.' },
+          { label: 'What Drives The Grade', what: 'Production percentile against draft-capital percentile. The single most useful diagnostic on the card, because the composite grade hides which one is carrying it.', source: 'SPLITS in sync-prospects.py → prospects.json splits[pos]', values: 'Shipped 0-100 (the workbooks store these as 0-1 fractions; the sync script normalizes). A prospect 90th in production and 20th in draft capital is a completely different bet from the reverse.', notes: 'WR also carries a raw production-only score — the model with draft capital removed.' }
+        ]
+      },
+      {
+        name: 'Context blocks',
+        items: [
+          { label: 'Usage Share (donut + share bars)', what: 'The prospect\'s FINAL college season, shown with the same donut and share bars the Player Profile page uses for an NFL season.', source: 'The last row of prospects.json seasons[] — raw PFF college data; renderUsage() in prospect-model.js', values: 'RB donut is Touch mix (carries vs receptions) — deliberately the same split the profile page shows for an NFL back. WR/TE donut is Target mix (downfield vs screens). Share bars: RB breakaway rate / yards after contact per carry / PFF rushing grade; WR+TE catch rate / contested catch rate / drop rate.', notes: 'Screens are split out because the models carry BOTH a with-screens and a minus-screens career efficiency number, so how much of a receiver\'s target diet was screens is part of reading his grade. The two non-percentage share bars (yards after contact, PFF grade) print their real units — the track position is scaled, the number is not.' },
+          { label: 'Closest Historical Grades', what: 'The six nearest grades from PAST classes on the current variant, each with the NFL outcome the model was fit against.', source: 'renderComps() in prospect-model.js; target field in prospects.json', values: 'The outcome is the average of a player\'s best two of his first three NFL seasons. Colored on the same diverging scale as the bars, so a hit reads orange and a bust reads blue.', notes: 'The CURRENT class is excluded on purpose — it has no outcome yet. The RB workbook writes a literal 0 rather than a blank for the current class, so sync-prospects.py drops target for the current class outright to keep 22 phantom busts out of the comp pool.' },
+          { label: 'Dynasty Market', what: 'The site\'s own market value and rookie-draft ADP for the prospect, plus a model-vs-market line for the current class.', source: 'load_market() in sync-prospects.py joins data/values.json, data/mvs.json and data/adp.json rookie_draft_{sf,1qb} by normalized name', values: '"Model is higher than the room by N spots" compares the model\'s cross-position class rank against the rookie-draft ADP rank.', notes: 'Name matching strips generational suffixes — the workbooks and Sleeper disagree constantly about Jr./III. Older classes drop out of the market once players leave the league, which is expected rather than a join failure.' },
+          { label: 'College Seasons', what: 'Raw PFF college production, untouched by the model — receiving columns for WR/TE, rushing columns for RB.', source: 'Combined Receivers.xlsx / Combined Rushing.xlsx, joined on PFF player_id (WR 346/346, TE 163/163, RB 230/231)', values: 'Final college season is tinted and tagged.', notes: 'The model reads SCHEDULE-, AGE- and COMPETITION-adjusted versions of these, so a raw line here will not match a bar above. That is expected, not a bug.' }
+        ]
+      },
+      {
+        name: 'Source-data gaps to know about',
+        items: [
+          { label: 'Missing metrics are dropped, not blanked', what: 'A metric with no raw value is not drawn at all, and the caption states how many were dropped for that prospect.', source: 'renderPercentiles() in prospect-model.js', values: 'Distinct from an UNRANKED row, which has a raw value but no percentile — that one still renders, without a bubble.', notes: 'Measured 2026-08-11: the WR workbook has height/weight/BMI for all ten prior classes and NONE of the 2026 class; the TE workbook likewise has weight and age for every prior class and none of 2026. sync-prospects.py warns loudly about exactly this on every run.' },
+          { label: 'No QB model', what: 'The page covers WR, RB and TE only. QB prospects do not appear in search or on the board.', source: 'positions + noQbModel in prospects.json', values: 'n/a', notes: 'A scope decision, not a pending gap — stated on the board rather than left to look broken.' },
+          { label: 'Header rows differ per workbook', what: 'The three model sheets carry notes and regression output above the real header, on a different row in each file.', source: 'sync-prospects.config.json header_row: WR 6, RB 4, TE 8', values: 'n/a', notes: 'The sync script refuses to run if a configured header row yields fewer than 8 name-like columns, so a re-export that shifts rows fails loudly instead of writing a file full of floats-as-column-names.' }
+        ]
+      }
+    ]
+  },
+
+  // ════════════════════════════════════════════════════════════════════════
+  'index': {
     title: 'Trade Database',
     blurb: 'Aggregated dynasty trade observations with per-player insights. ' +
            'Master TRADES array is built at page load from data/mvs.json player.recentTrades (deduplicated ' +

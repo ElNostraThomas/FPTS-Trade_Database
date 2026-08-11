@@ -6,6 +6,78 @@ the operator manual see [`WORKFLOW.md`](WORKFLOW.md).
 
 ---
 
+## 2026-08-11 — Prospect Model page (rookie grades from the WR/RB/TE models)
+
+**New 13th page `prospect-model.html`** + new local-only pipeline `sync-prospects.py` ->
+`data/prospects.json` (741 prospects, classes 2015-2026, 1.48 MB) and
+`data/prospect-index.json` (19 KB drawer index). Closes the profile page's known gap:
+`profile.json` is built from NFL stat rows, so incoming rookies had no card at all.
+
+- **Corpus** WR 346 / RB 232 / TE 163, **94 in the 2026 class**. No QB model — a scope
+  decision stated on the page, not a pending gap.
+- `sync-prospects.py` reads three analyst model workbooks plus the two Combined PFF college
+  databases. Requires `python-calamine` (openpyxl is correct but minutes-slow on the 25k-row
+  college sheets). Config `sync-prospects.config.json`, gitignored, `.example` committed.
+- **Header rows differ per workbook** (WR 6, RB 4, TE 8) — each sheet carries notes and
+  regression output above the real header. Configured explicitly, columns then addressed by
+  NAME; the script dies if a header row yields under 8 name-like columns. Column maps
+  reproduce the sheets' own typos (`adjsuted`) deliberately.
+- **All model variants shipped, not just the final one**: WR base / fast-40 dock / final,
+  RB with and without best season, TE pre-combine and SPORQ-bonused, each with a blurb
+  saying what its adjustment does.
+- **Percentiles precomputed over two pools** (`pctAll` / `pctClass`), same mid-rank formula
+  as `sync-profile.py`. `MIN_CLASS_POOL = 5`. Recomputed values are **audited against the
+  sheets' own percentile columns** (tolerance 6 points) — all three positions clean.
+- **`classOrder()`** gives the board and the card one shared cross-position ordering, on
+  fractional standing within each prospect's position pool. Raw grades are not comparable
+  across positions (RB 364 vs WR 214) and rounded percentiles tie at the top.
+- **RB's target column writes a literal 0 for the current class** where WR/TE leave it
+  blank, and a real 0 is a legitimate historical value — so `target` is dropped for the
+  current class outright rather than seeding 22 phantom busts into the comp pools.
+- **`audit_coverage()`** reports current-class source holes on every run: WR height/weight/BMI
+  0/45, TE weight/age 0/27, one RB graded off 2 of 14 inputs. Missing-raw metrics are not
+  drawn and the caption counts them; unranked-but-present metrics still render.
+- College lines joined on PFF `player_id`: WR 346/346, TE 163/163, RB 230/231. College name
+  casing normalized across the three sources (`title_college` + an explicit acronym set).
+- `player-panel.js` gained a "Prospect model ↗" deep-link, revealed only for players in the
+  corpus via a lazy 19 KB index fetch on first drawer open. Nav link + mobile option added to
+  all 13 pages and `templates/page-template.html`.
+- **Visual contract with the profile page, enforced structurally:** the page loads
+  `player-profile.css` and emits the same `pf-*` classes, so the two are one system and
+  restyling the profile page restyles this one. `prospect-model.css` is additions only (the
+  class board, the comp cards, the "Final" tag). Same three-column `pf-grid` layout.
+- **Usage Share donut + share bars** from the final college season, same geometry as the
+  profile page's: RB touch mix (carries vs receptions — the same split the profile page shows
+  for an NFL back), WR/TE target mix (downfield vs screens, since the models carry both a
+  with-screens and a minus-screens efficiency number). Added `screen targets` and
+  `contested_targets` COUNT columns to the college join to build it — the rate columns
+  already present cannot make a donut. Non-percentage share bars (yards after contact, PFF
+  grade) print real units and scale the track position only.
+- Pool toggle sits in the percentile card head as season tabs; **All Classes is the default
+  and first, the prospect's own class is second**.
+- Tokens -> `1801100000`: `prospect-model.js/.css`, `player-profile.css`, `legend-content.js`;
+  `1801000000`: `player-panel.js`, `formulas-content.js`.
+- Docs: Legend `prospectmodel` entry, `FORMULAS.md` "Prospect Model" section, formulas cards
+  55-61, public node S40, README.
+- `check-colors` CLEAN (55). Browser-verified, console clean, both themes. Three defects
+  found and fixed in the browser: empty Athleticism rows for the current class, board/card
+  rank disagreement, inconsistent college-name casing.
+
+**Pre-existing defects found while building this:**
+
+- **FIXED** — the Player Profile legend was dead twice over: its content was authored as a
+  duplicate `title`/`blurb` pair inside the `'index'` object in `legend-content.js` (a
+  duplicate key silently wins in JS, so it was shadowed by the Trade Database text and never
+  rendered), and `player-profile.html` never called `Legend.init()`. Split into a proper
+  `'playerprofile'` key and wired the init.
+- **FIXED** — `FORMULAS.md` still documented the whole-pool volume qualifier that had been
+  replaced by per-metric `RATE_FLOORS`, including stale pool sizes. Rewritten to match code.
+- **OPEN** — `.nav-brand` / `.nav-brand-fp` / `.nav-brand-fo` have no CSS rule anywhere in
+  the repo, so the header brand renders as an unstyled purple underlined link on all 13
+  pages. Not fixed: the correct fix needs the intended brand typography.
+
+---
+
 ## 2026-08-10 — Player Profile page (Savant-style positional percentiles)
 
 **New 12th page `player-profile.html`** + new local-only pipeline `sync-profile.py` ->

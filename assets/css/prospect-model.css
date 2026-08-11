@@ -1,0 +1,84 @@
+/* ════════════════════════════════════════════════════════════════════════
+   prospect-model.css — additions ONLY.
+
+   The prospect page loads player-profile.css and reuses its classes wholesale
+   (pf-grid, pf-card, pf-kpi, pf-group, pf-bar-row, pf-bubble, pf-donut,
+   pf-share-row, pf-table, pf-season-tab). The two pages must read as one
+   system, so anything that exists there is NOT redefined here — restyling the
+   profile page restyles this one automatically.
+
+   What lives here is only what the profile page has no counterpart for:
+     · the class board's rank / name / grade / percentile-chip cells
+     · the historical-comp cards
+     · the "Final" tag on the last college season
+
+   Color follows the same house rules: bright fills carry #111111 text (hard
+   rule #1), muted text uses rgba alpha on `color`, never `opacity` on a parent
+   (hard rule #2), and the percentile chip reuses the profile page's diverging
+   scale tokens rather than introducing a second one.
+   ════════════════════════════════════════════════════════════════════════ */
+
+/* ── class board ──────────────────────────────────────────────────────
+   Rendered with .pf-table so it matches the season table exactly; these rules
+   only add the interaction affordance and the few bespoke cells. */
+.pm-board-row { cursor: pointer; transition: background .15s; }
+.pm-board-row:hover { background: var(--red-bg); }
+.pm-board-row:hover .pm-name { color: var(--red); }
+
+.pf-table td.pm-rank {
+  font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+  color: rgba(128,128,128,1); width: 38px;
+}
+.pf-table td.pm-name { font-weight: 700; transition: color .15s; }
+.pf-table td.pm-grade {
+  font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+  font-size: 14px;
+}
+
+/* Percentile chip — a bright fill, so #111111 ink per hard rule #1. The
+   background color is set inline from the same pctColor() the bars use. */
+.pm-pct-chip {
+  display: inline-block; padding: 2px 8px; border-radius: 10px;
+  font-family: 'Mulish', sans-serif; font-weight: 900; font-size: 10px;
+  font-variant-numeric: tabular-nums; color: #111111;
+}
+
+/* ── historical comps ─────────────────────────────────────────────────
+   A responsive card row rather than a table: each comp carries two numbers
+   (grade + NFL outcome) and a two-line identity, which reads badly as table
+   cells at this width. */
+.pm-comp-grid {
+  display: grid; gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+}
+.pm-comp-card {
+  background: var(--surface2); border: 1px solid var(--border);
+  padding: 10px 12px; cursor: pointer; transition: border-color .15s;
+}
+.pm-comp-card:hover { border-color: var(--red); }
+.pm-comp-card:hover .pm-comp-name { color: var(--red); }
+.pm-comp-name {
+  color: var(--white); font-size: 13px; font-weight: 700;
+  transition: color .15s; line-height: 1.2;
+}
+.pm-comp-meta {
+  color: rgba(128,128,128,1); font-size: 10px; margin: 2px 0 8px;
+}
+.pm-comp-nums {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+  border-top: 1px solid var(--border); padding-top: 7px;
+}
+.pm-comp-val {
+  font-family: 'Kanit', sans-serif; font-weight: 800; font-style: italic;
+  font-size: 17px; color: var(--white); font-variant-numeric: tabular-nums;
+}
+
+/* ── final-season tag in the college table ────────────────────────────── */
+.pm-final-tag {
+  font-size: 8px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .06em; color: var(--red);
+}
+
+@media (max-width: 768px) {
+  .pm-comp-grid { grid-template-columns: 1fr 1fr; }
+}

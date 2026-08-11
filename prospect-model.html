@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
-<title>Fantasy Points Front Office — Player Profile</title>
+<title>Fantasy Points Front Office — Prospect Model</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Kanit:ital,wght@0,400;0,700;1,800&family=Mulish:wght@400;700;900&display=swap" rel="stylesheet">
 
@@ -16,26 +16,28 @@
 
 <link rel="stylesheet" href="assets/css/mvs-extras.css?v=1782600000">
 <link rel="stylesheet" href="assets/css/heatmap.css?v=1782600000">
-<link rel="stylesheet" href="assets/css/legend.css?v=1796300000">
-<link rel="stylesheet" href="assets/css/player-panel.css?v=1800600000">
-<link rel="stylesheet" href="assets/css/trend-chart.css?v=1800500000">
+<link rel="stylesheet" href="assets/css/legend.css?v=1801000000">
+<link rel="stylesheet" href="assets/css/player-panel.css?v=1801000000">
+<!-- The prospect page is deliberately built ON the profile page's stylesheet
+     rather than beside it: the two pages must read as one system, so the grid,
+     cards, percentile bars, donut, share bars and season table all come from
+     player-profile.css. prospect-model.css only adds what has no counterpart
+     there (the class board and the comp list). -->
 <link rel="stylesheet" href="assets/css/player-profile.css?v=1801100000">
+<link rel="stylesheet" href="assets/css/prospect-model.css?v=1801100000">
 
 <script>
-  window.FPTS_CURRENT_PAGE = 'playerprofile';
+  window.FPTS_CURRENT_PAGE = 'prospectmodel';
 </script>
 
 <script src="assets/js/mvs-extras.js?v=1778642255"></script>
-<script src="assets/js/player-articles.js?v=1778680034"></script>
 <script src="assets/js/heatmap.js?v=1778670000"></script>
 <script src="assets/js/legend-content.js?v=1801100000"></script>
 <script src="assets/js/legend.js?v=1778949514"></script>
 <script src="assets/js/team-helpers.js?v=1778680002"></script>
-<script src="assets/js/trend-chart.js?v=1800500000"></script>
-<script src="assets/js/player-panel.js?v=1801000000" defer></script>
 <script src="assets/js/data-bootstrap.js?v=1796100000"></script>
 <script src="assets/js/sleeper-helpers.js?v=1799300000"></script>
-<script src="assets/js/player-profile.js?v=1800900000" defer></script>
+<script src="assets/js/prospect-model.js?v=1801100000" defer></script>
 </head>
 
 <body>
@@ -50,8 +52,8 @@
   <nav class="nav-links">
     <a class="nav-link" href="index.html">Database</a>
     <a class="nav-link" href="compare.html">Compare</a>
-    <a class="nav-link active" href="player-profile.html">Profile</a>
-    <a class="nav-link" href="prospect-model.html">Prospects</a>
+    <a class="nav-link" href="player-profile.html">Profile</a>
+    <a class="nav-link active" href="prospect-model.html">Prospects</a>
     <a class="nav-link" href="my-leagues.html">My Leagues</a>
     <a class="nav-link" href="trade-calculator.html">Roster Moves</a>
     <a class="nav-link" href="live-draft.html">Live Draft</a>
@@ -67,8 +69,8 @@
       <option value="">— Pages —</option>
       <option value="index.html">Database</option>
       <option value="compare.html">Compare</option>
-      <option value="player-profile.html" selected>Profile</option>
-      <option value="prospect-model.html">Prospects</option>
+      <option value="player-profile.html">Profile</option>
+      <option value="prospect-model.html" selected>Prospects</option>
       <option value="my-leagues.html">My Leagues</option>
       <option value="trade-calculator.html">Roster Moves</option>
       <option value="live-draft.html">Live Draft</option>
@@ -94,64 +96,84 @@
 
   <div class="page-header">
     <div>
-      <div class="page-title">Player <span>Profile</span></div>
-      <div class="page-subtitle">Percentile rankings against positional peers — how a player's production, volume and efficiency stack up.</div>
+      <div class="page-title">Prospect <span>Model</span></div>
+      <div class="page-subtitle">Percentile rankings against positional peers — how a prospect's college production, efficiency and athleticism stack up.</div>
     </div>
     <div class="pf-search-wrap">
-      <input id="pf-search" class="pf-search" type="text" autocomplete="off" spellcheck="false"
-             placeholder="Search a player…" oninput="PlayerProfile.onSearch(this.value)"
-             onfocus="PlayerProfile.onSearch(this.value)">
-      <div id="pf-search-results" class="pf-search-results" hidden></div>
+      <input id="pm-search" class="pf-search" type="text" autocomplete="off" spellcheck="false"
+             placeholder="Search a prospect…" oninput="ProspectModel.onSearch(this.value)"
+             onfocus="ProspectModel.onSearch(this.value)">
+      <div id="pm-search-results" class="pf-search-results" hidden></div>
     </div>
   </div>
 
-  <div id="pf-empty" class="pf-empty">
-    <p>Search a player above to load their profile.</p>
+  <!-- ══ BOARD VIEW (landing) ═══════════════════════════════════════════ -->
+  <div id="pm-board-view">
+
+    <section class="pf-card">
+      <div class="pf-card-head">
+        <h2 class="pf-card-title">Class <span>Board</span></h2>
+        <div class="pf-season-tabs" id="pm-board-class"></div>
+      </div>
+      <div id="pm-board-pos" class="pf-season-tabs" style="margin:0 0 14px"></div>
+      <div id="pm-board-body"></div>
+    </section>
+
+    <section class="pf-card">
+      <div id="pm-scope" class="pf-qual-note"></div>
+    </section>
+
   </div>
 
-  <div id="pf-content" hidden>
+  <!-- ══ PROSPECT CARD — mirrors player-profile.html's three-column grid ══ -->
+  <div id="pm-card-view" hidden>
+
+    <div class="pf-season-tabs" style="margin:0 0 14px;justify-content:flex-start">
+      <button class="pf-season-tab" onclick="ProspectModel.backToBoard()">← Back to board</button>
+    </div>
 
     <div class="pf-grid">
-      <!-- ── IDENTITY + CAREER ─────────────────────────────────────── -->
+
+      <!-- ── IDENTITY + GRADE + MARKET ──────────────────────────────── -->
       <section class="pf-card pf-card-identity">
-        <div id="pf-identity"></div>
-        <div id="pf-career"></div>
-        <div id="pf-market"></div>
-        <div id="pf-redraft"></div>
+        <div id="pm-identity"></div>
+        <div id="pm-hero"></div>
+        <div id="pm-market"></div>
       </section>
 
-      <!-- ── PERCENTILE RANKINGS (the hero) ────────────────────────── -->
+      <!-- ── PERCENTILE RANKINGS (the hero) ─────────────────────────── -->
       <section class="pf-card pf-card-pct">
         <div class="pf-card-head">
-          <h2 class="pf-card-title"><span id="pf-pct-season">—</span> Positional Percentile Rankings</h2>
-          <div class="pf-season-tabs" id="pf-season-tabs"></div>
+          <h2 class="pf-card-title"><span id="pm-pct-variant">—</span> Positional Percentile Rankings</h2>
+          <div class="pf-season-tabs" id="pm-pool-toggle"></div>
         </div>
-        <div id="pf-pct-body"></div>
+        <div id="pm-pct-body"></div>
       </section>
 
-      <!-- ── USAGE SHARE + WEEKLY ──────────────────────────────────── -->
+      <!-- ── USAGE SHARE + WHAT DRIVES THE GRADE ────────────────────── -->
       <section class="pf-card pf-card-usage">
         <div class="pf-card-head">
           <h2 class="pf-card-title">Usage Share</h2>
         </div>
-        <div id="pf-usage"></div>
-        <div id="pf-consistency"></div>
+        <div id="pm-usage"></div>
+        <div id="pm-splits"></div>
       </section>
     </div>
 
     <section class="pf-card pf-card-weekly">
       <div class="pf-card-head">
-        <h2 class="pf-card-title">Weekly Fantasy Points — <span id="pf-weekly-season">—</span></h2>
+        <h2 class="pf-card-title">Closest Historical Grades — <span id="pm-comps-variant">—</span></h2>
+        <div class="pf-note">Past classes only. The current class has not played a down.</div>
       </div>
-      <div id="pf-weekly"></div>
+      <div id="pm-comps"></div>
     </section>
 
     <section class="pf-card">
       <div class="pf-card-head">
-        <h2 class="pf-card-title">Season Statistics</h2>
-        <div class="pf-note">Cells tinted by percentile within position. Regular season only.</div>
+        <h2 class="pf-card-title">College Seasons</h2>
+        <div class="pf-note">Raw PFF college production, exactly as the model reads it.</div>
       </div>
-      <div class="pf-table-scroll"><div id="pf-table"></div></div>
+      <div class="pf-table-scroll"><div id="pm-college"></div></div>
     </section>
 
   </div>
@@ -159,7 +181,6 @@
 </main>
 
 <div id="pp-mvs-extras"></div>
-<div id="pp-articles-mount"></div>
 <div id="pp-league-context"></div>
 
 <script>
@@ -178,13 +199,11 @@
   document.addEventListener('fpts:data-ready', function () {
     const overlay = document.getElementById('_fp-loading');
     if (overlay) overlay.style.display = 'none';
-    if (window.PlayerProfile) window.PlayerProfile.init();
+    if (window.ProspectModel) window.ProspectModel.init();
   });
 
-  // Was missing entirely — the page shipped with legend content authored but
-  // never initialized, so the drawer had nothing to open. Fixed 2026-08-11.
   document.addEventListener('DOMContentLoaded', function () {
-    if (window.Legend) Legend.init('playerprofile');
+    if (window.Legend) Legend.init('prospectmodel');
   });
 </script>
 

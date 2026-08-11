@@ -1,0 +1,13 @@
+{
+  "_comment_1": "Copy this file to sync-prospects.config.json and point the paths at your model workbooks.",
+  "_comment_2": "On Windows escape backslashes (\\\\) or use forward slashes.",
+  "_comment_3": "The three model workbooks are the SOURCE OF TRUTH for grades. The two Combined workbooks are the raw PFF college databases used only for the per-season stat table; set either to null to ship the page without college stat lines for that position group.",
+  "_comment_4": "header_row is 1-indexed and DIFFERS PER WORKBOOK — these sheets carry notes and regression output above the real header. WR=6, RB=4, TE=8. Verify after any re-export; a wrong value fails loudly rather than writing garbage.",
+
+  "wr_model":  { "path": "C:/Users/deons/Downloads/WR Model.xlsx", "sheet": "Player Model", "header_row": 6 },
+  "rb_model":  { "path": "C:/Users/deons/Downloads/RB Model.xlsx", "sheet": "Player Model", "header_row": 4 },
+  "te_model":  { "path": "C:/Users/deons/Downloads/TE Model.xlsx", "sheet": "Player Model", "header_row": 8 },
+
+  "receiving_college": { "path": "C:/Users/deons/Downloads/Combined Receivers.xlsx", "sheet": "Seasonal", "header_row": 1 },
+  "rushing_college":   { "path": "C:/Users/deons/Downloads/Combined Rushing.xlsx",   "sheet": "seasonal", "header_row": 4 }
+}

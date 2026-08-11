@@ -111,6 +111,10 @@
         <!-- Deep-link to the full Savant-style profile page. href is set per
              player in openPanelContent; hidden until then. -->
         <a class="pp-full-profile" id="pp-full-profile" href="player-profile.html" hidden>Full profile ↗</a>
+        <!-- Deep-link to the prospect model. Only shown for players who
+             actually HAVE a prospect card (WR/RB/TE in the model corpus);
+             see _prospectIndex below. -->
+        <a class="pp-full-profile" id="pp-prospect-link" href="prospect-model.html" hidden>Prospect model ↗</a>
         <!-- ARTICLES SECTION (built by mountPlayerArticles in JS, lives in profile row's empty space) -->
         <div id="pp-articles-mount" style="margin-top:10px"></div>
       </div>
@@ -500,6 +504,11 @@
 
   function openPanelContent(playerName) {
     _ensureMounted();
+    // Hide the prospect link up front: it is revealed asynchronously, so
+    // leaving the previous player's link visible would mislabel this drawer for
+    // as long as the index fetch takes.
+    const _plink = document.getElementById('pp-prospect-link');
+    if (_plink) _plink.hidden = true;
     const TRADES = _trades();
     const FP_VALUES = _fp();
     const SLEEPER_IDS = _sleeper();
@@ -682,8 +691,55 @@
       fpLink.href = 'player-profile.html?player=' + encodeURIComponent(playerName);
       fpLink.hidden = false;
     }
+    // "Prospect model ↗". Async — the index is fetched lazily — so it MUST
+    // re-check the player before revealing itself, or a fast switch between two
+    // players can leave the previous player's link on the new drawer.
+    _prospectIndex().then(function (idx) {
+      const link = document.getElementById('pp-prospect-link');
+      if (!link) return;
+      if (!currentPanelPlayer || currentPanelPlayer.label !== playerName) return;
+      const key = idx && idx[_prospectKey(playerName)];
+      if (!key) { link.hidden = true; return; }
+      link.href = 'prospect-model.html?player=' + encodeURIComponent(playerName);
+      link.hidden = false;
+    });
     // Restore the user's last-used tab so switching players keeps view.
     ppShowTab(ppLastTab || 'trades');
+  }
+
+  // ────────────────────────────────────────────────────────────────────────
+  // _prospectIndex — lazy, once-per-page fetch of data/prospect-index.json.
+  //
+  // The drawer is mounted on every page, so it cannot pull the full 1.5 MB
+  // prospects.json just to decide whether to show one link. The index is ~19 KB
+  // and is fetched the FIRST time a drawer opens, never on page load. A failed
+  // fetch resolves to null (link simply stays hidden) rather than rejecting —
+  // a missing prospect model must never break the drawer.
+  //
+  // The key must match sync-prospects.py's norm_name(): lowercased alphanumerics
+  // with generational suffixes stripped, because the model workbooks and Sleeper
+  // disagree constantly about "Jr."/"III".
+  // ────────────────────────────────────────────────────────────────────────
+  let _prospectIndexPromise = null;
+
+  function _prospectKey(name) {
+    return String(name || '').toLowerCase()
+      .replace(/\b(jr|sr|ii|iii|iv|v)\b/g, '')
+      .replace(/[^a-z0-9]/g, '');
+  }
+
+  function _prospectIndex() {
+    if (_prospectIndexPromise) return _prospectIndexPromise;
+    // Already on the prospect page — reuse the payload it has loaded.
+    if (global.PROSPECTS_PAYLOAD && global.PROSPECTS_PAYLOAD.players) {
+      _prospectIndexPromise = Promise.resolve(global.PROSPECTS_PAYLOAD.players);
+      return _prospectIndexPromise;
+    }
+    _prospectIndexPromise = fetch('data/prospect-index.json?v=1801000000')
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (j) { return j && j.players ? j.players : null; })
+      .catch(function () { return null; });
+    return _prospectIndexPromise;
   }
 
   // ────────────────────────────────────────────────────────────────────────

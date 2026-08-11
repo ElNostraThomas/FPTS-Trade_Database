@@ -45,6 +45,7 @@ window.FormulasContent = {
   // entrySessions below); the rest render as description-only update nodes so
   // the timeline is a complete record of what shipped.
   sessions: [
+    { id: 's40', public: true,        date: '2026-08-11', dateLabel: 'Aug 11, 2026', tag: 'S40',  title: 'Prospect Model — rookie grades', blurb: 'A new Prospect Model page grades incoming rookies and ranks them against every prospect at their position, the way the Player Profile page ranks an NFL season. It covers 741 prospects across the 2015-2026 draft classes — 94 of them in this year\'s class — at wide receiver, running back and tight end. Each prospect gets a model grade, percentile bars over his college production, efficiency, athleticism and context, and you can flip every bar between "ranked against every class" (a grade means the same thing every year) and "ranked against his own class" (who is the best available this year). Because each position\'s model ships more than one version, the card shows all of them and says what each adjustment does — so you can see exactly what a slow forty or a weak strength of schedule cost a player. Two things make a grade legible rather than just a number: a Closest Historical Grades list showing the prospects who graded in the same place and what they actually became in the NFL, and a production-vs-draft-capital split showing whether a grade is carried by the college tape or by where the NFL took him. For this year\'s class it also reports the gap between the model and rookie-draft ADP — where the model is higher than the room, and where it is lower. Rookies previously had no profile page at all, since that page is built from NFL stats they do not have yet; this fills that hole. There is no quarterback model, so the page covers the three positions it has.' },
     { id: 's39', public: true,        date: '2026-08-10', dateLabel: 'Aug 10, 2026', tag: 'S39',  title: 'Player Profile — percentile rankings', blurb: 'A new Player Profile page ranks any player against his positional peers on a 0-100 scale, the way Baseball Savant does for hitters. Each metric gets a bar: blue means poor, grey is average, orange is great, and the bubble carries the percentile while the raw number sits alongside it. Metrics are grouped by phase of the game — a QB gets passing AND rushing, and every RB, WR and TE gets receiving AND rushing — covering Opportunity, and cover things a box score hides — target share, team receiving-yard and TD share, explosive-run rate, inside-5 goal-line share, weighted opportunity, ANY/A and FP per dropback. Pick any season from 2021-2025, see a usage-share breakdown, a week-by-week fantasy-points line, and a career table with the standout seasons tinted. Percentiles are computed only over players who cleared a workload floor, so a two-target afternoon can’t masquerade as a 100th-percentile catch rate — every bubble is labelled as an ordinal (96th) and a caption spells out the comparison set. Players are ranked against EVERYONE who scored at their position that season, so the number answers “where does he stand among real NFL production.” Rate stats like catch % and yards per carry need a minimum sample before they get a bubble — otherwise two catches on two targets would outrank a 180-target receiver — so those rows show the raw number instead. Reachable from the top nav or the “Full profile” link on any player card.' },
     { id: 's38', public: true,        date: '2026-06-29', dateLabel: 'Jun 29, 2026', tag: 'S38',  title: 'Trade suggestions vary the anchor', blurb: 'The handful of trade offers the Trade Finder (and the calculator\'s Trade Builder) shows now each lead with a different headline player where possible — instead of the same stud three times with a swapped 3rd or 4th piece. It only repeats an anchor when there genuinely aren\'t enough distinct options to fill the list, so you see a real spread of ideas at a glance.' },
     { id: 's37', public: true,        date: '2026-06-29', dateLabel: 'Jun 29, 2026', tag: 'S37',  title: 'My Leagues Waivers tab consolidated', blurb: 'Removed the standalone "Waivers" tab from the My Leagues sidebar — its pieces were already covered elsewhere, so it was redundant. Each league\'s own Waivers → Best Available sub-tab still shows that league\'s top free agents, and the full cross-league Waiver Wire (search any player\'s availability across your leagues + the 7-day trending board) lives on the Roster Moves page. One less duplicate surface to keep in sync.' },
@@ -108,6 +109,7 @@ window.FormulasContent = {
     'mock-draft': 's13',
     'trade-finder': 's21',
     'player-valuation': 's29',
+    'prospect-model': 's40',
   },
   entrySessions: {
     // Changed in a later update than their domain — surface under the newest.
@@ -2454,6 +2456,136 @@ selected = weightedRandomSample(top8, probs);`,
           whyThisNumber: '5 archetypes (not all 9 from the spec): MVP scope. Diversifier + Concentrator need multi-draft exposure history we don\'t have; Rookie Upside / Win-Now / Stack are nuances the 5 already span. Hand-tuned weights (not ML-learned): spec\'s ML companion requires a backend pipeline; deferred. Monte Carlo replaced by PICK_AVAILABILITY matrix: matrix is empirically derived from real drafts — encodes the simulation\'s answer without re-running it. Softmax temperature 0.5: moderate stochasticity (lower = more deterministic, higher = more noise) — felt right in informal testing. Reach penalty: QUADRATIC reach^1.5 × 0.05 as of 2026-05-20 second tweak (was linear 0.05/pick). Small reaches still gentle (5 picks beyond → -0.56) but big reaches are punitive (20 → -4.50). Fixed a Drake Maye 1.02 reach where the linear penalty was overwhelmed by his high SF trade value. Anti-clumping at -0.3: discourages 3-of-4 same-position runs without preventing them when scarcity overrides. Jitter ±0.075: same-personality seats diverge but personality still dominates. My Guys favorites = 8 random from top 80 FP_VALUES, +1.5 bonus: large enough to produce visible reaches without making every player a "favorite." ADP weights bumped +0.10 across all 5 archetypes in 2026-05-20 tweak after user testing showed seats reaching too far past consensus. Scoring-aware ADP shift added same tweak: ADP_PAYLOAD only carries SF + 1QB branches, so TEP / 6pt TD / Half PPR shift ADP at universe-build time per FP_VALUES.tier bucket (TEP example: Brock Bowers tier-1 TE shifts from raw ADP ~24 to ~6, landing him in round 1 as expected community consensus). All weights still considered FIRST-PASS CALIBRATION — analyst input requested via the README "Analyst feedback loop" punch list under "Mock-draft personality weights" after the user runs 10+ more mocks.',
           notes: 'PICK_AVAILABILITY matrix is currently 12-team-only; 8 / 10 / 14-team modes fall back to pure ADP-window scoring (matrix augmentation is a refinement, not load-bearing). Manager Clone (the spec\'s 10th archetype) deferred — would require real Sleeper draft history per user (same blocker as 1QB SEED_USERS). Engine console-accessible: MockDraft._aiPick(personalityKey, currentPick, picks) + MockDraft._buildUniverse() + MockDraft._assignOpponents() for tuning. Spec source files in C:\\Users\\deons\\Downloads\\ — both Full (LLM Handoff) and ML (Agent Architecture) referenced; Full is primary for client-side execution.',
           related: ['compare-similarity', 'pick-availability-matrix']
+        }
+      ]
+    },
+
+    // ── PROSPECT MODEL (rookie grades) ────────────────────────────────────
+    {
+      id: 'prospect-model',
+      name: 'Prospect Model',
+      entries: [
+        {
+          id: 'pm-percentile',
+          label: '55. Prospect percentile — two pools',
+          location: 'sync-prospects.py: percentile_rank / build_pool / apply_percentiles → prospects.json pctAll + pctClass',
+          provenance: { kind: 'derived', detail: 'Same mid-rank definition as sync-profile.py, deliberately — a bar must mean the same thing on the Player Profile and Prospect Model pages. Only the pool differs.' },
+          inputs: 'Every prospect record at one position; metric values from the WR/RB/TE model workbooks.',
+          math: `pct = round(100 * (countBelow + countEqual / 2) / n)
+if metric.invert: pct = 100 - pct
+
+# Computed over BOTH pools, shipped precomputed:
+#   pctAll   -> every prospect at this position, ALL classes
+#   pctClass -> only his own draft class at this position
+MIN_CLASS_POOL = 5   # below this, no within-class percentiles at all`,
+          output: 'pctAll / pctClass maps, 0-100 per metric and per model variant.',
+          whyThisNumber: 'MIN_CLASS_POOL = 5 because below that a percentile is just the rank restated and a bar implying a distribution would be a lie. No class in the current corpus is that small (smallest: TE 2016 at 7), so the fallback path is defensive. invert is set for exactly three things — the 40 time and each position\'s age column — because a younger, faster prospect is a better prospect at the same production; those rows carry a down arrow on the card. TUNABLE at the top of sync-prospects.py.',
+          notes: 'The workbooks carry their OWN percentile column next to most variants. It is NOT used as the bar value — everything is recomputed so the grade and its ~20 inputs share one definition over one pool. The sheet column is instead an AUDIT: drift over PCT_AUDIT_TOL (6 points) is reported, because it means the pool this script built is not the pool the sheet was ranked over. All three positions currently audit clean.',
+          related: ['pm-cross-position', 'pm-variants']
+        },
+        {
+          id: 'pm-variants',
+          label: '56. Model variants (what each adjustment does)',
+          location: 'sync-prospects.py: MODELS → prospects.json models[pos]; setVariant() in prospect-model.js',
+          provenance: { kind: 'external', detail: 'The grades themselves are produced by the analyst\'s WR/RB/TE model workbooks; this site reads them, it does not fit them. The variant list mirrors the columns each sheet ships.' },
+          inputs: 'One column per variant in each Player Model sheet.',
+          math: `WR  base    Model Output ............ no athletic / competition adjustment
+    fast40  + sub-4.33 forty docks draft capital 40%
+    final   + 20% penalty for non-Power OR sub-.55 final SOS
+              taken inside the first two rounds        <- DEFAULT
+              (the cell above this column reads "Final Model")
+
+RB  full    Model Result                               <- DEFAULT
+    noBest  Result without best season (leave-one-out check)
+
+TE  sporq   Pre-combine + 20% for 90+ SPORQ, 5% penalty below  <- DEFAULT
+    preCombine  production + efficiency + draft capital only`,
+          output: 'models{} per prospect; the card shows all variants and defaults to the sheet\'s own final column.',
+          example: 'Carnell Tate (WR, 2026) reads 214 on all three variants — he is Power-conference and ran 4.53, so neither adjustment applies. Max Klare (TE, 2026) reads 102 on both — he has no SPORQ score, so the bonus variant falls back to pre-combine. 8 of the 27 TEs in the 2026 class are in that position.',
+          whyThisNumber: 'All variants are shown rather than just the final one because the whole point is seeing what an adjustment COST a given prospect. Identical numbers across variants is information, not a bug.',
+          notes: 'ANALYST INPUT REQUESTED: the 0.6 forty multiplier, the 0.8 competition multiplier, the 4.33 / .55 SOS thresholds and the 20%/5% SPORQ bonus all live in the WORKBOOKS, not in this repo. Changing them is a workbook edit followed by a re-run of sync-prospects.py — no code change here.',
+          related: ['pm-percentile', 'pm-splits']
+        },
+        {
+          id: 'pm-cross-position',
+          label: '57. Cross-position class ordering (classOrder)',
+          location: 'prospect-model.js: classOrder() — used by BOTH the class board and the card\'s "Nth in the class" line',
+          provenance: { kind: 'derived', detail: 'Needed because the three position models are fit separately and their raw scales are unrelated.' },
+          inputs: 'Every prospect in a class, each position\'s default variant.',
+          math: `# Raw grades are NOT comparable across positions:
+#   class-leading RB grade = 364,  class-leading WR grade = 214
+# and the stored percentile is a rounded integer, so the top of a class
+# is a pile of ties (Jeremiyah Love and Carnell Tate are both "99th").
+#
+# So order on fractional standing INSIDE the prospect's own position pool:
+score = 1 - (rankWithinPosition - 1) / positionPoolSize`,
+          output: 'A single ordered list per class, consumed by two surfaces.',
+          whyThisNumber: 'Position-normalized AND fine-grained enough that ties are real ties. Both callers go through one helper so the two surfaces cannot disagree — in the first cut they did, with the board saying 2nd and the card saying 1st for the same player.',
+          notes: 'The board filters by position AFTER ranking, so a WR-only board numbers 1..n within WRs. Deliberate.',
+          related: ['pm-percentile', 'pm-market']
+        },
+        {
+          id: 'pm-splits',
+          label: '58. What Drives The Grade (production vs draft capital)',
+          location: 'sync-prospects.py: SPLITS → prospects.json splits[pos]; renderSplits() in prospect-model.js',
+          provenance: { kind: 'external', detail: 'Read straight from the sheets\' own production-only and draft-capital percentile columns.' },
+          inputs: 'WR: Production Only, Production Only Percentile, Draft Capital Percentile. RB: DC Percentile. TE: Draft Capital Percentile.',
+          math: `# The workbooks store these as 0-1 fractions; normalized to 0-100 here
+# so everything on the page is on one scale.
+splits[k] = round(rawFraction * 100, 1)   for keys ending in "Pct"`,
+          output: 'Two bars on the card, on the same diverging scale as the percentile bars.',
+          example: 'Carnell Tate: production 64th, draft capital 99th — the NFL is higher on him than his college production alone is. The reverse pattern (production well ahead of draft capital) is the market underrating the tape.',
+          whyThisNumber: 'The composite grade hides which input is carrying it, and a prospect 90th in production / 20th in draft capital is a completely different bet from the reverse. This is the single most useful diagnostic on the card.',
+          related: ['pm-variants', 'pm-comps']
+        },
+        {
+          id: 'pm-comps',
+          label: '59. Closest historical grades (and the target-column trap)',
+          location: 'prospect-model.js: renderComps() / outcomePct(); TARGET_COL in sync-prospects.py',
+          provenance: { kind: 'derived', detail: 'Nearest-grade neighbours on the current variant, drawn from past classes only.' },
+          inputs: 'target = the NFL outcome the model was fit against (average of a player\'s best two of his first three seasons).',
+          math: `comps = the COMP_COUNT (6) prospects at the same position, in a PAST
+        class, with the smallest |theirGrade - hisGrade| on this variant
+
+# The current class is excluded, and its target cell LIES:
+#   WR / TE  leave the cell BLANK for the current class (45 and 27 blanks)
+#   RB       writes a literal 0 for all 22
+# A real 0 is ALSO a legitimate historical value -- 31 WRs, 19 RBs and
+# 13 TEs in past classes genuinely never produced -- so the zero cannot
+# be told apart by value, only by class.
+if prospect.draftYear == currentClass: drop target entirely`,
+          output: 'Six comps with their grade and NFL outcome, colored on the diverging scale, plus the average outcome.',
+          example: 'Carnell Tate\'s nearest grades are DeVonta Smith (241), Ja\'Marr Chase (284), Jaylen Waddle (253), Malik Nabers (165), Tetairoa McMillan (211) and Rome Odunze (146) — averaging 217.',
+          whyThisNumber: 'COMP_COUNT = 6 is enough to show a range without turning the card into a table. Carrying RB\'s 0 placeholder through would have dropped 22 phantom busts into every comp pool and dragged the RB outcome curve down. TUNABLE at the top of prospect-model.js.',
+          related: ['pm-splits', 'pm-source-gaps']
+        },
+        {
+          id: 'pm-market',
+          label: '60. Model vs rookie-draft ADP',
+          location: 'prospect-model.js: renderMarket() / rankAmongClass() / adpRankAmongClass(); load_market() in sync-prospects.py',
+          provenance: { kind: 'derived', detail: 'Compares the model\'s cross-position class rank against the market\'s own rookie-draft ordering.' },
+          inputs: 'classOrder() rank; ADP_PAYLOAD rookie_draft_sf via prospects.json market.rookieAdpSf.',
+          math: `delta = adpRankInClass - modelRankInClass
+# positive -> the model likes him MORE than the room
+# negative -> the room likes him more than the model`,
+          output: 'A one-line read on the card, current class only.',
+          example: 'Max Klare (TE, 2026): model has him 10th in the class, rookie ADP has him 25th — "model is higher than the room by 15 spots."',
+          whyThisNumber: 'Shown for the CURRENT class only. Once a class has played, the comparison is archaeology rather than a draft edge.',
+          notes: 'Name matching strips generational suffixes (Jr./Sr./II/III/IV) because the workbooks and Sleeper disagree constantly. Older classes drop out of the market as players leave the league — expected, not a join failure.',
+          related: ['pm-cross-position']
+        },
+        {
+          id: 'pm-source-gaps',
+          label: '61. Missing metrics vs unranked metrics',
+          location: 'sync-prospects.py: audit_coverage(); renderPercentiles() in prospect-model.js',
+          provenance: { kind: 'derived', detail: 'A rendering rule forced by real holes in the current class of the source workbooks.' },
+          inputs: 'metrics{} per prospect; pctAll / pctClass.',
+          math: `raw == null            -> row is NOT DRAWN, and the caption counts it
+raw != null, pct null  -> row IS drawn, value shown, no bubble (unranked)`,
+          output: 'A card that is short some bars, with a caption saying how many and why.',
+          whyThisNumber: 'Measured 2026-08-11: the WR workbook has height/weight/BMI for all ten prior classes and NONE of the 2026 class; the TE workbook likewise has weight and age for every prior class and none of 2026. Keeping those rows turned a current WR\'s Athleticism card into a wall of dashes, which reads as broken rather than as absent.',
+          notes: 'These are SOURCE-DATA conditions, not script errors — sync-prospects.py warns loudly about each one on every run, and one 2026 RB (Kaelon Black) is graded off just 2 of 14 input metrics. Filling them in is a workbook edit; a re-run picks them up with no code change.',
+          related: ['pm-percentile', 'pm-comps']
         }
       ]
     }

@@ -2158,19 +2158,42 @@ if metric.invert: pct = 100 - pct
 Ties share a position rather than being ordered arbitrarily. `invert` is set for metrics
 where lower is better (`INT %`, `Sack %`, `Fumbles`), so a longer bar always means better.
 
-### Qualifiers
+### Pool basis and rate floors
 
-| Pos | Min games | Min volume |
-| --- | --- | --- |
-| QB | 6 | 150 dropbacks |
-| RB | 6 | 60 touches |
-| WR | 6 | 30 targets |
-| TE | 6 | 25 targets |
+> **Corrected 2026-08-11.** This section previously documented a whole-pool volume gate
+> (6 games plus 150 dropbacks / 60 touches / 30 targets / 25 targets) and the pool sizes it
+> produced (QB 40 / RB 67 / WR 110 / TE 54). That gate was **removed** when the pool was
+> re-based, and this page had not been updated. The rules below are what `sync-profile.py`
+> actually does.
 
-**Why:** without a floor, one 2-target afternoon yields a 100% catch rate and poisons every
-other player's percentile. Mirrors Savant's "min PA" gate. Players below the floor keep
-their raw values and render an explanatory note instead of bars. 2025 pool sizes:
-QB 40 / RB 67 / WR 110 / TE 54 — all *tunable at the top of `sync-profile.py`*.
+**Pool = everyone who scored** at that position that season. 2025 pool sizes:
+**QB 77 / RB 136 / WR 223 / TE 125**.
+
+The old volume gate was dropped because it gated on VOLUME while the page reads as a
+fantasy tool, and the two disagreed at the edges: it admitted Dont'e Thornton (23.5 pts)
+while excluding Isaac TeSlaa (75.9), and Tyrod Taylor (65.4) while excluding Kyler Murray
+(81.8). Every position had players inside the pool who scored less than players outside it,
+so "98th percentile" did not mean "ahead of 98% of fantasy-relevant players."
+
+**Rate stats instead carry a PER-METRIC denominator floor** (`RATE_FLOORS`, top of
+`sync-profile.py`), set per position to the workload that makes a rate meaningful for that
+role. The pool itself stays ungated — counting, per-game and share metrics are
+self-limiting, but a rate stat is not: two catches on two targets is a 100% catch rate.
+Measured on the ungated 2025 pool, 26 WRs under 10 targets ranked above Ja'Marr Chase in
+catch rate.
+
+| Metric | QB | RB | WR | TE |
+| --- | --- | --- | --- | --- |
+| Catch % / Yards per target | — | 10 tgt | 50 tgt | 25 tgt |
+| Yards per reception | — | — | 5 rec | 5 rec |
+| YPC + explosive buckets | 20 att | 20 att | 5 att | 5 att |
+| Completion %, Y/A, ANY/A, rating, TD %, INT % | 50 att | — | — | — |
+| FP/dropback, Sack % | 50 db | — | — | — |
+
+A player short of a floor is dropped from **that one metric's** ranking (both from the
+distribution and from receiving a percentile on it) and keeps every other bar, still showing
+the raw value with no bubble. Catch % ends up ranked for 167 of 223 WRs while Targets/G
+stays ranked for all 223. All floors are *tunable at the top of `sync-profile.py`*.
 
 ### Bar color (diverging)
 
@@ -2285,3 +2308,233 @@ sharing a 141-deep tie at zero, and the renderer hides a group whose every metri
 null, rather than printing a wall of dashes. 82 WRs and 22 TEs show a Rushing block.
 
 New rate floors: `ypcRush` needs 20 carries (QB) or 5 (WR/TE); RB keeps `ypc` at 20.
+
+---
+
+## Prospect Model — rookie grades and prospect percentiles
+
+Source: `sync-prospects.py` → `data/prospects.json` (+ `data/prospect-index.json`).
+Rendered by `prospect-model.html` / `assets/js/prospect-model.js`.
+Added 2026-08-11.
+
+The rookie-side sibling of the Player Profile page. Same precomputed-percentile contract
+and the same bar recipe, different subject: this ranks a **draft prospect** against other
+prospects at his position, where the profile page ranks an **NFL season** against that
+season's peers. It is also what fills the profile page's known gap — `profile.json`
+contains only players with NFL stat rows, so an incoming rookie has no card there at all.
+
+### Corpus
+
+| Position | Prospects | Classes | Current class (2026) |
+| --- | --- | --- | --- |
+| WR | 346 | 2016–2026 | 45 |
+| RB | 232 | 2015–2026 | 22 |
+| TE | 163 | 2015–2026 | 27 |
+
+**741 prospects, 94 in the current class.** There is **no QB model** — a scope decision,
+not a pending gap; the page states it rather than rendering an empty position.
+
+### Reading the source workbooks
+
+The three model workbooks are live working spreadsheets, not exports. Each carries notes,
+adjustment rules and regression output **above** the real header, and the header sits on a
+different row in each file:
+
+| Workbook | Sheet | Header row |
+| --- | --- | --- |
+| `WR Model.xlsx` | Player Model | **6** |
+| `RB Model.xlsx` | Player Model | **4** |
+| `TE Model.xlsx` | Player Model | **8** |
+
+Rows 1–5 of the WR sheet are correlation coefficients and reminders ("If you run under 4.33
+at the Combine, multiply draft capital by .6"). Those are data *about* the model, and
+reading them as a header produces a file full of floats-as-column-names. So the header row
+is configured explicitly in `sync-prospects.config.json` and every column is then addressed
+**by name**, never by index — a re-export that inserts a column cannot silently change the
+meaning of a bar. The script refuses to run if a configured header row yields fewer than 8
+name-like columns.
+
+Column names in the maps reproduce the sheets' original typos (`2nd-best both-adjsuted`,
+`schedule-adjsuted`) **on purpose**. Fix the sheet first, then the map.
+
+### Model variants
+
+Each position ships more than one grade. They are all real outputs, so the card exposes all
+of them and defaults to the one the sheet itself treats as final.
+
+| Pos | Key | Column | What it applies |
+| --- | --- | --- | --- |
+| WR | `base` | Model Output | Nothing — adjusted production, career efficiency, draft capital |
+| WR | `fast40` | Model with Fast 40 dock | A sub-4.33 forty discounts draft capital by 40% |
+| WR | **`final`** | Penalty for bad competition… | The above **plus** a 20% penalty for a non-Power prospect or a sub-.55 final SOS taken inside the first two rounds. The cell above this column reads "Final Model". |
+| RB | **`full`** | Model Result | Schedule- and age-adjusted yards-after-contact, receiving usage, draft capital |
+| RB | `noBest` | Result without best season | Leave-one-out check: does the grade rest on one outlier year |
+| TE | **`sporq`** | Model output with SPORQ bonus | Pre-combine **plus** 20% for a 90+ SPORQ, 5% penalty below |
+| TE | `preCombine` | Model Output Pre-Combine | Production, efficiency and draft capital only |
+
+Bold = default. A prospect showing identical numbers across variants simply had no
+adjustment apply — a Power-conference WR who ran 4.53, or a TE with no SPORQ score
+(8 of the 27 in the 2026 class), whose SPORQ grade falls back to pre-combine.
+
+### Visual contract with the Player Profile page
+
+The prospect page is the rookie-side twin of `player-profile.html` and is built **on** that
+page's stylesheet rather than beside it. `prospect-model.html` loads `player-profile.css`,
+and `prospect-model.js` emits the same class names — `pf-grid`, `pf-card`, `pf-kpi`,
+`pf-group`, `pf-bar-row`, `pf-bubble`, `pf-donut`, `pf-share-row`, `pf-table`,
+`pf-season-tab`. The layout is the same three-column grid: identity + grade + market on the
+left, percentile bars in the middle, usage share on the right, with the comps and the season
+table full-width beneath.
+
+`prospect-model.css` contains **only** what the profile page has no counterpart for: the
+class board's rank / name / grade / percentile-chip cells, the historical-comp cards, and
+the "Final" tag on the last college season. Nothing shared is redefined, so restyling the
+profile page restyles this one automatically.
+
+Pool default: **All Classes is the default and is listed first**; the prospect's own class is
+the second tab.
+
+### Usage Share — donut and share bars
+
+Built from the prospect's **final college season** (the last row of `seasons[]`), which is
+the season the model's final-season inputs come from. Same two-slice donut geometry as
+`player-profile.js` (R = 52, stroke 20, rotated −90°, both slices direct-labeled in the
+legend so identity is never carried by color alone).
+
+| Pos | Donut | Share bars |
+| --- | --- | --- |
+| RB | **Touch mix** — carries vs receptions | Breakaway rate, yards after contact per carry, PFF rushing grade |
+| WR / TE | **Target mix** — downfield vs screens | Catch rate, contested catch rate, drop rate |
+
+The RB donut is deliberately the same split the profile page shows for an NFL back, so the
+two pages answer the same question about the same position.
+
+Screens are split out for receivers because the models carry **both** a with-screens and a
+minus-screens career efficiency number (`Career YPRR` vs `Career YPRR minus screens`,
+`Career 1D/RR` vs `Career 1D/RR minus screens`) — so how much of a receiver's target diet was
+screens is part of reading his grade, not a footnote. This required two extra count columns
+in the college join (`screen targets`, `contested_targets`); the rate columns already
+present are not enough to build a donut from.
+
+Two of the RB share bars are **not percentages** (yards after contact per carry, PFF grade).
+Those print their real units and scale the track position only — the bar is a position, the
+number is the truth.
+
+### Percentile rank — two pools
+
+Identical mid-rank definition to the profile page, so a bar means the same thing on both:
+
+```
+pct = round(100 × (countBelow + countEqual / 2) / n)
+if metric.invert: pct = 100 - pct
+```
+
+Computed over **both** pools and shipped as `pctAll` / `pctClass`; the page toggles between
+them and never does distribution math in the browser.
+
+| Pool | Basis | Answers |
+| --- | --- | --- |
+| `all` | Every prospect at this position, all classes | A grade means the same thing every year |
+| `class` | His own draft class at his position | Who is the best available this year |
+
+A class with fewer than `MIN_CLASS_POOL` (**5**) prospects at a position gets no
+within-class percentiles — below that a percentile is just the rank restated, and a bar
+implying a distribution would be a lie. The page falls back to all-classes bars and says
+so. No class in the current corpus is that small (smallest: TE 2016 at 7), so this path is
+defensive.
+
+**`invert` is set for exactly three metrics** — `40 time`, plus the age column each position
+carries (`age at draft` for WR, `Age Sept 1st` for RB, `age` for TE). A younger, faster
+prospect is a better prospect at the same production. Those rows are marked with a ↓.
+
+### Percentile audit
+
+The workbooks carry their own percentile column next to most variants. We do **not** consume
+it as the bar value — every percentile is recomputed here so the model grade and its ~20
+input metrics are all ranked by one definition over one pool. The sheet's column is instead
+used as an **audit**: a recomputed all-classes percentile that drifts more than
+`PCT_AUDIT_TOL` (**6 points**) from the sheet's own is reported, because that means the pool
+this script built is not the pool the sheet was ranked over. All three positions currently
+audit clean.
+
+### Cross-position ordering (the class board and "Nth in the class")
+
+The three position models are fit separately, so **their raw grades are not comparable** —
+a class-leading RB grade is 364 and a class-leading WR grade is 214. Sorting raw grades
+across positions would just sort by position. The stored percentile is position-normalized
+but rounded to an integer, which leaves large ties at the top (Jeremiyah Love and Carnell
+Tate are both "99th").
+
+So both the board and the card's "model has him Nth in the class" line order on each
+prospect's **fractional standing inside his own position pool**:
+
+```
+score = 1 − (rankWithinPosition − 1) / positionPoolSize
+```
+
+Position-normalized *and* fine-grained enough that ties are real ties. Both callers go
+through one `classOrder()` helper so the two surfaces can never disagree — they did in the
+first cut, with the board saying 2nd and the card saying 1st for the same player.
+
+### What Drives The Grade
+
+Production percentile against draft-capital percentile, from the sheets' own
+production-only and draft-capital columns. The composite grade hides which one is carrying
+it, and a prospect 90th in production / 20th in draft capital is a completely different bet
+from the reverse. The workbooks store these as 0–1 fractions; `sync-prospects.py` normalizes
+them to 0–100 so everything on the page is on one scale.
+
+### Historical comps
+
+The six nearest grades from **past** classes on the current variant, each with the NFL
+outcome the model was fit against (the average of a player's best two of his first three
+seasons), colored on the same diverging scale so a hit reads orange and a bust reads blue.
+
+⚠ **The current class is excluded, and its target cell lies.** The workbooks disagree about
+how to say "hasn't played yet": WR and TE leave the cell blank (45 and 27 blanks in the 2026
+class) but RB writes a literal **0** for all 22. A real 0 is also a legitimate historical
+value — 31 WRs, 19 RBs and 13 TEs in past classes genuinely never produced — so the zero
+cannot be distinguished by value, only by class. `sync-prospects.py` therefore drops `target`
+for the current class outright, for every position; carrying RB's placeholder through would
+have dropped 22 phantom busts into every comp pool.
+
+### College stat lines
+
+Per-season college production joined from the two Combined PFF workbooks on `player_id`.
+Receivers feed WR + TE, Rushing feeds RB. Join rates measured 2026-08-11: **WR 346/346,
+TE 163/163, RB 230/231** — the model sheets and the college databases share an id space, so
+this join is effectively total and a low rate means a wrong file, not missing data.
+
+These are raw, untouched by the model. The model reads schedule-, age- and
+competition-adjusted versions, so a line in the table will not match a bar above. That is
+expected, not a bug, and the page says so.
+
+### Market join
+
+`values.json` + `mvs.json` + `adp.json` (`rookie_draft_sf` / `rookie_draft_1qb`), matched on
+a normalized name with **generational suffixes stripped** — the workbooks and Sleeper
+disagree constantly about Jr./III. For the current class the page reports the gap between
+the model's cross-position class rank and the rookie-draft ADP rank ("model is higher than
+the room by N spots"), which is the reach/value read and is meaningless once a class has
+played. Older classes drop out of the market as players leave the league; that is expected
+rather than a join failure.
+
+### ⚠ Source gaps in the current class
+
+Measured 2026-08-11, and re-checked loudly by `audit_coverage()` on every sync run:
+
+| Workbook | Metric | Past classes | 2026 class |
+| --- | --- | --- | --- |
+| WR | Height, Weight, BMI | 100% | **0 / 45** |
+| TE | Weight, Age | 100% | **0 / 27** |
+| TE | SPORQ | ~70% | 19 / 27 |
+| RB | *Kaelon Black* | — | graded off **2 of 14** input metrics |
+
+A metric with **no raw value is not drawn at all**, and the card's caption states how many
+were dropped for that prospect. This is distinct from an **unranked** row, which has a raw
+value but no percentile — that one still renders, showing the value with no bubble. Keeping
+empty rows turned a 2026 WR's Athleticism card into a wall of dashes that read as broken
+rather than as absent.
+
+**These are source-data conditions, not script errors.** Filling them in is a workbook edit,
+after which a re-run of `sync-prospects.py` picks them up with no code change.
