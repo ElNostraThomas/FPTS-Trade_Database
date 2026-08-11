@@ -47,7 +47,33 @@ month bucket improved over what was live (ALL 3,040 → 3,910 drafts, 971 → 1,
 
 ---
 
-## Where we are (2026-08-11) — NEW Prospect Model page (rookie grades)
+## Where we are (2026-08-11) — NEW Prospect Model page — SHIPPED & LIVE
+
+**Two commits pushed. `main` in sync with `origin/main`, clean tree (0/0). Both verified
+live on Pages over HTTP, not merely pushed.**
+
+| Commit | What |
+| --- | --- |
+| **`020dae7`** | NEW 13th page `prospect-model.html` + the `sync-prospects.py` pipeline |
+| **`342c722`** | Prospect data reach — drawer grade on all 13 pages, alignment + run-scheme visuals, model-vs-NFL disagreement board, tier/posRank |
+
+**▶ NEXT SESSION.** The 2026-08-11 work is fully shipped and documented; nothing is owed.
+Highest-value items now open, in order — none is blocking, and the first is the only one
+that is purely a decision:
+
+1. **`.nav-brand` is unstyled on all 13 pages** (see the pre-existing-defects section
+   below). One small CSS rule, but it needs the intended brand typography, which is the
+   operator's call rather than a bug fix. **Ask before building.**
+2. **The 2026 class is missing measurables in the source workbooks** — WR height/weight/BMI
+   0/45, TE height/weight/age 0/27. Pure workbook edit; a re-run of `sync-prospects.py`
+   picks them up with **no code change**.
+3. **MVS + trade CSV is still 2026-07-29** — needs a fresh Supabase export from the
+   operator. Data-blocked here.
+4. **Redraft Market is still a placeholder** on the profile page; wiring it needs a
+   value-basis decision in `sync-mvs.py` plus a third format key through `FP_VALUES`.
+
+Everything build-able from the prospect work is done. Don't fabricate work — if none of the
+above is wanted, **ask** for a feature, a data refresh, or a tester bug report.
 
 New **thirteenth page** `prospect-model.html`: the rookie-side sibling of the Player Profile
 page, built on the analyst's WR / RB / TE prospect model workbooks. This closes the profile
@@ -202,6 +228,10 @@ in `FORMULAS.md`, `CHANGES.md` and the Legend.
 
 ### Open on the prospect page
 
+- **Source workbooks are missing 2026-class measurables** — WR height/weight/BMI 0/45, TE
+  height/weight/age 0/27, and one RB (Kaelon Black) graded off 2 of 14 inputs.
+  `audit_coverage()` warns on every run. **Workbook edit, not a code fix** — a re-run picks
+  them up unchanged.
 - **Rookie ADP is only wired for the current class.** Older classes show dynasty value but no
   rookie ADP, since the ADP payload only carries the live rookie-draft market.
 - **The workbook constants are not adjustable from this repo** — the 0.6 forty multiplier, the
@@ -209,6 +239,14 @@ in `FORMULAS.md`, `CHANGES.md` and the Legend.
   live in the spreadsheets. Flagged "analyst input requested" in formulas card 56.
 - **The two `Combined Receivers` files in Downloads are byte-identical duplicates** — the
   config points at the un-suffixed one.
+- **Cross-page reach is deliberately capped at the drawer** — see the coverage table in
+  formulas card 64. Grade columns on the trade DB / rankings / My Leagues were **considered
+  and rejected**: 79% coverage on the tradeable universe but 53% on the full dictionary and
+  0% on QBs, and a college grade is superseded by NFL production for the veterans those
+  pages serve. Don't relitigate without new coverage numbers.
+- **`sync-prospects.py` needs `python-calamine`** (`py -m pip install python-calamine`).
+  openpyxl reads the same workbooks correctly but takes minutes on the 25k-row college
+  sheets where calamine takes seconds.
 
 ---
 
@@ -317,7 +355,7 @@ And closed **#6 (slim the My Leagues sidebar Waivers tab)**: the value-column ov
 
 And closed **#3 (finder variety guard)**: `mlTfPickOffers` merged two engine passes (fit + value) and deduped only by full package signature, so two offers sharing the same primary anchor with a swapped 3rd/4th piece both survived. New `mlTfPrimaryKey` + `mlTfPickVariety` prefer distinct primary anchors (fall back to same-anchor only when distinct ones run short), wired into both Fair (`slice`) and Aggressive (`spread`) returns. The calc Trade Builder inherits it (calls `mlTfPickOffers`). Token `trade-finder.js` → `1800400000`; Legend "Suggestion variety" + `FORMULAS.md` variety block + public node **S38** (`legend-content.js`/`formulas-content.js` → `1800400000`). Python-port-validated (clustering broken, graceful fallback); check-colors CLEAN; balance OK.
 
-**▶ NEXT SESSION — punch list is drained of actionable items.** With #5 shipped (2026-07-15), everything build-able (#1–#6) is done; the only two left are both **non-actionable on their own** — #7 is data-blocked and #8 is reactive. So there is **nothing to proactively pick up** — **ASK the user** what they want (a new feature, a data refresh, or a tester bug report); don't fabricate work. Full history in `~/.claude/plans/put-all-of-those-flickering-music.md` Part B.
+**▶ NEXT SESSION (2026-07-15 — SUPERSEDED by the 2026-08-11 block at the top of this file) — punch list is drained of actionable items.** With #5 shipped (2026-07-15), everything build-able (#1–#6) is done; the only two left are both **non-actionable on their own** — #7 is data-blocked and #8 is reactive. So there is **nothing to proactively pick up** — **ASK the user** what they want (a new feature, a data refresh, or a tester bug report); don't fabricate work. Full history in `~/.claude/plans/put-all-of-those-flickering-music.md` Part B.
 1. ~~**De-dupe charts**~~ — ✅ done 2026-07-03 (`compare.html` delegates to `window.TrendChart` via `classPrefix`).
 2. ~~**Calc-side suggestion quality**~~ — ✅ done 2026-06-29 (`6483d6f`).
 3. ~~**Finder variety guard**~~ — ✅ done (`55d9d6a`).
@@ -336,7 +374,7 @@ Pure data / factory-pipeline session, **no site-code change**.
 - **MVS:** new market CSV → `sync-trades.py` / `sync-mvs.py` (trades archive **22,871 → 29,094**; 527 players / 60 picks; modeled-TEP intact, Metcalf SF 1886 > Pierce) → shipped `5af399e`.
 - **ADP:** found the live board had been frozen at **May 15** — `02_update_adp_snapshot` writes only the per-season partition, but `sync-adp.py` reads the consolidated `adp_time_series_ALL.parquet`, which only a full `01` re-scrape rebuilds. Ran the `02` crawl (fresh 2026 = 429,964 rows; `CURRENT_SEASON` auto-detects now), rebuilt the `_ALL` files from on-disk partitions, re-synced both repos. Fixed a schema-mismatch regression (`02` ships `status`, `01`/`sync-adp` expect `draft_status` → weekly collapsed **22 → 0**; coalesced it). Main now has **June + 28 weekly buckets** → shipped `7d034a1`. Standalone gained June (push its own `push.bat`). Pipeline gotchas saved in memory `reference-fpts-adp-refresh`; the real refresh chain is **`02` → rebuild `_ALL` (with `draft_status` coalesce) → `sync-adp`**.
 
-**▶ NEXT SESSION — start from the standing punch list** (full version in `~/.claude/plans/put-all-of-those-flickering-music.md` Part B; #1 True Weekly ADP already shipped):
+**▶ NEXT SESSION (2026-06-23 — SUPERSEDED by the 2026-08-11 block at the top of this file) — start from the standing punch list** (full version in `~/.claude/plans/put-all-of-those-flickering-music.md` Part B; #1 True Weekly ADP already shipped):
 1. **De-dupe charts** — `compare.html` `_pcChart`/`_pcChartStats` → delegate to shared `window.TrendChart`; move `.pc-chart*` CSS into the shared file.
 2. **Calc-side suggestion quality** — port Fair-mode / startability / owner-willingness from the Trade Finder into `trade-calc.js` `openTradeSuggestModal`. *(biggest win)*
 3. **Finder variety guard** — de-dup by anchor asset in the finder's own ≤3-offer list.
